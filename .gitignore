@@ -1,0 +1,27 @@
+# Produced files
+
+/build
+/build/*
+
+# IDE related files
+nbproject
+**.sublime-project
+**.sublime-workspace
+.idea
+
+# Random Trash
+*.swp
+*.swo
+*~
+core
+vgcore.*
+**.orig
+**.directory
+**.patch
+.tags*
+cscope.*
+*.pyc
+
+# ctags and ID database
+tags
+ID

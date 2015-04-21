@@ -1,0 +1,6 @@
+[submodule "deps/jerry"]
+	path = deps/jerry
+	url = https://github.com/Samsung/jerryscript.git
+[submodule "deps/libuv"]
+	path = deps/libuv
+	url = https://github.com/Samsung/libuv.git

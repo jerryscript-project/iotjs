@@ -1,5 +1,7 @@
 # IoT.js
 
+You can find project details in wiki.
+
 ## How To build
 
 ```

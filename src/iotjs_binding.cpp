@@ -119,6 +119,13 @@ JObject::JObject(const jerry_api_value_t* val, bool need_unref) {
   _unref_at_close = need_unref;
 }
 
+JObject::JObject(jerry_external_handler_t handler) {
+  _obj_val.v_object = jerry_api_create_external_function(handler);
+  assert(jerry_api_is_constructor(_obj_val.v_object));
+  _obj_val.type = JERRY_API_DATA_TYPE_OBJECT;
+  _unref_at_close = true;
+}
+
 JObject::~JObject() {
   if (_unref_at_close) {
     Unref();

@@ -13,39 +13,16 @@
  * limitations under the License.
  */
 
-#ifndef IOTJS_MODULE_H
-#define IOTJS_MODULE_H
+#ifndef IOTJS_MODULE_TIMER_H
+#define IOTJS_MODULE_TIMER_H
 
 #include "iotjs_binding.h"
 
 
 namespace iotjs {
 
-typedef JObject* (*register_func)();
-
-enum ModuleKind {
-  MODULE_BUFFER,
-  MODULE_CONSOLE,
-  MODULE_FS,
-  MODULE_PROCESS,
-  MODULE_TIMER,
-  MODULE_COUNT,
-};
-
-
-struct Module {
-  ModuleKind kind;
-  JObject* module;
-  register_func fn_register;
-};
-
-
-void InitModuleList();
-
-void CleanupModuleList();
-
-Module* GetBuiltinModule(ModuleKind kind);
+JObject* InitTimer();
 
 } // namespace iotjs
 
-#endif /* IOTJS_MODULE_H */
+#endif /* IOTJS_MODULE_TIMER_H */

@@ -20,6 +20,7 @@
 #include "iotjs_module_console.h"
 #include "iotjs_module_fs.h"
 #include "iotjs_module_process.h"
+#include "iotjs_module_timer.h"
 
 namespace iotjs {
 
@@ -40,7 +41,8 @@ static Module _modules[MODULE_COUNT];
   F(BUFFER, Buffer, buffer) \
   F(CONSOLE, Console, console) \
   F(FS, Fs, fs) \
-  F(PROCESS, Process, process)
+  F(PROCESS, Process, process) \
+  F(TIMER, Timer, timer)
 
 void InitModuleList() {
   MAP_MODULE_LIST(INIT_MODULE_LIST)

@@ -39,6 +39,12 @@ namespace iotjs {
       static_cast<int32_t>((val_p)->v_float64) : \
     static_cast<int32_t>((val_p)->v_uint32))
 
+#define JVAL_TO_INT64(val_p) \
+   ((val_p)->type == JERRY_API_DATA_TYPE_FLOAT32 ? \
+      static_cast<int64_t>((val_p)->v_float32) : \
+    (val_p)->type == JERRY_API_DATA_TYPE_FLOAT64 ? \
+      static_cast<int64_t>((val_p)->v_float64) : \
+    static_cast<int64_t>((val_p)->v_uint32))
 
 #define JERRY_THROW(msg) do { assert(!"not implemented"); } while (false)
 
@@ -79,6 +85,7 @@ class JObject {
   explicit JObject(const char* v);
   explicit JObject(const jerry_api_object_t* obj, bool need_unref = true);
   explicit JObject(const jerry_api_value_t* val, bool need_unref = true);
+  explicit JObject(jerry_external_handler_t handler);
   ~JObject();
 
   void Ref();

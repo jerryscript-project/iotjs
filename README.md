@@ -1,5 +1,5 @@
-<center><img src="https://github.com/Samsung/iotjs/blob/wikiattach/iotjs_160.png" alt="" style="height: 250px;" /></center>  
-<p>
+<center>## <img src="https://github.com/Samsung/iotjs/blob/wikiattach/iotjs_160.png" alt="" style="height: 250px;" /> IoT.js </center>  
+<br>
 You can find project details in wiki.
 
 ## How To build

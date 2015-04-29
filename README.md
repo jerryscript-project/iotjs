@@ -1,5 +1,7 @@
-<center><img src="https://github.com/Samsung/iotjs/blob/wikiattach/iotjs_160.png" alt="" style="height: 250px;" />  </center>  
-<hr>
+
+![alt tag](https://github.com/Samsung/iotjs/blob/wikiattach/iotjs_160.png)
+- - -
+
 You can find project details in wiki.
 
 ## How To build

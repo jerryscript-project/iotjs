@@ -100,11 +100,13 @@ options = {
     'buildlib': False,
     'target-arch': sys_machine(),
     'target-os': sys_name(),
-    'make-flags': '-j9',
+    'make-flags': '-j',
     'nuttx-home': '',
     'init-submodule': True,
     'tidy': True,
 }
+
+boolean_opts = ['buildlib', 'init-submodule', 'tidy']
 
 def opt_build_type():
     return options['buildtype']
@@ -145,6 +147,11 @@ def opt_init_submodule():
 def opt_tidy():
     return options['tidy']
 
+def parse_boolean_opt(name, arg):
+    if arg.endswith(name):
+        options[name] = False if arg.startswith('no') else True
+        return True
+    return False
 
 def parse_args():
     for arg in sys.argv:
@@ -158,8 +165,6 @@ def parse_args():
                 options[opt] = val.lower()
         elif opt == 'builddir':
             options[opt] = val
-        elif opt == 'buildlib':
-            options[opt] = True
         elif opt == 'target-arch':
             if val.lower() in ['x86_64', 'i686', 'arm']:
                 options[opt] = val.lower()
@@ -170,10 +175,10 @@ def parse_args():
             options[opt] = val
         elif opt == 'nuttx-home':
             options[opt] = val
-        elif opt.endswith('init-submodule'):
-            options['init-submodule'] = False if opt.startswith('no') else True
-        elif opt.endswith('tidy'):
-            options['tidy'] = False if opt.startswith('no') else True
+        else:
+            for opt_name in boolean_opts:
+                if parse_boolean_opt(opt_name, opt):
+                    break
 
 def init_submodule():
     run_cmd('git', ['submodule', 'init'])

@@ -95,7 +95,7 @@ def sys_machine():
 
 
 options = {
-    'buildtype': 'release',
+    'buildtype': 'debug',
     'builddir': 'build',
     'buildlib': False,
     'target-arch': sys_machine(),
@@ -185,6 +185,18 @@ def init_submodule():
     run_cmd('git', ['submodule', 'update'])
 
 
+def get_cache_path(cache_dir, libname, cache_hash):
+    cache_path = join_path([cache_dir, libname + '.' + cache_hash])
+    if not opt_init_submodule():
+        cache_path += "-dirty"
+    return cache_path
+
+def check_cached(cache_path):
+    if not opt_init_submodule():
+        return False
+    return check_path(cache_path)
+
+
 def libuv_output_path():
     return join_path([opt_build_libs(), "libuv.a"])
 
@@ -203,10 +215,10 @@ def build_libuv():
 
     # libuv cached library.
     build_cache_dir = join_path([build_home, 'cache'])
-    build_cache_name = join_path([build_cache_dir, 'libuv.' + git_hash])
+    build_cache_path = get_cache_path(build_cache_dir, 'libuv', git_hash)
 
-    # check if cache exists.
-    if not check_path(build_cache_name):
+    # check if cache is available.
+    if not check_cached(build_cache_path):
         # build libuv.
 
         # make build directory.
@@ -215,13 +227,11 @@ def build_libuv():
         # change current directory to libuv.
         os.chdir(LIBUV_ROOT)
 
-
         # libuv is using gyp. run the system according to build target.
         if opt_target_arch() == 'arm' and opt_target_os() =='nuttx':
             run_cmd('./nuttx-configure', [opt_nuttx_home()])
         else:
             run_cmd('./gyp_uv.py', ['-f', 'make'])
-
 
         # set build type.
         build_type = 'Release' if opt_build_type() == 'release' else 'Debug'
@@ -242,11 +252,11 @@ def build_libuv():
 
         # copy output to cache
         mkdir(build_cache_dir)
-        copy(output, build_cache_name)
+        copy(output, build_cache_path)
 
     # copy cache to libs directory
     mkdir(opt_build_libs())
-    copy(build_cache_name, libuv_output_path())
+    copy(build_cache_path, libuv_output_path())
 
     return True
 
@@ -269,10 +279,12 @@ def build_libjerry():
 
     # jerry cached library.
     build_cache_dir = join_path([build_home, 'cache'])
-    build_cache_name = join_path([build_cache_dir, 'libjerry-core.' + git_hash])
+    build_cache_path = get_cache_path(build_cache_dir,
+                                      'libjerry-core',
+                                      git_hash)
 
-    # check if cache exists.
-    if not check_path(build_cache_name):
+    # check if cache is available.
+    if not check_cached(build_cache_path):
         # build jerry.
 
         # make build directory.
@@ -280,7 +292,6 @@ def build_libjerry():
 
         # change current directory to build directory.
         os.chdir(build_home)
-
 
         # libjerry is using cmake.
         # prepare cmake command line option.
@@ -306,7 +317,6 @@ def build_libjerry():
         run_cmd('cmake', jerry_cmake_opt)
         run_cmd('cmake', jerry_cmake_opt)
 
-
         # cmake will produce a Makefile.
 
         # set build target.
@@ -330,11 +340,11 @@ def build_libjerry():
 
         # copy output to cache
         mkdir(build_cache_dir)
-        copy(output, build_cache_name)
+        copy(output, build_cache_path)
 
     # copy cache to libs directory
     mkdir(opt_build_libs())
-    copy(build_cache_name, libjerry_output_path())
+    copy(build_cache_path, libjerry_output_path())
 
     return True
 

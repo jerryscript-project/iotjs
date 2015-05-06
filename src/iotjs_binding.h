@@ -100,6 +100,7 @@ class JObject {
   void SetProperty(const char* name, JObject* val);
   JObject GetProperty(const char* name);
   void SetNative(uintptr_t ptr);
+  void SetFreeCallback(jerry_object_free_callback_t freecb);
   JObject Call(JObject* this_, JObject** args, uint16_t argv);
   uintptr_t GetNative();
 

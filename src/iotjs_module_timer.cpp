@@ -15,30 +15,28 @@
 
 #include <assert.h>
 
-#include "uv.h"
-
 #include "iotjs_util.h"
-#include "iotjs_binding.h"
 #include "iotjs_env.h"
 #include "iotjs_module.h"
+#include "iotjs_handlewrap.h"
 #include "iotjs_module_timer.h"
 
 
 namespace iotjs {
 
-class TimerWrap {
+class TimerWrap : public HandleWrap {
  public:
-  explicit TimerWrap(JObject* othis);
+  explicit TimerWrap(Environment* env, JObject* othis);
   virtual ~TimerWrap();
 
   static TimerWrap* FromHandle(uv_timer_t* handle);
   uv_timer_t* handle_ptr() { return &_handle; }
 
-  void OnTimeout();
-
   void set_timeout(int64_t timeout) { _timeout = timeout; }
   void set_repeat(int64_t repeat) { _repeat = repeat; }
-  void set_callback(JObject* cb) { _callback = cb; _callback->Ref(); }
+  void set_callback(JObject* cb) { _callback = cb; }
+
+  void OnTimeout();
 
  protected:
   uv_timer_t _handle;
@@ -48,25 +46,19 @@ class TimerWrap {
   int64_t _repeat;
 };
 
-
-TimerWrap::TimerWrap(JObject* othis)
-    : _obj(othis)
+TimerWrap::TimerWrap(Environment* env, JObject* othis)
+    : HandleWrap(othis, reinterpret_cast<uv_handle_t*>(&_handle))
+    , _obj(othis)
     , _callback(NULL) {
-  _obj->Ref();
-  _obj->SetNative((uintptr_t)this);
-
-  Environment* env = Environment::GetEnv();
   uv_timer_init(env->loop(), &_handle);
-  _handle.data = this;
 }
 
 TimerWrap::~TimerWrap() {
-  _obj->SetNative((uintptr_t)NULL);
   delete _obj;
-  if (_callback) {
+  if (_callback)
     delete _callback;
-  }
 }
+
 
 TimerWrap* TimerWrap::FromHandle(uv_timer_t* handle) {
   TimerWrap* timer_wrap = static_cast<TimerWrap*>(handle->data);
@@ -78,11 +70,8 @@ TimerWrap* TimerWrap::FromHandle(uv_timer_t* handle) {
 void TimerWrap::OnTimeout() {
   if (_callback && _callback->IsFunction())
     _callback->Call(_obj, NULL, 0);
-
-  // Todo: remove delete line after binding object destruction with native obj
-  if (_repeat == 0)
-    delete this;
 }
+
 
 static void timerHandleTimeout(uv_timer_t* handle) {
   TimerWrap* timer_wrap = TimerWrap::FromHandle(handle);
@@ -112,7 +101,7 @@ static bool timerStart(const jerry_api_object_t *function_obj_p,
     return false;
   }
   jerry_api_value_t* cb = const_cast<jerry_api_value_t*>(&args_p[2]);
-  JObject* jcallback = new JObject(cb);
+  JObject* jcallback = new JObject(cb, false);
 
   timer_wrap->set_timeout(timeout);
   timer_wrap->set_repeat(repeat);
@@ -127,10 +116,10 @@ static bool timerStart(const jerry_api_object_t *function_obj_p,
 }
 
 static bool timerStop(const jerry_api_object_t *function_obj_p,
-                       const jerry_api_value_t *this_p,
-                       jerry_api_value_t *ret_val_p,
-                       const jerry_api_value_t args_p [],
-                       const uint16_t args_cnt) {
+                      const jerry_api_value_t *this_p,
+                      jerry_api_value_t *ret_val_p,
+                      const jerry_api_value_t args_p [],
+                      const uint16_t args_cnt) {
   JObject othis(this_p->v_object, false);
   TimerWrap* timer_wrap;
   timer_wrap = reinterpret_cast<TimerWrap*>(othis.GetNative());
@@ -141,9 +130,6 @@ static bool timerStop(const jerry_api_object_t *function_obj_p,
 
   int err = uv_timer_stop(timer_wrap->handle_ptr());
   *ret_val_p = JVal::Int(err);
-
-  // Todo: remove delete line after binding object destruction with native obj
-  delete timer_wrap;
 
   return true;
 }
@@ -157,12 +143,9 @@ static bool timerConstruct(const jerry_api_object_t *function_obj_p,
   assert(this_p->type == JERRY_API_DATA_TYPE_OBJECT);
   // Todo: check this function is called using new
 
-  JObject* othis = new JObject(this_p);
-  TimerWrap* timer_wrap = new TimerWrap(othis);
-  if (timer_wrap == NULL) {
-    JERRY_THROW("out of memory, new timer");
-    return false;
-  }
+  Environment* env = Environment::GetEnv();
+  JObject* othis = new JObject(this_p, false);
+  new TimerWrap(env, othis);
 
   return true;
 }

@@ -179,6 +179,11 @@ uintptr_t JObject::GetNative() {
   return ptr;
 }
 
+void JObject::SetFreeCallback(jerry_object_free_callback_t freecb) {
+  assert(IsObject());
+  jerry_api_set_object_free_callback(_obj_val.v_object, freecb);
+}
+
 JObject JObject::Call(JObject* this_, JObject** args, uint16_t argv) {
   assert(IsFunction());
 

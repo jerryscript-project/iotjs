@@ -65,6 +65,13 @@ function init_util() {
   };
   exports.isFunction = isFunction;
 
+  function isBuffer(arg) {
+    return arg instanceof Buffer;
+  };
+  exports.isBuffer = isBuffer;
+
+  exports.isArray = Array.isArray;
+
   function inherits(ctor, superCtor) {
     ctor.prototype = new superCtor();
   };
@@ -110,6 +117,33 @@ function init_buffer() {
     return str.length;
   }
 
+  Buffer.concat = function(list) {
+    /*
+    if (!util.isArray(list)) {
+      throw new TypeError(
+          '1st parameter for Buffer.concat() should be array of Buffer');
+    }
+    */
+
+    length = 0;
+    for (var i = 0; i < list.length; ++i) {
+      if (!util.isBuffer(list[i])) {
+        throw new TypeError(
+            '1st parameter for Buffer.concat() should be array of Buffer');
+      }
+      length += list[i].length;
+    }
+
+    var buffer = new Buffer(length);
+    var pos = 0;
+    for (var i = 0; i < list.length; ++i) {
+      list[i].copy(buffer, pos);
+      pos += list[i].length;
+    }
+
+    return buffer;
+  }
+
   Buffer.prototype.write = function(string, offset, length, encoding) {
     // buffer.write(string)
     if (util.isUndefined(offset)) {
@@ -139,7 +173,7 @@ function init_buffer() {
     //encoding = !!encoding ? (encoding + '').toLowerCase() : 'utf8';
 
     if (length < 0 || offset < 0) {
-      throw 'attempt to write outside buffer bounds';
+      throw new Error('attempt to write outside buffer bounds');
     }
 
     return this._write(string, offset, length);
@@ -186,7 +220,7 @@ function init_events() {
 
   EventEmitter.prototype.addListener = function(type, listener) {
     if (!util.isFunction(listener)) {
-      throw 'linster must be a function';
+      throw new TypeError('linster must be a function');
     }
 
     if (!this._events) {
@@ -257,22 +291,22 @@ function init_stream() {
 
   Readable.prototype.read = function(n) {
     var state = this.state;
+    var res;
 
-    if (n > state.length) {
+    if (!util.isNumber(n) || n > state.length) {
       n = state.length;
+    } else if (n < 0) {
+      n = 0;
     }
 
-    var res;
     if (n > 0) {
-      res = readBuffer(stream, n);
+      res = readBuffer(this, n);
     } else {
       res = null;
     }
 
     if (state.ended && state.length == 0) {
       emitEnd(this);
-    } else {
-      emitReadable(this);
     }
 
     return res;
@@ -318,10 +352,27 @@ function init_stream() {
       } else {
         state.length += chunk.length;
         state.buffer.push(chunk);
-        emitReadable(stream);
+        emitReadable(this);
       }
     }
   };
+
+  function readBuffer(stream, n) {
+    var state = stream.state;
+    var res;
+
+    if (state.buffer.length === 0 || state.length === 0) {
+      res = null;
+    } else if (n >= state.length) {
+      res = Buffer.concat(state.buffer);
+      state.buffer = [];
+      state.length = 0;
+    } else {
+      throw new Error('not implemented');
+    }
+
+    return res;
+  }
 
   function emitEnd(stream) {
     var state = stream.state;
@@ -378,11 +429,11 @@ emitter.emit('test', 2);
 
 var readable = new ReadableStream();
 readable.on('readable', function() {
-  console.log('event redable emitted!');
+  var data = readable.read();
+  console.log('read: ' + data.toString());
 })
 
 readable.push('abcde');
-readable.read(0);
-readable.read(0);
+readable.push('12345');
 
 }; // end of start iot.js

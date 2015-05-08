@@ -18,21 +18,61 @@
 
 namespace iotjs {
 
-static void ObjectFreeCallback(const uintptr_t native_p) {
+
+static void HandleWrapFreeHandler(const uintptr_t native_p) {
   // native_p is always non-null value
   HandleWrap* wrap = reinterpret_cast<HandleWrap*>(native_p);
   delete wrap;
 }
 
-HandleWrap::HandleWrap(JObject* othis, uv_handle_t* handle)
-    : __handle(handle) {
+
+HandleWrap::HandleWrap(JObject* jobj, uv_handle_t* handle)
+    : __handle(handle)
+    , _jobj(NULL)
+    , _jcallback(NULL) {
+
+  if (jobj != NULL) {
+    JRawValueType jraw_value = jobj->raw_value();
+    _jobj = new JObject(&jraw_value, false);
+
+    _jobj->SetNative((uintptr_t)this);
+    _jobj->SetFreeCallback(HandleWrapFreeHandler);
+  }
+
   __handle->data = this;
-  othis->SetNative((uintptr_t)this);
-  othis->SetFreeCallback(ObjectFreeCallback);
 }
 
+
 HandleWrap::~HandleWrap() {
-  __handle->data = NULL;
+  if (_jobj != NULL) {
+    delete _jobj;
+  }
+
+  if (_jcallback != NULL) {
+    delete _jcallback;
+  }
 }
+
+
+JObject* HandleWrap::object() {
+    return _jobj;
+}
+
+
+JObject* HandleWrap::callback() {
+  return _jcallback;
+}
+
+
+void HandleWrap::set_callback(JObject& jcallback) {
+  if (_jcallback != NULL) {
+    delete _jcallback;
+  }
+
+  // FIXME: Is there any risk that the `_jcallback` turns into dangling?
+  JRawValueType jraw_value = jcallback.raw_value();
+  _jcallback = new JObject(&jraw_value, false);
+}
+
 
 } // namespace iotjs

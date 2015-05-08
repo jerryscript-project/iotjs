@@ -71,10 +71,8 @@ static void CleanupModules() {
 
 
 static bool StartIoTjs() {
-  bool is_ok;
-
   // Get jerry global object.
-  JObject global(GetGlobal());
+  JObject global = JObject::Global();
 
   // Create environtment.
   Environment env(uv_default_loop());
@@ -88,7 +86,8 @@ static bool StartIoTjs() {
   assert(start_func.IsFunction());
 
   // Call the entry.
-  JObject res = start_func.Call(NULL, NULL, 0);
+  JArgList arg_list(0);
+  JObject res = start_func.Call(JObject::Null(), arg_list);
 
   bool more;
   do {

@@ -22,92 +22,81 @@
 
 namespace iotjs {
 
-static bool Write(const jerry_api_object_t *function_obj_p,
-                  const jerry_api_value_t *this_p,
-                  jerry_api_value_t *ret_val_p,
-                  const jerry_api_value_t args_p [],
-                  const uint16_t args_cnt) {
-  assert(args_cnt == 3);
-  assert(JVAL_IS_STRING(&args_p[0]));
-  assert(JVAL_IS_NUMBER(&args_p[1]));
-  assert(JVAL_IS_NUMBER(&args_p[2]));
+JHANDLER_FUNCTION(Write, handler) {
+  assert(handler.GetArgLength() == 3);
+  assert(handler.GetArg(0)->IsString());
+  assert(handler.GetArg(1)->IsNumber());
+  assert(handler.GetArg(2)->IsNumber());
 
-  char* src = DupJerryString(&args_p[0]);
+  char* src = handler.GetArg(0)->GetCString();
 
-  int offset = JVAL_TO_INT32(&args_p[1]);
-  int length = JVAL_TO_INT32(&args_p[2]);
+  int offset = handler.GetArg(1)->GetInt32();
+  int length = handler.GetArg(2)->GetInt32();
 
-  JObject buffer_obj(this_p, false);
-  char* buffer = reinterpret_cast<char*>(buffer_obj.GetNative());
+  JObject* jbuffer = handler.GetThis();
+  char* buffer = reinterpret_cast<char*>(jbuffer->GetNative());
   assert(buffer != NULL);
 
-  int buffer_length = buffer_obj.GetProperty("length").valInt32();
+  int buffer_length = jbuffer->GetProperty("length").GetInt32();
   assert(buffer_length >= offset + length);
 
-  // TODO: memcpy is not supported by nuttx.
-  // TODO: we need to account encoding.
-  // memcpy(buffer + offset, src, length);
   for (int i = 0; i < length; ++i) {
     *(buffer + offset + i) = *(src + i);
   }
 
-  *ret_val_p = JVal::Int(length);
+  JObject::ReleaseCString(src);
 
-  ReleaseJerryString(src);
+  JObject ret(length);
+  handler.Return(ret);
 
   return true;
 }
 
-static bool ToString(const jerry_api_object_t *function_obj_p,
-                     const jerry_api_value_t *this_p,
-                     jerry_api_value_t *ret_val_p,
-                     const jerry_api_value_t args_p [],
-                     const uint16_t args_cnt) {
-  assert(args_cnt == 0);
 
-  JObject buffer_obj(this_p, false);
-  char* buffer = reinterpret_cast<char*>(buffer_obj.GetNative());
+JHANDLER_FUNCTION(ToString, handler) {
+  assert(handler.GetArgLength() == 0);
+
+  JObject* jbuffer = handler.GetThis();
+  char* buffer = reinterpret_cast<char*>(jbuffer->GetNative());
   assert(buffer != NULL);
 
-  JObject jstring(buffer);
-  jstring.Ref();
-  *ret_val_p = jstring.val();
+  JObject ret(buffer);
+  handler.Return(ret);
 
   return true;
 }
 
-static bool Copy(const jerry_api_object_t *function_obj_p,
-                 const jerry_api_value_t *this_p,
-                 jerry_api_value_t *ret_val_p,
-                 const jerry_api_value_t args_p [],
-                 const uint16_t args_cnt) {
-  assert(args_cnt >= 1);
-  assert(JVAL_IS_OBJECT(&args_p[0]));
-  assert(args_cnt <= 1 || JVAL_IS_NUMBER(&args_p[1]));
-  assert(args_cnt <= 2 || JVAL_IS_NUMBER(&args_p[2]));
-  assert(args_cnt <= 3 || JVAL_IS_NUMBER(&args_p[3]));
-  assert(JVAL_IS_OBJECT(this_p));
 
-  JObject source_buffer_obj(this_p, false);
-  int source_length = source_buffer_obj.GetProperty("length").valInt32();
-  char* source_buffer = reinterpret_cast<char*>(source_buffer_obj.GetNative());
+JHANDLER_FUNCTION(Copy, handler) {
+  uint16_t args = handler.GetArgLength();
+  assert(args >= 1);
+  assert(handler.GetArg(0)->IsObject());
+  assert(args <= 1 || handler.GetArg(1)->IsNumber());
+  assert(args <= 2 || handler.GetArg(2)->IsNumber());
+  assert(args <= 3 || handler.GetArg(3)->IsNumber());
 
-  JObject target_buffer_obj(&args_p[0], false);
-  int target_length = target_buffer_obj.GetProperty("length").valInt32();
-  char* target_buffer = reinterpret_cast<char*>(target_buffer_obj.GetNative());
+  JObject* jsource_buffer = handler.GetThis();
+  int source_length = jsource_buffer->GetProperty("length").GetInt32();
+  char* source_buffer = reinterpret_cast<char*>(jsource_buffer->GetNative());
+  assert(source_buffer != NULL);
+
+  JObject* jtarget_buffer = handler.GetArg(0);
+  int target_length = jtarget_buffer->GetProperty("length").GetInt32();
+  char* target_buffer = reinterpret_cast<char*>(jtarget_buffer->GetNative());
+  assert(target_buffer != NULL);
 
   int target_start = 0;
   int source_start = 0;
   int source_end = source_length;
 
-  if (args_cnt >= 2) {
-    target_start = JVAL_TO_INT32(&args_p[1]);
+  if (args >= 2) {
+    target_start = handler.GetArg(1)->GetInt32();
   }
-  if (args_cnt >= 3) {
-    source_start = JVAL_TO_INT32(&args_p[2]);
+  if (args >= 3) {
+    source_start = handler.GetArg(2)->GetInt32();
   }
-  if (args_cnt >= 4) {
-    source_end = JVAL_TO_INT32(&args_p[3]);
+  if (args >= 4) {
+    source_end = handler.GetArg(3)->GetInt32();
     if (source_end > source_length) {
       source_end = source_length;
     }
@@ -121,44 +110,40 @@ static bool Copy(const jerry_api_object_t *function_obj_p,
     ++copied;
   }
 
-  *ret_val_p = JVal::Int(copied);
+  JObject ret(copied);
+  handler.Return(ret);
 
   return true;
 }
 
-static bool SetupBufferJs(const jerry_api_object_t *function_obj_p,
-                          const jerry_api_value_t *this_p,
-                          jerry_api_value_t *ret_val_p,
-                          const jerry_api_value_t args_p [],
-                          const uint16_t args_cnt) {
-  assert(args_cnt == 1);
-  assert(JVAL_IS_FUNCTION(&args_p[0]));
 
-  JObject jbuffer(&args_p[0], false);
-  JObject prototype(jbuffer.GetProperty("prototype"));
-  prototype.CreateMethod("_write", Write);
-  prototype.CreateMethod("_toString", ToString);
-  prototype.CreateMethod("copy", Copy);
+JHANDLER_FUNCTION(SetupBufferJs, handler) {
+  assert(handler.GetArgLength() == 1);
+  assert(handler.GetArg(0)->IsFunction());
+
+  JObject* jbuffer = handler.GetArg(0);
+  JObject prototype(jbuffer->GetProperty("prototype"));
+  prototype.SetMethod("_write", Write);
+  prototype.SetMethod("_toString", ToString);
+  prototype.SetMethod("copy", Copy);
 
   return true;
 }
 
-static bool Alloc(const jerry_api_object_t *function_obj_p,
-                  const jerry_api_value_t *this_p,
-                  jerry_api_value_t *ret_val_p,
-                  const jerry_api_value_t args_p [],
-                  const uint16_t args_cnt) {
-  assert(args_cnt == 2);
-  assert(JVAL_IS_OBJECT(&args_p[0]));
-  assert(JVAL_IS_NUMBER(&args_p[1]));
 
-  int length = JVAL_TO_INT32(&args_p[1]);
+JHANDLER_FUNCTION(Alloc, handler) {
+  assert(handler.GetArgLength() == 2);
+  assert(handler.GetArg(0)->IsObject());
+  assert(handler.GetArg(1)->IsNumber());
+
+  int length = handler.GetArg(1)->GetInt32();
   char* buffer = AllocCharBuffer(length);
 
-  JObject buffer_obj(&args_p[0], false);
-  buffer_obj.SetNative(reinterpret_cast<uintptr_t>(buffer));
+  JObject* buffer_obj = handler.GetArg(0);
+  buffer_obj->SetNative(reinterpret_cast<uintptr_t>(buffer));
 
-  *ret_val_p = JVal::Int(length);
+  JObject ret(length);
+  handler.Return(ret);
 
   return true;
 }
@@ -170,8 +155,8 @@ JObject* InitBuffer() {
 
   if (buffer == NULL) {
     buffer = new JObject();
-    buffer->CreateMethod("setupBufferJs", SetupBufferJs);
-    buffer->CreateMethod("alloc", Alloc);
+    buffer->SetMethod("setupBufferJs", SetupBufferJs);
+    buffer->SetMethod("alloc", Alloc);
 
     module->module = buffer;
   }

@@ -24,46 +24,28 @@
 
 namespace iotjs {
 
-char buffer[128];
 
-static bool Print(const jerry_api_object_t *function_obj_p,
-                  const jerry_api_value_t *this_p,
-                  jerry_api_value_t *ret_val_p,
-                  const jerry_api_value_t args_p [],
-                  const uint16_t args_cnt,
-                  FILE* out_f) {
-  if (args_cnt > 0) {
-    if (args_p[0].type == JERRY_API_DATA_TYPE_STRING) {
-      while (true) {
-        ssize_t len = jerry_api_string_to_char_buffer(
-            args_p[0].v_string, buffer, sizeof(buffer)-1);
+static bool Print(JHandlerInfo& handler, FILE* out_fd) {
+  if (handler.GetArgLength() > 0) {
+    if (handler.GetArg(0)->IsString()) {
+      char* str = handler.GetArg(0)->GetCString();
+      fprintf(out_fd, "%s\n", str);
+      JObject::ReleaseCString(str);
 
-        fprintf(out_f, buffer);
-
-        if (len >= 0) break;
-      }
-      fprintf(out_f, "\n");
       return true;
     }
   }
   return false;
 }
 
-static bool Log(const jerry_api_object_t *function_obj_p,
-                const jerry_api_value_t *this_p,
-                jerry_api_value_t *ret_val_p,
-                const jerry_api_value_t args_p [],
-                const uint16_t args_cnt) {
 
-  return Print(function_obj_p, this_p, ret_val_p, args_p, args_cnt, stdout);
+JHANDLER_FUNCTION(Log, handler) {
+  return Print(handler, stdout);
 }
 
-static bool Error(const jerry_api_object_t *function_obj_p,
-                  const jerry_api_value_t *this_p,
-                  jerry_api_value_t *ret_val_p,
-                  const jerry_api_value_t args_p [],
-                  const uint16_t args_cnt) {
-  return Print(function_obj_p, this_p, ret_val_p, args_p, args_cnt, stderr);
+
+JHANDLER_FUNCTION(Error, handler) {
+  return Print(handler, stderr);
 }
 
 
@@ -73,10 +55,10 @@ JObject* InitConsole() {
 
   if (console == NULL) {
     console = new JObject();
-    console->CreateMethod("log", Log);
-    console->CreateMethod("info", Log);
-    console->CreateMethod("error", Error);
-    console->CreateMethod("warn", Error);
+    console->SetMethod("log", Log);
+    console->SetMethod("info", Log);
+    console->SetMethod("error", Error);
+    console->SetMethod("warn", Error);
 
     module->module = console;
   }

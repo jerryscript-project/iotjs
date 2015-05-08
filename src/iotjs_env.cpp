@@ -25,7 +25,7 @@ Environment::Environment(uv_loop_t* loop)
 }
 
 Environment* Environment::GetEnv() {
-  JObject global(GetGlobal());
+  JObject global = JObject::Global();
   return (Environment*)global.GetNative();
 }
 

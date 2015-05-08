@@ -25,11 +25,18 @@ namespace iotjs {
 
 class HandleWrap {
  public:
-  HandleWrap(JObject* othis, uv_handle_t* handle);
+  HandleWrap(JObject* jobj, uv_handle_t* handle);
   virtual ~HandleWrap();
 
- private:
+  JObject* object();
+
+  JObject* callback();
+  void set_callback(JObject& jcallback);
+
+ protected:
   uv_handle_t* __handle;
+  JObject* _jobj;
+  JObject* _jcallback;
 };
 
 } // namespace iotjs

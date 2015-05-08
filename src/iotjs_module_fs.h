@@ -23,22 +23,6 @@
 
 namespace iotjs {
 
-class FsReqWrap {
- public:
-  FsReqWrap(JObject* jcallback);
-  ~FsReqWrap();
-
-  uv_req_t* req() { return (uv_req_t*)&_data; }
-  uv_fs_t* data() { return &_data; }
-  JObject* callback() { return _callback; }
-
-  void Dispatched() { req()->data = this; }
-
- private:
-  uv_fs_t _data;
-  JObject* _callback;
-};
-
 JObject* InitFs();
 
 } // namespace iotjs

@@ -20,24 +20,20 @@
 
 namespace iotjs {
 
-static bool Binding(const jerry_api_object_t *function_obj_p,
-                    const jerry_api_value_t *this_p,
-                    jerry_api_value_t *ret_val_p,
-                    const jerry_api_value_t args_p [],
-                    const uint16_t args_cnt) {
-  assert(args_cnt == 1);
-  assert(JVAL_IS_NUMBER(&args_p[0]));
 
-  int module_kind = JVAL_TO_INT32(&args_p[0]);
+JHANDLER_FUNCTION(Binding, handler) {
+  assert(handler.GetArgLength() == 1);
+  assert(handler.GetArg(0)->IsNumber());
+
+  int module_kind = handler.GetArg(0)->GetInt32();
+
   Module* module = GetBuiltinModule(static_cast<ModuleKind>(module_kind));
 
   if (module->module == NULL) {
     module->module = module->fn_register();
   }
 
-  module->module->Ref();
-
-  *ret_val_p = module->module->val();
+  handler.Return(*module->module);
 
   return true;
 }
@@ -49,12 +45,12 @@ JObject* InitProcess() {
 
   if (process == NULL) {
     process = new JObject();
-    process->CreateMethod("binding", Binding);
+    process->SetMethod("binding", Binding);
 
     module->module = process;
 
-    JObject global(GetGlobal());
-    global.SetProperty("process", process);
+    JObject global = JObject::Global();
+    global.SetProperty("process", *process);
   }
 
   return process;

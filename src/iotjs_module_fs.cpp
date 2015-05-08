@@ -15,19 +15,36 @@
 
 #include "iotjs_binding.h"
 #include "iotjs_env.h"
+#include "iotjs_handlewrap.h"
 #include "iotjs_module.h"
 #include "iotjs_module_fs.h"
 
 
 namespace iotjs {
 
-FsReqWrap::FsReqWrap(JObject* jcallback)
-    : _callback(jcallback) {
-}
+class FsReqWrap : public HandleWrap {
+ public:
+  explicit FsReqWrap()
+      : HandleWrap(NULL, reinterpret_cast<uv_handle_t*>(&_data)) {
+  }
 
-FsReqWrap::~FsReqWrap() {
-  delete _callback;
-}
+  ~FsReqWrap() {}
+
+  uv_req_t* req() {
+    return reinterpret_cast<uv_req_t*>(&_data);
+  }
+
+  uv_fs_t* data() {
+    return &_data;
+  }
+
+  void Dispatched() {
+    req()->data = this;
+  }
+
+ private:
+  uv_fs_t _data;
+};
 
 
 static void After(uv_fs_t* req) {
@@ -35,65 +52,69 @@ static void After(uv_fs_t* req) {
   assert(req_wrap != NULL);
   assert(req_wrap->data() == req);
 
-  jerry_api_value_t argv[1];
-  uint16_t argc = 1;
+  JObject* cb = req_wrap->callback();
+  assert(cb != NULL && cb->IsFunction());
 
+  JArgList jarg(1);
   if (req->result < 0) {
-    argv[0] = JVal::Int(-req->result);
+    JObject arg0(static_cast<int32_t>(-req->result));
+    jarg.Add(arg0);
   } else {
-    argv[0] = JVal::Null();
     switch (req->fs_type) {
       case UV_FS_OPEN:
-        argv[0] = JVal::Int(req->result);
+        {
+          JObject arg0(static_cast<int32_t>(req->result));
+          jarg.Add(arg0);
+        }
         break;
+
+      default:
+        jarg.Add(JObject::Null());
     }
   }
-  JObject* cb = req_wrap->callback();
-  assert(cb->IsFunction());
-  jerry_api_value_t res;
-  jerry_api_call_function(cb->val().v_object, NULL, &res, argv, argc);
+
+  JObject res = cb->Call(JObject::Null(), jarg);
 
   uv_fs_req_cleanup(req);
+
   delete req_wrap;
 }
 
-static bool Open(const jerry_api_object_t *function_obj_p,
-                 const jerry_api_value_t *this_p,
-                 jerry_api_value_t *ret_val_p,
-                 const jerry_api_value_t args_p [],
-                 const uint16_t args_cnt) {
-  if (args_cnt < 1) {
+
+JHANDLER_FUNCTION(Open, handler) {
+  int argc = handler.GetArgLength();
+
+  if (argc < 1) {
     JERRY_THROW("type error: path required");
   }
-  if (args_cnt < 2) {
+  if (argc < 2) {
     JERRY_THROW("type error: flags required");
   }
-  if (args_cnt < 3) {
+  if (argc < 3) {
     JERRY_THROW("type error: mode required");
   }
-  if (!JVAL_IS_STRING(&args_p[0])) {
+  if (!handler.GetArg(0)->IsString()) {
     JERRY_THROW("type error: path must be a string");
   }
-  if (!JVAL_IS_NUMBER(&args_p[1])) {
+  if (!handler.GetArg(1)->IsNumber()) {
     JERRY_THROW("type error: flags must be an int");
   }
-  if (!JVAL_IS_NUMBER(&args_p[2])) {
+  if (!handler.GetArg(1)->IsNumber()) {
     JERRY_THROW("type error: mode must be an int");
   }
 
   Environment* env = Environment::GetEnv();
 
-  char* path = DupJerryString(&args_p[0]);
-  int flags = JVAL_TO_INT32(&args_p[1]);
-  int mode = JVAL_TO_INT32(&args_p[2]);
+  char* path = handler.GetArg(0)->GetCString();
+  int flags = handler.GetArg(1)->GetInt32();
+  int mode = handler.GetArg(2)->GetInt32();
 
-  if (args_cnt > 3 && JVAL_IS_FUNCTION(&args_p[3])) {
-    JObject* jcallback = new JObject(
-        const_cast<jerry_api_value_t*>(&args_p[3]));
+  if (argc > 3 && handler.GetArg(3)->IsFunction()) {
+    JObject* jcallback = handler.GetArg(3);
 
-    jcallback->Ref();
+    FsReqWrap* req_wrap = new FsReqWrap();
+    req_wrap->set_callback(*jcallback);
 
-    FsReqWrap* req_wrap = new FsReqWrap(jcallback);
     uv_fs_t* fs_req = req_wrap->data();
 
     int err = uv_fs_open(env->loop(), fs_req, path, flags, mode, After);
@@ -102,17 +123,19 @@ static bool Open(const jerry_api_object_t *function_obj_p,
       fs_req->result = err;
       After(fs_req);
     }
-    *ret_val_p = JVal::Null();
+
+    handler.Return(JObject::Null());
   } else {
     uv_fs_t fs_req;
     int err = uv_fs_open(env->loop(), &fs_req, path, flags, mode, NULL);
     if (err < 0) {
       JERRY_THROW("open failed!");
     } else {
-      *ret_val_p = JVal::Int(err);
+      JObject ret(err);
+      handler.Return(ret);
     }
   }
-  ReleaseCharBuffer(path);
+  JObject::ReleaseCString(path);
 
   return true;
 }
@@ -124,7 +147,7 @@ JObject* InitFs() {
 
   if (fs == NULL) {
     fs = new JObject();
-    fs->CreateMethod("open", Open);
+    fs->SetMethod("open", Open);
 
     module->module = fs;
   }

@@ -22,107 +22,190 @@
 
 namespace iotjs {
 
-#define JVAL_IS_STRING(val_p) ((val_p)->type == JERRY_API_DATA_TYPE_STRING)
-#define JVAL_IS_OBJECT(val_p) ((val_p)->type == JERRY_API_DATA_TYPE_OBJECT)
-#define JVAL_IS_FUNCTION(val_p) \
-  (JVAL_IS_OBJECT(val_p) && jerry_api_is_function((val_p)->v_object))
 
-#define JVAL_IS_NUMBER(val_p) \
-  (((val_p)->type == JERRY_API_DATA_TYPE_FLOAT32) || \
-   ((val_p)->type == JERRY_API_DATA_TYPE_FLOAT64) || \
-   ((val_p)->type == JERRY_API_DATA_TYPE_UINT32))
+typedef jerry_external_handler_t JHandlerType;
+typedef jerry_api_object_t JRawObjectType;
+typedef jerry_api_value_t JRawValueType;
 
-#define JVAL_TO_INT32(val_p) \
-   ((val_p)->type == JERRY_API_DATA_TYPE_FLOAT32 ? \
-      static_cast<int32_t>((val_p)->v_float32) : \
-    (val_p)->type == JERRY_API_DATA_TYPE_FLOAT64 ? \
-      static_cast<int32_t>((val_p)->v_float64) : \
-    static_cast<int32_t>((val_p)->v_uint32))
 
-#define JVAL_TO_INT64(val_p) \
-   ((val_p)->type == JERRY_API_DATA_TYPE_FLOAT32 ? \
-      static_cast<int64_t>((val_p)->v_float32) : \
-    (val_p)->type == JERRY_API_DATA_TYPE_FLOAT64 ? \
-      static_cast<int64_t>((val_p)->v_float64) : \
-    static_cast<int64_t>((val_p)->v_uint32))
+class JObject;
+class JArgList;
+class JHandlerInfo;
+class JLocalScope;
+
+
 
 #define JERRY_THROW(msg) do { assert(!"not implemented"); } while (false)
 
 
-jerry_api_object_t* GetGlobal();
-
-jerry_api_value_t JerryValFromObject(const jerry_api_object_t* obj);
-
-void SetObjectField(jerry_api_object_t* obj,
-                    const char* name,
-                    jerry_api_value_t* val);
-
-jerry_api_value_t GetObjectField(jerry_api_object_t* obj, const char* name);
-
-void SetObjectNative(jerry_api_object_t* obj, uintptr_t ptr);
-
-uintptr_t GetObjectNative(jerry_api_object_t* obj);
-
-size_t GetJerryStringLength(const jerry_api_value_t* val);
-char* DupJerryString(const jerry_api_value_t* val);
-void ReleaseJerryString(char* str);
-
-
-
-
-class JObject;
-class JLocalScope;
-
-
+/// Wrapper for Javascript objects.
 class JObject {
  public:
+  // Consturctors.
+
+  // Creates a initail javascript object.
   explicit JObject();
+
+  // Creates a object copied from other object.
   JObject(const JObject& other);
+
+  // Creates a javascript boolean object.
   explicit JObject(bool v);
+
+  // Creates a javascript number object from various c type.
   explicit JObject(int32_t v);
   explicit JObject(float v);
   explicit JObject(double v);
+
+  // Creates a javascirpt number object.
   explicit JObject(const char* v);
-  explicit JObject(const jerry_api_object_t* obj, bool need_unref = true);
-  explicit JObject(const jerry_api_value_t* val, bool need_unref = true);
-  explicit JObject(jerry_external_handler_t handler);
+
+  // Creates a object from `JRawObjectType*`.
+  // If second argument set true, then ref count for the object will be
+  // decreased when this wrapper is being destroyed.
+  explicit JObject(const JRawObjectType* obj, bool need_unref = true);
+
+  // Creates a object from `JRawValueType*`.
+  // If second argument set true, then ref count for the object will be
+  // decreased when this wrapper is being destroyed.
+  explicit JObject(const JRawValueType* val, bool need_unref = true);
+
+  // Creates a javascript function object.
+  // When the function is called, the handler will be triggered.
+  explicit JObject(JHandlerType handler);
+
+  // Create a javascript null object.
+  static JObject& Null();
+
+  // Get the javascript global object.
+  static JObject Global();
+
+  // Destoyer for this class.
+  // When the wrapper is being destroyed, ref count for correspoding javascript
+  // object will be decreased unless `need_unref` was set false.
   ~JObject();
 
+  // Increases ref count.
   void Ref();
+
+  // Decreases ref count.
   void Unref();
 
-  bool IsNumber() { return JVAL_IS_NUMBER(&_obj_val); }
-  bool IsString() { return JVAL_IS_STRING(&_obj_val); }
-  bool IsObject() { return JVAL_IS_OBJECT(&_obj_val); }
-  bool IsFunction() { return JVAL_IS_FUNCTION(&_obj_val); }
+  // Returns whether the object is specific type.
+  bool IsNull();
+  bool IsNumber();
+  bool IsString();
+  bool IsObject();
+  bool IsFunction();
 
-  void CreateMethod(const char* name, jerry_external_handler_t handler);
-  void SetProperty(const char* name, JObject* val);
+  // Sets native handler method for the javascript object.
+  void SetMethod(const char* name, JHandlerType handler);
+
+  // Sets & gets property for the javascript object.
+  void SetProperty(const char* name, JObject& val);
   JObject GetProperty(const char* name);
+
+  // Sets & gets native data for the javascript object.
   void SetNative(uintptr_t ptr);
-  void SetFreeCallback(jerry_object_free_callback_t freecb);
-  JObject Call(JObject* this_, JObject** args, uint16_t argv);
   uintptr_t GetNative();
 
-  jerry_api_value_t val() { return _obj_val; }
-  int valInt32() { return JVAL_TO_INT32(&_obj_val); }
+  void SetFreeCallback(jerry_object_free_callback_t freecb);
+
+  // Retruns value for 32bit integer contents of number object.
+  int32_t GetInt32();
+
+  // Returns value for 64bit integer contents of number object.
+  int64_t GetInt64();
+
+  // Returns pontiner to null terminated string contents of string object.
+  // Returned pointer should be released using `ReleaseCString()` when it become
+  // unnecessary.
+  char* GetCString();
+
+  // Release memory retrieved from `GetCString()`.
+  static void ReleaseCString(char* str);
+
+  // Returns length of null teminated string contents of string object.
+  size_t GetCStringLength();
+
+  // Calls javascript function.
+  JObject Call(JObject& this_, JArgList& arg);
+
+  JRawValueType raw_value() { return _obj_val; }
 
  private:
-  jerry_api_value_t _obj_val;
+  JRawValueType _obj_val;
   bool _unref_at_close;
 };
 
 
 class JVal {
  public:
-  static jerry_api_value_t Void();
-  static jerry_api_value_t Undefined();
-  static jerry_api_value_t Null();
-  static jerry_api_value_t Bool(bool v);
-  static jerry_api_value_t Int(int32_t v);
-  static jerry_api_value_t Float(float v);
-  static jerry_api_value_t Double(double v);
+  static JRawValueType Void();
+  static JRawValueType Undefined();
+  static JRawValueType Null();
+  static JRawValueType Bool(bool v);
+  static JRawValueType Int(int32_t v);
+  static JRawValueType Float(float v);
+  static JRawValueType Double(double v);
 };
+
+
+class JArgList {
+ public:
+  JArgList(uint16_t capacity);
+  ~JArgList();
+
+  static JArgList& Empty();
+
+  uint16_t GetLength();
+
+  void Add(JObject& x);
+  void Set(uint16_t i, JObject& x);
+  JObject* Get(uint16_t i);
+
+ private:
+  uint16_t _capacity;
+  uint16_t _argc;
+  JObject** _argv;
+};
+
+
+class JHandlerInfo {
+ public:
+  JHandlerInfo(const JRawObjectType* function_obj_p,
+               const JRawValueType* this_p,
+               JRawValueType* ret_val_p,
+               const JRawValueType args_p[],
+               const uint16_t args_cnt);
+  ~JHandlerInfo();
+
+  JObject* GetFunction();
+  JObject* GetThis();
+  JObject* GetArg(uint16_t i);
+  uint16_t GetArgLength();
+
+  void Return(JObject& ret);
+
+ private:
+  JObject _function;
+  JObject _this;
+  JArgList _arg_list;
+  JRawValueType* _ret_val_p;
+};
+
+
+#define JHANDLER_FUNCTION(handler, arg_name) \
+  static bool ___ ## handler ## _wrap(JHandlerInfo& arg_name); \
+  static bool handler(const JRawObjectType *function_obj_p, \
+                      const JRawValueType *this_p, \
+                      JRawValueType *ret_val_p, \
+                      const JRawValueType args_p [], \
+                      const uint16_t args_cnt) { \
+    JHandlerInfo info(function_obj_p, this_p, ret_val_p, args_p, args_cnt); \
+    return ___ ## handler ## _wrap(info); \
+  } \
+  static bool ___ ## handler ## _wrap(JHandlerInfo& arg_name) \
 
 
 class JLocalScope {

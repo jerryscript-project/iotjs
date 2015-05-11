@@ -20,7 +20,7 @@ set(CXX ${CMAKE_CXX_COMPILER})
 set(CFLAGS ${CMAKE_CXX_FLAGS})
 #set(CFLAGS "${CFLAGS} -flto")
 if (NOT(${NO_PTHREAD}))
-    set(CFLAGS "${CFLAGS} -pthread")
+    set(CFLAGS "${CFLAGS} -pthread -Wall")
 endif()
 
 set(ROOT ${CMAKE_SOURCE_DIR})

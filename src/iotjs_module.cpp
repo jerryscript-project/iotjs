@@ -24,6 +24,7 @@
 
 namespace iotjs {
 
+
 static Module _modules[MODULE_COUNT];
 
 
@@ -32,10 +33,12 @@ static Module _modules[MODULE_COUNT];
   _modules[MODULE_ ## upper].module = NULL; \
   _modules[MODULE_ ## upper].fn_register = Init ## Camel;
 
+
 #define CLENUP_MODULE_LIST(upper, Camel, lower) \
   if (_modules[MODULE_ ## upper].module) \
     delete _modules[MODULE_ ## upper].module; \
   _modules[MODULE_ ## upper].module = NULL;
+
 
 #define MAP_MODULE_LIST(F) \
   F(BUFFER, Buffer, buffer) \
@@ -44,17 +47,21 @@ static Module _modules[MODULE_COUNT];
   F(PROCESS, Process, process) \
   F(TIMER, Timer, timer)
 
+
 void InitModuleList() {
   MAP_MODULE_LIST(INIT_MODULE_LIST)
 }
+
 
 void CleanupModuleList() {
   MAP_MODULE_LIST(CLENUP_MODULE_LIST)
 }
 
+
 Module* GetBuiltinModule(ModuleKind kind) {
   assert(kind < MODULE_COUNT);
   return &_modules[kind];
 }
+
 
 } // namespace iotjs

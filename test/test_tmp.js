@@ -18,6 +18,7 @@ var MODULE_BUFFER = 0;
 var MODULE_CONSOLE = 1;
 var MODULE_FS = 2;
 var MODULE_PROCESS= 3;
+var MODULE_TIMER = 4;
 
 // global object
 this.global = this;
@@ -25,7 +26,16 @@ var global = this.global;
 
 
 // start entry
-this.startIoTjs = function() {
+this.startIoTjs = function(process) {
+
+global.process = process;
+
+
+function init_console() {
+  global.console = process.binding(MODULE_CONSOLE);
+};
+init_console();
+
 
 function init_util() {
   var exports = {};
@@ -82,10 +92,44 @@ function init_util() {
 init_util();
 
 
-function init_console() {
-  global.console = process.binding(MODULE_CONSOLE);
+function init_process(process) {
+
+  initNextTick();
+
+  function initNextTick() {
+    var nextTickQueue = [];
+
+    process.nextTick = nextTick;
+    process._onNextTick = _onNextTick;
+
+    function _onNextTick() {
+      // clone nextTickQueue to new array object, and calles function
+      // iterating the cloned array. This is becuase, during processing nextTick
+      // a callback could add another next tick callback using
+      // `process.nextTick()`, if we calls back iterating original
+      // `nextTickQueue` that could turn into infinify loop.
+
+      // FIXME: var callbacks = nextTickQueue.slice(0);
+      var callbacks = [];
+      for (var i = 0; i < nextTickQueue.length; ++i) {
+        callbacks.push(nextTickQueue[i]);
+      }
+      nextTickQueue = [];
+
+      for (var i = 0; i < callbacks.length; ++i) {
+        var callback = callbacks[i];
+        callback();
+      }
+    }
+
+    function nextTick(callback) {
+      if (util.isFunction(callback)) {
+        nextTickQueue.push(callback);
+      }
+    }
+  }
 };
-init_console();
+init_process(process);
 
 
 function init_buffer() {
@@ -413,27 +457,43 @@ function init_stream() {
 init_stream();
 
 
-var buffer = new Buffer("buffer test");
-console.log(buffer.toString());
+process.nextTick(function() {
+  var buffer = new Buffer("buffer test");
+  console.log(buffer.toString());
 
-var foo = function(x) {
-  console.log("foo emitted: " + x);
-};
+  var foo = function(x) {
+    console.log("foo emitted: " + x);
+  };
 
-var emitter = new EventEmitter();
-emitter.on('test', foo);
-emitter.emit('test', 1);
-emitter.addListener('test', foo);
-emitter.emit('test', 2);
+  var emitter = new EventEmitter();
+  emitter.on('test', foo);
+  emitter.emit('test', 1);
+  emitter.addListener('test', foo);
+  emitter.emit('test', 2);
 
 
-var readable = new ReadableStream();
-readable.on('readable', function() {
-  var data = readable.read();
-  console.log('read: ' + data.toString());
-})
+  var readable = new ReadableStream();
+  readable.on('readable', function() {
+    var data = readable.read();
+    console.log('read: ' + data.toString());
+  })
 
-readable.push('abcde');
-readable.push('12345');
+  readable.push('abcde');
+  readable.push('12345');
+
+
+  var Timer = process.binding(MODULE_TIMER);
+  var timerobj = new Timer();
+  timerobj.start(500, 0, function() {
+    console.log("JS Timer fired");
+  });
+  console.log("JS Timer timeout in 500 msec...");
+
+  // FIXME: this nextTick callback should be triggred before above timer event.
+  process.nextTick(function() {
+    console.log("next tick");
+  });
+});
+
 
 }; // end of start iot.js

@@ -22,7 +22,7 @@ var MODULE_TIMER = 4;
 this.global = this;
 var global = this.global;
 
-this.startIoTjs = function() {
+this.startIoTjs = function(process) {
   global.console = process.binding(MODULE_CONSOLE);
   var Timer = process.binding(MODULE_TIMER);
 

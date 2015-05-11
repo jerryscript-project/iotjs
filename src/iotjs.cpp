@@ -60,17 +60,18 @@ static void ReleaseJerry() {
 }
 
 
-static void InitModules() {
+static JObject* InitModules() {
   InitModuleList();
-  InitProcess();
+  return InitProcess();
 }
+
 
 static void CleanupModules() {
   CleanupModuleList();
 }
 
 
-static bool StartIoTjs() {
+static bool StartIoTjs(JObject* process) {
   // Get jerry global object.
   JObject global = JObject::Global();
 
@@ -80,22 +81,27 @@ static bool StartIoTjs() {
   // Bind environment to global object.
   global.SetNative((uintptr_t)(&env));
 
-
   // Find entry function.
   JObject start_func = global.GetProperty("startIoTjs");
   assert(start_func.IsFunction());
 
   // Call the entry.
-  JArgList arg_list(0);
-  JObject res = start_func.Call(JObject::Null(), arg_list);
+  JArgList args(1);
+  args.Add(*process);
+  JObject res = start_func.Call(JObject::Null(), args);
 
   bool more;
   do {
     more = uv_run(env.loop(), UV_RUN_ONCE);
+    if (more == false) {
+      OnNextTick();
+      more = uv_loop_alive(env.loop());
+    }
   } while (more);
 
   return true;
 }
+
 
 int Start(char* src) {
   if (!InitJerry(src)) {
@@ -103,9 +109,9 @@ int Start(char* src) {
     return 1;
   }
 
-  InitModules();
+  JObject* process = InitModules();
 
-  if (!StartIoTjs()) {
+  if (!StartIoTjs(process)) {
     fprintf(stderr, "StartIoTJs failed\n");
     return 1;
   }
@@ -116,6 +122,7 @@ int Start(char* src) {
 
   return 0;
 }
+
 
 } // namespace iotjs
 

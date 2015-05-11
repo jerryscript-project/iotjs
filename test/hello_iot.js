@@ -21,7 +21,7 @@ var MODULE_PROCESS= 3;
 this.global = this;
 var global = this.global;
 
-this.startIoTjs = function() {
+this.startIoTjs = function(process) {
   global.console = process.binding(MODULE_CONSOLE);
   var fs = process.binding(MODULE_FS);
 

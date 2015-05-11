@@ -18,6 +18,7 @@
 #include "iotjs_handlewrap.h"
 #include "iotjs_module.h"
 #include "iotjs_module_fs.h"
+#include "iotjs_module_process.h"
 
 
 namespace iotjs {
@@ -73,7 +74,7 @@ static void After(uv_fs_t* req) {
     }
   }
 
-  JObject res = cb->Call(JObject::Null(), jarg);
+  JObject res = MakeCallback(*cb, JObject::Null(), jarg);
 
   uv_fs_req_cleanup(req);
 

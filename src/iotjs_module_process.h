@@ -21,6 +21,10 @@
 
 namespace iotjs {
 
+void OnNextTick();
+
+JObject MakeCallback(JObject& function, JObject& this_, JArgList& args);
+
 JObject* InitProcess();
 
 } // namespace iotjs

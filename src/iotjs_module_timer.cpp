@@ -20,6 +20,7 @@
 #include "iotjs_handlewrap.h"
 #include "iotjs_module.h"
 #include "iotjs_module_timer.h"
+#include "iotjs_module_process.h"
 #include "iotjs_util.h"
 
 
@@ -55,7 +56,7 @@ class TimerWrap : public HandleWrap {
   void OnTimeout() {
     if (_jcallback != NULL && _jcallback->IsFunction()) {
       assert(object()->IsObject());
-      _jcallback->Call(*object(), JArgList::Empty());
+      MakeCallback(*_jcallback, *object(), JArgList::Empty());
     }
   }
 

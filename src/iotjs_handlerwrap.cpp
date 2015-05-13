@@ -13,16 +13,17 @@
  * limitations under the License.
  */
 
+#include "iotjs_binding.h"
 #include "iotjs_handlewrap.h"
 
 
 namespace iotjs {
 
 
-static void HandleWrapFreeHandler(const uintptr_t native_p) {
+JFREE_HANDLER_FUNCTION(FreeHandleWrap, handle_wrap_p) {
   // native_p is always non-null value
-  HandleWrap* wrap = reinterpret_cast<HandleWrap*>(native_p);
-  delete wrap;
+  assert(handle_wrap_p != 0);
+  delete reinterpret_cast<HandleWrap*>(handle_wrap_p);
 }
 
 
@@ -35,8 +36,7 @@ HandleWrap::HandleWrap(JObject* jobj, uv_handle_t* handle)
     JRawValueType jraw_value = jobj->raw_value();
     _jobj = new JObject(&jraw_value, false);
 
-    _jobj->SetNative((uintptr_t)this);
-    _jobj->SetFreeCallback(HandleWrapFreeHandler);
+    _jobj->SetNative((uintptr_t)this, FreeHandleWrap);
   }
 
   __handle->data = this;

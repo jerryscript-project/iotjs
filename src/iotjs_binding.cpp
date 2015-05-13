@@ -22,8 +22,11 @@ namespace iotjs {
 
 
 #define JVAL_IS_NULL(val_p) ((val_p)->type == JERRY_API_DATA_TYPE_NULL)
+
 #define JVAL_IS_STRING(val_p) ((val_p)->type == JERRY_API_DATA_TYPE_STRING)
+
 #define JVAL_IS_OBJECT(val_p) ((val_p)->type == JERRY_API_DATA_TYPE_OBJECT)
+
 #define JVAL_IS_FUNCTION(val_p) \
   (JVAL_IS_OBJECT(val_p) && jerry_api_is_function((val_p)->v_object))
 
@@ -52,67 +55,9 @@ JRawObjectType* GetGlobal() {
 }
 
 
-JRawValueType JerryValFromObject(const JRawObjectType* obj) {
-  JRawValueType res;
-  res.type = JERRY_API_DATA_TYPE_OBJECT;
-  res.v_object = const_cast<JRawObjectType*>(obj);
-  return res;
-}
-
-
-void SetObjectField(JRawObjectType* obj,
-                    const char* name,
-                    JRawValueType* val) {
-  bool is_ok = jerry_api_set_object_field_value(obj, name, val);
-  assert(is_ok);
-}
-
-
-JRawValueType GetObjectField(JRawObjectType* obj, const char* name) {
-  JRawValueType res;
-  bool is_ok = jerry_api_get_object_field_value(obj, name, &res);
-  assert(is_ok);
-  return res;
-}
-
-
-void SetObjectNative(JRawObjectType* obj, uintptr_t ptr) {
-  jerry_api_set_object_native_handle(obj, ptr);
-}
-
-
-uintptr_t GetObjectNative(JRawObjectType* obj) {
-  uintptr_t res;
-  bool is_ok = jerry_api_get_object_native_handle(obj, &res);
-  assert(is_ok);
-  return res;
-}
-
-
-size_t GetJerryStringLength(const JRawValueType* val) {
-  assert(JVAL_IS_STRING(val));
-  return jerry_api_string_to_char_buffer (val->v_string, NULL, 0);
-}
-
-
-char* DupJerryString(const JRawValueType* val) {
-  assert(JVAL_IS_STRING(val));
-  size_t size = -GetJerryStringLength(val);
-  char* buffer = AllocCharBuffer(size);
-  size_t check = jerry_api_string_to_char_buffer(val->v_string, buffer, size);
-  assert(check == size);
-  return buffer;
-}
-
-
-void ReleaseJerryString(char* str) {
-  ReleaseCharBuffer(str);
-}
-
-
 JObject::JObject() {
   JRawObjectType* new_obj = jerry_api_create_object();
-  _obj_val = JerryValFromObject(new_obj);
+  _obj_val = JVal::Object(new_obj);
   _unref_at_close = true;
 }
 
@@ -152,7 +97,7 @@ JObject::JObject(const char* v) {
 
 
 JObject::JObject(const JRawObjectType* obj, bool need_unref) {
-  _obj_val = JerryValFromObject(obj);
+  _obj_val = JVal::Object(obj);
   _unref_at_close = need_unref;
 }
 
@@ -200,14 +145,17 @@ void JObject::SetMethod(const char* name, JHandlerType handler) {
 void JObject::SetProperty(const char* name, JObject& val) {
   assert(IsObject());
   JRawValueType v = val.raw_value();
-  SetObjectField(_obj_val.v_object, name, &v);
+  bool is_ok  = jerry_api_set_object_field_value(_obj_val.v_object, name, &v);
+  assert(is_ok);
 }
 
 
 JObject JObject::GetProperty(const char* name) {
   assert(IsObject());
-  JRawValueType val = GetObjectField(_obj_val.v_object, name);
-  return JObject(&val);
+  JRawValueType res;
+  bool is_ok = jerry_api_get_object_field_value(_obj_val.v_object, name, &res);
+  assert(is_ok);
+  return JObject(&res);
 }
 
 
@@ -254,9 +202,9 @@ bool JObject::IsFunction() {
 }
 
 
-void JObject::SetNative(uintptr_t ptr) {
+void JObject::SetNative(uintptr_t ptr, JFreeHandlerType free_handler) {
   assert(IsObject());
-  jerry_api_set_object_native_handle(_obj_val.v_object, ptr);
+  jerry_api_set_object_native_handle(_obj_val.v_object, ptr, free_handler);
 }
 
 
@@ -265,12 +213,6 @@ uintptr_t JObject::GetNative() {
   uintptr_t ptr;
   jerry_api_get_object_native_handle(_obj_val.v_object, &ptr);
   return ptr;
-}
-
-
-void JObject::SetFreeCallback(jerry_object_free_callback_t freecb) {
-  assert(IsObject());
-  jerry_api_set_object_free_callback(_obj_val.v_object, freecb);
 }
 
 
@@ -305,6 +247,7 @@ JObject JObject::Call(JObject& this_, JArgList& arg) {
   return JObject(&res);
 }
 
+
 int32_t JObject::GetInt32() {
   assert(IsNumber());
   return JVAL_TO_INT32(&_obj_val);
@@ -319,18 +262,25 @@ int64_t JObject::GetInt64() {
 
 char* JObject::GetCString() {
   assert(IsString());
-  return DupJerryString(&_obj_val);
+
+  size_t size = -GetCStringLength();
+  char* buffer = AllocCharBuffer(size);
+  size_t check = jerry_api_string_to_char_buffer(_obj_val.v_string,
+                                                 buffer,
+                                                 size);
+  assert(check == size);
+  return buffer;
 }
 
 
 void JObject::ReleaseCString(char* str) {
-  ReleaseJerryString(str);
+  ReleaseCharBuffer(str);
 }
 
 
 size_t JObject::GetCStringLength() {
   assert(IsString());
-  return GetJerryStringLength(&_obj_val);
+  return jerry_api_string_to_char_buffer (_obj_val.v_string, NULL, 0);
 }
 
 
@@ -387,6 +337,14 @@ JRawValueType JVal::Double(double v) {
 }
 
 
+JRawValueType JVal::Object(const JRawObjectType* obj) {
+  JRawValueType val;
+  val.type = JERRY_API_DATA_TYPE_OBJECT;
+  val.v_object = const_cast<JRawObjectType*>(obj);
+  return val;
+}
+
+
 JArgList::JArgList(uint16_t capacity)
     : _capacity(capacity)
     , _argc(0)
@@ -414,6 +372,7 @@ static JArgList jarg_empty(0);
 JArgList& JArgList::Empty() {
   return jarg_empty;
 }
+
 
 uint16_t JArgList::GetLength() {
   return _argc;

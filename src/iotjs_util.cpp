@@ -22,6 +22,7 @@
 
 namespace iotjs {
 
+
 char* ReadFile(const char* path) {
   FILE* file = fopen(path, "rb");
   assert(file != NULL);
@@ -46,6 +47,7 @@ char* ReadFile(const char* path) {
 char* AllocCharBuffer(size_t size) {
   return static_cast<char*>(malloc(size));
 }
+
 
 void ReleaseCharBuffer(char* buffer) {
   free(buffer);

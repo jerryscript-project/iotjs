@@ -79,7 +79,7 @@ static bool StartIoTjs(JObject* process) {
   Environment env(uv_default_loop());
 
   // Bind environment to global object.
-  global.SetNative((uintptr_t)(&env));
+  global.SetNative((uintptr_t)(&env), NULL);
 
   // Find entry function.
   JObject start_func = global.GetProperty("startIoTjs");

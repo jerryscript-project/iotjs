@@ -162,12 +162,10 @@ function init_buffer() {
   }
 
   Buffer.concat = function(list) {
-    /*
     if (!util.isArray(list)) {
       throw new TypeError(
           '1st parameter for Buffer.concat() should be array of Buffer');
     }
-    */
 
     length = 0;
     for (var i = 0; i < list.length; ++i) {

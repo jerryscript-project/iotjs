@@ -22,6 +22,7 @@
 
 namespace iotjs {
 
+
 JHANDLER_FUNCTION(Write, handler) {
   assert(handler.GetArgLength() == 3);
   assert(handler.GetArg(0)->IsString());
@@ -131,6 +132,11 @@ JHANDLER_FUNCTION(SetupBufferJs, handler) {
 }
 
 
+JFREE_HANDLER_FUNCTION(FreeBuffer, buffer_p) {
+  ReleaseCharBuffer(reinterpret_cast<char*>(buffer_p));
+}
+
+
 JHANDLER_FUNCTION(Alloc, handler) {
   assert(handler.GetArgLength() == 2);
   assert(handler.GetArg(0)->IsObject());
@@ -140,7 +146,7 @@ JHANDLER_FUNCTION(Alloc, handler) {
   char* buffer = AllocCharBuffer(length);
 
   JObject* buffer_obj = handler.GetArg(0);
-  buffer_obj->SetNative(reinterpret_cast<uintptr_t>(buffer));
+  buffer_obj->SetNative(reinterpret_cast<uintptr_t>(buffer), FreeBuffer);
 
   JObject ret(length);
   handler.Return(ret);

@@ -24,6 +24,7 @@ namespace iotjs {
 
 
 typedef jerry_external_handler_t JHandlerType;
+typedef jerry_object_free_callback_t JFreeHandlerType;
 typedef jerry_api_object_t JRawObjectType;
 typedef jerry_api_value_t JRawValueType;
 
@@ -32,7 +33,6 @@ class JObject;
 class JArgList;
 class JHandlerInfo;
 class JLocalScope;
-
 
 
 #define JERRY_THROW(msg) do { assert(!"not implemented"); } while (false)
@@ -106,10 +106,8 @@ class JObject {
   JObject GetProperty(const char* name);
 
   // Sets & gets native data for the javascript object.
-  void SetNative(uintptr_t ptr);
+  void SetNative(uintptr_t ptr, JFreeHandlerType free_handler);
   uintptr_t GetNative();
-
-  void SetFreeCallback(jerry_object_free_callback_t freecb);
 
   // Retruns value for 32bit integer contents of number object.
   int32_t GetInt32();
@@ -148,6 +146,7 @@ class JVal {
   static JRawValueType Int(int32_t v);
   static JRawValueType Float(float v);
   static JRawValueType Double(double v);
+  static JRawValueType Object(const JRawObjectType* obj);
 };
 
 
@@ -208,6 +207,10 @@ class JHandlerInfo {
   static bool ___ ## handler ## _wrap(JHandlerInfo& arg_name) \
 
 
+#define JFREE_HANDLER_FUNCTION(handler, arg_name) \
+  static void handler(const uintptr_t arg_name) \
+
+
 class JLocalScope {
  public:
   explicit JLocalScope();
@@ -218,6 +221,7 @@ class JLocalScope {
  private:
   LinkedList<JObject*> _object_list;
 };
+
 
 } // namespace iotjs
 

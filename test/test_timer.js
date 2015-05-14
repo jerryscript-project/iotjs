@@ -22,7 +22,6 @@ var MODULE_TIMER = 4;
 this.global = this;
 var global = this.global;
 
-this.startIoTjs = function(process) {
   global.console = process.binding(MODULE_CONSOLE);
   var Timer = process.binding(MODULE_TIMER);
 
@@ -42,4 +41,3 @@ this.startIoTjs = function(process) {
     repeat_cnt++;
   });
   console.log("JS Timer repeat in 400 msec, 100 msec interval, 5 times...");
-};

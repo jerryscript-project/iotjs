@@ -227,4 +227,3 @@ class JLocalScope {
 
 
 #endif /* IOTJS_BINDING_H */
-

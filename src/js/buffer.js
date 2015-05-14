@@ -14,7 +14,7 @@
  */
 
 
-var buffer = process.binding('buffer');
+var buffer = process.binding(0);
 var alloc = buffer.alloc;
 var kMaxLength = buffer.kMaxLength;
 var util = require('util');

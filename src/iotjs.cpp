@@ -29,17 +29,16 @@
 #include "iotjs_module_process.h"
 
 #include "iotjs.h"
-
+#include "iotjs_js.h"
 
 namespace iotjs {
 
 
-static bool InitJerry(char* src) {
-  //char* src = ReadFile(src_path);
+static bool InitJerry() {
 
   jerry_init(JERRY_FLAG_EMPTY);
 
-  if (!jerry_parse(src, strlen(src))) {
+  if (!jerry_parse(NULL, 0)) {
     fprintf(stderr, "jerry_parse() failed\n");
     return false;
   }
@@ -48,8 +47,6 @@ static bool InitJerry(char* src) {
     fprintf(stderr, "jerry_run() failed\n");
     return false;
   }
-
-  //ReleaseCharBuffer(src);
 
   return true;
 }
@@ -70,8 +67,22 @@ static void CleanupModules() {
   CleanupModuleList();
 }
 
+static bool InitIoTjs(JObject* process) {
+
+  JRawValueType retval;
+  jerry_api_eval(mainjs,mainjs_length,
+                 false, false, &retval);
+  JObject iotjs_fun(&retval, true);
+  JArgList args(1);
+  args.Add(*process);
+  JObject global(JObject::Global());
+  iotjs_fun.Call(global, args);
+
+  return true;
+}
 
 static bool StartIoTjs(JObject* process) {
+
   // Get jerry global object.
   JObject global = JObject::Global();
 
@@ -81,14 +92,9 @@ static bool StartIoTjs(JObject* process) {
   // Bind environment to global object.
   global.SetNative((uintptr_t)(&env), NULL);
 
-  // Find entry function.
-  JObject start_func = global.GetProperty("startIoTjs");
-  assert(start_func.IsFunction());
-
   // Call the entry.
-  JArgList args(1);
-  args.Add(*process);
-  JObject res = start_func.Call(JObject::Null(), args);
+  // load and call iotjs.js
+  InitIoTjs(process);
 
   bool more;
   do {
@@ -104,12 +110,20 @@ static bool StartIoTjs(JObject* process) {
 
 
 int Start(char* src) {
-  if (!InitJerry(src)) {
+  if (!InitJerry()) {
     fprintf(stderr, "InitJerry failed\n");
     return 1;
   }
 
   JObject* process = InitModules();
+
+  // FIXME: this should be moved to seperate function
+  {
+    JObject argv;
+    JObject user_filename(src);
+    argv.SetProperty("1", user_filename);
+    process->SetProperty("argv", argv);
+  }
 
   if (!StartIoTjs(process)) {
     fprintf(stderr, "StartIoTJs failed\n");
@@ -133,11 +147,7 @@ extern "C" int iotjs_entry(int argc, char** argv) {
     return 1;
   }
 
-  char* src = iotjs::ReadFile(argv[1]);
-
-  int res = iotjs::Start(src);
-
-  iotjs::ReleaseCharBuffer(src);
+  int res = iotjs::Start(argv[1]);
 
   return res;
 }

@@ -13,20 +13,19 @@
  * limitations under the License.
  */
 
-// Module Kind
-var MODULE_BUFFER = 0;
-var MODULE_CONSOLE = 1;
-var MODULE_FS = 2;
-var MODULE_PROCESS= 3;
-var MODULE_TIMER = 4;
 
 // global object
 this.global = this;
 var global = this.global;
 
+// Module Kind
+global.MODULE_BUFFER = 0;
+global.MODULE_CONSOLE = 1;
+global.MODULE_FS = 2;
+global.MODULE_PROCESS= 3;
+global.MODULE_TIMER = 4;
 
 // start entry
-this.startIoTjs = function(process) {
 
 global.process = process;
 
@@ -35,6 +34,7 @@ function init_console() {
   global.console = process.binding(MODULE_CONSOLE);
 };
 init_console();
+console.log("console log works!");
 
 
 function init_util() {
@@ -91,7 +91,7 @@ function init_util() {
 };
 init_util();
 
-
+/*
 function init_process(process) {
 
   initNextTick();
@@ -130,6 +130,7 @@ function init_process(process) {
   }
 };
 init_process(process);
+*/
 
 
 function init_buffer() {
@@ -492,6 +493,3 @@ process.nextTick(function() {
     console.log("next tick");
   });
 });
-
-
-}; // end of start iot.js

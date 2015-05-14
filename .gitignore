@@ -2,6 +2,7 @@
 
 /build
 /build/*
+/src/iotjs_js.h
 
 # IDE related files
 nbproject
@@ -25,3 +26,4 @@ cscope.*
 # ctags and ID database
 tags
 ID
+TAGS

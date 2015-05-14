@@ -350,6 +350,9 @@ def build_libjerry():
 
 
 def build_iotjs():
+    os.chdir(SCRIPT_PATH)
+    run_cmd('perl js2c.pl')
+
     # iot.js build directory.
     build_home = join_path([opt_build_root(), 'iotjs'])
     mkdir(build_home)

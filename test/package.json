@@ -1,0 +1,30 @@
+{
+  "version": "2.9.1",
+  "name": "npm",
+  "description": "a package manager for JavaScript",
+  "config": {
+    "publishtest": false
+  },
+  "homepage": "https://docs.npmjs.com/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/npm/npm"
+  },
+  "bugs": {
+    "url": "http://github.com/npm/npm/issues"
+  },
+  "directories": {
+    "doc": "./doc",
+    "man": "./man",
+    "lib": "./lib",
+    "bin": "./bin"
+  },
+  "main": "./lib/npm.js",
+  "bin": "./bin/npm-cli.js",
+  "scripts": {
+    "test-legacy": "node ./test/run.js",
+    "test": "tap --timeout 240 test/tap/*.js",
+    "tap": "tap --timeout 240 test/tap/*.js",
+  },
+  "license": "Artistic-2.0"
+}

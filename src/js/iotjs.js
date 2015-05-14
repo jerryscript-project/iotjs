@@ -15,10 +15,91 @@
 
 (function(process) {
   this.global = this;
+  global.process = process;
 
-  function startup() {
-
+  function start_iotjs() {
+    init_process();
+    var module = Native.require('module');
+    module.runMain();
   };
 
-  startup();
+  function init_process() {
+
+    initNextTick();
+
+    function initNextTick() {
+      var nextTickQueue = [];
+
+      process.nextTick = nextTick;
+      process._onNextTick = _onNextTick;
+
+      function _onNextTick() {
+        // clone nextTickQueue to new array object, and calles function
+        // iterating the cloned array. This is becuase,
+        // during processing nextTick
+        // a callback could add another next tick callback using
+        // `process.nextTick()`, if we calls back iterating original
+        // `nextTickQueue` that could turn into infinify loop.
+
+        // FIXME: var callbacks = nextTickQueue.slice(0);
+        var callbacks = [];
+        for (var i = 0; i < nextTickQueue.length; ++i) {
+          callbacks.push(nextTickQueue[i]);
+        }
+        nextTickQueue = [];
+
+        for (var i = 0; i < callbacks.length; ++i) {
+          var callback = callbacks[i];
+          callback();
+        }
+      }
+
+      function nextTick(callback) {
+        nextTickQueue.push(callback);
+
+      }
+    }
+  };
+
+  function Native(id) {
+    this.id = id;
+    this.filename = id + '.js';
+    this.exports = {};
+  }
+
+  Native.require = function(id) {
+    if (id == 'native') {
+      return Native;
+    }
+
+    var nativeMod = new Native(id);
+    nativeMod.compile();
+    return nativeMod.exports;
+  };
+
+  Native.wrap = function(script) {
+    var temp1 = Native.wrapper[0] + script;
+    temp1 = temp1 + Native.wrapper[1];
+    return temp1;
+  };
+
+  Native.wrapper = [
+    '(function (exports, require, module) { ',
+    ' });'
+  ];
+
+  Native.prototype.compile = function() {
+    var source = process.native_sources[this.id];
+    source = Native.wrap(source);
+    var fn = process.compile(source);
+    fn(this.exports, Native.require, this);
+  };
+
+  // temp impl. before JSON.parse is done
+  process.JSONParse = function(text) {
+      return process.compile("(" + text + ");");
+  };
+
+  start_iotjs();
+
 });

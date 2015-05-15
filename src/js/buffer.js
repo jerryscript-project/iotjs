@@ -14,10 +14,11 @@
  */
 
 
-var buffer = process.binding(0);
+var buffer = process.binding(process.binding.buffer);
 var alloc = buffer.alloc;
 var kMaxLength = buffer.kMaxLength;
 var util = require('util');
+
 
 function Buffer(subject, encoding) {
   if (!util.isBuffer(this)) {
@@ -37,6 +38,82 @@ function Buffer(subject, encoding) {
   } else if (util.isBuffer(subject)) {
     subject.copy(this, 0, 0, this.length);
   }
-}
+};
+
+
+Buffer.byteLength = function(str, enc) {
+  return str.length;
+};
+
+
+Buffer.concat = function(list) {
+  if (!util.isArray(list)) {
+    throw new TypeError(
+        '1st parameter for Buffer.concat() should be array of Buffer');
+  }
+
+  length = 0;
+  for (var i = 0; i < list.length; ++i) {
+    if (!util.isBuffer(list[i])) {
+      throw new TypeError(
+          '1st parameter for Buffer.concat() should be array of Buffer');
+    }
+    length += list[i].length;
+  }
+
+  var buffer = new Buffer(length);
+  var pos = 0;
+  for (var i = 0; i < list.length; ++i) {
+    list[i].copy(buffer, pos);
+    pos += list[i].length;
+  }
+
+  return buffer;
+};
+
+
+Buffer.prototype.write = function(string, offset, length, encoding) {
+  // buffer.write(string)
+  if (util.isUndefined(offset)) {
+    encoding = 'utf8';
+    length = this.length;
+    offset = 0;
+  }
+  // buffer.write(string, encoding)
+  if (util.isUndefined(length) && util.isString(offset)) {
+    encoding = offset;
+    length = this.length;
+    offset = 0;
+  }
+  // buffer.write(string, offset, length, encoding)
+  offset = offset >>> 0;
+  if (util.isNumber(length)) {
+    length = length >>> 0;
+  } else {
+    encoding = length;
+    length = undefined;
+  }
+
+  var remaining = this.length - offset;
+  if (util.isUndefined(length) || length > remaining) {
+    length = remaining;
+  }
+  //encoding = !!encoding ? (encoding + '').toLowerCase() : 'utf8';
+
+  if (length < 0 || offset < 0) {
+    throw new Error('attempt to write outside buffer bounds');
+  }
+
+  return this._write(string, offset, length);
+};
+
+
+Buffer.prototype.toString = function(encoding, start, end) {
+  return this._toString();
+};
+
 
 buffer.setupBufferJs(Buffer);
+
+module.exports = Buffer;
+module.exports.Buffer = Buffer;

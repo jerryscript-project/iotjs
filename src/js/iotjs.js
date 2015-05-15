@@ -14,14 +14,30 @@
  */
 
 (function(process) {
+
   this.global = this;
   global.process = process;
 
+
   function start_iotjs() {
+    init_global();
+
     init_process();
+
     var module = Native.require('module');
     module.runMain();
   };
+
+
+  function init_global() {
+    global.process = process;
+    global.global = global;
+    global.GLOBAL = global;
+    global.root = global;
+    global.console =  process.binding(process.binding.console);
+    global.Buffer = Native.require('buffer');
+  };
+
 
   function init_process() {
 
@@ -61,21 +77,34 @@
     }
   };
 
+
   function Native(id) {
     this.id = id;
     this.filename = id + '.js';
     this.exports = {};
-  }
+  };
+
+
+  Native.cache = {};
+
 
   Native.require = function(id) {
     if (id == 'native') {
       return Native;
     }
 
+    if (Native.cache[id]) {
+      return Native.cache[id].exports;
+    }
+
     var nativeMod = new Native(id);
+
+    Native.cache[id] = nativeMod;
     nativeMod.compile();
+
     return nativeMod.exports;
   };
+
 
   Native.wrap = function(script) {
     var temp1 = Native.wrapper[0] + script;
@@ -83,10 +112,12 @@
     return temp1;
   };
 
+
   Native.wrapper = [
-    '(function (exports, require, module) { ',
-    ' });'
+    '(function (a, b, c) { function wwwwrap(exports, require, module) {',
+    ' }; wwwwrap(a, b, c); });'
   ];
+
 
   Native.prototype.compile = function() {
     var source = process.native_sources[this.id];
@@ -95,10 +126,12 @@
     fn(this.exports, Native.require, this);
   };
 
+
   // temp impl. before JSON.parse is done
   process.JSONParse = function(text) {
       return process.compile("(" + text + ");");
   };
+
 
   start_iotjs();
 

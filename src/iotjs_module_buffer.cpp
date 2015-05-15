@@ -14,6 +14,7 @@
  */
 
 #include <stdlib.h>
+#include <string.h>
 
 #include "iotjs_binding.h"
 #include "iotjs_module.h"
@@ -61,8 +62,16 @@ JHANDLER_FUNCTION(ToString, handler) {
   char* buffer = reinterpret_cast<char*>(jbuffer->GetNative());
   assert(buffer != NULL);
 
-  JObject ret(buffer);
+  int buffer_length = jbuffer->GetProperty("length").GetInt32();
+
+  char* str = AllocCharBuffer(buffer_length + 1);
+  strncpy(str, buffer, buffer_length);
+  str[buffer_length] = 0;
+
+  JObject ret(str);
   handler.Return(ret);
+
+  ReleaseCharBuffer(str);
 
   return true;
 }

@@ -103,6 +103,7 @@ class JObject {
 
   // Sets & gets property for the javascript object.
   void SetProperty(const char* name, JObject& val);
+  void SetProperty(const char* name, JRawValueType val);
   JObject GetProperty(const char* name);
 
   // Sets & gets native data for the javascript object.

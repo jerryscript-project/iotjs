@@ -119,6 +119,14 @@ JObject* InitProcess() {
     SetNativeSources(&native_sources);
     process->SetProperty("native_sources", native_sources);
 
+    // Binding module id.
+    JObject jbinding = process->GetProperty("binding");
+    jbinding.SetProperty("buffer", JVal::Int(MODULE_BUFFER));
+    jbinding.SetProperty("console", JVal::Int(MODULE_CONSOLE));
+    jbinding.SetProperty("fs", JVal::Int(MODULE_FS));
+    jbinding.SetProperty("process", JVal::Int(MODULE_PROCESS));
+    jbinding.SetProperty("timer", JVal::Int(MODULE_TIMER));
+
     module->module = process;
   }
 

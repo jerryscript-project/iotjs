@@ -13,20 +13,4 @@
  * limitations under the License.
  */
 
-var MODULE_BUFFER = 0;
-var MODULE_CONSOLE = 1;
-var MODULE_FS = 2;
-var MODULE_PROCESS= 3;
-
-this.global = this;
-var global = this.global;
-
-this.startIoTjs = function(process) {
-  global.console = process.binding(MODULE_CONSOLE);
-  var fs = process.binding(MODULE_FS);
-
-  console.log("Hello IoT.js!!");
-  fs.open("./greeting.txt", 0, 438, function(fd) {
-    console.log("file descriptor: " + fd);
-  });
-};
+console.log("Hello IoT.js!!");

@@ -13,17 +13,22 @@
  * limitations under the License.
  */
 
+
 var Native = require('native');
+
 
 function Module(id) {
   this.id = id;
   this.exports = {};
   this.filename = id + ".js";
-}
+};
+
 module.exports = Module;
+
 
 Module.wrapper = Native.wrapper;
 Module.wrap = Native.wrap;
+
 
 Module.load = function(id,isMain) {
   if(process.native_sources[id]){
@@ -41,10 +46,12 @@ Module.load = function(id,isMain) {
   return module.exports;
 };
 
+
 Module.runMain = function(){
   Module.load(process.argv[1],true);
   process._onNextTick();
 };
+
 
 Module.prototype.require = function(id) {
   return Module.load(id);

@@ -150,6 +150,13 @@ void JObject::SetProperty(const char* name, JObject& val) {
 }
 
 
+void JObject::SetProperty(const char* name, JRawValueType val) {
+  assert(IsObject());
+  bool is_ok  = jerry_api_set_object_field_value(_obj_val.v_object, name, &val);
+  assert(is_ok);
+}
+
+
 JObject JObject::GetProperty(const char* name) {
   assert(IsObject());
   JRawValueType res;

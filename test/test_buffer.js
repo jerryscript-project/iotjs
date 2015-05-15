@@ -13,7 +13,18 @@
  * limitations under the License.
  */
 
-var x = require("buffer");
-exports.add = function(a,b){
-  return a+b;
-};
+var buff1 = new Buffer("test buffer");
+
+console.log(buff1.toString());
+
+
+var buff2 = new Buffer(10);
+buff2.write("abcde");
+console.log(buff2.toString());
+
+buff2.write("fgh", 5);
+console.log(buff2.toString());
+
+
+var buff3 = Buffer.concat([buff1, buff2]);
+console.log(buff3.toString());

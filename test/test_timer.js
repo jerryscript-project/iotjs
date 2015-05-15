@@ -13,31 +13,21 @@
  * limitations under the License.
  */
 
-var MODULE_BUFFER = 0;
-var MODULE_CONSOLE = 1;
-var MODULE_FS = 2;
-var MODULE_PROCESS = 3;
-var MODULE_TIMER = 4;
+var Timer = process.binding(process.binding.timer);
 
-this.global = this;
-var global = this.global;
+var timerobj = new Timer();
+timerobj.start(500, 0, function() {
+  console.log("JS Timer fired");
+});
+console.log("JS Timer timeout in 500 msec...");
 
-  global.console = process.binding(MODULE_CONSOLE);
-  var Timer = process.binding(MODULE_TIMER);
-
-  var timerobj = new Timer();
-  timerobj.start(500, 0, function() {
-    console.log("JS Timer fired");
-  });
-  console.log("JS Timer timeout in 500 msec...");
-
-  var repeat_cnt = 1;
-  var timerobj2 = new Timer();
-  timerobj2.start(400,100, function() {
-    console.log("Js Timer repeat #" + repeat_cnt);
-    if (repeat_cnt >= 5) {
-      timerobj2.stop();
-    }
-    repeat_cnt++;
-  });
-  console.log("JS Timer repeat in 400 msec, 100 msec interval, 5 times...");
+var repeat_cnt = 1;
+var timerobj2 = new Timer();
+timerobj2.start(400,100, function() {
+  console.log("Js Timer repeat #" + repeat_cnt);
+  if (repeat_cnt >= 5) {
+    timerobj2.stop();
+  }
+  repeat_cnt++;
+});
+console.log("JS Timer repeat in 400 msec, 100 msec interval, 5 times...");

@@ -13,48 +13,18 @@
  * limitations under the License.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <assert.h>
-#include <memory.h>
+#ifndef IOTJS_MODULE_CONSTANTS_H
+#define IOTJS_MODULE_CONSTANTS_H
 
-#include "iotjs_util.h"
+#include "iotjs_binding.h"
 
 
 namespace iotjs {
 
 
-char* ReadFile(const char* path) {
-  FILE* file = fopen(path, "rb");
-  assert(file != NULL);
-
-  fseek(file, 0, SEEK_END);
-  size_t len = ftell(file);
-  fseek(file, 0, SEEK_SET);
-
-  char* buff = AllocCharBuffer(len + 1);
-
-  size_t read = fread(buff, 1, len, file);
-  assert(read == len);
-
-  *(buff+len) = 0;
-
-  fclose(file);
-
-  return buff;
-}
-
-
-char* AllocCharBuffer(size_t size) {
-  char* buff = static_cast<char*>(malloc(size));
-  memset(buff, 0, size);
-  return buff;
-}
-
-
-void ReleaseCharBuffer(char* buffer) {
-  free(buffer);
-}
+JObject* InitConstants();
 
 
 } // namespace iotjs
+
+#endif /* IOTJS_MODULE_CONSTANTS_H */

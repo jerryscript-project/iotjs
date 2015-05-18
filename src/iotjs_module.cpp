@@ -18,6 +18,7 @@
 #include "iotjs_module.h"
 #include "iotjs_module_buffer.h"
 #include "iotjs_module_console.h"
+#include "iotjs_module_constants.h"
 #include "iotjs_module_fs.h"
 #include "iotjs_module_process.h"
 #include "iotjs_module_timer.h"
@@ -36,6 +37,7 @@ static Module _modules[MODULE_COUNT];
 void InitModuleList() {
   MAP_MODULE_LIST(INIT_MODULE_LIST)
 }
+
 #undef INIT_MODULE_LIST
 
 
@@ -44,9 +46,11 @@ void InitModuleList() {
     delete _modules[MODULE_ ## upper].module; \
   _modules[MODULE_ ## upper].module = NULL;
 
+
 void CleanupModuleList() {
   MAP_MODULE_LIST(CLENUP_MODULE_LIST)
 }
+
 #undef CLENUP_MODULE_LIST
 
 

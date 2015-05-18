@@ -16,19 +16,22 @@
 #ifndef IOTJS_UTIL_H
 #define IOTJS_UTIL_H
 
-#include <assert.h>
 
-#include "jerry-api.h"
+#include <assert.h>
 
 
 namespace iotjs {
 
+
 char* ReadFile(const char* path);
+
 
 char* AllocCharBuffer(size_t size);
 void ReleaseCharBuffer(char* buff);
 
+
 void PrintBacktrace();
+
 
 template<class T>
 struct LinkedListItem {
@@ -39,6 +42,7 @@ struct LinkedListItem {
   LinkedListItem<T>* next;
   T data;
 };
+
 
 template<class T>
 class LinkedListIterator {
@@ -55,6 +59,7 @@ public:
 private:
   LinkedListItem<T>* _curr;
 };
+
 
 template<class T>
 class LinkedList {
@@ -155,7 +160,8 @@ private:
   size_t _size;
 };
 
+
 } // namespace iotjs
 
-#endif /* IOTJS_UTIL_H */
 
+#endif /* IOTJS_UTIL_H */

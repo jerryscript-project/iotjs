@@ -135,6 +135,41 @@ JObject JObject::Global() {
 }
 
 
+JObject JObject::Error(const char* message) {
+  return JObject(jerry_api_create_error(JERRY_API_ERROR_COMMON, message));
+}
+
+
+JObject JObject::EvalError(const char* message) {
+  return JObject(jerry_api_create_error(JERRY_API_ERROR_EVAL, message));
+}
+
+
+JObject JObject::RangeError(const char* message) {
+  return JObject(jerry_api_create_error(JERRY_API_ERROR_RANGE, message));
+}
+
+
+JObject JObject::ReferenceError(const char* message) {
+  return JObject(jerry_api_create_error(JERRY_API_ERROR_REFERENCE, message));
+}
+
+
+JObject JObject::SyntaxError(const char* message) {
+  return JObject(jerry_api_create_error(JERRY_API_ERROR_SYNTAX, message));
+}
+
+
+JObject JObject::TypeError(const char* message) {
+  return JObject(jerry_api_create_error(JERRY_API_ERROR_TYPE, message));
+}
+
+
+JObject JObject::URIError(const char* message) {
+  return JObject(jerry_api_create_error(JERRY_API_ERROR_URI, message));
+}
+
+
 void JObject::SetMethod(const char* name, JHandlerType handler) {
   assert(IsObject());
   JObject method(jerry_api_create_external_function(handler));
@@ -415,7 +450,8 @@ JHandlerInfo::JHandlerInfo(const JRawObjectType* function_obj_p,
     : _function(function_obj_p, false)
     , _this(this_p, false)
     , _arg_list(args_cnt)
-    , _ret_val_p(ret_val_p) {
+    , _ret_val_p(ret_val_p)
+    , _thrown(false) {
   if (args_cnt > 0) {
     for (int i = 0; i < args_cnt; ++i) {
       JObject arg(&args_p[i], false);
@@ -452,6 +488,21 @@ uint16_t JHandlerInfo::GetArgLength() {
 void JHandlerInfo::Return(JObject& ret) {
   ret.Ref();
   *_ret_val_p = ret.raw_value();
+}
+
+
+void JHandlerInfo::Throw(JObject& ret) {
+  assert(_thrown == false);
+
+  ret.Ref();
+  *_ret_val_p = ret.raw_value();
+
+  _thrown = true;
+}
+
+
+bool JHandlerInfo::HasThrown() {
+  return _thrown;
 }
 
 

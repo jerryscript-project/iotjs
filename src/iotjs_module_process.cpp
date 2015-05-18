@@ -126,6 +126,7 @@ JObject* InitProcess() {
     jbinding.SetProperty(# lower, JVal::Int(MODULE_ ## upper));
 
     MAP_MODULE_LIST(ENUMDEF_MODULE_LIST)
+
 #undef ENUMDEF_MODULE_LIST
 
     module->module = process;

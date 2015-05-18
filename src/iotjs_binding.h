@@ -35,9 +35,6 @@ class JHandlerInfo;
 class JLocalScope;
 
 
-#define JERRY_THROW(msg) do { assert(!"not implemented"); } while (false)
-
-
 /// Wrapper for Javascript objects.
 class JObject {
  public:
@@ -79,6 +76,15 @@ class JObject {
 
   // Get the javascript global object.
   static JObject Global();
+
+  // Create a javascript error object.
+  static JObject Error(const char* message = NULL);
+  static JObject EvalError(const char* message = NULL);
+  static JObject RangeError(const char* message = NULL);
+  static JObject ReferenceError(const char* message = NULL);
+  static JObject SyntaxError(const char* message = NULL);
+  static JObject TypeError(const char* message = NULL);
+  static JObject URIError(const char* message = NULL);
 
   // Destoyer for this class.
   // When the wrapper is being destroyed, ref count for correspoding javascript
@@ -186,13 +192,27 @@ class JHandlerInfo {
   uint16_t GetArgLength();
 
   void Return(JObject& ret);
+  void Throw(JObject& err);
+
+  bool HasThrown();
 
  private:
   JObject _function;
   JObject _this;
   JArgList _arg_list;
   JRawValueType* _ret_val_p;
+  bool _thrown;
 };
+
+
+#define JHANDLER_THROW(handler_info, error_type, message) \
+  JObject error = JObject::error_type(message); \
+  handler_info.Throw(error); \
+
+
+#define JHANDLER_THROW_RETURN(handler_info, error_type, message) \
+  JHANDLER_THROW(handler_info, error_type, message); \
+  return false;
 
 
 #define JHANDLER_FUNCTION(handler, arg_name) \

@@ -15,6 +15,7 @@
 
 #include "iotjs_binding.h"
 #include "iotjs_env.h"
+#include "iotjs_exception.h"
 #include "iotjs_handlewrap.h"
 #include "iotjs_module.h"
 #include "iotjs_module_fs.h"
@@ -22,6 +23,7 @@
 
 
 namespace iotjs {
+
 
 class FsReqWrap : public HandleWrap {
  public:
@@ -56,19 +58,20 @@ static void After(uv_fs_t* req) {
   JObject* cb = req_wrap->callback();
   assert(cb != NULL && cb->IsFunction());
 
-  JArgList jarg(1);
+  JArgList jarg(2);
   if (req->result < 0) {
-    JObject arg0(static_cast<int32_t>(-req->result));
-    jarg.Add(arg0);
+    JObject jerror(CreateUVException(req->result, "open"));
+    jarg.Add(jerror);
   } else {
+    jarg.Add(JObject::Null());
     switch (req->fs_type) {
       case UV_FS_OPEN:
-        {
-          JObject arg0(static_cast<int32_t>(req->result));
-          jarg.Add(arg0);
-        }
+      case UV_FS_READ:
+      {
+        JObject arg1(static_cast<int32_t>(req->result));
+        jarg.Add(arg1);
         break;
-
+      }
       default:
         jarg.Add(JObject::Null());
     }
@@ -78,30 +81,60 @@ static void After(uv_fs_t* req) {
 
   uv_fs_req_cleanup(req);
 
+  cb->Unref();
   delete req_wrap;
 }
+
+
+#define FS_ASYNC(env, syscall, pcallback, ...) \
+  FsReqWrap* req_wrap = new FsReqWrap(); \
+  pcallback->Ref(); \
+  req_wrap->set_callback(*pcallback); \
+  uv_fs_t* fs_req = req_wrap->data(); \
+  int err = uv_fs_ ## syscall(env->loop(), \
+                              fs_req, \
+                              __VA_ARGS__, \
+                              After); \
+  req_wrap->Dispatched(); \
+  if (err < 0) { \
+    fs_req->result = err; \
+    After(fs_req); \
+  } \
+  handler.Return(JObject::Null()); \
+
+
+#define FS_SYNC(env, syscall, ...) \
+  uv_fs_t fs_req; \
+  int err = uv_fs_ ## syscall(env->loop(), \
+                              &fs_req, \
+                              __VA_ARGS__, \
+                              NULL); \
+  if (err < 0) { \
+    JObject jerror(CreateUVException(err, #syscall)); \
+    handler.Throw(jerror); \
+  } else { \
+    JObject ret(err);\
+    handler.Return(ret); \
+  } \
 
 
 JHANDLER_FUNCTION(Open, handler) {
   int argc = handler.GetArgLength();
 
   if (argc < 1) {
-    JERRY_THROW("type error: path required");
+    JHANDLER_THROW_RETURN(handler, TypeError, "path required");
+  } else if (argc < 2) {
+    JHANDLER_THROW_RETURN(handler, TypeError, "flags required");
+  } else if (argc < 3) {
+    JHANDLER_THROW_RETURN(handler, TypeError, "mode required");
   }
-  if (argc < 2) {
-    JERRY_THROW("type error: flags required");
-  }
-  if (argc < 3) {
-    JERRY_THROW("type error: mode required");
-  }
+
   if (!handler.GetArg(0)->IsString()) {
-    JERRY_THROW("type error: path must be a string");
-  }
-  if (!handler.GetArg(1)->IsNumber()) {
-    JERRY_THROW("type error: flags must be an int");
-  }
-  if (!handler.GetArg(1)->IsNumber()) {
-    JERRY_THROW("type error: mode must be an int");
+    JHANDLER_THROW_RETURN(handler, TypeError, "path must be a string");
+  } else if (!handler.GetArg(1)->IsNumber()) {
+    JHANDLER_THROW_RETURN(handler, TypeError, "flags must be an int");
+  } else if (!handler.GetArg(1)->IsNumber()) {
+    JHANDLER_THROW_RETURN(handler, TypeError, "mode must be an int");
   }
 
   Environment* env = Environment::GetEnv();
@@ -111,34 +144,69 @@ JHANDLER_FUNCTION(Open, handler) {
   int mode = handler.GetArg(2)->GetInt32();
 
   if (argc > 3 && handler.GetArg(3)->IsFunction()) {
-    JObject* jcallback = handler.GetArg(3);
-
-    FsReqWrap* req_wrap = new FsReqWrap();
-    req_wrap->set_callback(*jcallback);
-
-    uv_fs_t* fs_req = req_wrap->data();
-
-    int err = uv_fs_open(env->loop(), fs_req, path, flags, mode, After);
-    req_wrap->Dispatched();
-    if (err < 0) {
-      fs_req->result = err;
-      After(fs_req);
-    }
-
-    handler.Return(JObject::Null());
+    FS_ASYNC(env, open, handler.GetArg(3), path, flags, mode);
   } else {
-    uv_fs_t fs_req;
-    int err = uv_fs_open(env->loop(), &fs_req, path, flags, mode, NULL);
-    if (err < 0) {
-      JERRY_THROW("open failed!");
-    } else {
-      JObject ret(err);
-      handler.Return(ret);
-    }
+    FS_SYNC(env, open, path, flags, mode);
   }
-  JObject::ReleaseCString(path);
 
-  return true;
+  return !handler.HasThrown();
+}
+
+
+JHANDLER_FUNCTION(Read, handler) {
+  int argc = handler.GetArgLength();
+
+  if (argc < 1) {
+    JHANDLER_THROW_RETURN(handler, TypeError, "fd required");
+  } else if (argc < 2) {
+    JHANDLER_THROW_RETURN(handler, TypeError, "buffer required");
+  } else if (argc < 3) {
+    JHANDLER_THROW_RETURN(handler, TypeError, "offset required");
+  } else if (argc < 4) {
+    JHANDLER_THROW_RETURN(handler, TypeError, "length required");
+  } else if (argc < 5) {
+    JHANDLER_THROW_RETURN(handler, TypeError, "position required");
+  }
+
+  if (!handler.GetArg(0)->IsNumber()) {
+    JHANDLER_THROW_RETURN(handler, TypeError, "fd must be an int");
+  } else if (!handler.GetArg(1)->IsObject()) {
+    JHANDLER_THROW_RETURN(handler, TypeError, "buffer must be a Buffer");
+  } else if (!handler.GetArg(2)->IsNumber()) {
+    JHANDLER_THROW_RETURN(handler, TypeError, "offset must be an int");
+  } else if (!handler.GetArg(3)->IsNumber()) {
+    JHANDLER_THROW_RETURN(handler, TypeError, "length must be an int");
+  } else if (!handler.GetArg(4)->IsNumber()) {
+    JHANDLER_THROW_RETURN(handler, TypeError, "position must be an int");
+  }
+
+  Environment* env = Environment::GetEnv();
+
+  int fd = handler.GetArg(0)->GetInt32();
+  int offset = handler.GetArg(2)->GetInt32();
+  int length = handler.GetArg(3)->GetInt32();
+  int position = handler.GetArg(4)->GetInt32();
+
+  JObject* jbuffer = handler.GetArg(1);
+  char* buffer = reinterpret_cast<char*>(jbuffer->GetNative());
+  int buffer_length = jbuffer->GetProperty("length").GetInt32();
+
+  if (offset >= buffer_length) {
+    JHANDLER_THROW_RETURN(handler, RangeError, "offset out of bound");
+  }
+  if (offset + length > buffer_length) {
+    JHANDLER_THROW_RETURN(handler, RangeError, "length out of bound");
+  }
+
+  uv_buf_t uvbuf = uv_buf_init(buffer + offset, length);
+
+  if (argc > 5 && handler.GetArg(5)->IsFunction()) {
+    FS_ASYNC(env, read, handler.GetArg(5), fd, &uvbuf, 1, position);
+  } else {
+    FS_SYNC(env, read, fd, &uvbuf, 1, position);
+  }
+
+  return !handler.HasThrown();
 }
 
 
@@ -149,11 +217,13 @@ JObject* InitFs() {
   if (fs == NULL) {
     fs = new JObject();
     fs->SetMethod("open", Open);
+    fs->SetMethod("read", Read);
 
     module->module = fs;
   }
 
   return fs;
 }
+
 
 } // namespace iotjs

@@ -27,6 +27,7 @@ typedef JObject* (*register_func)();
 #define MAP_MODULE_LIST(F) \
   F(BUFFER, Buffer, buffer) \
   F(CONSOLE, Console, console) \
+  F(CONSTANTS, Constants, constants) \
   F(FS, Fs, fs) \
   F(PROCESS, Process, process) \
   F(TIMER, Timer, timer)

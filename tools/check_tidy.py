@@ -26,6 +26,7 @@ count_err = 0
 
 interesting_exts = ['.c', '.cpp', '.cc', '.h', '.js', '.py', '.sh', '.cmake']
 skip_dirs = ['deps', 'build']
+skip_files = ['iotjs_js.h']
 
 
 def report_error_name_line(name, line, msg):
@@ -40,7 +41,7 @@ def report_error(msg):
 
 def is_interesting(file):
     _, ext = os.path.splitext(file)
-    return ext in interesting_exts
+    return ext in interesting_exts and file not in skip_files
 
 
 def check_tidy(src_dir):

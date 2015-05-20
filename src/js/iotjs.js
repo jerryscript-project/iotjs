@@ -120,9 +120,11 @@
 
 
   Native.prototype.compile = function() {
+    // process.native_sources has a list of pointers to
+    // the source strings defined in 'iotjs_js.h', not
+    // source strings.
     var source = process.native_sources[this.id];
-    source = Native.wrap(source);
-    var fn = process.compile(source);
+    var fn = process.compileNativePtr(source);
     fn(this.exports, Native.require, this);
   };
 

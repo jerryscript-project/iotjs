@@ -17,7 +17,7 @@
 #include "iotjs_module.h"
 #include "iotjs_module_process.h"
 #include "iotjs_js.h"
-
+#include <string.h>
 
 namespace iotjs {
 
@@ -85,6 +85,36 @@ JHANDLER_FUNCTION(Compile, handler){
   return true;
 }
 
+
+
+JHANDLER_FUNCTION(CompileNativePtr, handler){
+  assert(handler.GetArgLength() == 1);
+  assert(handler.GetArg(0)->IsObject());
+
+  char* source = (char*)(handler.GetArg(0)->GetNative());
+
+  const char* wrapper[2] = {
+    "(function (a, b, c) { function wwwwrap(exports,require, module) {",
+    " }; wwwwrap(a, b, c); });" };
+
+  int len = strlen(source)+ strlen(wrapper[0]) + strlen(wrapper[1]);
+  char* code = AllocCharBuffer(len+1);
+
+  strcpy(code,wrapper[0]);
+  strcat(code,source);
+  strcat(code,wrapper[1]);
+
+  JRawValueType ret_val;
+  jerry_api_eval(code,sizeof(code),true,false,&ret_val);
+  JObject::ReleaseCString(code);
+
+  JObject ret(&ret_val);
+  handler.Return(ret);
+
+  return true;
+}
+
+
 JHANDLER_FUNCTION(ReadSource, handler){
   assert(handler.GetArgLength() == 1);
   assert(handler.GetArg(0)->IsString());
@@ -99,7 +129,8 @@ JHANDLER_FUNCTION(ReadSource, handler){
 
 void SetNativeSources(JObject* native_sources) {
   for (int i = 0; natives[i].name; i++) {
-    JObject native_source(natives[i].source);
+    JObject native_source;
+    native_source.SetNative((uintptr_t)(natives[i].source), NULL);
     native_sources->SetProperty(natives[i].name, native_source);
   }
 }
@@ -112,6 +143,7 @@ JObject* InitProcess() {
     process = new JObject();
     process->SetMethod("binding", Binding);
     process->SetMethod("compile", Compile);
+    process->SetMethod("compileNativePtr", CompileNativePtr);
     process->SetMethod("readSource", ReadSource);
 
     // process.native_sources

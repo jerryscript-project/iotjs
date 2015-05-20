@@ -163,5 +163,4 @@ private:
 
 } // namespace iotjs
 
-
 #endif /* IOTJS_UTIL_H */

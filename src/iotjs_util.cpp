@@ -56,5 +56,4 @@ void ReleaseCharBuffer(char* buffer) {
   free(buffer);
 }
 
-
 } // namespace iotjs

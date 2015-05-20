@@ -64,20 +64,32 @@ INT_ROOT = join_path([ROOT, 'inc'])
 
 
 def mkdir(path):
-    run_cmd('mkdir', ['-p', path])
+    if not check_path(path):
+        os.makedirs(path)
 
 
 def copy(src, dst):
-    run_cmd('cp', [src, dst])
+    shutil.copy(src, dst);
 
 
-def run_cmd(cmd, args = []):
+def cmdline(cmd, args = []):
     cmd_line = cmd
     if len(args) > 0:
         cmd_line = cmd_line + " " + reduce(lambda x, y: x + " " + y, args)
+    return cmd_line
+
+
+def run_cmd(cmd, args = []):
     if config_echo:
-        print cmd_line
-    os.system(cmd_line)
+        print cmdline(cmd, args)
+    return subprocess.call([cmd] + args)
+
+
+def check_run_cmd(cmd, args = []):
+    retcode = run_cmd(cmd, args)
+    if retcode != 0:
+        print "[Failed - %d] %s" % (retcode, cmdline(cmd, args))
+        exit(1)
 
 
 def get_git_hash(path):
@@ -88,6 +100,7 @@ def get_git_hash(path):
 def sys_name():
     name, _, _, _, _ = os.uname()
     return name.lower()
+
 
 def sys_machine():
     _, _, _, _, machine = os.uname()
@@ -181,8 +194,8 @@ def parse_args():
                     break
 
 def init_submodule():
-    run_cmd('git', ['submodule', 'init'])
-    run_cmd('git', ['submodule', 'update'])
+    check_run_cmd('git', ['submodule', 'init'])
+    check_run_cmd('git', ['submodule', 'update'])
 
 
 def get_cache_path(cache_dir, libname, cache_hash):
@@ -190,6 +203,7 @@ def get_cache_path(cache_dir, libname, cache_hash):
     if not opt_init_submodule():
         cache_path += "-dirty"
     return cache_path
+
 
 def check_cached(cache_path):
     if not opt_init_submodule():
@@ -229,18 +243,18 @@ def build_libuv():
 
         # libuv is using gyp. run the system according to build target.
         if opt_target_arch() == 'arm' and opt_target_os() =='nuttx':
-            run_cmd('./nuttx-configure', [opt_nuttx_home()])
+            check_run_cmd('./nuttx-configure', [opt_nuttx_home()])
         else:
-            run_cmd('./gyp_uv.py', ['-f', 'make'])
+            check_run_cmd('./gyp_uv.py', ['-f', 'make'])
 
         # set build type.
         build_type = 'Release' if opt_build_type() == 'release' else 'Debug'
 
         # make libuv.
-        run_cmd('make', ['-C',
-                         'out',
-                         'BUILDTYPE=' + build_type,
-                         opt_make_flags()])
+        check_run_cmd('make', ['-C',
+                               'out',
+                               'BUILDTYPE=' + build_type,
+                               opt_make_flags()])
 
         # output: libuv.a
         output = join_path([LIBUV_ROOT, 'out', build_type, 'libuv.a'])
@@ -314,8 +328,8 @@ def build_libjerry():
         # FIXME: Running cmake once cause a problem because cmake does not know
         # the system like "System is unknown to cmake". and the other settings
         # are not applied intendly, running twice solves the problem.
-        run_cmd('cmake', jerry_cmake_opt)
-        run_cmd('cmake', jerry_cmake_opt)
+        check_run_cmd('cmake', jerry_cmake_opt)
+        check_run_cmd('cmake', jerry_cmake_opt)
 
         # cmake will produce a Makefile.
 
@@ -323,10 +337,10 @@ def build_libjerry():
         jerry_build_target = opt_build_type() + '.jerry-core'
 
         # run make.
-        run_cmd('make', ['-C',
-                         build_home,
-                         jerry_build_target,
-                         opt_make_flags()])
+        check_run_cmd('make', ['-C',
+                               build_home,
+                               jerry_build_target,
+                               opt_make_flags()])
 
         # output: libjerry-core.a
         output = join_path([build_home,
@@ -351,7 +365,7 @@ def build_libjerry():
 
 def build_iotjs():
     os.chdir(SCRIPT_PATH)
-    run_cmd('perl js2c.pl')
+    check_run_cmd('perl', ['js2c.pl'])
 
     # iot.js build directory.
     build_home = join_path([opt_build_root(), 'iotjs'])
@@ -385,11 +399,11 @@ def build_iotjs():
     # FIXME: Running cmake once cause a problem because cmake does not know the
     # system like "System is unknown to cmake". and the other settings are not
     # applied intendly, running twice solves the problem.
-    run_cmd('cmake', iotjs_cmake_opt)
-    run_cmd('cmake', iotjs_cmake_opt)
+    check_run_cmd('cmake', iotjs_cmake_opt)
+    check_run_cmd('cmake', iotjs_cmake_opt)
 
     # run make
-    run_cmd('make', [opt_make_flags()])
+    check_run_cmd('make', [opt_make_flags()])
 
     return True
 

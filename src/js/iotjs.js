@@ -21,6 +21,7 @@
 
   function start_iotjs() {
     init_global();
+    init_timers();
 
     init_process();
 
@@ -37,6 +38,29 @@
     global.console =  process.binding(process.binding.console);
     global.Buffer = Native.require('buffer');
   };
+
+
+  function init_timers() {
+    global.setTimeout = function(callback, delay) {
+      var t = Native.require('timers');
+      return t.setTimeout.call(this, callback, delay);
+    };
+
+    global.setInterval = function(callback, repeat) {
+      var t = Native.require('timers');
+      return t.setInterval.call(this, callback, repeat);
+    };
+
+    global.clearTimeout = function(timeout) {
+      var t = Native.require('timers');
+      return t.clearTimeout.call(this, timeout);
+    };
+
+    global.clearInterval = function(interval) {
+      var t = Native.require('timers');
+      return t.clearInterval.call(this, interval);
+    };
+  }
 
 
   function init_process() {

@@ -23,14 +23,23 @@ namespace iotjs {
 
 typedef JObject* (*register_func)();
 
+// List of builtin modules
+#define MAP_MODULE_LIST(F) \
+  F(BUFFER, Buffer, buffer) \
+  F(CONSOLE, Console, console) \
+  F(FS, Fs, fs) \
+  F(PROCESS, Process, process) \
+  F(TIMER, Timer, timer)
+
+
+#define ENUMDEF_MODULE_LIST(upper, Camel, lower) \
+  MODULE_ ## upper,
+
 enum ModuleKind {
-  MODULE_BUFFER,
-  MODULE_CONSOLE,
-  MODULE_FS,
-  MODULE_PROCESS,
-  MODULE_TIMER,
-  MODULE_COUNT,
+  MAP_MODULE_LIST(ENUMDEF_MODULE_LIST)
+  MODULE_COUNT
 };
+#undef ENUMDEF_MODULE_LIST
 
 
 struct Module {

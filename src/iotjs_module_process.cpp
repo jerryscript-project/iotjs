@@ -121,11 +121,12 @@ JObject* InitProcess() {
 
     // Binding module id.
     JObject jbinding = process->GetProperty("binding");
-    jbinding.SetProperty("buffer", JVal::Int(MODULE_BUFFER));
-    jbinding.SetProperty("console", JVal::Int(MODULE_CONSOLE));
-    jbinding.SetProperty("fs", JVal::Int(MODULE_FS));
-    jbinding.SetProperty("process", JVal::Int(MODULE_PROCESS));
-    jbinding.SetProperty("timer", JVal::Int(MODULE_TIMER));
+
+#define ENUMDEF_MODULE_LIST(upper, Camel, lower) \
+    jbinding.SetProperty(# lower, JVal::Int(MODULE_ ## upper));
+
+    MAP_MODULE_LIST(ENUMDEF_MODULE_LIST)
+#undef ENUMDEF_MODULE_LIST
 
     module->module = process;
   }

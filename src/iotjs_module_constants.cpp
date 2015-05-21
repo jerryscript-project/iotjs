@@ -45,6 +45,8 @@ JObject* InitConstants() {
     SET_CONSTANT(constants, O_SYNC);
     SET_CONSTANT(constants, O_TRUNC);
     SET_CONSTANT(constants, O_WRONLY);
+    SET_CONSTANT(constants, S_IFMT);
+    SET_CONSTANT(constants, S_IFDIR);
 
     module->module = constants;
   }

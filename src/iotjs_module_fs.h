@@ -23,6 +23,7 @@
 
 namespace iotjs {
 
+JObject MakeStatObject(uv_stat_t* statbuf);
 JObject* InitFs();
 
 } // namespace iotjs

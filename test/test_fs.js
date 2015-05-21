@@ -36,3 +36,35 @@ var onOpen = function(err, fd) {
 
 
 fs.open("greeting.txt", "r", 438, onOpen);
+
+
+try {
+  var fd = fs.openSync("greeting.txt", "r", 438);
+  var buffer = new Buffer(64);
+  fs.read(fd, buffer, 0, 64, 0, onRead);
+  console.log("openSync->readAsync succeed");
+}
+catch(err) {
+   console.log(err.message);
+}
+
+try {
+  var fd = fs.openSync("greeting.txt", "r", 438);
+  var buffer = new Buffer(64);
+  var str = fs.read(fd, buffer, 0, 64, 0);
+  console.log("openSync->readSync succeed");
+}
+catch(err) {
+   console.log(err.message);
+}
+
+// error test
+try {
+  var fd = fs.openSync("non-greeting.txt", "r", 438);
+  var buffer = new Buffer(64);
+  var str = fs.read(fd, buffer, 0, 64, 0);
+  console.log("openSync->readSync succeed");
+}
+catch(err) {
+   console.log(err.message);
+}

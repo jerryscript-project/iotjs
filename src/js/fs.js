@@ -15,11 +15,71 @@
 
 
 var fs = exports;
-
 var constants = require('constants');
 var util = require('util');
-
 var fsBuiltin = process.binding(process.binding.fs);
+
+
+fs.statSync = function(path) {
+  return fsBuiltin.stat(path);
+};
+
+fs.stat = function(path, callback) {
+  fsBuiltin.stat(path, callback);
+};
+
+
+fs.Stats = function(dev,
+                    mode,
+                    nlink,
+                    uid,
+                    gid,
+                    rdev,
+                    blksize,
+                    ino,
+                    size,
+                    blocks) {
+  this.dev = dev;
+  this.mode = mode;
+  this.nlink = nlink;
+  this.uid = uid;
+  this.gid = gid;
+  this.rdev = rdev;
+  this.blksize = blksize;
+  this.ino = ino;
+  this.size = size;
+  this.blocks = blocks;
+
+};
+
+fs.Stats.prototype.isDirectory = function() {
+  return ((this.mode & constants.S_IFMT) === constants.S_IFDIR);
+};
+
+
+
+fsBuiltin.createStat = function(dev,
+                                mode,
+                                nlink,
+                                uid,
+                                gid,
+                                rdev,
+                                blksize,
+                                ino,
+                                size,
+                                blocks) {
+  var statobj = new fs.Stats(dev,
+                             mode,
+                             nlink,
+                             uid,
+                             gid,
+                             rdev,
+                             blksize,
+                             ino,
+                             size,
+                             blocks);
+  return statobj;
+};
 
 
 var O_APPEND = constants.O_APPEND;
@@ -43,6 +103,16 @@ fs.open = function(path, flags, mode, callback) {
 };
 
 
+fs.openSync = function(path, flags, mode) {
+  if (!util.isNumber(mode)) {
+    mode = 438; // 0666;
+  }
+  return fsBuiltin.open(path,
+                        convertFlags(flags),
+                        mode);
+};
+
+
 fs.read = function(fd, buffer, offset, length, position, callback) {
   if (!util.isBuffer(buffer)) {
     throw new TypeError('Bad arguments');
@@ -53,6 +123,15 @@ fs.read = function(fd, buffer, offset, length, position, callback) {
   };
 
   fsBuiltin.read(fd, buffer, offset, length, position, cb_wrap);
+};
+
+
+fs.readSync = function(fd, buffer, offset, length, position) {
+  if (!util.isBuffer(buffer)) {
+    throw new TypeError('Bad arguments');
+  }
+
+  return fsBuiltin.read(fd, buffer, offset, length, position);
 };
 
 

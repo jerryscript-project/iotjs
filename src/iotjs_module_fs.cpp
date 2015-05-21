@@ -72,6 +72,12 @@ static void After(uv_fs_t* req) {
         jarg.Add(arg1);
         break;
       }
+      case UV_FS_STAT: {
+        uv_stat_t s = (req->statbuf);
+        JObject ret(MakeStatObject(&s));
+        jarg.Add(ret);
+        break;
+      }
       default:
         jarg.Add(JObject::Null());
     }
@@ -112,10 +118,9 @@ static void After(uv_fs_t* req) {
   if (err < 0) { \
     JObject jerror(CreateUVException(err, #syscall)); \
     handler.Throw(jerror); \
-  } else { \
-    JObject ret(err);\
-    handler.Return(ret); \
+    return false;          \
   } \
+
 
 
 JHANDLER_FUNCTION(Open, handler) {
@@ -147,6 +152,8 @@ JHANDLER_FUNCTION(Open, handler) {
     FS_ASYNC(env, open, handler.GetArg(3), path, flags, mode);
   } else {
     FS_SYNC(env, open, path, flags, mode);
+    JObject ret(err);
+    handler.Return(ret);
   }
 
   return !handler.HasThrown();
@@ -204,9 +211,86 @@ JHANDLER_FUNCTION(Read, handler) {
     FS_ASYNC(env, read, handler.GetArg(5), fd, &uvbuf, 1, position);
   } else {
     FS_SYNC(env, read, fd, &uvbuf, 1, position);
+    JObject ret(err);
+    handler.Return(ret);
   }
 
   return !handler.HasThrown();
+}
+
+JObject MakeStatObject(uv_stat_t* statbuf) {
+
+
+#define X(name)                              \
+  JObject name((int32_t)statbuf->st_##name);        \
+
+  X(dev)
+  X(mode)
+  X(nlink)
+  X(uid)
+  X(gid)
+  X(rdev)
+
+#undef X
+
+#define X(name)                              \
+  JObject name((double)statbuf->st_##name);        \
+
+  X(blksize)
+  X(ino)
+  X(size)
+  X(blocks)
+
+#undef X
+
+
+  Module* module = GetBuiltinModule(MODULE_FS);
+  JObject* fs = module->module;
+  JObject createStat = fs->GetProperty("createStat");
+
+  JArgList args(10);
+  args.Add(dev);
+  args.Add(mode);
+  args.Add(nlink);
+  args.Add(uid);
+  args.Add(gid);
+  args.Add(rdev);
+  args.Add(blksize);
+  args.Add(ino);
+  args.Add(size);
+  args.Add(blocks);
+
+  JObject statobj(createStat.Call(JObject::Null(), args));
+
+  return statobj;
+}
+
+
+JHANDLER_FUNCTION(Stat, handler) {
+  int argc = handler.GetArgLength();
+
+  if (argc < 1) {
+    JHANDLER_THROW_RETURN(handler, TypeError, "path required");
+  }
+  if (!handler.GetArg(0)->IsString()) {
+    JHANDLER_THROW_RETURN(handler, TypeError, "path must be a string");
+  }
+
+  Environment* env = Environment::GetEnv();
+
+  char* path = handler.GetArg(0)->GetCString();
+
+  if (argc > 1 && handler.GetArg(1)->IsFunction()) {
+    FS_ASYNC(env, stat, handler.GetArg(1), path);
+  } else {
+    FS_SYNC(env, stat, path);
+    uv_stat_t* s = &(fs_req.statbuf);
+    JObject ret(MakeStatObject(s));
+    handler.Return(ret);
+  }
+  JObject::ReleaseCString(path);
+
+  return true;
 }
 
 
@@ -218,6 +302,7 @@ JObject* InitFs() {
     fs = new JObject();
     fs->SetMethod("open", Open);
     fs->SetMethod("read", Read);
+    fs->SetMethod("stat", Stat);
 
     module->module = fs;
   }

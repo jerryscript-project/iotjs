@@ -17,6 +17,8 @@
 #include "iotjs_module.h"
 #include "iotjs_module_process.h"
 #include "iotjs_js.h"
+#include "uv.h"
+#include <cstdlib>
 #include <string.h>
 
 namespace iotjs {
@@ -127,12 +129,40 @@ JHANDLER_FUNCTION(ReadSource, handler){
   return true;
 }
 
+JHANDLER_FUNCTION(Cwd, handler){
+  assert(handler.GetArgLength() == 0);
+
+  char path[120];
+  size_t size_path = sizeof(path);
+  int err = uv_cwd(path, &size_path);
+  if (err) {
+    JHANDLER_THROW_RETURN(handler, TypeError, "cwd error");
+  }
+  JObject ret(path);
+  handler.Return(ret);
+
+  return true;
+}
+
 void SetNativeSources(JObject* native_sources) {
   for (int i = 0; natives[i].name; i++) {
     JObject native_source;
     native_source.SetNative((uintptr_t)(natives[i].source), NULL);
     native_sources->SetProperty(natives[i].name, native_source);
   }
+}
+
+
+void SetProcessEnv(JObject* process){
+  char *homedir;
+  homedir = getenv("HOME");
+  assert(homedir != NULL);
+
+  JObject home(homedir);
+  JObject env;
+  env.SetProperty("HOME",home);
+  process->SetProperty("env",env);
+
 }
 
 JObject* InitProcess() {
@@ -145,6 +175,8 @@ JObject* InitProcess() {
     process->SetMethod("compile", Compile);
     process->SetMethod("compileNativePtr", CompileNativePtr);
     process->SetMethod("readSource", ReadSource);
+    process->SetMethod("cwd", Cwd);
+    SetProcessEnv(process);
 
     // process.native_sources
     JObject native_sources;

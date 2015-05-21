@@ -56,4 +56,22 @@ void ReleaseCharBuffer(char* buffer) {
   free(buffer);
 }
 
+
+LocalString::LocalString(const char* strp)
+    : _strp(strp) {
+  assert(_strp != NULL);
+}
+
+
+LocalString::~LocalString() {
+  assert(_strp != NULL);
+  ReleaseCharBuffer(const_cast<char*>(_strp));
+}
+
+
+LocalString::operator const char* () const {
+  return _strp;
+}
+
+
 } // namespace iotjs

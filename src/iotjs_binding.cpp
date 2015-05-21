@@ -21,33 +21,39 @@
 namespace iotjs {
 
 
-#define JVAL_IS_NULL(val_p) ((val_p)->type == JERRY_API_DATA_TYPE_NULL)
+#define JVAL_IS_NULL(val_p) \
+    ((val_p)->type == JERRY_API_DATA_TYPE_NULL)
 
-#define JVAL_IS_STRING(val_p) ((val_p)->type == JERRY_API_DATA_TYPE_STRING)
+#define JVAL_IS_UNDEFINED(val_p) \
+    ((val_p)->type == JERRY_API_DATA_TYPE_UNDEFINED)
 
-#define JVAL_IS_OBJECT(val_p) ((val_p)->type == JERRY_API_DATA_TYPE_OBJECT)
+#define JVAL_IS_STRING(val_p) \
+    ((val_p)->type == JERRY_API_DATA_TYPE_STRING)
+
+#define JVAL_IS_OBJECT(val_p) \
+    ((val_p)->type == JERRY_API_DATA_TYPE_OBJECT)
 
 #define JVAL_IS_FUNCTION(val_p) \
-  (JVAL_IS_OBJECT(val_p) && jerry_api_is_function((val_p)->v_object))
+    (JVAL_IS_OBJECT(val_p) && jerry_api_is_function((val_p)->v_object))
 
 #define JVAL_IS_NUMBER(val_p) \
-  (((val_p)->type == JERRY_API_DATA_TYPE_FLOAT32) || \
-   ((val_p)->type == JERRY_API_DATA_TYPE_FLOAT64) || \
-   ((val_p)->type == JERRY_API_DATA_TYPE_UINT32))
+    (((val_p)->type == JERRY_API_DATA_TYPE_FLOAT32) || \
+     ((val_p)->type == JERRY_API_DATA_TYPE_FLOAT64) || \
+     ((val_p)->type == JERRY_API_DATA_TYPE_UINT32))
 
 #define JVAL_TO_INT32(val_p) \
-   ((val_p)->type == JERRY_API_DATA_TYPE_FLOAT32 ? \
-      static_cast<int32_t>((val_p)->v_float32) : \
-    (val_p)->type == JERRY_API_DATA_TYPE_FLOAT64 ? \
-      static_cast<int32_t>((val_p)->v_float64) : \
-    static_cast<int32_t>((val_p)->v_uint32))
+    ((val_p)->type == JERRY_API_DATA_TYPE_FLOAT32 ? \
+       static_cast<int32_t>((val_p)->v_float32) : \
+     (val_p)->type == JERRY_API_DATA_TYPE_FLOAT64 ? \
+       static_cast<int32_t>((val_p)->v_float64) : \
+     static_cast<int32_t>((val_p)->v_uint32))
 
 #define JVAL_TO_INT64(val_p) \
-   ((val_p)->type == JERRY_API_DATA_TYPE_FLOAT32 ? \
-      static_cast<int64_t>((val_p)->v_float32) : \
-    (val_p)->type == JERRY_API_DATA_TYPE_FLOAT64 ? \
-      static_cast<int64_t>((val_p)->v_float64) : \
-    static_cast<int64_t>((val_p)->v_uint32))
+    ((val_p)->type == JERRY_API_DATA_TYPE_FLOAT32 ? \
+       static_cast<int64_t>((val_p)->v_float32) : \
+     (val_p)->type == JERRY_API_DATA_TYPE_FLOAT64 ? \
+       static_cast<int64_t>((val_p)->v_float64) : \
+     static_cast<int64_t>((val_p)->v_uint32))
 
 
 JRawObjectType* GetGlobal() {
@@ -127,6 +133,13 @@ static JRawValueType jnull_val = JVal::Null();
 static JObject jnull(&jnull_val);
 JObject& JObject::Null() {
   return jnull;
+}
+
+
+static JRawValueType jundefined_val = JVal::Undefined();
+static JObject jundefined(&jundefined_val);
+JObject& JObject::Undefined() {
+  return jundefined;
 }
 
 
@@ -221,6 +234,11 @@ void JObject::Unref() {
 
 bool JObject::IsNull() {
   return JVAL_IS_NULL(&_obj_val);
+}
+
+
+bool JObject::IsUndefined() {
+  return JVAL_IS_UNDEFINED(&_obj_val);
 }
 
 
@@ -427,12 +445,24 @@ void JArgList::Add(JObject& x) {
 }
 
 
+void JArgList::Add(JRawValueType x) {
+  JObject jtmp(&x);
+  Add(jtmp);
+}
+
+
 void JArgList::Set(uint16_t i, JObject& x) {
   assert(i < _argc);
   if (_argv[i] != NULL) {
     delete _argv[i];
   }
   _argv[i] = new JObject(x);
+}
+
+
+void JArgList::Set(uint16_t i, JRawValueType x) {
+  JObject jtmp(&x);
+  Set(i, jtmp);
 }
 
 
@@ -491,6 +521,12 @@ void JHandlerInfo::Return(JObject& ret) {
 }
 
 
+void JHandlerInfo::Return(JRawValueType raw_val) {
+  JObject jret(&raw_val);
+  Return(jret);
+}
+
+
 void JHandlerInfo::Throw(JObject& ret) {
   assert(_thrown == false);
 
@@ -498,6 +534,12 @@ void JHandlerInfo::Throw(JObject& ret) {
   *_ret_val_p = ret.raw_value();
 
   _thrown = true;
+}
+
+
+void JHandlerInfo::Throw(JRawValueType raw_val) {
+  JObject jthrow(&raw_val);
+  Throw(jthrow);
 }
 
 

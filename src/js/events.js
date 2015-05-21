@@ -22,6 +22,7 @@ function EventEmitter() {
 };
 
 module.exports = EventEmitter;
+module.exports.EventEmitter = EventEmitter;
 
 
 // TODO: using arguments instead of arg1, arg2.

@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+
 #include <assert.h>
 
 #include "iotjs_module.h"
@@ -21,7 +22,10 @@
 #include "iotjs_module_constants.h"
 #include "iotjs_module_fs.h"
 #include "iotjs_module_process.h"
+#include "iotjs_module_stream.h"
+#include "iotjs_module_tcp.h"
 #include "iotjs_module_timer.h"
+
 
 namespace iotjs {
 
@@ -45,7 +49,6 @@ void InitModuleList() {
   if (_modules[MODULE_ ## upper].module) \
     delete _modules[MODULE_ ## upper].module; \
   _modules[MODULE_ ## upper].module = NULL;
-
 
 void CleanupModuleList() {
   MAP_MODULE_LIST(CLENUP_MODULE_LIST)

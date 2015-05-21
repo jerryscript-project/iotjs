@@ -74,6 +74,9 @@ class JObject {
   // Create a javascript null object.
   static JObject& Null();
 
+  // Crate a javascript undefined object.
+  static JObject& Undefined();
+
   // Get the javascript global object.
   static JObject Global();
 
@@ -99,6 +102,7 @@ class JObject {
 
   // Returns whether the object is specific type.
   bool IsNull();
+  bool IsUndefined();
   bool IsNumber();
   bool IsString();
   bool IsObject();
@@ -167,7 +171,11 @@ class JArgList {
   uint16_t GetLength();
 
   void Add(JObject& x);
+  void Add(JRawValueType x);
+
   void Set(uint16_t i, JObject& x);
+  void Set(uint16_t i, JRawValueType x);
+
   JObject* Get(uint16_t i);
 
  private:
@@ -192,7 +200,10 @@ class JHandlerInfo {
   uint16_t GetArgLength();
 
   void Return(JObject& ret);
+  void Return(JRawValueType raw_val);
+
   void Throw(JObject& err);
+  void Throw(JRawValueType raw_val);
 
   bool HasThrown();
 

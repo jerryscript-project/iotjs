@@ -17,23 +17,31 @@
 
 #include "iotjs_binding.h"
 #include "iotjs_env.h"
-#include "iotjs_handlewrap.h"
 #include "iotjs_module.h"
 #include "iotjs_module_timer.h"
 #include "iotjs_module_process.h"
+#include "iotjs_handlewrap.h"
 #include "iotjs_util.h"
 
 
 namespace iotjs {
 
+
 class TimerWrap : public HandleWrap {
  public:
-  explicit TimerWrap(Environment* env, JObject* jtimer)
-      : HandleWrap(jtimer, reinterpret_cast<uv_handle_t*>(&_handle)) {
+  explicit TimerWrap(Environment* env, JObject& jtimer)
+      : HandleWrap(jtimer, reinterpret_cast<uv_handle_t*>(&_handle))
+      , _timeout(0)
+      , _repeat(0)
+      , _jcallback(NULL) {
     uv_timer_init(env->loop(), &_handle);
   }
 
-  virtual ~TimerWrap() {}
+  virtual ~TimerWrap() {
+    if (_jcallback != NULL) {
+      delete _jcallback;
+    }
+  }
 
   static TimerWrap* FromHandle(uv_timer_t* handle) {
     TimerWrap* timer_wrap = static_cast<TimerWrap*>(handle->data);
@@ -53,10 +61,19 @@ class TimerWrap : public HandleWrap {
     _repeat = repeat;
   }
 
+  void set_callback(JObject& jcallback) {
+    assert(_jcallback == NULL);
+    assert(jcallback.IsFunction());
+
+    JRawValueType raw_value = jcallback.raw_value();
+    _jcallback = new JObject(&raw_value, false);
+  }
+
   void OnTimeout() {
-    if (_jcallback != NULL && _jcallback->IsFunction()) {
-      assert(object()->IsObject());
-      MakeCallback(*_jcallback, *object(), JArgList::Empty());
+    if (_jcallback != NULL) {
+      assert(jobject()->IsObject());
+      assert(_jcallback->IsFunction());
+      MakeCallback(*_jcallback, *jobject(), JArgList::Empty());
     }
   }
 
@@ -64,12 +81,13 @@ class TimerWrap : public HandleWrap {
   uv_timer_t _handle;
   int64_t _timeout;
   int64_t _repeat;
+  JObject* _jcallback;
 };
 
 
 static void timerHandleTimeout(uv_timer_t* handle) {
   TimerWrap* timer_wrap = TimerWrap::FromHandle(handle);
-  assert(timer_wrap->object()->IsObject());
+  assert(timer_wrap->jobject()->IsObject());
   if (timer_wrap) {
     timer_wrap->OnTimeout();
   }
@@ -89,7 +107,7 @@ JHANDLER_FUNCTION(Start, handler) {
 
   TimerWrap* timer_wrap = reinterpret_cast<TimerWrap*>(jtimer->GetNative());
   assert(timer_wrap != NULL);
-  assert(timer_wrap->object()->IsObject());
+  assert(timer_wrap->jobject()->IsObject());
 
   timer_wrap->set_timeout(timeout);
   timer_wrap->set_repeat(repeat);
@@ -130,8 +148,8 @@ JHANDLER_FUNCTION(Timer, handler) {
   Environment* env = Environment::GetEnv();
   JObject* jtimer = handler.GetThis();
 
-  TimerWrap* timer_wrap = new TimerWrap(env, jtimer);
-  assert(timer_wrap->object()->IsObject());
+  TimerWrap* timer_wrap = new TimerWrap(env, *jtimer);
+  assert(timer_wrap->jobject()->IsObject());
   assert(jtimer->GetNative() != 0);;
 
   return true;
@@ -155,5 +173,6 @@ JObject* InitTimer() {
 
   return timer;
 }
+
 
 } // namespace iotjs

@@ -14,19 +14,39 @@
  */
 
 
-var EE = require('events');
-var util = require('util');
+#include "iotjs_module_stream.h"
+
+#include "iotjs_module.h"
 
 
-function Stream() {
-  EE.call(this);
-};
-
-util.inherits(Stream, EE);
-
-exports.Stream = Stream;
+namespace iotjs {
 
 
-exports.ReadableStream = require('stream_readable');
-exports.WritableStream = require('stream_writable');
-exports.Duplex = require('stream_duplex');
+JHANDLER_FUNCTION(DoWrite, handler) {
+  assert(handler.GetArgLength() == 3);
+  assert(handler.GetArg(0)->IsObject());
+  assert(handler.GetArg(1)->IsObject());
+  assert(handler.GetArg(2)->IsFunction());
+
+  // FIXME: Implement me.
+
+  return true;
+}
+
+
+JObject* InitStream() {
+  Module* module = GetBuiltinModule(MODULE_STREAM);
+  JObject* stream = module->module;
+
+  if (stream == NULL) {
+    stream = new JObject();
+    stream->SetMethod("doWrite", DoWrite);
+
+    module->module = stream;
+  }
+
+  return stream;
+}
+
+
+} // namespace iotjs

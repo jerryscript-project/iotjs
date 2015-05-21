@@ -14,19 +14,41 @@
  */
 
 
-var EE = require('events');
-var util = require('util');
+#include "iotjs_reqwrap.h"
 
 
-function Stream() {
-  EE.call(this);
-};
-
-util.inherits(Stream, EE);
-
-exports.Stream = Stream;
+namespace iotjs {
 
 
-exports.ReadableStream = require('stream_readable');
-exports.WritableStream = require('stream_writable');
-exports.Duplex = require('stream_duplex');
+ReqWrap::ReqWrap(JObject& jcallback, uv_req_t* req)
+    : __req(req)
+    , _jcallback(NULL) {
+  if (!jcallback.IsNull()) {
+    _jcallback = new JObject(jcallback);
+  }
+}
+
+
+ReqWrap::~ReqWrap() {
+  if (_jcallback != NULL) {
+    delete _jcallback;
+  }
+}
+
+
+JObject* ReqWrap::jcallback() {
+  return _jcallback;
+}
+
+
+uv_req_t* ReqWrap::req() {
+  return __req;
+}
+
+
+void ReqWrap::Dispatched() {
+  req()->data = this;
+}
+
+
+} // namespace iotjs

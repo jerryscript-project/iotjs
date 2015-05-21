@@ -21,7 +21,9 @@
 
 namespace iotjs {
 
+
 typedef JObject* (*register_func)();
+
 
 // List of builtin modules
 #define MAP_MODULE_LIST(F) \
@@ -30,6 +32,8 @@ typedef JObject* (*register_func)();
   F(CONSTANTS, Constants, constants) \
   F(FS, Fs, fs) \
   F(PROCESS, Process, process) \
+  F(STREAM, Stream, stream) \
+  F(TCP, Tcp, tcp) \
   F(TIMER, Timer, timer)
 
 
@@ -40,6 +44,7 @@ enum ModuleKind {
   MAP_MODULE_LIST(ENUMDEF_MODULE_LIST)
   MODULE_COUNT
 };
+
 #undef ENUMDEF_MODULE_LIST
 
 
@@ -56,6 +61,8 @@ void CleanupModuleList();
 
 Module* GetBuiltinModule(ModuleKind kind);
 
+
 } // namespace iotjs
+
 
 #endif /* IOTJS_MODULE_H */

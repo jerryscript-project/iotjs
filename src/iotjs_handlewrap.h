@@ -16,29 +16,40 @@
 #ifndef IOTJS_HANDLEWRAP_H
 #define IOTJS_HANDLEWRAP_H
 
-#include "uv.h"
+
+#include <uv.h>
 
 #include "iotjs_binding.h"
 
 
 namespace iotjs {
 
+
+// UV handle wrapper.
+// This wrapper might refer javascript object but never increase reference count
+// If the object is freed by GC, then this wrapper instance will be also freed.
 class HandleWrap {
  public:
-  HandleWrap(JObject* jobj, uv_handle_t* handle);
+  HandleWrap(JObject& jobj, uv_handle_t* handle);
   virtual ~HandleWrap();
 
-  JObject* object();
+  static HandleWrap* FromHandle(uv_handle_t* handle);
 
-  JObject* callback();
-  void set_callback(JObject& jcallback);
+
+  JObject* jobject();
+
+
+  typedef void (*OnCloseHandler)(uv_handle_t*);
+
+  void Close(OnCloseHandler on_close_cb);
 
  protected:
   uv_handle_t* __handle;
   JObject* _jobj;
-  JObject* _jcallback;
 };
 
+
 } // namespace iotjs
+
 
 #endif /* IOTJS_HANDLEWRAP_H */

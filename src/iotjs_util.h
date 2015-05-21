@@ -33,6 +33,18 @@ void ReleaseCharBuffer(char* buff);
 void PrintBacktrace();
 
 
+class LocalString {
+ public:
+  LocalString(const char* strp);
+  ~LocalString();
+
+  operator const char* () const;
+
+ protected:
+  const char* _strp;
+};
+
+
 template<class T>
 struct LinkedListItem {
   LinkedListItem<T>(LinkedListItem* p, LinkedListItem* n, T d)

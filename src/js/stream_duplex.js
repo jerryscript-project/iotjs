@@ -14,19 +14,23 @@
  */
 
 
-var EE = require('events');
 var util = require('util');
+var Readable = require('stream_readable');
+var Writable = require('stream_writable');
 
 
-function Stream() {
-  EE.call(this);
-};
+function Duplex(options) {
+  if (!(this instanceof Duplex)) {
+    return new Duplex(options);
+  }
 
-util.inherits(Stream, EE);
+  Readable.call(this, options);
+  Writable.call(this, options);
+}
 
-exports.Stream = Stream;
+util.inherits(Duplex, Readable);
+
+//FIXME: Duplex should take properties from Writable.
 
 
-exports.ReadableStream = require('stream_readable');
-exports.WritableStream = require('stream_writable');
-exports.Duplex = require('stream_duplex');
+module.exports = Duplex;

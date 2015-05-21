@@ -13,20 +13,39 @@
  * limitations under the License.
  */
 
+#ifndef IOTJS_REQWRAP_H
+#define IOTJS_REQWRAP_H
 
-var EE = require('events');
-var util = require('util');
+
+#include <uv.h>
+
+#include "iotjs_binding.h"
 
 
-function Stream() {
-  EE.call(this);
+namespace iotjs {
+
+
+// UV request wrapper.
+// This wrapper might refer callback function increasing reference count, and
+// when this wrapper instance is being freed, the reference cound will decrease.
+class ReqWrap {
+ public:
+  ReqWrap(JObject& jcallback, uv_req_t* req);
+  virtual ~ReqWrap();
+
+  JObject* jcallback();
+
+  uv_req_t* req();
+
+  void Dispatched();
+
+ protected:
+  uv_req_t* __req;
+  JObject* _jcallback;
 };
 
-util.inherits(Stream, EE);
 
-exports.Stream = Stream;
+} // namespace iotjs
 
 
-exports.ReadableStream = require('stream_readable');
-exports.WritableStream = require('stream_writable');
-exports.Duplex = require('stream_duplex');
+#endif /* IOTJS_REQWRAP_H */

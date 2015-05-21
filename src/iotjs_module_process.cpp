@@ -51,7 +51,7 @@ void OnNextTick() {
 
 // Make a callback for the given `function` with `this_` binding and `args`
 // arguments. The next tick callbacks registered via `process.nextTick()`
-// will be called after the callback function `function` returned.
+// will be called after the callback function `function` returns.
 JObject MakeCallback(JObject& function, JObject& this_, JArgList& args) {
   // Calls back the function.
   JObject res = function.Call(this_, args);

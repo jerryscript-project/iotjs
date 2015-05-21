@@ -16,33 +16,24 @@
 #include "iotjs_binding.h"
 #include "iotjs_env.h"
 #include "iotjs_exception.h"
-#include "iotjs_handlewrap.h"
 #include "iotjs_module.h"
 #include "iotjs_module_fs.h"
 #include "iotjs_module_process.h"
-
+#include "iotjs_reqwrap.h"
 
 namespace iotjs {
 
 
-class FsReqWrap : public HandleWrap {
+class FsReqWrap : public ReqWrap {
  public:
-  explicit FsReqWrap()
-      : HandleWrap(NULL, reinterpret_cast<uv_handle_t*>(&_data)) {
+  explicit FsReqWrap(JObject& jcallback)
+      : ReqWrap(jcallback, reinterpret_cast<uv_req_t*>(&_data)) {
   }
 
   ~FsReqWrap() {}
 
-  uv_req_t* req() {
-    return reinterpret_cast<uv_req_t*>(&_data);
-  }
-
   uv_fs_t* data() {
     return &_data;
-  }
-
-  void Dispatched() {
-    req()->data = this;
   }
 
  private:
@@ -55,7 +46,7 @@ static void After(uv_fs_t* req) {
   assert(req_wrap != NULL);
   assert(req_wrap->data() == req);
 
-  JObject* cb = req_wrap->callback();
+  JObject* cb = req_wrap->jcallback();
   assert(cb != NULL && cb->IsFunction());
 
   JArgList jarg(2);
@@ -87,15 +78,12 @@ static void After(uv_fs_t* req) {
 
   uv_fs_req_cleanup(req);
 
-  cb->Unref();
   delete req_wrap;
 }
 
 
 #define FS_ASYNC(env, syscall, pcallback, ...) \
-  FsReqWrap* req_wrap = new FsReqWrap(); \
-  pcallback->Ref(); \
-  req_wrap->set_callback(*pcallback); \
+  FsReqWrap* req_wrap = new FsReqWrap(*pcallback); \
   uv_fs_t* fs_req = req_wrap->data(); \
   int err = uv_fs_ ## syscall(env->loop(), \
                               fs_req, \

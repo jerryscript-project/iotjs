@@ -32,7 +32,7 @@ function Timeout(after) {
 }
 
 
-var handleTimeout = function () {
+var handleTimeout = function() {
   var timeout = this.timeoutObj; // 'this' is Timer object
   if (timeout && timeout.callback) {
     timeout.callback();

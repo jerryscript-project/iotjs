@@ -14,19 +14,31 @@
  */
 
 
-var EE = require('events');
-var util = require('util');
+var net = require('net');
+
+var server = net.createServer();
+
+server.listen({port:1234}, function() {
+  console.log("[Server] listening");
+});
+
+server.on('connection', function(socket) {
+  console.log('[Server] a client connected');
+  socket.on('close', function() {
+    console.log('[Server] a client disconnected');
+  })
+});
 
 
-function Stream() {
-  EE.call(this);
-};
+var socket = new net.Socket();
 
-util.inherits(Stream, EE);
+socket.connect(1234, "127.0.0.1", function(status) {
+  if (status == 0) {
+    console.log("[Client] socket connect");
+  }
+  socket.destroy();
+});
 
-exports.Stream = Stream;
-
-
-exports.ReadableStream = require('stream_readable');
-exports.WritableStream = require('stream_writable');
-exports.Duplex = require('stream_duplex');
+socket.on('close', function() {
+  console.log('[Client] socket closed');
+});

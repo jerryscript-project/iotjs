@@ -14,19 +14,19 @@
  */
 
 
-var EE = require('events');
-var util = require('util');
+#ifndef IOTJS_MODULE_STREAM_H
+#define IOTJS_MODULE_STREAM_H
+
+#include "iotjs_binding.h"
 
 
-function Stream() {
-  EE.call(this);
-};
-
-util.inherits(Stream, EE);
-
-exports.Stream = Stream;
+namespace iotjs {
 
 
-exports.ReadableStream = require('stream_readable');
-exports.WritableStream = require('stream_writable');
-exports.Duplex = require('stream_duplex');
+JObject* InitStream();
+
+
+} // namespace iotjs
+
+
+#endif /* IOTJS_MODULE_STREAM_H */

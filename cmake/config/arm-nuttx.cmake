@@ -14,8 +14,9 @@
 
 include(CMakeForceCompiler)
 
-set(CMAKE_SYSTEM_NAME Nuttx)
+set(CMAKE_SYSTEM_NAME EXTERNAL)
 set(CMAKE_SYSTEM_PROCESSOR arm)
+set(CMAKE_SYSTEM_VERSION NUTTX)
 
 set(EXTERNAL_CMAKE_C_COMPILER arm-none-eabi-gcc)
 set(EXTERNAL_CMAKE_CXX_COMPILER arm-none-eabi-g++)

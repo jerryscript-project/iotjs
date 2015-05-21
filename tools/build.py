@@ -323,6 +323,7 @@ def build_libjerry():
             # nuttx include path.
             jerry_cmake_opt.append('-DEXTERNAL_LIBC_INTERFACE=' +
                                    join_path([opt_nuttx_home(), 'include']))
+            jerry_cmake_opt.append('-DPLATFORM_EXT=NUTTX')
 
         # run cmake.
         # FIXME: Running cmake once cause a problem because cmake does not know

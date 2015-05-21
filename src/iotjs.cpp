@@ -22,6 +22,7 @@
 
 #include "uv.h"
 
+#include "iotjs_debuglog.h"
 #include "iotjs_binding.h"
 #include "iotjs_env.h"
 #include "iotjs_util.h"
@@ -39,12 +40,12 @@ static bool InitJerry() {
   jerry_init(JERRY_FLAG_EMPTY);
 
   if (!jerry_parse(NULL, 0)) {
-    fprintf(stderr, "jerry_parse() failed\n");
+    DLOG("jerry_parse() failed");
     return false;
   }
 
   if (jerry_run() != JERRY_COMPLETION_CODE_OK) {
-    fprintf(stderr, "jerry_run() failed\n");
+    DLOG("jerry_run() failed");
     return false;
   }
 
@@ -111,7 +112,7 @@ static bool StartIoTjs(JObject* process) {
 
 int Start(char* src) {
   if (!InitJerry()) {
-    fprintf(stderr, "InitJerry failed\n");
+    DLOG("InitJerry failed");
     return 1;
   }
 
@@ -126,7 +127,7 @@ int Start(char* src) {
   }
 
   if (!StartIoTjs(process)) {
-    fprintf(stderr, "StartIoTJs failed\n");
+    DLOG("StartIoTJs failed");
     return 1;
   }
 
@@ -146,8 +147,11 @@ extern "C" int iotjs_entry(int argc, char** argv) {
     fprintf(stderr, "Usage: iotjs <js>\n");
     return 1;
   }
+  iotjs::InitDebugSettings();
 
   int res = iotjs::Start(argv[1]);
+
+  iotjs::ReleaseDebugSettings();
 
   return res;
 }

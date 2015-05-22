@@ -17,6 +17,7 @@
 
 import sys
 import subprocess
+import getpass
 from os import path
 
 
@@ -27,27 +28,24 @@ BUILD_SCRIPT = path.join(SCRIPT_PATH, "build.py")
 GIT_REPO_FORMAT = 'https://github.com/%s/iotjs.git'
 
 
-def cmdline(cmd):
-    return reduce(lambda x, y: x + " " + y, cmd)
-
-
 def print_cmdline(cmd):
     print
-    print '$ %s' % cmdline(cmd)
+    print '\033[1;93m$ %s\033[0m' % cmd
     print
 
 def run_cmd_output(cmd):
     print_cmdline(cmd)
-    return subprocess.check_output(cmd).strip()
+    cmd_list = cmd.split()
+    return subprocess.check_output(cmd_list).strip()
 
 
 def run_cmd_code(cmd):
     print_cmdline(cmd)
-    return subprocess.call(cmd)
+    cmd_list = cmd.split()
+    return subprocess.call(cmd_list)
 
 
 def check_run_cmd(cmd):
-    print_cmdline(cmd)
     retcode = run_cmd_code(cmd)
     if retcode != 0:
         error_and_exit("Failed - %d" % retcode)
@@ -61,41 +59,67 @@ def get_merge_branch_name(fork_name, branch_name):
     return '%s-%s' % (fork_name, branch_name)
 
 
+def get_merge_remote_name(fork_name, branch_name):
+    return 'remote-%s-%s' % (fork_name, branch_name)
+
+
+def git_cache_credential():
+    return run_cmd_output('git config --global credential.helper cache')
+
+
 def git_current_branch():
-    return run_cmd_output(['git',
-                           'rev-parse',
-                           '--abbrev-ref',
-                           'HEAD'])
+    return run_cmd_output('git rev-parse --abbrev-ref HEAD')
+
 
 def git_fetch_origin():
-    return run_cmd_code(['git', 'fetch', 'origin'])
+    return run_cmd_code('git fetch origin')
 
 
 def git_rebase_origin_master():
-    return run_cmd_code(['git', 'rebase', 'origin/master'])
+    return run_cmd_code('git rebase origin/master')
 
 
-def git_checkout_for_merge(merge_branch):
-    return run_cmd_code(['git', 'checkout', '-b', merge_branch, 'master'])
+def git_check_master():
+    return not run_cmd_output('git diff master origin/master')
 
 
-def git_pull_rebase(fork_name, branch_name):
-    return run_cmd_code(['git',
-                         'pull',
-                         '-r',
-                         get_repo_url(fork_name), branch_name])
+def git_add_remote(fork_name, branch_name):
+    remote_name = get_merge_remote_name(fork_name, branch_name)
+    remote_url = get_repo_url(fork_name)
+    return run_cmd_code('git remote add %s %s' % (remote_name, remote_url))
+
+
+def git_fetch_remote(fork_name, branch_name):
+    remote_name = get_merge_remote_name(fork_name, branch_name)
+    return run_cmd_code('git fetch %s' % remote_name)
+
+
+def git_checkout_for_merge(fork_name, branch_name):
+    merge_branch = get_merge_branch_name(fork_name, branch_name)
+    remote_name = get_merge_remote_name(fork_name, branch_name)
+    return run_cmd_code('git checkout -b %s %s/%s'
+                        % (merge_branch, remote_name, branch_name))
+
+
+def git_rebase_on_master():
+    return run_cmd_code('git rebase master')
 
 
 def git_checkout_master():
-    return run_cmd_code(['git', 'checkout', 'master'])
+    return run_cmd_code('git checkout master')
 
 
-def git_rebase_merge(merge_branch):
-    return run_cmd_code(['git', 'rebase', merge_branch])
+def git_merge(merge_branch):
+    return run_cmd_code('git merge %s' % merge_branch)
 
 
 def git_remove_merge(merge_branch):
-    return run_cmd_code(['git', 'branch', '-d', merge_branch])
+    return run_cmd_code('git branch -D %s' % merge_branch)
+
+
+def git_remove_remote(fork_name, branch_name):
+    remote_name = get_merge_remote_name(fork_name, branch_name)
+    return run_cmd_code('git remote remove %s' % remote_name)
 
 
 def check_build():
@@ -103,7 +127,7 @@ def check_build():
 
 
 def git_push():
-    return run_cmd_code(['git', 'push', 'origin', 'master'])
+    return run_cmd_code('git push origin master')
 
 
 def error_and_exit(msg):
@@ -114,10 +138,18 @@ def error_and_exit(msg):
 
 
 if len(sys.argv) < 3:
-    error_and_exit('usage: <merge.py> <fork_name> <branch_name>')
+    error_and_exit(
+        'usage: <merge.py> <fork_name> <branch_name> [<id>]')
 
 fork_name = sys.argv[1]
 branch_name = sys.argv[2]
+git_id = ""
+git_passwd = ""
+
+if len(sys.argv) >= 4:
+    git_id = sys.argv[3]
+    git_passwd = getpass.getpass()
+
 
 merge_branch = get_merge_branch_name(fork_name, branch_name)
 
@@ -126,6 +158,10 @@ merge_branch = get_merge_branch_name(fork_name, branch_name)
 if git_current_branch() != 'master':
     error_and_exit('You should run merge script on master branch')
 
+
+git_cache_credential()
+
+
 # rebase on top of origin/master
 if git_fetch_origin() != 0:
     error_and_exit('Failed to fetch origin')
@@ -133,30 +169,46 @@ if git_fetch_origin() != 0:
 if git_rebase_origin_master() != 0:
     error_and_exit('Failed to rebase origin/master')
 
-# checkout the branch we want to merge.
-if git_checkout_for_merge(merge_branch) != 0:
-    error_and_exit("Failed to checkout branch for merge")
+if not git_check_master():
+    error_and_exit('master branch is different from origin/master')
 
-if git_pull_rebase(fork_name, branch_name) != 0:
-    error_and_exit("Failed to pull target branch")
+
+# checkout the branch we want to merge.
+git_add_remote(fork_name, branch_name)
+
+if git_fetch_remote(fork_name, branch_name) != 0:
+    error_and_exit('Failed to fetch remote')
+
+if git_checkout_for_merge(fork_name, branch_name) != 0:
+    error_and_exit('Failed to checkout branch for merge')
+
+if git_rebase_on_master() != 0:
+    error_and_exit('Failed to rebase on top of master')
+
 
 # checkout master
 if git_checkout_master() != 0:
     error_and_exit('Failed to checkout master')
 
-# rebase
-if git_rebase_merge(merge_branch) != 0:
-    error_and_exit("Failed to rebase merge branch")
 
-if git_remove_merge(merge_branch) != 0:
-    error_and_exit("Failed to remove merge branch")
+# rebase
+if git_merge(merge_branch) != 0:
+    error_and_exit('Failed to rebase merge branch')
+
+git_remove_merge(merge_branch)
+git_remove_remote(fork_name, branch_name)
+
 
 # check build
 if check_build() != 0:
-    error_and_exit("Failed to build check")
+    error_and_exit('Failed to build check')
+
+print 'Do you want push [y/N]? '
 
 # push
-if git_push() != 0:
-    error_and_exit("Failed to push")
+yes = set(['yes', 'y'])
+choise = raw_input().lower()
 
-
+if choise in yes:
+    if git_push() != 0:
+        error_and_exit('Failed to push')

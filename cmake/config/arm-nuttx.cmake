@@ -27,21 +27,26 @@ CMAKE_FORCE_CXX_COMPILER(${EXTERNAL_CMAKE_CXX_COMPILER} GNU)
 set(NO_PTHREAD YES)
 set(BUILD_TO_LIB YES)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__NUTTX__")
+set(FLAGS_COMMON -mcpu=cortex-m4
+                 -mthumb
+                 -march=armv7e-m
+                 -mfpu=fpv4-sp-d16
+                 -mfloat-abi=hard
+                 -D__NUTTX__
+                 -Os
+                 -fno-strict-aliasing
+                 -fno-strength-reduce
+                 -fomit-frame-pointer)
+
+foreach(FLAG ${FLAGS_COMMON})
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${FLAG}")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${FLAG}")
+endforeach()
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-exceptions")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-builtin")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mcpu=cortex-m4")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mthumb")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=armv7e-m")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mfpu=fpv4-sp-d16")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mfloat-abi=hard")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Os")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-strict-aliasing")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-strength-reduce")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fomit-frame-pointer")
 
 set(TARGET_INC ${TARGET_INC} "${NUTTX_HOME}/include")
 set(TARGET_INC ${TARGET_INC} "${NUTTX_HOME}/include/cxx")

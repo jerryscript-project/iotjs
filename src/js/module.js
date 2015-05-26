@@ -31,9 +31,16 @@ Module.wrapper = Native.wrapper;
 Module.wrap = Native.wrap;
 
 
-var moduledirs = [ process.env.HOME + "/.iotjs_module/", process.cwd()+"/"];
-
-
+var moduledirs;
+// In nuttx, we assume that modules are installed under
+// /mnt/sdcard/node_modules/ directory
+if(process.platform === 'nuttx'){
+  moduledirs = [ "", process.cwd()+"/", "/mnt/sdcard/node_modules/" ];
+}
+else {
+  moduledirs = [ "", process.cwd()+"/", process.cwd()+"/node_modules/",
+                     process.env.HOME + "/node_modules/" ];
+}
 
 Module.concatdir = function(a, b){
   var rlist = [];

@@ -21,6 +21,15 @@
 #include <cstdlib>
 #include <string.h>
 
+#ifdef __LINUX__
+#define PLATFORM "linux"
+#endif
+
+#ifdef __NUTTX__
+#define PLATFORM "nuttx"
+#endif
+
+
 namespace iotjs {
 
 
@@ -154,10 +163,11 @@ void SetNativeSources(JObject* native_sources) {
 
 
 void SetProcessEnv(JObject* process){
-  char *homedir;
+  const char *homedir;
   homedir = getenv("HOME");
-  assert(homedir != NULL);
-
+  if(homedir == NULL) {
+    homedir = "";
+  }
   JObject home(homedir);
   JObject env;
   env.SetProperty("HOME",home);
@@ -182,6 +192,10 @@ JObject* InitProcess() {
     JObject native_sources;
     SetNativeSources(&native_sources);
     process->SetProperty("native_sources", native_sources);
+
+    // process.platform
+    JObject platform(PLATFORM);
+    process->SetProperty("platform", platform);
 
     // Binding module id.
     JObject jbinding = process->GetProperty("binding");

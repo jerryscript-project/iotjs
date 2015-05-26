@@ -14,6 +14,7 @@
  */
 
 
+console.log("platform : " + process.platform);
 
 var x = require("require_add");
 console.log("require_add: " + x.add(1,4));
@@ -27,5 +28,6 @@ console.log("package.json main: " + json.main);
 
 var pkg = require('test_pkg');
 console.log("package test: require('test_pkg').add(22,44)=" + pkg.add(22,44));
-console.log("package test: require('test_pkg').multi(22,44)=" + pkg.multi(22,44));
+console.log("package test: require('test_pkg').multi(22,44)="
+            + pkg.multi(22,44));
 console.log("package test: require('test_pkg').add2(22,44)=" + pkg.add2(22,44));

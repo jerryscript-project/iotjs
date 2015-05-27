@@ -31,3 +31,11 @@ console.log("package test: require('test_pkg').add(22,44)=" + pkg.add(22,44));
 console.log("package test: require('test_pkg').multi(22,44)="
             + pkg.multi(22,44));
 console.log("package test: require('test_pkg').add2(22,44)=" + pkg.add2(22,44));
+
+pkg = require('test_index');
+console.log("package test: require('test_index').add(22,44)="
+            + pkg.add(22,44));
+console.log("package test: require('test_index').multi(22,44)="
+            + pkg.multi(22,44));
+console.log("package test: require('test_index').add2(22,44)="
+            + pkg.add2(22,44));

@@ -279,6 +279,12 @@ def build_libuv():
 def libjerry_output_path():
     return join_path([opt_build_libs(), 'libjerrycore.a'])
 
+def libjerryfdlibm_output_path():
+    return join_path([opt_build_libs(), 'libjerryfdlibm.a'])
+
+def check_build_libjerryfdlibm():
+    return (opt_target_arch() == 'arm' and opt_target_os() =='nuttx')
+
 def build_libjerry():
     # check libjerry submodule directory.
     if not check_path(JERRY_ROOT):
@@ -360,6 +366,72 @@ def build_libjerry():
     # copy cache to libs directory
     mkdir(opt_build_libs())
     copy(build_cache_path, libjerry_output_path())
+
+    # fdlibm for nuttx
+    if check_build_libjerryfdlibm():
+
+        build_cache_path = get_cache_path(build_cache_dir,
+                                      'libjerry-fdlibm',
+                                      git_hash)
+
+        # check if cache is available.
+        if not check_cached(build_cache_path):
+            # build jerry fdlibm
+
+            # make build directory.
+            mkdir(build_home)
+
+            # change current directory to build directory.
+            os.chdir(build_home)
+
+            # libjerry is using cmake.
+            # prepare cmake command line option.
+            jerry_cmake_opt = [JERRY_ROOT]
+
+            # set lto off.
+            jerry_cmake_opt.append('-DENABLE_LTO=OFF')
+
+            # tool chain file.
+            jerry_cmake_opt.append('-DCMAKE_TOOLCHAIN_FILE=' +
+                                   opt_cmake_toolchain_file())
+
+            # run cmake.
+            # FIXME: Running cmake once cause a problem because cmake does not
+            # know the system like "System is unknown to cmake". and the other
+            # settings are not applied intendly, running twice solves the
+            # problem.
+            check_run_cmd('cmake', jerry_cmake_opt)
+            check_run_cmd('cmake', jerry_cmake_opt)
+
+            # cmake will produce a Makefile.
+
+            # set build fdlibm target.
+            jerry_build_target = (opt_build_type() +
+                                        '.jerry-fdlibm.third_party.lib')
+
+            # run make for fdlibm
+            check_run_cmd('make', ['-C',
+                                   build_home,
+                                   jerry_build_target,
+                                   opt_make_flags()])
+
+            # output: libjerry-fdlib.a
+            output = join_path([build_home,
+                                'third-party/fdlibm/',
+                                'lib' + jerry_build_target + '.a'])
+
+            # check if target is created.
+            if not check_path(output):
+                print 'Jerry fdlibm build failed - target not produced.'
+                return False
+
+            # copy output to cache
+            mkdir(build_cache_dir)
+            copy(output, build_cache_path)
+
+        # copy cache to libs directory
+        mkdir(opt_build_libs())
+        copy(build_cache_path, libjerryfdlibm_output_path())
 
     return True
 

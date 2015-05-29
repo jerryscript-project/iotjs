@@ -275,9 +275,8 @@ def build_libuv():
     return True
 
 
-
-def libjerry_output_path():
-    return join_path([opt_build_libs(), 'libjerrycore.a'])
+def is_need_fdlibm():
+    return opt_target_arch() == 'arm' and opt_target_os() == 'nuttx'
 
 def build_libjerry():
     # check libjerry submodule directory.
@@ -293,12 +292,30 @@ def build_libjerry():
 
     # jerry cached library.
     build_cache_dir = join_path([build_home, 'cache'])
-    build_cache_path = get_cache_path(build_cache_dir,
-                                      'libjerry-core',
-                                      git_hash)
+
+
+    # build targets
+    target_libjerry = {
+        'name': 'jerrycore',
+        'target_name': 'jerry-core',
+        'output_dir': 'jerry-core',
+        'cache_path': get_cache_path(build_cache_dir, 'jerrycore', git_hash)
+    }
+    target_libfdlibm = {
+        'name': 'fdlibm',
+        'target_name': 'jerry-fdlibm.third_party.lib',
+        'output_dir': 'third-party/fdlibm/',
+        'cache_path': get_cache_path(build_cache_dir, 'fdlibm', git_hash)
+    }
+
+    target_list = [target_libjerry]
+
+    if is_need_fdlibm():
+        target_list.append(target_libfdlibm)
+
 
     # check if cache is available.
-    if not check_cached(build_cache_path):
+    if any(not check_cached(t['cache_path']) for t in target_list):
         # build jerry.
 
         # make build directory.
@@ -334,32 +351,34 @@ def build_libjerry():
 
         # cmake will produce a Makefile.
 
-        # set build target.
-        jerry_build_target = opt_build_type() + '.jerry-core'
+        # run make for each target
+        for target in target_list:
 
-        # run make.
-        check_run_cmd('make', ['-C',
-                               build_home,
-                               jerry_build_target,
-                               opt_make_flags()])
+            build_target = '%s.%s' % (opt_build_type(), target['target_name'])
 
-        # output: libjerry-core.a
-        output = join_path([build_home,
-                            'jerry-core',
-                            'lib' + jerry_build_target + '.a'])
+            check_run_cmd('make', ['-C',
+                                   build_home,
+                                   build_target,
+                                   opt_make_flags()])
 
-        # check if target is created.
-        if not check_path(output):
-            print 'Jerry build failed - target not produced.'
-            return False
+            output = join_path([build_home,
+                                target['output_dir'],
+                               'lib' + build_target + '.a'])
 
-        # copy output to cache
-        mkdir(build_cache_dir)
-        copy(output, build_cache_path)
+            # check if target is created.
+            if not check_path(output):
+                print 'Jerry target %s build failed' % target['name']
+                return False
+
+            # copy output to cache
+            mkdir(build_cache_dir)
+            copy(output, target['cache_path'])
 
     # copy cache to libs directory
     mkdir(opt_build_libs())
-    copy(build_cache_path, libjerry_output_path())
+    for target in target_list:
+        dest = join_path([opt_build_libs(), 'lib' + target['name'] +'.a'])
+        copy(target['cache_path'], dest)
 
     return True
 

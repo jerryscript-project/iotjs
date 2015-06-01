@@ -87,7 +87,7 @@ JHANDLER_FUNCTION(Compile, handler){
 
   char* code = handler.GetArg(0)->GetCString();
   JRawValueType ret_val;
-  jerry_api_eval(code,sizeof(code),true,false,&ret_val);
+  jerry_api_eval(code,strlen(code),true,false,&ret_val);
   JObject::ReleaseCString(code);
 
   JObject ret(&ret_val);
@@ -116,7 +116,7 @@ JHANDLER_FUNCTION(CompileNativePtr, handler){
   strcat(code,wrapper[1]);
 
   JRawValueType ret_val;
-  jerry_api_eval(code,sizeof(code),true,false,&ret_val);
+  jerry_api_eval(code,strlen(code),true,false,&ret_val);
   JObject::ReleaseCString(code);
 
   JObject ret(&ret_val);

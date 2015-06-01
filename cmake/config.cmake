@@ -36,3 +36,8 @@ else ()
   set(CFLAGS "${CFLAGS} -g")
   set(CFLAGS "${CFLAGS} -DENABLE_DEBUG_LOG")
 endif()
+
+if ("${JERRY_MEM_STATS}" STREQUAL "YES")
+  set(CFLAGS "${CFLAGS} -DENABLE_JERRY_MEM_STATS")
+endif()
+unset(JERRY_MEM_STATS CACHE)

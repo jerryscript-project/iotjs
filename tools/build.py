@@ -117,9 +117,10 @@ options = {
     'nuttx-home': '',
     'init-submodule': True,
     'tidy': True,
+    'jerry-memstats': False,
 }
 
-boolean_opts = ['buildlib', 'init-submodule', 'tidy']
+boolean_opts = ['buildlib', 'init-submodule', 'tidy', 'jerry-memstats']
 
 def opt_build_type():
     return options['buildtype']
@@ -160,6 +161,9 @@ def opt_init_submodule():
 def opt_tidy():
     return options['tidy']
 
+def opt_jerry_memstats():
+    return options['jerry-memstats']
+
 def parse_boolean_opt(name, arg):
     if arg.endswith(name):
         options[name] = False if arg.startswith('no') else True
@@ -192,6 +196,8 @@ def parse_args():
             for opt_name in boolean_opts:
                 if parse_boolean_opt(opt_name, opt):
                     break
+    if opt_build_type() == 'release':
+        options['jerry-memstats'] = False;
 
 def init_submodule():
     check_run_cmd('git', ['submodule', 'init'])
@@ -297,18 +303,30 @@ def build_libjerry():
     # build targets
     target_libjerry = {
         'name': 'jerrycore',
+        'type_suffix': '',
+        'target_name': 'jerry-core',
+        'output_dir': 'jerry-core',
+        'cache_path': get_cache_path(build_cache_dir, 'jerrycore', git_hash)
+    }
+    target_libjerry_ms = {
+        'name': 'jerrycore',
+        'type_suffix': '-mem_stats',
         'target_name': 'jerry-core',
         'output_dir': 'jerry-core',
         'cache_path': get_cache_path(build_cache_dir, 'jerrycore', git_hash)
     }
     target_libfdlibm = {
         'name': 'fdlibm',
+        'type_suffix': '',
         'target_name': 'jerry-fdlibm.third_party.lib',
         'output_dir': 'third-party/fdlibm/',
         'cache_path': get_cache_path(build_cache_dir, 'fdlibm', git_hash)
     }
 
-    target_list = [target_libjerry]
+    if opt_jerry_memstats():
+        target_list = [target_libjerry_ms]
+    else:
+        target_list = [target_libjerry]
 
     if is_need_fdlibm():
         target_list.append(target_libfdlibm)
@@ -354,7 +372,8 @@ def build_libjerry():
         # run make for each target
         for target in target_list:
 
-            build_target = '%s.%s' % (opt_build_type(), target['target_name'])
+            build_target = '%s%s.%s' % (opt_build_type(), target['type_suffix'],
+                                        target['target_name'])
 
             check_run_cmd('make', ['-C',
                                    build_home,
@@ -414,6 +433,10 @@ def build_iotjs():
 
     if opt_build_lib():
         iotjs_cmake_opt.append('-DBUILD_TO_LIB=YES')
+
+    # this will define 'ENABLE_JERRY_MEM_STATS' at config.cmake
+    if opt_jerry_memstats():
+        iotjs_cmake_opt.append('-DJERRY_MEM_STATS=YES')
 
     # run cmake
     # FIXME: Running cmake once cause a problem because cmake does not know the

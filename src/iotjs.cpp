@@ -37,9 +37,13 @@ namespace iotjs {
 
 static bool InitJerry() {
 
+#ifdef ENABLE_JERRY_MEM_STATS
+  jerry_init(JERRY_FLAG_MEM_STATS | JERRY_FLAG_SHOW_OPCODES);
+#else
   jerry_init(JERRY_FLAG_EMPTY);
+#endif
 
-  if (!jerry_parse(NULL, 0)) {
+  if (!jerry_parse("", 0)) {
     DLOG("jerry_parse() failed");
     return false;
   }

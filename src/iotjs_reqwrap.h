@@ -33,7 +33,7 @@ class ReqWrap {
   ReqWrap(JObject& jcallback, uv_req_t* req);
   virtual ~ReqWrap();
 
-  JObject* jcallback();
+  JObject& jcallback();
 
   uv_req_t* req();
 

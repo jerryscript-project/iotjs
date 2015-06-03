@@ -13,46 +13,32 @@
  * limitations under the License.
  */
 
-#ifndef IOTJS_MODULE_BUFFER_H
-#define IOTJS_MODULE_BUFFER_H
+#ifndef IOTJS_OBJECTWRAP_H
+#define IOTJS_OBJECTWRAP_H
 
 
-#include "iotjs_objectwrap.h"
+#include "iotjs_binding.h"
 
 
 namespace iotjs {
 
 
-JObject* InitBuffer();
-
-
-// Crate buffer object.
-JObject CreateBuffer(size_t len);
-
-
-class Buffer : public JObjectWrap {
+// This wrapper refer javascript object but never increase reference count
+// If the object is freed by GC, then this wrapper instance will be also freed.
+class JObjectWrap {
  public:
-  Buffer(JObject& jbuffer, size_t length);
+  JObjectWrap(JObject& object);
 
-  virtual ~Buffer();
+  virtual ~JObjectWrap();
 
-  static Buffer* FromJBuffer(JObject& jbuffer);
-
-  JObject& jbuffer();
-  char* buffer();
-  size_t length();
-
-  size_t Copy(char* src, size_t len);
-  size_t Copy(char* src, size_t len, size_t src_from , size_t dst_from);
+  JObject& jobject();
 
  protected:
-  char* _buffer;
-  size_t _length;
+  JObject* _jobject;
 };
-
 
 
 } // namespace iotjs
 
 
-#endif /* IOTJS_MODULE_BUFFER_H */
+#endif /* IOTJS_OBJECTWRAP_H */

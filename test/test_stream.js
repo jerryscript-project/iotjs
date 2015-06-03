@@ -16,7 +16,6 @@
 
 var ReadableStream = require('stream').ReadableStream;
 
-
 var readable = new ReadableStream();
 
 readable.on('readable', function() {

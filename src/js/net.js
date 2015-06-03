@@ -22,8 +22,7 @@ var TCP = process.binding(process.binding.tcp);
 
 
 function createTCP(socket) {
-  var tcp = new TCP();
-  tcp._socket = socket;
+  var tcp = new TCP(socket);
   return tcp;
 }
 
@@ -41,14 +40,13 @@ function Socket(options) {
 
   if (options.handle) {
     this._handle = options.handle;
-    this._handle._socket = this;
+    this._handle._setHolder(this);
   }
 }
 
+
 // Socket inherits Duplex.
 util.inherits(Socket, stream.Duplex);
-
-exports.Socket = Socket;
 
 
 Socket.prototype.connect = function(port, host, callback) {
@@ -62,6 +60,29 @@ Socket.prototype.connect = function(port, host, callback) {
 };
 
 
+Socket.prototype.write = function(data, callback) {
+  if (!util.isString(data) && !util.isBuffer(data)) {
+    throw new TypeError('invalid argument');
+  }
+  stream.Duplex.prototype.write.call(this, data, callback);
+};
+
+
+Socket.prototype._write = function(chunk, callback) {
+  var self = this;
+
+  var cb = function(status) {
+    self._onwrite(status);
+
+    if (util.isFunction(callback)) {
+      callback(status);
+    }
+  };
+
+  this._handle.write(chunk, cb);
+};
+
+
 Socket.prototype.destroy = function() {
   var self = this;
 
@@ -69,9 +90,26 @@ Socket.prototype.destroy = function() {
 };
 
 
+Socket.prototype._onconnect = function() {
+  this._readyToWrite();
+  this._handle.readStart();
+};
+
+
+Socket.prototype._onread = function(nread, buffer) {
+  var err = null;
+  if (nread < 0) {
+    err = new Error('read error: ' + nread);
+  }
+  this.emit('read', err, buffer);
+};
+
+
 Socket.prototype._onclose = function() {
   this.emit('close');
 };
+
+
 
 
 function Server(options, connectionListener) {
@@ -97,8 +135,6 @@ function Server(options, connectionListener) {
 
 // Server inherits EventEmitter.
 util.inherits(Server, EventEmitter);
-
-module.exports.Server = Server;
 
 
 exports.createServer = function(options, callback) {
@@ -175,6 +211,11 @@ Server.prototype._onconnection = function(status, clientHandle) {
   });
 
   socket.server = this;
+  socket._onconnect();
 
   this.emit('connection', socket);
 };
+
+
+module.exports.Socket = Socket;
+module.exports.Server = Server;

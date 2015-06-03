@@ -324,7 +324,7 @@ char* JObject::GetCString() {
   assert(IsString());
 
   size_t size = -GetCStringLength();
-  char* buffer = AllocCharBuffer(size);
+  char* buffer = AllocBuffer(size);
   size_t check = jerry_api_string_to_char_buffer(_obj_val.v_string,
                                                  buffer,
                                                  size);
@@ -334,7 +334,7 @@ char* JObject::GetCString() {
 
 
 void JObject::ReleaseCString(char* str) {
-  ReleaseCharBuffer(str);
+  ReleaseBuffer(str);
 }
 
 

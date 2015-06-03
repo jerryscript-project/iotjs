@@ -22,10 +22,11 @@ function Stream() {
   EE.call(this);
 };
 
+
 util.inherits(Stream, EE);
 
-exports.Stream = Stream;
 
+exports.Stream = Stream;
 
 exports.ReadableStream = require('stream_readable');
 exports.WritableStream = require('stream_writable');

@@ -26,8 +26,9 @@ namespace iotjs {
 char* ReadFile(const char* path);
 
 
-char* AllocCharBuffer(size_t size);
-void ReleaseCharBuffer(char* buff);
+char* AllocBuffer(size_t size);
+char* ReallocBuffer(char* buffer, size_t size);
+void ReleaseBuffer(char* buff);
 
 
 void PrintBacktrace();
@@ -35,13 +36,14 @@ void PrintBacktrace();
 
 class LocalString {
  public:
-  LocalString(const char* strp);
+  LocalString(size_t len);
+  LocalString(char* strp);
   ~LocalString();
 
-  operator const char* () const;
+  operator char* () const;
 
  protected:
-  const char* _strp;
+  char* _strp;
 };
 
 

@@ -45,7 +45,7 @@ function Readable(options) {
     return new Readable(options);
   }
 
-  this.state = new ReadableState(options);
+  this._readableState = new ReadableState(options);
 
   Stream.call(this);
 };
@@ -54,7 +54,7 @@ util.inherits(Readable, Stream);
 
 
 Readable.prototype.read = function(n) {
-  var state = this.state;
+  var state = this._readableState;
   var res;
 
   if (!util.isNumber(n) || n > state.length) {
@@ -87,7 +87,7 @@ Readable.prototype.on = function(ev, cb) {
 
 
 Readable.prototype.resume = function() {
-  var state = this._state;
+  var state = this._readableState;
   if (!state.flowing) {
     state.flowing = true;
     var self = this;
@@ -99,7 +99,7 @@ Readable.prototype.resume = function() {
 
 
 Readable.prototype.push = function(chunk, encoding) {
-  var state = this.state;
+  var state = this._readableState;
 
   if (!util.isString(chunk) &&
       !util.isBuffer(chunk) &&
@@ -126,7 +126,7 @@ Readable.prototype.push = function(chunk, encoding) {
 
 
 function readBuffer(stream, n) {
-  var state = stream.state;
+  var state = stream._readableState;
   var res;
 
   if (state.buffer.length === 0 || state.length === 0) {
@@ -144,7 +144,7 @@ function readBuffer(stream, n) {
 
 
 function emitEnd(stream) {
-  var state = stream.state;
+  var state = stream._readableState;
 
   if (stream.length > 0 || !state.ended) {
     throw new Error('stream ended on non-EOF stream');

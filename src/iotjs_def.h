@@ -14,42 +14,28 @@
  */
 
 
-#include "iotjs_reqwrap.h"
+#ifndef IOTJS_DEF_H
+#define IOTJS_DEF_H
 
 
-namespace iotjs {
+#ifndef IOTJS_MAX_READ_BUFFER_SIZE
+ #ifdef __NUTTX__
+  #define IOTJS_MAX_READ_BUFFER_SIZE 1024
+ #else
+  #define IOTJS_MAX_READ_BUFFER_SIZE 65535
+ #endif
+#endif
 
 
-ReqWrap::ReqWrap(JObject& jcallback, uv_req_t* req)
-    : __req(req)
-    , _jcallback(NULL) {
-  if (!jcallback.IsNull()) {
-    _jcallback = new JObject(jcallback);
-  }
-}
+// commonly used header files
+#include "iotjs_binding.h"
+#include "iotjs_env.h"
+#include "iotjs_debuglog.h"
+#include "iotjs_module.h"
+#include "iotjs_module_process.h"
+#include "iotjs_util.h"
+
+#include <uv.h>
 
 
-ReqWrap::~ReqWrap() {
-  if (_jcallback != NULL) {
-    delete _jcallback;
-  }
-}
-
-
-JObject& ReqWrap::jcallback() {
-  assert(_jcallback != NULL);
-  return *_jcallback;
-}
-
-
-uv_req_t* ReqWrap::req() {
-  return __req;
-}
-
-
-void ReqWrap::Dispatched() {
-  req()->data = this;
-}
-
-
-} // namespace iotjs
+#endif /* IOTJS_DEF_H */

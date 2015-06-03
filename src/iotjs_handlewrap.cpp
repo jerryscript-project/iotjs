@@ -16,38 +16,27 @@
 
 #include "iotjs_handlewrap.h"
 
-#include "iotjs_debuglog.h"
+#include "iotjs_def.h"
 
 
 namespace iotjs {
 
 
-JFREE_HANDLER_FUNCTION(FreeHandleWrap, wrapper) {
-  // native pointer must not be NULL.
-  assert(wrapper != 0);
-  delete reinterpret_cast<HandleWrap*>(wrapper);
-}
-
-
-HandleWrap::HandleWrap(JObject& jobj, uv_handle_t* handle)
-    : __handle(handle)
-    , _jobj(NULL) {
-  if (!jobj.IsNull()) {
-    // This wrapper hold pointer to the javascript object but never increase
-    // reference count.
-    JRawValueType raw_value = jobj.raw_value();
-    _jobj = new JObject(&raw_value, false);
-    // Set native pointer of the object to be this wrapper.
-    // If the object is freed by GC, the wrapper instance should also be freed.
-    _jobj->SetNative((uintptr_t)this, FreeHandleWrap);
+HandleWrap::HandleWrap(JObject& jnative, JObject& jholder, uv_handle_t* handle)
+    : JObjectWrap(jnative)
+    , __handle(handle)
+    , _jholder(NULL) {
+  if (!jholder.IsNull()) {
+    JRawValueType raw_value = jholder.raw_value();
+    _jholder = new JObject(&raw_value, false);
   }
   __handle->data = this;
 }
 
 
 HandleWrap::~HandleWrap() {
-  if (_jobj != NULL) {
-    delete _jobj;
+  if (_jholder != NULL) {
+    delete _jholder;
   }
 }
 
@@ -59,8 +48,23 @@ HandleWrap* HandleWrap::FromHandle(uv_handle_t* handle) {
 }
 
 
-JObject* HandleWrap::jobject() {
-  return _jobj;
+JObject& HandleWrap::jnative() {
+  return jobject();
+}
+
+
+JObject& HandleWrap::jholder() {
+  assert(_jholder != NULL);
+  return *_jholder;
+}
+
+
+void HandleWrap::set_jholder(JObject& jholder) {
+  assert(_jholder == NULL);
+  assert(jholder.IsObject());
+
+  JRawValueType raw_value = jholder.raw_value();
+  _jholder = new JObject(&raw_value, false);
 }
 
 

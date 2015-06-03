@@ -108,16 +108,16 @@ JHANDLER_FUNCTION(CompileNativePtr, handler){
     "(function (a, b, c) { function wwwwrap(exports,require, module) {",
     " }; wwwwrap(a, b, c); });" };
 
-  int len = strlen(source)+ strlen(wrapper[0]) + strlen(wrapper[1]);
-  char* code = AllocCharBuffer(len+1);
+  int len = strlen(source) + strlen(wrapper[0]) + strlen(wrapper[1]);
+
+  LocalString code(len + 1);
 
   strcpy(code,wrapper[0]);
   strcat(code,source);
   strcat(code,wrapper[1]);
 
   JRawValueType ret_val;
-  jerry_api_eval(code,strlen(code),true,false,&ret_val);
-  JObject::ReleaseCString(code);
+  jerry_api_eval(code, strlen(code), true, false, &ret_val);
 
   JObject ret(&ret_val);
   handler.Return(ret);

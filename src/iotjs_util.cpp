@@ -32,7 +32,7 @@ char* ReadFile(const char* path) {
   size_t len = ftell(file);
   fseek(file, 0, SEEK_SET);
 
-  char* buff = AllocCharBuffer(len + 1);
+  char* buff = AllocBuffer(len + 1);
 
   size_t read = fread(buff, 1, len, file);
   assert(read == len);
@@ -45,19 +45,29 @@ char* ReadFile(const char* path) {
 }
 
 
-char* AllocCharBuffer(size_t size) {
+char* AllocBuffer(size_t size) {
   char* buff = static_cast<char*>(malloc(size));
   memset(buff, 0, size);
   return buff;
 }
 
 
-void ReleaseCharBuffer(char* buffer) {
+char* ReallocBuffer(char* buffer, size_t size) {
+  return static_cast<char*>(realloc(buffer, size));
+}
+
+
+void ReleaseBuffer(char* buffer) {
   free(buffer);
 }
 
 
-LocalString::LocalString(const char* strp)
+LocalString::LocalString(size_t len)
+    : _strp(AllocBuffer(len)) {
+  assert(_strp != NULL);
+}
+
+LocalString::LocalString(char* strp)
     : _strp(strp) {
   assert(_strp != NULL);
 }
@@ -65,11 +75,11 @@ LocalString::LocalString(const char* strp)
 
 LocalString::~LocalString() {
   assert(_strp != NULL);
-  ReleaseCharBuffer(const_cast<char*>(_strp));
+  ReleaseBuffer(const_cast<char*>(_strp));
 }
 
 
-LocalString::operator const char* () const {
+LocalString::operator char* () const {
   return _strp;
 }
 

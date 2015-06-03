@@ -13,12 +13,11 @@
  * limitations under the License.
  */
 
-#include "iotjs_binding.h"
-#include "iotjs_env.h"
-#include "iotjs_exception.h"
-#include "iotjs_module.h"
 #include "iotjs_module_fs.h"
-#include "iotjs_module_process.h"
+
+#include "iotjs_def.h"
+#include "iotjs_exception.h"
+#include "iotjs_module_buffer.h"
 #include "iotjs_reqwrap.h"
 
 namespace iotjs {
@@ -46,8 +45,8 @@ static void After(uv_fs_t* req) {
   assert(req_wrap != NULL);
   assert(req_wrap->data() == req);
 
-  JObject* cb = req_wrap->jcallback();
-  assert(cb != NULL && cb->IsFunction());
+  JObject cb = req_wrap->jcallback();
+  assert(cb.IsFunction());
 
   JArgList jarg(2);
   if (req->result < 0) {
@@ -74,7 +73,7 @@ static void After(uv_fs_t* req) {
     }
   }
 
-  JObject res = MakeCallback(*cb, JObject::Null(), jarg);
+  JObject res = MakeCallback(cb, JObject::Null(), jarg);
 
   uv_fs_req_cleanup(req);
 
@@ -183,8 +182,9 @@ JHANDLER_FUNCTION(Read, handler) {
   int position = handler.GetArg(4)->GetInt32();
 
   JObject* jbuffer = handler.GetArg(1);
-  char* buffer = reinterpret_cast<char*>(jbuffer->GetNative());
-  int buffer_length = jbuffer->GetProperty("length").GetInt32();
+  Buffer* buffer_wrap = Buffer::FromJBuffer(*jbuffer);
+  char* buffer = buffer_wrap->buffer();
+  int buffer_length = buffer_wrap->length();
 
   if (offset >= buffer_length) {
     JHANDLER_THROW_RETURN(handler, RangeError, "offset out of bound");

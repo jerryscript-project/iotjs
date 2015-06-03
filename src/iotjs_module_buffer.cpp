@@ -16,9 +16,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "iotjs_binding.h"
-#include "iotjs_module.h"
 #include "iotjs_module_buffer.h"
+#include "iotjs_def.h"
 
 
 namespace iotjs {
@@ -30,26 +29,22 @@ JHANDLER_FUNCTION(Write, handler) {
   assert(handler.GetArg(1)->IsNumber());
   assert(handler.GetArg(2)->IsNumber());
 
-  char* src = handler.GetArg(0)->GetCString();
+  LocalString src(handler.GetArg(0)->GetCString());
 
   int offset = handler.GetArg(1)->GetInt32();
   int length = handler.GetArg(2)->GetInt32();
 
   JObject* jbuffer = handler.GetThis();
-  char* buffer = reinterpret_cast<char*>(jbuffer->GetNative());
-  assert(buffer != NULL);
-
-  int buffer_length = jbuffer->GetProperty("length").GetInt32();
+  Buffer* buffer = Buffer::FromJBuffer(*jbuffer);
+  char* buffer_p = buffer->buffer();
+  int buffer_length = buffer->length();
   assert(buffer_length >= offset + length);
 
   for (int i = 0; i < length; ++i) {
-    *(buffer + offset + i) = *(src + i);
+    *(buffer_p + offset + i) = *(src + i);
   }
 
-  JObject::ReleaseCString(src);
-
-  JObject ret(length);
-  handler.Return(ret);
+  handler.Return(JVal::Int(length));
 
   return true;
 }
@@ -59,19 +54,16 @@ JHANDLER_FUNCTION(ToString, handler) {
   assert(handler.GetArgLength() == 0);
 
   JObject* jbuffer = handler.GetThis();
-  char* buffer = reinterpret_cast<char*>(jbuffer->GetNative());
-  assert(buffer != NULL);
+  Buffer* buffer = Buffer::FromJBuffer(*jbuffer);
+  int length = buffer->length();
 
-  int buffer_length = jbuffer->GetProperty("length").GetInt32();
+  LocalString str(length + 1);
 
-  char* str = AllocCharBuffer(buffer_length + 1);
-  strncpy(str, buffer, buffer_length);
-  str[buffer_length] = 0;
+  strncpy(str, buffer->buffer(), length);
+  str[length] = 0;
 
   JObject ret(str);
   handler.Return(ret);
-
-  ReleaseCharBuffer(str);
 
   return true;
 }
@@ -85,43 +77,36 @@ JHANDLER_FUNCTION(Copy, handler) {
   assert(args <= 2 || handler.GetArg(2)->IsNumber());
   assert(args <= 3 || handler.GetArg(3)->IsNumber());
 
-  JObject* jsource_buffer = handler.GetThis();
-  int source_length = jsource_buffer->GetProperty("length").GetInt32();
-  char* source_buffer = reinterpret_cast<char*>(jsource_buffer->GetNative());
-  assert(source_buffer != NULL);
+  JObject* jsrc_buffer = handler.GetThis();
+  Buffer* src_buffer = Buffer::FromJBuffer(*jsrc_buffer);
 
-  JObject* jtarget_buffer = handler.GetArg(0);
-  int target_length = jtarget_buffer->GetProperty("length").GetInt32();
-  char* target_buffer = reinterpret_cast<char*>(jtarget_buffer->GetNative());
-  assert(target_buffer != NULL);
+  JObject* jdst_buffer = handler.GetArg(0);
+  Buffer* dst_buffer = Buffer::FromJBuffer(*jdst_buffer);
 
-  int target_start = 0;
-  int source_start = 0;
-  int source_end = source_length;
+  int dst_start = 0;
+  int src_start = 0;
+  int src_length = src_buffer->length();
+  int src_end = src_length;
 
   if (args >= 2) {
-    target_start = handler.GetArg(1)->GetInt32();
+    dst_start = handler.GetArg(1)->GetInt32();
   }
   if (args >= 3) {
-    source_start = handler.GetArg(2)->GetInt32();
+    src_start = handler.GetArg(2)->GetInt32();
   }
   if (args >= 4) {
-    source_end = handler.GetArg(3)->GetInt32();
-    if (source_end > source_length) {
-      source_end = source_length;
+    src_end = handler.GetArg(3)->GetInt32();
+    if (src_end > src_length) {
+      src_end = src_length;
     }
   }
 
-  int copied = 0;
-  for (int i = source_start, j = target_start;
-       i < source_end && j < target_length;
-       ++i, ++j) {
-    *(target_buffer + j) = *(source_buffer + i);
-    ++copied;
-  }
+  int copied = dst_buffer->Copy(src_buffer->buffer(),
+                                src_end - src_start,
+                                src_start,
+                                dst_start);
 
-  JObject ret(copied);
-  handler.Return(ret);
+  handler.Return(JVal::Int(copied));
 
   return true;
 }
@@ -141,21 +126,16 @@ JHANDLER_FUNCTION(SetupBufferJs, handler) {
 }
 
 
-JFREE_HANDLER_FUNCTION(FreeBuffer, buffer_p) {
-  ReleaseCharBuffer(reinterpret_cast<char*>(buffer_p));
-}
-
-
 JHANDLER_FUNCTION(Alloc, handler) {
   assert(handler.GetArgLength() == 2);
   assert(handler.GetArg(0)->IsObject());
   assert(handler.GetArg(1)->IsNumber());
 
+  JObject* jbuffer = handler.GetArg(0);
   int length = handler.GetArg(1)->GetInt32();
-  char* buffer = AllocCharBuffer(length);
-
-  JObject* buffer_obj = handler.GetArg(0);
-  buffer_obj->SetNative(reinterpret_cast<uintptr_t>(buffer), FreeBuffer);
+  Buffer* buffer = new Buffer(*jbuffer, length);
+  assert(buffer == reinterpret_cast<Buffer*>(jbuffer->GetNative()));
+  assert(buffer->buffer() != NULL);
 
   JObject ret(length);
   handler.Return(ret);
@@ -177,6 +157,87 @@ JObject* InitBuffer() {
   }
 
   return buffer;
+}
+
+
+JObject CreateBuffer(size_t len) {
+  JObject jglobal(JObject::Global());
+  assert(jglobal.IsObject());
+
+  JObject jBuffer = jglobal.GetProperty("Buffer");
+  assert(jBuffer.IsFunction());
+
+  JArgList jargs(1);
+  jargs.Add(JVal::Int(len));
+
+  JObject jbuffer = jBuffer.Call(JObject::Null(), jargs);
+  assert(jbuffer.IsObject());
+
+  return jbuffer;
+}
+
+
+Buffer::Buffer(JObject& jbuffer, size_t length)
+    : JObjectWrap(jbuffer)
+    , _buffer(NULL)
+    , _length(length) {
+  _buffer = AllocBuffer(length);
+  assert(_buffer != NULL);
+}
+
+
+Buffer::~Buffer() {
+  if (_buffer != NULL) {
+    ReleaseBuffer(_buffer);
+  }
+}
+
+
+Buffer* Buffer::FromJBuffer(JObject& jbuffer) {
+  Buffer* buffer = reinterpret_cast<Buffer*>(jbuffer.GetNative());
+  assert(buffer != NULL);
+  return buffer;
+}
+
+
+JObject& Buffer::jbuffer() {
+  return jobject();
+}
+
+
+char* Buffer::buffer() {
+  return _buffer;
+}
+
+
+size_t Buffer::length() {
+#ifndef NDEBUG
+  int length = jbuffer().GetProperty("length").GetInt32();
+  assert(static_cast<size_t>(length) == _length);
+#endif
+  return _length;
+}
+
+
+size_t Buffer::Copy(char* src, size_t len) {
+  return Copy(src, len, 0, 0);
+}
+
+
+size_t Buffer::Copy(char* src, size_t len, size_t src_from, size_t dst_from) {
+  size_t copied = 0;
+
+  size_t src_end = src_from + len;
+  size_t dst_length = _length;
+
+  for (size_t i = src_from, j = dst_from;
+       i < src_end && j < dst_length;
+       ++i, ++j) {
+    *(_buffer + j) = *(src + i);
+    ++copied;
+  }
+
+  return copied;
 }
 
 } // namespace iotjs

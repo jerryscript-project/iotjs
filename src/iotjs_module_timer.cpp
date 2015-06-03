@@ -30,7 +30,9 @@ namespace iotjs {
 class TimerWrap : public HandleWrap {
  public:
   explicit TimerWrap(Environment* env, JObject& jtimer)
-      : HandleWrap(jtimer, reinterpret_cast<uv_handle_t*>(&_handle))
+      : HandleWrap(jtimer,
+                   JObject::Null(),
+                   reinterpret_cast<uv_handle_t*>(&_handle))
       , _timeout(0)
       , _repeat(0)
       , _jcallback(NULL) {
@@ -71,9 +73,9 @@ class TimerWrap : public HandleWrap {
 
   void OnTimeout() {
     if (_jcallback != NULL) {
-      assert(jobject()->IsObject());
+      assert(jnative().IsObject());
       assert(_jcallback->IsFunction());
-      MakeCallback(*_jcallback, *jobject(), JArgList::Empty());
+      MakeCallback(*_jcallback, jnative(), JArgList::Empty());
     }
   }
 
@@ -87,7 +89,7 @@ class TimerWrap : public HandleWrap {
 
 static void timerHandleTimeout(uv_timer_t* handle) {
   TimerWrap* timer_wrap = TimerWrap::FromHandle(handle);
-  assert(timer_wrap->jobject()->IsObject());
+  assert(timer_wrap->jnative().IsObject());
   if (timer_wrap) {
     timer_wrap->OnTimeout();
   }
@@ -107,7 +109,7 @@ JHANDLER_FUNCTION(Start, handler) {
 
   TimerWrap* timer_wrap = reinterpret_cast<TimerWrap*>(jtimer->GetNative());
   assert(timer_wrap != NULL);
-  assert(timer_wrap->jobject()->IsObject());
+  assert(timer_wrap->jnative().IsObject());
 
   timer_wrap->set_timeout(timeout);
   timer_wrap->set_repeat(repeat);
@@ -149,7 +151,7 @@ JHANDLER_FUNCTION(Timer, handler) {
   JObject* jtimer = handler.GetThis();
 
   TimerWrap* timer_wrap = new TimerWrap(env, *jtimer);
-  assert(timer_wrap->jobject()->IsObject());
+  assert(timer_wrap->jnative().IsObject());
   assert(jtimer->GetNative() != 0);;
 
   return true;

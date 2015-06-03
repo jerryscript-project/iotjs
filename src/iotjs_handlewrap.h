@@ -20,6 +20,7 @@
 #include <uv.h>
 
 #include "iotjs_binding.h"
+#include "iotjs_objectwrap.h"
 
 
 namespace iotjs {
@@ -28,16 +29,22 @@ namespace iotjs {
 // UV handle wrapper.
 // This wrapper might refer javascript object but never increase reference count
 // If the object is freed by GC, then this wrapper instance will be also freed.
-class HandleWrap {
+class HandleWrap : public JObjectWrap {
  public:
-  HandleWrap(JObject& jobj, uv_handle_t* handle);
+  HandleWrap(JObject& jnative, /* Native object */
+             JObject& jholder, /* Object hodling the native object */
+             uv_handle_t* handle);
+
   virtual ~HandleWrap();
 
   static HandleWrap* FromHandle(uv_handle_t* handle);
 
+  // Native object.
+  JObject& jnative();
 
-  JObject* jobject();
-
+  // Javascript object that holds the native object.
+  JObject& jholder();
+  void set_jholder(JObject& jholder);
 
   typedef void (*OnCloseHandler)(uv_handle_t*);
 
@@ -45,7 +52,7 @@ class HandleWrap {
 
  protected:
   uv_handle_t* __handle;
-  JObject* _jobj;
+  JObject* _jholder;
 };
 
 

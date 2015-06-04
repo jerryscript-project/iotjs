@@ -27,6 +27,15 @@
 #endif
 
 
+#ifndef IOTJS_ASSERT
+ #ifdef NDEBUG
+  #define IOTJS_ASSERT(x) ((void)(x))
+ #else
+  #define IOTJS_ASSERT(x) assert(x)
+ #endif
+#endif
+
+
 // commonly used header files
 #include "iotjs_binding.h"
 #include "iotjs_env.h"
@@ -36,6 +45,7 @@
 #include "iotjs_util.h"
 
 #include <uv.h>
+#include <assert.h>
 
 
 #endif /* IOTJS_DEF_H */

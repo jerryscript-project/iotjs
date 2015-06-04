@@ -14,19 +14,18 @@
  */
 
 
+#include "iotjs_def.h"
 #include "iotjs_module_stream.h"
-
-#include "iotjs_module.h"
 
 
 namespace iotjs {
 
 
 JHANDLER_FUNCTION(DoWrite, handler) {
-  assert(handler.GetArgLength() == 3);
-  assert(handler.GetArg(0)->IsObject());
-  assert(handler.GetArg(1)->IsObject());
-  assert(handler.GetArg(2)->IsFunction());
+  IOTJS_ASSERT(handler.GetArgLength() == 3);
+  IOTJS_ASSERT(handler.GetArg(0)->IsObject());
+  IOTJS_ASSERT(handler.GetArg(1)->IsObject());
+  IOTJS_ASSERT(handler.GetArg(2)->IsFunction());
 
   // FIXME: Implement me.
 

@@ -13,21 +13,21 @@
  * limitations under the License.
  */
 
+#include "iotjs_def.h"
+#include "iotjs_module_buffer.h"
+
 #include <stdlib.h>
 #include <string.h>
-
-#include "iotjs_module_buffer.h"
-#include "iotjs_def.h"
 
 
 namespace iotjs {
 
 
 JHANDLER_FUNCTION(Write, handler) {
-  assert(handler.GetArgLength() == 3);
-  assert(handler.GetArg(0)->IsString());
-  assert(handler.GetArg(1)->IsNumber());
-  assert(handler.GetArg(2)->IsNumber());
+  IOTJS_ASSERT(handler.GetArgLength() == 3);
+  IOTJS_ASSERT(handler.GetArg(0)->IsString());
+  IOTJS_ASSERT(handler.GetArg(1)->IsNumber());
+  IOTJS_ASSERT(handler.GetArg(2)->IsNumber());
 
   LocalString src(handler.GetArg(0)->GetCString());
 
@@ -38,7 +38,7 @@ JHANDLER_FUNCTION(Write, handler) {
   Buffer* buffer = Buffer::FromJBuffer(*jbuffer);
   char* buffer_p = buffer->buffer();
   int buffer_length = buffer->length();
-  assert(buffer_length >= offset + length);
+  IOTJS_ASSERT(buffer_length >= offset + length);
 
   for (int i = 0; i < length; ++i) {
     *(buffer_p + offset + i) = *(src + i);
@@ -51,7 +51,7 @@ JHANDLER_FUNCTION(Write, handler) {
 
 
 JHANDLER_FUNCTION(ToString, handler) {
-  assert(handler.GetArgLength() == 0);
+  IOTJS_ASSERT(handler.GetArgLength() == 0);
 
   JObject* jbuffer = handler.GetThis();
   Buffer* buffer = Buffer::FromJBuffer(*jbuffer);
@@ -71,11 +71,11 @@ JHANDLER_FUNCTION(ToString, handler) {
 
 JHANDLER_FUNCTION(Copy, handler) {
   uint16_t args = handler.GetArgLength();
-  assert(args >= 1);
-  assert(handler.GetArg(0)->IsObject());
-  assert(args <= 1 || handler.GetArg(1)->IsNumber());
-  assert(args <= 2 || handler.GetArg(2)->IsNumber());
-  assert(args <= 3 || handler.GetArg(3)->IsNumber());
+  IOTJS_ASSERT(args >= 1);
+  IOTJS_ASSERT(handler.GetArg(0)->IsObject());
+  IOTJS_ASSERT(args <= 1 || handler.GetArg(1)->IsNumber());
+  IOTJS_ASSERT(args <= 2 || handler.GetArg(2)->IsNumber());
+  IOTJS_ASSERT(args <= 3 || handler.GetArg(3)->IsNumber());
 
   JObject* jsrc_buffer = handler.GetThis();
   Buffer* src_buffer = Buffer::FromJBuffer(*jsrc_buffer);
@@ -113,8 +113,8 @@ JHANDLER_FUNCTION(Copy, handler) {
 
 
 JHANDLER_FUNCTION(SetupBufferJs, handler) {
-  assert(handler.GetArgLength() == 1);
-  assert(handler.GetArg(0)->IsFunction());
+  IOTJS_ASSERT(handler.GetArgLength() == 1);
+  IOTJS_ASSERT(handler.GetArg(0)->IsFunction());
 
   JObject* jbuffer = handler.GetArg(0);
   JObject prototype(jbuffer->GetProperty("prototype"));
@@ -127,15 +127,15 @@ JHANDLER_FUNCTION(SetupBufferJs, handler) {
 
 
 JHANDLER_FUNCTION(Alloc, handler) {
-  assert(handler.GetArgLength() == 2);
-  assert(handler.GetArg(0)->IsObject());
-  assert(handler.GetArg(1)->IsNumber());
+  IOTJS_ASSERT(handler.GetArgLength() == 2);
+  IOTJS_ASSERT(handler.GetArg(0)->IsObject());
+  IOTJS_ASSERT(handler.GetArg(1)->IsNumber());
 
   JObject* jbuffer = handler.GetArg(0);
   int length = handler.GetArg(1)->GetInt32();
   Buffer* buffer = new Buffer(*jbuffer, length);
-  assert(buffer == reinterpret_cast<Buffer*>(jbuffer->GetNative()));
-  assert(buffer->buffer() != NULL);
+  IOTJS_ASSERT(buffer == reinterpret_cast<Buffer*>(jbuffer->GetNative()));
+  IOTJS_ASSERT(buffer->buffer() != NULL);
 
   JObject ret(length);
   handler.Return(ret);
@@ -162,16 +162,16 @@ JObject* InitBuffer() {
 
 JObject CreateBuffer(size_t len) {
   JObject jglobal(JObject::Global());
-  assert(jglobal.IsObject());
+  IOTJS_ASSERT(jglobal.IsObject());
 
   JObject jBuffer = jglobal.GetProperty("Buffer");
-  assert(jBuffer.IsFunction());
+  IOTJS_ASSERT(jBuffer.IsFunction());
 
   JArgList jargs(1);
   jargs.Add(JVal::Int(len));
 
   JObject jbuffer = jBuffer.Call(JObject::Null(), jargs);
-  assert(jbuffer.IsObject());
+  IOTJS_ASSERT(jbuffer.IsObject());
 
   return jbuffer;
 }
@@ -182,7 +182,7 @@ Buffer::Buffer(JObject& jbuffer, size_t length)
     , _buffer(NULL)
     , _length(length) {
   _buffer = AllocBuffer(length);
-  assert(_buffer != NULL);
+  IOTJS_ASSERT(_buffer != NULL);
 }
 
 
@@ -195,7 +195,7 @@ Buffer::~Buffer() {
 
 Buffer* Buffer::FromJBuffer(JObject& jbuffer) {
   Buffer* buffer = reinterpret_cast<Buffer*>(jbuffer.GetNative());
-  assert(buffer != NULL);
+  IOTJS_ASSERT(buffer != NULL);
   return buffer;
 }
 
@@ -213,7 +213,7 @@ char* Buffer::buffer() {
 size_t Buffer::length() {
 #ifndef NDEBUG
   int length = jbuffer().GetProperty("length").GetInt32();
-  assert(static_cast<size_t>(length) == _length);
+  IOTJS_ASSERT(static_cast<size_t>(length) == _length);
 #endif
   return _length;
 }

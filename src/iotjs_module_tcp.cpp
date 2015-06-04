@@ -36,7 +36,7 @@ class TcpWrap : public HandleWrap {
 
   static TcpWrap* FromJObject(JObject* jtcp) {
     TcpWrap* wrap = reinterpret_cast<TcpWrap*>(jtcp->GetNative());
-    assert(wrap != NULL);
+    IOTJS_ASSERT(wrap != NULL);
     return wrap;
   }
 
@@ -80,15 +80,15 @@ class WriteReqWrap : public ReqWrap {
 
 
 JHANDLER_FUNCTION(TCP, handler) {
-  assert(handler.GetThis()->IsObject());
+  IOTJS_ASSERT(handler.GetThis()->IsObject());
 
   Environment* env = Environment::GetEnv();
   JObject* jtcp = handler.GetThis();
   JObject* jholder = handler.GetArg(0);
 
   TcpWrap* tcp_wrap = new TcpWrap(env, *jtcp, *jholder);
-  assert(tcp_wrap->jnative().IsObject());
-  assert(jtcp->GetNative() != 0);
+  IOTJS_ASSERT(tcp_wrap->jnative().IsObject());
+  IOTJS_ASSERT(jtcp->GetNative() != 0);
 
   return true;
 }
@@ -102,15 +102,15 @@ JHANDLER_FUNCTION(Open, handler) {
 // Socket close result handler.
 static void AfterClose(uv_handle_t* handle) {
   HandleWrap* tcp_wrap = HandleWrap::FromHandle(handle);
-  assert(tcp_wrap != NULL);
+  IOTJS_ASSERT(tcp_wrap != NULL);
 
   // socket object.
   JObject jsocket = tcp_wrap->jholder();
-  assert(jsocket.IsObject());
+  IOTJS_ASSERT(jsocket.IsObject());
 
   // internal close callback.
   JObject jonclose = jsocket.GetProperty("_onclose");
-  assert(jonclose.IsFunction());
+  IOTJS_ASSERT(jonclose.IsFunction());
 
   MakeCallback(jonclose, jsocket, JArgList::Empty());
 }
@@ -118,7 +118,7 @@ static void AfterClose(uv_handle_t* handle) {
 
 // Close socket
 JHANDLER_FUNCTION(Close, handler) {
-  assert(handler.GetThis()->IsObject());
+  IOTJS_ASSERT(handler.GetThis()->IsObject());
 
   JObject* jtcp = handler.GetThis();
   HandleWrap* wrap = reinterpret_cast<HandleWrap*>(jtcp->GetNative());
@@ -135,10 +135,10 @@ JHANDLER_FUNCTION(Close, handler) {
 // [0] address
 // [1] port
 JHANDLER_FUNCTION(Bind, handler) {
-  assert(handler.GetThis()->IsObject());
-  assert(handler.GetArgLength() == 2);
-  assert(handler.GetArg(0)->IsString());
-  assert(handler.GetArg(1)->IsNumber());
+  IOTJS_ASSERT(handler.GetThis()->IsObject());
+  IOTJS_ASSERT(handler.GetArgLength() == 2);
+  IOTJS_ASSERT(handler.GetArg(0)->IsString());
+  IOTJS_ASSERT(handler.GetArg(1)->IsNumber());
 
   LocalString address(handler.GetArg(0)->GetCString());
   int port = handler.GetArg(1)->GetInt32();
@@ -164,15 +164,15 @@ JHANDLER_FUNCTION(Bind, handler) {
 static void AfterConnect(uv_connect_t* req, int status) {
   ConnectReqWrap* req_wrap = reinterpret_cast<ConnectReqWrap*>(req->data);
   TcpWrap* tcp_wrap = reinterpret_cast<TcpWrap*>(req->handle->data);
-  assert(req_wrap != NULL);
-  assert(tcp_wrap != NULL);
+  IOTJS_ASSERT(req_wrap != NULL);
+  IOTJS_ASSERT(tcp_wrap != NULL);
 
   JObject jsocket = tcp_wrap->jholder();
 
 
   // `onconnection` internal callback.
   JObject jonconnect = jsocket.GetProperty("_onconnect");
-  assert(jonconnect.IsFunction());
+  IOTJS_ASSERT(jonconnect.IsFunction());
 
   MakeCallback(jonconnect, jsocket, JArgList::Empty());
 
@@ -198,11 +198,11 @@ static void AfterConnect(uv_connect_t* req, int status) {
 // [1] port
 // [2] callback
 JHANDLER_FUNCTION(Connect, handler) {
-  assert(handler.GetThis()->IsObject());
-  assert(handler.GetArgLength() == 3);
-  assert(handler.GetArg(0)->IsString());
-  assert(handler.GetArg(1)->IsNumber());
-  assert(handler.GetArg(2)->IsFunction());
+  IOTJS_ASSERT(handler.GetThis()->IsObject());
+  IOTJS_ASSERT(handler.GetArgLength() == 3);
+  IOTJS_ASSERT(handler.GetArg(0)->IsString());
+  IOTJS_ASSERT(handler.GetArg(1)->IsNumber());
+  IOTJS_ASSERT(handler.GetArg(2)->IsFunction());
 
   LocalString address(handler.GetArg(0)->GetCString());
   int port = handler.GetArg(1)->GetInt32();
@@ -245,15 +245,15 @@ JHANDLER_FUNCTION(Connect, handler) {
 static void OnConnection(uv_stream_t* handle, int status) {
   // Server tcp wrapper.
   TcpWrap* tcp_wrap = reinterpret_cast<TcpWrap*>(handle->data);
-  assert(tcp_wrap->tcp_handle() == reinterpret_cast<uv_tcp_t*>(handle));
+  IOTJS_ASSERT(tcp_wrap->tcp_handle() == reinterpret_cast<uv_tcp_t*>(handle));
 
   // Server object.
   JObject jserver = tcp_wrap->jholder();
-  assert(jserver.IsObject());
+  IOTJS_ASSERT(jserver.IsObject());
 
   // `onconnection` callback.
   JObject jonconnection = jserver.GetProperty("_onconnection");
-  assert(jonconnection.IsFunction());
+  IOTJS_ASSERT(jonconnection.IsFunction());
 
   // The callback takes two parameter
   // [0] status
@@ -264,10 +264,10 @@ static void OnConnection(uv_stream_t* handle, int status) {
   if (status == 0) {
     // Create client socket handle wrapper.
     JObject jfunc_create_tcp = jserver.GetProperty("_createTCP");
-    assert(jfunc_create_tcp.IsFunction());
+    IOTJS_ASSERT(jfunc_create_tcp.IsFunction());
 
     JObject jclient_tcp = jfunc_create_tcp.Call(jserver, JArgList::Empty());
-    assert(jclient_tcp.IsObject());
+    IOTJS_ASSERT(jclient_tcp.IsObject());
 
     TcpWrap* client_wrap = new TcpWrap(Environment::GetEnv(),
                                        jclient_tcp,
@@ -288,7 +288,7 @@ static void OnConnection(uv_stream_t* handle, int status) {
 
 
 JHANDLER_FUNCTION(Listen, handler) {
-  assert(handler.GetThis()->IsObject());
+  IOTJS_ASSERT(handler.GetThis()->IsObject());
 
   TcpWrap* tcp_wrap = TcpWrap::FromJObject(handler.GetThis());
 
@@ -307,8 +307,8 @@ JHANDLER_FUNCTION(Listen, handler) {
 void AfterWrite(uv_write_t* req, int status) {
   WriteReqWrap* req_wrap = reinterpret_cast<WriteReqWrap*>(req->data);
   TcpWrap* tcp_wrap = reinterpret_cast<TcpWrap*>(req->handle->data);
-  assert(req_wrap != NULL);
-  assert(tcp_wrap != NULL);
+  IOTJS_ASSERT(req_wrap != NULL);
+  IOTJS_ASSERT(tcp_wrap != NULL);
 
   // holder socket.
   JObject jsocket = tcp_wrap->jholder();
@@ -329,13 +329,13 @@ void AfterWrite(uv_write_t* req, int status) {
 
 
 JHANDLER_FUNCTION(Write, handler) {
-  assert(handler.GetThis()->IsObject());
-  assert(handler.GetArgLength() == 2);
-  assert(handler.GetArg(0)->IsObject());
-  assert(handler.GetArg(1)->IsFunction());
+  IOTJS_ASSERT(handler.GetThis()->IsObject());
+  IOTJS_ASSERT(handler.GetArgLength() == 2);
+  IOTJS_ASSERT(handler.GetArg(0)->IsObject());
+  IOTJS_ASSERT(handler.GetArg(1)->IsFunction());
 
   TcpWrap* tcp_wrap = TcpWrap::FromJObject(handler.GetThis());
-  assert(tcp_wrap != NULL);
+  IOTJS_ASSERT(tcp_wrap != NULL);
 
   JObject* jbuffer = handler.GetArg(0);
   Buffer* buffer_wrap = Buffer::FromJBuffer(*jbuffer);
@@ -375,13 +375,13 @@ void OnAlloc(uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf) {
 
 void OnRead(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
   TcpWrap* tcp_wrap = reinterpret_cast<TcpWrap*>(handle->data);
-  assert(tcp_wrap != NULL);
+  IOTJS_ASSERT(tcp_wrap != NULL);
 
   JObject jsocket = tcp_wrap->jholder();
-  assert(jsocket.IsObject());
+  IOTJS_ASSERT(jsocket.IsObject());
 
   JObject jonread = jsocket.GetProperty("_onread");
-  assert(jonread.IsFunction());
+  IOTJS_ASSERT(jonread.IsFunction());
 
   JArgList jargs(2);
   jargs.Add(JVal::Int(nread));
@@ -407,10 +407,10 @@ void OnRead(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
 
 
 JHANDLER_FUNCTION(ReadStart, handler) {
-  assert(handler.GetThis()->IsObject());
+  IOTJS_ASSERT(handler.GetThis()->IsObject());
 
   TcpWrap* tcp_wrap = TcpWrap::FromJObject(handler.GetThis());
-  assert(tcp_wrap != NULL);
+  IOTJS_ASSERT(tcp_wrap != NULL);
 
   int err = uv_read_start(
       reinterpret_cast<uv_stream_t*>(tcp_wrap->tcp_handle()),
@@ -424,9 +424,9 @@ JHANDLER_FUNCTION(ReadStart, handler) {
 
 
 JHANDLER_FUNCTION(SetHolder, handler) {
-  assert(handler.GetThis()->IsObject());
-  assert(handler.GetArgLength() == 1);
-  assert(handler.GetArg(0)->IsObject());
+  IOTJS_ASSERT(handler.GetThis()->IsObject());
+  IOTJS_ASSERT(handler.GetArgLength() == 1);
+  IOTJS_ASSERT(handler.GetArg(0)->IsObject());
 
   TcpWrap* tcp_wrap = TcpWrap::FromJObject(handler.GetThis());
 

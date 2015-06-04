@@ -14,9 +14,9 @@
  */
 
 
-#include <assert.h>
-
+#include "iotjs_def.h"
 #include "iotjs_module.h"
+
 #include "iotjs_module_buffer.h"
 #include "iotjs_module_console.h"
 #include "iotjs_module_constants.h"
@@ -58,7 +58,7 @@ void CleanupModuleList() {
 
 
 Module* GetBuiltinModule(ModuleKind kind) {
-  assert(kind < MODULE_COUNT);
+  IOTJS_ASSERT(kind < MODULE_COUNT);
   return &_modules[kind];
 }
 

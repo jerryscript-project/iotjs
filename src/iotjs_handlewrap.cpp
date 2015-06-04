@@ -13,10 +13,8 @@
  * limitations under the License.
  */
 
-
-#include "iotjs_handlewrap.h"
-
 #include "iotjs_def.h"
+#include "iotjs_handlewrap.h"
 
 
 namespace iotjs {
@@ -43,7 +41,7 @@ HandleWrap::~HandleWrap() {
 
 HandleWrap* HandleWrap::FromHandle(uv_handle_t* handle) {
   HandleWrap* wrap = reinterpret_cast<HandleWrap*>(handle->data);
-  assert(wrap != NULL);
+  IOTJS_ASSERT(wrap != NULL);
   return wrap;
 }
 
@@ -54,14 +52,14 @@ JObject& HandleWrap::jnative() {
 
 
 JObject& HandleWrap::jholder() {
-  assert(_jholder != NULL);
+  IOTJS_ASSERT(_jholder != NULL);
   return *_jholder;
 }
 
 
 void HandleWrap::set_jholder(JObject& jholder) {
-  assert(_jholder == NULL);
-  assert(jholder.IsObject());
+  IOTJS_ASSERT(_jholder == NULL);
+  IOTJS_ASSERT(jholder.IsObject());
 
   JRawValueType raw_value = jholder.raw_value();
   _jholder = new JObject(&raw_value, false);

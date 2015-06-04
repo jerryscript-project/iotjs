@@ -13,12 +13,13 @@
  * limitations under the License.
  */
 
+#include "iotjs_def.h"
 #include "iotjs_module_fs.h"
 
-#include "iotjs_def.h"
-#include "iotjs_exception.h"
 #include "iotjs_module_buffer.h"
+#include "iotjs_exception.h"
 #include "iotjs_reqwrap.h"
+
 
 namespace iotjs {
 
@@ -42,11 +43,11 @@ class FsReqWrap : public ReqWrap {
 
 static void After(uv_fs_t* req) {
   FsReqWrap* req_wrap = static_cast<FsReqWrap*>(req->data);
-  assert(req_wrap != NULL);
-  assert(req_wrap->data() == req);
+  IOTJS_ASSERT(req_wrap != NULL);
+  IOTJS_ASSERT(req_wrap->data() == req);
 
   JObject cb = req_wrap->jcallback();
-  assert(cb.IsFunction());
+  IOTJS_ASSERT(cb.IsFunction());
 
   JArgList jarg(2);
   if (req->result < 0) {

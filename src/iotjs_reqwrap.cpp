@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-
+#include "iotjs_def.h"
 #include "iotjs_reqwrap.h"
 
 
@@ -37,7 +37,7 @@ ReqWrap::~ReqWrap() {
 
 
 JObject& ReqWrap::jcallback() {
-  assert(_jcallback != NULL);
+  IOTJS_ASSERT(_jcallback != NULL);
   return *_jcallback;
 }
 

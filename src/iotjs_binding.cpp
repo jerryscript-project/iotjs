@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-#include <assert.h>
-
+#include "iotjs_def.h"
 #include "iotjs_binding.h"
 
 
@@ -116,7 +115,7 @@ JObject::JObject(const JRawValueType* val, bool need_unref) {
 
 JObject::JObject(JHandlerType handler) {
   _obj_val.v_object = jerry_api_create_external_function(handler);
-  assert(jerry_api_is_constructor(_obj_val.v_object));
+  IOTJS_ASSERT(jerry_api_is_constructor(_obj_val.v_object));
   _obj_val.type = JERRY_API_DATA_TYPE_OBJECT;
   _unref_at_close = true;
 }
@@ -184,32 +183,32 @@ JObject JObject::URIError(const char* message) {
 
 
 void JObject::SetMethod(const char* name, JHandlerType handler) {
-  assert(IsObject());
+  IOTJS_ASSERT(IsObject());
   JObject method(jerry_api_create_external_function(handler));
   SetProperty(name, method);
 }
 
 
 void JObject::SetProperty(const char* name, JObject& val) {
-  assert(IsObject());
+  IOTJS_ASSERT(IsObject());
   JRawValueType v = val.raw_value();
   bool is_ok  = jerry_api_set_object_field_value(_obj_val.v_object, name, &v);
-  assert(is_ok);
+  IOTJS_ASSERT(is_ok);
 }
 
 
 void JObject::SetProperty(const char* name, JRawValueType val) {
-  assert(IsObject());
+  IOTJS_ASSERT(IsObject());
   bool is_ok  = jerry_api_set_object_field_value(_obj_val.v_object, name, &val);
-  assert(is_ok);
+  IOTJS_ASSERT(is_ok);
 }
 
 
 JObject JObject::GetProperty(const char* name) {
-  assert(IsObject());
+  IOTJS_ASSERT(IsObject());
   JRawValueType res;
   bool is_ok = jerry_api_get_object_field_value(_obj_val.v_object, name, &res);
-  assert(is_ok);
+  IOTJS_ASSERT(is_ok);
   return JObject(&res);
 }
 
@@ -263,13 +262,13 @@ bool JObject::IsFunction() {
 
 
 void JObject::SetNative(uintptr_t ptr, JFreeHandlerType free_handler) {
-  assert(IsObject());
+  IOTJS_ASSERT(IsObject());
   jerry_api_set_object_native_handle(_obj_val.v_object, ptr, free_handler);
 }
 
 
 uintptr_t JObject::GetNative() {
-  assert(IsObject());
+  IOTJS_ASSERT(IsObject());
   uintptr_t ptr;
   jerry_api_get_object_native_handle(_obj_val.v_object, &ptr);
   return ptr;
@@ -277,7 +276,7 @@ uintptr_t JObject::GetNative() {
 
 
 JObject JObject::Call(JObject& this_, JArgList& arg) {
-  assert(IsFunction());
+  IOTJS_ASSERT(IsFunction());
 
   JRawObjectType* this_obj_p = this_.IsNull() ? NULL
                                               : this_.raw_value().v_object;
@@ -298,7 +297,7 @@ JObject JObject::Call(JObject& this_, JArgList& arg) {
                                        &res,
                                        val_args,
                                        val_argv);
-  assert(is_ok);
+  IOTJS_ASSERT(is_ok);
 
   if (val_args) {
     delete val_args;
@@ -309,26 +308,26 @@ JObject JObject::Call(JObject& this_, JArgList& arg) {
 
 
 int32_t JObject::GetInt32() {
-  assert(IsNumber());
+  IOTJS_ASSERT(IsNumber());
   return JVAL_TO_INT32(&_obj_val);
 }
 
 
 int64_t JObject::GetInt64() {
-  assert(IsNumber());
+  IOTJS_ASSERT(IsNumber());
   return JVAL_TO_INT64(&_obj_val);
 }
 
 
 char* JObject::GetCString() {
-  assert(IsString());
+  IOTJS_ASSERT(IsString());
 
   size_t size = -GetCStringLength();
   char* buffer = AllocBuffer(size);
   size_t check = jerry_api_string_to_char_buffer(_obj_val.v_string,
                                                  buffer,
                                                  size);
-  assert(check == size);
+  IOTJS_ASSERT(check == size);
   return buffer;
 }
 
@@ -339,7 +338,7 @@ void JObject::ReleaseCString(char* str) {
 
 
 size_t JObject::GetCStringLength() {
-  assert(IsString());
+  IOTJS_ASSERT(IsString());
   return jerry_api_string_to_char_buffer (_obj_val.v_string, NULL, 0);
 }
 
@@ -419,8 +418,8 @@ JArgList::JArgList(uint16_t capacity)
 
 
 JArgList::~JArgList() {
-  assert(_argv == NULL || _argc > 0);
-  assert(_argc <= _capacity);
+  IOTJS_ASSERT(_argv == NULL || _argc > 0);
+  IOTJS_ASSERT(_argc <= _capacity);
   for (int i = 0; i < _argc; ++i) {
     delete _argv[i];
   }
@@ -440,7 +439,7 @@ uint16_t JArgList::GetLength() {
 
 
 void JArgList::Add(JObject& x) {
-  assert(_argc < _capacity);
+  IOTJS_ASSERT(_argc < _capacity);
   _argv[_argc++] = new JObject(x);
 }
 
@@ -452,7 +451,7 @@ void JArgList::Add(JRawValueType x) {
 
 
 void JArgList::Set(uint16_t i, JObject& x) {
-  assert(i < _argc);
+  IOTJS_ASSERT(i < _argc);
   if (_argv[i] != NULL) {
     delete _argv[i];
   }
@@ -467,7 +466,7 @@ void JArgList::Set(uint16_t i, JRawValueType x) {
 
 
 JObject* JArgList::Get(uint16_t i) {
-  assert(i < _argc);
+  IOTJS_ASSERT(i < _argc);
   return _argv[i];
 }
 
@@ -528,7 +527,7 @@ void JHandlerInfo::Return(JRawValueType raw_val) {
 
 
 void JHandlerInfo::Throw(JObject& ret) {
-  assert(_thrown == false);
+  IOTJS_ASSERT(_thrown == false);
 
   ret.Ref();
   *_ret_val_p = ret.raw_value();

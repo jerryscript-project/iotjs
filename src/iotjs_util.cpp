@@ -13,12 +13,12 @@
  * limitations under the License.
  */
 
+#include "iotjs_def.h"
+#include "iotjs_util.h"
+
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
 #include <string.h>
-
-#include "iotjs_util.h"
 
 
 namespace iotjs {
@@ -26,7 +26,7 @@ namespace iotjs {
 
 char* ReadFile(const char* path) {
   FILE* file = fopen(path, "rb");
-  assert(file != NULL);
+  IOTJS_ASSERT(file != NULL);
 
   fseek(file, 0, SEEK_END);
   size_t len = ftell(file);
@@ -35,7 +35,7 @@ char* ReadFile(const char* path) {
   char* buff = AllocBuffer(len + 1);
 
   size_t read = fread(buff, 1, len, file);
-  assert(read == len);
+  IOTJS_ASSERT(read == len);
 
   *(buff+len) = 0;
 
@@ -64,17 +64,17 @@ void ReleaseBuffer(char* buffer) {
 
 LocalString::LocalString(size_t len)
     : _strp(AllocBuffer(len)) {
-  assert(_strp != NULL);
+  IOTJS_ASSERT(_strp != NULL);
 }
 
 LocalString::LocalString(char* strp)
     : _strp(strp) {
-  assert(_strp != NULL);
+  IOTJS_ASSERT(_strp != NULL);
 }
 
 
 LocalString::~LocalString() {
-  assert(_strp != NULL);
+  IOTJS_ASSERT(_strp != NULL);
   ReleaseBuffer(const_cast<char*>(_strp));
 }
 

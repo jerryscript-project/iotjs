@@ -13,9 +13,8 @@
  * limitations under the License.
  */
 
-#include "iotjs_objectwrap.h"
-
 #include "iotjs_def.h"
+#include "iotjs_objectwrap.h"
 
 
 namespace iotjs {
@@ -23,14 +22,14 @@ namespace iotjs {
 
 JFREE_HANDLER_FUNCTION(FreeObjectWrap, wrapper) {
   // native pointer must not be NULL.
-  assert(wrapper != 0);
+  IOTJS_ASSERT(wrapper != 0);
   delete reinterpret_cast<JObjectWrap*>(wrapper);
 }
 
 
 JObjectWrap::JObjectWrap(JObject& jobject)
     : _jobject(NULL) {
-  assert(jobject.IsObject());
+  IOTJS_ASSERT(jobject.IsObject());
 
   // This wrapper hold pointer to the javascript object but never increase
   // reference count.
@@ -43,14 +42,14 @@ JObjectWrap::JObjectWrap(JObject& jobject)
 
 
 JObjectWrap::~JObjectWrap() {
-  assert(_jobject != NULL);
-  assert(_jobject->IsObject());
+  IOTJS_ASSERT(_jobject != NULL);
+  IOTJS_ASSERT(_jobject->IsObject());
   delete _jobject;
 }
 
 
 JObject& JObjectWrap::jobject() {
-  assert(_jobject);
+  IOTJS_ASSERT(_jobject);
   return *_jobject;
 }
 

@@ -13,20 +13,21 @@
  * limitations under the License.
  */
 
-#include "iotjs_binding.h"
-#include "iotjs_module.h"
+#include "iotjs_def.h"
 #include "iotjs_module_process.h"
 #include "iotjs_js.h"
-#include "uv.h"
+
 #include <cstdlib>
 #include <string.h>
 
+
 #ifdef __LINUX__
-#define PLATFORM "linux"
+ #define PLATFORM "linux"
 #endif
 
+
 #ifdef __NUTTX__
-#define PLATFORM "nuttx"
+ #define PLATFORM "nuttx"
 #endif
 
 
@@ -36,14 +37,14 @@ namespace iotjs {
 // Calls next tick callbacks registered via `process.nextTick()`.
 void OnNextTick() {
   Module* module = GetBuiltinModule(MODULE_PROCESS);
-  assert(module != NULL);
+  IOTJS_ASSERT(module != NULL);
 
   JObject* process = module->module;
-  assert(process != NULL);
-  assert(process->IsObject());
+  IOTJS_ASSERT(process != NULL);
+  IOTJS_ASSERT(process->IsObject());
 
   JObject jon_next_tick = process->GetProperty("_onNextTick");
-  assert(jon_next_tick.IsFunction());
+  IOTJS_ASSERT(jon_next_tick.IsFunction());
 
   jon_next_tick.Call(JObject::Null(), JArgList::Empty());
 }
@@ -65,8 +66,8 @@ JObject MakeCallback(JObject& function, JObject& this_, JArgList& args) {
 
 
 JHANDLER_FUNCTION(Binding, handler) {
-  assert(handler.GetArgLength() == 1);
-  assert(handler.GetArg(0)->IsNumber());
+  IOTJS_ASSERT(handler.GetArgLength() == 1);
+  IOTJS_ASSERT(handler.GetArg(0)->IsNumber());
 
   int module_kind = handler.GetArg(0)->GetInt32();
 
@@ -82,8 +83,8 @@ JHANDLER_FUNCTION(Binding, handler) {
 }
 
 JHANDLER_FUNCTION(Compile, handler){
-  assert(handler.GetArgLength() == 1);
-  assert(handler.GetArg(0)->IsString());
+  IOTJS_ASSERT(handler.GetArgLength() == 1);
+  IOTJS_ASSERT(handler.GetArg(0)->IsString());
 
   char* code = handler.GetArg(0)->GetCString();
   JRawValueType ret_val;
@@ -99,8 +100,8 @@ JHANDLER_FUNCTION(Compile, handler){
 
 
 JHANDLER_FUNCTION(CompileNativePtr, handler){
-  assert(handler.GetArgLength() == 1);
-  assert(handler.GetArg(0)->IsObject());
+  IOTJS_ASSERT(handler.GetArgLength() == 1);
+  IOTJS_ASSERT(handler.GetArg(0)->IsObject());
 
   char* source = (char*)(handler.GetArg(0)->GetNative());
 
@@ -127,8 +128,8 @@ JHANDLER_FUNCTION(CompileNativePtr, handler){
 
 
 JHANDLER_FUNCTION(ReadSource, handler){
-  assert(handler.GetArgLength() == 1);
-  assert(handler.GetArg(0)->IsString());
+  IOTJS_ASSERT(handler.GetArgLength() == 1);
+  IOTJS_ASSERT(handler.GetArg(0)->IsString());
 
   char* code = ReadFile(handler.GetArg(0)->GetCString());
   JObject ret(code);
@@ -139,7 +140,7 @@ JHANDLER_FUNCTION(ReadSource, handler){
 }
 
 JHANDLER_FUNCTION(Cwd, handler){
-  assert(handler.GetArgLength() == 0);
+  IOTJS_ASSERT(handler.GetArgLength() == 0);
 
   char path[120];
   size_t size_path = sizeof(path);

@@ -13,13 +13,10 @@
  * limitations under the License.
  */
 
-#include <stdio.h>
-#include <assert.h>
-
-#include "iotjs_util.h"
-#include "iotjs_binding.h"
-#include "iotjs_module.h"
+#include "iotjs_def.h"
 #include "iotjs_module_console.h"
+
+#include <stdio.h>
 
 
 namespace iotjs {

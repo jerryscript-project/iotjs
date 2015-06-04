@@ -13,24 +13,17 @@
  * limitations under the License.
  */
 
-#include <stdio.h>
-#include <string.h>
-#include <assert.h>
+#include "iotjs_def.h"
+
+#include "iotjs.h"
+#include "iotjs_js.h"
 
 #include "jerry.h"
 #include "jerry-api.h"
 
-#include "uv.h"
+#include <stdio.h>
+#include <string.h>
 
-#include "iotjs_debuglog.h"
-#include "iotjs_binding.h"
-#include "iotjs_env.h"
-#include "iotjs_util.h"
-#include "iotjs_module.h"
-#include "iotjs_module_process.h"
-
-#include "iotjs.h"
-#include "iotjs_js.h"
 
 namespace iotjs {
 

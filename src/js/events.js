@@ -51,20 +51,17 @@ EventEmitter.prototype.emit = function(type, arg1, arg2) {
 
 EventEmitter.prototype.addListener = function(type, listener) {
   if (!util.isFunction(listener)) {
-    throw new TypeError('linster must be a function');
+    throw new TypeError('listener must be a function');
   }
 
   if (!this._events) {
     this._events = {};
   }
-
   if (!this._events[type]) {
-    this._events[type] = listener;
-  } else if (util.isObject(this._events[type])) {
-    this._events[type].push(listener);
-  } else {
-    this._events[type] = [this._events[type], listener];
+    this._events[type] = [];
   }
+
+  this._events[type].push(listener);
 
   return this;
 };
@@ -73,3 +70,42 @@ EventEmitter.prototype.addListener = function(type, listener) {
 EventEmitter.prototype.on = EventEmitter.prototype.addListener;
 
 
+EventEmitter.prototype.once = function(type, listener) {
+  if (!util.isFunction(listener)) {
+    throw new TypeError('listener must be a function');
+  }
+
+  function f(arg1, arg2) {
+    // here `this` is this not global, because EventEmitter binds event object
+    // for this when it calls back the handler.
+    this.removeListener(f.type, f);
+    f.listener.call(this, arg1, arg2);
+  };
+  f.type = type;
+  f.listener = listener;
+
+  this.on(type, f);
+
+  return this;
+};
+
+
+EventEmitter.prototype.removeListener = function(type, listener) {
+  if (!util.isFunction(listener)) {
+    throw new TypeError('listener must be a function');
+  }
+
+  var list = this._events[type];
+  if (Array.isArray(list)) {
+    for (var i = list.length - 1; i >= 0; --i) {
+      if (list[i] == listener) {
+        list.splice(i, 1);
+        this.emit('removeListener', type, listener);
+        break;
+      }
+    }
+  }
+
+  return this;
+
+};

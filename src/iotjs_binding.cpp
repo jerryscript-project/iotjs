@@ -383,7 +383,7 @@ JRawValueType JVal::Int(int32_t v) {
 JRawValueType JVal::Float(float v) {
   JRawValueType val;
   val.type = JERRY_API_DATA_TYPE_FLOAT32;
-  val.v_uint32 = v;
+  val.v_float32 = v;
   return val;
 }
 
@@ -391,7 +391,7 @@ JRawValueType JVal::Float(float v) {
 JRawValueType JVal::Double(double v) {
   JRawValueType val;
   val.type = JERRY_API_DATA_TYPE_FLOAT64;
-  val.v_uint32 = v;
+  val.v_float64 = v;
   return val;
 }
 

@@ -38,7 +38,10 @@ function WritableState(options) {
   // `true` if stream is writing down data underlying system.
   this.writing = false;
 
-  // become true when `end()` called.
+  // become `true` when `end()` called.
+  this.ending = false;
+
+  // become `true` when there are no date to write.
   this.ended = false;
 }
 
@@ -74,7 +77,7 @@ Writable.prototype.write = function(chunk, callback) {
   var state = this._writableState;
   var res = false;
 
-  if (state.ended) {
+  if (state.ended || state.ending) {
     writeAfterEnd(this, callback);
   } else {
     res = writeOrBuffer(this, chunk, callback);
@@ -89,6 +92,19 @@ Writable.prototype.write = function(chunk, callback) {
 Writable.prototype._write = function(chunk, callback, onwrite) {
   throw new Error('unreachable');
 }
+
+
+Writable.prototype.end = function(chunk, callback) {
+  var state = this._writableState;
+
+  if (!util.isNullOrUndefined(chunk)) {
+    this.write(chunk);
+  }
+
+  if (!state.ending) {
+    endWritable(this, callback);
+  }
+};
 
 
 // When stream is ready to write, concrete stream implementation should call
@@ -140,9 +156,13 @@ function writeOrBuffer(stream, chunk, callback) {
 
 function writeBuffered(stream) {
   var state = stream._writableState;
-  if (state.buffer.length > 0 && !state.writing) {
-    var req = state.buffer.shift();
-    doWrite(stream, req.chunk, req.callback);
+  if (!state.writing) {
+    if (state.buffer.length == 0) {
+      onEmptyBuffer(stream);
+    } else {
+      var req = state.buffer.shift();
+      doWrite(stream, req.chunk, req.callback);
+    }
   }
 }
 
@@ -161,6 +181,30 @@ function doWrite(stream, chunk, callback) {
   stream._write(chunk, callback, stream._onwrite);
 }
 
+
+function onEmptyBuffer(stream) {
+  var state = stream._writableState;
+  if (state.ending) {
+    emitFinish(stream);
+  }
+}
+
+
+function endWritable(stream, callback) {
+  var state = stream._writableState;
+  state.ending = true;
+  if (callback) {
+    stream.once('finish', callback);
+  }
+}
+
+function emitFinish(stream) {
+  var state = stream._writableState;
+  if (!state.ended) {
+    state.ended = true;
+    stream.emit('finish')
+  }
+}
 
 module.exports = Writable;
 

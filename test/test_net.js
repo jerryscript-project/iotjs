@@ -13,44 +13,29 @@
  * limitations under the License.
  */
 
-
 var net = require('net');
+
 
 var server = net.createServer();
 
-server.listen({port:1234}, function() {
-  console.log("[Server] listening");
-});
+server.listen(1234, 5);
 
 server.on('connection', function(socket) {
-  console.log('[Server] a client connected');
-  socket.on('read', function(err, buffer) {
-    if (err) {
-      console.log(err.toString());
-    } else {
-      console.log('[Server - Client] recv: ' + buffer.toString());
-    }
+  socket.on('data', function(data) {
+    socket.end('Hello IoT.js');
   });
   socket.on('close', function() {
-    console.log('[Server] a client disconnected');
-  })
+    server.close();
+  });
 });
 
 
 var socket = new net.Socket();
 
-socket.connect(1234, "127.0.0.1", function(status) {
-  if (status == 0) {
-    console.log("[Client] socket connect");
-  } else {
-    socket.destroy();
-  }
+socket.connect(1234, "127.0.0.1");
+socket.end("Hello IoT.js");
+
+socket.on('data', function(data) {
+  console.log(data.toString());
 });
 
-socket.on('close', function() {
-  console.log('[Client] socket closed');
-});
-
-socket.write("hello", function(status) {
-  console.log("[Client] after write - status: " + status);
-});

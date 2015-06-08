@@ -24,7 +24,7 @@ HandleWrap::HandleWrap(JObject& jnative, JObject& jholder, uv_handle_t* handle)
     : JObjectWrap(jnative)
     , __handle(handle)
     , _jholder(NULL) {
-  if (!jholder.IsNull()) {
+  if (!jholder.IsNull() && !jholder.IsUndefined()) {
     JRawValueType raw_value = jholder.raw_value();
     _jholder = new JObject(&raw_value, false);
   }

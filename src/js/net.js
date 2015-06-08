@@ -27,6 +27,18 @@ function createTCP(socket) {
 }
 
 
+function SocketState(options) {
+  // 'true' during connection handshaking.
+  this.connecting = false;
+
+  // become 'true' when connection established.
+  this.connected = false;
+
+  this.writable = true;
+  this.readable = true;
+}
+
+
 function Socket(options) {
   if (!(this instanceof Socket)) {
     return new Socket(options);
@@ -38,10 +50,14 @@ function Socket(options) {
 
   stream.Duplex.call(this, options);
 
+  this._socketState = new SocketState(options);
+
   if (options.handle) {
     this._handle = options.handle;
     this._handle._setHolder(this);
   }
+
+  this.on('finish', onSocketFinish);
 }
 
 
@@ -50,13 +66,27 @@ util.inherits(Socket, stream.Duplex);
 
 
 Socket.prototype.connect = function(port, host, callback) {
-  if (!this._handle) {
-    this._handle = createTCP(this);
+  var self = this;
+  var state = self._socketState;
+
+  if (state.connecting || state.connected) {
+    return self;
   }
 
-  this._handle.connect(host, port, callback);
+  if (!self._handle) {
+    self._handle = createTCP(this);
+  }
 
-  return this;
+  var cb = function(status) {
+    if (util.isFunction(callback)) {
+      callback.call(self, status);
+    }
+  };
+
+  state.connecting = true;
+  self._handle.connect(host, port, cb);
+
+  return self;
 };
 
 
@@ -83,25 +113,73 @@ Socket.prototype._write = function(chunk, callback) {
 };
 
 
+Socket.prototype.end = function(data, callback) {
+  var self = this;
+  var state = self._socketState;
+
+  // end of writable stream.
+  stream.WritableStream.prototype.end.call(self, data, callback);
+
+  // this socket is no longer writable.
+  state.writable = false;
+};
+
+
 Socket.prototype.destroy = function() {
   var self = this;
+  var state = self._socketState;
 
-  self._handle.close();
-};
-
-
-Socket.prototype._onconnect = function() {
-  this._readyToWrite();
-  this._handle.readStart();
-};
-
-
-Socket.prototype._onread = function(nread, buffer) {
-  var err = null;
-  if (nread < 0) {
-    err = new Error('read error: ' + nread);
+  if (state.writable) {
+    self.end();
   }
-  this.emit('read', err, buffer);
+
+  if (self._writableState.ended) {
+    self._handle.close();
+  } else {
+    self.once('finish', function() {
+      self.destroy();
+    });
+  }
+};
+
+
+Socket.prototype._onconnect = function(status) {
+  var self = this;
+  var state = self._socketState;
+
+  state.connecting = false;
+
+  if (status == 0) {
+    state.connected = true;
+
+    self._readyToWrite();
+
+    // `readStart` on next tick, after connection event handled.
+    process.nextTick(function() {
+      self._handle.readStart();
+    });
+  } else {
+    emitError(this, new Error('connect failed - status: ' + status));
+  }
+};
+
+
+Socket.prototype._onread = function(nread, isEOF, buffer) {
+  var self = this;
+  var state = self._socketState;
+
+  if (isEOF) {
+    // this socket is no longer readable.
+    stream.ReadableStream.prototype.finishRead.call(self);
+    state.readable = false;
+    // destory if this socket is not writable.
+    maybeDestroy(self);
+  } else if (nread < 0) {
+    var err = new Error('read error: ' + nread);
+    stream.ReadableStream.prototype.error.call(this, err);
+  } else {
+    stream.ReadableStream.prototype.push.call(this, buffer);
+  }
 };
 
 
@@ -109,6 +187,44 @@ Socket.prototype._onclose = function() {
   this.emit('close');
 };
 
+
+function emitError(socket, err) {
+  socket.emit('error', err);
+}
+
+
+function maybeDestroy(socket) {
+  var state = socket._socketState;
+
+  if (!state.connecting &&
+      !state.writable &&
+      !state.readable) {
+    socket.destroy();
+  }
+}
+
+
+// Writable stream finished.
+function onSocketFinish() {
+  var self = this;
+  var state = self._socketState;
+  if (!state.readable || self._readableState.ended) {
+    // no readable steram or ended, destory(close) socket.
+    return self.destroy();
+  } else {
+    // Readable stream alive, shutdown only outgoing stream.
+    self._handle.shutdown(onShutdown);
+  }
+}
+
+
+function onShutdown(status) {
+ var self = this;
+
+ if (self._readableState.ended) {
+  self.destroy();
+ }
+}
 
 
 
@@ -148,18 +264,31 @@ exports.createServer = function(options, callback) {
 Server.prototype._createTCP = createTCP;
 
 
-Server.prototype.listen = function(options, callback) {
+Server.prototype.listen = function() {
   var self = this;
 
-  var address = "127.0.0.1";
-  var port = 80;
-  var backlog = 10;
+  // listening callback
+  var lastArg = arguments[arguments.length - 1];
+  if (util.isFunction(lastArg)) {
+    self.once('listening', lastArg);
+  }
 
-  // FIXME: There is much more options for listen.
-  if (util.isNumber(options.port)) {
-    port = options.port;
-  } else {
-    throw new Error('Invalid listen argument');
+  var address = "127.0.0.1";
+  var port = util.isNumber(arguments[0]) ? arguments[0] : false;
+  var backlog = util.isNumber(arguments[1]) ? arguments[1] : false;
+
+  if (util.isObject(arguments[0])) {
+    var opt = arguments[0];
+    if (util.isNumber(opt.port)) {
+      port = opt.port;
+    }
+    if (util.isNumber(opt.backlog)) {
+      backlog = opt.backlog;
+    }
+  }
+
+  if (!port || !backlog) {
+    throw new Error('invalid argument');
   }
 
   // Create server handle.
@@ -181,16 +310,22 @@ Server.prototype.listen = function(options, callback) {
     return err;
   }
 
-  if (util.isFunction(callback)) {
-    // FIXME: This should be `once`.
-    self.on('listening', callback);
-  }
-
   process.nextTick(function() {
     if (self._handle) {
       self.emit('listening');
     }
   });
+};
+
+
+Server.prototype.close = function(callback) {
+  if (util.isFunction(callback)) {
+    this.once('close', callback);
+  }
+  if (this._handle) {
+    this._handle.close();
+  }
+  return this;
 };
 
 
@@ -210,10 +345,16 @@ Server.prototype._onconnection = function(status, clientHandle) {
     handle: clientHandle,
   });
 
+
   socket.server = this;
-  socket._onconnect();
+  socket._onconnect(0);
 
   this.emit('connection', socket);
+};
+
+
+Server.prototype._onclose = function() {
+  this.emit('close');
 };
 
 

@@ -32,10 +32,13 @@ function ReadableState(options) {
   // true if in flowing mode.
   this.flowing = false;
 
-  // become true when the stream meet EOF.
+  // become `true` when forcely finished.
+  this.finished = false;
+
+  // become `true` when the stream meet EOF.
   this.ended = false;
 
-  // become true just before emit 'end' event.
+  // become `true` just before emit 'end' event.
   this.endEmitted = false;
 };
 
@@ -98,8 +101,17 @@ Readable.prototype.resume = function() {
 };
 
 
+Readable.prototype.error = function(error) {
+  emitError(this, error);
+};
+
+
 Readable.prototype.push = function(chunk, encoding) {
   var state = this._readableState;
+
+  if (state.finished) {
+    return;
+  }
 
   if (!util.isString(chunk) &&
       !util.isBuffer(chunk) &&
@@ -115,7 +127,7 @@ Readable.prototype.push = function(chunk, encoding) {
       chunk = new Buffer(chunk, encoding);
     }
     if (state.flowing) {
-      emitData(stream, chunk);
+      emitData(this, chunk);
     } else {
       state.length += chunk.length;
       state.buffer.push(chunk);
@@ -123,6 +135,20 @@ Readable.prototype.push = function(chunk, encoding) {
     }
   }
 };
+
+
+Readable.prototype.finishRead = function() {
+  var state = this._readableState;
+
+  // set finished
+  if (state.finished) {
+    return;
+  }
+  state.finished = true;
+  state.ended = true;
+
+  emitEnd(this);
+}
 
 
 function readBuffer(stream, n) {
@@ -149,6 +175,7 @@ function emitEnd(stream) {
   if (stream.length > 0 || !state.ended) {
     throw new Error('stream ended on non-EOF stream');
   }
+
   if (!state.endEmitted) {
     state.endEmitted = true;
     process.nextTick(function(){

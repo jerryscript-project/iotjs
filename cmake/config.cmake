@@ -18,7 +18,7 @@ set(CC ${CMAKE_C_COMPILER})
 set(CXX ${CMAKE_CXX_COMPILER})
 
 set(CFLAGS ${CMAKE_CXX_FLAGS})
-#set(CFLAGS "${CFLAGS} -flto")
+set(CFLAGS "${CFLAGS} -std=c++11")
 if (NOT(${NO_PTHREAD}))
     set(CFLAGS "${CFLAGS} -pthread -Wall")
 endif()

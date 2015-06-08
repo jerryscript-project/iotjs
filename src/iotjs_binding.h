@@ -145,6 +145,9 @@ class JObject {
  private:
   JRawValueType _obj_val;
   bool _unref_at_close;
+
+  // disable assignment.
+  JObject& operator=(const JObject& rhs) = delete;
 };
 
 

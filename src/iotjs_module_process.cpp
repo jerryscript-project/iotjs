@@ -74,9 +74,12 @@ JHANDLER_FUNCTION(Binding, handler) {
   int module_kind = handler.GetArg(0)->GetInt32();
 
   Module* module = GetBuiltinModule(static_cast<ModuleKind>(module_kind));
+  IOTJS_ASSERT(module != NULL);
 
   if (module->module == NULL) {
+    IOTJS_ASSERT(module->fn_register != NULL);
     module->module = module->fn_register();
+    IOTJS_ASSERT(module->module);
   }
 
   handler.Return(*module->module);
@@ -84,21 +87,19 @@ JHANDLER_FUNCTION(Binding, handler) {
   return true;
 }
 
+
 JHANDLER_FUNCTION(Compile, handler){
   IOTJS_ASSERT(handler.GetArgLength() == 1);
   IOTJS_ASSERT(handler.GetArg(0)->IsString());
 
-  char* code = handler.GetArg(0)->GetCString();
-  JRawValueType ret_val;
-  jerry_api_eval(code,strlen(code),true,false,&ret_val);
-  JObject::ReleaseCString(code);
+  LocalString code(handler.GetArg(0)->GetCString());
 
-  JObject ret(&ret_val);
-  handler.Return(ret);
+  JObject eval = JObject::Eval(code);
+
+  handler.Return(eval);
 
   return true;
 }
-
 
 
 JHANDLER_FUNCTION(CompileNativePtr, handler){
@@ -119,11 +120,9 @@ JHANDLER_FUNCTION(CompileNativePtr, handler){
   strcat(code,source);
   strcat(code,wrapper[1]);
 
-  JRawValueType ret_val;
-  jerry_api_eval(code, strlen(code), true, false, &ret_val);
+  JObject eval = JObject::Eval(code);
 
-  JObject ret(&ret_val);
-  handler.Return(ret);
+  handler.Return(eval);
 
   return true;
 }
@@ -133,13 +132,14 @@ JHANDLER_FUNCTION(ReadSource, handler){
   IOTJS_ASSERT(handler.GetArgLength() == 1);
   IOTJS_ASSERT(handler.GetArg(0)->IsString());
 
-  char* code = ReadFile(handler.GetArg(0)->GetCString());
+  LocalString code(ReadFile(handler.GetArg(0)->GetCString()));
+
   JObject ret(code);
   handler.Return(ret);
 
-  JObject::ReleaseCString(code);
   return true;
 }
+
 
 JHANDLER_FUNCTION(Cwd, handler){
   IOTJS_ASSERT(handler.GetArgLength() == 0);
@@ -148,13 +148,14 @@ JHANDLER_FUNCTION(Cwd, handler){
   size_t size_path = sizeof(path);
   int err = uv_cwd(path, &size_path);
   if (err) {
-    JHANDLER_THROW_RETURN(handler, TypeError, "cwd error");
+    JHANDLER_THROW_RETURN(handler, Error, "cwd error");
   }
   JObject ret(path);
   handler.Return(ret);
 
   return true;
 }
+
 
 void SetNativeSources(JObject* native_sources) {
   for (int i = 0; natives[i].name; i++) {
@@ -168,15 +169,15 @@ void SetNativeSources(JObject* native_sources) {
 void SetProcessEnv(JObject* process){
   const char *homedir;
   homedir = getenv("HOME");
-  if(homedir == NULL) {
+  if (homedir == NULL) {
     homedir = "";
   }
   JObject home(homedir);
   JObject env;
-  env.SetProperty("HOME",home);
-  process->SetProperty("env",env);
-
+  env.SetProperty("HOME", home);
+  process->SetProperty("env", env);
 }
+
 
 JObject* InitProcess() {
   Module* module = GetBuiltinModule(MODULE_PROCESS);

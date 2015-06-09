@@ -16,6 +16,8 @@
 #include "iotjs_def.h"
 #include "iotjs_binding.h"
 
+#include <string.h>
+
 
 namespace iotjs {
 
@@ -185,6 +187,22 @@ JObject JObject::TypeError(const char* message) {
 
 JObject JObject::URIError(const char* message) {
   return JObject(jerry_api_create_error(JERRY_API_ERROR_URI, message));
+}
+
+
+JObject JObject::Eval(const char* source, bool direct_mode, bool strict_mode) {
+  size_t source_len = strlen(source);
+  JRawValueType res;
+  jerry_completion_code_t ret = jerry_api_eval(source,
+                                               source_len,
+                                               direct_mode,
+                                               strict_mode,
+                                               &res);
+
+  IOTJS_ASSERT(ret == JERRY_COMPLETION_CODE_OK ||
+               ret == JERRY_COMPLETION_CODE_UNHANDLED_EXCEPTION);
+
+  return JObject(&res);
 }
 
 

@@ -89,6 +89,14 @@ class JObject {
   static JObject TypeError(const char* message = NULL);
   static JObject URIError(const char* message = NULL);
 
+
+  // Evaluate javascript source file.
+  // `souce` shoud be a null-terminated c string.
+  static JObject Eval(const char* source,
+                      bool direct_mode = true,
+                      bool strict_mode = false);
+
+
   // Destoyer for this class.
   // When the wrapper is being destroyed, ref count for correspoding javascript
   // object will be decreased unless `need_unref` was set false.

@@ -21,7 +21,7 @@
 
 namespace iotjs {
 
-void OnNextTick();
+bool OnNextTick();
 
 JObject MakeCallback(JObject& function, JObject& this_, JArgList& args);
 

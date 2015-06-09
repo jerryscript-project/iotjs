@@ -74,7 +74,7 @@
       process._onNextTick = _onNextTick;
 
       function _onNextTick() {
-        // clone nextTickQueue to new array object, and calles function
+        // clone nextTickQueue to new array object, and calls function
         // iterating the cloned array. This is becuase,
         // during processing nextTick
         // a callback could add another next tick callback using
@@ -92,11 +92,12 @@
           var callback = callbacks[i];
           callback();
         }
+
+        return nextTickQueue.length > 0;
       }
 
       function nextTick(callback) {
         nextTickQueue.push(callback);
-
       }
     }
   };

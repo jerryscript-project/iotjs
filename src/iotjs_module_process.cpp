@@ -25,7 +25,6 @@
  #define PLATFORM "linux"
 #endif
 
-
 #ifdef __NUTTX__
  #define PLATFORM "nuttx"
 #endif
@@ -35,7 +34,7 @@ namespace iotjs {
 
 
 // Calls next tick callbacks registered via `process.nextTick()`.
-void OnNextTick() {
+bool OnNextTick() {
   Module* module = GetBuiltinModule(MODULE_PROCESS);
   IOTJS_ASSERT(module != NULL);
 
@@ -43,10 +42,13 @@ void OnNextTick() {
   IOTJS_ASSERT(process != NULL);
   IOTJS_ASSERT(process->IsObject());
 
-  JObject jon_next_tick = process->GetProperty("_onNextTick");
+  JObject jon_next_tick(process->GetProperty("_onNextTick"));
   IOTJS_ASSERT(jon_next_tick.IsFunction());
 
-  jon_next_tick.Call(JObject::Null(), JArgList::Empty());
+  JObject ret(jon_next_tick.Call(JObject::Null(), JArgList::Empty()));
+  IOTJS_ASSERT(ret.IsBoolean());
+
+  return ret.GetBoolean();
 }
 
 

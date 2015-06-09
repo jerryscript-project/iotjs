@@ -103,6 +103,7 @@ class JObject {
   // Returns whether the object is specific type.
   bool IsNull();
   bool IsUndefined();
+  bool IsBoolean();
   bool IsNumber();
   bool IsString();
   bool IsObject();
@@ -119,6 +120,9 @@ class JObject {
   // Sets & gets native data for the javascript object.
   void SetNative(uintptr_t ptr, JFreeHandlerType free_handler);
   uintptr_t GetNative();
+
+  // Returns value for boolean contents of the object.
+  bool GetBoolean();
 
   // Retruns value for 32bit integer contents of number object.
   int32_t GetInt32();

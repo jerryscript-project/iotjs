@@ -35,10 +35,16 @@ namespace iotjs {
 #define JVAL_IS_FUNCTION(val_p) \
     (JVAL_IS_OBJECT(val_p) && jerry_api_is_function((val_p)->v_object))
 
+#define JVAL_IS_BOOLEAN(val_p) \
+    ((val_p)->type == JERRY_API_DATA_TYPE_BOOLEAN)
+
 #define JVAL_IS_NUMBER(val_p) \
     (((val_p)->type == JERRY_API_DATA_TYPE_FLOAT32) || \
      ((val_p)->type == JERRY_API_DATA_TYPE_FLOAT64) || \
      ((val_p)->type == JERRY_API_DATA_TYPE_UINT32))
+
+#define JVAL_TO_BOOLEAN(val_p) \
+    (val_p)->v_bool
 
 #define JVAL_TO_INT32(val_p) \
     ((val_p)->type == JERRY_API_DATA_TYPE_FLOAT32 ? \
@@ -241,6 +247,11 @@ bool JObject::IsUndefined() {
 }
 
 
+bool JObject::IsBoolean() {
+  return JVAL_IS_BOOLEAN(&_obj_val);
+}
+
+
 bool JObject::IsNumber() {
   return JVAL_IS_NUMBER(&_obj_val);
 }
@@ -304,6 +315,12 @@ JObject JObject::Call(JObject& this_, JArgList& arg) {
   }
 
   return JObject(&res);
+}
+
+
+bool JObject::GetBoolean() {
+  IOTJS_ASSERT(IsBoolean());
+  return JVAL_TO_BOOLEAN(&_obj_val);
 }
 
 

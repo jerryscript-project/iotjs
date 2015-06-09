@@ -65,6 +65,7 @@ static void CleanupModules() {
   CleanupModuleList();
 }
 
+
 static bool InitIoTjs(JObject* process) {
 
   JRawValueType retval;
@@ -78,6 +79,7 @@ static bool InitIoTjs(JObject* process) {
 
   return true;
 }
+
 
 static bool StartIoTjs(JObject* process) {
 
@@ -97,8 +99,8 @@ static bool StartIoTjs(JObject* process) {
   bool more;
   do {
     more = uv_run(env.loop(), UV_RUN_ONCE);
+    more |= OnNextTick();
     if (more == false) {
-      OnNextTick();
       more = uv_loop_alive(env.loop());
     }
   } while (more);

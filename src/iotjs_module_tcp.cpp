@@ -183,20 +183,14 @@ static void AfterConnect(uv_connect_t* req, int status) {
 
   JObject jsocket = tcp_wrap->jholder();
 
+  // Take callback function object.
+  //  function afterConnect(status)
+  JObject jcallback = req_wrap->jcallback();
+  IOTJS_ASSERT(jcallback.IsFunction());
+
   // Only parameter is status code.
   JArgList args(1);
   args.Add(JVal::Int(status));
-
-
-  // `onconnection` internal callback.
-  JObject jonconnect = jsocket.GetProperty("_onconnect");
-  IOTJS_ASSERT(jonconnect.IsFunction());
-
-  MakeCallback(jonconnect, jsocket, args);
-
-
-  // Take callback function object.
-  JObject jcallback = req_wrap->jcallback();
 
   // Make callback.
   MakeCallback(jcallback, jsocket, args);

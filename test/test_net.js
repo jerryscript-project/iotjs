@@ -38,4 +38,3 @@ socket.end("Hello IoT.js");
 socket.on('data', function(data) {
   console.log(data.toString());
 });
-

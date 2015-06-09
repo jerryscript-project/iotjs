@@ -77,14 +77,13 @@ Socket.prototype.connect = function(port, host, callback) {
     self._handle = createTCP(this);
   }
 
-  var cb = function(status) {
-    if (util.isFunction(callback)) {
-      callback.call(self, status);
-    }
-  };
+  if (util.isFunction(callback)) {
+    self.once('connect', callback);
+  }
 
   state.connecting = true;
-  self._handle.connect(host, port, cb);
+
+  self._handle.connect(host, port, afterConnect);
 
   return self;
 };
@@ -143,27 +142,6 @@ Socket.prototype.destroy = function() {
 };
 
 
-Socket.prototype._onconnect = function(status) {
-  var self = this;
-  var state = self._socketState;
-
-  state.connecting = false;
-
-  if (status == 0) {
-    state.connected = true;
-
-    self._readyToWrite();
-
-    // `readStart` on next tick, after connection event handled.
-    process.nextTick(function() {
-      self._handle.readStart();
-    });
-  } else {
-    emitError(this, new Error('connect failed - status: ' + status));
-  }
-};
-
-
 Socket.prototype._onread = function(nread, isEOF, buffer) {
   var self = this;
   var state = self._socketState;
@@ -200,6 +178,39 @@ function maybeDestroy(socket) {
       !state.writable &&
       !state.readable) {
     socket.destroy();
+  }
+}
+
+
+function onSocketConnect(socket) {
+  var state = socket._socketState;
+
+  state.connecting = false;
+  state.connected = true;
+
+  socket._readyToWrite();
+
+  // `readStart` on next tick, after connection event handled.
+  process.nextTick(function() {
+    socket._handle.readStart();
+  });
+}
+
+
+// After socket connection.
+function afterConnect(status) {
+  var self = this;
+  var state = self._socketState;
+
+  state.connecting = false;
+
+  if (status == 0) {
+    onSocketConnect(self);
+
+    // emit 'connect' event
+    self.emit('connect');
+  } else {
+    emitError(self, new Error('connect failed - status: ' + status));
   }
 }
 
@@ -345,9 +356,8 @@ Server.prototype._onconnection = function(status, clientHandle) {
     handle: clientHandle,
   });
 
-
   socket.server = this;
-  socket._onconnect(0);
+  onSocketConnect(socket);
 
   this.emit('connection', socket);
 };

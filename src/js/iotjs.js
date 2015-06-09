@@ -81,16 +81,11 @@
         // `process.nextTick()`, if we calls back iterating original
         // `nextTickQueue` that could turn into infinify loop.
 
-        // FIXME: var callbacks = nextTickQueue.slice(0);
-        var callbacks = [];
-        for (var i = 0; i < nextTickQueue.length; ++i) {
-          callbacks.push(nextTickQueue[i]);
-        }
+        var callbacks = nextTickQueue.slice(0);
         nextTickQueue = [];
 
         for (var i = 0; i < callbacks.length; ++i) {
-          var callback = callbacks[i];
-          callback();
+          callbacks[i]();
         }
 
         return nextTickQueue.length > 0;

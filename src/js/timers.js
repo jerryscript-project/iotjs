@@ -67,12 +67,7 @@ Timeout.prototype.close = function() {
   // remove 'this' from list
   var idx = timers_list.indexOf(this);
   if (idx > -1) {
-    // Todo: use splice when available
-    var j, leng = timers_list.length;
-    for (j = idx; j < leng; j++) {
-      timers_list[j] = timers_list[j+1];
-    }
-    timers_list.pop();
+    timers_list.splice(idx,1);
   }
 };
 

@@ -1,8 +1,5 @@
 
-![alt tag](https://github.com/Samsung/iotjs/blob/wikiattach/iotjs_160.png)
-- - -
-
-You can find project details in wiki.
+You can find project details in [wiki](http://github.com/Samsung/iotjs/wiki).
 
 ## How To build
 

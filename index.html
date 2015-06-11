@@ -20,7 +20,7 @@
 		}
     	body {
 		  padding-top: 50px;
-		  margin-bottom: 100px;
+		  margin-bottom: 50px;
 		}
 		.footer {
 		  position: absolute;
@@ -28,21 +28,33 @@
 		  width: 100%;
 		  height: 40px;
 		  background-color: #f5f5f5;
-
 		}
+		.project_title h1{
+ 		  font-size: 64px; text-align: center;
+ 		  font-weight: bold;
+ 		}
     	.project_title {
-		  padding: 40px 15px;
+		  padding: 40px 20px;
  		  text-align: center;
+ 		  border-radius: 6px;
  		}
  		.lead {
  			color:#245580;
  		}
- 		.project_overview{
- 			font-family:"Times New Roman", Times, serif;
+ 		.project_overview {
+ 			font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
+ 			font-size: 18px;
+ 			padding: 40px; padding-bottom: 20px;
+ 			background-color: #f5f5f5;
+ 		}
+ 		.learn_more {
+ 			font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
+ 			font-size: 18px;
+ 			padding: 40px; padding-bottom: 20px;
  		}
  		.container .copyright_and_license_notice {
- 			margin: 10px 0;
- 			font-size:12px; text-align: center;
+ 			margin: 8px 0;
+ 			font-size:14px; text-align: center;
  			color:#3C3C3C;
  		}
     </style>
@@ -64,8 +76,8 @@
         <div id="navbar" class="collapse navbar-collapse">
           <ul class="nav navbar-nav">
             <li class="active"><a href="#">Home</a></li>
-            <li><a href="http://github.com/Samsung/iotjs/wiki">View on Github</a></li>
-            <li><a href="#ipm">ipm</a></li>
+            <li><a href="http://github.com/Samsung/iotjs">View on Github</a></li>
+            <li><a href="#jpm">jpm</a></li>
           </ul>
         </div><!--/.nav-collapse -->
       </div>
@@ -80,12 +92,12 @@
         <p>Internet of Things technologies connect "Things" and the things are getting smarter based on the connection. However there are still some barriers that each devices require its own application and/or services. </p>
         <p>The IoT.js aims to provide inter-operable service platform in the world of IoT based on web. The target of IoT.js is from very constrainted devices such as only few kilobytes of RAM available device. Thus it will supports very wide range of "Things".</p>
 		<p>IoT.js is just taking the first steps and would like to get together with developers who has interests on our goal.</p>
-		<hr>
-		<p>To learn more, please visit the <a href="http://github.com/Samsung/iotjs">project on Github.</a></p>
+      </div>
+      <div class="learn_more">
+	    <p>To learn more, please visit the <a href="http://github.com/Samsung/iotjs">project on Github.</a></p>
 		<p>If you want to try IoT.js, take a look at our documentation. It includes <a href="https://github.com/Samsung/iotjs/wiki/Getting-Started">Getting Started</a> guides and the <a href="https://github.com/Samsung/iotjs/wiki/IoT.js-API-Reference">IoT.js APIs reference</a>. </p>
 		<p>If you want to jump into the project, <a href="https://github.com/Samsung/iotjs/wiki/Getting-involved">Getting Involved</a> guides will help you.</p>
       </div>
-
     </div><!-- /.container -->
     
     <footer class="footer">
@@ -97,6 +109,6 @@
     <!-- Bootstrap core JavaScript -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
     <script src="bootstrap.min.js"></script>
-  
+
   </body>
 </html>

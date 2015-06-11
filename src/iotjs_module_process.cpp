@@ -33,8 +33,26 @@
 namespace iotjs {
 
 
+void ProcessExit(int code) {
+  Module* module = GetBuiltinModule(MODULE_PROCESS);
+  IOTJS_ASSERT(module != NULL);
+
+  JObject* process = module->module;
+  IOTJS_ASSERT(process != NULL);
+  IOTJS_ASSERT(process->IsObject());
+
+  JObject jexit(process->GetProperty("exit"));
+  IOTJS_ASSERT(jexit.IsFunction());
+
+  JArgList args(1);
+  args.Add(JVal::Double(code));
+
+  jexit.Call(JObject::Null(), args);
+}
+
+
 // Calls next tick callbacks registered via `process.nextTick()`.
-bool OnNextTick() {
+bool ProcessNextTick() {
   Module* module = GetBuiltinModule(MODULE_PROCESS);
   IOTJS_ASSERT(module != NULL);
 
@@ -60,7 +78,7 @@ JObject MakeCallback(JObject& function, JObject& this_, JArgList& args) {
   JObject res = function.Call(this_, args);
 
   // Calls the next tick callbacks.
-  OnNextTick();
+  ProcessNextTick();
 
   // Return value.
   return res;

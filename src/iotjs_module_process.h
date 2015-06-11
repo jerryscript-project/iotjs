@@ -21,7 +21,9 @@
 
 namespace iotjs {
 
-bool OnNextTick();
+void ProcessExit(int code);
+
+bool ProcessNextTick();
 
 JObject MakeCallback(JObject& function, JObject& this_, JArgList& args);
 

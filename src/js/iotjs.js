@@ -23,7 +23,7 @@
     init_global();
     init_timers();
 
-    init_process();
+    initProcess();
 
     var module = Native.require('module');
     module.runMain();
@@ -63,39 +63,66 @@
   }
 
 
-  function init_process() {
+  function initProcess() {
+    initProcessEvents();
+    initProcessNextTick();
+    initProcessExit();
+  }
 
-    initNextTick();
 
-    function initNextTick() {
-      var nextTickQueue = [];
+  function initProcessEvents() {
+    var EventEmitter = Native.require('events');
 
-      process.nextTick = nextTick;
-      process._onNextTick = _onNextTick;
+    EventEmitter.call(process);
 
-      function _onNextTick() {
-        // clone nextTickQueue to new array object, and calls function
-        // iterating the cloned array. This is becuase,
-        // during processing nextTick
-        // a callback could add another next tick callback using
-        // `process.nextTick()`, if we calls back iterating original
-        // `nextTickQueue` that could turn into infinify loop.
-
-        var callbacks = nextTickQueue.slice(0);
-        nextTickQueue = [];
-
-        for (var i = 0; i < callbacks.length; ++i) {
-          callbacks[i]();
-        }
-
-        return nextTickQueue.length > 0;
-      }
-
-      function nextTick(callback) {
-        nextTickQueue.push(callback);
+    var keys = Object.keys(EventEmitter.prototype);
+    for (var i = 0; i < keys.length; ++i) {
+      var key = keys[i];
+      if (!process[key]) {
+        process[key] = EventEmitter.prototype[key];
       }
     }
-  };
+  }
+
+
+  function initProcessNextTick() {
+    var nextTickQueue = [];
+
+    process.nextTick = nextTick;
+    process._onNextTick = _onNextTick;
+
+    function _onNextTick() {
+      // clone nextTickQueue to new array object, and calls function
+      // iterating the cloned array. This is becuase,
+      // during processing nextTick
+      // a callback could add another next tick callback using
+      // `process.nextTick()`, if we calls back iterating original
+      // `nextTickQueue` that could turn into infinify loop.
+
+      var callbacks = nextTickQueue.slice(0);
+      nextTickQueue = [];
+
+      for (var i = 0; i < callbacks.length; ++i) {
+        callbacks[i]();
+      }
+
+      return nextTickQueue.length > 0;
+    }
+
+    function nextTick(callback) {
+      nextTickQueue.push(callback);
+    }
+  }
+
+
+  function initProcessExit() {
+    process.exit = function(code) {
+      if (code || code == 0) {
+        process.exitCode = code;
+      }
+      process.emit('exit', process.exitCode || 0);
+    }
+  }
 
 
   function Native(id) {

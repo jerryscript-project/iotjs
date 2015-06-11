@@ -28,20 +28,18 @@ function Duplex(options) {
   Writable.call(this, options);
 }
 
-
 // Duplex inherits Redable.
 util.inherits(Duplex, Readable);
-
 
 
 // Duplex should also inherits Writable but there are no way for inheriting
 // from mutiple parents. Copy properties from Writable.
 var keys = Object.keys(Writable.prototype);
 for (var i = 0; i < keys.length; ++i) {
-    var key = keys[i];
-    if (!Duplex.prototype[key]) {
-        Duplex.prototype[key] = Writable.prototype[key];
-    }
+  var key = keys[i];
+  if (!Duplex.prototype[key]) {
+    Duplex.prototype[key] = Writable.prototype[key];
+  }
 }
 
 

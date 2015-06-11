@@ -99,11 +99,13 @@ static bool StartIoTjs(JObject* process) {
   bool more;
   do {
     more = uv_run(env.loop(), UV_RUN_ONCE);
-    more |= OnNextTick();
+    more |= ProcessNextTick();
     if (more == false) {
       more = uv_loop_alive(env.loop());
     }
   } while (more);
+
+  ProcessExit(0);
 
   return true;
 }

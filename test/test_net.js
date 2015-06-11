@@ -14,6 +14,7 @@
  */
 
 var net = require('net');
+var assert = require('assert');
 
 
 var server = net.createServer();
@@ -31,10 +32,17 @@ server.on('connection', function(socket) {
 
 
 var socket = new net.Socket();
+var msg = "";
 
 socket.connect(1234, "127.0.0.1");
 socket.end("Hello IoT.js");
 
 socket.on('data', function(data) {
-  console.log(data.toString());
+  msg += data;
+});
+
+
+process.on('exit', function(code) {
+  assert.equal(code, 0);
+  assert.equal(msg, "Hello IoT.js");
 });

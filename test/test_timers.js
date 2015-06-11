@@ -13,19 +13,25 @@
  * limitations under the License.
  */
 
-var ti_count = 1;
+var assert = require('assert');
+
+
+var timerBCnt = 0;
+var timerSequence = '';
 
 var timerA = setTimeout(function() {
-  console.log("Timer A fired");
+  timerSequence += 'A';
 }, 1000);
 
 var timerB = setInterval(function() {
-  console.log("Timer B fired " + ti_count);
-  ti_count++;
-  if (ti_count > 5) {
+  timerSequence += 'B';
+  timerBCnt++;
+  if (timerBCnt > 5) {
     clearInterval(timerB);
   }
 }, 300);
 
-console.log("Timer A fire after 1,000 msec...");
-console.log("Timer B fire every 300 msec 5 times...");
+process.on('exit', function(code) {
+  assert.equal(code, 0);
+  assert.equal(timerSequence, "BABBBBB");
+});

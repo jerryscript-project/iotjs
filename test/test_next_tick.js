@@ -13,19 +13,29 @@
  * limitations under the License.
  */
 
+var assert = require('assert');
+
+
+var tickTrace = "";
 
 process.nextTick(function() {
-  console.log("tick1");
+  tickTrace += "1";
   process.nextTick(function() {
-    console.log("tick2");
+    tickTrace += "2";
     process.nextTick(function() {
-      console.log("tick3");
+      tickTrace += "3";
       process.nextTick(function() {
-        console.log("tick4");
+        tickTrace += "4";
         process.nextTick(function() {
-          console.log("tick5");
+          tickTrace += "5";
         });
       });
     });
   });
+});
+
+
+process.on('exit', function(code) {
+  assert.equal(code, 0);
+  assert.equal(tickTrace, "12345");
 });

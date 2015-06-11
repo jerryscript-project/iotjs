@@ -14,57 +14,44 @@
  */
 
 var fs = require('fs');
+var assert = require('assert');
 
 
-var onRead = function(err, bytesRead, buffer) {
-  if (err) {
-    console.log(err.message);
-  } else {
-    console.log(buffer.toString());
-  }
-};
+var fileName = "greeting.txt";
+var expectedContents = "Hello IoT.js!!";
+var flags = "r";
+var mode = 438;
 
-
-var onOpen = function(err, fd) {
-  if (err) {
-    console.log(err.message);
-  } else {
-    buffer = new Buffer(64);
-    fs.read(fd, buffer, 0, 64, 0, onRead);
-  }
-};
-
-
-fs.open("greeting.txt", "r", 438, onOpen);
-
-
+// test sync open & read
 try {
-  var fd = fs.openSync("greeting.txt", "r", 438);
+  var fd = fs.openSync(fileName, flags, mode);
   var buffer = new Buffer(64);
-  fs.read(fd, buffer, 0, 64, 0, onRead);
-  console.log("openSync->readAsync succeed");
-}
-catch(err) {
-   console.log(err.message);
+  fs.read(fd, buffer, 0, buffer.length, 0);
+  assert.equal(buffer.toString(), expectedContents);
+} catch (e) {
+  assert.fail('', '', e.message);
 }
 
-try {
-  var fd = fs.openSync("greeting.txt", "r", 438);
-  var buffer = new Buffer(64);
-  var str = fs.read(fd, buffer, 0, 64, 0);
-  console.log("openSync->readSync succeed");
-}
-catch(err) {
-   console.log(err.message);
-}
+// test async open & read
+fs.open(fileName, flags, mode, function(err, fd) {
+  if (err) {
+    assert.fail('', '', e.message);
+  } else {
+    var buffer = new Buffer(64);
+    fs.read(fd, buffer, 0, buffer.length, 0, function(err, bytesRead, buffer) {
+      if (err) {
+        assert.fail('', '', e.message);
+      } else {
+        assert.equal(buffer.toString(), expectedContents);
+      }
+    });
+  }
+});
 
 // error test
-try {
-  var fd = fs.openSync("non-greeting.txt", "r", 438);
-  var buffer = new Buffer(64);
-  var str = fs.read(fd, buffer, 0, 64, 0);
-  console.log("openSync->readSync succeed");
-}
-catch(err) {
-   console.log(err.message);
-}
+assert.throws(
+  function() {
+    fs.openSync("non_exist_file", flags, mode);
+  },
+  Error
+);

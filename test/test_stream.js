@@ -15,13 +15,21 @@
 
 
 var ReadableStream = require('stream').ReadableStream;
+var assert = require('assert');
+
 
 var readable = new ReadableStream();
+var data = "";
 
 readable.on('readable', function() {
-  var data = readable.read();
-  console.log('read: ' + data.toString());
-})
+  data += readable.read().toString();
+});
 
 readable.push('abcde');
 readable.push('12345');
+
+
+process.on('exit', function(code) {
+  assert.equal(code, 0);
+  assert.equal(data, "abcde12345");
+});

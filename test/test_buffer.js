@@ -13,18 +13,21 @@
  * limitations under the License.
  */
 
-var buff1 = new Buffer("test buffer");
+var assert = require('assert');
 
-console.log(buff1.toString());
-
+var buff1 = new Buffer("test");
+assert.equal(buff1.toString(), "test");
+assert.equal(buff1.length, 4);
 
 var buff2 = new Buffer(10);
 buff2.write("abcde");
-console.log(buff2.toString());
+assert.equal(buff2.toString(), "abcde");
+assert.equal(buff2.length ,10);
 
 buff2.write("fgh", 5);
-console.log(buff2.toString());
-
+assert.equal(buff2.toString(), "abcdefgh");
+assert.equal(buff2.length ,10);
 
 var buff3 = Buffer.concat([buff1, buff2]);
-console.log(buff3.toString());
+assert.equal(buff3.toString(), "testabcdefgh");
+assert.equal(buff3.length ,14);

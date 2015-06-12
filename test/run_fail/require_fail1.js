@@ -13,8 +13,5 @@
  * limitations under the License.
  */
 
-/*
-  @SKIP
-*/
 
 require('no exist file path');

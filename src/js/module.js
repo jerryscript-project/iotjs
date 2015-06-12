@@ -158,6 +158,10 @@ Module.load = function(id, parent, isMain) {
     module.SetModuleDirs(modPath);
     module.compile();
   }
+  else{
+    var err = new Error('No module found');
+    throw err;
+  }
 
   return module.exports;
 };

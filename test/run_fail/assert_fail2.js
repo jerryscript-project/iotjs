@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-var x = require("buffer");
-exports.add = function(a,b){
-  return a+b;
-};
+
+var assert = require('assert');
+
+assert.equal(1, 2);

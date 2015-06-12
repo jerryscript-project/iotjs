@@ -21,6 +21,12 @@ import sys
 from os import path
 from check_tidy import check_tidy
 
+TERM_RED = "\033[1;31m"
+TERM_YELLOW = "\033[1;33m"
+TERM_GREEN = "\033[1;32m"
+TERM_BLUE = "\033[1;34m"
+TERM_EMPTY = "\033[0m"
+
 config_echo = True
 
 
@@ -62,6 +68,9 @@ SRC_ROOT = join_path([ROOT, 'src'])
 # Root directory for the include files.
 INT_ROOT = join_path([ROOT, 'inc'])
 
+# checktest
+CHECKTEST = join_path([SCRIPT_PATH, 'check_test.py'])
+
 
 def mkdir(path):
     if not check_path(path):
@@ -81,14 +90,22 @@ def cmdline(cmd, args = []):
 
 def run_cmd(cmd, args = []):
     if config_echo:
-        print cmdline(cmd, args)
+        print
+        print "%s%s%s" % (TERM_BLUE, cmdline(cmd, args), TERM_EMPTY)
+        print
     return subprocess.call([cmd] + args)
+
+
+def print_error(msg):
+    print
+    print "%s%s%s" % (TERM_RED, msg, TERM_EMPTY)
+    print
 
 
 def check_run_cmd(cmd, args = []):
     retcode = run_cmd(cmd, args)
     if retcode != 0:
-        print "[Failed - %d] %s" % (retcode, cmdline(cmd, args))
+        print_error("[Failed - %d] %s" % (retcode, cmdline(cmd, args)))
         exit(1)
 
 
@@ -118,9 +135,14 @@ options = {
     'init-submodule': True,
     'tidy': True,
     'jerry-memstats': False,
+    'checktest': True,
 }
 
-boolean_opts = ['buildlib', 'init-submodule', 'tidy', 'jerry-memstats']
+boolean_opts = ['buildlib',
+                'init-submodule',
+                'tidy',
+                'jerry-memstats',
+                'checktest']
 
 def opt_build_type():
     return options['buildtype']
@@ -163,6 +185,9 @@ def opt_tidy():
 
 def opt_jerry_memstats():
     return options['jerry-memstats']
+
+def opt_checktest():
+    return options['checktest']
 
 def parse_boolean_opt(name, arg):
     if arg.endswith(name):
@@ -451,6 +476,11 @@ def build_iotjs():
     return True
 
 
+def run_checktest():
+    # iot.js executable
+    iotjs = join_path([opt_build_root(), 'iotjs', 'iotjs'])
+    return run_cmd(CHECKTEST, [iotjs]) == 0
+
 
 # parse arguments.
 parse_args()
@@ -463,7 +493,7 @@ print
 # tidy check.
 if opt_tidy():
     if not check_tidy(ROOT):
-        print 'Failed check_tidy'
+        print_error("Failed check_tidy")
         sys.exit(1)
 
 # init submodules.
@@ -475,14 +505,27 @@ mkdir(opt_build_root())
 
 # build libuv.
 if not build_libuv():
+    print_error("Failed build_libuv")
     sys.exit(1)
 
 # build jerry lib.
 if not build_libjerry():
+    print_error("Failed build_libjerry")
     sys.exit(1)
 
 # build iot.js
 if not build_iotjs():
+    print_error("Failed build_iotjs")
     sys.exit(1)
+
+if opt_checktest():
+    if not run_checktest():
+        print_error("Failed run_checktest")
+        sys.exit(1)
+
+
+print
+print "%sIoT.js Build Succeeded!!%s" % (TERM_GREEN, TERM_EMPTY)
+print
 
 sys.exit(0)

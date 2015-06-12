@@ -20,6 +20,13 @@ import fileinput
 from check_license import check_license
 
 
+TERM_RED = "\033[1;31m"
+TERM_YELLOW = "\033[1;33m"
+TERM_GREEN = "\033[1;32m"
+TERM_BLUE = "\033[1;34m"
+TERM_EMPTY = "\033[0m"
+
+
 column_limit = 80
 
 count_err = 0
@@ -93,10 +100,12 @@ def check_tidy(src_dir):
                 license_checked = True
 
     print
-    print("* total line of code: %d" % count_lines)
-    print("* total non-black line of code: %d"
-          % (count_lines - count_empty_lines))
-    print("* total errors: %d" % count_err)
+    print "* total line of code: %d" % count_lines
+    print ("* total non-black line of code: %d"
+           % (count_lines - count_empty_lines))
+    print "%s* total errors: %d%s" % (TERM_RED if count_err > 0 else TERM_GREEN,
+                                      count_err,
+                                      TERM_EMPTY)
     print
 
     return count_err == 0

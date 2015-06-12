@@ -17,7 +17,7 @@ var fs = require('fs');
 var assert = require('assert');
 
 
-var fileName = "greeting.txt";
+var fileName = "../resources/greeting.txt";
 var expectedContents = "Hello IoT.js!!";
 var flags = "r";
 var mode = 438;

@@ -13,4 +13,12 @@
  * limitations under the License.
  */
 
-console.log("Hello IoT.js!!");
+/*
+  @NOTEST
+*/
+
+var x = require("buffer");
+
+exports.add = function(a, b) {
+  return a + b;
+};

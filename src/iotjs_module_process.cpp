@@ -150,7 +150,8 @@ JHANDLER_FUNCTION(ReadSource, handler){
   IOTJS_ASSERT(handler.GetArgLength() == 1);
   IOTJS_ASSERT(handler.GetArg(0)->IsString());
 
-  LocalString code(ReadFile(handler.GetArg(0)->GetCString()));
+  LocalString path(handler.GetArg(0)->GetCString());
+  LocalString code(ReadFile(path));
 
   JObject ret(code);
   handler.Return(ret);

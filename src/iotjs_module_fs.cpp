@@ -30,7 +30,9 @@ class FsReqWrap : public ReqWrap {
       : ReqWrap(jcallback, reinterpret_cast<uv_req_t*>(&_data)) {
   }
 
-  ~FsReqWrap() {}
+  ~FsReqWrap() {
+    uv_fs_req_cleanup(&_data);
+  }
 
   uv_fs_t* data() {
     return &_data;
@@ -98,15 +100,15 @@ static void After(uv_fs_t* req) {
 
 
 #define FS_SYNC(env, syscall, ...) \
-  uv_fs_t fs_req; \
+  FsReqWrap req_wrap(JObject::Null()); \
   int err = uv_fs_ ## syscall(env->loop(), \
-                              &fs_req, \
+                              req_wrap.data(), \
                               __VA_ARGS__, \
                               NULL); \
   if (err < 0) { \
     JObject jerror(CreateUVException(err, #syscall)); \
     handler.Throw(jerror); \
-    return false;          \
+    return false; \
   } \
 
 
@@ -132,7 +134,7 @@ JHANDLER_FUNCTION(Open, handler) {
 
   Environment* env = Environment::GetEnv();
 
-  char* path = handler.GetArg(0)->GetCString();
+  LocalString path(handler.GetArg(0)->GetCString());
   int flags = handler.GetArg(1)->GetInt32();
   int mode = handler.GetArg(2)->GetInt32();
 
@@ -267,17 +269,16 @@ JHANDLER_FUNCTION(Stat, handler) {
 
   Environment* env = Environment::GetEnv();
 
-  char* path = handler.GetArg(0)->GetCString();
+  LocalString path(handler.GetArg(0)->GetCString());
 
   if (argc > 1 && handler.GetArg(1)->IsFunction()) {
     FS_ASYNC(env, stat, handler.GetArg(1), path);
   } else {
     FS_SYNC(env, stat, path);
-    uv_stat_t* s = &(fs_req.statbuf);
+    uv_stat_t* s = &(req_wrap.data()->statbuf);
     JObject ret(MakeStatObject(s));
     handler.Return(ret);
   }
-  JObject::ReleaseCString(path);
 
   return true;
 }

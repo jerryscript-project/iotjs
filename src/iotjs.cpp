@@ -70,17 +70,21 @@ static void CleanupModules() {
 
 
 static bool InitIoTjs(JObject* process) {
+  JResult jmain = JObject::Eval(mainjs, false, false);
+  IOTJS_ASSERT(jmain.IsOk());
 
-  JRawValueType retval;
-  jerry_api_eval(mainjs,mainjs_length,
-                 false, false, &retval);
-  JObject iotjs_fun(&retval, true);
   JArgList args(1);
   args.Add(*process);
-  JObject global(JObject::Global());
-  iotjs_fun.Call(global, args);
 
-  return true;
+  JObject global(JObject::Global());
+  JResult jmain_res = jmain.value().Call(global, args);
+
+  if (jmain_res.IsException()) {
+    UncaughtException(jmain_res.value());
+    return false;
+  } else {
+    return true;
+  }
 }
 
 

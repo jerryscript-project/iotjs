@@ -29,10 +29,17 @@ typedef jerry_api_object_t JRawObjectType;
 typedef jerry_api_value_t JRawValueType;
 
 
+
 class JObject;
+class JResult;
 class JArgList;
 class JHandlerInfo;
 class JLocalScope;
+
+enum JResultType {
+  JRESULT_OK,
+  JRESULT_EXCEPTION
+};
 
 
 /// Wrapper for Javascript objects.
@@ -92,7 +99,7 @@ class JObject {
 
   // Evaluate javascript source file.
   // `souce` shoud be a null-terminated c string.
-  static JObject Eval(const char* source,
+  static JResult Eval(const char* source,
                       bool direct_mode = true,
                       bool strict_mode = false);
 
@@ -150,7 +157,8 @@ class JObject {
   size_t GetCStringLength();
 
   // Calls javascript function.
-  JObject Call(JObject& this_, JArgList& arg);
+  JResult Call(JObject& this_, JArgList& arg);
+  JObject CallOk(JObject& this_, JArgList& arg);
 
   JRawValueType raw_value() { return _obj_val; }
 
@@ -160,6 +168,27 @@ class JObject {
 
   // disable assignment.
   JObject& operator=(const JObject& rhs) = delete;
+};
+
+
+class JResult {
+ public:
+  JResult(const JObject& value, JResultType type);
+  JResult(const JRawValueType* raw_val, JResultType type);
+  JResult(const JResult& other);
+
+  JObject& value();
+  JResultType type() const;
+
+  bool IsOk() const;
+  bool IsException() const;
+
+ private:
+  JObject _value;
+  JResultType _type;
+
+  // disable assignment.
+  JResult& operator=(const JResult& rhs) = delete;
 };
 
 

@@ -251,9 +251,10 @@ JObject MakeStatObject(uv_stat_t* statbuf) {
   args.Add(size);
   args.Add(blocks);
 
-  JObject statobj(createStat.Call(JObject::Null(), args));
+  JResult jstat_res(createStat.Call(JObject::Null(), args));
+  IOTJS_ASSERT(jstat_res.IsOk());
 
-  return statobj;
+  return jstat_res.value();
 }
 
 

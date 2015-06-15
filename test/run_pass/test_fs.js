@@ -28,19 +28,19 @@ try {
   var buffer = new Buffer(64);
   fs.read(fd, buffer, 0, buffer.length, 0);
   assert.equal(buffer.toString(), expectedContents);
-} catch (e) {
-  assert.fail('', '', e.message);
+} catch (err) {
+  assert.fail('', '', err.message);
 }
 
 // test async open & read
 fs.open(fileName, flags, mode, function(err, fd) {
   if (err) {
-    assert.fail('', '', e.message);
+    assert.fail('', '', err.message);
   } else {
     var buffer = new Buffer(64);
     fs.read(fd, buffer, 0, buffer.length, 0, function(err, bytesRead, buffer) {
       if (err) {
-        assert.fail('', '', e.message);
+        assert.fail('', '', err.message);
       } else {
         assert.equal(buffer.toString(), expectedContents);
       }

@@ -273,7 +273,7 @@ static void OnConnection(uv_stream_t* handle, int status) {
     JObject jfunc_create_tcp = jserver.GetProperty("_createTCP");
     IOTJS_ASSERT(jfunc_create_tcp.IsFunction());
 
-    JObject jclient_tcp = jfunc_create_tcp.Call(jserver, JArgList::Empty());
+    JObject jclient_tcp = jfunc_create_tcp.CallOk(jserver, JArgList::Empty());
     IOTJS_ASSERT(jclient_tcp.IsObject());
 
     TcpWrap* tcp_wrap = reinterpret_cast<TcpWrap*>(jclient_tcp.GetNative());

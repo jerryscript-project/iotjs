@@ -13,33 +13,11 @@
  * limitations under the License.
  */
 
-/*
-  @TIMEOUT=10
-*/
 
 var assert = require('assert');
 
-
-var timerACnt = 0;
-var timerBCnt = 0;
-var timerSequence = '';
-
-var timerA = setTimeout(function() {
-  timerSequence += 'A';
-  timerACnt++;
-}, 1000);
-
-var timerB = setInterval(function() {
-  timerSequence += 'B';
-  timerBCnt++;
-  if (timerBCnt > 5) {
-    clearInterval(timerB);
-  }
-}, 300);
-
-process.on('exit', function(code) {
-  assert.equal(code, 0);
-  assert.equal(timerACnt, 1);
-  assert.equal(timerBCnt, 6);
-  assert.equal(timerSequence.length, 7);
+process.on('exit', function() {
+    assert.fail();
 });
+
+process.exit();

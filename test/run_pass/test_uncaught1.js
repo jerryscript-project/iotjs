@@ -14,32 +14,31 @@
  */
 
 /*
-  @TIMEOUT=10
+  @STDOUT=ABABC
 */
 
 var assert = require('assert');
 
 
-var timerACnt = 0;
-var timerBCnt = 0;
-var timerSequence = '';
+var trace = '';
 
-var timerA = setTimeout(function() {
-  timerSequence += 'A';
-  timerACnt++;
-}, 1000);
-
-var timerB = setInterval(function() {
-  timerSequence += 'B';
-  timerBCnt++;
-  if (timerBCnt > 5) {
-    clearInterval(timerB);
-  }
-}, 300);
-
-process.on('exit', function(code) {
-  assert.equal(code, 0);
-  assert.equal(timerACnt, 1);
-  assert.equal(timerBCnt, 6);
-  assert.equal(timerSequence.length, 7);
+process.on('uncaughtException', function (err) {
+  trace += 'A';
 });
+
+process.on('uncaughtException', function (err) {
+  trace += 'B';
+});
+
+process.on('exit', function() {
+  trace += 'C';
+  assert.equal(trace, 'ABABC');
+  console.log(trace);
+});
+
+
+process.nextTick(function() {
+  assert.fail();
+});
+
+assert.fail();

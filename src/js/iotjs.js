@@ -26,6 +26,7 @@
     initProcess();
 
     var module = Native.require('module');
+
     module.runMain();
   };
 
@@ -66,6 +67,7 @@
   function initProcess() {
     initProcessEvents();
     initProcessNextTick();
+    initProcessUncaughtException();
     initProcessExit();
   }
 
@@ -103,7 +105,11 @@
       nextTickQueue = [];
 
       for (var i = 0; i < callbacks.length; ++i) {
-        callbacks[i]();
+        try {
+          callbacks[i]();
+        } catch (e) {
+          process._onUncaughtExcecption(e);
+        }
       }
 
       return nextTickQueue.length > 0;
@@ -115,13 +121,48 @@
   }
 
 
-  function initProcessExit() {
-    process.exit = function(code) {
-      if (code || code == 0) {
-        process.exitCode = code;
+  function initProcessUncaughtException() {
+    process._onUncaughtExcecption = _onUncaughtExcecption;
+    function _onUncaughtExcecption(error) {
+      var event = 'uncaughtException';
+      if (process._events[event] && process._events[event].length > 0) {
+        try {
+          // Emit uncaughtException event.
+          process.emit('uncaughtException', error);
+        } catch (e) {
+          // Even uncaughtException handler thrown, that could not be handled.
+          console.error('uncaughtException handler throws: ' + e);
+          process.exit(1);
+        }
+      } else {
+        // Exit if there are no handler for uncaught exception.
+        console.error('uncaughtException: ' + error);
+        process.exit(1);
       }
-      process.emit('exit', process.exitCode || 0);
     }
+  }
+
+
+  function initProcessExit() {
+    process.exitCode = 0;
+    process._exiting = false;
+
+    process.exit = function(code) {
+      if (!process._exiting) {
+        process._exiting = true;
+        if (code || code == 0) {
+          process.exitCode = code;
+        }
+        try {
+          process.emit('exit', process.exitCode || 0);
+        } catch (e) {
+          process._onUncaughtExcecption(e);
+          process.exitCode = 1;
+        } finally {
+          process.doExit(process.exitCode || 0);
+        }
+      }
+    };
   }
 
 
@@ -180,7 +221,6 @@
   process.JSONParse = function(text) {
       return process.compile("(" + text + ");");
   };
-
 
   start_iotjs();
 

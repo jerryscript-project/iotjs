@@ -33,13 +33,34 @@
 namespace iotjs {
 
 
-void ProcessExit(int code) {
+static JObject* GetProcess() {
   Module* module = GetBuiltinModule(MODULE_PROCESS);
   IOTJS_ASSERT(module != NULL);
 
   JObject* process = module->module;
   IOTJS_ASSERT(process != NULL);
   IOTJS_ASSERT(process->IsObject());
+
+  return process;
+}
+
+
+void UncaughtException(JObject& jexception) {
+  JObject* process = GetProcess();
+
+  JObject jonuncaughtexception(process->GetProperty("_onUncaughtExcecption"));
+  IOTJS_ASSERT(jonuncaughtexception.IsFunction());
+
+  JArgList args(1);
+  args.Add(jexception);
+
+  JResult jres = jonuncaughtexception.Call(*process, args);
+  IOTJS_ASSERT(jres.IsOk());
+}
+
+
+void ProcessExit(int code) {
+  JObject* process = GetProcess();
 
   JObject jexit(process->GetProperty("exit"));
   IOTJS_ASSERT(jexit.IsFunction());
@@ -47,26 +68,25 @@ void ProcessExit(int code) {
   JArgList args(1);
   args.Add(JVal::Double(code));
 
-  jexit.Call(JObject::Null(), args);
+  JResult jres = jexit.Call(JObject::Null(), args);
+  if (!jres.IsOk()) {
+    exit(2);
+  }
 }
 
 
 // Calls next tick callbacks registered via `process.nextTick()`.
 bool ProcessNextTick() {
-  Module* module = GetBuiltinModule(MODULE_PROCESS);
-  IOTJS_ASSERT(module != NULL);
-
-  JObject* process = module->module;
-  IOTJS_ASSERT(process != NULL);
-  IOTJS_ASSERT(process->IsObject());
+  JObject* process = GetProcess();
 
   JObject jon_next_tick(process->GetProperty("_onNextTick"));
   IOTJS_ASSERT(jon_next_tick.IsFunction());
 
-  JObject ret(jon_next_tick.Call(JObject::Null(), JArgList::Empty()));
-  IOTJS_ASSERT(ret.IsBoolean());
+  JResult jres = jon_next_tick.Call(JObject::Null(), JArgList::Empty());
+  IOTJS_ASSERT(jres.IsOk());
+  IOTJS_ASSERT(jres.value().IsBoolean());
 
-  return ret.GetBoolean();
+  return jres.value().GetBoolean();
 }
 
 
@@ -75,13 +95,16 @@ bool ProcessNextTick() {
 // will be called after the callback function `function` returns.
 JObject MakeCallback(JObject& function, JObject& this_, JArgList& args) {
   // Calls back the function.
-  JObject res = function.Call(this_, args);
+  JResult jres = function.Call(this_, args);
+  if (jres.IsException()) {
+    UncaughtException(jres.value());
+  }
 
   // Calls the next tick callbacks.
   ProcessNextTick();
 
   // Return value.
-  return res;
+  return jres.value();
 }
 
 
@@ -112,11 +135,15 @@ JHANDLER_FUNCTION(Compile, handler){
 
   LocalString code(handler.GetArg(0)->GetCString());
 
-  JObject eval = JObject::Eval(code);
+  JResult jres(JObject::Eval(code));
 
-  handler.Return(eval);
+  if (jres.IsOk()) {
+    handler.Return(jres.value());
+  } else {
+    handler.Throw(jres.value());
+  }
 
-  return true;
+  return !handler.HasThrown();
 }
 
 
@@ -138,11 +165,15 @@ JHANDLER_FUNCTION(CompileNativePtr, handler){
   strcat(code,source);
   strcat(code,wrapper[1]);
 
-  JObject eval = JObject::Eval(code);
+  JResult jres(JObject::Eval(code));
 
-  handler.Return(eval);
+  if (jres.IsOk()) {
+    handler.Return(jres.value());
+  } else {
+    handler.Throw(jres.value());
+  }
 
-  return true;
+  return !handler.HasThrown();
 }
 
 
@@ -173,6 +204,16 @@ JHANDLER_FUNCTION(Cwd, handler){
   handler.Return(ret);
 
   return true;
+}
+
+
+JHANDLER_FUNCTION(DoExit, handler) {
+  IOTJS_ASSERT(handler.GetArgLength() == 1);
+  IOTJS_ASSERT(handler.GetArg(0)->IsNumber());
+
+  int exit_code = handler.GetArg(0)->GetInt32();
+
+  exit(exit_code);
 }
 
 
@@ -209,6 +250,7 @@ JObject* InitProcess() {
     process->SetMethod("compileNativePtr", CompileNativePtr);
     process->SetMethod("readSource", ReadSource);
     process->SetMethod("cwd", Cwd);
+    process->SetMethod("doExit", DoExit);
     SetProcessEnv(process);
 
     // process.native_sources

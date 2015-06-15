@@ -73,7 +73,7 @@ def is_javascript(name):
 
 def read_file_contents(filepath):
     f = open(filepath, 'r')
-    return f.read().encode()
+    return f.read().encode().decode().strip()
 
 
 def get_test_attribute(test):
@@ -81,7 +81,8 @@ def get_test_attribute(test):
       'stdout': '',
       'timeout': TEST_TIMEOUT,
       'skip': False,
-      'notest': False
+      'notest': False,
+      'exitcode': (False, 0)
     }
 
     f = open(test, 'r')
@@ -94,9 +95,12 @@ def get_test_attribute(test):
                 filename = meta_stdout[5:-1]
                 test_attr['stdout'] = read_file_contents(
                         join_path([RESOURCE_DIR, filename]))
-            if meta_stdout.startswith('COMMAND['):
+            elif meta_stdout.startswith('COMMAND['):
                 command = meta_stdout[8:-1].split()
                 test_attr['stdout'] = subprocess.check_output(command)
+                test_attr['stdout'] = test_attr['stdout'].decode().strip()
+            else:
+                test_attr['stdout'] = meta_stdout
 
         if strip.startswith('@TIMEOUT'):
             test_attr['timeout'] = int(strip.split('=')[1])
@@ -106,6 +110,10 @@ def get_test_attribute(test):
 
         if strip == '@NOTEST':
             test_attr['notest'] = True
+
+        if strip.startswith('@EXITCODE'):
+            meta_exitcode = int(strip.split('=')[1])
+            test_attr['exitcode'] = (True, meta_exitcode)
 
     return test_attr
 
@@ -139,7 +147,10 @@ def run_test(arg):
     if test_attr['notest']:
         return (TestResult.Notest, test)
 
-    error = False
+
+    test_output = ''
+    exitcode = 0
+    attr_mismatched = False
     error_msg = ''
 
     # run the test.
@@ -147,27 +158,45 @@ def run_test(arg):
         test_output = subprocess.check_output([iotjs, test],
                                               stderr=subprocess.STDOUT,
                                               timeout=test_attr['timeout'])
-        if test_attr['stdout'] != '' and test_output != test_attr['stdout']:
-            raise Exception('unexpected stdout')
+        test_output = test_output.decode().strip()
     except Exception as e:
-        error = True
+        exitcode = int(e.returncode)
+        test_output = e.output.decode().strip()
         error_msg = str(e)
 
+    # check attributes
+    if test_attr['stdout'] != '' and test_output != test_attr['stdout']:
+        attr_mismatched = True
+        error_msg = 'unexpected stdout'
+
+    if test_attr['exitcode'][0] and test_attr['exitcode'][1] != exitcode:
+        attr_mismatched = True
+        error_msg = ('unexpected exitcode - expected: %d, actuall: %d'
+                   % (test_attr['exitcode'][1], exitcode))
+
+    test_failed = False
+
+    # attribute mismatched
+    if attr_mismatched:
+        test_failed = True
+
     # This test should have passed but failed.
-    if not should_fail and error:
+    if not should_fail and exitcode != 0:
+        test_failed = True
+
+    # This test should have failed but passed.
+    if should_fail and exitcode == 0:
+        test_failed = True
+        if error_msg != '':
+            error_msg = 'NOT FAILED'
+
+    if test_failed:
         print('%s[ %s ] %s - %s%s' % (TERM_RED,
                                       test_type,
                                       os.path.basename(test),
                                       error_msg,
                                       TERM_EMPTY))
-        return (TestResult.Fail, test)
-
-    # This test should have failed but passed.
-    if should_fail and not error:
-        print('%s[ %s ] %s - NOT FAILED%s' % (TERM_RED,
-                                              test_type,
-                                              os.path.basename(test),
-                                              TERM_EMPTY))
+        print(test_output)
         return (TestResult.Fail, test)
 
     print('[ %s ] %s' % (test_type, os.path.basename(test)))

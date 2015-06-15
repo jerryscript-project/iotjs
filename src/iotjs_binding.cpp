@@ -63,9 +63,11 @@ namespace iotjs {
      static_cast<int64_t>((val_p)->v_uint32))
 
 
+
 JRawObjectType* GetGlobal() {
   return jerry_api_get_global();
 }
+
 
 
 JObject::JObject() {
@@ -194,7 +196,7 @@ JObject JObject::URIError(const char* message) {
 }
 
 
-JObject JObject::Eval(const char* source, bool direct_mode, bool strict_mode) {
+JResult JObject::Eval(const char* source, bool direct_mode, bool strict_mode) {
   size_t source_len = strlen(source);
   JRawValueType res;
   jerry_completion_code_t ret = jerry_api_eval(source,
@@ -206,7 +208,11 @@ JObject JObject::Eval(const char* source, bool direct_mode, bool strict_mode) {
   IOTJS_ASSERT(ret == JERRY_COMPLETION_CODE_OK ||
                ret == JERRY_COMPLETION_CODE_UNHANDLED_EXCEPTION);
 
-  return JObject(&res);
+  JResultType type = (ret == JERRY_COMPLETION_CODE_OK)
+                     ? JRESULT_OK
+                     : JRESULT_EXCEPTION;
+
+  return JResult(&res, type);
 }
 
 
@@ -308,7 +314,7 @@ uintptr_t JObject::GetNative() {
 }
 
 
-JObject JObject::Call(JObject& this_, JArgList& arg) {
+JResult JObject::Call(JObject& this_, JArgList& arg) {
   IOTJS_ASSERT(IsFunction());
 
   JRawObjectType* this_obj_p = this_.IsNull() ? NULL
@@ -330,13 +336,21 @@ JObject JObject::Call(JObject& this_, JArgList& arg) {
                                        &res,
                                        val_args,
                                        val_argv);
-  IOTJS_ASSERT(is_ok);
 
   if (val_args) {
     delete [] val_args;
   }
 
-  return JObject(&res);
+  JResultType type = is_ok ? JRESULT_OK : JRESULT_EXCEPTION;
+
+  return JResult(&res, type);
+}
+
+
+JObject JObject::CallOk(JObject& this_, JArgList& arg) {
+  JResult jres = Call(this_, arg);
+  IOTJS_ASSERT(jres.IsOk());
+  return jres.value();
 }
 
 
@@ -380,6 +394,47 @@ size_t JObject::GetCStringLength() {
   IOTJS_ASSERT(IsString());
   return jerry_api_string_to_char_buffer (_obj_val.v_string, NULL, 0);
 }
+
+
+
+JResult::JResult(const JObject& value, JResultType type)
+    : _value(value)
+    , _type(type) {
+}
+
+
+JResult::JResult(const JRawValueType* raw_val, JResultType type)
+    : _value(raw_val)
+    , _type(type) {
+}
+
+
+JResult::JResult(const JResult& other)
+    : _value(other._value)
+    , _type(other._type) {
+}
+
+
+JObject& JResult::value() {
+  return _value;
+}
+
+
+JResultType JResult::type() const {
+  IOTJS_ASSERT(_type == JRESULT_OK || _type == JRESULT_EXCEPTION);
+  return _type;
+}
+
+
+bool JResult::IsOk() const {
+  return type() == JRESULT_OK;
+}
+
+
+bool JResult::IsException() const {
+  return type() == JRESULT_EXCEPTION;
+}
+
 
 
 JRawValueType JVal::Void() {

@@ -164,16 +164,17 @@ JObject CreateBuffer(size_t len) {
   JObject jglobal(JObject::Global());
   IOTJS_ASSERT(jglobal.IsObject());
 
-  JObject jBuffer = jglobal.GetProperty("Buffer");
+  JObject jBuffer(jglobal.GetProperty("Buffer"));
   IOTJS_ASSERT(jBuffer.IsFunction());
 
   JArgList jargs(1);
   jargs.Add(JVal::Int(len));
 
-  JObject jbuffer = jBuffer.Call(JObject::Null(), jargs);
-  IOTJS_ASSERT(jbuffer.IsObject());
+  JResult jres(jBuffer.Call(JObject::Null(), jargs));
+  IOTJS_ASSERT(jres.IsOk());
+  IOTJS_ASSERT(jres.value().IsObject());
 
-  return jbuffer;
+  return jres.value();
 }
 
 

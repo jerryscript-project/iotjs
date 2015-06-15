@@ -84,21 +84,25 @@ JObject::JObject(const JObject& other) {
 
 JObject::JObject(bool v) {
   _obj_val = JVal::Bool(v);
+  _unref_at_close = false;
 }
 
 
 JObject::JObject(int32_t v) {
   _obj_val = JVal::Int(v);
+  _unref_at_close = false;
 }
 
 
 JObject::JObject(float v) {
   _obj_val = JVal::Float(v);
+  _unref_at_close = false;
 }
 
 
 JObject::JObject(double v) {
   _obj_val = JVal::Double(v);
+  _unref_at_close = false;
 }
 
 
@@ -329,7 +333,7 @@ JObject JObject::Call(JObject& this_, JArgList& arg) {
   IOTJS_ASSERT(is_ok);
 
   if (val_args) {
-    delete val_args;
+    delete [] val_args;
   }
 
   return JObject(&res);
@@ -458,7 +462,7 @@ JArgList::~JArgList() {
   for (int i = 0; i < _argc; ++i) {
     delete _argv[i];
   }
-  delete _argv;
+  delete [] _argv;
 }
 
 

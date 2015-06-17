@@ -13,55 +13,45 @@
  * limitations under the License.
  */
 
+
 function isNull(arg) {
   return arg === null;
-};
-exports.isNull = isNull;
+}
 
 
 function isUndefined(arg) {
   return arg === undefined;
-};
-exports.isUndefined = isUndefined;
+}
 
 
 function isNullOrUndefined(arg) {
   return isNull(arg) || isUndefined(arg);
-};
-exports.isNullOrUndefined = isNullOrUndefined;
+}
 
 
 function isNumber(arg) {
   return typeof arg === 'number';
-};
-exports.isNumber = isNumber;
+}
 
 
 function isString(arg) {
   return typeof arg === 'string';
-};
-exports.isString = isString;
+}
 
 
 function isObject(arg) {
   return typeof arg === 'object' && arg != null;
-};
-exports.isObject = isObject;
+}
 
 
 function isFunction(arg) {
   return typeof arg === 'function';
-};
-exports.isFunction = isFunction;
+}
 
 
 function isBuffer(arg) {
   return arg instanceof Buffer;
-};
-exports.isBuffer = isBuffer;
-
-
-exports.isArray = Array.isArray;
+}
 
 
 function inherits(ctor, superCtor) {
@@ -74,4 +64,62 @@ function inherits(ctor, superCtor) {
     }
   });
 };
+
+
+function format(s) {
+  if (!isString(s)) {
+    var arrs = [];
+    for (var i = 0; i < arguments.length; ++i) {
+        arrs.push(formatValue(arguments[i]));
+    }
+    return arrs.join(' ');
+  }
+
+  var i = 1;
+  var args = arguments;
+  var str = String(s).replace(/%[sdj%]/g, function(m) {
+    if (m === '%%') {
+      return '%';
+    }
+    if (i >= args.length) {
+      return m;
+    }
+    switch (m) {
+      case '%s': return String(args[i++]);
+      case '%d': return Number(args[i++]);
+      case '%j': return '[JSON object]';
+      default: return m;
+    }
+  });
+
+  while (i < args.length) {
+      str += ' ' + args[i++].toString();
+  }
+
+  return str;
+}
+
+function formatValue(v) {
+  if (isUndefined(v)) {
+    return 'undefined';
+  } else if (isNull(v)) {
+    return 'null';
+  } else {
+    return v.toString();
+  }
+}
+
+
+exports.isNull = isNull;
+exports.isUndefined = isUndefined;
+exports.isNullOrUndefined = isNullOrUndefined;
+exports.isNumber = isNumber;
+exports.isString = isString;
+exports.isObject = isObject;
+exports.isFunction = isFunction;
+exports.isBuffer = isBuffer;
+exports.isArray = Array.isArray;
+
 exports.inherits = inherits;
+
+exports.format = format;

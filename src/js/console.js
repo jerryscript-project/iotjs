@@ -14,5 +14,25 @@
  */
 
 
-// FIX: issue #133.
-console.log("");
+var util = require('util');
+var consoleBuiltin = process.binding(process.binding.console);
+
+
+function Console() {
+}
+
+
+Console.prototype.log =
+Console.prototype.info = function() {
+  consoleBuiltin.stdout(util.format.apply(this, arguments) + '\n');
+};
+
+
+Console.prototype.warn =
+Console.prototype.error = function() {
+  consoleBuiltin.stderr(util.format.apply(this, arguments) + '\n');
+};
+
+
+module.exports = new Console();
+module.exports.Console = Console;

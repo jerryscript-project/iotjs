@@ -18,3 +18,10 @@
 */
 
 console.log("Hello IoT.js!!");
+console.log(1);
+console.log(2);
+console.log(3);
+console.log(3+5*2);
+console.log([1, 2, 3]);
+console.log(1, 2, 3);
+console.log('a', 1, 'b', 2, 'c', 3);

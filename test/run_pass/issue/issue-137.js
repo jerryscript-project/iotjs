@@ -13,11 +13,8 @@
  * limitations under the License.
  */
 
-/*
-  @SKIP
-*/
 
-// FIXME: issue #137.
+// FIX: issue #137.
 console.log('hello world');
 console.log(1);
 console.log(9 + 10);
@@ -28,8 +25,11 @@ console.log(undefined);
 console.log(0.09);
 console.log(NaN);
 console.log(function () {});
+console.log(function f() { return 0; });
 console.log({});
+console.log({a:1, b:2});
 console.log([]);
+console.log([1,2,3]);
 console.log("%s=%d", "1+10", 1 + 10);
 console.log("%s+%s=%d", 2, 10, 2 + 10);
 console.log("%d+%d=%d", 3, 10, 3 + 10);

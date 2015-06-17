@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+
 (function(process) {
 
   this.global = this;
@@ -36,7 +37,7 @@
     global.global = global;
     global.GLOBAL = global;
     global.root = global;
-    global.console =  process.binding(process.binding.console);
+    global.console = Native.require('console');
     global.Buffer = Native.require('buffer');
   };
 

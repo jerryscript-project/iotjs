@@ -22,25 +22,24 @@
 namespace iotjs {
 
 
-static bool Print(JHandlerInfo& handler, FILE* out_fd) {
-  if (handler.GetArgLength() > 0) {
-    if (handler.GetArg(0)->IsString()) {
-      String str = handler.GetArg(0)->GetString();
-      fprintf(out_fd, "%s\n", str.data());
-      return true;
-    }
-  }
-  return false;
+static void Print(JHandlerInfo& handler, FILE* out_fd) {
+  IOTJS_ASSERT(handler.GetArgLength() == 1);
+  IOTJS_ASSERT(handler.GetArg(0)->IsString());
+
+  String msg = handler.GetArg(0)->GetString();
+  fprintf(out_fd, "%s", msg.data());
 }
 
 
-JHANDLER_FUNCTION(Log, handler) {
-  return Print(handler, stdout);
+JHANDLER_FUNCTION(Stdout, handler) {
+  Print(handler, stdout);
+  return true;
 }
 
 
-JHANDLER_FUNCTION(Error, handler) {
-  return Print(handler, stderr);
+JHANDLER_FUNCTION(Stderr, handler) {
+  Print(handler, stderr);
+  return true;
 }
 
 
@@ -50,10 +49,8 @@ JObject* InitConsole() {
 
   if (console == NULL) {
     console = new JObject();
-    console->SetMethod("log", Log);
-    console->SetMethod("info", Log);
-    console->SetMethod("error", Error);
-    console->SetMethod("warn", Error);
+    console->SetMethod("stdout", Stdout);
+    console->SetMethod("stderr", Stderr);
 
     module->module = console;
   }

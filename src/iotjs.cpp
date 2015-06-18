@@ -17,6 +17,7 @@
 
 #include "iotjs.h"
 #include "iotjs_js.h"
+#include "iotjs_string_ext.h"
 
 #include "jerry.h"
 #include "jerry-api.h"
@@ -35,6 +36,8 @@ static bool InitJerry() {
 #else
   jerry_init(JERRY_FLAG_EMPTY);
 #endif
+
+  InitJerryMagicStringEx();
 
   if (!jerry_parse("", 0)) {
     DLOG("jerry_parse() failed");

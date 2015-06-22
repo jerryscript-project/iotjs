@@ -58,6 +58,10 @@ static void After(uv_fs_t* req) {
   } else {
     jarg.Add(JObject::Null());
     switch (req->fs_type) {
+      case UV_FS_CLOSE:
+      {
+        break;
+      }
       case UV_FS_OPEN:
       case UV_FS_READ:
       {
@@ -112,25 +116,31 @@ static void After(uv_fs_t* req) {
   } \
 
 
+JHANDLER_FUNCTION(Close, handler) {
+  IOTJS_ASSERT(handler.GetThis()->IsObject());
+  IOTJS_ASSERT(handler.GetArgLength() >= 1);
+  IOTJS_ASSERT(handler.GetArg(0)->IsNumber());
+
+  Environment* env = Environment::GetEnv();
+
+  int fd = handler.GetArg(0)->GetInt32();
+
+  if (handler.GetArgLength() > 1 && handler.GetArg(1)->IsFunction()) {
+    FS_ASYNC(env, close, handler.GetArg(1), fd);
+  } else {
+    FS_SYNC(env, close, fd);
+  }
+
+  return !handler.HasThrown();
+}
+
 
 JHANDLER_FUNCTION(Open, handler) {
-  int argc = handler.GetArgLength();
-
-  if (argc < 1) {
-    JHANDLER_THROW_RETURN(handler, TypeError, "path required");
-  } else if (argc < 2) {
-    JHANDLER_THROW_RETURN(handler, TypeError, "flags required");
-  } else if (argc < 3) {
-    JHANDLER_THROW_RETURN(handler, TypeError, "mode required");
-  }
-
-  if (!handler.GetArg(0)->IsString()) {
-    JHANDLER_THROW_RETURN(handler, TypeError, "path must be a string");
-  } else if (!handler.GetArg(1)->IsNumber()) {
-    JHANDLER_THROW_RETURN(handler, TypeError, "flags must be an int");
-  } else if (!handler.GetArg(1)->IsNumber()) {
-    JHANDLER_THROW_RETURN(handler, TypeError, "mode must be an int");
-  }
+  IOTJS_ASSERT(handler.GetThis()->IsObject());
+  IOTJS_ASSERT(handler.GetArgLength() >= 3);
+  IOTJS_ASSERT(handler.GetArg(0)->IsString());
+  IOTJS_ASSERT(handler.GetArg(1)->IsNumber());
+  IOTJS_ASSERT(handler.GetArg(2)->IsNumber());
 
   Environment* env = Environment::GetEnv();
 
@@ -138,12 +148,11 @@ JHANDLER_FUNCTION(Open, handler) {
   int flags = handler.GetArg(1)->GetInt32();
   int mode = handler.GetArg(2)->GetInt32();
 
-  if (argc > 3 && handler.GetArg(3)->IsFunction()) {
+  if (handler.GetArgLength() > 3 && handler.GetArg(3)->IsFunction()) {
     FS_ASYNC(env, open, handler.GetArg(3), path, flags, mode);
   } else {
     FS_SYNC(env, open, path, flags, mode);
-    JObject ret(err);
-    handler.Return(ret);
+    handler.Return(JVal::Double(err));
   }
 
   return !handler.HasThrown();
@@ -291,6 +300,7 @@ JObject* InitFs() {
 
   if (fs == NULL) {
     fs = new JObject();
+    fs->SetMethod("close", Close);
     fs->SetMethod("open", Open);
     fs->SetMethod("read", Read);
     fs->SetMethod("stat", Stat);

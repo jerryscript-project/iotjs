@@ -21,7 +21,6 @@ function EventEmitter() {
   this._events = {};
 };
 
-module.exports = EventEmitter;
 module.exports.EventEmitter = EventEmitter;
 
 

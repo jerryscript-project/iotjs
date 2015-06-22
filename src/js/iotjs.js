@@ -73,7 +73,7 @@
 
 
   function initProcessEvents() {
-    var EventEmitter = Native.require('events');
+    var EventEmitter = Native.require('events').EventEmitter;
 
     EventEmitter.call(process);
 

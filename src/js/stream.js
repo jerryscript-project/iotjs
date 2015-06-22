@@ -14,7 +14,7 @@
  */
 
 
-var EE = require('events');
+var EE = require('events').EventEmitter;
 var util = require('util');
 
 

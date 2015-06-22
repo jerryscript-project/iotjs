@@ -13,6 +13,11 @@
  * limitations under the License.
  */
 
+ /*
+   @STDOUT=Hello IoT.js!!
+ */
+
+
 var fs = require('fs');
 var assert = require('assert');
 
@@ -22,31 +27,35 @@ var expectedContents = "Hello IoT.js!!";
 var flags = "r";
 var mode = 438;
 
+
 // test sync open & read
 try {
   var fd = fs.openSync(fileName, flags, mode);
   var buffer = new Buffer(64);
-  fs.read(fd, buffer, 0, buffer.length, 0);
+  fs.readSync(fd, buffer, 0, buffer.length, 0);
   assert.equal(buffer.toString(), expectedContents);
 } catch (err) {
-  assert.fail('', '', err.message);
+  throw err;
 }
+
 
 // test async open & read
 fs.open(fileName, flags, mode, function(err, fd) {
   if (err) {
-    assert.fail('', '', err.message);
+    throw err;
   } else {
     var buffer = new Buffer(64);
     fs.read(fd, buffer, 0, buffer.length, 0, function(err, bytesRead, buffer) {
       if (err) {
-        assert.fail('', '', err.message);
+        throw err;
       } else {
         assert.equal(buffer.toString(), expectedContents);
+        console.log(buffer.toString());
       }
     });
   }
 });
+
 
 // error test
 assert.throws(

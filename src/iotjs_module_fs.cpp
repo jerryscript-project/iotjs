@@ -160,31 +160,13 @@ JHANDLER_FUNCTION(Open, handler) {
 
 
 JHANDLER_FUNCTION(Read, handler) {
-  int argc = handler.GetArgLength();
-
-  if (argc < 1) {
-    JHANDLER_THROW_RETURN(handler, TypeError, "fd required");
-  } else if (argc < 2) {
-    JHANDLER_THROW_RETURN(handler, TypeError, "buffer required");
-  } else if (argc < 3) {
-    JHANDLER_THROW_RETURN(handler, TypeError, "offset required");
-  } else if (argc < 4) {
-    JHANDLER_THROW_RETURN(handler, TypeError, "length required");
-  } else if (argc < 5) {
-    JHANDLER_THROW_RETURN(handler, TypeError, "position required");
-  }
-
-  if (!handler.GetArg(0)->IsNumber()) {
-    JHANDLER_THROW_RETURN(handler, TypeError, "fd must be an int");
-  } else if (!handler.GetArg(1)->IsObject()) {
-    JHANDLER_THROW_RETURN(handler, TypeError, "buffer must be a Buffer");
-  } else if (!handler.GetArg(2)->IsNumber()) {
-    JHANDLER_THROW_RETURN(handler, TypeError, "offset must be an int");
-  } else if (!handler.GetArg(3)->IsNumber()) {
-    JHANDLER_THROW_RETURN(handler, TypeError, "length must be an int");
-  } else if (!handler.GetArg(4)->IsNumber()) {
-    JHANDLER_THROW_RETURN(handler, TypeError, "position must be an int");
-  }
+  IOTJS_ASSERT(handler.GetThis()->IsObject());
+  IOTJS_ASSERT(handler.GetArgLength() >= 5);
+  IOTJS_ASSERT(handler.GetArg(0)->IsNumber());
+  IOTJS_ASSERT(handler.GetArg(1)->IsObject());
+  IOTJS_ASSERT(handler.GetArg(2)->IsNumber());
+  IOTJS_ASSERT(handler.GetArg(3)->IsNumber());
+  IOTJS_ASSERT(handler.GetArg(4)->IsNumber());
 
   Environment* env = Environment::GetEnv();
 
@@ -207,16 +189,16 @@ JHANDLER_FUNCTION(Read, handler) {
 
   uv_buf_t uvbuf = uv_buf_init(buffer + offset, length);
 
-  if (argc > 5 && handler.GetArg(5)->IsFunction()) {
+  if (handler.GetArgLength() > 5 && handler.GetArg(5)->IsFunction()) {
     FS_ASYNC(env, read, handler.GetArg(5), fd, &uvbuf, 1, position);
   } else {
     FS_SYNC(env, read, fd, &uvbuf, 1, position);
-    JObject ret(err);
-    handler.Return(ret);
+    handler.Return(JVal::Double(err));
   }
 
   return !handler.HasThrown();
 }
+
 
 JObject MakeStatObject(uv_stat_t* statbuf) {
 

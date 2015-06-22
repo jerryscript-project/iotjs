@@ -32,7 +32,7 @@ try {
   var fd = fs.openSync(fileName, 'r');
   fs.closeSync(fd);
 } catch (err) {
-  assert.fail('', '', err.message);
+  throw err;
 }
 
 
@@ -58,11 +58,11 @@ try {
 var fs_async_normal_ok = false;
 fs.open(fileName, 'r', function(err, fd) {
   if (err) {
-    assert.fail('', '', err.message);
+    throw err;
   } else {
     fs.close(fd, function(err) {
       if (err) {
-        assert.fail('', '', err.message);
+        throw err;
       } else {
         fs_async_normal_ok = true;
       }

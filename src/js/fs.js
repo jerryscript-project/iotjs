@@ -93,7 +93,7 @@ fsBuiltin.createStat = function(dev,
 
 
 fs.close = function(fd, callback) {
-  fsBuiltin.close(fd, checkCallback(callback));
+  fsBuiltin.close(fd, checkArgFunction(callback, 'callback'));
 };
 
 
@@ -103,39 +103,43 @@ fs.closeSync = function(fd) {
 
 
 fs.open = function(path, flags, mode, callback) {
-  fsBuiltin.open(checkPath(path),
+  fsBuiltin.open(checkArgString(path, 'path'),
                  convertFlags(flags),
                  convertMode(mode, 438),
-                 checkCallback(arguments[arguments.length - 1]));
+                 checkArgFunction(arguments[arguments.length - 1]), 'callback');
 };
 
 
 fs.openSync = function(path, flags, mode) {
-  return fsBuiltin.open(checkPath(path),
+  return fsBuiltin.open(checkArgString(path, 'path'),
                         convertFlags(flags),
                         convertMode(mode, 438));
 };
 
 
 fs.read = function(fd, buffer, offset, length, position, callback) {
-  if (!util.isBuffer(buffer)) {
-    throw new TypeError('Bad arguments');
-  }
+  callback = checkArgFunction(callback, 'callback');
 
-  var cb_wrap = function(err, bytesRead) {
-    callback && callback(err, bytesRead || 0, buffer);
+  var cb = function(err, bytesRead) {
+    callback(err, bytesRead || 0, buffer);
   };
 
-  fsBuiltin.read(fd, buffer, offset, length, position, cb_wrap);
+  return fsBuiltin.read(checkArgNumber(fd, 'fd'),
+                        checkArgBuffer(buffer, 'buffer'),
+                        checkArgNumber(offset, 'offset'),
+                        checkArgNumber(length, 'length'),
+                        checkArgNumber(position, 'position'),
+                        cb);
 };
 
 
 fs.readSync = function(fd, buffer, offset, length, position) {
-  if (!util.isBuffer(buffer)) {
-    throw new TypeError('Bad arguments');
-  }
-
-  return fsBuiltin.read(fd, buffer, offset, length, position);
+  //return fsBuiltin.read(fd, buffer, offset, length, position);
+  return fsBuiltin.read(checkArgNumber(fd, 'fd'),
+                        checkArgBuffer(buffer, 'buffer'),
+                        checkArgNumber(offset, 'offset'),
+                        checkArgNumber(length, 'length'),
+                        checkArgNumber(position, 'position'));
 };
 
 
@@ -183,21 +187,30 @@ function convertMode(mode, def) {
 }
 
 
-function checkPath(path) {
-  if (!util.isString(path)) {
-    throw new TypeError('Bad arguments: path should be String');
+function checkArgType(value, name, checkFunc) {
+  if (checkFunc(value)) {
+    return value;
   } else {
-    return path;
+    throw new TypeError('Bad arguments: ' + name);
   }
 }
 
 
-function checkCallback(cb) {
-  if (!util.isFunction(cb)) {
-    throw new TypeError('Bad arguments: callback should be Function');
-  } else {
-    return function() {
-      cb.apply(null, arguments);
-    };
-  }
+function checkArgBuffer(value, name) {
+  return checkArgType(value, name, util.isBuffer);
+}
+
+
+function checkArgNumber(value, name) {
+  return checkArgType(value, name, util.isNumber);
+}
+
+
+function checkArgString(value, name) {
+  return checkArgType(value, name, util.isString);
+}
+
+
+function checkArgFunction(value, name) {
+  return checkArgType(value, name, util.isFunction);
 }

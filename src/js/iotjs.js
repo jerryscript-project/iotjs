@@ -200,19 +200,6 @@
   };
 
 
-  Native.wrap = function(script) {
-    var temp1 = Native.wrapper[0] + script;
-    temp1 = temp1 + Native.wrapper[1];
-    return temp1;
-  };
-
-
-  Native.wrapper = [
-    '(function (a, b, c) { function wwwwrap(exports, require, module) {',
-    ' }; wwwwrap(a, b, c); });'
-  ];
-
-
   Native.prototype.compile = function() {
     // process.native_sources has a list of pointers to
     // the source strings defined in 'iotjs_js.h', not
@@ -225,7 +212,7 @@
 
   // temp impl. before JSON.parse is done
   process.JSONParse = function(text) {
-      return process.compile("(" + text + ");");
+    return JSON.parse(text);
   };
 
   start_iotjs();

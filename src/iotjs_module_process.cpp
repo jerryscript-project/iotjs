@@ -142,13 +142,32 @@ JHANDLER_FUNCTION(Binding, handler) {
 }
 
 
+static JResult WrapEval(jschar* source) {
+  static const jschar* wrapper[2] = {
+      JSCT("(function (a, b, c) { function wwwwrap(exports,require, module) {"),
+      JSCT(" }; wwwwrap(a, b, c); });") };
+
+  int len1 = jstrlen(wrapper[0]);
+  int len2 = jstrlen(source);
+  int len3 = jstrlen(wrapper[1]);
+
+  LocalString code(len1 + len2 + len3 + 1);
+
+  jstrcpy(code, wrapper[0]);
+  jstrcat(code + len1, source);
+  jstrcat(code + len1 + len2, wrapper[1]);
+
+  return JObject::Eval(code);
+}
+
+
 JHANDLER_FUNCTION(Compile, handler){
   IOTJS_ASSERT(handler.GetArgLength() == 1);
   IOTJS_ASSERT(handler.GetArg(0)->IsString());
 
-  LocalString code(handler.GetArg(0)->GetByteString());
+  LocalString source(handler.GetArg(0)->GetByteString());
 
-  JResult jres(JObject::Eval(code));
+  JResult jres = WrapEval(source);
 
   if (jres.IsOk()) {
     handler.Return(jres.value());
@@ -166,19 +185,7 @@ JHANDLER_FUNCTION(CompileNativePtr, handler){
 
   jschar* source = (jschar*)(handler.GetArg(0)->GetNative());
 
-  const jschar* wrapper[2] = {
-    JSCT("(function (a, b, c) { function wwwwrap(exports,require, module) {"),
-    JSCT(" }; wwwwrap(a, b, c); });") };
-
-  int len = jstrlen(source) + jstrlen(wrapper[0]) + jstrlen(wrapper[1]);
-
-  LocalString code(len + 1);
-
-  jstrcpy(code, wrapper[0]);
-  jstrcat(code, source);
-  jstrcat(code, wrapper[1]);
-
-  JResult jres(JObject::Eval(code));
+  JResult jres = WrapEval(source);
 
   if (jres.IsOk()) {
     handler.Return(jres.value());

@@ -153,14 +153,13 @@ Module.load = function(id, parent, isMain) {
   var modPath = Module.resolveModPath(module.id, module.parent);
 
 
-  if(modPath) {
+  if (modPath) {
     module.filename = modPath;
     module.SetModuleDirs(modPath);
     module.compile();
   }
-  else{
-    var err = new Error('No module found');
-    throw err;
+  else {
+    throw new Error('No module found');
   }
 
   return module.exports;
@@ -173,7 +172,6 @@ Module.prototype.compile = function() {
   };
 
   var source = process.readSource(self.filename);
-  source = Module.wrap(source);
   var fn = process.compile(source);
   fn.call(self, self.exports, requireForThis, self);
 };

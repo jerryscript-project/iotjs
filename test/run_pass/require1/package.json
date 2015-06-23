@@ -24,7 +24,7 @@
   "scripts": {
     "test-legacy": "node ./test/run.js",
     "test": "tap --timeout 240 test/tap/*.js",
-    "tap": "tap --timeout 240 test/tap/*.js",
+    "tap": "tap --timeout 240 test/tap/*.js"
   },
   "license": "Artistic-2.0"
 }

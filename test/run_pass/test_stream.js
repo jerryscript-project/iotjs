@@ -20,16 +20,25 @@ var assert = require('assert');
 
 var readable = new ReadableStream();
 var data = "";
+var err_msg;
 
 readable.on('readable', function() {
   data += readable.read().toString();
 });
 
+readable.on('error', function(err) {
+  err_msg = err.message;
+});
+
 readable.push('abcde');
 readable.push('12345');
+readable.push(null);
+readable.push('shouldnotapper');
+
 
 
 process.on('exit', function(code) {
   assert.equal(code, 0);
   assert.equal(data, "abcde12345");
+  assert.equal(err_msg, 'stream.push() after EOF');
 });

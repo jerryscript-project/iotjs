@@ -200,10 +200,12 @@ function emitError(stream, er) {
 
 
 function onEof(stream) {
-  if (stream.state.ended) {
+  var state = stream._readableState;
+
+  if (state.ended) {
     return;
   }
-  stream.state.ended = true;
+  state.ended = true;
 };
 
 

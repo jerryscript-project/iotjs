@@ -48,19 +48,12 @@ namespace iotjs {
 #define JVAL_TO_BOOLEAN(val_p) \
     (val_p)->v_bool
 
-#define JVAL_TO_INT32(val_p) \
+#define JVAL_TO_NUMBER(val_p) \
     ((val_p)->type == JERRY_API_DATA_TYPE_FLOAT32 ? \
-       static_cast<int32_t>((val_p)->v_float32) : \
+       static_cast<double>((val_p)->v_float32) : \
      (val_p)->type == JERRY_API_DATA_TYPE_FLOAT64 ? \
-       static_cast<int32_t>((val_p)->v_float64) : \
-     static_cast<int32_t>((val_p)->v_uint32))
-
-#define JVAL_TO_INT64(val_p) \
-    ((val_p)->type == JERRY_API_DATA_TYPE_FLOAT32 ? \
-       static_cast<int64_t>((val_p)->v_float32) : \
-     (val_p)->type == JERRY_API_DATA_TYPE_FLOAT64 ? \
-       static_cast<int64_t>((val_p)->v_float64) : \
-     static_cast<int64_t>((val_p)->v_uint32))
+       static_cast<double>((val_p)->v_float64) : \
+     static_cast<double>((val_p)->v_uint32))
 
 
 
@@ -90,20 +83,14 @@ JObject::JObject(bool v) {
 }
 
 
-JObject::JObject(int32_t v) {
-  _obj_val = JVal::Int(v);
-  _unref_at_close = false;
-}
-
-
-JObject::JObject(float v) {
-  _obj_val = JVal::Float(v);
+JObject::JObject(int v) {
+  _obj_val = JVal::Number(v);
   _unref_at_close = false;
 }
 
 
 JObject::JObject(double v) {
-  _obj_val = JVal::Double(v);
+  _obj_val = JVal::Number(v);
   _unref_at_close = false;
 }
 
@@ -361,14 +348,18 @@ bool JObject::GetBoolean() {
 
 
 int32_t JObject::GetInt32() {
-  IOTJS_ASSERT(IsNumber());
-  return JVAL_TO_INT32(&_obj_val);
+  return static_cast<int32_t>(GetNumber());
 }
 
 
 int64_t JObject::GetInt64() {
+  return static_cast<int64_t>(GetNumber());
+}
+
+
+double JObject::GetNumber() {
   IOTJS_ASSERT(IsNumber());
-  return JVAL_TO_INT64(&_obj_val);
+  return JVAL_TO_NUMBER(&_obj_val);
 }
 
 
@@ -466,23 +457,12 @@ JRawValueType JVal::Bool(bool v) {
 }
 
 
-JRawValueType JVal::Int(int32_t v) {
-  JRawValueType val;
-  val.type = JERRY_API_DATA_TYPE_UINT32;
-  val.v_uint32 = v;
-  return val;
+JRawValueType JVal::Number(int v) {
+  return JVal::Number((double)v);
 }
 
 
-JRawValueType JVal::Float(float v) {
-  JRawValueType val;
-  val.type = JERRY_API_DATA_TYPE_FLOAT32;
-  val.v_float32 = v;
-  return val;
-}
-
-
-JRawValueType JVal::Double(double v) {
+JRawValueType JVal::Number(double v) {
   JRawValueType val;
   val.type = JERRY_API_DATA_TYPE_FLOAT64;
   val.v_float64 = v;

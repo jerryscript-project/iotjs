@@ -168,7 +168,7 @@ JHANDLER_FUNCTION(Bind, handler) {
                       0);
   }
 
-  handler.Return(JVal::Double(err));
+  handler.Return(JVal::Number(err));
 
   return true;
 }
@@ -190,7 +190,7 @@ static void AfterConnect(uv_connect_t* req, int status) {
 
   // Only parameter is status code.
   JArgList args(1);
-  args.Add(JVal::Int(status));
+  args.Add(JVal::Number(status));
 
   // Make callback.
   MakeCallback(jcallback, jsocket, args);
@@ -266,7 +266,7 @@ static void OnConnection(uv_stream_t* handle, int status) {
   // [0] status
   // [1] client tcp object
   JArgList args(2);
-  args.Add(JVal::Double(status));
+  args.Add(JVal::Number(status));
 
   if (status == 0) {
     // Create client socket handle wrapper.
@@ -304,7 +304,7 @@ JHANDLER_FUNCTION(Listen, handler) {
                       backlog,
                       OnConnection);
 
-  handler.Return(JVal::Double(err));
+  handler.Return(JVal::Number(err));
 
   return true;
 }
@@ -324,7 +324,7 @@ void AfterWrite(uv_write_t* req, int status) {
 
   // Only parameter is status code.
   JArgList args(1);
-  args.Add(JVal::Double(status));
+  args.Add(JVal::Number(status));
 
   // Make callback.
   MakeCallback(jcallback, jsocket, args);
@@ -366,7 +366,7 @@ JHANDLER_FUNCTION(Write, handler) {
     delete req_wrap;
   }
 
-  handler.Return(JVal::Double(err));
+  handler.Return(JVal::Number(err));
 
   return true;
 }
@@ -394,7 +394,7 @@ void OnRead(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
   IOTJS_ASSERT(jonread.IsFunction());
 
   JArgList jargs(3);
-  jargs.Add(JVal::Double(nread));
+  jargs.Add(JVal::Number((int)nread));
   jargs.Add(JVal::Bool(false));
 
   if (nread <= 0) {
@@ -433,7 +433,7 @@ JHANDLER_FUNCTION(ReadStart, handler) {
       OnAlloc,
       OnRead);
 
-  handler.Return(JVal::Double(err));
+  handler.Return(JVal::Number(err));
 
   return true;
 }
@@ -453,7 +453,7 @@ static void AfterShutdown(uv_shutdown_t* req, int status) {
   IOTJS_ASSERT(jonshutdown.IsFunction());
 
   JArgList args(1);
-  args.Add(JVal::Double(status));
+  args.Add(JVal::Number(status));
 
   MakeCallback(jonshutdown, jsocket, args);
 
@@ -480,7 +480,7 @@ JHANDLER_FUNCTION(Shutdown, handler) {
     delete req_wrap;
   }
 
-  handler.Return(JVal::Double(err));
+  handler.Return(JVal::Number(err));
 
   return true;
 }

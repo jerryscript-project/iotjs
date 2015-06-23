@@ -66,7 +66,7 @@ void ProcessExit(int code) {
   IOTJS_ASSERT(jexit.IsFunction());
 
   JArgList args(1);
-  args.Add(JVal::Double(code));
+  args.Add(JVal::Number(code));
 
   JResult jres = jexit.Call(JObject::Null(), args);
   if (!jres.IsOk()) {
@@ -266,7 +266,7 @@ JObject* InitProcess() {
     JObject jbinding = process->GetProperty("binding");
 
 #define ENUMDEF_MODULE_LIST(upper, Camel, lower) \
-    jbinding.SetProperty(# lower, JVal::Int(MODULE_ ## upper));
+    jbinding.SetProperty(# lower, JVal::Number(MODULE_ ## upper));
 
     MAP_MODULE_LIST(ENUMDEF_MODULE_LIST)
 

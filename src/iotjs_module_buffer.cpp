@@ -44,7 +44,7 @@ JHANDLER_FUNCTION(Write, handler) {
     *(buffer_p + offset + i) = *(src + i);
   }
 
-  handler.Return(JVal::Int(length));
+  handler.Return(JVal::Number(length));
 
   return true;
 }
@@ -106,7 +106,7 @@ JHANDLER_FUNCTION(Copy, handler) {
                                 src_start,
                                 dst_start);
 
-  handler.Return(JVal::Int(copied));
+  handler.Return(JVal::Number(copied));
 
   return true;
 }
@@ -168,7 +168,7 @@ JObject CreateBuffer(size_t len) {
   IOTJS_ASSERT(jBuffer.IsFunction());
 
   JArgList jargs(1);
-  jargs.Add(JVal::Int(len));
+  jargs.Add(JVal::Number((int)len));
 
   JResult jres(jBuffer.Call(JObject::Null(), jargs));
   IOTJS_ASSERT(jres.IsOk());

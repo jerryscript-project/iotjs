@@ -152,7 +152,7 @@ JHANDLER_FUNCTION(Open, handler) {
     FS_ASYNC(env, open, handler.GetArg(3), path, flags, mode);
   } else {
     FS_SYNC(env, open, path, flags, mode);
-    handler.Return(JVal::Double(err));
+    handler.Return(JVal::Number(err));
   }
 
   return !handler.HasThrown();
@@ -193,7 +193,7 @@ JHANDLER_FUNCTION(Read, handler) {
     FS_ASYNC(env, read, handler.GetArg(5), fd, &uvbuf, 1, position);
   } else {
     FS_SYNC(env, read, fd, &uvbuf, 1, position);
-    handler.Return(JVal::Double(err));
+    handler.Return(JVal::Number(err));
   }
 
   return !handler.HasThrown();

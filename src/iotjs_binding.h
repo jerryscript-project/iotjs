@@ -57,8 +57,7 @@ class JObject {
   explicit JObject(bool v);
 
   // Creates a javascript number object from various c type.
-  explicit JObject(int32_t v);
-  explicit JObject(float v);
+  explicit JObject(int v);
   explicit JObject(double v);
 
   // Creates a javascirpt number object.
@@ -145,6 +144,9 @@ class JObject {
   // Returns value for 64bit integer contents of number object.
   int64_t GetInt64();
 
+  // Returns value for number contents of number object.
+  double GetNumber();
+
   // Returns pontiner to null terminated string contents of string object.
   // Returned pointer should be released using `ReleaseCString()` when it become
   // unnecessary.
@@ -198,9 +200,8 @@ class JVal {
   static JRawValueType Undefined();
   static JRawValueType Null();
   static JRawValueType Bool(bool v);
-  static JRawValueType Int(int32_t v);
-  static JRawValueType Float(float v);
-  static JRawValueType Double(double v);
+  static JRawValueType Number(int v);
+  static JRawValueType Number(double v);
   static JRawValueType Object(const JRawObjectType* obj);
 };
 

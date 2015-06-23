@@ -134,12 +134,45 @@ fs.read = function(fd, buffer, offset, length, position, callback) {
 
 
 fs.readSync = function(fd, buffer, offset, length, position) {
-  //return fsBuiltin.read(fd, buffer, offset, length, position);
   return fsBuiltin.read(checkArgNumber(fd, 'fd'),
                         checkArgBuffer(buffer, 'buffer'),
                         checkArgNumber(offset, 'offset'),
                         checkArgNumber(length, 'length'),
                         checkArgNumber(position, 'position'));
+};
+
+
+fs.write = function(fd, buffer, offset, length, position, callback) {
+  if (util.isFunction(position)) {
+    callback = position;
+    position = -1; // write at current position.
+  }
+
+  callback = checkArgFunction(callback, 'callback');
+
+  var cb = function(err, written) {
+    callback(err, written, buffer);
+  };
+
+  return fsBuiltin.write(checkArgNumber(fd, 'fd'),
+                         checkArgBuffer(buffer, 'buffer'),
+                         checkArgNumber(offset, 'offset'),
+                         checkArgNumber(length, 'length'),
+                         checkArgNumber(position, 'position'),
+                         cb);
+};
+
+
+fs.writeSync = function(fd, buffer, offset, length, position) {
+  if (util.isNullOrUndefined(position)) {
+    position = -1; // write at current position.
+  }
+
+  return fsBuiltin.write(checkArgNumber(fd, 'fd'),
+                         checkArgBuffer(buffer, 'buffer'),
+                         checkArgNumber(offset, 'offset'),
+                         checkArgNumber(length, 'length'),
+                         checkArgNumber(position, 'position'));
 };
 
 

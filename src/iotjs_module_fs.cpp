@@ -64,6 +64,7 @@ static void After(uv_fs_t* req) {
       }
       case UV_FS_OPEN:
       case UV_FS_READ:
+      case UV_FS_WRITE:
       {
         JObject arg1(static_cast<int32_t>(req->result));
         jarg.Add(arg1);
@@ -200,6 +201,47 @@ JHANDLER_FUNCTION(Read, handler) {
 }
 
 
+JHANDLER_FUNCTION(Write, handler) {
+  IOTJS_ASSERT(handler.GetThis()->IsObject());
+  IOTJS_ASSERT(handler.GetArgLength() >= 5);
+  IOTJS_ASSERT(handler.GetArg(0)->IsNumber());
+  IOTJS_ASSERT(handler.GetArg(1)->IsObject());
+  IOTJS_ASSERT(handler.GetArg(2)->IsNumber());
+  IOTJS_ASSERT(handler.GetArg(3)->IsNumber());
+  IOTJS_ASSERT(handler.GetArg(4)->IsNumber());
+
+  Environment* env = Environment::GetEnv();
+
+  int fd = handler.GetArg(0)->GetInt32();
+  int offset = handler.GetArg(2)->GetInt32();
+  int length = handler.GetArg(3)->GetInt32();
+  int position = handler.GetArg(4)->GetInt32();
+
+  JObject* jbuffer = handler.GetArg(1);
+  Buffer* buffer_wrap = Buffer::FromJBuffer(*jbuffer);
+  char* buffer = buffer_wrap->buffer();
+  int buffer_length = buffer_wrap->length();
+
+  if (offset >= buffer_length) {
+    JHANDLER_THROW_RETURN(handler, RangeError, "offset out of bound");
+  }
+  if (offset + length > buffer_length) {
+    JHANDLER_THROW_RETURN(handler, RangeError, "length out of bound");
+  }
+
+  uv_buf_t uvbuf = uv_buf_init(buffer + offset, length);
+
+  if (handler.GetArgLength() > 5 && handler.GetArg(5)->IsFunction()) {
+    FS_ASYNC(env, write, handler.GetArg(5), fd, &uvbuf, 1, position);
+  } else {
+    FS_SYNC(env, write, fd, &uvbuf, 1, position);
+    handler.Return(JVal::Number(err));
+  }
+
+  return !handler.HasThrown();
+}
+
+
 JObject MakeStatObject(uv_stat_t* statbuf) {
 
 
@@ -285,6 +327,7 @@ JObject* InitFs() {
     fs->SetMethod("close", Close);
     fs->SetMethod("open", Open);
     fs->SetMethod("read", Read);
+    fs->SetMethod("write", Write);
     fs->SetMethod("stat", Stat);
 
     module->module = fs;

@@ -23,7 +23,8 @@ from os import path
 
 SCRIPT_PATH = path.dirname(path.abspath(__file__))
 
-BUILD_SCRIPT = path.join(SCRIPT_PATH, "build.py")
+BUILD_SCRIPT_DEBUG = path.join(SCRIPT_PATH, "build.py --buildtype=debug")
+BUILD_SCRIPT_RELEASE = path.join(SCRIPT_PATH, "build.py --buildtype=release")
 
 GIT_REPO_FORMAT = 'https://github.com/%s/iotjs.git'
 
@@ -123,7 +124,8 @@ def git_remove_remote(fork_name, branch_name):
 
 
 def check_build():
-    return run_cmd_code(BUILD_SCRIPT)
+    return (run_cmd_code(BUILD_SCRIPT_DEBUG) or
+            run_cmd_code(BUILD_SCRIPT_RELEASE))
 
 
 def git_push():

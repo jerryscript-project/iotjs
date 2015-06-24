@@ -117,7 +117,7 @@ Socket.prototype.end = function(data, callback) {
   var state = self._socketState;
 
   // end of writable stream.
-  stream.WritableStream.prototype.end.call(self, data, callback);
+  stream.Writable.prototype.end.call(self, data, callback);
 
   // this socket is no longer writable.
   state.writable = false;
@@ -148,15 +148,15 @@ Socket.prototype._onread = function(nread, isEOF, buffer) {
 
   if (isEOF) {
     // this socket is no longer readable.
-    stream.ReadableStream.prototype.finishRead.call(self);
+    stream.Readable.prototype.finishRead.call(self);
     state.readable = false;
     // destory if this socket is not writable.
     maybeDestroy(self);
   } else if (nread < 0) {
     var err = new Error('read error: ' + nread);
-    stream.ReadableStream.prototype.error.call(this, err);
+    stream.Readable.prototype.error.call(this, err);
   } else {
-    stream.ReadableStream.prototype.push.call(this, buffer);
+    stream.Readable.prototype.push.call(this, buffer);
   }
 };
 

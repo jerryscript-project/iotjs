@@ -16,6 +16,7 @@
 
 var Stream = require('stream').Stream;
 var util = require('util');
+var assert = require('assert');
 
 
 function ReadableState(options) {
@@ -89,15 +90,30 @@ Readable.prototype.on = function(ev, cb) {
 };
 
 
+Readable.prototype.isPaused = function() {
+  return !this._readableState.flowing;
+};
+
+
+Readable.prototype.pause = function() {
+  var state = this._readableState;
+  if (state.flowing) {
+    state.flowing = false;
+    this.emit('pause');
+  }
+  return this;
+};
+
+
 Readable.prototype.resume = function() {
   var state = this._readableState;
   if (!state.flowing) {
     state.flowing = true;
-    var self = this;
-    process.nextTick(function() {
-      self.read(0);
-    });
+    if (state.length > 0) {
+      emitData(this, readBuffer(this));
+    }
   }
+  return this;
 };
 
 
@@ -155,6 +171,10 @@ function readBuffer(stream, n) {
   var state = stream._readableState;
   var res;
 
+  if (n == 0 || util.isNullOrUndefined(n)) {
+    n = state.length;
+  }
+
   if (state.buffer.length === 0 || state.length === 0) {
     res = null;
   } else if (n >= state.length) {
@@ -190,6 +210,7 @@ function emitReadable(stream) {
 
 
 function emitData(stream, data) {
+  assert.equal(readBuffer(stream), null);
   stream.emit('data', data);
 };
 

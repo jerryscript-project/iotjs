@@ -28,6 +28,6 @@ util.inherits(Stream, EE);
 
 exports.Stream = Stream;
 
-exports.ReadableStream = require('stream_readable');
-exports.WritableStream = require('stream_writable');
+exports.Readable = require('stream_readable');
+exports.Writable = require('stream_writable');
 exports.Duplex = require('stream_duplex');

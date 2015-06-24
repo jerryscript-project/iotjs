@@ -14,31 +14,60 @@
  */
 
 
-var ReadableStream = require('stream').ReadableStream;
+var Readable = require('stream').Readable;
 var assert = require('assert');
 
 
-var readable = new ReadableStream();
-var data = "";
-var err_msg;
+var readable = new Readable();
+var d = "";
+var e = "";
 
-readable.on('readable', function() {
-  data += readable.read().toString();
-});
 
 readable.on('error', function(err) {
-  err_msg = err.message;
+  e += ".";
 });
 
+readable.on('data', function(data) {
+  d += data.toString();
+});
+
+
+readable.pause();
 readable.push('abcde');
 readable.push('12345');
+assert.equal(d, '');
+assert.equal(e, '');
+
+readable.resume();
+assert.equal(d, 'abcde12345');
+assert.equal(e, '');
+
+readable.push('a');
+readable.push('1');
+readable.push('b');
+readable.push('2');
+assert.equal(d, 'abcde12345a1b2');
+assert.equal(e, '');
+
+readable.pause();
+assert.equal(d, 'abcde12345a1b2');
+assert.equal(e, '');
+
+readable.push('c');
+readable.push('3');
+readable.push('d');
+readable.push('4');
+assert.equal(d, 'abcde12345a1b2');
+assert.equal(e, '');
+
+readable.resume();
+assert.equal(d, 'abcde12345a1b2c3d4');
+assert.equal(e, '');
+
 readable.push(null);
-readable.push('shouldnotapper');
+assert.equal(d, 'abcde12345a1b2c3d4');
+assert.equal(e, '');
 
-
-
-process.on('exit', function(code) {
-  assert.equal(code, 0);
-  assert.equal(data, "abcde12345");
-  assert.equal(err_msg, 'stream.push() after EOF');
-});
+readable.push('push after eof');
+assert.equal(d, 'abcde12345a1b2c3d4');
+assert.equal(e, '.');

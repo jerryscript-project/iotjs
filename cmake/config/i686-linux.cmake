@@ -18,6 +18,7 @@ set(CMAKE_SYSTEM_NAME Linux)
 set(CMAKE_SYSTEM_PROCESSOR x86)
 
 set(FLAGS_COMMON -D__LINUX__
+                 -D__i686__
                  -fno-builtin)
 
 foreach(FLAG ${FLAGS_COMMON})

@@ -21,12 +21,24 @@
 #include <string.h>
 
 
-#ifdef __LINUX__
+#if defined(__LINUX__)
  #define PLATFORM "linux"
+#elif defined(__NUTTX__)
+ #define PLATFORM "nuttx"
+#elif defined(__DARWIN__)
+ #define PLATFORM "darwin"
+#else
+ #error Cannot identify PLATFORM
 #endif
 
-#ifdef __NUTTX__
- #define PLATFORM "nuttx"
+#if defined(__ARM__)
+ #define ARCHITECTURE "arm"
+#elif defined(__i686__)
+ #define ARCHITECTURE "ia32"
+#elif defined(__x86_64__)
+ #define ARCHITECTURE "x64"
+#else
+ #error Cannot identify ARCHITECTURE
 #endif
 
 
@@ -261,6 +273,10 @@ JObject* InitProcess() {
     // process.platform
     JObject platform(PLATFORM);
     process->SetProperty("platform", platform);
+
+    // process.arch
+    JObject arch(ARCHITECTURE);
+    process->SetProperty("arch", arch);
 
     // Binding module id.
     JObject jbinding = process->GetProperty("binding");

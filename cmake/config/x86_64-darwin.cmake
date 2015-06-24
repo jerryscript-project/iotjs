@@ -18,6 +18,7 @@ set(CMAKE_SYSTEM_NAME Darwin)
 set(CMAKE_SYSTEM_PROCESSOR x86_64)
 
 set(FLAGS_COMMON -D__DARWIN__
+                 -D__x86_64__
                  -fno-builtin)
 
 foreach(FLAG ${FLAGS_COMMON})

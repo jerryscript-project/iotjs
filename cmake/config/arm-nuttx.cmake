@@ -33,6 +33,7 @@ set(FLAGS_COMMON -mcpu=cortex-m4
                  -mfpu=fpv4-sp-d16
                  -mfloat-abi=hard
                  -D__NUTTX__
+                 -D__ARM__
                  -Os
                  -fno-strict-aliasing
                  -fno-strength-reduce

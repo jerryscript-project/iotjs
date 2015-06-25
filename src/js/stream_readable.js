@@ -198,9 +198,7 @@ function emitEnd(stream) {
 
   if (!state.endEmitted) {
     state.endEmitted = true;
-    process.nextTick(function(){
-      stream.emit('end');
-    })
+    stream.emit('end');
   }
 };
 
@@ -223,10 +221,11 @@ function emitError(stream, er) {
 function onEof(stream) {
   var state = stream._readableState;
 
-  if (state.ended) {
-    return;
-  }
   state.ended = true;
+
+  if (state.length == 0) {
+    emitEnd(stream);
+  }
 };
 
 

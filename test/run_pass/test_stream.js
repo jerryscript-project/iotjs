@@ -31,6 +31,10 @@ readable.on('data', function(data) {
   d += data.toString();
 });
 
+readable.on('end', function() {
+  e += 'e';
+});
+
 
 readable.pause();
 readable.push('abcde');
@@ -66,8 +70,8 @@ assert.equal(e, '');
 
 readable.push(null);
 assert.equal(d, 'abcde12345a1b2c3d4');
-assert.equal(e, '');
+assert.equal(e, 'e');
 
 readable.push('push after eof');
 assert.equal(d, 'abcde12345a1b2c3d4');
-assert.equal(e, '.');
+assert.equal(e, 'e.');

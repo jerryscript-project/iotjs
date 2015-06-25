@@ -245,48 +245,45 @@ JHANDLER_FUNCTION(Write, handler) {
 
 
 JObject MakeStatObject(uv_stat_t* statbuf) {
-
-
-#define X(name)                              \
-  JObject name((int)statbuf->st_##name);        \
-
-  X(dev)
-  X(mode)
-  X(nlink)
-  X(uid)
-  X(gid)
-  X(rdev)
-
-#undef X
-
-#define X(name)                              \
-  JObject name((double)statbuf->st_##name);        \
-
-  X(blksize)
-  X(ino)
-  X(size)
-  X(blocks)
-
-#undef X
-
-
   Module* module = GetBuiltinModule(MODULE_FS);
+  IOTJS_ASSERT(module != NULL);
+
   JObject* fs = module->module;
-  JObject createStat = fs->GetProperty("createStat");
+  IOTJS_ASSERT(fs != NULL);
 
-  JArgList args(10);
-  args.Add(dev);
-  args.Add(mode);
-  args.Add(nlink);
-  args.Add(uid);
-  args.Add(gid);
-  args.Add(rdev);
-  args.Add(blksize);
-  args.Add(ino);
-  args.Add(size);
-  args.Add(blocks);
+  JObject createStat = fs->GetProperty("_createStat");
+  IOTJS_ASSERT(createStat.IsFunction());
 
-  JResult jstat_res(createStat.Call(JObject::Null(), args));
+  JObject jstat;
+
+#define X(statobj, name) \
+  JObject name((int32_t)statbuf->st_##name); \
+  statobj.SetProperty(#name, name); \
+
+  X(jstat, dev)
+  X(jstat, mode)
+  X(jstat, nlink)
+  X(jstat, uid)
+  X(jstat, gid)
+  X(jstat, rdev)
+
+#undef X
+
+#define X(statobj, name) \
+  JObject name((double)statbuf->st_##name); \
+  statobj.SetProperty(#name, name); \
+
+  X(jstat, blksize)
+  X(jstat, ino)
+  X(jstat, size)
+  X(jstat, blocks)
+
+#undef X
+
+  JArgList jargs(1);
+  jargs.Add(jstat);
+
+  JResult jstat_res(createStat.Call(JObject::Null(), jargs));
   IOTJS_ASSERT(jstat_res.IsOk());
 
   return jstat_res.value();

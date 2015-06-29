@@ -147,20 +147,26 @@
     process.exitCode = 0;
     process._exiting = false;
 
-    process.exit = function(code) {
+
+    process.emitExit = function(code) {
       if (!process._exiting) {
         process._exiting = true;
         if (code || code == 0) {
           process.exitCode = code;
         }
-        try {
-          process.emit('exit', process.exitCode || 0);
-        } catch (e) {
-          process._onUncaughtExcecption(e);
-          process.exitCode = 1;
-        } finally {
-          process.doExit(process.exitCode || 0);
-        }
+        process.emit('exit', process.exitCode || 0);
+      }
+    }
+
+
+    process.exit = function(code) {
+      try {
+        process.emitExit(code);
+      } catch (e) {
+        process.exitCode = 1;
+        process._onUncaughtExcecption(e);
+      } finally {
+        process.doExit(process.exitCode || 0);
       }
     };
   }

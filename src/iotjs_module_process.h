@@ -23,7 +23,7 @@ namespace iotjs {
 
 void UncaughtException(JObject& jexception);
 
-void ProcessExit(int code);
+void ProcessEmitExit(int code);
 
 bool ProcessNextTick();
 

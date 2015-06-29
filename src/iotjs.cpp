@@ -115,7 +115,7 @@ static bool StartIoTjs(JObject* process) {
     }
   } while (more);
 
-  ProcessExit(0);
+  ProcessEmitExit(0);
 
   return true;
 }

@@ -71,10 +71,10 @@ void UncaughtException(JObject& jexception) {
 }
 
 
-void ProcessExit(int code) {
+void ProcessEmitExit(int code) {
   JObject* process = GetProcess();
 
-  JObject jexit(process->GetProperty("exit"));
+  JObject jexit(process->GetProperty("emitExit"));
   IOTJS_ASSERT(jexit.IsFunction());
 
   JArgList args(1);

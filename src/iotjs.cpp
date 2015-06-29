@@ -31,11 +31,14 @@ namespace iotjs {
 
 static bool InitJerry() {
 
+  uint32_t jerry_flag = JERRY_FLAG_ABORT_ON_FAIL;
+
 #ifdef ENABLE_JERRY_MEM_STATS
-  jerry_init(JERRY_FLAG_MEM_STATS | JERRY_FLAG_SHOW_OPCODES);
-#else
-  jerry_init(JERRY_FLAG_EMPTY);
+  jerry_flag |= JERRY_FLAG_MEM_STATS;
+  jerry_flag |= JERRY_FLAG_SHOW_OPCODES;
 #endif
+
+  jerry_init(jerry_flag);
 
   InitJerryMagicStringEx();
 

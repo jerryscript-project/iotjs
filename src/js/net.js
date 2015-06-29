@@ -163,6 +163,12 @@ Socket.prototype._onread = function(nread, isEOF, buffer) {
 
 Socket.prototype._onclose = function() {
   this.emit('close');
+
+  if (this.server) {
+    var sockets = this.server._sockets;
+    var idx = sockets.indexOf(this);
+    delete sockets[idx];
+  }
 };
 
 
@@ -258,6 +264,7 @@ function Server(options, connectionListener) {
   }
 
   this._handle = null;
+  this._sockets = [];
 }
 
 // Server inherits EventEmitter.
@@ -358,6 +365,8 @@ Server.prototype._onconnection = function(status, clientHandle) {
 
   socket.server = this;
   onSocketConnect(socket);
+
+  this._sockets.push(socket);
 
   this.emit('connection', socket);
 };

@@ -206,7 +206,7 @@ JHANDLER_FUNCTION(ReadSource, handler){
 JHANDLER_FUNCTION(Cwd, handler){
   IOTJS_ASSERT(handler.GetArgLength() == 0);
 
-  char path[120];
+  char path[IOTJS_MAX_PATH_SIZE];
   size_t size_path = sizeof(path);
   int err = uv_cwd(path, &size_path);
   if (err) {
@@ -292,6 +292,29 @@ JObject* InitProcess() {
   }
 
   return process;
+}
+
+void SetProcessIotjs(JObject* process) {
+  // IoT.js specific
+  JObject iotjs;
+
+#if defined(__NUTTX__)
+  JObject gpiodev("/dev/gpio");
+  iotjs.SetProperty("gpiodevice", gpiodev);
+#elif defined(__LINUX__)
+  const char *iotjs_gpio;
+  iotjs_gpio = getenv("IOTJS_GPIO_DEVICE");
+  if (iotjs_gpio && strlen(iotjs_gpio)) {
+    JObject gpiodev(iotjs_gpio);
+    iotjs.SetProperty("gpiodevice", gpiodev);
+  }
+  else {
+    JObject gpiodev("/dev/null");
+    iotjs.SetProperty("gpiodevice", gpiodev);
+  }
+#endif
+
+  process->SetProperty("iotjs", iotjs);
 }
 
 

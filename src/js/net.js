@@ -36,6 +36,8 @@ function SocketState(options) {
 
   this.writable = true;
   this.readable = true;
+
+  this.allowHalfOpen = options && options.allowHalfOpen || false;
 }
 
 
@@ -58,6 +60,7 @@ function Socket(options) {
   }
 
   this.on('finish', onSocketFinish);
+  this.on('end', onSocketEnd);
 }
 
 
@@ -124,6 +127,7 @@ Socket.prototype.end = function(data, callback) {
 };
 
 
+// Destroy this socket as fast as possible.
 Socket.prototype.destroy = function() {
   var self = this;
   var state = self._socketState;
@@ -142,20 +146,41 @@ Socket.prototype.destroy = function() {
 };
 
 
+// Destroy this socket as fast as possible if this socket is no longer readable.
+Socket.prototype.destroySoon = function() {
+  var self = this;
+  var state = self._socketState;
+
+  if (state.writable) {
+    self.end();
+  }
+
+  if (self._writableState.finished) {
+    self.destroy();
+  } else {
+    self.once('finish', self.destroy);
+  }
+}
+
+
 Socket.prototype._onread = function(nread, isEOF, buffer) {
   var self = this;
   var state = self._socketState;
 
   if (isEOF) {
-    // this socket is no longer readable.
-    stream.Readable.prototype.finishRead.call(self);
-    state.readable = false;
-    // destory if this socket is not writable.
-    maybeDestroy(self);
+    // pushing readable stream null means EOF.
+    stream.Readable.prototype.push.call(this, null);
+
+    if (self._readableState.length == 0) {
+      // this socket is no longer readable.
+      state.readable = false;
+      // destory if this socket is not writable.
+      maybeDestroy(self);
+    }
   } else if (nread < 0) {
     var err = new Error('read error: ' + nread);
     stream.Readable.prototype.error.call(this, err);
-  } else {
+  } else if (nread > 0) {
     stream.Readable.prototype.push.call(this, buffer);
   }
 };
@@ -230,7 +255,19 @@ function onSocketFinish() {
     return self.destroy();
   } else {
     // Readable stream alive, shutdown only outgoing stream.
-    self._handle.shutdown(onShutdown);
+    var err = self._handle.shutdown(onShutdown);
+  }
+}
+
+
+// Readable stream ended.
+function onSocketEnd() {
+  var state = this._socketState;
+
+  maybeDestroy(this);
+
+  if (!state.allowHalfOpen) {
+    this.destroySoon();
   }
 }
 

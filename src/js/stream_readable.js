@@ -33,9 +33,6 @@ function ReadableState(options) {
   // true if in flowing mode.
   this.flowing = false;
 
-  // become `true` when forcely finished.
-  this.finished = false;
-
   // become `true` when the stream meet EOF.
   this.ended = false;
 
@@ -125,10 +122,6 @@ Readable.prototype.error = function(error) {
 Readable.prototype.push = function(chunk, encoding) {
   var state = this._readableState;
 
-  if (state.finished) {
-    return;
-  }
-
   if (!util.isString(chunk) &&
       !util.isBuffer(chunk) &&
       !util.isNull(chunk)) {
@@ -151,20 +144,6 @@ Readable.prototype.push = function(chunk, encoding) {
     }
   }
 };
-
-
-Readable.prototype.finishRead = function() {
-  var state = this._readableState;
-
-  // set finished
-  if (state.finished) {
-    return;
-  }
-  state.finished = true;
-  state.ended = true;
-
-  emitEnd(this);
-}
 
 
 function readBuffer(stream, n) {

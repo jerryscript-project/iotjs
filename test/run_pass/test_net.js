@@ -18,8 +18,9 @@ var assert = require('assert');
 
 
 var server = net.createServer();
+var port = 1235;
 
-server.listen(1234, 5);
+server.listen(port, 5);
 
 server.on('connection', function(socket) {
   socket.on('data', function(data) {
@@ -34,13 +35,16 @@ server.on('connection', function(socket) {
 var socket = new net.Socket();
 var msg = "";
 
-socket.connect(1234, "127.0.0.1");
-socket.end("Hello IoT.js");
+socket.connect(port, "127.0.0.1");
+socket.write("Hello IoT.js");
 
 socket.on('data', function(data) {
   msg += data;
 });
 
+socket.on('end', function() {
+  socket.end();
+});
 
 process.on('exit', function(code) {
   assert.equal(code, 0);

@@ -182,6 +182,7 @@ function doWrite(stream, chunk, callback) {
 }
 
 
+// No more data to write. if this stream is being finishing, emit 'finish'.
 function onEmptyBuffer(stream) {
   var state = stream._writableState;
   if (state.ending) {
@@ -190,14 +191,20 @@ function onEmptyBuffer(stream) {
 }
 
 
+// Writable.prototype.end() was called. register callback for 'finish' event.
+// After finish writing out buffered data, 'finish' event will be fired.
 function endWritable(stream, callback) {
   var state = stream._writableState;
   state.ending = true;
   if (callback) {
     stream.once('finish', callback);
   }
+  // write out buffered data.
+  writeBuffered(stream);
 }
 
+
+// Emit 'finish' event to notify this stream is finished.
 function emitFinish(stream) {
   var state = stream._writableState;
   if (!state.ended) {
@@ -205,6 +212,7 @@ function emitFinish(stream) {
     stream.emit('finish')
   }
 }
+
 
 module.exports = Writable;
 

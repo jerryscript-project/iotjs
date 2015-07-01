@@ -25,6 +25,7 @@
 #include "iotjs_module_stream.h"
 #include "iotjs_module_tcp.h"
 #include "iotjs_module_timer.h"
+#include "iotjs_module_gpioctl.h"
 
 
 namespace iotjs {

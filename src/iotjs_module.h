@@ -34,7 +34,8 @@ typedef JObject* (*register_func)();
   F(PROCESS, Process, process) \
   F(STREAM, Stream, stream) \
   F(TCP, Tcp, tcp) \
-  F(TIMER, Timer, timer)
+  F(TIMER, Timer, timer) \
+  F(GPIOCTL, GpioCtl, gpioctl)
 
 
 #define ENUMDEF_MODULE_LIST(upper, Camel, lower) \

@@ -13,26 +13,16 @@
  * limitations under the License.
  */
 
-#ifndef IOTJS_MODULE_PROCESS_H
-#define IOTJS_MODULE_PROCESS_H
+#ifndef IOTJS_MODULE_GPIOCTL_H
+#define IOTJS_MODULE_GPIOCTL_H
 
 #include "iotjs_binding.h"
 
 
 namespace iotjs {
 
-void UncaughtException(JObject& jexception);
-
-void ProcessEmitExit(int code);
-
-bool ProcessNextTick();
-
-JObject MakeCallback(JObject& function, JObject& this_, JArgList& args);
-
-JObject* InitProcess();
-
-void SetProcessIotjs(JObject* process);
+JObject* InitGpioCtl();
 
 } // namespace iotjs
 
-#endif /* IOTJS_MODULE_PROCESS_H */
+#endif /* IOTJS_MODULE_GPIOCTL_H */

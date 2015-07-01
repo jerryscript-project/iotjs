@@ -23,140 +23,103 @@
 namespace iotjs {
 
 
-JHANDLER_FUNCTION(Write, handler) {
-  IOTJS_ASSERT(handler.GetArgLength() == 3);
-  IOTJS_ASSERT(handler.GetArg(0)->IsString());
-  IOTJS_ASSERT(handler.GetArg(1)->IsNumber());
-  IOTJS_ASSERT(handler.GetArg(2)->IsNumber());
-
-  LocalString src(handler.GetArg(0)->GetCString());
-
-  int offset = handler.GetArg(1)->GetInt32();
-  int length = handler.GetArg(2)->GetInt32();
-
-  JObject* jbuffer = handler.GetThis();
-  Buffer* buffer = Buffer::FromJBuffer(*jbuffer);
-  char* buffer_p = buffer->buffer();
-  int buffer_length = buffer->length();
-  IOTJS_ASSERT(buffer_length >= offset + length);
-
-  for (int i = 0; i < length; ++i) {
-    *(buffer_p + offset + i) = *(src + i);
-  }
-
-  handler.Return(JVal::Number(length));
-
-  return true;
+BufferWrap::BufferWrap(JObject& jbuffer,
+                       JObject& jbuiltin,
+                       size_t length)
+    : JObjectWrap(jbuiltin, jbuffer)
+    , _buffer(NULL)
+    , _length(length) {
+  _buffer = AllocBuffer(length);
+  IOTJS_ASSERT(_buffer != NULL);
 }
 
 
-JHANDLER_FUNCTION(ToString, handler) {
-  IOTJS_ASSERT(handler.GetArgLength() == 0);
-
-  JObject* jbuffer = handler.GetThis();
-  Buffer* buffer = Buffer::FromJBuffer(*jbuffer);
-  int length = buffer->length();
-
-  LocalString str(length + 1);
-
-  strncpy(str, buffer->buffer(), length);
-  str[length] = 0;
-
-  JObject ret(str);
-  handler.Return(ret);
-
-  return true;
+BufferWrap::~BufferWrap() {
+  if (_buffer != NULL) {
+    ReleaseBuffer(_buffer);
+  }
 }
 
 
-JHANDLER_FUNCTION(Copy, handler) {
-  uint16_t args = handler.GetArgLength();
-  IOTJS_ASSERT(args >= 1);
-  IOTJS_ASSERT(handler.GetArg(0)->IsObject());
-  IOTJS_ASSERT(args <= 1 || handler.GetArg(1)->IsNumber());
-  IOTJS_ASSERT(args <= 2 || handler.GetArg(2)->IsNumber());
-  IOTJS_ASSERT(args <= 3 || handler.GetArg(3)->IsNumber());
-
-  JObject* jsrc_buffer = handler.GetThis();
-  Buffer* src_buffer = Buffer::FromJBuffer(*jsrc_buffer);
-
-  JObject* jdst_buffer = handler.GetArg(0);
-  Buffer* dst_buffer = Buffer::FromJBuffer(*jdst_buffer);
-
-  int dst_start = 0;
-  int src_start = 0;
-  int src_length = src_buffer->length();
-  int src_end = src_length;
-
-  if (args >= 2) {
-    dst_start = handler.GetArg(1)->GetInt32();
-  }
-  if (args >= 3) {
-    src_start = handler.GetArg(2)->GetInt32();
-  }
-  if (args >= 4) {
-    src_end = handler.GetArg(3)->GetInt32();
-    if (src_end > src_length) {
-      src_end = src_length;
-    }
-  }
-
-  int copied = dst_buffer->Copy(src_buffer->buffer(),
-                                src_end - src_start,
-                                src_start,
-                                dst_start);
-
-  handler.Return(JVal::Number(copied));
-
-  return true;
-}
-
-
-JHANDLER_FUNCTION(SetupBufferJs, handler) {
-  IOTJS_ASSERT(handler.GetArgLength() == 1);
-  IOTJS_ASSERT(handler.GetArg(0)->IsFunction());
-
-  JObject* jbuffer = handler.GetArg(0);
-  JObject prototype(jbuffer->GetProperty("prototype"));
-  prototype.SetMethod("_write", Write);
-  prototype.SetMethod("_toString", ToString);
-  prototype.SetMethod("copy", Copy);
-
-  return true;
-}
-
-
-JHANDLER_FUNCTION(Alloc, handler) {
-  IOTJS_ASSERT(handler.GetArgLength() == 2);
-  IOTJS_ASSERT(handler.GetArg(0)->IsObject());
-  IOTJS_ASSERT(handler.GetArg(1)->IsNumber());
-
-  JObject* jbuffer = handler.GetArg(0);
-  int length = handler.GetArg(1)->GetInt32();
-  Buffer* buffer = new Buffer(*jbuffer, length);
-  IOTJS_ASSERT(buffer == reinterpret_cast<Buffer*>(jbuffer->GetNative()));
-  IOTJS_ASSERT(buffer->buffer() != NULL);
-
-  JObject ret(length);
-  handler.Return(ret);
-
-  return true;
-}
-
-
-JObject* InitBuffer() {
-  Module* module = GetBuiltinModule(MODULE_BUFFER);
-  JObject* buffer = module->module;
-
-  if (buffer == NULL) {
-    buffer = new JObject();
-    buffer->SetMethod("setupBufferJs", SetupBufferJs);
-    buffer->SetMethod("alloc", Alloc);
-
-    module->module = buffer;
-  }
-
+BufferWrap* BufferWrap::FromJBufferBuiltin(JObject& jbuiltin) {
+  IOTJS_ASSERT(jbuiltin.IsObject());
+  BufferWrap* buffer = reinterpret_cast<BufferWrap*>(jbuiltin.GetNative());
+  IOTJS_ASSERT(buffer != NULL);
   return buffer;
+}
+
+
+BufferWrap* BufferWrap::FromJBuffer(JObject& jbuffer) {
+  IOTJS_ASSERT(jbuffer.IsObject());
+  JObject jbuiltin(jbuffer.GetProperty("_builtin"));
+  return FromJBufferBuiltin(jbuiltin);
+}
+
+
+
+JObject& BufferWrap::jbuiltin() {
+  return jobject();
+}
+
+
+JObject& BufferWrap::jbuffer() {
+  return jholder();
+}
+
+
+char* BufferWrap::buffer() {
+  return _buffer;
+}
+
+
+size_t BufferWrap::length() {
+#ifndef NDEBUG
+  int length = jbuffer().GetProperty("length").GetInt32();
+  IOTJS_ASSERT(static_cast<size_t>(length) == _length);
+#endif
+  return _length;
+}
+
+
+int BufferWrap::Compare(const BufferWrap& other) const {
+  size_t i = 0;
+  size_t j = 0;
+  while (i < _length && j < other._length) {
+    if (_buffer[i] < other._buffer[j]) {
+      return -1;
+    } else if (_buffer[i] > other._buffer[j]) {
+      return 1;
+    }
+    ++i;
+    ++j;
+  }
+  if (j < other._length) {
+    return -1;
+  } else if (i < _length) {
+    return 1;
+  }
+  return 0;
+}
+
+
+size_t BufferWrap::Copy(char* src, size_t len) {
+  return Copy(src, 0, len, 0);
+}
+
+
+size_t BufferWrap::Copy(char* src,
+                        size_t src_from,
+                        size_t src_to,
+                        size_t dst_from) {
+  size_t copied = 0;
+  size_t dst_length = _length;
+  for (size_t i = src_from, j = dst_from;
+       i < src_to && j < dst_length;
+       ++i, ++j) {
+    *(_buffer + j) = *(src + i);
+    ++copied;
+  }
+  return copied;
 }
 
 
@@ -178,67 +141,164 @@ JObject CreateBuffer(size_t len) {
 }
 
 
-Buffer::Buffer(JObject& jbuffer, size_t length)
-    : JObjectWrap(jbuffer)
-    , _buffer(NULL)
-    , _length(length) {
-  _buffer = AllocBuffer(length);
-  IOTJS_ASSERT(_buffer != NULL);
+
+JHANDLER_FUNCTION(Buffer, handler) {
+  IOTJS_ASSERT(handler.GetThis()->IsObject());
+  IOTJS_ASSERT(handler.GetArgLength() == 2);
+  IOTJS_ASSERT(handler.GetArg(0)->IsObject());
+  IOTJS_ASSERT(handler.GetArg(1)->IsNumber());
+
+  int length = handler.GetArg(1)->GetInt32();
+  JObject* jbuffer = handler.GetArg(0);
+  JObject* jbuiltin = handler.GetThis();
+
+  BufferWrap* buffer_wrap = new BufferWrap(*jbuffer, *jbuiltin, length);
+  IOTJS_ASSERT(buffer_wrap == (BufferWrap*)(jbuiltin->GetNative()));
+  IOTJS_ASSERT(buffer_wrap->buffer() != NULL);
+
+  return true;
 }
 
 
-Buffer::~Buffer() {
-  if (_buffer != NULL) {
-    ReleaseBuffer(_buffer);
+JHANDLER_FUNCTION(Compare, handler) {
+  IOTJS_ASSERT(handler.GetThis()->IsObject());
+  IOTJS_ASSERT(handler.GetArgLength() == 1);
+  IOTJS_ASSERT(handler.GetArg(0)->IsObject());
+
+  JObject* jsrc_builtin = handler.GetThis();
+  BufferWrap* src_buffer_wrap = BufferWrap::FromJBufferBuiltin(*jsrc_builtin);
+
+  JObject* jdst_buffer = handler.GetArg(0);
+  BufferWrap* dst_buffer_wrap = BufferWrap::FromJBuffer(*jdst_buffer);
+
+  handler.Return(JVal::Number(src_buffer_wrap->Compare(*dst_buffer_wrap)));
+
+  return true;
+}
+
+
+JHANDLER_FUNCTION(Copy, handler) {
+  IOTJS_ASSERT(handler.GetThis()->IsObject());
+  IOTJS_ASSERT(handler.GetArgLength() == 4);
+  IOTJS_ASSERT(handler.GetArg(0)->IsObject());
+  IOTJS_ASSERT(handler.GetArg(1)->IsNumber());
+  IOTJS_ASSERT(handler.GetArg(2)->IsNumber());
+  IOTJS_ASSERT(handler.GetArg(3)->IsNumber());
+
+  JObject* jsrc_builtin = handler.GetThis();
+  BufferWrap* src_buffer_wrap = BufferWrap::FromJBufferBuiltin(*jsrc_builtin);
+
+  JObject* jdst_buffer = handler.GetArg(0);
+  BufferWrap* dst_buffer_wrap = BufferWrap::FromJBuffer(*jdst_buffer);
+
+  int dst_start = handler.GetArg(1)->GetInt32();
+  int src_start = handler.GetArg(2)->GetInt32();
+  int src_end = handler.GetArg(3)->GetInt32();
+
+  int copied = dst_buffer_wrap->Copy(src_buffer_wrap->buffer(),
+                                     src_start,
+                                     src_end,
+                                     dst_start);
+
+  handler.Return(JVal::Number(copied));
+
+  return true;
+}
+
+
+JHANDLER_FUNCTION(Write, handler) {
+  IOTJS_ASSERT(handler.GetArgLength() == 3);
+  IOTJS_ASSERT(handler.GetArg(0)->IsString());
+  IOTJS_ASSERT(handler.GetArg(1)->IsNumber());
+  IOTJS_ASSERT(handler.GetArg(2)->IsNumber());
+
+  LocalString src(handler.GetArg(0)->GetCString());
+
+  int offset = handler.GetArg(1)->GetInt32();
+  int length = handler.GetArg(2)->GetInt32();
+
+  JObject* jbuiltin = handler.GetThis();
+
+  BufferWrap* buffer_wrap = BufferWrap::FromJBufferBuiltin(*jbuiltin);
+
+  size_t copied = buffer_wrap->Copy(src, 0, length, offset);
+
+  handler.Return(JVal::Number((int)copied));
+
+  return true;
+}
+
+
+JHANDLER_FUNCTION(Slice, handler) {
+  IOTJS_ASSERT(handler.GetArgLength() == 2);
+  IOTJS_ASSERT(handler.GetArg(0)->IsNumber());
+  IOTJS_ASSERT(handler.GetArg(1)->IsNumber());
+
+  JObject* jbuiltin = handler.GetThis();
+  BufferWrap* buffer_wrap = BufferWrap::FromJBufferBuiltin(*jbuiltin);
+
+  int start = handler.GetArg(0)->GetInt32();
+  int end = handler.GetArg(1)->GetInt32();
+  int length = end - start;
+  IOTJS_ASSERT(length >= 0);
+
+  JObject jnew_buffer = CreateBuffer(length);
+  BufferWrap* new_buffer_wrap = BufferWrap::FromJBuffer(jnew_buffer);
+  new_buffer_wrap->Copy(buffer_wrap->buffer(), start, end, 0);
+
+  handler.Return(jnew_buffer);
+
+  return true;
+}
+
+
+JHANDLER_FUNCTION(ToString, handler) {
+  IOTJS_ASSERT(handler.GetThis()->IsObject());
+  IOTJS_ASSERT(handler.GetArgLength() == 2);
+  IOTJS_ASSERT(handler.GetArg(0)->IsNumber());
+  IOTJS_ASSERT(handler.GetArg(1)->IsNumber());
+
+  JObject* jbuiltin = handler.GetThis();
+  BufferWrap* buffer_wrap = BufferWrap::FromJBufferBuiltin(*jbuiltin);
+
+  int start = handler.GetArg(0)->GetInt32();
+  int end = handler.GetArg(1)->GetInt32();
+  int length = end - start;
+  IOTJS_ASSERT(length >= 0);
+
+  LocalString str(length + 1);
+
+  strncpy(str, buffer_wrap->buffer() + start, length);
+  str[length] = 0;
+
+  JObject ret(str);
+  handler.Return(ret);
+
+  return true;
+}
+
+
+JObject* InitBuffer() {
+  Module* module = GetBuiltinModule(MODULE_BUFFER);
+  JObject* buffer = module->module;
+
+  if (buffer == NULL) {
+    buffer = new JObject(Buffer);
+
+    JObject prototype;
+    buffer->SetProperty("prototype", prototype);
+
+    prototype.SetMethod("compare", Compare);
+    prototype.SetMethod("copy", Copy);
+    prototype.SetMethod("write", Write);
+    prototype.SetMethod("slice", Slice);
+    prototype.SetMethod("toString", ToString);
+
+    module->module = buffer;
   }
-}
 
-
-Buffer* Buffer::FromJBuffer(JObject& jbuffer) {
-  Buffer* buffer = reinterpret_cast<Buffer*>(jbuffer.GetNative());
-  IOTJS_ASSERT(buffer != NULL);
   return buffer;
 }
 
-
-JObject& Buffer::jbuffer() {
-  return jobject();
-}
-
-
-char* Buffer::buffer() {
-  return _buffer;
-}
-
-
-size_t Buffer::length() {
-#ifndef NDEBUG
-  int length = jbuffer().GetProperty("length").GetInt32();
-  IOTJS_ASSERT(static_cast<size_t>(length) == _length);
-#endif
-  return _length;
-}
-
-
-size_t Buffer::Copy(char* src, size_t len) {
-  return Copy(src, len, 0, 0);
-}
-
-
-size_t Buffer::Copy(char* src, size_t len, size_t src_from, size_t dst_from) {
-  size_t copied = 0;
-
-  size_t src_end = src_from + len;
-  size_t dst_length = _length;
-
-  for (size_t i = src_from, j = dst_from;
-       i < src_end && j < dst_length;
-       ++i, ++j) {
-    *(_buffer + j) = *(src + i);
-    ++copied;
-  }
-
-  return copied;
-}
 
 } // namespace iotjs

@@ -102,7 +102,7 @@ JHANDLER_FUNCTION(TCP, handler) {
   JObject* jholder = handler.GetArg(0);
 
   TcpWrap* tcp_wrap = new TcpWrap(env, *jtcp, *jholder);
-  IOTJS_ASSERT(tcp_wrap->jnative().IsObject());
+  IOTJS_ASSERT(tcp_wrap->jobject().IsObject());
   IOTJS_ASSERT(jtcp->GetNative() != 0);
 
   return true;
@@ -344,7 +344,7 @@ JHANDLER_FUNCTION(Write, handler) {
   IOTJS_ASSERT(tcp_wrap != NULL);
 
   JObject* jbuffer = handler.GetArg(0);
-  Buffer* buffer_wrap = Buffer::FromJBuffer(*jbuffer);
+  BufferWrap* buffer_wrap = BufferWrap::FromJBuffer(*jbuffer);
   char* buffer = buffer_wrap->buffer();
   int len = buffer_wrap->length();
 
@@ -411,7 +411,7 @@ void OnRead(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
   }
 
   JObject jbuffer(CreateBuffer(static_cast<size_t>(nread)));
-  Buffer* buffer_wrap = Buffer::FromJBuffer(jbuffer);
+  BufferWrap* buffer_wrap = BufferWrap::FromJBuffer(jbuffer);
 
   buffer_wrap->Copy(buf->base, nread);
 

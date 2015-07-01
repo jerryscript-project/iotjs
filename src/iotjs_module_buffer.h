@@ -30,20 +30,25 @@ JObject* InitBuffer();
 JObject CreateBuffer(size_t len);
 
 
-class Buffer : public JObjectWrap {
+class BufferWrap : public JObjectWrap {
  public:
-  Buffer(JObject& jbuffer, size_t length);
+  BufferWrap(JObject& jbuffer, JObject& jbuiltin, size_t length);
 
-  virtual ~Buffer();
+  virtual ~BufferWrap();
 
-  static Buffer* FromJBuffer(JObject& jbuffer);
+  static BufferWrap* FromJBufferBuiltin(JObject& jbuiltin);
+  static BufferWrap* FromJBuffer(JObject& jbuffer);
 
+  JObject& jbuiltin();
   JObject& jbuffer();
+
   char* buffer();
   size_t length();
 
+  int Compare(const BufferWrap& other) const;
+
   size_t Copy(char* src, size_t len);
-  size_t Copy(char* src, size_t len, size_t src_from , size_t dst_from);
+  size_t Copy(char* src, size_t src_from, size_t src_to, size_t dst_from);
 
  protected:
   char* _buffer;

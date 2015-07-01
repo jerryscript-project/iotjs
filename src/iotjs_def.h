@@ -21,8 +21,10 @@
 #ifndef IOTJS_MAX_READ_BUFFER_SIZE
  #ifdef __NUTTX__
   #define IOTJS_MAX_READ_BUFFER_SIZE 1024
+  #define IOTJS_MAX_PATH_SIZE 120
  #else
   #define IOTJS_MAX_READ_BUFFER_SIZE 65535
+  #define IOTJS_MAX_PATH_SIZE PATH_MAX
  #endif
 #endif
 

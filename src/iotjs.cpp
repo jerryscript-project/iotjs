@@ -129,6 +129,8 @@ int Start(char* src) {
 
   JObject* process = InitModules();
 
+  SetProcessIotjs(process);
+
   // FIXME: this should be moved to seperate function
   {
     JObject argv;

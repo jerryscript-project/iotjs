@@ -13,26 +13,25 @@
  * limitations under the License.
  */
 
-#ifndef IOTJS_MODULE_PROCESS_H
-#define IOTJS_MODULE_PROCESS_H
+#if defined(__LINUX__)
 
-#include "iotjs_binding.h"
+#include "iotjs_def.h"
+#include "iotjs_objectwrap.h"
+#include "iotjs_module_gpioctl.h"
 
 
 namespace iotjs {
 
-void UncaughtException(JObject& jexception);
+/*
+ * Use default dummy for linux-x86
+ */
 
-void ProcessEmitExit(int code);
+GpioControl* GpioControl::Create(JObject& jgpioctl)
+{
+  return new GpioControl(jgpioctl);
+}
 
-bool ProcessNextTick();
-
-JObject MakeCallback(JObject& function, JObject& this_, JArgList& args);
-
-JObject* InitProcess();
-
-void SetProcessIotjs(JObject* process);
 
 } // namespace iotjs
 
-#endif /* IOTJS_MODULE_PROCESS_H */
+#endif // __NUTTX__

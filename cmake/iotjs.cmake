@@ -14,7 +14,8 @@
 
 cmake_minimum_required(VERSION 2.8)
 
-file(GLOB LIB_IOTJS_SRC ${SRC_ROOT}/*.cpp)
+file(GLOB LIB_IOTJS_SRC ${SRC_ROOT}/*.cpp
+                        ${SRC_ROOT}/device/${DEVICE_DEPENDS}/*.cpp)
 
 set(LIB_IOTJS_CFLAGS ${CFLAGS})
 set(LIB_IOTJS_INCDIR ${TARGET_INC}

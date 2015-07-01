@@ -13,26 +13,41 @@
  * limitations under the License.
  */
 
-#ifndef IOTJS_MODULE_PROCESS_H
-#define IOTJS_MODULE_PROCESS_H
+#ifndef IOTJS_MODULE_GPIOCTL_H
+#define IOTJS_MODULE_GPIOCTL_H
 
 #include "iotjs_binding.h"
 
 
 namespace iotjs {
 
-void UncaughtException(JObject& jexception);
+enum {
+  IOTJS_GPIO_NOTINITED = -1,
+  IOTJS_GPIO_INUSE  = -2,
+};
 
-void ProcessEmitExit(int code);
 
-bool ProcessNextTick();
+class GpioControl : public JObjectWrap {
+public:
+  explicit GpioControl(JObject& jgpioctl);
+  virtual ~GpioControl();
 
-JObject MakeCallback(JObject& function, JObject& this_, JArgList& args);
+  static GpioControl* Create(JObject& jgpioctl);
+  static GpioControl* FromJGpioCtl(JObject& jgpioctl);
 
-JObject* InitProcess();
+  virtual int Initialize(void);
+  virtual void Release(void);
+  virtual int PinMode(uint32_t portpin);
+  virtual int WritePin(uint32_t portpin, uint8_t data);
+  virtual int ReadPin(uint32_t portpin, uint8_t* pdata);
 
-void SetProcessIotjs(JObject* process);
+protected:
+  int _fd;
+};
+
+
+JObject* InitGpioCtl();
 
 } // namespace iotjs
 
-#endif /* IOTJS_MODULE_PROCESS_H */
+#endif /* IOTJS_MODULE_GPIOCTL_H */

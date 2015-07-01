@@ -206,7 +206,7 @@ JHANDLER_FUNCTION(ReadSource, handler){
 JHANDLER_FUNCTION(Cwd, handler){
   IOTJS_ASSERT(handler.GetArgLength() == 0);
 
-  char path[120];
+  char path[IOTJS_MAX_PATH_SIZE];
   size_t size_path = sizeof(path);
   int err = uv_cwd(path, &size_path);
   if (err) {
@@ -292,6 +292,12 @@ JObject* InitProcess() {
   }
 
   return process;
+}
+
+void SetProcessIotjs(JObject* process) {
+  // IoT.js specific
+  JObject iotjs;
+  process->SetProperty("iotjs", iotjs);
 }
 
 

@@ -26,6 +26,7 @@ CMAKE_FORCE_CXX_COMPILER(${EXTERNAL_CMAKE_CXX_COMPILER} GNU)
 
 set(NO_PTHREAD YES)
 set(BUILD_TO_LIB YES)
+set(DEVICE_DEPENDS "nuttx-stm32f4disco")
 
 set(FLAGS_COMMON -mcpu=cortex-m4
                  -mthumb

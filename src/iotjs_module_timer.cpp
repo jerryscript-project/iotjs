@@ -68,9 +68,9 @@ class TimerWrap : public HandleWrap {
 
   void OnTimeout() {
     if (_jcallback != NULL) {
-      IOTJS_ASSERT(jnative().IsObject());
+      IOTJS_ASSERT(jobject().IsObject());
       IOTJS_ASSERT(_jcallback->IsFunction());
-      MakeCallback(*_jcallback, jnative(), JArgList::Empty());
+      MakeCallback(*_jcallback, jobject(), JArgList::Empty());
     }
   }
 
@@ -84,7 +84,7 @@ class TimerWrap : public HandleWrap {
 
 static void timerHandleTimeout(uv_timer_t* handle) {
   TimerWrap* timer_wrap = TimerWrap::FromHandle(handle);
-  IOTJS_ASSERT(timer_wrap->jnative().IsObject());
+  IOTJS_ASSERT(timer_wrap->jobject().IsObject());
   if (timer_wrap) {
     timer_wrap->OnTimeout();
   }
@@ -104,7 +104,7 @@ JHANDLER_FUNCTION(Start, handler) {
 
   TimerWrap* timer_wrap = reinterpret_cast<TimerWrap*>(jtimer->GetNative());
   IOTJS_ASSERT(timer_wrap != NULL);
-  IOTJS_ASSERT(timer_wrap->jnative().IsObject());
+  IOTJS_ASSERT(timer_wrap->jobject().IsObject());
 
   timer_wrap->set_timeout(timeout);
   timer_wrap->set_repeat(repeat);
@@ -146,7 +146,7 @@ JHANDLER_FUNCTION(Timer, handler) {
   JObject* jtimer = handler.GetThis();
 
   TimerWrap* timer_wrap = new TimerWrap(env, *jtimer);
-  IOTJS_ASSERT(timer_wrap->jnative().IsObject());
+  IOTJS_ASSERT(timer_wrap->jobject().IsObject());
   IOTJS_ASSERT(jtimer->GetNative() != 0);;
 
   return true;

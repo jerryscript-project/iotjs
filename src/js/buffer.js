@@ -14,49 +14,56 @@
  */
 
 
-var buffer = process.binding(process.binding.buffer);
-var alloc = buffer.alloc;
-var kMaxLength = buffer.kMaxLength;
+var bufferBuiltin = process.binding(process.binding.buffer);
 var util = require('util');
 
 
-function Buffer(subject, encoding) {
+// Buffer constructor
+// [1] new Buffer(size)
+// [2] new Buffer(buffer)
+// [3] new Buffer(string)
+function Buffer(subject) {
   if (!util.isBuffer(this)) {
-    return new Buffer(subject, encoding);
+    return new Buffer(subject);
   }
 
   if (util.isNumber(subject)) {
     this.length = subject > 0 ? subject >>> 0 : 0;
   } else if (util.isString(subject)) {
     this.length = Buffer.byteLength(subject);
+  } else if (util.isBuffer(subject)) {
+    this.length = subject.length;
+  } else {
+    throw new TypeError('Bad arguments: Buffer(string|number|Buffer)');
   }
 
-  alloc(this, this.length);
+  this._builtin = new bufferBuiltin(this, this.length);
 
   if (util.isString(subject)) {
-    this.write(subject, encoding);
+    this.write(subject);
   } else if (util.isBuffer(subject)) {
-    subject.copy(this, 0, 0, this.length);
+    subject.copy(this);
   }
 };
 
 
-Buffer.byteLength = function(str, enc) {
+// Buffer.byteLength(string)
+Buffer.byteLength = function(str) {
+  // FIXME: Returns actual byte length of string not counts of characters.
   return str.length;
 };
 
 
+// Buffer.concat(list)
 Buffer.concat = function(list) {
   if (!util.isArray(list)) {
-    throw new TypeError(
-        '1st parameter for Buffer.concat() should be array of Buffer');
+    throw new TypeError('Bad arguments: Buffer.concat([Buffer])');
   }
 
-  length = 0;
+  var length = 0;
   for (var i = 0; i < list.length; ++i) {
     if (!util.isBuffer(list[i])) {
-      throw new TypeError(
-          '1st parameter for Buffer.concat() should be array of Buffer');
+      throw new TypeError('Bad arguments: Buffer.concat([Buffer])');
     }
     length += list[i].length;
   }
@@ -72,48 +79,138 @@ Buffer.concat = function(list) {
 };
 
 
-Buffer.prototype.write = function(string, offset, length, encoding) {
-  // buffer.write(string)
-  if (util.isUndefined(offset)) {
-    encoding = 'utf8';
-    length = this.length;
-    offset = 0;
+// Buffer.isBuffer(object)
+Buffer.isBuffer = function(object) {
+  return util.isBuffer(object);
+};
+
+
+// buffer.equals(otherBuffer)
+Buffer.prototype.equals = function(otherBuffer) {
+  if (!util.isBuffer(otherBuffer)) {
+    throw new TypeError('Bad arguments: buffer.equals(Buffer)');
   }
-  // buffer.write(string, encoding)
-  if (util.isUndefined(length) && util.isString(offset)) {
-    encoding = offset;
-    length = this.length;
-    offset = 0;
+
+  return this._builtin.compare(otherBuffer) == 0;
+};
+
+
+// buffer.compare(otherBuffer)
+Buffer.prototype.compare = function(otherBuffer) {
+  if (!util.isBuffer(otherBuffer)) {
+    throw new TypeError('Bad arguments: buffer.compare(Buffer)');
   }
-  // buffer.write(string, offset, length, encoding)
-  offset = offset >>> 0;
-  if (util.isNumber(length)) {
-    length = length >>> 0;
-  } else {
-    encoding = length;
-    length = undefined;
+
+  return this._builtin.compare(otherBuffer);
+};
+
+
+// buffer.copy(target[, targetStart[, sourceStart[, sourceEnd]]])
+// [1] buffer.copy(target)
+// [2] buffer.copy(target, targetStart)
+// [3] buffer.copy(target, targetStart, sourceStart)
+// [4] buffer.copy(target, targetStart, sourceStart, sourceEnd)
+// * targetStart - default to 0
+// * sourceStart - default to 0
+// * sourceEnd - default to buffer.length
+Buffer.prototype.copy = function(target, targetStart, sourceStart, sourceEnd) {
+  if (!util.isBuffer(target)) {
+    throw new TypeError('Bad arguments: buff.copy(Buffer)');
   }
+
+  targetStart = util.isUndefined(targetStart) ? 0 : ~~targetStart;
+  sourceStart = util.isUndefined(sourceStart) ? 0 : ~~sourceStart;
+  sourceEnd = util.isUndefined(sourceEnd) ? this.length : ~~ sourceEnd;
+
+  targetStart = boundRange(targetStart, 0, target.length);
+  sourceStart = boundRange(sourceStart, 0, this.length);
+  sourceEnd = boundRange(sourceEnd, 0, this.length);
+
+  if (sourceEnd < sourceStart) {
+    sourceEnd = sourceStart;
+  }
+
+  return this._builtin.copy(target, targetStart, sourceStart, sourceEnd);
+};
+
+
+// buffer.write(string[, offset[, length]])
+// [1] buffer.write(string)
+// [2] buffer.write(string, offset)
+// [3] buffer.write(string, offset, length)
+// * offset - default to 0
+// * length - default to buffer.length - offset
+Buffer.prototype.write = function(string, offset, length) {
+  if (!util.isString(string)) {
+    throw new TypeError('Bad arguments: buff.write(string)');
+  }
+
+  offset = util.isUndefined(offset) ? 0 : ~~offset;
+  offset = boundRange(offset, 0, this.length);
 
   var remaining = this.length - offset;
-  if (util.isUndefined(length) || length > remaining) {
-    length = remaining;
-  }
-  //encoding = !!encoding ? (encoding + '').toLowerCase() : 'utf8';
+  length = util.isUndefined(length) ? remaining : ~~length;
+  length = boundRange(length, 0, remaining);
 
-  if (length < 0 || offset < 0) {
-    throw new Error('attempt to write outside buffer bounds');
-  }
-
-  return this._write(string, offset, length);
+  return this._builtin.write(string, offset, length);
 };
 
 
-Buffer.prototype.toString = function(encoding, start, end) {
-  return this._toString();
+// buff.slice([start[, end]])
+// [1] buff.slice()
+// [2] buff.slice(start)
+// [3] buff.slice(start, end)
+// * start - default to 0
+// * end - default to buff.length
+Buffer.prototype.slice = function(start, end) {
+  start = util.isUndefined(start) ? 0 : ~~start;
+  end = util.isUndefined(end) ? this.length : ~~end;
+
+  if (start < 0) {
+    start += this.length;
+  }
+  start = boundRange(start, 0, this.length);
+
+  if (end < 0) {
+    end += this.length;
+  }
+  end = boundRange(end, 0, this.length);
+
+  if (end < start) {
+    end = start;
+  }
+
+  return this._builtin.slice(start, end);
 };
 
 
-buffer.setupBufferJs(Buffer);
+// buff.toString([,start[, end]])
+// [1] buff.toString()
+// [2] buff.toString(start)
+// [3] buff.toString(start, end)
+// * start - default to 0
+// * end - default to buff.lengfth
+Buffer.prototype.toString = function(start, end) {
+  start = util.isUndefined(start) ? 0 : ~~start;
+  end = util.isUndefined(end) ? this.length : ~~end;
+
+  start = boundRange(start, 0, this.length);
+  end = boundRange(end, 0, this.length);
+
+  if (end < start) {
+    end = start;
+  }
+
+  return this._builtin.toString(start, end);
+};
+
+
+function boundRange(v, low, upper) {
+  if (v < low) return low;
+  if (v > upper) return upper;
+  return v;
+}
+
 
 module.exports = Buffer;
 module.exports.Buffer = Buffer;

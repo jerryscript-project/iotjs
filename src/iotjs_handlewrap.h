@@ -31,20 +31,13 @@ namespace iotjs {
 // If the object is freed by GC, then this wrapper instance will be also freed.
 class HandleWrap : public JObjectWrap {
  public:
-  HandleWrap(JObject& jnative, /* Native object */
-             JObject& jholder, /* Object hodling the native object */
+  HandleWrap(JObject& jobject, /* Object that connect with the uv handle*/
+             JObject& jholder, /* Object holding the object */
              uv_handle_t* handle);
 
   virtual ~HandleWrap();
 
   static HandleWrap* FromHandle(uv_handle_t* handle);
-
-  // Native object.
-  JObject& jnative();
-
-  // Javascript object that holds the native object.
-  JObject& jholder();
-  void set_jholder(JObject& jholder);
 
   typedef void (*OnCloseHandler)(uv_handle_t*);
 
@@ -52,7 +45,6 @@ class HandleWrap : public JObjectWrap {
 
  protected:
   uv_handle_t* __handle;
-  JObject* _jholder;
 };
 
 

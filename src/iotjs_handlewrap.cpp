@@ -20,22 +20,15 @@
 namespace iotjs {
 
 
-HandleWrap::HandleWrap(JObject& jnative, JObject& jholder, uv_handle_t* handle)
-    : JObjectWrap(jnative)
-    , __handle(handle)
-    , _jholder(NULL) {
-  if (!jholder.IsNull() && !jholder.IsUndefined()) {
-    JRawValueType raw_value = jholder.raw_value();
-    _jholder = new JObject(&raw_value, false);
-  }
+HandleWrap::HandleWrap(JObject& jobject, JObject& jholder, uv_handle_t* handle)
+    : JObjectWrap(jobject, jholder)
+    , __handle(handle) {
   __handle->data = this;
 }
 
 
 HandleWrap::~HandleWrap() {
-  if (_jholder != NULL) {
-    delete _jholder;
-  }
+  Close(NULL);
 }
 
 
@@ -43,26 +36,6 @@ HandleWrap* HandleWrap::FromHandle(uv_handle_t* handle) {
   HandleWrap* wrap = reinterpret_cast<HandleWrap*>(handle->data);
   IOTJS_ASSERT(wrap != NULL);
   return wrap;
-}
-
-
-JObject& HandleWrap::jnative() {
-  return jobject();
-}
-
-
-JObject& HandleWrap::jholder() {
-  IOTJS_ASSERT(_jholder != NULL);
-  return *_jholder;
-}
-
-
-void HandleWrap::set_jholder(JObject& jholder) {
-  IOTJS_ASSERT(_jholder == NULL);
-  IOTJS_ASSERT(jholder.IsObject());
-
-  JRawValueType raw_value = jholder.raw_value();
-  _jholder = new JObject(&raw_value, false);
 }
 
 

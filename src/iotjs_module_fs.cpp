@@ -177,7 +177,7 @@ JHANDLER_FUNCTION(Read, handler) {
   int position = handler.GetArg(4)->GetInt32();
 
   JObject* jbuffer = handler.GetArg(1);
-  Buffer* buffer_wrap = Buffer::FromJBuffer(*jbuffer);
+  BufferWrap* buffer_wrap = BufferWrap::FromJBuffer(*jbuffer);
   char* buffer = buffer_wrap->buffer();
   int buffer_length = buffer_wrap->length();
 
@@ -218,7 +218,7 @@ JHANDLER_FUNCTION(Write, handler) {
   int position = handler.GetArg(4)->GetInt32();
 
   JObject* jbuffer = handler.GetArg(1);
-  Buffer* buffer_wrap = Buffer::FromJBuffer(*jbuffer);
+  BufferWrap* buffer_wrap = BufferWrap::FromJBuffer(*jbuffer);
   char* buffer = buffer_wrap->buffer();
   int buffer_length = buffer_wrap->length();
 

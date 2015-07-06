@@ -27,6 +27,7 @@ typedef jerry_external_handler_t JHandlerType;
 typedef jerry_object_free_callback_t JFreeHandlerType;
 typedef jerry_api_object_t JRawObjectType;
 typedef jerry_api_value_t JRawValueType;
+typedef jerry_api_length_t JRawLengthType;
 
 
 
@@ -61,7 +62,7 @@ class JObject {
   explicit JObject(double v);
 
   // Creates a javascirpt number object.
-  explicit JObject(const char* v);
+  explicit JObject(const jschar* v);
 
   // Creates a object from `JRawObjectType*`.
   // If second argument set true, then ref count for the object will be
@@ -87,18 +88,18 @@ class JObject {
   static JObject Global();
 
   // Create a javascript error object.
-  static JObject Error(const char* message = NULL);
-  static JObject EvalError(const char* message = NULL);
-  static JObject RangeError(const char* message = NULL);
-  static JObject ReferenceError(const char* message = NULL);
-  static JObject SyntaxError(const char* message = NULL);
-  static JObject TypeError(const char* message = NULL);
-  static JObject URIError(const char* message = NULL);
+  static JObject Error(const jschar* message = NULL);
+  static JObject EvalError(const jschar* message = NULL);
+  static JObject RangeError(const jschar* message = NULL);
+  static JObject ReferenceError(const jschar* message = NULL);
+  static JObject SyntaxError(const jschar* message = NULL);
+  static JObject TypeError(const jschar* message = NULL);
+  static JObject URIError(const jschar* message = NULL);
 
 
   // Evaluate javascript source file.
   // `souce` shoud be a null-terminated c string.
-  static JResult Eval(const char* source,
+  static JResult Eval(const jschar* source,
                       bool direct_mode = true,
                       bool strict_mode = false);
 
@@ -124,12 +125,12 @@ class JObject {
   bool IsFunction();
 
   // Sets native handler method for the javascript object.
-  void SetMethod(const char* name, JHandlerType handler);
+  void SetMethod(const jschar* name, JHandlerType handler);
 
   // Sets & gets property for the javascript object.
-  void SetProperty(const char* name, JObject& val);
-  void SetProperty(const char* name, JRawValueType val);
-  JObject GetProperty(const char* name);
+  void SetProperty(const jschar* name, JObject& val);
+  void SetProperty(const jschar* name, JRawValueType val);
+  JObject GetProperty(const jschar* name);
 
   // Sets & gets native data for the javascript object.
   void SetNative(uintptr_t ptr, JFreeHandlerType free_handler);
@@ -148,15 +149,15 @@ class JObject {
   double GetNumber();
 
   // Returns pontiner to null terminated string contents of string object.
-  // Returned pointer should be released using `ReleaseCString()` when it become
-  // unnecessary.
-  char* GetCString();
+  // Returned pointer should be released using `ReleaseByteString()` when
+  // it become unnecessary.
+  jschar* GetByteString();
 
-  // Release memory retrieved from `GetCString()`.
-  static void ReleaseCString(char* str);
+  // Release memory retrieved from `GetByteString()`.
+  static void ReleaseByteString(jschar* str);
 
   // Returns length of null teminated string contents of string object.
-  size_t GetCStringLength();
+  size_t GetByteStringLength();
 
   // Calls javascript function.
   JResult Call(JObject& this_, JArgList& arg);
@@ -170,6 +171,8 @@ class JObject {
 
   // disable assignment.
   JObject& operator=(const JObject& rhs) = delete;
+  // disable char* constructor
+  JObject(const char* v) = delete;
 };
 
 
@@ -277,7 +280,7 @@ class JHandlerInfo {
                       const JRawValueType *this_p, \
                       JRawValueType *ret_val_p, \
                       const JRawValueType args_p [], \
-                      const uint16_t args_cnt) { \
+                      const JRawLengthType args_cnt) { \
     JHandlerInfo info(function_obj_p, this_p, ret_val_p, args_p, args_cnt); \
     return ___ ## handler ## _wrap(info); \
   } \

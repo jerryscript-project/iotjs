@@ -17,18 +17,26 @@
 #define IOTJS_UTIL_H
 
 
+#include "iotjs_types.h"
+
 #include <assert.h>
 
 
 namespace iotjs {
 
 
-char* ReadFile(const char* path);
+int jstrlen(const jschar*);
+jschar* jstrcpy(jschar*, const jschar*);
+jschar* jstrcat(jschar*, const jschar*);
+jschar* jstrncpy(jschar*, const jschar*, size_t);
+
+jschar* ReadFile(const jschar* path);
 
 
-char* AllocBuffer(size_t size);
-char* ReallocBuffer(char* buffer, size_t size);
-void ReleaseBuffer(char* buff);
+octet* AllocBuffer(size_t size);
+octet* ReallocBuffer(octet* buffer, size_t size);
+void ReleaseBuffer(octet* buff);
+
 
 
 void PrintBacktrace();
@@ -37,13 +45,14 @@ void PrintBacktrace();
 class LocalString {
  public:
   LocalString(size_t len);
-  LocalString(char* strp);
+  LocalString(jschar* strp);
   ~LocalString();
 
-  operator char* () const;
+  operator jschar* () const;
+  const char* charbuff() { return reinterpret_cast<const char*>(_strp); }
 
  protected:
-  char* _strp;
+  jschar* _strp;
 };
 
 

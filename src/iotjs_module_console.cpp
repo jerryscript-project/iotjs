@@ -25,9 +25,9 @@ namespace iotjs {
 static bool Print(JHandlerInfo& handler, FILE* out_fd) {
   if (handler.GetArgLength() > 0) {
     if (handler.GetArg(0)->IsString()) {
-      char* str = handler.GetArg(0)->GetCString();
-      fprintf(out_fd, "%s\n", str);
-      JObject::ReleaseCString(str);
+      jschar* str = handler.GetArg(0)->GetByteString();
+      fprintf(out_fd, "%s\n", (const char*)str);
+      JObject::ReleaseByteString(str);
 
       return true;
     }
@@ -52,10 +52,10 @@ JObject* InitConsole() {
 
   if (console == NULL) {
     console = new JObject();
-    console->SetMethod("log", Log);
-    console->SetMethod("info", Log);
-    console->SetMethod("error", Error);
-    console->SetMethod("warn", Error);
+    console->SetMethod(JSCT("log"), Log);
+    console->SetMethod(JSCT("info"), Log);
+    console->SetMethod(JSCT("error"), Error);
+    console->SetMethod(JSCT("warn"), Error);
 
     module->module = console;
   }

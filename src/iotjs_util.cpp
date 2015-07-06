@@ -24,15 +24,39 @@
 namespace iotjs {
 
 
-char* ReadFile(const char* path) {
-  FILE* file = fopen(path, "rb");
+int jstrlen(const jschar* jstr) {
+  return strlen(reinterpret_cast<const char*>(jstr));
+}
+
+
+jschar* jstrcpy(jschar* dst, const jschar* src) {
+  return reinterpret_cast<jschar*>(strcpy(reinterpret_cast<char*>(dst),
+                                          reinterpret_cast<const char*>(src)));
+}
+
+
+jschar* jstrcat(jschar* dst, const jschar* src) {
+  return reinterpret_cast<jschar*>(strcat(reinterpret_cast<char*>(dst),
+                                          reinterpret_cast<const char*>(src)));
+}
+
+
+jschar* jstrncpy(jschar* dst, const jschar* src, size_t num) {
+  return reinterpret_cast<jschar*>(strncpy(reinterpret_cast<char*>(dst),
+                                           reinterpret_cast<const char*>(src),
+                                           num));
+}
+
+
+jschar* ReadFile(const jschar* path) {
+  FILE* file = fopen((const char*)path, "rb");
   IOTJS_ASSERT(file != NULL);
 
   fseek(file, 0, SEEK_END);
   size_t len = ftell(file);
   fseek(file, 0, SEEK_SET);
 
-  char* buff = AllocBuffer(len + 1);
+  jschar* buff = static_cast<jschar*>(AllocBuffer(len + 1));
 
   size_t read = fread(buff, 1, len, file);
   IOTJS_ASSERT(read == len);
@@ -45,29 +69,29 @@ char* ReadFile(const char* path) {
 }
 
 
-char* AllocBuffer(size_t size) {
-  char* buff = static_cast<char*>(malloc(size));
+octet* AllocBuffer(size_t size) {
+  octet* buff = static_cast<octet*>(malloc(size));
   memset(buff, 0, size);
   return buff;
 }
 
 
-char* ReallocBuffer(char* buffer, size_t size) {
-  return static_cast<char*>(realloc(buffer, size));
+octet* ReallocBuffer(octet* buffer, size_t size) {
+  return static_cast<octet*>(realloc(buffer, size));
 }
 
 
-void ReleaseBuffer(char* buffer) {
+void ReleaseBuffer(octet* buffer) {
   free(buffer);
 }
 
 
 LocalString::LocalString(size_t len)
-    : _strp(AllocBuffer(len)) {
+    : _strp(static_cast<jschar*>(AllocBuffer(len))) {
   IOTJS_ASSERT(_strp != NULL);
 }
 
-LocalString::LocalString(char* strp)
+LocalString::LocalString(jschar* strp)
     : _strp(strp) {
   IOTJS_ASSERT(_strp != NULL);
 }
@@ -75,11 +99,11 @@ LocalString::LocalString(char* strp)
 
 LocalString::~LocalString() {
   IOTJS_ASSERT(_strp != NULL);
-  ReleaseBuffer(const_cast<char*>(_strp));
+  ReleaseBuffer(const_cast<jschar*>(_strp));
 }
 
 
-LocalString::operator char* () const {
+LocalString::operator jschar* () const {
   return _strp;
 }
 

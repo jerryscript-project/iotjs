@@ -42,7 +42,7 @@ static bool InitJerry() {
 
   InitJerryMagicStringEx();
 
-  if (!jerry_parse("", 0)) {
+  if (!jerry_parse(JSCT(""), 0)) {
     DLOG("jerry_parse() failed");
     return false;
   }
@@ -134,9 +134,9 @@ int Start(char* src) {
   // FIXME: this should be moved to seperate function
   {
     JObject argv;
-    JObject user_filename(src);
-    argv.SetProperty("1", user_filename);
-    process->SetProperty("argv", argv);
+    JObject user_filename(JSCT(src));
+    argv.SetProperty(JSCT("1"), user_filename);
+    process->SetProperty(JSCT("argv"), argv);
   }
 
   if (!StartIoTjs(process)) {

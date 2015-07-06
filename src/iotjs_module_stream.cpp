@@ -39,7 +39,7 @@ JObject* InitStream() {
 
   if (stream == NULL) {
     stream = new JObject();
-    stream->SetMethod("doWrite", DoWrite);
+    stream->SetMethod(JSCT("doWrite"), DoWrite);
 
     module->module = stream;
   }

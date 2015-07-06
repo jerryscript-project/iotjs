@@ -26,7 +26,7 @@ namespace iotjs {
 #define SET_CONSTANT(object, constant) \
   do { \
     JObject value(constant); \
-    object->SetProperty(#constant, value); \
+    object->SetProperty(JSCT(#constant), value); \
   } while (0)
 
 

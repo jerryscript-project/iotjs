@@ -13,24 +13,19 @@
  * limitations under the License.
  */
 
-#include "iotjs_exception.h"
 
-#include <stdio.h>
-
-#include "uv.h"
+#ifndef IOTJS_TYPES_H
+#define IOTJS_TYPES_H
 
 
-namespace iotjs {
+typedef uint8_t jschar;  /* follow jerry_api_char_t type which is uint8_t */
+
+#define JSCT(a) reinterpret_cast<const jschar*>((const char*)a)
 
 
-JObject CreateUVException(int errorno, const jschar* syscall) {
-    static char msg[256];
-    snprintf(msg, sizeof(msg),
-             "'%s' %s",
-             reinterpret_cast<const char*>(syscall),
-             uv_strerror(errorno));
-    return JObject::Error(JSCT(msg));
-}
+typedef uint8_t octet;  /* for Buffer byte element */
+
+#define OCTET(a) reinterpret_cast<octet*>(a)
 
 
-} // namespace iotjs
+#endif /* IOTJS_TYPES_H */

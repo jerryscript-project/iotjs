@@ -36,7 +36,7 @@ my $lisence = "/* Copyright 2015 Samsung Electronics Co., Ltd.
  * Do not modify this.
  */\n";
 my $header = "#ifndef IOTJS_JS_H\n#define IOTJS_JS_H\nnamespace iotjs{\n";
-my $start_variable = "  const char mainjs[] = {\n";
+my $start_variable = "  const jschar mainjs[] = {\n";
 my $end_variable = "0 };\n";
 my $foot = "}\n#endif\n";
 
@@ -74,8 +74,8 @@ foreach(@filenames) {
     my $name = $_;
     $name =~ s{\.[^.]+$}{};
 
-    print $out "const char $name\_n [] = \"$name\";\n";
-    print $out "const char $name\_s [] = \{\n";
+    print $out "const jschar $name\_n [] = \"$name\";\n";
+    print $out "const jschar $name\_s [] = \{\n";
 
     open(my $in, "<../src/js/$name.js") || die "Cannot open $name.js\n";
     my $data = do { local $/; <$in> };
@@ -97,8 +97,8 @@ foreach(@filenames) {
 
 my $native_struct = <<'END_NATIVE_STRUCT';
 struct native_mod {
-  const char* name;
-  const char* source;
+  const jschar* name;
+  const jschar* source;
   const int length;
 };
 

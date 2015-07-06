@@ -60,7 +60,8 @@ static JObject* GetProcess() {
 void UncaughtException(JObject& jexception) {
   JObject* process = GetProcess();
 
-  JObject jonuncaughtexception(process->GetProperty("_onUncaughtExcecption"));
+  JObject jonuncaughtexception(
+                      process->GetProperty(JSCT("_onUncaughtExcecption")));
   IOTJS_ASSERT(jonuncaughtexception.IsFunction());
 
   JArgList args(1);
@@ -74,7 +75,7 @@ void UncaughtException(JObject& jexception) {
 void ProcessEmitExit(int code) {
   JObject* process = GetProcess();
 
-  JObject jexit(process->GetProperty("emitExit"));
+  JObject jexit(process->GetProperty(JSCT("emitExit")));
   IOTJS_ASSERT(jexit.IsFunction());
 
   JArgList args(1);
@@ -91,7 +92,7 @@ void ProcessEmitExit(int code) {
 bool ProcessNextTick() {
   JObject* process = GetProcess();
 
-  JObject jon_next_tick(process->GetProperty("_onNextTick"));
+  JObject jon_next_tick(process->GetProperty(JSCT("_onNextTick")));
   IOTJS_ASSERT(jon_next_tick.IsFunction());
 
   JResult jres = jon_next_tick.Call(JObject::Null(), JArgList::Empty());
@@ -145,7 +146,7 @@ JHANDLER_FUNCTION(Compile, handler){
   IOTJS_ASSERT(handler.GetArgLength() == 1);
   IOTJS_ASSERT(handler.GetArg(0)->IsString());
 
-  LocalString code(handler.GetArg(0)->GetCString());
+  LocalString code(handler.GetArg(0)->GetByteString());
 
   JResult jres(JObject::Eval(code));
 
@@ -163,19 +164,19 @@ JHANDLER_FUNCTION(CompileNativePtr, handler){
   IOTJS_ASSERT(handler.GetArgLength() == 1);
   IOTJS_ASSERT(handler.GetArg(0)->IsObject());
 
-  char* source = (char*)(handler.GetArg(0)->GetNative());
+  jschar* source = (jschar*)(handler.GetArg(0)->GetNative());
 
-  const char* wrapper[2] = {
-    "(function (a, b, c) { function wwwwrap(exports,require, module) {",
-    " }; wwwwrap(a, b, c); });" };
+  const jschar* wrapper[2] = {
+    JSCT("(function (a, b, c) { function wwwwrap(exports,require, module) {"),
+    JSCT(" }; wwwwrap(a, b, c); });") };
 
-  int len = strlen(source) + strlen(wrapper[0]) + strlen(wrapper[1]);
+  int len = jstrlen(source) + jstrlen(wrapper[0]) + jstrlen(wrapper[1]);
 
   LocalString code(len + 1);
 
-  strcpy(code,wrapper[0]);
-  strcat(code,source);
-  strcat(code,wrapper[1]);
+  jstrcpy(code, wrapper[0]);
+  jstrcat(code, source);
+  jstrcat(code, wrapper[1]);
 
   JResult jres(JObject::Eval(code));
 
@@ -193,7 +194,7 @@ JHANDLER_FUNCTION(ReadSource, handler){
   IOTJS_ASSERT(handler.GetArgLength() == 1);
   IOTJS_ASSERT(handler.GetArg(0)->IsString());
 
-  LocalString path(handler.GetArg(0)->GetCString());
+  LocalString path(handler.GetArg(0)->GetByteString());
   LocalString code(ReadFile(path));
 
   JObject ret(code);
@@ -210,9 +211,9 @@ JHANDLER_FUNCTION(Cwd, handler){
   size_t size_path = sizeof(path);
   int err = uv_cwd(path, &size_path);
   if (err) {
-    JHANDLER_THROW_RETURN(handler, Error, "cwd error");
+    JHANDLER_THROW_RETURN(handler, Error, JSCT("cwd error"));
   }
-  JObject ret(path);
+  JObject ret(JSCT(path));
   handler.Return(ret);
 
   return true;
@@ -244,10 +245,10 @@ void SetProcessEnv(JObject* process){
   if (homedir == NULL) {
     homedir = "";
   }
-  JObject home(homedir);
+  JObject home(JSCT(homedir));
   JObject env;
-  env.SetProperty("HOME", home);
-  process->SetProperty("env", env);
+  env.SetProperty(JSCT("HOME"), home);
+  process->SetProperty(JSCT("env"), env);
 }
 
 
@@ -257,32 +258,32 @@ JObject* InitProcess() {
 
   if (process == NULL) {
     process = new JObject();
-    process->SetMethod("binding", Binding);
-    process->SetMethod("compile", Compile);
-    process->SetMethod("compileNativePtr", CompileNativePtr);
-    process->SetMethod("readSource", ReadSource);
-    process->SetMethod("cwd", Cwd);
-    process->SetMethod("doExit", DoExit);
+    process->SetMethod(JSCT("binding"), Binding);
+    process->SetMethod(JSCT("compile"), Compile);
+    process->SetMethod(JSCT("compileNativePtr"), CompileNativePtr);
+    process->SetMethod(JSCT("readSource"), ReadSource);
+    process->SetMethod(JSCT("cwd"), Cwd);
+    process->SetMethod(JSCT("doExit"), DoExit);
     SetProcessEnv(process);
 
     // process.native_sources
     JObject native_sources;
     SetNativeSources(&native_sources);
-    process->SetProperty("native_sources", native_sources);
+    process->SetProperty(JSCT("native_sources"), native_sources);
 
     // process.platform
-    JObject platform(PLATFORM);
-    process->SetProperty("platform", platform);
+    JObject platform(JSCT(PLATFORM));
+    process->SetProperty(JSCT("platform"), platform);
 
     // process.arch
-    JObject arch(ARCHITECTURE);
-    process->SetProperty("arch", arch);
+    JObject arch(JSCT(ARCHITECTURE));
+    process->SetProperty(JSCT("arch"), arch);
 
     // Binding module id.
-    JObject jbinding = process->GetProperty("binding");
+    JObject jbinding = process->GetProperty(JSCT("binding"));
 
 #define ENUMDEF_MODULE_LIST(upper, Camel, lower) \
-    jbinding.SetProperty(# lower, JVal::Number(MODULE_ ## upper));
+    jbinding.SetProperty(JSCT(# lower), JVal::Number(MODULE_ ## upper));
 
     MAP_MODULE_LIST(ENUMDEF_MODULE_LIST)
 
@@ -297,7 +298,7 @@ JObject* InitProcess() {
 void SetProcessIotjs(JObject* process) {
   // IoT.js specific
   JObject iotjs;
-  process->SetProperty("iotjs", iotjs);
+  process->SetProperty(JSCT("iotjs"), iotjs);
 }
 
 

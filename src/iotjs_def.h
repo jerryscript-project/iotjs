@@ -44,6 +44,7 @@
 #include "iotjs_debuglog.h"
 #include "iotjs_module.h"
 #include "iotjs_module_process.h"
+#include "iotjs_types.h"
 #include "iotjs_util.h"
 
 #include <uv.h>

@@ -19,8 +19,6 @@ var util = require('util');
 var Stream = stream.Stream;
 var Duplex = stream.Duplex;
 
-var streamBuiltin = process.binding(process.binding.stream);
-
 
 function WriteReq(chunk, callback) {
   this.chunk = chunk;

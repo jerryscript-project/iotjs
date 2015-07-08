@@ -32,7 +32,6 @@ typedef JObject* (*register_func)();
   F(CONSTANTS, Constants, constants) \
   F(FS, Fs, fs) \
   F(PROCESS, Process, process) \
-  F(STREAM, Stream, stream) \
   F(TCP, Tcp, tcp) \
   F(TIMER, Timer, timer) \
   F(GPIOCTL, GpioCtl, gpioctl)

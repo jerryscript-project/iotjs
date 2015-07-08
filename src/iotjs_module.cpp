@@ -22,7 +22,6 @@
 #include "iotjs_module_constants.h"
 #include "iotjs_module_fs.h"
 #include "iotjs_module_process.h"
-#include "iotjs_module_stream.h"
 #include "iotjs_module_tcp.h"
 #include "iotjs_module_timer.h"
 #include "iotjs_module_gpioctl.h"

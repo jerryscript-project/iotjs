@@ -164,14 +164,14 @@ JObject* InitGpioCtl() {
   if (jgpioctl == NULL) {
     jgpioctl = new JObject();
 
-    jgpioctl->SetMethod(JSCT("initialize"), Initialize);
-    jgpioctl->SetMethod(JSCT("release"), Release);
-    jgpioctl->SetMethod(JSCT("pinmode"), PinMode);
-    jgpioctl->SetMethod(JSCT("writepin"), WritePin);
-    jgpioctl->SetMethod(JSCT("readpin"), ReadPin);
+    jgpioctl->SetMethod("initialize", Initialize);
+    jgpioctl->SetMethod("release", Release);
+    jgpioctl->SetMethod("pinmode", PinMode);
+    jgpioctl->SetMethod("writepin", WritePin);
+    jgpioctl->SetMethod("readpin", ReadPin);
 
-    SET_CONSTANT(jgpioctl, JSCT("NOTINITIALIZED"), IOTJS_GPIO_NOTINITED);
-    SET_CONSTANT(jgpioctl, JSCT("INUSE"), IOTJS_GPIO_INUSE);
+    SET_CONSTANT(jgpioctl, "NOTINITIALIZED", IOTJS_GPIO_NOTINITED);
+    SET_CONSTANT(jgpioctl, "INUSE", IOTJS_GPIO_INUSE);
 
     GpioControl* gpioctrl = GpioControl::Create(*jgpioctl);
     IOTJS_ASSERT(gpioctrl ==

@@ -53,7 +53,7 @@ static void After(uv_fs_t* req) {
 
   JArgList jarg(2);
   if (req->result < 0) {
-    JObject jerror(CreateUVException(req->result, JSCT("open")));
+    JObject jerror(CreateUVException(req->result, "open"));
     jarg.Add(jerror);
   } else {
     jarg.Add(JObject::Null());
@@ -111,7 +111,7 @@ static void After(uv_fs_t* req) {
                               __VA_ARGS__, \
                               NULL); \
   if (err < 0) { \
-    JObject jerror(CreateUVException(err, JSCT(#syscall))); \
+    JObject jerror(CreateUVException(err, #syscall)); \
     handler.Throw(jerror); \
     return false; \
   } \
@@ -145,14 +145,14 @@ JHANDLER_FUNCTION(Open, handler) {
 
   Environment* env = Environment::GetEnv();
 
-  LocalString path(handler.GetArg(0)->GetByteString());
+  String path = handler.GetArg(0)->GetString();
   int flags = handler.GetArg(1)->GetInt32();
   int mode = handler.GetArg(2)->GetInt32();
 
   if (handler.GetArgLength() > 3 && handler.GetArg(3)->IsFunction()) {
-    FS_ASYNC(env, open, handler.GetArg(3), path.charbuff(), flags, mode);
+    FS_ASYNC(env, open, handler.GetArg(3), path.data(), flags, mode);
   } else {
-    FS_SYNC(env, open, path.charbuff(), flags, mode);
+    FS_SYNC(env, open, path.data(), flags, mode);
     handler.Return(JVal::Number(err));
   }
 
@@ -178,17 +178,17 @@ JHANDLER_FUNCTION(Read, handler) {
 
   JObject* jbuffer = handler.GetArg(1);
   BufferWrap* buffer_wrap = BufferWrap::FromJBuffer(*jbuffer);
-  jschar* buffer = buffer_wrap->buffer();
-  int buffer_length = buffer_wrap->length();
+  char* data = buffer_wrap->buffer();
+  int data_length = buffer_wrap->length();
 
-  if (offset >= buffer_length) {
-    JHANDLER_THROW_RETURN(handler, RangeError, JSCT("offset out of bound"));
+  if (offset >= data_length) {
+    JHANDLER_THROW_RETURN(handler, RangeError, "offset out of bound");
   }
-  if (offset + length > buffer_length) {
-    JHANDLER_THROW_RETURN(handler, RangeError, JSCT("length out of bound"));
+  if (offset + length > data_length) {
+    JHANDLER_THROW_RETURN(handler, RangeError, "length out of bound");
   }
 
-  uv_buf_t uvbuf = uv_buf_init(reinterpret_cast<char*>(buffer + offset),
+  uv_buf_t uvbuf = uv_buf_init(reinterpret_cast<char*>(data + offset),
                                length);
 
   if (handler.GetArgLength() > 5 && handler.GetArg(5)->IsFunction()) {
@@ -220,17 +220,17 @@ JHANDLER_FUNCTION(Write, handler) {
 
   JObject* jbuffer = handler.GetArg(1);
   BufferWrap* buffer_wrap = BufferWrap::FromJBuffer(*jbuffer);
-  jschar* buffer = buffer_wrap->buffer();
-  int buffer_length = buffer_wrap->length();
+  char* data = buffer_wrap->buffer();
+  int data_length = buffer_wrap->length();
 
-  if (offset >= buffer_length) {
-    JHANDLER_THROW_RETURN(handler, RangeError, JSCT("offset out of bound"));
+  if (offset >= data_length) {
+    JHANDLER_THROW_RETURN(handler, RangeError, "offset out of bound");
   }
-  if (offset + length > buffer_length) {
-    JHANDLER_THROW_RETURN(handler, RangeError, JSCT("length out of bound"));
+  if (offset + length > data_length) {
+    JHANDLER_THROW_RETURN(handler, RangeError, "length out of bound");
   }
 
-  uv_buf_t uvbuf = uv_buf_init(reinterpret_cast<char*>(buffer + offset),
+  uv_buf_t uvbuf = uv_buf_init(reinterpret_cast<char*>(data + offset),
                                length);
 
   if (handler.GetArgLength() > 5 && handler.GetArg(5)->IsFunction()) {
@@ -272,7 +272,7 @@ JObject MakeStatObject(uv_stat_t* statbuf) {
 
   Module* module = GetBuiltinModule(MODULE_FS);
   JObject* fs = module->module;
-  JObject createStat = fs->GetProperty(JSCT("createStat"));
+  JObject createStat = fs->GetProperty("createStat");
 
   JArgList args(10);
   args.Add(dev);
@@ -297,20 +297,20 @@ JHANDLER_FUNCTION(Stat, handler) {
   int argc = handler.GetArgLength();
 
   if (argc < 1) {
-    JHANDLER_THROW_RETURN(handler, TypeError, JSCT("path required"));
+    JHANDLER_THROW_RETURN(handler, TypeError, "path required");
   }
   if (!handler.GetArg(0)->IsString()) {
-    JHANDLER_THROW_RETURN(handler, TypeError, JSCT("path must be a string"));
+    JHANDLER_THROW_RETURN(handler, TypeError, "path must be a string");
   }
 
   Environment* env = Environment::GetEnv();
 
-  LocalString path(handler.GetArg(0)->GetByteString());
+  String path = handler.GetArg(0)->GetString();
 
   if (argc > 1 && handler.GetArg(1)->IsFunction()) {
-    FS_ASYNC(env, stat, handler.GetArg(1), path.charbuff());
+    FS_ASYNC(env, stat, handler.GetArg(1), path.data());
   } else {
-    FS_SYNC(env, stat, path.charbuff());
+    FS_SYNC(env, stat, path.data());
     uv_stat_t* s = &(req_wrap.data()->statbuf);
     JObject ret(MakeStatObject(s));
     handler.Return(ret);
@@ -326,11 +326,11 @@ JObject* InitFs() {
 
   if (fs == NULL) {
     fs = new JObject();
-    fs->SetMethod(JSCT("close"), Close);
-    fs->SetMethod(JSCT("open"), Open);
-    fs->SetMethod(JSCT("read"), Read);
-    fs->SetMethod(JSCT("write"), Write);
-    fs->SetMethod(JSCT("stat"), Stat);
+    fs->SetMethod("close", Close);
+    fs->SetMethod("open", Open);
+    fs->SetMethod("read", Read);
+    fs->SetMethod("write", Write);
+    fs->SetMethod("stat", Stat);
 
     module->module = fs;
   }

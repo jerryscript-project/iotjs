@@ -51,7 +51,7 @@ BufferWrap* BufferWrap::FromJBufferBuiltin(JObject& jbuiltin) {
 
 BufferWrap* BufferWrap::FromJBuffer(JObject& jbuffer) {
   IOTJS_ASSERT(jbuffer.IsObject());
-  JObject jbuiltin(jbuffer.GetProperty(JSCT("_builtin")));
+  JObject jbuiltin(jbuffer.GetProperty("_builtin"));
   return FromJBufferBuiltin(jbuiltin);
 }
 
@@ -67,14 +67,14 @@ JObject& BufferWrap::jbuffer() {
 }
 
 
-octet* BufferWrap::buffer() {
+char* BufferWrap::buffer() {
   return _buffer;
 }
 
 
 size_t BufferWrap::length() {
 #ifndef NDEBUG
-  int length = jbuffer().GetProperty(JSCT("length")).GetInt32();
+  int length = jbuffer().GetProperty("length").GetInt32();
   IOTJS_ASSERT(static_cast<size_t>(length) == _length);
 #endif
   return _length;
@@ -102,12 +102,12 @@ int BufferWrap::Compare(const BufferWrap& other) const {
 }
 
 
-size_t BufferWrap::Copy(octet* src, size_t len) {
+size_t BufferWrap::Copy(char* src, size_t len) {
   return Copy(src, 0, len, 0);
 }
 
 
-size_t BufferWrap::Copy(octet* src,
+size_t BufferWrap::Copy(char* src,
                         size_t src_from,
                         size_t src_to,
                         size_t dst_from) {
@@ -127,7 +127,7 @@ JObject CreateBuffer(size_t len) {
   JObject jglobal(JObject::Global());
   IOTJS_ASSERT(jglobal.IsObject());
 
-  JObject jBuffer(jglobal.GetProperty(JSCT("Buffer")));
+  JObject jBuffer(jglobal.GetProperty("Buffer"));
   IOTJS_ASSERT(jBuffer.IsFunction());
 
   JArgList jargs(1);
@@ -212,8 +212,7 @@ JHANDLER_FUNCTION(Write, handler) {
   IOTJS_ASSERT(handler.GetArg(1)->IsNumber());
   IOTJS_ASSERT(handler.GetArg(2)->IsNumber());
 
-  LocalString src(handler.GetArg(0)->GetByteString());
-
+  String src = handler.GetArg(0)->GetString();
   int offset = handler.GetArg(1)->GetInt32();
   int length = handler.GetArg(2)->GetInt32();
 
@@ -221,8 +220,7 @@ JHANDLER_FUNCTION(Write, handler) {
 
   BufferWrap* buffer_wrap = BufferWrap::FromJBufferBuiltin(*jbuiltin);
 
-  size_t copied = buffer_wrap->Copy(reinterpret_cast<octet*>((jschar*)(src)),
-                                    0, length, offset);
+  size_t copied = buffer_wrap->Copy(src.data(), 0, length, offset);
 
   handler.Return(JVal::Number((int)copied));
 
@@ -267,10 +265,9 @@ JHANDLER_FUNCTION(ToString, handler) {
   int length = end - start;
   IOTJS_ASSERT(length >= 0);
 
-  LocalString str(length + 1);
+  String str("", length + 1);
 
-  jstrncpy(str, buffer_wrap->buffer() + start, length);
-  str[length] = 0;
+  strncpy(str.data(), buffer_wrap->buffer() + start, length);
 
   JObject ret(str);
   handler.Return(ret);
@@ -287,13 +284,13 @@ JObject* InitBuffer() {
     buffer = new JObject(Buffer);
 
     JObject prototype;
-    buffer->SetProperty(JSCT("prototype"), prototype);
+    buffer->SetProperty("prototype", prototype);
 
-    prototype.SetMethod(JSCT("compare"), Compare);
-    prototype.SetMethod(JSCT("copy"), Copy);
-    prototype.SetMethod(JSCT("write"), Write);
-    prototype.SetMethod(JSCT("slice"), Slice);
-    prototype.SetMethod(JSCT("toString"), ToString);
+    prototype.SetMethod("compare", Compare);
+    prototype.SetMethod("copy", Copy);
+    prototype.SetMethod("write", Write);
+    prototype.SetMethod("slice", Slice);
+    prototype.SetMethod("toString", ToString);
 
     module->module = buffer;
   }

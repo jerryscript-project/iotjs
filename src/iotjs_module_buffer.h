@@ -42,16 +42,16 @@ class BufferWrap : public JObjectWrap {
   JObject& jbuiltin();
   JObject& jbuffer();
 
-  octet* buffer();
+  char* buffer();
   size_t length();
 
   int Compare(const BufferWrap& other) const;
 
-  size_t Copy(octet* src, size_t len);
-  size_t Copy(octet* src, size_t src_from, size_t src_to, size_t dst_from);
+  size_t Copy(char* src, size_t len);
+  size_t Copy(char* src, size_t src_from, size_t src_to, size_t dst_from);
 
  protected:
-  octet* _buffer;
+  char* _buffer;
   size_t _length;
 };
 

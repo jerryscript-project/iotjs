@@ -95,9 +95,20 @@ JObject::JObject(double v) {
 }
 
 
-JObject::JObject(const jschar* v) {
+JObject::JObject(const char* v) {
+  IOTJS_ASSERT(v != NULL);
   _obj_val.type = JERRY_API_DATA_TYPE_STRING;
-  _obj_val.v_string = jerry_api_create_string(v);
+  _obj_val.v_string = jerry_api_create_string(
+      reinterpret_cast<const jerry_api_char_t*>(v));
+  _unref_at_close = true;
+}
+
+
+JObject::JObject(const String& v) {
+  IOTJS_ASSERT(!v.IsEmpty());
+  _obj_val.type = JERRY_API_DATA_TYPE_STRING;
+  _obj_val.v_string = jerry_api_create_string(
+      reinterpret_cast<const jerry_api_char_t*>(v.data()));
   _unref_at_close = true;
 }
 
@@ -148,50 +159,92 @@ JObject JObject::Global() {
 }
 
 
-JObject JObject::Error(const jschar* message) {
-  return JObject(jerry_api_create_error(JERRY_API_ERROR_COMMON, message));
+JObject CreateError(const char* message, jerry_api_error_t error) {
+  return JObject(jerry_api_create_error(
+      error, reinterpret_cast<const jerry_api_char_t*>(message)));
 }
 
 
-JObject JObject::EvalError(const jschar* message) {
-  return JObject(jerry_api_create_error(JERRY_API_ERROR_EVAL, message));
+JObject JObject::Error(const char* message) {
+  return CreateError(message, JERRY_API_ERROR_COMMON);
 }
 
 
-JObject JObject::RangeError(const jschar* message) {
-  return JObject(jerry_api_create_error(JERRY_API_ERROR_RANGE, message));
+JObject JObject::Error(const String& message) {
+  return CreateError(message.data(), JERRY_API_ERROR_COMMON);
 }
 
 
-JObject JObject::ReferenceError(const jschar* message) {
-  return JObject(jerry_api_create_error(JERRY_API_ERROR_REFERENCE, message));
+JObject JObject::EvalError(const char* message) {
+  return CreateError(message, JERRY_API_ERROR_EVAL);
 }
 
 
-JObject JObject::SyntaxError(const jschar* message) {
-  return JObject(jerry_api_create_error(JERRY_API_ERROR_SYNTAX, message));
+JObject JObject::EvalError(const String& message) {
+  return CreateError(message.data(), JERRY_API_ERROR_COMMON);
 }
 
 
-JObject JObject::TypeError(const jschar* message) {
-  return JObject(jerry_api_create_error(JERRY_API_ERROR_TYPE, message));
+JObject JObject::RangeError(const char* message) {
+  return CreateError(message, JERRY_API_ERROR_RANGE);
 }
 
 
-JObject JObject::URIError(const jschar* message) {
-  return JObject(jerry_api_create_error(JERRY_API_ERROR_URI, message));
+JObject JObject::RangeError(const String& message) {
+  return CreateError(message.data(), JERRY_API_ERROR_COMMON);
 }
 
 
-JResult JObject::Eval(const jschar* source, bool direct_mode,
+JObject JObject::ReferenceError(const char* message) {
+  return CreateError(message, JERRY_API_ERROR_REFERENCE);
+}
+
+
+JObject JObject::ReferenceError(const String& message) {
+  return CreateError(message.data(), JERRY_API_ERROR_COMMON);
+}
+
+
+JObject JObject::SyntaxError(const char* message) {
+  return CreateError(message, JERRY_API_ERROR_SYNTAX);
+}
+
+
+JObject JObject::SyntaxError(const String& message) {
+  return CreateError(message.data(), JERRY_API_ERROR_COMMON);
+}
+
+
+JObject JObject::TypeError(const char* message) {
+  return CreateError(message, JERRY_API_ERROR_TYPE);
+}
+
+
+JObject JObject::TypeError(const String& message) {
+  return CreateError(message.data(), JERRY_API_ERROR_COMMON);
+}
+
+
+JObject JObject::URIError(const char* message) {
+  return CreateError(message, JERRY_API_ERROR_COMMON);
+}
+
+
+JObject JObject::URIError(const String& message) {
+  return CreateError(message.data(), JERRY_API_ERROR_COMMON);
+}
+
+
+JResult JObject::Eval(const String& source,
+                      bool direct_mode,
                       bool strict_mode) {
-  size_t source_len = jstrlen(source);
   JRawValueType res;
-  jerry_completion_code_t ret = jerry_api_eval(source,
-                                               source_len,
-                                               direct_mode,
-                                               strict_mode,
-                                               &res);
+  jerry_completion_code_t ret = jerry_api_eval(
+      reinterpret_cast<const jerry_api_char_t*>(source.data()),
+      source.size(),
+      direct_mode,
+      strict_mode,
+      &res);
 
   IOTJS_ASSERT(ret == JERRY_COMPLETION_CODE_OK ||
                ret == JERRY_COMPLETION_CODE_UNHANDLED_EXCEPTION);
@@ -204,34 +257,58 @@ JResult JObject::Eval(const jschar* source, bool direct_mode,
 }
 
 
-void JObject::SetMethod(const jschar* name, JHandlerType handler) {
+void JObject::SetMethod(const char* name, JHandlerType handler) {
   IOTJS_ASSERT(IsObject());
   JObject method(jerry_api_create_external_function(handler));
   SetProperty(name, method);
 }
 
 
-void JObject::SetProperty(const jschar* name, JObject& val) {
+void JObject::SetProperty(const char* name, const JObject& val) {
   IOTJS_ASSERT(IsObject());
   JRawValueType v = val.raw_value();
-  bool is_ok  = jerry_api_set_object_field_value(_obj_val.v_object, name, &v);
+  bool is_ok  = jerry_api_set_object_field_value(
+      _obj_val.v_object,
+      reinterpret_cast<const jerry_api_char_t*>(name),
+      &v);
   IOTJS_ASSERT(is_ok);
 }
 
 
-void JObject::SetProperty(const jschar* name, JRawValueType val) {
+void JObject::SetProperty(const String& name, const JObject& val) {
+  SetProperty(name.data(), val);
+}
+
+
+void JObject::SetProperty(const char* name, JRawValueType val) {
   IOTJS_ASSERT(IsObject());
-  bool is_ok  = jerry_api_set_object_field_value(_obj_val.v_object, name, &val);
+  bool is_ok  = jerry_api_set_object_field_value(
+        _obj_val.v_object,
+        reinterpret_cast<const jerry_api_char_t*>(name),
+        &val);
   IOTJS_ASSERT(is_ok);
 }
 
 
-JObject JObject::GetProperty(const jschar* name) {
+void JObject::SetProperty(const String& name, JRawValueType val) {
+  SetProperty(name.data(), val);
+}
+
+
+JObject JObject::GetProperty(const char* name) {
   IOTJS_ASSERT(IsObject());
   JRawValueType res;
-  bool is_ok = jerry_api_get_object_field_value(_obj_val.v_object, name, &res);
+  bool is_ok = jerry_api_get_object_field_value(
+      _obj_val.v_object,
+      reinterpret_cast<const jerry_api_char_t*>(name),
+      &res);
   IOTJS_ASSERT(is_ok);
   return JObject(&res);
+}
+
+
+JObject JObject::GetProperty(const String& name) {
+  return GetProperty(name.data());
 }
 
 
@@ -364,30 +441,23 @@ double JObject::GetNumber() {
 }
 
 
-jschar* JObject::GetByteString() {
+String JObject::GetString() {
   IOTJS_ASSERT(IsString());
 
-  size_t size = -GetByteStringLength();
-  octet* buffer = AllocBuffer(size);
-  jschar* jsbuffer = reinterpret_cast<jschar*>(buffer);
+  size_t size = -jerry_api_string_to_char_buffer(_obj_val.v_string, NULL, 0);
+
+  String res("", size);
+
+  jerry_api_char_t* buffer = reinterpret_cast<jerry_api_char_t*>(res.data());
+
   size_t check = jerry_api_string_to_char_buffer(_obj_val.v_string,
-                                                 jsbuffer,
+                                                 buffer,
                                                  size);
+
   IOTJS_ASSERT(check == size);
-  return buffer;
+
+  return res;
 }
-
-
-void JObject::ReleaseByteString(jschar* str) {
-  ReleaseBuffer(reinterpret_cast<octet*>(str));
-}
-
-
-size_t JObject::GetByteStringLength() {
-  IOTJS_ASSERT(IsString());
-  return jerry_api_string_to_char_buffer(_obj_val.v_string, NULL, 0);
-}
-
 
 
 JResult::JResult(const JObject& value, JResultType type)

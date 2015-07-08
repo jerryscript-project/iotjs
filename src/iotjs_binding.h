@@ -30,7 +30,6 @@ typedef jerry_api_value_t JRawValueType;
 typedef jerry_api_length_t JRawLengthType;
 
 
-
 class JObject;
 class JResult;
 class JArgList;
@@ -61,8 +60,9 @@ class JObject {
   explicit JObject(int v);
   explicit JObject(double v);
 
-  // Creates a javascirpt number object.
-  explicit JObject(const jschar* v);
+  // Creates a javascirpt string object.
+  explicit JObject(const char* v);
+  explicit JObject(const String& v);
 
   // Creates a object from `JRawObjectType*`.
   // If second argument set true, then ref count for the object will be
@@ -88,18 +88,30 @@ class JObject {
   static JObject Global();
 
   // Create a javascript error object.
-  static JObject Error(const jschar* message = NULL);
-  static JObject EvalError(const jschar* message = NULL);
-  static JObject RangeError(const jschar* message = NULL);
-  static JObject ReferenceError(const jschar* message = NULL);
-  static JObject SyntaxError(const jschar* message = NULL);
-  static JObject TypeError(const jschar* message = NULL);
-  static JObject URIError(const jschar* message = NULL);
+  static JObject Error(const char* message);
+  static JObject Error(const String& message);
+
+  static JObject EvalError(const char* message);
+  static JObject EvalError(const String& message);
+
+  static JObject RangeError(const char* message);
+  static JObject RangeError(const String& message);
+
+  static JObject ReferenceError(const char* message);
+  static JObject ReferenceError(const String& message);
+
+  static JObject SyntaxError(const char* message);
+  static JObject SyntaxError(const String& message);
+
+  static JObject TypeError(const char* message);
+  static JObject TypeError(const String& message);
+
+  static JObject URIError(const char* message);
+  static JObject URIError(const String& message);
 
 
   // Evaluate javascript source file.
-  // `souce` shoud be a null-terminated c string.
-  static JResult Eval(const jschar* source,
+  static JResult Eval(const String& source,
                       bool direct_mode = true,
                       bool strict_mode = false);
 
@@ -125,12 +137,17 @@ class JObject {
   bool IsFunction();
 
   // Sets native handler method for the javascript object.
-  void SetMethod(const jschar* name, JHandlerType handler);
+  void SetMethod(const char* name, JHandlerType handler);
 
   // Sets & gets property for the javascript object.
-  void SetProperty(const jschar* name, JObject& val);
-  void SetProperty(const jschar* name, JRawValueType val);
-  JObject GetProperty(const jschar* name);
+  void SetProperty(const char* name, const JObject& val);
+  void SetProperty(const String& name, const JObject& val);
+
+  void SetProperty(const char* name, JRawValueType val);
+  void SetProperty(const String& name, JRawValueType val);
+
+  JObject GetProperty(const char* name);
+  JObject GetProperty(const String& name);
 
   // Sets & gets native data for the javascript object.
   void SetNative(uintptr_t ptr, JFreeHandlerType free_handler);
@@ -148,31 +165,22 @@ class JObject {
   // Returns value for number contents of number object.
   double GetNumber();
 
-  // Returns pontiner to null terminated string contents of string object.
-  // Returned pointer should be released using `ReleaseByteString()` when
-  // it become unnecessary.
-  jschar* GetByteString();
-
-  // Release memory retrieved from `GetByteString()`.
-  static void ReleaseByteString(jschar* str);
-
-  // Returns length of null teminated string contents of string object.
-  size_t GetByteStringLength();
+  // Returns value for string contents of string object.
+  String GetString();
 
   // Calls javascript function.
   JResult Call(JObject& this_, JArgList& arg);
   JObject CallOk(JObject& this_, JArgList& arg);
 
-  JRawValueType raw_value() { return _obj_val; }
+  JRawValueType raw_value() const { return _obj_val; }
 
- private:
+ protected:
   JRawValueType _obj_val;
   bool _unref_at_close;
 
+ private:
   // disable assignment.
   JObject& operator=(const JObject& rhs) = delete;
-  // disable char* constructor
-  JObject(const char* v) = delete;
 };
 
 

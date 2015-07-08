@@ -42,7 +42,7 @@ static bool InitJerry() {
 
   InitJerryMagicStringEx();
 
-  if (!jerry_parse(JSCT(""), 0)) {
+  if (!jerry_parse((jerry_api_char_t*)"", 0)) {
     DLOG("jerry_parse() failed");
     return false;
   }
@@ -73,7 +73,7 @@ static void CleanupModules() {
 
 
 static bool InitIoTjs(JObject* process) {
-  JResult jmain = JObject::Eval(mainjs, false, false);
+  JResult jmain = JObject::Eval(String(mainjs), false, false);
   IOTJS_ASSERT(jmain.IsOk());
 
   JArgList args(1);
@@ -134,9 +134,8 @@ int Start(char* src) {
   // FIXME: this should be moved to seperate function
   {
     JObject argv;
-    JObject user_filename(JSCT(src));
-    argv.SetProperty(JSCT("1"), user_filename);
-    process->SetProperty(JSCT("argv"), argv);
+    argv.SetProperty("1", JObject(src));
+    process->SetProperty("argv", argv);
   }
 
   if (!StartIoTjs(process)) {

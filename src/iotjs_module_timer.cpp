@@ -161,9 +161,9 @@ JObject* InitTimer() {
     timer = new JObject(Timer);
 
     JObject prototype;
-    timer->SetProperty(JSCT("prototype"), prototype);
-    prototype.SetMethod(JSCT("start"), Start);
-    prototype.SetMethod(JSCT("stop"), Stop);
+    timer->SetProperty("prototype", prototype);
+    prototype.SetMethod("start", Start);
+    prototype.SetMethod("stop", Stop);
 
     module->module = timer;
   }

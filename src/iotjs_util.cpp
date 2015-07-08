@@ -24,39 +24,15 @@
 namespace iotjs {
 
 
-int jstrlen(const jschar* jstr) {
-  return strlen(reinterpret_cast<const char*>(jstr));
-}
-
-
-jschar* jstrcpy(jschar* dst, const jschar* src) {
-  return reinterpret_cast<jschar*>(strcpy(reinterpret_cast<char*>(dst),
-                                          reinterpret_cast<const char*>(src)));
-}
-
-
-jschar* jstrcat(jschar* dst, const jschar* src) {
-  return reinterpret_cast<jschar*>(strcat(reinterpret_cast<char*>(dst),
-                                          reinterpret_cast<const char*>(src)));
-}
-
-
-jschar* jstrncpy(jschar* dst, const jschar* src, size_t num) {
-  return reinterpret_cast<jschar*>(strncpy(reinterpret_cast<char*>(dst),
-                                           reinterpret_cast<const char*>(src),
-                                           num));
-}
-
-
-jschar* ReadFile(const jschar* path) {
-  FILE* file = fopen((const char*)path, "rb");
+String ReadFile(const char* path) {
+  FILE* file = fopen(path, "rb");
   IOTJS_ASSERT(file != NULL);
 
   fseek(file, 0, SEEK_END);
   size_t len = ftell(file);
   fseek(file, 0, SEEK_SET);
 
-  jschar* buff = static_cast<jschar*>(AllocBuffer(len + 1));
+  char* buff = AllocBuffer(len + 1);
 
   size_t read = fread(buff, 1, len, file);
   IOTJS_ASSERT(read == len);
@@ -65,46 +41,68 @@ jschar* ReadFile(const jschar* path) {
 
   fclose(file);
 
-  return buff;
+  return String(buff);
 }
 
 
-octet* AllocBuffer(size_t size) {
-  octet* buff = static_cast<octet*>(malloc(size));
+char* AllocBuffer(size_t size) {
+  char* buff = reinterpret_cast<char*>(malloc(size));
   memset(buff, 0, size);
   return buff;
 }
 
 
-octet* ReallocBuffer(octet* buffer, size_t size) {
-  return static_cast<octet*>(realloc(buffer, size));
+char* ReallocBuffer(char* buffer, size_t size) {
+  return reinterpret_cast<char*>(realloc(buffer, size));
 }
 
 
-void ReleaseBuffer(octet* buffer) {
+void ReleaseBuffer(char* buffer) {
   free(buffer);
 }
 
 
-LocalString::LocalString(size_t len)
-    : _strp(static_cast<jschar*>(AllocBuffer(len))) {
-  IOTJS_ASSERT(_strp != NULL);
+String::String(const char* data, int size) {
+  if (size < 0) {
+    _size = strlen(data);
+  } else {
+    _size = size;
+  }
+
+  if (_size > 0) {
+    IOTJS_ASSERT(data != NULL);
+    _data = AllocBuffer(_size + 1);
+    strncpy(_data, data, _size);
+  } else {
+    _data = NULL;
+  }
 }
 
-LocalString::LocalString(jschar* strp)
-    : _strp(strp) {
-  IOTJS_ASSERT(_strp != NULL);
+
+String::~String() {
+  IOTJS_ASSERT(_size == 0 || _data != NULL);
+
+  if (_data != NULL) {
+    ReleaseBuffer(_data);
+  }
 }
 
 
-LocalString::~LocalString() {
-  IOTJS_ASSERT(_strp != NULL);
-  ReleaseBuffer(const_cast<jschar*>(_strp));
+bool String::IsEmpty() const {
+  IOTJS_ASSERT(_size >= 0);
+  return _size == 0;
 }
 
 
-LocalString::operator jschar* () const {
-  return _strp;
+char* String::data() const {
+  IOTJS_ASSERT(_size == 0 || _data != NULL);
+  return _data;
+}
+
+
+int String::size() const {
+  IOTJS_ASSERT(_size >= 0);
+  return _size;
 }
 
 

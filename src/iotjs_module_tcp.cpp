@@ -124,7 +124,7 @@ static void AfterClose(uv_handle_t* handle) {
   IOTJS_ASSERT(jsocket.IsObject());
 
   // internal close callback.
-  JObject jonclose = jsocket.GetProperty(JSCT("_onclose"));
+  JObject jonclose = jsocket.GetProperty("_onclose");
   IOTJS_ASSERT(jonclose.IsFunction());
 
   MakeCallback(jonclose, jsocket, JArgList::Empty());
@@ -155,11 +155,11 @@ JHANDLER_FUNCTION(Bind, handler) {
   IOTJS_ASSERT(handler.GetArg(0)->IsString());
   IOTJS_ASSERT(handler.GetArg(1)->IsNumber());
 
-  LocalString address(handler.GetArg(0)->GetByteString());
+  String address = handler.GetArg(0)->GetString();
   int port = handler.GetArg(1)->GetInt32();
 
   sockaddr_in addr;
-  int err = uv_ip4_addr(address.charbuff(), port, &addr);
+  int err = uv_ip4_addr(address.data(), port, &addr);
 
   if (err == 0) {
     TcpWrap* wrap = TcpWrap::FromJObject(handler.GetThis());
@@ -211,12 +211,12 @@ JHANDLER_FUNCTION(Connect, handler) {
   IOTJS_ASSERT(handler.GetArg(1)->IsNumber());
   IOTJS_ASSERT(handler.GetArg(2)->IsFunction());
 
-  LocalString address(handler.GetArg(0)->GetByteString());
+  String address = handler.GetArg(0)->GetString();
   int port = handler.GetArg(1)->GetInt32();
   JObject jcallback = *handler.GetArg(2);
 
   sockaddr_in addr;
-  int err = uv_ip4_addr(address.charbuff(), port, &addr);
+  int err = uv_ip4_addr(address.data(), port, &addr);
 
   if (err == 0) {
     // Get tcp wrapper from javascript socket object.
@@ -259,7 +259,7 @@ static void OnConnection(uv_stream_t* handle, int status) {
   IOTJS_ASSERT(jserver.IsObject());
 
   // `onconnection` callback.
-  JObject jonconnection = jserver.GetProperty(JSCT("_onconnection"));
+  JObject jonconnection = jserver.GetProperty("_onconnection");
   IOTJS_ASSERT(jonconnection.IsFunction());
 
   // The callback takes two parameter
@@ -270,7 +270,7 @@ static void OnConnection(uv_stream_t* handle, int status) {
 
   if (status == 0) {
     // Create client socket handle wrapper.
-    JObject jfunc_create_tcp = jserver.GetProperty(JSCT("_createTCP"));
+    JObject jfunc_create_tcp = jserver.GetProperty("_createTCP");
     IOTJS_ASSERT(jfunc_create_tcp.IsFunction());
 
     JObject jclient_tcp = jfunc_create_tcp.CallOk(jserver, JArgList::Empty());
@@ -345,11 +345,11 @@ JHANDLER_FUNCTION(Write, handler) {
 
   JObject* jbuffer = handler.GetArg(0);
   BufferWrap* buffer_wrap = BufferWrap::FromJBuffer(*jbuffer);
-  jschar* buffer = buffer_wrap->buffer();
+  char* buffer = buffer_wrap->buffer();
   int len = buffer_wrap->length();
 
   uv_buf_t buf;
-  buf.base = reinterpret_cast<char*>(buffer);
+  buf.base = buffer;
   buf.len = len;
 
   WriteReqWrap* req_wrap = new WriteReqWrap(*handler.GetArg(1));
@@ -377,7 +377,7 @@ void OnAlloc(uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf) {
     suggested_size = IOTJS_MAX_READ_BUFFER_SIZE;
   }
 
-  buf->base = reinterpret_cast<char*>(AllocBuffer(suggested_size));
+  buf->base = AllocBuffer(suggested_size);
   buf->len = suggested_size;
 }
 
@@ -390,7 +390,7 @@ void OnRead(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
   IOTJS_ASSERT(jsocket.IsObject());
 
   // Socket.prototype._onread = function(nread, isEOF, buffer)
-  JObject jonread = jsocket.GetProperty(JSCT("_onread"));
+  JObject jonread = jsocket.GetProperty("_onread");
   IOTJS_ASSERT(jonread.IsFunction());
 
   JArgList jargs(3);
@@ -399,7 +399,7 @@ void OnRead(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
 
   if (nread <= 0) {
     if (buf->base != NULL) {
-      ReleaseBuffer(OCTET(buf->base));
+      ReleaseBuffer(buf->base);
     }
     if (nread < 0) {
       if (nread == UV__EOF) {
@@ -413,12 +413,12 @@ void OnRead(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
   JObject jbuffer(CreateBuffer(static_cast<size_t>(nread)));
   BufferWrap* buffer_wrap = BufferWrap::FromJBuffer(jbuffer);
 
-  buffer_wrap->Copy(OCTET(buf->base), nread);
+  buffer_wrap->Copy(buf->base, nread);
 
   jargs.Add(jbuffer);
   MakeCallback(jonread, jsocket, jargs);
 
-  ReleaseBuffer(OCTET(buf->base));
+  ReleaseBuffer(buf->base);
 }
 
 
@@ -509,17 +509,17 @@ JObject* InitTcp() {
     tcp = new JObject(TCP);
 
     JObject prototype;
-    tcp->SetProperty(JSCT("prototype"), prototype);
+    tcp->SetProperty("prototype", prototype);
 
-    prototype.SetMethod(JSCT("open"), Open);
-    prototype.SetMethod(JSCT("close"), Close);
-    prototype.SetMethod(JSCT("connect"), Connect);
-    prototype.SetMethod(JSCT("bind"), Bind);
-    prototype.SetMethod(JSCT("listen"), Listen);
-    prototype.SetMethod(JSCT("write"), Write);
-    prototype.SetMethod(JSCT("readStart"), ReadStart);
-    prototype.SetMethod(JSCT("shutdown"), Shutdown);
-    prototype.SetMethod(JSCT("_setHolder"), SetHolder);
+    prototype.SetMethod("open", Open);
+    prototype.SetMethod("close", Close);
+    prototype.SetMethod("connect", Connect);
+    prototype.SetMethod("bind", Bind);
+    prototype.SetMethod("listen", Listen);
+    prototype.SetMethod("write", Write);
+    prototype.SetMethod("readStart", ReadStart);
+    prototype.SetMethod("shutdown", Shutdown);
+    prototype.SetMethod("_setHolder", SetHolder);
 
     module->module = tcp;
   }

@@ -17,43 +17,57 @@
 #define IOTJS_UTIL_H
 
 
-#include "iotjs_types.h"
-
 #include <assert.h>
 
 
 namespace iotjs {
 
 
-int jstrlen(const jschar*);
-jschar* jstrcpy(jschar*, const jschar*);
-jschar* jstrcat(jschar*, const jschar*);
-jschar* jstrncpy(jschar*, const jschar*, size_t);
-
-jschar* ReadFile(const jschar* path);
+class String;
+class JObject;
 
 
-octet* AllocBuffer(size_t size);
-octet* ReallocBuffer(octet* buffer, size_t size);
-void ReleaseBuffer(octet* buff);
+String ReadFile(const char* path);
 
+char* AllocBuffer(size_t size);
+char* ReallocBuffer(char* buffer, size_t size);
+void ReleaseBuffer(char* buff);
 
 
 void PrintBacktrace();
 
 
-class LocalString {
+class String {
  public:
-  LocalString(size_t len);
-  LocalString(jschar* strp);
-  ~LocalString();
+  // Create string object from either ascii or utf8 encoded string data.
+  // This constuctor will allocate new buffer to hold given string data.
+  // If the second parameter `size` was given as `-1` the function calls
+  // `strlen` to determin buffer size.
+  explicit String(const char* data, int size = -1);
 
-  operator jschar* () const;
-  const char* charbuff() { return reinterpret_cast<const char*>(_strp); }
+  // Create string object from other string object.
+  String(const String& other);
+
+  // Destructor
+  // Release allocated buffer.
+  ~String();
+
+  bool IsEmpty() const;
+
+  // Returns pointer to the bytes.
+  char* data() const;
+  int size() const;
 
  protected:
-  jschar* _strp;
+  // Buffer for containing the string data.
+  char* _data;
+  int _size;
+
+ private:
+  // Prevent reassignments.
+  String& operator=(const String& a) = delete;
 };
+
 
 
 template<class T>

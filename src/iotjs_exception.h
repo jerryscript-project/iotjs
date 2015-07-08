@@ -23,7 +23,7 @@
 namespace iotjs {
 
 
-JObject CreateUVException(int errorno, const jschar* syscall);
+JObject CreateUVException(int errorno, const char* syscall);
 
 
 } // namespace iotjs

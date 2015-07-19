@@ -17,6 +17,7 @@
 #define IOTJS_MODULE_GPIOCTL_H
 
 #include "iotjs_binding.h"
+#include "iotjs_objectwrap.h"
 
 
 namespace iotjs {

@@ -15,11 +15,19 @@
 include(CMakeForceCompiler)
 
 set(CMAKE_SYSTEM_NAME Linux)
-set(CMAKE_SYSTEM_PROCESSOR x86_64)
+set(CMAKE_SYSTEM_PROCESSOR armv7l-hf)
 
-set(FLAGS_COMMON -D__LINUX__
-                 -D__x86_64__
-                 -fno-builtin)
+set(EXTERNAL_CMAKE_C_COMPILER arm-linux-gnueabihf-gcc)
+set(EXTERNAL_CMAKE_CXX_COMPILER arm-linux-gnueabihf-g++)
+
+CMAKE_FORCE_C_COMPILER(${EXTERNAL_CMAKE_C_COMPILER} GNU)
+CMAKE_FORCE_CXX_COMPILER(${EXTERNAL_CMAKE_CXX_COMPILER} GNU)
+
+set(FLAGS_COMMON -mlittle-endian
+                 -mthumb
+                 -mfpu=vfpv3-d16
+                 -D__LINUX__
+                 -D__ARM__)
 
 foreach(FLAG ${FLAGS_COMMON})
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${FLAG}")

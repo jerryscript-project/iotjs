@@ -14,6 +14,24 @@
 
 cmake_minimum_required(VERSION 2.8)
 
+string(TOLOWER ${CMAKE_SYSTEM_NAME} CFG_SYS_NAME)
+string(TOLOWER ${CMAKE_SYSTEM_PROCESSOR} CFG_SYS_PROCESSOR)
+
+if(${CFG_SYS_NAME} STREQUAL "linux")
+  if(${CFG_SYS_PROCESSOR} STREQUAL "x86" OR
+     ${CFG_SYS_PROCESSOR} STREQUAL "x86_64")
+    set(DEVICE_DEPENDS "x86-linux")
+  elseif(${CFG_SYS_PROCESSOR} STREQUAL "armv7l-hf")
+    set(DEVICE_DEPENDS "arm-linux")
+  endif()
+elseif(${CFG_SYS_NAME} STREQUAL "darwin")
+  message(fatal "Darwin not ready")
+elseif(${CFG_SYS_NAME} STREQUAL "external")
+  if(${CFG_SYS_PROCESSOR} STREQUAL "arm")
+    set(DEVICE_DEPENDS "arm-nuttx")
+  endif()
+endif()
+
 set(CC ${CMAKE_C_COMPILER})
 set(CXX ${CMAKE_CXX_COMPILER})
 

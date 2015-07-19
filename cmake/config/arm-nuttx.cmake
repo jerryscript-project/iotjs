@@ -16,7 +16,6 @@ include(CMakeForceCompiler)
 
 set(CMAKE_SYSTEM_NAME EXTERNAL)
 set(CMAKE_SYSTEM_PROCESSOR arm)
-set(CMAKE_SYSTEM_VERSION NUTTX)
 
 set(EXTERNAL_CMAKE_C_COMPILER arm-none-eabi-gcc)
 set(EXTERNAL_CMAKE_CXX_COMPILER arm-none-eabi-g++)
@@ -26,7 +25,6 @@ CMAKE_FORCE_CXX_COMPILER(${EXTERNAL_CMAKE_CXX_COMPILER} GNU)
 
 set(NO_PTHREAD YES)
 set(BUILD_TO_LIB YES)
-set(DEVICE_DEPENDS "nuttx-stm32f4disco")
 
 set(FLAGS_COMMON -mcpu=cortex-m4
                  -mthumb

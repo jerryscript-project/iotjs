@@ -136,6 +136,7 @@ options = {
     'tidy': True,
     'jerry-memstats': False,
     'checktest': True,
+    'jerry-heaplimit': 81,
 }
 
 boolean_opts = ['buildlib',
@@ -189,6 +190,9 @@ def opt_jerry_memstats():
 def opt_checktest():
     return options['checktest']
 
+def opt_jerry_heaplimit() :
+    return options['jerry-heaplimit']
+
 def parse_boolean_opt(name, arg):
     if arg.endswith(name):
         options[name] = False if arg.startswith('no') else True
@@ -216,6 +220,8 @@ def parse_args():
         elif opt == 'make-flags':
             options[opt] = val
         elif opt == 'nuttx-home':
+            options[opt] = val
+        elif opt == 'jerry-heaplimit':
             options[opt] = val
         else:
             for opt_name in boolean_opts:
@@ -275,6 +281,8 @@ def build_libuv():
         # libuv is using gyp. run the system according to build target.
         if opt_target_arch() == 'arm' and opt_target_os() =='nuttx':
             check_run_cmd('./nuttx-configure', [opt_nuttx_home()])
+        elif opt_target_arch() == 'arm' and opt_target_os() =='linux':
+            check_run_cmd('./armlinux-configure')
         else:
             check_run_cmd('./gyp_uv.py', ['-f', 'make'])
 
@@ -378,12 +386,17 @@ def build_libjerry():
         jerry_cmake_opt.append('-DCMAKE_TOOLCHAIN_FILE=' +
                                opt_cmake_toolchain_file())
 
+
         # for nuttx build.
         if opt_target_arch() == 'arm' and opt_target_os() =='nuttx':
             # nuttx include path.
             jerry_cmake_opt.append('-DEXTERNAL_LIBC_INTERFACE=' +
                                    join_path([opt_nuttx_home(), 'include']))
-            jerry_cmake_opt.append('-DPLATFORM_EXT=NUTTX')
+            jerry_cmake_opt.append('-DEXTERNAL_CMAKE_SYSTEM_PROCESSOR=arm')
+            jerry_cmake_opt.append('-DEXTERNAL_MEM_HEAP_SIZE_KB=' +
+                                   str(opt_jerry_heaplimit()))
+        elif opt_target_arch() == 'arm' and opt_target_os() =='linux':
+            jerry_cmake_opt.append('-DUSE_COMPILER_DEFAULT_LIBC=YES')
 
         # run cmake.
         # FIXME: Running cmake once cause a problem because cmake does not know

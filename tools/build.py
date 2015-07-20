@@ -130,6 +130,7 @@ options = {
     'buildlib': False,
     'target-arch': sys_machine(),
     'target-os': sys_name(),
+    'target-board': '',
     'make-flags': '-j',
     'nuttx-home': '',
     'init-submodule': True,
@@ -166,6 +167,9 @@ def opt_target_arch():
 def opt_target_os():
     return options['target-os']
 
+def opt_target_board():
+    return options['target-board']
+
 def opt_target_tuple():
     return opt_target_arch() + '-' + opt_target_os()
 
@@ -193,6 +197,7 @@ def opt_checktest():
 def opt_jerry_heaplimit() :
     return options['jerry-heaplimit']
 
+
 def parse_boolean_opt(name, arg):
     if arg.endswith(name):
         options[name] = False if arg.startswith('no') else True
@@ -217,6 +222,8 @@ def parse_args():
         elif opt == 'target-os':
             if val.lower() in ['linux', 'darwin', 'nuttx']:
                 options[opt] = val.lower()
+        elif opt == 'target-board':
+            options[opt] = val
         elif opt == 'make-flags':
             options[opt] = val
         elif opt == 'nuttx-home':
@@ -475,6 +482,9 @@ def build_iotjs():
     # this will define 'ENABLE_JERRY_MEM_STATS' at config.cmake
     if opt_jerry_memstats():
         iotjs_cmake_opt.append('-DJERRY_MEM_STATS=YES')
+
+    if opt_target_board():
+        iotjs_cmake_opt.append('-DTARGET_BOARD=' + opt_target_board())
 
     # run cmake
     # FIXME: Running cmake once cause a problem because cmake does not know the

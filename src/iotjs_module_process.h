@@ -31,8 +31,6 @@ JObject MakeCallback(JObject& function, JObject& this_, JArgList& args);
 
 JObject* InitProcess();
 
-void SetProcessIotjs(JObject* process);
-
 } // namespace iotjs
 
 #endif /* IOTJS_MODULE_PROCESS_H */

@@ -38,6 +38,33 @@
 #endif
 
 
+#if defined(__ARM__)
+ #define TARGET_ARCH "arm"
+#elif defined(__i686__)
+ #define TARGET_ARCH "ia32"
+#elif defined(__x86_64__)
+ #define TARGET_ARCH "x64"
+#else
+ #define TARGET_ARCH "unknown"
+#endif
+
+
+#if defined(__LINUX__)
+ #define TARGET_OS "linux"
+#elif defined(__NUTTX__)
+ #define TARGET_OS "nuttx"
+#elif defined(__DARWIN__)
+ #define TARGET_OS "darwin"
+#else
+ #define TARGET_OS "unknown"
+#endif
+
+
+#if !defined(TARGET_BOARD)
+ #define TARGET_BOARD "unknown"
+#endif
+
+
 // commonly used header files
 #include "iotjs_binding.h"
 #include "iotjs_env.h"

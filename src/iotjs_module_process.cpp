@@ -21,27 +21,6 @@
 #include <string.h>
 
 
-#if defined(__LINUX__)
- #define PLATFORM "linux"
-#elif defined(__NUTTX__)
- #define PLATFORM "nuttx"
-#elif defined(__DARWIN__)
- #define PLATFORM "darwin"
-#else
- #error Cannot identify PLATFORM
-#endif
-
-#if defined(__ARM__)
- #define ARCHITECTURE "arm"
-#elif defined(__i686__)
- #define ARCHITECTURE "ia32"
-#elif defined(__x86_64__)
- #define ARCHITECTURE "x64"
-#else
- #error Cannot identify ARCHITECTURE
-#endif
-
-
 namespace iotjs {
 
 
@@ -244,7 +223,7 @@ void SetNativeSources(JObject* native_sources) {
 }
 
 
-void SetProcessEnv(JObject* process){
+static void SetProcessEnv(JObject* process){
   const char *homedir;
   homedir = getenv("HOME");
   if (homedir == NULL) {
@@ -254,6 +233,16 @@ void SetProcessEnv(JObject* process){
   JObject env;
   env.SetProperty("HOME", home);
   process->SetProperty("env", env);
+}
+
+
+static void SetProcessIotjs(JObject* process) {
+  // IoT.js specific
+  JObject iotjs;
+  process->SetProperty("iotjs", iotjs);
+
+  JObject jboard(TARGET_BOARD);
+  iotjs.SetProperty("board", jboard);
 }
 
 
@@ -277,12 +266,15 @@ JObject* InitProcess() {
     process->SetProperty("native_sources", native_sources);
 
     // process.platform
-    JObject platform(PLATFORM);
+    JObject platform(TARGET_OS);
     process->SetProperty("platform", platform);
 
     // process.arch
-    JObject arch(ARCHITECTURE);
+    JObject arch(TARGET_ARCH);
     process->SetProperty("arch", arch);
+
+    // Set iotjs
+    SetProcessIotjs(process);
 
     // Binding module id.
     JObject jbinding = process->GetProperty("binding");
@@ -298,12 +290,6 @@ JObject* InitProcess() {
   }
 
   return process;
-}
-
-void SetProcessIotjs(JObject* process) {
-  // IoT.js specific
-  JObject iotjs;
-  process->SetProperty("iotjs", iotjs);
 }
 
 

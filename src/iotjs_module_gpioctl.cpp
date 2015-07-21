@@ -13,12 +13,65 @@
  * limitations under the License.
  */
 
+#include <string.h>
+
 #include "iotjs_def.h"
 #include "iotjs_objectwrap.h"
 #include "iotjs_module_gpioctl.h"
 
 
 namespace iotjs {
+
+
+//-----------------------------------------------------------------------------
+
+GpioCbWrap::GpioCbWrap(JObject& jcallback, gpio_cb_t* cb)
+    : __cb(cb)
+    , _jcallback(NULL) {
+  if (!jcallback.IsNull()) {
+    _jcallback = new JObject(jcallback);
+  }
+}
+
+
+GpioCbWrap::~GpioCbWrap() {
+  if (_jcallback != NULL) {
+    delete _jcallback;
+  }
+}
+
+
+JObject& GpioCbWrap::jcallback() {
+  IOTJS_ASSERT(_jcallback != NULL);
+  return *_jcallback;
+}
+
+
+gpio_cb_t* GpioCbWrap::cb() {
+  return __cb;
+}
+
+
+void GpioCbWrap::Dispatched() {
+  cb()->data = this;
+}
+
+//-----------------------------------------------------------------------------
+
+class SetPinWrap : public GpioCbWrap {
+ public:
+  explicit SetPinWrap(JObject& jcallback)
+      : GpioCbWrap(jcallback, reinterpret_cast<gpio_cb_t*>(&_data)) {
+    memset(&_data, 0, sizeof(_data));
+  }
+
+  gpio_setpin_t* data() {
+    return &_data;
+  }
+
+ protected:
+   gpio_setpin_t _data;
+};
 
 
 //-----------------------------------------------------------------------------
@@ -43,7 +96,7 @@ GpioControl* GpioControl::FromJGpioCtl(JObject& jgpioctl) {
 
 int GpioControl::Initialize(void) {
   if (_fd > 0 )
-    return IOTJS_GPIO_INUSE;
+    return GPIO_ERR_INTIALIZED;
 
   DDDLOG("gpio initalize dummy");
   _fd = 1;
@@ -57,20 +110,18 @@ void GpioControl::Release(void) {
 }
 
 
-int GpioControl::PinMode(uint32_t portpin) {
-  DDDLOG("gpio pin mode 0x%08x", portpin);
+int GpioControl::SetPin(gpio_setpin_t* setpin_data, gpio_setpin_cb cb) {
+  DDDLOG("gpio setpin dummy pin(%d), dir(%d), mode(%d)",
+         setpin_data->pin, setpin_data->dir, setpin_data->mode);
+  // temporary code to invoke cb in this thread and it's not async
+  cb(reinterpret_cast<gpio_cb_t*>(setpin_data), 0);
   return 0;
 }
 
 
-int GpioControl::WritePin(uint32_t portpin, uint8_t data) {
-  DDDLOG("gpio write 0x%08x: 0x%02x", portpin, data);
-  return 0;
-}
-
-
-int GpioControl::ReadPin(uint32_t portpin, uint8_t* pdata) {
-  DDDLOG("gpio read 0x%08x", portpin);
+int GpioControl::SetPin(int32_t pin, int32_t dir, int32_t mode) {
+  DDDLOG("gpio setpin sync dummy pin(%d), dir(%d), mode(%d)",
+         pin, dir, mode);
   return 0;
 }
 
@@ -96,20 +147,58 @@ JHANDLER_FUNCTION(Release, handler) {
 
   gpioctrl->Release();
 
-  JObject ret(0);
-  handler.Return(ret);
   return true;
 }
 
 
-JHANDLER_FUNCTION(PinMode, handler) {
-  IOTJS_ASSERT(handler.GetArgLength() == 1);
+static void AfterSetPin(gpio_cb_t* gpiocb, int err) {
+  SetPinWrap* wrap = reinterpret_cast<SetPinWrap*>(gpiocb->data);
+  IOTJS_ASSERT(wrap != NULL);
+
+  JObject jcallback(wrap->jcallback());
+  IOTJS_ASSERT(jcallback.IsFunction());
+
+  JArgList args(1);
+  args.Add(JVal::Number(err));
+
+  MakeCallback(jcallback, JObject::Null(), args);
+  delete wrap;
+}
+
+
+JHANDLER_FUNCTION(SetPin, handler) {
+  IOTJS_ASSERT(handler.GetArgLength() == 4);
   IOTJS_ASSERT(handler.GetArg(0)->IsNumber());
+  IOTJS_ASSERT(handler.GetArg(1)->IsNumber());
+  IOTJS_ASSERT(handler.GetArg(2)->IsNumber());
   JObject* jgpioctl = handler.GetThis();
   GpioControl* gpioctrl = GpioControl::FromJGpioCtl(*jgpioctl);
+  int32_t pin = handler.GetArg(0)->GetInt32();
+  int32_t dir = handler.GetArg(1)->GetInt32();
+  int32_t mode = handler.GetArg(2)->GetInt32();
+  JObject jcallback = *handler.GetArg(3);
+  int err = 0;
 
-  uint32_t portpin = handler.GetArg(0)->GetInt32();
-  int err = gpioctrl->PinMode(portpin);
+  if (jcallback.IsFunction()) {
+    JObject jcallback = *handler.GetArg(3);
+    SetPinWrap* wrap = new SetPinWrap(jcallback);
+    gpio_setpin_t* setpin = wrap->data();
+    setpin->pin = pin;
+    setpin->dir = dir;
+    setpin->mode = mode;
+
+    // as current implementation of gpio is in sync mode,
+    // Dispatched should be called prior to SetPin
+    wrap->Dispatched();
+    err = gpioctrl->SetPin(setpin, AfterSetPin);
+
+    if (err) {
+      delete wrap;
+    }
+  }
+  else {
+    err = gpioctrl->SetPin(pin, dir, mode);
+  }
 
   JObject ret(err);
   handler.Return(ret);
@@ -118,16 +207,7 @@ JHANDLER_FUNCTION(PinMode, handler) {
 
 
 JHANDLER_FUNCTION(WritePin, handler) {
-  IOTJS_ASSERT(handler.GetArgLength() == 2);
-  IOTJS_ASSERT(handler.GetArg(0)->IsNumber());
-  IOTJS_ASSERT(handler.GetArg(1)->IsNumber());
-  JObject* jgpioctl = handler.GetThis();
-  GpioControl* gpioctrl = GpioControl::FromJGpioCtl(*jgpioctl);
-
-  uint32_t portpin = handler.GetArg(0)->GetInt64();
-  uint8_t data = (uint8_t)handler.GetArg(1)->GetInt32();
-  int err = gpioctrl->WritePin(portpin, data);
-
+  int err = 0;
   JObject ret(err);
   handler.Return(ret);
   return true;
@@ -135,16 +215,40 @@ JHANDLER_FUNCTION(WritePin, handler) {
 
 
 JHANDLER_FUNCTION(ReadPin, handler) {
-  IOTJS_ASSERT(handler.GetArgLength() == 1);
-  IOTJS_ASSERT(handler.GetArg(0)->IsNumber());
-  JObject* jgpioctl = handler.GetThis();
-  GpioControl* gpioctrl = GpioControl::FromJGpioCtl(*jgpioctl);
+  int err = 0;
+  JObject ret(err);
+  handler.Return(ret);
+  return true;
+}
 
-  uint32_t portpin = handler.GetArg(0)->GetInt64();
-  uint8_t data = 0;
-  int err = gpioctrl->ReadPin(portpin, &data);
 
-  JObject ret(err < 0 ? err : data);
+JHANDLER_FUNCTION(SetPort, handler) {
+  int err = 0;
+  JObject ret(err);
+  handler.Return(ret);
+  return true;
+}
+
+
+JHANDLER_FUNCTION(WritePort, handler) {
+  int err = 0;
+  JObject ret(err);
+  handler.Return(ret);
+  return true;
+}
+
+
+JHANDLER_FUNCTION(ReadPort, handler) {
+  int err = 0;
+  JObject ret(err);
+  handler.Return(ret);
+  return true;
+}
+
+
+JHANDLER_FUNCTION(Query, handler) {
+  int err = 0;
+  JObject ret(err);
   handler.Return(ret);
   return true;
 }
@@ -166,12 +270,26 @@ JObject* InitGpioCtl() {
 
     jgpioctl->SetMethod("initialize", Initialize);
     jgpioctl->SetMethod("release", Release);
-    jgpioctl->SetMethod("pinmode", PinMode);
-    jgpioctl->SetMethod("writepin", WritePin);
-    jgpioctl->SetMethod("readpin", ReadPin);
+    jgpioctl->SetMethod("setPin", SetPin);
+    jgpioctl->SetMethod("writePin", WritePin);
+    jgpioctl->SetMethod("readPin", ReadPin);
+    jgpioctl->SetMethod("setPort", SetPort);
+    jgpioctl->SetMethod("writePort", WritePort);
+    jgpioctl->SetMethod("readPort", ReadPort);
+    jgpioctl->SetMethod("query", Query);
 
-    SET_CONSTANT(jgpioctl, "NOTINITIALIZED", IOTJS_GPIO_NOTINITED);
-    SET_CONSTANT(jgpioctl, "INUSE", IOTJS_GPIO_INUSE);
+    SET_CONSTANT(jgpioctl, "NONE", GPIO_DIR_NONE);
+    SET_CONSTANT(jgpioctl, "IN", GPIO_DIR_IN);
+    SET_CONSTANT(jgpioctl, "OUT", GPIO_DIR_OUT);
+
+    SET_CONSTANT(jgpioctl, "PULLUP", GPIO_MODE_PULLUP);
+    SET_CONSTANT(jgpioctl, "PULLDN", GPIO_MODE_PULLDN);
+    SET_CONSTANT(jgpioctl, "FLOAT", GPIO_MODE_FLOAT);
+    SET_CONSTANT(jgpioctl, "PUSHPULL", GPIO_MODE_PUSHPULL);
+    SET_CONSTANT(jgpioctl, "OPENDRAIN", GPIO_MODE_OPENDRAIN);
+
+    SET_CONSTANT(jgpioctl, "ERR_INTIALIZED", GPIO_ERR_INTIALIZED);
+    SET_CONSTANT(jgpioctl, "ERR_INVALIDPARAM", GPIO_ERR_INVALIDPARAM);
 
     GpioControl* gpioctrl = GpioControl::Create(*jgpioctl);
     IOTJS_ASSERT(gpioctrl ==

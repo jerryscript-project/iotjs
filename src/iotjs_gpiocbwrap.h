@@ -13,36 +13,39 @@
  * limitations under the License.
  */
 
-/*
-  @TIMEOUT=10
-*/
+#ifndef IOTJS_GPIOCBWRAP_H
+#define IOTJS_GPIOCBWRAP_H
 
-var assert = require('assert');
-var gpio = require('gpio');
+#include "iotjs_def.h"
+#include "iotjs_objectwrap.h"
 
-var gpioSequence = '';
-var result;
 
-result = gpio.initialize();
-if (result >= 0)
-  gpioSequence += "I";
+namespace iotjs {
 
-result = gpio.setPin(1, "in");
-if (result >= 0)
-  gpioSequence += "A";
+struct gpio_cb_s {
+  void* data;
+};
 
-gpio.setPin(2, "out", function(err) {
-  if (err>=0)
-    gpioSequence += 'B';
-});
+typedef struct gpio_cb_s gpio_cb_t;
 
-gpio.setPin(3, "in", "float", function(err) {
-  if (err>=0)
-    gpioSequence += 'C';
-});
 
-gpio.release();
+class GpioCbWrap {
+ public:
+  GpioCbWrap(JObject& jcallback, gpio_cb_t* gpiocb);
+  virtual ~GpioCbWrap();
 
-process.on('exit', function(code) {
-  assert.equal(gpioSequence, 'IABC');
-});
+  JObject& jcallback();
+
+  gpio_cb_t* cb();
+
+  void Dispatched();
+
+ protected:
+  gpio_cb_t* __cb;
+  JObject* _jcallback;
+};
+
+
+} // namespace iotjs
+
+#endif /* IOTJS_GPIOCBWRAP_H */

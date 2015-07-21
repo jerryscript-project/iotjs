@@ -13,36 +13,42 @@
  * limitations under the License.
  */
 
-/*
-  @TIMEOUT=10
-*/
+#include "iotjs_gpiocbwrap.h"
 
-var assert = require('assert');
-var gpio = require('gpio');
 
-var gpioSequence = '';
-var result;
+namespace iotjs {
 
-result = gpio.initialize();
-if (result >= 0)
-  gpioSequence += "I";
 
-result = gpio.setPin(1, "in");
-if (result >= 0)
-  gpioSequence += "A";
+GpioCbWrap::GpioCbWrap(JObject& jcallback, gpio_cb_t* cb)
+    : __cb(cb)
+    , _jcallback(NULL) {
+  if (!jcallback.IsNull()) {
+    _jcallback = new JObject(jcallback);
+  }
+}
 
-gpio.setPin(2, "out", function(err) {
-  if (err>=0)
-    gpioSequence += 'B';
-});
 
-gpio.setPin(3, "in", "float", function(err) {
-  if (err>=0)
-    gpioSequence += 'C';
-});
+GpioCbWrap::~GpioCbWrap() {
+  if (_jcallback != NULL) {
+    delete _jcallback;
+  }
+}
 
-gpio.release();
 
-process.on('exit', function(code) {
-  assert.equal(gpioSequence, 'IABC');
-});
+JObject& GpioCbWrap::jcallback() {
+  IOTJS_ASSERT(_jcallback != NULL);
+  return *_jcallback;
+}
+
+
+gpio_cb_t* GpioCbWrap::cb() {
+  return __cb;
+}
+
+
+void GpioCbWrap::Dispatched() {
+  cb()->data = this;
+}
+
+
+} // namespace iotjs

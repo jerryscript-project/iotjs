@@ -20,14 +20,14 @@
 namespace iotjs {
 
 
-class GpioControlInst : public GpioControl {
+class GpioControlImpl : public GpioControl {
 public:
-  explicit GpioControlInst(JObject& jgpioctl);
+  explicit GpioControlImpl(JObject& jgpioctl);
+
   virtual int Initialize(void);
   virtual void Release(void);
-  virtual int PinMode(uint32_t portpin);
-  virtual int WritePin(uint32_t portpin, uint8_t data);
-  virtual int ReadPin(uint32_t portpin, uint8_t* pdata);
+  virtual int SetPin(GpioCbDataSetpin* setpin_data, GpioSetpinCb cb);
+  virtual int SetPin(int32_t pin, int32_t dir, int32_t mode);
 };
 
 
@@ -35,46 +35,35 @@ public:
 
 GpioControl* GpioControl::Create(JObject& jgpioctl)
 {
-  return new GpioControlInst(jgpioctl);
+  return new GpioControlImpl(jgpioctl);
 }
 
 
-GpioControlInst::GpioControlInst(JObject& jgpioctl)
+GpioControlImpl::GpioControlImpl(JObject& jgpioctl)
     : GpioControl(jgpioctl) {
 }
 
 
-int GpioControlInst::Initialize(void) {
+int GpioControlImpl::Initialize(void) {
   if (_fd > 0 )
-    return IOTJS_GPIO_INUSE;
+    return GPIO_ERR_INITALIZE;
 
   _fd = 1;
   return _fd;
 }
 
 
-void GpioControlInst::Release(void) {
+void GpioControlImpl::Release(void) {
   _fd = 0;
 }
 
 
-int GpioControlInst::PinMode(uint32_t portpin) {
-  if (_fd <= 0)
-    return IOTJS_GPIO_NOTINITED;
+int GpioControlImpl::SetPin(GpioCbDataSetpin* setpin_data, GpioSetpinCb cb) {
   return 0;
 }
 
 
-int GpioControlInst::WritePin(uint32_t portpin, uint8_t data) {
-  if (_fd <= 0)
-    return IOTJS_GPIO_NOTINITED;
-  return 0;
-}
-
-
-int GpioControlInst::ReadPin(uint32_t portpin, uint8_t* pdata) {
-  if (_fd <= 0)
-    return IOTJS_GPIO_NOTINITED;
+int GpioControlImpl::SetPin(int32_t pin, int32_t dir, int32_t mode) {
   return 0;
 }
 

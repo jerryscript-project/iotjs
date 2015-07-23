@@ -15,7 +15,28 @@
 
 var gpioctl  = process.binding(process.binding.gpioctl)
   , util     = require('util')
+  , assert   = require('assert')
   , dev_open = false;
+
+
+function GpioError(code, message) {
+  this.name = 'GpioError';
+  this.code = code;
+  this.message = message;
+}
+
+
+util.inherits(GpioError, Error);
+
+
+gpioctl._docallback = function(callback, errcode, param) {
+  assert(util.isFunction(callback));
+  var err = null;
+  if (util.isNumber(errcode)) {
+    err = new GpioError(errcode, gpioctl.errMessage(errcode));
+  }
+  callback(err, param);
+};
 
 
 function GPIO() {
@@ -23,19 +44,12 @@ function GPIO() {
 }
 
 
-GPIO.initialize = function(callback) {
+GPIO.initialize = function() {
   var err = gpioctl.initialize();
   if (err >= 0) {
     dev_open = true;
   }
-  if (util.isFunction(callback)) {
-    process.nextTick(function() {
-      callback(err);
-    });
-  }
-  else {
-    return err;
-  }
+  return err;
 };
 
 
@@ -47,47 +61,80 @@ GPIO.release = function() {
 };
 
 
-GPIO.pinmode = function(portpin, callback) {
-  var err = gpioctl.pinmode(portpin);
+function getDirectionCode(direction) {
+  if (direction == 'out') return gpioctl.OUT;
+  if (direction == 'in') return gpioctl.IN;
+  if (direction == 'none') return gpioctl.NONE;
+  return -1;
+}
 
-  if (util.isFunction(callback)) {
-    process.nextTick(function() {
-      callback(err);
-    });
+function getModeCode(mode) {
+  if (mode == 'pullup') return gpioctl.PULLUP;
+  if (mode == 'pulldn') return gpioctl.PULLDN;
+  if (mode == 'float') return gpioctl.FLOAT;
+  if (mode == 'pushpull') return gpioctl.PUSHPULL;
+  if (mode == 'opendrain') return gpioctl.OPENDRAIN;
+  if (mode == undefined || mode == 'none' || mode == '') return gpioctl.NONE;
+  return -1;
+}
+
+
+GPIO.setPin = function(pinNumber, direction, mode, callback) {
+  if (util.isFunction(mode)) {
+    callback = mode;
+    mode = undefined;
+  }
+  var result = 0;
+  var dircode = getDirectionCode(direction);
+  var modecode = getModeCode(mode);
+
+  if (dircode < 0 || modecode < 0) {
+    result = gpioctl.ERR_INVALIDPARAM;
   }
   else {
-    return err;
+    result = gpioctl.setPin(pinNumber, dircode, modecode, callback);
+  }
+
+  if (result < 0) {
+    var err = new GpioError(result, gpioctl.errMessage(result));
+    if (util.isFunction(callback)) {
+      process.nextTick(function() {
+        callback(err);
+      });
+    }
+    else {
+      throw err;
+    }
   }
 };
 
 
-GPIO.write = function(portpin, val, callback) {
-  var err = gpioctl.writepin(portpin, val);
-
-  if (util.isFunction(callback)) {
-    process.nextTick(function() {
-      callback(err);
-    });
-  }
-  else {
-    return err;
-  }
+GPIO.writePin = function(pinNumber, value, callback) {
 };
 
 
-GPIO.read = function(portpin, callback) {
-  var err = gpioctl.readpin(portpin);
-  var value = err;
-
-  if (util.isFunction(callback)) {
-    process.nextTick(function() {
-      callback(err, value);
-    });
-  }
-  else {
-    return err;
-  }
+GPIO.readPin = function(pinNumber, callback) {
 };
 
+
+GPIO.setPort = function(portNumber, direction, mode, callback) {
+};
+
+
+GPIO.writePort = function(portNumber, value, callback) {
+};
+
+
+GPIO.readPort = function(portNumber, callback) {
+};
+
+
+GPIO.query = function(queryOption, callback) {
+}
+
+
+GPIO.ERR_INITALIZE = gpioctl.ERR_INITALIZE;
+GPIO.ERR_INVALIDPARAM = gpioctl.ERR_INVALIDPARAM;
+GPIO.ERR_SYSERR = gpioctl.ERR_SYSERR;
 
 module.exports = GPIO;

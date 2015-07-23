@@ -18,14 +18,20 @@
 
 #include "iotjs_binding.h"
 #include "iotjs_objectwrap.h"
+#include "iotjs_gpiocbwrap.h"
 
 
 namespace iotjs {
 
-enum {
-  IOTJS_GPIO_NOTINITED = -1,
-  IOTJS_GPIO_INUSE  = -2,
+struct GpioCbDataSetpin {
+  void* data;
+  int32_t pin;
+  int32_t dir;
+  int32_t mode;
 };
+
+
+typedef void (*GpioSetpinCb)(GpioCbDataSetpin* cbdata, int err);
 
 
 class GpioControl : public JObjectWrap {
@@ -36,11 +42,11 @@ public:
   static GpioControl* Create(JObject& jgpioctl);
   static GpioControl* FromJGpioCtl(JObject& jgpioctl);
 
-  virtual int Initialize(void);
-  virtual void Release(void);
-  virtual int PinMode(uint32_t portpin);
-  virtual int WritePin(uint32_t portpin, uint8_t data);
-  virtual int ReadPin(uint32_t portpin, uint8_t* pdata);
+  virtual int Initialize(void) = 0;
+  virtual void Release(void) = 0;
+  virtual int SetPin(GpioCbDataSetpin* data, GpioSetpinCb cb) = 0;
+  virtual int SetPin(int32_t pin, int32_t dir, int32_t mode) = 0;
+  // Todo add for other APIs
 
 protected:
   int _fd;
@@ -48,6 +54,30 @@ protected:
 
 
 JObject* InitGpioCtl();
+
+
+
+enum {
+  GPIO_ERR_INITALIZE = -1,
+  GPIO_ERR_INVALIDPARAM = -2,
+  GPIO_ERR_SYSERR = -3,
+};
+
+enum {
+  GPIO_DIR_NONE = 0,
+  GPIO_DIR_IN,
+  GPIO_DIR_OUT,
+};
+
+enum {
+  GPIO_MODE_NONE = 0,
+  GPIO_MODE_PULLUP,
+  GPIO_MODE_PULLDN,
+  GPIO_MODE_FLOAT,
+  GPIO_MODE_PUSHPULL,
+  GPIO_MODE_OPENDRAIN,
+};
+
 
 } // namespace iotjs
 

@@ -21,34 +21,39 @@ var assert = require('assert');
 var gpio = require('gpio');
 
 var gpioSequence = '';
+var result;
 
-gpio.initialize(function(err) {
-  assert(err>=0, "failed to initailize");
-  gpioSequence += 'I';
-});
+result = gpio.initialize();
+if (result >= 0)
+  gpioSequence += "I";
 
-gpio.pinmode(0x11, function(err) {
-  assert(err>=0, "failed to pinmode");
-  gpioSequence += 'A';
-});
+gpio.setPin(1, "in");
+gpioSequence += "A";
 
-gpio.pinmode(0x22, function(err) {
-  assert(err>=0, "failed to pinmode");
-  gpioSequence += 'B';
-});
+try {
+  gpio.setPin(-1, "out");
+}
+catch(err) {
+  if(err.code == gpio.ERR_INVALIDPARAM) {
+    gpioSequence += 'B';
+  }
+}
 
-gpio.write(0x01, 0xff, function(err) {
-  assert(err>=0, "failed to write");
+gpio.setPin(2, "out", function(err) {
   gpioSequence += 'C';
 });
 
-gpio.read(0x02, function(err, value) {
-  assert(err>=0, "failed to read");
-  gpioSequence += 'D';
+gpio.setPin(-1, "out", function(err) {
+  if(err.code == gpio.ERR_INVALIDPARAM) {
+    gpioSequence += 'D';
+  }
 });
 
-gpio.release();
+gpio.setPin(3, "in", "float", function(err) {
+  gpioSequence += 'E';
+});
 
 process.on('exit', function(code) {
-  assert.equal(gpioSequence, 'IABCD');
+  gpio.release();
+  assert.equal(gpioSequence, 'IABCDE');
 });

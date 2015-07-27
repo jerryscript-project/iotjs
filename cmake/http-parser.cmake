@@ -14,13 +14,11 @@
 
 cmake_minimum_required(VERSION 2.8)
 
-project(IOTJS)
+set(HTTPPARSER_ROOT ${DEP_ROOT}/http-parser)
+set(HTTPPARSER_INCDIR ${HTTPPARSER_ROOT})
+set(HTTPPARSER_LIB ${LIB_ROOT}/libhttpparser.a)
 
-set(IOTJS_VERSION_MAJOR 0)
-set(IOTJS_VERSION_MINOR 1)
+add_custom_command(OUTPUT ${HTTPPARSER_LIB}
+                   COMMAND touch ${HTTPPARSER_LIB})
 
-include(cmake/config.cmake)
-include(cmake/libuv.cmake)
-include(cmake/jerry.cmake)
-include(cmake/http-parser.cmake)
-include(cmake/iotjs.cmake)
+add_custom_target(targetHttpparser DEPENDS ${HTTPPARSER_LIB})

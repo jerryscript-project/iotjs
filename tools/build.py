@@ -56,11 +56,17 @@ JERRY_ROOT = join_path([DEPS_ROOT, 'jerry'])
 # Root directory for libuv submodule.
 LIBUV_ROOT = join_path([DEPS_ROOT, 'libuv'])
 
+# Root directory for http-parser submodule.
+HTTPPARSER_ROOT = join_path([DEPS_ROOT, 'http-parser'])
+
 # Build directory suffix for jerry build.
 JERRY_BUILD_SUFFIX = 'deps/jerry'
 
 # Build direcrtory suffix for libuv build.
 LIBUV_BUILD_SUFFIX = 'deps/libuv'
+
+# Build direcrtory suffix for http-parser build.
+HTTPPARSER_BUILD_SUFFIX = 'deps/http-parser'
 
 # Root directory for the source files.
 SRC_ROOT = join_path([ROOT, 'src'])
@@ -264,6 +270,8 @@ def check_cached(cache_path):
 def libuv_output_path():
     return join_path([opt_build_libs(), "libuv.a"])
 
+def libhttpparser_output_path():
+    return join_path([opt_build_libs(), "libhttpparser.a"])
 
 def build_libuv():
     # check libuv submodule directory.
@@ -452,6 +460,67 @@ def build_libjerry():
 
     return True
 
+def build_libhttpparser():
+    # check http-parser submodule directory.
+    if not check_path(HTTPPARSER_ROOT):
+        print '* libhttpparser build failed - submodule not exists.'
+        return False
+
+    # get hash.
+    git_hash = get_git_hash(HTTPPARSER_ROOT)
+
+    # build directory.
+    build_home = join_path([opt_build_root(), HTTPPARSER_BUILD_SUFFIX])
+
+    # cached library.
+    build_cache_dir = join_path([build_home, 'cache'])
+    build_cache_path = get_cache_path(build_cache_dir, 'libhttpparser',
+                                      git_hash)
+
+    httpparser_cmake_opt = [HTTPPARSER_ROOT]
+
+    httpparser_cmake_opt.append('-DCMAKE_TOOLCHAIN_FILE=' +
+                           opt_cmake_toolchain_file())
+
+    # check if cache is available.
+    if not check_cached(build_cache_path):
+
+        # make build directory.
+        mkdir(build_home)
+
+        # change current directory to libuv.
+        #os.chdir(HTTPPARSER_ROOT)
+        os.chdir(build_home)
+
+        # set build type.
+        build_type = 'Release' if opt_build_type() == 'release' else 'Debug'
+
+        httpparser_cmake_opt.append('-DBUILDTYPE=' + build_type)
+
+        # cmake
+        check_run_cmd('cmake', httpparser_cmake_opt)
+
+        check_run_cmd('make')
+
+        output = join_path([build_home,
+                            'libhttpparser.a'])
+
+        # check if target is created.
+        if not check_path(output):
+            print '* libhttpparser build failed - target not produced.'
+            return False
+
+        # copy output to cache
+        mkdir(build_cache_dir)
+        copy(output, build_cache_path)
+
+    # copy cache to libs directory
+    mkdir(opt_build_libs())
+    copy(build_cache_path, libhttpparser_output_path())
+
+    return True
+
+
 
 def build_iotjs():
     os.chdir(SCRIPT_PATH)
@@ -543,6 +612,10 @@ if not build_libuv():
 # build jerry lib.
 if not build_libjerry():
     print_error("Failed build_libjerry")
+    sys.exit(1)
+
+# build lib.
+if not build_libhttpparser():
     sys.exit(1)
 
 # build iot.js

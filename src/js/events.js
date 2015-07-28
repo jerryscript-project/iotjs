@@ -29,7 +29,6 @@ EventEmitter.prototype.emit = function(type, arg1, arg2) {
   if (!this._events) {
     this._events = {};
   }
-
   var handler = this._events[type];
   if (util.isUndefined(handler)) {
     return false;
@@ -37,7 +36,7 @@ EventEmitter.prototype.emit = function(type, arg1, arg2) {
     if (util.isFunction(handler)) {
       handler.call(this, arg1, arg2);
     } else {
-      listeners = handler;
+      var listeners = handler;
       for (i = 0; i < listeners.length; ++i) {
         listeners[i].call(this, arg1, arg2);
       }

@@ -174,12 +174,12 @@ function emitEnd(stream) {
   if (stream.length > 0 || !state.ended) {
     throw new Error('stream ended on non-EOF stream');
   }
-
   if (!state.endEmitted) {
     state.endEmitted = true;
     stream.emit('end');
   }
 };
+
 
 function emitReadable(stream) {
   stream.emit('readable');
@@ -187,8 +187,14 @@ function emitReadable(stream) {
 
 
 function emitData(stream, data) {
+  var state = stream._readableState;
+
   assert.equal(readBuffer(stream), null);
   stream.emit('data', data);
+
+  if (state.ended && state.length == 0) {
+    emitEnd(stream);
+  }
 };
 
 

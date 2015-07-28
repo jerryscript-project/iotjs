@@ -197,8 +197,13 @@ function endWritable(stream, callback) {
   if (callback) {
     stream.once('finish', callback);
   }
-  // write out buffered data.
-  writeBuffered(stream);
+
+  // If nothing left, emit finish event at next tick.
+  if (!state.writing && state.buffer.length == 0) {
+    process.nextTick(function(){
+      emitFinish(stream);
+    });
+  }
 }
 
 
@@ -207,7 +212,7 @@ function emitFinish(stream) {
   var state = stream._writableState;
   if (!state.ended) {
     state.ended = true;
-    stream.emit('finish')
+    stream.emit('finish');
   }
 }
 

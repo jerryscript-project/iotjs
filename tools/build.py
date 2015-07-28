@@ -542,9 +542,15 @@ if not build_iotjs():
     sys.exit(1)
 
 if opt_checktest():
-    if not run_checktest():
-        print_error("Failed run_checktest")
-        sys.exit(1)
+    # do check test only when target is host.
+    if opt_target_arch() == sys_machine() and opt_target_os() == sys_name():
+        if not run_checktest():
+            print_error("Failed run_checktest")
+            sys.exit(1)
+    else:
+        print
+        print "Skip run_checktest - target is not host"
+        print
 
 
 print

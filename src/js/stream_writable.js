@@ -128,9 +128,11 @@ Writable.prototype._onwrite = function(status) {
 function writeAfterEnd(stream, callback) {
   var err = new Error('write after end');
   stream.emit('error', err);
-  process.nextTick(function(){
-    callback(err);
-  });
+  if (util.isFunction(callback)) {
+    process.nextTick(function(){
+      callback(err);
+    });
+  }
 }
 
 

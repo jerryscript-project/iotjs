@@ -131,6 +131,7 @@ options = {
     'target-arch': sys_machine(),
     'target-os': sys_name(),
     'target-board': '',
+    'cmake-option': '',
     'make-flags': '-j',
     'nuttx-home': '',
     'init-submodule': True,
@@ -172,6 +173,9 @@ def opt_target_board():
 
 def opt_target_tuple():
     return opt_target_arch() + '-' + opt_target_os()
+
+def opt_cmake_option():
+    return options['cmake-option']
 
 def opt_make_flags():
     return options['make-flags']
@@ -223,6 +227,8 @@ def parse_args():
             if val.lower() in ['linux', 'darwin', 'nuttx']:
                 options[opt] = val.lower()
         elif opt == 'target-board':
+            options[opt] = val
+        elif opt == 'cmake-option':
             options[opt] = val
         elif opt == 'make-flags':
             options[opt] = val
@@ -485,6 +491,9 @@ def build_iotjs():
 
     if opt_target_board():
         iotjs_cmake_opt.append('-DTARGET_BOARD=' + opt_target_board())
+
+    if opt_cmake_option():
+        iotjs_cmake_opt.append(opt_cmake_option())
 
     # run cmake
     # FIXME: Running cmake once cause a problem because cmake does not know the

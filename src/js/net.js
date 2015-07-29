@@ -302,6 +302,8 @@ function Server(options, connectionListener) {
 
   this._handle = null;
   this._sockets = [];
+
+  this.allowHalfOpen = options.allowHalfOpen || false;
 }
 
 // Server inherits EventEmitter.
@@ -398,6 +400,7 @@ Server.prototype._onconnection = function(status, clientHandle) {
   // Create socket object for connecting client.
   var socket = new Socket({
     handle: clientHandle,
+    allowHalfOpen: this.allowHalfOpen
   });
 
   socket.server = this;

@@ -328,7 +328,7 @@ Server.prototype.listen = function() {
     self.once('listening', lastArg);
   }
 
-  var address = "127.0.0.1";
+  var address = "0.0.0.0";
   var port = util.isNumber(arguments[0]) ? arguments[0] : false;
   var backlog = util.isNumber(arguments[1]) ? arguments[1] : false;
 

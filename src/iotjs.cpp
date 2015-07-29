@@ -72,10 +72,14 @@ static void CleanupModules() {
 }
 
 
-static bool InitIoTjs(JObject* process) {
+static bool RunIoTjs(JObject* process) {
+  // Evaluating 'iotjs.js' returns a function.
   JResult jmain = JObject::Eval(String(mainjs), false, false);
   IOTJS_ASSERT(jmain.IsOk());
 
+  // Run the entry function passing process builtin.
+  // The entry function will continue initializing process module, global, and
+  // other native modules, and finally load and run application.
   JArgList args(1);
   args.Add(*process);
 
@@ -91,21 +95,25 @@ static bool InitIoTjs(JObject* process) {
 }
 
 
-static bool StartIoTjs(JObject* process) {
-
+static bool StartIoTjs(int argc, char** argv) {
   // Get jerry global object.
   JObject global = JObject::Global();
 
   // Create environtment.
-  Environment env(uv_default_loop());
+  Environment env(argc, argv, uv_default_loop());
 
   // Bind environment to global object.
   global.SetNative((uintptr_t)(&env), NULL);
 
+
+  // Initialize builtin modules.
+  JObject* process = InitModules();
+
   // Call the entry.
   // load and call iotjs.js
-  InitIoTjs(process);
+  RunIoTjs(process);
 
+  // Run event loop.
   bool more;
   do {
     more = uv_run(env.loop(), UV_RUN_ONCE);
@@ -115,34 +123,34 @@ static bool StartIoTjs(JObject* process) {
     }
   } while (more);
 
+  // Emit 'exit' event.
   ProcessEmitExit(0);
+
+  // Release bulitin modules.
+  CleanupModules();
 
   return true;
 }
 
 
-int Start(char* src) {
+int Start(int argc, char** argv) {
+  // Initalize JerryScript engine.
   if (!InitJerry()) {
     DLOG("InitJerry failed");
     return 1;
   }
 
-  JObject* process = InitModules();
+  InitDebugSettings();
 
-  // FIXME: this should be moved to seperate function
-  {
-    JObject argv;
-    argv.SetProperty("1", JObject(src));
-    process->SetProperty("argv", argv);
-  }
-
-  if (!StartIoTjs(process)) {
+  // Start IoT.js
+  if (!StartIoTjs(argc, argv)) {
     DLOG("StartIoTJs failed");
     return 1;
   }
 
-  CleanupModules();
+  ReleaseDebugSettings();
 
+  // Release JerryScript engine.
   ReleaseJerry();
 
   return 0;
@@ -157,11 +165,6 @@ extern "C" int iotjs_entry(int argc, char** argv) {
     fprintf(stderr, "Usage: iotjs <js>\n");
     return 1;
   }
-  iotjs::InitDebugSettings();
 
-  int res = iotjs::Start(argv[1]);
-
-  iotjs::ReleaseDebugSettings();
-
-  return res;
+  return iotjs::Start(argc, argv);
 }

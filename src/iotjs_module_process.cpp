@@ -17,7 +17,8 @@
 #include "iotjs_module_process.h"
 #include "iotjs_js.h"
 
-#include <cstdlib>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 
@@ -214,6 +215,27 @@ JHANDLER_FUNCTION(DoExit, handler) {
 }
 
 
+// Initialize `process.argv`
+JHANDLER_FUNCTION(InitArgv, handler) {
+  IOTJS_ASSERT(handler.GetThis()->IsObject());
+
+  // environtment
+  Environment* env = Environment::GetEnv();
+
+  // process.argv
+  JObject jargv = handler.GetThis()->GetProperty("argv");
+
+  for (int i = 0; i < env->argc(); ++i) {
+    char index[10] = {0};
+    sprintf(index, "%d", i);
+    JObject value(env->argv()[i]);
+    jargv.SetProperty(index, value);
+  }
+
+  return true;
+}
+
+
 void SetNativeSources(JObject* native_sources) {
   for (int i = 0; natives[i].name; i++) {
     JObject native_source;
@@ -258,6 +280,7 @@ JObject* InitProcess() {
     process->SetMethod("readSource", ReadSource);
     process->SetMethod("cwd", Cwd);
     process->SetMethod("doExit", DoExit);
+    process->SetMethod("_initArgv", InitArgv);
     SetProcessEnv(process);
 
     // process.native_sources

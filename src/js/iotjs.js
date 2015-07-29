@@ -19,9 +19,9 @@
   global.process = process;
 
 
-  function start_iotjs() {
-    init_global();
-    init_timers();
+  function startIoTjs() {
+    initGlobal();
+    initTimers();
 
     initProcess();
 
@@ -31,7 +31,7 @@
   };
 
 
-  function init_global() {
+  function initGlobal() {
     global.process = process;
     global.global = global;
     global.GLOBAL = global;
@@ -41,7 +41,7 @@
   };
 
 
-  function init_timers() {
+  function initTimers() {
     global.setTimeout = function(callback, delay) {
       var t = Native.require('timers');
       return t.setTimeout.call(this, callback, delay);
@@ -65,10 +65,18 @@
 
 
   function initProcess() {
+    initProcessArgv();
     initProcessEvents();
     initProcessNextTick();
     initProcessUncaughtException();
     initProcessExit();
+  }
+
+
+  // Initialize `process.argv`
+  function initProcessArgv() {
+    process.argv = [];
+    process._initArgv();
   }
 
 
@@ -215,6 +223,6 @@
     return JSON.parse(text);
   };
 
-  start_iotjs();
+  startIoTjs();
 
 });

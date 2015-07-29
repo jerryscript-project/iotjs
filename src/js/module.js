@@ -165,6 +165,7 @@ Module.load = function(id, parent, isMain) {
   return module.exports;
 };
 
+
 Module.prototype.compile = function() {
   var self = this;
   var requireForThis = function(path) {

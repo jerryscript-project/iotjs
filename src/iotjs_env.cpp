@@ -20,13 +20,18 @@
 
 namespace iotjs {
 
-Environment::Environment(uv_loop_t* loop)
-  : _loop(loop) {
+
+Environment::Environment(int argc, char** argv, uv_loop_t* loop)
+  : _argc(argc)
+  , _argv(argv)
+  , _loop(loop) {
 }
+
 
 Environment* Environment::GetEnv() {
   JObject global = JObject::Global();
   return (Environment*)global.GetNative();
 }
+
 
 } // namespace iotjs

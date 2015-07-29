@@ -28,13 +28,17 @@ class ReqWrap;
 
 class Environment {
  public:
-  Environment(uv_loop_t* loop);
+  Environment(int argc, char** argv, uv_loop_t* loop);
 
   static Environment* GetEnv();
 
+  int argc() { return _argc; }
+  char** argv() { return _argv; }
   uv_loop_t* loop() { return _loop; }
 
  private:
+  int _argc;
+  char** _argv;
   uv_loop_t* _loop;
 }; // class Environment
 

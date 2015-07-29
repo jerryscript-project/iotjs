@@ -25,7 +25,7 @@
 
 namespace iotjs {
 
-IOTJS_EXTERN_C int Start(char* src);
+IOTJS_EXTERN_C int Start(int argc, char** argv);
 
 } // namespace itojs
 

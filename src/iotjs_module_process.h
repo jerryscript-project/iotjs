@@ -29,6 +29,8 @@ bool ProcessNextTick();
 
 JObject MakeCallback(JObject& function, JObject& this_, JArgList& args);
 
+void InitArgv(int argc, char** argv);
+
 JObject* InitProcess();
 
 } // namespace iotjs

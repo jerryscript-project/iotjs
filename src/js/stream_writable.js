@@ -19,6 +19,8 @@ var util = require('util');
 var Stream = stream.Stream;
 var Duplex = stream.Duplex;
 
+var defaultHighWaterMark = 128;
+
 
 function WriteReq(chunk, callback) {
   this.chunk = chunk;
@@ -30,11 +32,26 @@ function WritableState(options) {
   // buffer of WriteReq
   this.buffer = [];
 
+  // total length of messages not fllushed yet.
+  this.length = 0;
+
+  // high water mark.
+  // The point where write() starts retuning false.
+  var hwm = options.highWaterMark;
+  this.highWaterMark = (hwm || hwm === 0) ? hwm : defaultHighWaterMark;
+
   // 'true' if stream is ready to write.
   this.ready = false;
 
   // `true` if stream is writing down data underlying system.
   this.writing = false;
+
+  // the length of message being wrinting.
+  this.writingLength = 0;
+
+  // turn 'true' when some messages are buffered. After buffered messages are
+  // all sent, 'drain' event will be emitted.
+  this.needDrain = false;
 
   // become `true` when `end()` called.
   this.ending = false;
@@ -119,7 +136,11 @@ Writable.prototype._readyToWrite = function() {
 Writable.prototype._onwrite = function(status) {
   var state = this._writableState;
 
+  state.length -= state.writingLength;
+
   state.writing = false;
+  state.writingLength = 0;
+
   writeBuffered(this);
 };
 
@@ -143,6 +164,8 @@ function writeOrBuffer(stream, chunk, callback) {
     chunk = new Buffer(chunk);
   }
 
+  state.length += chunk.length;
+
   if (!state.ready || state.writing || state.buffer.length > 0) {
     // stream not yet ready or there is pending request to write.
     // push this request into write queue.
@@ -151,6 +174,13 @@ function writeOrBuffer(stream, chunk, callback) {
     // here means there is no pending data. write out.
     doWrite(stream, chunk, callback);
   }
+
+  // total length of buffered message excceded high water mark.
+  if (state.length >= state.highWaterMark) {
+    state.needDrain = true;
+  }
+
+  return !state.needDrain;
 }
 
 
@@ -176,6 +206,7 @@ function doWrite(stream, chunk, callback) {
 
   // The stream is now writing.
   state.writing = true;
+  state.writingLength = chunk.length;
 
   // Write down the chunk data.
   stream._write(chunk, callback, stream._onwrite);
@@ -187,6 +218,8 @@ function onEmptyBuffer(stream) {
   var state = stream._writableState;
   if (state.ending) {
     emitFinish(stream);
+  } else if (state.needDrain) {
+    emitDrain(stream);
   }
 }
 
@@ -205,6 +238,16 @@ function endWritable(stream, callback) {
     process.nextTick(function(){
       emitFinish(stream);
     });
+  }
+}
+
+
+// Emit 'drain' event
+function emitDrain(stream) {
+  var state = stream._writableState;
+  if (state.needDrain) {
+    state.needDrain = false;
+    stream.emit('drain');
   }
 }
 

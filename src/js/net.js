@@ -96,7 +96,8 @@ Socket.prototype.write = function(data, callback) {
   if (!util.isString(data) && !util.isBuffer(data)) {
     throw new TypeError('invalid argument');
   }
-  stream.Duplex.prototype.write.call(this, data, callback);
+
+  return stream.Duplex.prototype.write.call(this, data, callback);
 };
 
 

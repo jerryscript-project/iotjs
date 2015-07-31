@@ -42,24 +42,24 @@
 
 
   function initTimers() {
-    global.setTimeout = function(callback, delay) {
+    global.setTimeout = function() {
       var t = Native.require('timers');
-      return t.setTimeout.call(this, callback, delay);
+      return t.setTimeout.apply(this, arguments);
     };
 
-    global.setInterval = function(callback, repeat) {
+    global.setInterval = function() {
       var t = Native.require('timers');
-      return t.setInterval.call(this, callback, repeat);
+      return t.setInterval.apply(this, arguments);
     };
 
-    global.clearTimeout = function(timeout) {
+    global.clearTimeout = function() {
       var t = Native.require('timers');
-      return t.clearTimeout.call(this, timeout);
+      return t.clearTimeout.apply(this, arguments);
     };
 
-    global.clearInterval = function(interval) {
+    global.clearInterval = function() {
       var t = Native.require('timers');
-      return t.clearInterval.call(this, interval);
+      return t.clearInterval.apply(this, arguments);
     };
   }
 

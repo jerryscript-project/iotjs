@@ -22,7 +22,8 @@ var TIMEOUT_MAX = 2147483647; // 2^31-1
 
 // Timeout holders
 // Todo, profile and optimize
-var timers_list = [];
+var timersList = [];
+
 
 function Timeout(after) {
   this.after = after;
@@ -46,13 +47,17 @@ var handleTimeout = function() {
 Timeout.prototype.activate = function() {
   var repeat = 0;
   var handler = new Timer();
-  if (this.isrepeat)
+
+  if (this.isrepeat) {
     repeat = this.after;
+  }
+
   handler.timeoutObj = this;
   this.handler = handler;
+
   handler.start(this.after, repeat, handleTimeout);
 
-  timers_list.push(this);
+  timersList.push(this);
 };
 
 
@@ -65,16 +70,17 @@ Timeout.prototype.close = function() {
   }
 
   // remove 'this' from list
-  var idx = timers_list.indexOf(this);
+  var idx = timersList.indexOf(this);
   if (idx > -1) {
-    timers_list.splice(idx,1);
+    timersList.splice(idx, 1);
   }
 };
 
 
 exports.setTimeout = function(callback, delay) {
-  if (!util.isFunction(callback))
-    throw new TypeError('callback must be a function');
+  if (!util.isFunction(callback)) {
+    throw new TypeError('Bad arguments: callback must be a Function');
+  }
 
   delay *= 1;
   if (delay < 1 || delay > TIMEOUT_MAX) {
@@ -82,8 +88,17 @@ exports.setTimeout = function(callback, delay) {
   }
 
   var timeout = new Timeout(delay);
-  timeout.callback = callback;
-  // Todo, use apply when arguments are ready
+
+  // set timeout handler.
+  if (arguments.length <= 2) {
+    timeout.callback = callback;
+  } else {
+    var args = Array.prototype.slice.call(arguments, 2);
+    timeout.callback = function() {
+      callback.apply(timeout, args);
+    };
+  }
+
   timeout.activate();
 
   return timeout;
@@ -94,20 +109,30 @@ exports.clearTimeout = function(timeout) {
   if (timeout && timeout.callback && (timeout instanceof Timeout))
     timeout.close();
   else
-    throw new Error('Error clearTimeout, not a valid timeout Object');
+    throw new Error('clearTimeout() - invalid timeout');
 };
 
 
 exports.setInterval = function(callback, repeat) {
-  if (!util.isFunction(callback))
-    throw new TypeError('callback must be a function');
+  if (!util.isFunction(callback)) {
+    throw new TypeError('Bad arguments: callback must be a Function');
+  }
 
   repeat *= 1;
   if (repeat < 1 || repeat > TIMEOUT_MAX) {
     repeat = 1;
   }
   var timeout = new Timeout(repeat);
-  timeout.callback = callback;
+
+  // set interval timeout handler.
+  if (arguments.length <= 2) {
+    timeout.callback = callback;
+  } else {
+    var args = Array.prototype.slice.call(arguments, 2);
+    timeout.callback = function() {
+      callback.apply(timeout, args);
+    };
+  }
   timeout.isrepeat = true;
   timeout.activate();
 
@@ -119,5 +144,5 @@ exports.clearInterval = function(timeout) {
   if (timeout && timeout.isrepeat)
     timeout.close();
   else
-    throw new Error('Error clearInterval, not a valid interval Object');
+    throw new Error('clearInterval() - invalid interval');
 };

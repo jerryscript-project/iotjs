@@ -299,18 +299,6 @@ class JHandlerInfo {
   static void handler(const uintptr_t arg_name) \
 
 
-class JLocalScope {
- public:
-  explicit JLocalScope();
-  ~JLocalScope();
-
-  JObject* CreateJObject();
-
- private:
-  LinkedList<JObject*> _object_list;
-};
-
-
 } // namespace iotjs
 
 

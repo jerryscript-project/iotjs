@@ -693,20 +693,4 @@ bool JHandlerInfo::HasThrown() {
 }
 
 
-JLocalScope::JLocalScope() {
-}
-
-
-JLocalScope::~JLocalScope() {
-  _object_list.Clear();
-}
-
-
-JObject* JLocalScope::CreateJObject() {
-  JObject* new_object = new JObject();
-  _object_list.InsertTail(new_object);
-  return new_object;
-}
-
-
 } // namespace iotjs

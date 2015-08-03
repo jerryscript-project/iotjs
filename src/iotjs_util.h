@@ -39,6 +39,9 @@ void PrintBacktrace();
 
 class String {
  public:
+  // Create emtpy string
+  String();
+
   // Create string object from either ascii or utf8 encoded string data.
   // This constuctor will allocate new buffer to hold given string data.
   // If the second parameter `size` was given as `-1` the function calls
@@ -54,14 +57,23 @@ class String {
 
   bool IsEmpty() const;
 
-  // Returns pointer to the bytes.
+  // Make empty string
+  void MakeEmpty();
+
+  // Append `data` to tail of the String.
+  void Append(const char* data, int size = -1);
+
+  // Returns pointer to the bytes or NULL for empty string.
   char* data() const;
+
   int size() const;
 
  protected:
   // Buffer for containing the string data.
   char* _data;
+
   int _size;
+  int _cap;
 
  private:
   // Prevent reassignments.

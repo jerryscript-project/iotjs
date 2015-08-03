@@ -62,6 +62,12 @@ void ReleaseBuffer(char* buffer) {
 }
 
 
+String::String() {
+  _size = _cap = 0;
+  _data = NULL;
+}
+
+
 String::String(const char* data, int size) {
   if (size < 0) {
     _size = strlen(data);
@@ -69,9 +75,12 @@ String::String(const char* data, int size) {
     _size = size;
   }
 
-  if (_size > 0) {
+  IOTJS_ASSERT(_size >= 0);
+  _cap = _size;
+
+  if (_cap > 0) {
     IOTJS_ASSERT(data != NULL);
-    _data = AllocBuffer(_size + 1);
+    _data = AllocBuffer(_cap + 1);
     strncpy(_data, data, _size);
   } else {
     _data = NULL;
@@ -80,7 +89,7 @@ String::String(const char* data, int size) {
 
 
 String::~String() {
-  IOTJS_ASSERT(_size == 0 || _data != NULL);
+  IOTJS_ASSERT(_cap == 0 || _data != NULL);
 
   if (_data != NULL) {
     ReleaseBuffer(_data);
@@ -91,6 +100,57 @@ String::~String() {
 bool String::IsEmpty() const {
   IOTJS_ASSERT(_size >= 0);
   return _size == 0;
+}
+
+
+void String::MakeEmpty() {
+  if (_data != NULL) {
+    ReleaseBuffer(_data);
+    _cap = _size = 0;
+    _data = NULL;
+  }
+}
+
+
+void String::Append(const char* data, int size) {
+  const int kCapacityIncreaseFactor = 2;
+
+  IOTJS_ASSERT(_cap == 0 || _data != NULL);
+  IOTJS_ASSERT(_cap >= _size);
+
+  if (data == NULL) {
+    return;
+  }
+  if (size < 0) {
+    size = strlen(data);
+  }
+  if (size == 0) {
+    return;
+  }
+
+  if (_cap == 0) {
+    // No buffer was allocated.
+    IOTJS_ASSERT(_size == 0);
+    IOTJS_ASSERT(_data == NULL);
+    _cap = _size = size;
+    _data = AllocBuffer(_cap + 1);
+    strncpy(_data, data, _size);
+  } else if (_cap >= _size + size) {
+    // Have enough capacity to append data.
+    strncpy(_data + _size, data, size);
+    _size += size;
+    _data[_size] = 0;
+  } else {
+    // Lack of capacity, calculate next capacity.
+    while (_cap < _size + size) {
+      _cap *= kCapacityIncreaseFactor;
+    }
+    // Reallocate buffer and copy data.
+    _data = ReallocBuffer(_data, _cap + 1);
+    strncpy(_data + _size, data, size);
+    _size += size;
+    _data[_size] = 0;
+  }
 }
 
 

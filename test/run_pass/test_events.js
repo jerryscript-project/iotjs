@@ -22,7 +22,20 @@ var emitter = new EventEmitter();
 var eventCnt1 = 0;
 var eventCnt2 = 0;
 var eventCnt3 = 0;
+var onceCnt = 0;
 var eventSequence = "";
+
+emitter.once('once', function() {
+  onceCnt += 1;
+});
+
+
+assert.equal(onceCnt, 0);
+emitter.emit('once');
+assert.equal(onceCnt, 1);
+emitter.emit('once');
+assert.equal(onceCnt, 1);
+
 
 emitter.addListener('event', function() {
     eventCnt1 += 1;

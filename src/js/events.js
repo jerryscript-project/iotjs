@@ -73,7 +73,7 @@ EventEmitter.prototype.once = function(type, listener) {
     throw new TypeError('listener must be a function');
   }
 
-  function f(arg1, arg2) {
+  var f = function(arg1, arg2) {
     // here `this` is this not global, because EventEmitter binds event object
     // for this when it calls back the handler.
     this.removeListener(f.type, f);

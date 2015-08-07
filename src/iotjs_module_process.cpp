@@ -123,7 +123,7 @@ JHANDLER_FUNCTION(Binding, handler) {
 
 static JResult WrapEval(const String& source) {
   static const char* wrapper[2] = {
-      "(function (a, b, c) { function wwwwrap(exports,require, module) {\n",
+      "(function (a, b, c) { function wwwwrap(exports, require, module) {\n",
       "}; wwwwrap(a, b, c); });\n" };
 
   int len1 = strlen(wrapper[0]);

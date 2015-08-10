@@ -27,6 +27,7 @@ function Module(id, parent) {
 module.exports = Module;
 
 
+Module.cache = {};
 Module.wrapper = Native.wrapper;
 Module.wrap = Native.wrap;
 
@@ -152,6 +153,10 @@ Module.load = function(id, parent, isMain) {
 
   var modPath = Module.resolveModPath(module.id, module.parent);
 
+  var cachedModule = Module.cache[modPath];
+  if (cachedModule) {
+    return cachedModule.exports;
+  }
 
   if (modPath) {
     module.filename = modPath;
@@ -161,6 +166,8 @@ Module.load = function(id, parent, isMain) {
   else {
     throw new Error('No module found');
   }
+
+  Module.cache[modPath] = module;
 
   return module.exports;
 };

@@ -110,10 +110,35 @@ GPIO.setPin = function(pinNumber, direction, mode, callback) {
 
 
 GPIO.writePin = function(pinNumber, value, callback) {
+  var result;
+  result = gpioctl.writePin(pinNumber, value, callback);
+  if (result < 0) {
+    var err = new GpioError(result, gpioctl.errMessage(result));
+    if (util.isFunction(callback)) {
+      process.nextTick(function() {
+        callback(err);
+      });
+    }
+    else {
+      throw err;
+    }
+  }
 };
 
 
 GPIO.readPin = function(pinNumber, callback) {
+  var result;
+  if (!util.isFunction(callback)) {
+    result = gpioctl.ERR_INVALIDPARAM;
+    throw new GpioError(result, gpioctl.errMessage(result));
+  }
+  result = gpioctl.readPin(pinNumber, callback);
+  if (result < 0) {
+    var err = new GpioError(result, gpioctl.errMessage(result));
+    process.nextTick(function() {
+      callback(err);
+    });
+  }
 };
 
 

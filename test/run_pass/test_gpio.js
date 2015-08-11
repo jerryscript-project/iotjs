@@ -35,25 +35,69 @@ try {
 }
 catch(err) {
   if(err.code == gpio.ERR_INVALIDPARAM) {
-    gpioSequence += 'B';
+    gpioSequence += '1';
   }
 }
 
+try {
+  gpio.writePin(-1, true);
+}
+catch(err) {
+  if(err.code == gpio.ERR_INVALIDPARAM) {
+    gpioSequence += '2';
+  }
+}
+
+try {
+  gpio.readPin(-1);
+}
+catch(err) {
+  if(err.code == gpio.ERR_INVALIDPARAM) {
+    gpioSequence += '3';
+  }
+}
+
+try {
+  gpio.readPin(2);
+}
+catch(err) {
+  if(err.code == gpio.ERR_INVALIDPARAM) {
+    gpioSequence += '4';
+  }
+}
+
+
 gpio.setPin(2, "out", function(err) {
-  gpioSequence += 'C';
+  gpioSequence += 'B';
 });
 
 gpio.setPin(-1, "out", function(err) {
   if(err.code == gpio.ERR_INVALIDPARAM) {
-    gpioSequence += 'D';
+    gpioSequence += 'C';
   }
 });
 
 gpio.setPin(3, "in", "float", function(err) {
+  gpioSequence += 'D';
+});
+
+
+gpio.writePin(2, true, function(err) {
   gpioSequence += 'E';
 });
 
+gpio.readPin(3, function(err,value) {
+  if (value == true)
+    gpioSequence += 'F';
+});
+
+gpio.readPin(4, function(err,value) {
+  if (value == false)
+    gpioSequence += 'G';
+});
+
+
 process.on('exit', function(code) {
   gpio.release();
-  assert.equal(gpioSequence, 'IABCDE');
+  assert.equal(gpioSequence, 'IA1234BCDEFG');
 });

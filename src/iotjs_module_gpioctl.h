@@ -30,8 +30,15 @@ struct GpioCbDataSetpin {
   int32_t mode;
 };
 
+struct GpioCbDataRWpin {
+  void* data;
+  int32_t pin;
+  bool value;
+};
+
 
 typedef void (*GpioSetpinCb)(GpioCbDataSetpin* cbdata, int err);
+typedef void (*GpioRWpinCb)(GpioCbDataRWpin* cbdata, int err);
 
 
 class GpioControl : public JObjectWrap {
@@ -46,6 +53,9 @@ public:
   virtual void Release(void) = 0;
   virtual int SetPin(GpioCbDataSetpin* data, GpioSetpinCb cb) = 0;
   virtual int SetPin(int32_t pin, int32_t dir, int32_t mode) = 0;
+  virtual int WritePin(GpioCbDataRWpin* data, GpioRWpinCb cb) = 0;
+  virtual int WritePin(int32_t pin, bool value) = 0;
+  virtual int ReadPin(GpioCbDataRWpin* data, GpioRWpinCb cb) = 0;
   // Todo add for other APIs
 
 protected:

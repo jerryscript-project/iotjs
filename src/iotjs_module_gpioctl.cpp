@@ -47,6 +47,28 @@ class SetpinWrap : public GpioCbWrap {
 };
 
 
+class RWpinWrap : public GpioCbWrap {
+ public:
+  explicit RWpinWrap(JObject& jcallback, JObject& jgpioctl)
+      : GpioCbWrap(jcallback, reinterpret_cast<GpioCbData*>(&_data))
+      , _jgpioctl(jgpioctl) {
+    memset(&_data, 0, sizeof(_data));
+  }
+
+  GpioCbDataRWpin* data() {
+    return &_data;
+  }
+
+  JObject& jgpioctl() {
+    return _jgpioctl;
+  }
+
+ protected:
+   GpioCbDataRWpin _data;
+   JObject _jgpioctl;
+};
+
+
 //-----------------------------------------------------------------------------
 
 GpioControl::GpioControl(JObject& jgpioctl)
@@ -125,7 +147,6 @@ JHANDLER_FUNCTION(SetPin, handler) {
   int err = 0;
 
   if (jcallback.IsFunction()) {
-    JObject jcallback = *handler.GetArg(3);
     SetpinWrap* wrap = new SetpinWrap(jcallback, *jgpioctl);
     GpioCbDataSetpin* setpindata = wrap->data();
     setpindata->pin = pin;
@@ -150,16 +171,110 @@ JHANDLER_FUNCTION(SetPin, handler) {
 }
 
 
+static void AfterWritePin(GpioCbDataRWpin* cdbata, int err) {
+  RWpinWrap* wrap = reinterpret_cast<RWpinWrap*>(cdbata->data);
+  IOTJS_ASSERT(wrap != NULL);
+
+  JObject jcallback(wrap->jcallback());
+  IOTJS_ASSERT(jcallback.IsFunction());
+  JObject jgpioctl(wrap->jgpioctl());
+
+  JArgList args(2);
+  args.Add(jcallback);
+  if (err < 0) args.Add(JVal::Number(err));
+  else args.Add(JVal::Null());
+
+  JObject callback(jgpioctl.GetProperty("_docallback"));
+  IOTJS_ASSERT(callback.IsFunction());
+  MakeCallback(callback, JObject::Null(), args);
+  delete wrap;
+}
+
+
 JHANDLER_FUNCTION(WritePin, handler) {
+  IOTJS_ASSERT(handler.GetArgLength() == 3);
+  IOTJS_ASSERT(handler.GetArg(0)->IsNumber());
+  IOTJS_ASSERT(handler.GetArg(1)->IsBoolean());
+
+  JObject* jgpioctl = handler.GetThis();
+  GpioControl* gpioctrl = GpioControl::FromJGpioCtl(*jgpioctl);
+  int32_t pin = handler.GetArg(0)->GetInt32();
+  bool value = handler.GetArg(1)->GetBoolean();
+  JObject jcallback = *handler.GetArg(2);
   int err = 0;
+
+  if (jcallback.IsFunction()) {
+    RWpinWrap* wrap = new RWpinWrap(jcallback, *jgpioctl);
+    GpioCbDataRWpin* rwpindata = wrap->data();
+    rwpindata->pin = pin;
+    rwpindata->value = value;
+
+    err = gpioctrl->WritePin(rwpindata, AfterWritePin);
+
+    wrap->Dispatched();
+
+    if (err) {
+      delete wrap;
+    }
+  }
+  else {
+    err = gpioctrl->WritePin(pin, value);
+  }
+
   JObject ret(err);
   handler.Return(ret);
   return true;
 }
 
 
+static void AfterReadPin(GpioCbDataRWpin* cdbata, int err) {
+  RWpinWrap* wrap = reinterpret_cast<RWpinWrap*>(cdbata->data);
+  IOTJS_ASSERT(wrap != NULL);
+  GpioCbDataRWpin* rwpindata = wrap->data();
+
+  JObject jcallback(wrap->jcallback());
+  IOTJS_ASSERT(jcallback.IsFunction());
+  JObject jgpioctl(wrap->jgpioctl());
+
+  JArgList args(3);
+  args.Add(jcallback);
+  if (err < 0) args.Add(JVal::Number(err));
+  else {
+    args.Add(JVal::Null());
+    args.Add(JVal::Bool(rwpindata->value));
+  }
+
+  JObject callback(jgpioctl.GetProperty("_docallback"));
+  IOTJS_ASSERT(callback.IsFunction());
+  MakeCallback(callback, JObject::Null(), args);
+  delete wrap;
+}
+
+
 JHANDLER_FUNCTION(ReadPin, handler) {
+  IOTJS_ASSERT(handler.GetArgLength() == 2);
+  IOTJS_ASSERT(handler.GetArg(0)->IsNumber());
+  IOTJS_ASSERT(handler.GetArg(1)->IsFunction());
+
+  JObject* jgpioctl = handler.GetThis();
+  GpioControl* gpioctrl = GpioControl::FromJGpioCtl(*jgpioctl);
+  int32_t pin = handler.GetArg(0)->GetInt32();
+  JObject jcallback = *handler.GetArg(1);
   int err = 0;
+
+  RWpinWrap* wrap = new RWpinWrap(jcallback, *jgpioctl);
+  GpioCbDataRWpin* rwpindata = wrap->data();
+  rwpindata->pin = pin;
+  rwpindata->value = false;
+
+  err = gpioctrl->ReadPin(rwpindata, AfterReadPin);
+
+  wrap->Dispatched();
+
+  if (err) {
+    delete wrap;
+  }
+
   JObject ret(err);
   handler.Return(ret);
   return true;

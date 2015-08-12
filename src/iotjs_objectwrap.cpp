@@ -23,7 +23,7 @@ namespace iotjs {
 JFREE_HANDLER_FUNCTION(FreeObjectWrap, wrapper) {
   // native pointer must not be NULL.
   IOTJS_ASSERT(wrapper != 0);
-  delete reinterpret_cast<JObjectWrap*>(wrapper);
+  reinterpret_cast<JObjectWrap*>(wrapper)->Destroy();
 }
 
 
@@ -81,6 +81,11 @@ void JObjectWrap::set_jholder(JObject& jholder) {
 
   JRawValueType raw_value = jholder.raw_value();
   _jholder = new JObject(&raw_value, false);
+}
+
+
+void JObjectWrap::Destroy(void) {
+  delete this;
 }
 
 

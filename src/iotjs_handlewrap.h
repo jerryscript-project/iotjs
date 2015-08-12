@@ -43,6 +43,10 @@ class HandleWrap : public JObjectWrap {
 
   void Close(OnCloseHandler on_close_cb);
 
+  static void OnClose(uv_handle_t* handle);
+
+  virtual void Destroy(void);
+
  protected:
   uv_handle_t* __handle;
 };

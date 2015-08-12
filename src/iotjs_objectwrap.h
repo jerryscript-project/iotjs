@@ -36,6 +36,8 @@ class JObjectWrap {
   JObject& jholder();
   void set_jholder(JObject& jholder);
 
+  virtual void Destroy(void);
+
  protected:
   JObject* _jobject;
   JObject* _jholder;

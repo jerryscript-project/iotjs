@@ -66,7 +66,7 @@ static void After(uv_fs_t* req) {
       case UV_FS_READ:
       case UV_FS_WRITE:
       {
-        JObject arg1(static_cast<int32_t>(req->result));
+        JObject arg1(static_cast<int>(req->result));
         jarg.Add(arg1);
         break;
       }
@@ -248,7 +248,7 @@ JObject MakeStatObject(uv_stat_t* statbuf) {
 
 
 #define X(name)                              \
-  JObject name((int32_t)statbuf->st_##name);        \
+  JObject name((int)statbuf->st_##name);        \
 
   X(dev)
   X(mode)

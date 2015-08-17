@@ -28,7 +28,7 @@ function ClientRequest(options, cb) {
 
 
   var port = options.port = options.port || 80;
-  var host = options.host = options.hostname || '127.0.0.1';
+  var host = options.host = options.hostname || options.host || '127.0.0.1';
   var method = options.method || 'GET';
 
   self.path = options.path || '/';

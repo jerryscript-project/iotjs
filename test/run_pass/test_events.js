@@ -38,8 +38,8 @@ assert.equal(onceCnt, 1);
 
 
 emitter.addListener('event', function() {
-    eventCnt1 += 1;
-    eventSequence += "1";
+  eventCnt1 += 1;
+  eventSequence += "1";
 });
 
 assert.equal(eventCnt1, 0);
@@ -47,8 +47,8 @@ emitter.emit('event');
 assert.equal(eventCnt1, 1);
 
 emitter.addListener('event', function() {
-    eventCnt2 += 1;
-    eventSequence += "2";
+  eventCnt2 += 1;
+  eventSequence += "2";
 });
 
 assert.equal(eventCnt2, 0);
@@ -57,8 +57,8 @@ assert.equal(eventCnt1, 2);
 assert.equal(eventCnt2, 1);
 
 emitter.addListener('event', function() {
-    eventCnt3 += 1;
-    eventSequence += "3";
+  eventCnt3 += 1;
+  eventSequence += "3";
 });
 
 assert.equal(eventCnt3, 0);
@@ -75,4 +75,31 @@ assert.equal(eventCnt1, 4);
 assert.equal(eventCnt2, 3);
 assert.equal(eventCnt3, 2);
 
-assert.equal(eventSequence, "112123123");
+
+emitter.addListener('args', function() {
+  assert.equal(arguments.length, 14);
+  assert.equal(arguments[0], 0);
+  assert.equal(arguments[1], 1);
+  assert.equal(arguments[2], 2);
+  assert.equal(arguments[3], 3);
+  assert.equal(arguments[4], 4);
+  assert.equal(arguments[5], 5);
+  assert.equal(arguments[6], 6);
+  assert.equal(arguments[7], 7);
+  assert.equal(arguments[8], 8);
+  assert.equal(arguments[9], 9);
+  assert.equal(arguments[10], "a");
+  assert.equal(arguments[11], "b");
+  assert.equal(arguments[12], "c");
+  assert.equal(arguments[13].a, 123);
+  eventSequence += "4";
+});
+
+emitter.addListener('args', function() {
+  assert.equal(arguments.length, 14);
+  eventSequence += "5";
+})
+
+emitter.emit('args', 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, "a", "b", "c", { a: 123});
+
+assert.equal(eventSequence, "11212312345");

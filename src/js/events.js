@@ -24,8 +24,7 @@ function EventEmitter() {
 module.exports.EventEmitter = EventEmitter;
 
 
-// TODO: using arguments instead of arg1, arg2.
-EventEmitter.prototype.emit = function(type, arg1, arg2) {
+EventEmitter.prototype.emit = function(type) {
   if (!this._events) {
     this._events = {};
   }
@@ -33,12 +32,17 @@ EventEmitter.prototype.emit = function(type, arg1, arg2) {
   if (util.isUndefined(handler)) {
     return false;
   } else if (util.isFunction(handler) || util.isObject(handler)) {
+    var len = arguments.length;
+    var args = new Array(len - 1);
+    for (var i = 1; i < len; ++i) {
+      args[i - 1] = arguments[i];
+    }
     if (util.isFunction(handler)) {
-      handler.call(this, arg1, arg2);
+      handler.apply(this, args);
     } else {
       var listeners = handler;
-      for (i = 0; i < listeners.length; ++i) {
-        listeners[i].call(this, arg1, arg2);
+      for (var i = 0; i < listeners.length; ++i) {
+        listeners[i].apply(this, args);
       }
     }
   }

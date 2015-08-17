@@ -37,6 +37,8 @@ function SocketState(options) {
   this.writable = true;
   this.readable = true;
 
+  this.destroyed = false;
+
   this.allowHalfOpen = options && options.allowHalfOpen || false;
 }
 
@@ -133,12 +135,17 @@ Socket.prototype.destroy = function() {
   var self = this;
   var state = self._socketState;
 
+  if (state.destroyed) {
+    return;
+  }
+
   if (state.writable) {
     self.end();
   }
 
   if (self._writableState.ended) {
     self._handle.close();
+    state.destroyed = true;
   } else {
     self.once('finish', function() {
       self.destroy();

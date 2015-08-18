@@ -26,16 +26,14 @@ function ClientRequest(options, cb) {
   var self = this;
   OutgoingMessage.call(self);
 
-
+  // get port, host and method.
   var port = options.port = options.port || 80;
   var host = options.host = options.hostname || options.host || '127.0.0.1';
   var method = options.method || 'GET';
 
   self.path = options.path || '/';
 
-  var firstHeaderLine = method + ' ' + self.path + ' ' +
-        'HTTP/1.1\r\n';
-
+  // If `options` contains header information, save it.
   if (options.headers) {
     var keys = Object.keys(options.headers);
     for (var i = 0, l = keys.length; i < l; i++) {
@@ -44,44 +42,31 @@ function ClientRequest(options, cb) {
     }
   }
 
+  // Register response event handler.
   if (cb) {
     self.once('response', cb);
   }
 
+  // Create socket.
   var conn = new net.Socket();
 
+  // connect server.
   conn.connect(port, host);
 
+  // setup connection information.
+  setupConnection(self, conn);
 
-  self.on('socket', function(socket){
-    self._storeHeader(firstHeaderLine);
-    // cf) in node, requests are alloc in free list, we dont.
-    // Also, we do not buffer things on write call.
-    // Flush header now.
-    self.write('');
-  });
-
-  self.onSocket(conn);
+  // store first header line to be sent.
+  var firstHeaderLine = method + ' ' + self.path + ' HTTP/1.1\r\n';
+  self._storeHeader(firstHeaderLine);
 }
 
 util.inherits(ClientRequest, OutgoingMessage);
 
-
 exports.ClientRequest = ClientRequest;
 
 
-ClientRequest.prototype.onSocket = function(socket) {
-  var req = this;
-
-  // In iotjs, no socket pool.
-  // we assume that socket already ready.
-  tickOnSocket(req, socket);
-
-};
-
-
-function tickOnSocket(req, socket) {
-
+function setupConnection(req, socket) {
   var parser = common.createHTTPParser();
   parser.reinitialize(HTTPParser.RESPONSE);
   req.socket = socket;
@@ -101,7 +86,9 @@ function tickOnSocket(req, socket) {
   socket.on('close', socketOnClose);
 
   // socket emitted when a socket is assigned to req
-  req.emit('socket', socket);
+  process.nextTick(function() {
+    req.emit('socket', socket);
+  });
 }
 
 

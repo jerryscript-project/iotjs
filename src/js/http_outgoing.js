@@ -43,6 +43,8 @@ exports.OutgoingMessage = OutgoingMessage;
 
 
 OutgoingMessage.prototype.end = function(data, encoding, callback) {
+  var self = this;
+
   if (util.isFunction(data)) {
     callback = data;
     data = null;
@@ -51,6 +53,9 @@ OutgoingMessage.prototype.end = function(data, encoding, callback) {
     encoding = null;
   }
 
+  if (this.finished) {
+    return false;
+  }
 
   // flush header
   if (!this._header) {
@@ -61,22 +66,21 @@ OutgoingMessage.prototype.end = function(data, encoding, callback) {
     this.write(data, encoding);
   }
 
-  var self = this;
-  var emitFinish = function() {
-    self.emit('finish');
-  };
-
-  if (this.finished) {
-    return false;
+  // Register finish event handler.
+  if (util.isFunction(callback)) {
+    this.once('finish', callback);
   }
 
-
-  if (util.isFunction(callback))
-    this.once('finish', callback);
-
-
-  // emit finish
-  process.nextTick(emitFinish);
+  // Force flush buffered data.
+  // After all data was sent, emit 'finish' event meaning segment of header and
+  // body were all sent finished. This means different from 'finish' event
+  // emitted by net which indicate there will be no more data to be sent through
+  // the connection. On the other hand emitting 'finish' event from http does
+  // not neccessarily imply end of data trasmission since there might be another
+  // segment of data when connection is 'Keep-Alive'.
+  this._send('', function() {
+    self.emit('finish');
+  });
 
 
   this.finished = true;
@@ -99,17 +103,13 @@ OutgoingMessage.prototype._send = function(chunk, encoding, callback) {
     callback = encoding;
   }
 
-
-  if (!this._sentHeader) {
-    if (util.isBuffer(chunk)) {
-      chunk = chunk.toString();
-    }
-    chunk = this._header + "\r\n" + chunk;
-    this._sentHeader = true;
-  }
-
   if (util.isBuffer(chunk)) {
     chunk = chunk.toString();
+  }
+
+  if (!this._sentHeader) {
+    chunk = this._header + "\r\n" + chunk;
+    this._sentHeader = true;
   }
 
   return this.connection.write(chunk, encoding, callback);
@@ -124,6 +124,7 @@ OutgoingMessage.prototype.write = function(chunk, encoding, callback) {
   if (!this._hasBody) {
     return true;
   }
+
   var ret = this._send(chunk, encoding, callback);
 
   return ret;

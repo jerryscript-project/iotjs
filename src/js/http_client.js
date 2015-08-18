@@ -163,6 +163,7 @@ function socketOnEnd() {
     socket.parser = null;
     req.parser = null;
   }
+
   socket.destroy();
 }
 
@@ -199,7 +200,7 @@ var responseOnEnd = function() {
   var req = res.req;
   var socket = req.socket;
 
-  if(socket.writable) {
+  if (socket._socketState.writable) {
     socket.destroySoon();
   }
 };

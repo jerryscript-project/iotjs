@@ -230,8 +230,8 @@ function connectionListener(socket) {
 
     this.parser = null;
 
-    if (!self.httpAllowHalfOpen) {
-      if (socket.writable) socket.end();
+    if (!self.httpAllowHalfOpen && socket._socketState.writable) {
+      socket.end();
     }
   }
 

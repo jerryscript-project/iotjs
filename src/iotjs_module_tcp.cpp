@@ -486,6 +486,27 @@ JHANDLER_FUNCTION(Shutdown, handler) {
 }
 
 
+// Enable/Disable keepalive option.
+// [0] enable
+// [1] delay
+JHANDLER_FUNCTION(SetKeepAlive, handler) {
+  IOTJS_ASSERT(handler.GetThis()->IsObject());
+  IOTJS_ASSERT(handler.GetArgLength() == 2);
+  IOTJS_ASSERT(handler.GetArg(0)->IsNumber());
+  IOTJS_ASSERT(handler.GetArg(1)->IsNumber());
+
+  int enable = handler.GetArg(0)->GetInt32();
+  unsigned int delay = (unsigned int) handler.GetArg(1)->GetInt32();
+
+  TcpWrap* wrap = TcpWrap::FromJObject(handler.GetThis());
+  int err = uv_tcp_keepalive(wrap->tcp_handle(), enable, delay);
+
+  handler.Return(JVal::Number(err));
+
+  return true;
+}
+
+
 JHANDLER_FUNCTION(SetHolder, handler) {
   IOTJS_ASSERT(handler.GetThis()->IsObject());
   IOTJS_ASSERT(handler.GetArgLength() == 1);
@@ -519,6 +540,7 @@ JObject* InitTcp() {
     prototype.SetMethod("write", Write);
     prototype.SetMethod("readStart", ReadStart);
     prototype.SetMethod("shutdown", Shutdown);
+    prototype.SetMethod("setKeepAlive", SetKeepAlive);
     prototype.SetMethod("_setHolder", SetHolder);
 
     module->module = tcp;

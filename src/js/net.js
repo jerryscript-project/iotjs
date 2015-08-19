@@ -177,6 +177,15 @@ Socket.prototype.destroySoon = function() {
 }
 
 
+Socket.prototype.setKeepAlive = function(enable, delay) {
+  var self = this;
+  enable = +Boolean(enable);
+  if (self._handle && self._handle.setKeepAlive) {
+    self._handle.setKeepAlive(enable, ~~(delay / 1000));
+  }
+};
+
+
 Socket.prototype._onread = function(nread, isEOF, buffer) {
   var self = this;
   var state = self._socketState;

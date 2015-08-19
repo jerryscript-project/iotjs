@@ -34,6 +34,11 @@ function isNumber(arg) {
 }
 
 
+function isBoolean(arg) {
+  return typeof arg === 'boolean';
+}
+
+
 function isString(arg) {
   return typeof arg === 'string';
 }
@@ -114,6 +119,7 @@ exports.isNull = isNull;
 exports.isUndefined = isUndefined;
 exports.isNullOrUndefined = isNullOrUndefined;
 exports.isNumber = isNumber;
+exports.isBoolean = isBoolean;
 exports.isString = isString;
 exports.isObject = isObject;
 exports.isFunction = isFunction;

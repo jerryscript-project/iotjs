@@ -13,6 +13,10 @@
  * limitations under the License.
  */
 
+/*
+  @TIMEOUT=20
+*/
+
 var net = require('net');
 var assert = require('assert');
 
@@ -25,14 +29,13 @@ server.listen(port, 5);
 
 server.on('connection', function(socket) {
   var i = 0;
-  var limit = 1000;
+  var limit = 100;
   var writing = function() {
     var ok;
     do {
       ok = socket.write("" + (i % 10));
       if (++i == limit) {
         socket.end();
-        server.close();
         ok = false;
       }
     } while (ok);
@@ -42,15 +45,49 @@ server.on('connection', function(socket) {
 });
 
 
-var socket = new net.Socket();
-var msg = '';
+var msg1 = '';
+var socket1 = net.createConnection(port);
 
-socket.connect(port, '127.0.0.1');
-
-socket.on('data', function(data) {
-  msg += data;
+socket1.on('data', function(data) {
+  msg1 += data;
 });
 
+
+var msg2 = '';
+var socket2 = net.createConnection({port: port});
+
+socket2.on('data', function(data) {
+  msg2 += data;
+});
+
+
+var msg3 = '';
+var socket3 = net.createConnection({port: port, host: '127.0.0.1'});
+
+socket3.on('data', function(data) {
+  msg3 += data;
+});
+
+
+var msg4 = '';
+var connectListenerCheck = false;
+var socket4 = net.createConnection({port: port}, function() {
+  connectListenerCheck = true;
+});
+
+socket4.on('data', function(data) {
+  msg4 += data;
+});
+
+socket4.on('end', function() {
+  server.close();
+});
+
+
 process.on('exit', function(code) {
-  assert(msg.length === 1000);
+  assert.equal(msg1.length, 100);
+  assert.equal(msg2.length, 100);
+  assert.equal(msg3.length, 100);
+  assert.equal(msg4.length, 100);
+  assert(connectListenerCheck);
 });

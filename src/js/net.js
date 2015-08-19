@@ -70,9 +70,15 @@ function Socket(options) {
 util.inherits(Socket, stream.Duplex);
 
 
-Socket.prototype.connect = function(port, host, callback) {
+Socket.prototype.connect = function() {
   var self = this;
   var state = self._socketState;
+
+  var args = normalizeConnectArgs(arguments);
+  var options = args[0];
+  var callback = args[1];
+  var host = options.host ? options.host : '127.0.0.1';
+  var port = options.port;
 
   if (state.connecting || state.connected) {
     return self;
@@ -318,11 +324,6 @@ function Server(options, connectionListener) {
 util.inherits(Server, EventEmitter);
 
 
-exports.createServer = function(options, callback) {
-  return new Server(options, callback);
-};
-
-
 // This is needed for native handler to create TCP instance.
 // Jerry API does not provide functionality for creating object via specific
 // constructor hence native handler could not create such instance by itself.
@@ -422,6 +423,36 @@ Server.prototype._onconnection = function(status, clientHandle) {
 
 Server.prototype._onclose = function() {
   this.emit('close');
+};
+
+
+function normalizeConnectArgs(args) {
+  var options = {};
+  if (util.isObject(args[0])) {
+    options = args[0];
+  } else {
+    options.port = args[0];
+    if (util.isString(args[1])) {
+      options.host = args[1];
+    }
+  }
+
+  var cb = args[args.length - 1];
+  return util.isFunction(cb) ? [options, cb] : [options];
+}
+
+
+exports.createServer = function(options, callback) {
+  return new Server(options, callback);
+};
+
+
+// net.connect(options[, connectListenr])
+// net.connect(port[, host][, connectListener])
+exports.connect = exports.createConnection = function() {
+  var args = normalizeConnectArgs(arguments);
+  var socket = new Socket(args[0]);
+  return Socket.prototype.connect.apply(socket, args);
 };
 
 

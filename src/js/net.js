@@ -333,28 +333,22 @@ Server.prototype._createTCP = createTCP;
 Server.prototype.listen = function() {
   var self = this;
 
-  // listening callback
-  var lastArg = arguments[arguments.length - 1];
-  if (util.isFunction(lastArg)) {
-    self.once('listening', lastArg);
+  var args = normalizeListenArgs(arguments);
+
+  var options = args[0];
+  var callback = args[1];
+
+  var port = options.port;
+  var host = util.isString(options.host) ? options.host : '0.0.0.0';
+  var backlog = util.isNumber(options.backlog) ? options.backlog : 511;
+
+  if (!util.isNumber(port)) {
+    throw new Error('invalid argument - need port number');
   }
 
-  var address = "0.0.0.0";
-  var port = util.isNumber(arguments[0]) ? arguments[0] : false;
-  var backlog = util.isNumber(arguments[1]) ? arguments[1] : false;
-
-  if (util.isObject(arguments[0])) {
-    var opt = arguments[0];
-    if (util.isNumber(opt.port)) {
-      port = opt.port;
-    }
-    if (util.isNumber(opt.backlog)) {
-      backlog = opt.backlog;
-    }
-  }
-
-  if (!port || !backlog) {
-    throw new Error('invalid argument');
+  // register listening event linstener.
+  if (util.isFunction(callback)) {
+    self.once('listening', callback);
   }
 
   // Create server handle.
@@ -363,7 +357,7 @@ Server.prototype.listen = function() {
   }
 
   // bind port
-  var err = self._handle.bind(address, port);
+  var err = self._handle.bind(host, port);
   if (err) {
     self._handle.close();
     return err;
@@ -426,8 +420,31 @@ Server.prototype._onclose = function() {
 };
 
 
+function normalizeListenArgs(args) {
+  var options = {};
+
+  if (util.isObject(args[0])) {
+    options = args[0];
+  } else {
+    var idx = 0;
+    options.port = args[idx++];
+    if (util.isString(args[idx])) {
+      options.host = args[idx++];
+    }
+    if (util.isNumber(args[idx])) {
+      options.backlog = args[idx++];
+    }
+  }
+
+  var cb = args[args.length - 1];
+
+  return util.isFunction(cb) ? [options, cb] : [options];
+}
+
+
 function normalizeConnectArgs(args) {
   var options = {};
+
   if (util.isObject(args[0])) {
     options = args[0];
   } else {
@@ -438,6 +455,7 @@ function normalizeConnectArgs(args) {
   }
 
   var cb = args[args.length - 1];
+
   return util.isFunction(cb) ? [options, cb] : [options];
 }
 

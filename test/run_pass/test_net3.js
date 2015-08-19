@@ -22,14 +22,13 @@ var assert = require('assert');
 
 
 var port = 9831;
-
+var limit = 200;
 var server = net.createServer();
 
-server.listen(port, 5);
+server.listen({ port: port });
 
 server.on('connection', function(socket) {
   var i = 0;
-  var limit = 100;
   var writing = function() {
     var ok;
     do {
@@ -85,9 +84,9 @@ socket4.on('end', function() {
 
 
 process.on('exit', function(code) {
-  assert.equal(msg1.length, 100);
-  assert.equal(msg2.length, 100);
-  assert.equal(msg3.length, 100);
-  assert.equal(msg4.length, 100);
+  assert.equal(msg1.length, limit);
+  assert.equal(msg2.length, limit);
+  assert.equal(msg3.length, limit);
+  assert.equal(msg4.length, limit);
   assert(connectListenerCheck);
 });

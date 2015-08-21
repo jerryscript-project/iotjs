@@ -217,7 +217,7 @@ public:
     JArgList argv(2);
     JObject jheader(makeHeader());
     argv.Add(jheader);
-    if (parser.type == HTTP_REQUEST) {
+    if (parser.type == HTTP_REQUEST && !url.IsEmpty()) {
       JObject jurl(url.data());
       argv.Add(jurl);
     }

@@ -17,6 +17,7 @@
 var EventEmitter = require('events').EventEmitter;
 var stream = require('stream');
 var util = require('util');
+var timers = require('timers');
 
 var TCP = process.binding(process.binding.tcp);
 
@@ -53,6 +54,9 @@ function Socket(options) {
   }
 
   stream.Duplex.call(this, options);
+
+  this._timer = null;
+  this._timeout = 0;
 
   this._socketState = new SocketState(options);
 
@@ -92,6 +96,8 @@ Socket.prototype.connect = function() {
     self.once('connect', callback);
   }
 
+  self._resetTimeout();
+
   state.connecting = true;
 
   self._handle.connect(host, port, afterConnect);
@@ -111,6 +117,8 @@ Socket.prototype.write = function(data, callback) {
 
 Socket.prototype._write = function(chunk, callback) {
   var self = this;
+
+  self._resetTimeout();
 
   var cb = function(status) {
     self._onwrite(status);
@@ -148,6 +156,9 @@ Socket.prototype.destroy = function() {
   if (state.writable) {
     self.end();
   }
+
+  // unset timeout
+  self._clearTimeout();
 
   if (self._writableState.ended) {
     self._handle.close();
@@ -190,6 +201,8 @@ Socket.prototype._onread = function(nread, isEOF, buffer) {
   var self = this;
   var state = self._socketState;
 
+  self._resetTimeout();
+
   if (isEOF) {
     // pushing readable stream null means EOF.
     stream.Readable.prototype.push.call(this, null);
@@ -216,6 +229,49 @@ Socket.prototype._onclose = function() {
     var sockets = this.server._sockets;
     var idx = sockets.indexOf(this);
     delete sockets[idx];
+  }
+};
+
+
+Socket.prototype._clearTimeout = function() {
+  var self = this;
+  if (self._timer) {
+    timers.clearTimeout(self._timer);
+    self._timer = null;
+  }
+};
+
+
+Socket.prototype._resetTimeout = function() {
+  var self = this;
+
+  if (!self.destroyed) {
+    // start timeout over again
+    self._clearTimeout();
+    self._timer = timers.setTimeout(function() {
+      self.emit('timeout');
+      self._clearTimeout();
+    }, self._timeout);
+  }
+};
+
+
+Socket.prototype.setTimeout = function(msecs, callback) {
+  var self = this;
+  self._timeout = msecs;
+  self._clearTimeout();
+  if (msecs === 0) {
+    if (callback) {
+      self.removeListener('timeout', callback);
+    }
+  } else {
+    self._timer = timers.setTimeout(function() {
+      self.emit('timeout');
+      self._clearTimeout();
+    }, msecs);
+    if (callback) {
+      self.once('timeout', callback);
+    }
   }
 };
 
@@ -259,6 +315,7 @@ function afterConnect(status) {
   state.connecting = false;
 
   if (status == 0) {
+    self._resetTimeout();
     onSocketConnect(self);
 
     // emit 'connect' event

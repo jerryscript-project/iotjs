@@ -49,49 +49,9 @@ class TcpWrap : public HandleWrap {
 };
 
 
-class ConnectReqWrap : public ReqWrap {
- public:
-  explicit ConnectReqWrap(JObject& jcallback)
-      : ReqWrap(jcallback, reinterpret_cast<uv_req_t*>(&_data)) {
-  }
-
-  uv_connect_t* connect_req() {
-    return &_data;
-  }
-
- protected:
-  uv_connect_t _data;
-};
-
-
-class WriteReqWrap : public ReqWrap {
- public:
-  explicit WriteReqWrap(JObject& jcallback)
-      : ReqWrap(jcallback, reinterpret_cast<uv_req_t*>(&_data)) {
-  }
-
-  uv_write_t* write_req() {
-    return &_data;
-  }
-
- protected:
-  uv_write_t _data;
-};
-
-
-class ShutdownWrap : public ReqWrap {
- public:
-  explicit ShutdownWrap(JObject& jcallback)
-      : ReqWrap(jcallback, reinterpret_cast<uv_req_t*>(&_data)) {
-  }
-
-  uv_shutdown_t* shutdown_req() {
-    return &_data;
-  }
-
- protected:
-   uv_shutdown_t _data;
-};
+typedef ReqWrap<uv_connect_t> ConnectReqWrap;
+typedef ReqWrap<uv_write_t> WriteReqWrap;
+typedef ReqWrap<uv_shutdown_t> ShutdownReqWrap;
 
 
 JHANDLER_FUNCTION(TCP, handler) {
@@ -226,12 +186,10 @@ JHANDLER_FUNCTION(Connect, handler) {
     ConnectReqWrap* req_wrap = new ConnectReqWrap(jcallback);
 
     // Create connection request.
-    err = uv_tcp_connect(req_wrap->connect_req(),
+    err = uv_tcp_connect(req_wrap->req(),
                          tcp_wrap->tcp_handle(),
                          reinterpret_cast<const sockaddr*>(&addr),
                          AfterConnect);
-
-    req_wrap->Dispatched();
 
     if (err) {
       delete req_wrap;
@@ -354,14 +312,13 @@ JHANDLER_FUNCTION(Write, handler) {
 
   WriteReqWrap* req_wrap = new WriteReqWrap(*handler.GetArg(1));
 
-  int err = uv_write(req_wrap->write_req(),
+  int err = uv_write(req_wrap->req(),
                      reinterpret_cast<uv_stream_t*>(tcp_wrap->tcp_handle()),
                      &buf,
                      1,
                      AfterWrite
                      );
 
-  req_wrap->Dispatched();
   if (err) {
     delete req_wrap;
   }
@@ -440,7 +397,7 @@ JHANDLER_FUNCTION(ReadStart, handler) {
 
 
 static void AfterShutdown(uv_shutdown_t* req, int status) {
-  ShutdownWrap* req_wrap = reinterpret_cast<ShutdownWrap*>(req->data);
+  ShutdownReqWrap* req_wrap = reinterpret_cast<ShutdownReqWrap*>(req->data);
   TcpWrap* tcp_wrap = reinterpret_cast<TcpWrap*>(req->handle->data);
   IOTJS_ASSERT(req_wrap != NULL);
   IOTJS_ASSERT(tcp_wrap != NULL);
@@ -469,12 +426,11 @@ JHANDLER_FUNCTION(Shutdown, handler) {
   TcpWrap* tcp_wrap = TcpWrap::FromJObject(handler.GetThis());
   IOTJS_ASSERT(tcp_wrap != NULL);
 
-  ShutdownWrap* req_wrap = new ShutdownWrap(*handler.GetArg(0));
+  ShutdownReqWrap* req_wrap = new ShutdownReqWrap(*handler.GetArg(0));
 
-  int err = uv_shutdown(req_wrap->shutdown_req(),
+  int err = uv_shutdown(req_wrap->req(),
                         reinterpret_cast<uv_stream_t*>(tcp_wrap->tcp_handle()),
                         AfterShutdown);
-  req_wrap->Dispatched();
 
   if (err) {
     delete req_wrap;

@@ -26,23 +26,57 @@ namespace iotjs {
 
 
 // UV request wrapper.
-// This wrapper might refer callback function increasing reference count, and
-// when this wrapper instance is being freed, the reference cound will decrease.
+// Wrapping UV request and javascript callback.
+// When an instance of request wrapper is created. it will increase ref count
+// for javascript callback function to prevent it from reclaimed by GC. The
+// reference count will decrease back when wrapper is being freed.
+template<typename T>
 class ReqWrap {
  public:
-  ReqWrap(JObject& jcallback, uv_req_t* req);
+  ReqWrap(JObject& jcallback);
   virtual ~ReqWrap();
 
+  // To retrieve javascript callback funciton object.
   JObject& jcallback();
 
-  uv_req_t* req();
-
-  void Dispatched();
+  // To retrieve pointer to uv request.
+  T* req();
 
  protected:
-  uv_req_t* __req;
+  T _req;
   JObject* _jcallback;
 };
+
+
+template<typename T>
+ReqWrap<T>::ReqWrap(JObject& jcallback)
+    : _jcallback(NULL) {
+  if (!jcallback.IsNull()) {
+    _jcallback = new JObject(jcallback);
+  }
+  _req.data = this;
+}
+
+
+template<typename T>
+ReqWrap<T>::~ReqWrap() {
+  if (_jcallback != NULL) {
+    delete _jcallback;
+  }
+}
+
+
+template<typename T>
+JObject& ReqWrap<T>::jcallback() {
+  IOTJS_ASSERT(_jcallback != NULL);
+  return *_jcallback;
+}
+
+
+template<typename T>
+T* ReqWrap<T>::req() {
+  return &_req;
+}
 
 
 } // namespace iotjs

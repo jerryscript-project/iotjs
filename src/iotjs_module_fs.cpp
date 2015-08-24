@@ -24,29 +24,13 @@
 namespace iotjs {
 
 
-class FsReqWrap : public ReqWrap {
- public:
-  explicit FsReqWrap(JObject& jcallback)
-      : ReqWrap(jcallback, reinterpret_cast<uv_req_t*>(&_data)) {
-  }
-
-  ~FsReqWrap() {
-    uv_fs_req_cleanup(&_data);
-  }
-
-  uv_fs_t* data() {
-    return &_data;
-  }
-
- private:
-  uv_fs_t _data;
-};
+typedef ReqWrap<uv_fs_t> FsReqWrap;
 
 
 static void After(uv_fs_t* req) {
   FsReqWrap* req_wrap = static_cast<FsReqWrap*>(req->data);
   IOTJS_ASSERT(req_wrap != NULL);
-  IOTJS_ASSERT(req_wrap->data() == req);
+  IOTJS_ASSERT(req_wrap->req() == req);
 
   JObject cb = req_wrap->jcallback();
   IOTJS_ASSERT(cb.IsFunction());
@@ -91,12 +75,11 @@ static void After(uv_fs_t* req) {
 
 #define FS_ASYNC(env, syscall, pcallback, ...) \
   FsReqWrap* req_wrap = new FsReqWrap(*pcallback); \
-  uv_fs_t* fs_req = req_wrap->data(); \
+  uv_fs_t* fs_req = req_wrap->req(); \
   int err = uv_fs_ ## syscall(env->loop(), \
                               fs_req, \
                               __VA_ARGS__, \
                               After); \
-  req_wrap->Dispatched(); \
   if (err < 0) { \
     fs_req->result = err; \
     After(fs_req); \
@@ -107,7 +90,7 @@ static void After(uv_fs_t* req) {
 #define FS_SYNC(env, syscall, ...) \
   FsReqWrap req_wrap(JObject::Null()); \
   int err = uv_fs_ ## syscall(env->loop(), \
-                              req_wrap.data(), \
+                              req_wrap.req(), \
                               __VA_ARGS__, \
                               NULL); \
   if (err < 0) { \
@@ -308,7 +291,7 @@ JHANDLER_FUNCTION(Stat, handler) {
     FS_ASYNC(env, stat, handler.GetArg(1), path.data());
   } else {
     FS_SYNC(env, stat, path.data());
-    uv_stat_t* s = &(req_wrap.data()->statbuf);
+    uv_stat_t* s = &(req_wrap.req()->statbuf);
     JObject ret(MakeStatObject(s));
     handler.Return(ret);
   }

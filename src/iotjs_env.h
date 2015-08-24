@@ -24,7 +24,6 @@
 
 namespace iotjs {
 
-class ReqWrap;
 
 class Environment {
  public:

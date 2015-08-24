@@ -37,6 +37,31 @@ emitter.emit('once');
 assert.equal(onceCnt, 1);
 
 
+emitter.once('once2', function() {
+  onceCnt += 1;
+  assert.equal(arguments.length, 14);
+  assert.equal(arguments[0], 0);
+  assert.equal(arguments[1], 1);
+  assert.equal(arguments[2], 2);
+  assert.equal(arguments[3], 3);
+  assert.equal(arguments[4], 4);
+  assert.equal(arguments[5], 5);
+  assert.equal(arguments[6], 6);
+  assert.equal(arguments[7], 7);
+  assert.equal(arguments[8], 8);
+  assert.equal(arguments[9], 9);
+  assert.equal(arguments[10], "a");
+  assert.equal(arguments[11], "b");
+  assert.equal(arguments[12], "c");
+  assert.equal(arguments[13].a, 123);
+});
+
+assert.equal(onceCnt, 1);
+emitter.emit('once2', 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, "a", "b", "c", { a: 123});
+assert.equal(onceCnt, 2);
+emitter.emit('once2', 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, "a", "b", "c", { a: 123});
+assert.equal(onceCnt, 2);
+
 emitter.addListener('event', function() {
   eventCnt1 += 1;
   eventSequence += "1";
@@ -102,4 +127,53 @@ emitter.addListener('args', function() {
 
 emitter.emit('args', 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, "a", "b", "c", { a: 123});
 
-assert.equal(eventSequence, "11212312345");
+
+var listener1 = function() {
+  eventSequence += '6';
+};
+
+emitter.addListener('rmTest', listener1);
+emitter.emit('rmTest');
+emitter.removeListener('rmTest', function() {});
+emitter.emit('rmTest');
+emitter.removeListener('rmTest', listener1);
+emitter.emit('rmTest');
+
+
+var listener2 = function() {
+  eventSequence += '7';
+};
+
+emitter.addListener('rmTest', listener2);
+emitter.addListener('rmTest', listener2);
+emitter.emit('rmTest');
+eventSequence += "|"
+emitter.removeListener('rmTest', listener2);
+emitter.emit('rmTest');
+eventSequence += "|"
+emitter.removeListener('rmTest', listener2);
+emitter.emit('rmTest');
+eventSequence += "|"
+
+
+var listener3 = function() {
+  eventSequence += '8';
+};
+
+emitter.addListener('rmTest', listener3);
+emitter.addListener('rmTest', listener3);
+emitter.emit('rmTest');
+eventSequence += "|";
+emitter.removeAllListeners('rmTest');
+emitter.emit('rmTest');
+eventSequence += "|";
+
+
+emitter.emit('event');
+eventSequence += "|";
+emitter.removeAllListeners();
+emitter.emit('event');
+eventSequence += "|";
+
+
+assert.equal(eventSequence, "112123123456677|7||88||123||");

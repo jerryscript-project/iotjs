@@ -36,22 +36,11 @@ typedef enum {
 
 
 // base class for delayed callback
-struct DelayedCallBase {
+struct DelayedCall {
   DelayedCallType type;
   uv_timer_t timer;
-};
-
-
-// setspin delayed callback class
-struct DelayedCallSetpin : public DelayedCallBase {
-  GpioCbDataSetpin* data;
-  GpioSetpinCb aftersetpin;
-  int result;
-};
-
-struct DelayedCallRWpin : public DelayedCallBase {
-  GpioCbDataRWpin* data;
-  GpioRWpinCb afterrwpin;
+  GpioCbData* data;
+  GpioCb after;
   int result;
 };
 
@@ -59,50 +48,44 @@ struct DelayedCallRWpin : public DelayedCallBase {
 static void timerHandleTimeout(uv_timer_t* handle) {
   uv_timer_stop(handle);
 
-  DelayedCallBase* base;
-  base = reinterpret_cast<DelayedCallBase*>(handle->data);
+  DelayedCall* base;
+  base = reinterpret_cast<DelayedCall*>(handle->data);
   switch (base->type) {
     case DELAYEDCALL_SETPIN : {
-      DelayedCallSetpin* dcsp =
-                            reinterpret_cast<DelayedCallSetpin*>(base);
-      GpioCbDataSetpin* setpin =
-                            reinterpret_cast<GpioCbDataSetpin*>(dcsp->data);
+      GpioCbData* data =
+        reinterpret_cast<GpioCbData*>(base->data);
 
       DDDLOG("x86 linux gpio dummy setpin w/cb pin(%d), dir(%d), mode(%d)",
-             setpin->pin, setpin->dir, setpin->mode);
+             data->pin, data->dir, data->mode);
 
-      dcsp->result = (setpin->pin >= 0) ? 0 : GPIO_ERR_INVALIDPARAM;
-      dcsp->aftersetpin(dcsp->data, dcsp->result);
-      delete dcsp;
+      base->result = (data->pin >= 0) ? 0 : GPIO_ERR_INVALIDPARAM;
+      base->after(data, base->result);
+      delete base;
       break;
     }
     case DELAYEDCALL_WRITEPIN : {
-      DelayedCallRWpin* dcrwp =
-                            reinterpret_cast<DelayedCallRWpin*>(base);
-      GpioCbDataRWpin* rwpin =
-                            reinterpret_cast<GpioCbDataRWpin*>(dcrwp->data);
+      GpioCbData* data =
+        reinterpret_cast<GpioCbData*>(base->data);
 
       DDDLOG("x86 linux gpio dummy writepin w/cb pin(%d), value(%d)",
-             rwpin->pin, rwpin->value ? 1 : 0);
+             data->pin, data->value ? 1 : 0);
 
-      dcrwp->result = (rwpin->pin >= 0) ? 0 : GPIO_ERR_INVALIDPARAM;
-      dcrwp->afterrwpin(dcrwp->data, dcrwp->result);
-      delete dcrwp;
+      base->result = (data->pin >= 0) ? 0 : GPIO_ERR_INVALIDPARAM;
+      base->after(data, base->result);
+      delete base;
       break;
     }
     case DELAYEDCALL_READPIN : {
-      DelayedCallRWpin* dcrwp =
-                            reinterpret_cast<DelayedCallRWpin*>(base);
-      GpioCbDataRWpin* rwpin =
-                            reinterpret_cast<GpioCbDataRWpin*>(dcrwp->data);
+      GpioCbData* data =
+        reinterpret_cast<GpioCbData*>(base->data);
 
-      DDDLOG("x86 linux gpio dummy readpin w/cb pin(%d)", rwpin->pin);
+      DDDLOG("x86 linux gpio dummy readpin w/cb pin(%d)", data->pin);
 
-      rwpin->value = (rwpin->pin & 0x01) ? true : false;
+      data->value = (data->pin & 0x01) ? true : false;
 
-      dcrwp->result = (rwpin->pin >= 0) ? 0 : GPIO_ERR_INVALIDPARAM;
-      dcrwp->afterrwpin(dcrwp->data, dcrwp->result);
-      delete dcrwp;
+      base->result = (data->pin >= 0) ? 0 : GPIO_ERR_INVALIDPARAM;
+      base->after(data, base->result);
+      delete base;
       break;
     }
     default:
@@ -120,11 +103,9 @@ public:
 
   virtual int Initialize(void);
   virtual void Release(void);
-  virtual int SetPin(GpioCbDataSetpin* setpin, GpioSetpinCb cb);
-  virtual int SetPin(int32_t pin, int32_t dir, int32_t mode);
-  virtual int WritePin(GpioCbDataRWpin* data, GpioRWpinCb cb);
-  virtual int WritePin(int32_t pin, bool value);
-  virtual int ReadPin(GpioCbDataRWpin* data, GpioRWpinCb cb);
+  virtual int SetPin(GpioCbData* setpin, GpioCb cb);
+  virtual int WritePin(GpioCbData* data, GpioCb cb);
+  virtual int ReadPin(GpioCbData* data, GpioCb cb);
 };
 
 
@@ -156,63 +137,52 @@ void GpioControlImpl::Release(void) {
 
 
 // callback is provided for SetPin
-int GpioControlImpl::SetPin(GpioCbDataSetpin* setpin_data, GpioSetpinCb cb) {
+int GpioControlImpl::SetPin(GpioCbData* setpin_data, GpioCb cb) {
   Environment* env = Environment::GetEnv();
-  DelayedCallSetpin* delay = new DelayedCallSetpin;
-  delay->type = DELAYEDCALL_SETPIN;
-  delay->data = setpin_data;
-  delay->aftersetpin = cb;
-  delay->result = 0;
+  if (cb != NULL) {
+    DelayedCall* delay = new DelayedCall();
+    delay->type = DELAYEDCALL_SETPIN;
+    delay->data = setpin_data;
+    delay->after = cb;
+    delay->result = 0;
 
-  uv_timer_init(env->loop(), &delay->timer);
-  delay->timer.data = delay;
-  uv_timer_start(&delay->timer, timerHandleTimeout, 1, 0);
-
-  return 0;
+    uv_timer_init(env->loop(), &delay->timer);
+    delay->timer.data = delay;
+    uv_timer_start(&delay->timer, timerHandleTimeout, 1, 0);
+    return 0;
+  }
+  else {
+    return (setpin_data->pin >= 0) ? 0 : GPIO_ERR_INVALIDPARAM;
+  }
 }
 
 
-// callback is omiited for SetPin
-int GpioControlImpl::SetPin(int32_t pin, int32_t dir, int32_t mode) {
-  DDDLOG("x86 linux gpio dummy setpin pin(%d), dir(%d), mode(%d)",
-         pin, dir, mode);
-
-  // return result of SetPin
-  return (pin >= 0) ? 0 : GPIO_ERR_INVALIDPARAM;
-}
-
-
-int GpioControlImpl::WritePin(GpioCbDataRWpin* rw_data, GpioRWpinCb cb) {
+int GpioControlImpl::WritePin(GpioCbData* rw_data, GpioCb cb) {
   Environment* env = Environment::GetEnv();
-  DelayedCallRWpin* delay = new DelayedCallRWpin;
-  delay->type = DELAYEDCALL_WRITEPIN;
-  delay->data = rw_data;
-  delay->afterrwpin = cb;
-  delay->result = 0;
+  if (cb != NULL) {
+    DelayedCall* delay = new DelayedCall();
+    delay->type = DELAYEDCALL_WRITEPIN;
+    delay->data = rw_data;
+    delay->after = cb;
+    delay->result = 0;
 
-  uv_timer_init(env->loop(), &delay->timer);
-  delay->timer.data = delay;
-  uv_timer_start(&delay->timer, timerHandleTimeout, 1, 0);
-
-  return 0;
+    uv_timer_init(env->loop(), &delay->timer);
+    delay->timer.data = delay;
+    uv_timer_start(&delay->timer, timerHandleTimeout, 1, 0);
+    return 0;
+  }
+  else {
+    return (rw_data->pin >= 0) ? 0 : GPIO_ERR_INVALIDPARAM;
+  }
 }
 
 
-int GpioControlImpl::WritePin(int32_t pin, bool value) {
-  DDDLOG("x86 linux gpio dummy writepin pin(%d), value(%d)",
-         pin, value ? 1 : 0);
-
-  // return result of WritePin
-  return (pin >= 0) ? 0 : GPIO_ERR_INVALIDPARAM;
-}
-
-
-int GpioControlImpl::ReadPin(GpioCbDataRWpin* rw_data, GpioRWpinCb cb) {
+int GpioControlImpl::ReadPin(GpioCbData* rw_data, GpioCb cb) {
   Environment* env = Environment::GetEnv();
-  DelayedCallRWpin* delay = new DelayedCallRWpin;
+  DelayedCall* delay = new DelayedCall();
   delay->type = DELAYEDCALL_READPIN;
   delay->data = rw_data;
-  delay->afterrwpin = cb;
+  delay->after = cb;
   delay->result = 0;
 
   uv_timer_init(env->loop(), &delay->timer);

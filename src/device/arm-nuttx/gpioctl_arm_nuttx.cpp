@@ -35,9 +35,7 @@ public:
   virtual int Initialize(void);
   virtual void Release(void);
   virtual int SetPin(GpioCbDataSetpin* setpin_data, GpioSetpinCb cb);
-  virtual int SetPin(int32_t pin, int32_t dir, int32_t mode);
   virtual int WritePin(GpioCbDataRWpin* data, GpioRWpinCb cb);
-  virtual int WritePin(int32_t pin, bool value);
   virtual int ReadPin(GpioCbDataRWpin* data, GpioRWpinCb cb);
 };
 
@@ -79,9 +77,6 @@ int GpioControlImpl::SetPin(GpioCbDataSetpin* setpin_data, GpioSetpinCb cb) {
 }
 
 
-int GpioControlImpl::SetPin(int32_t pin, int32_t dir, int32_t mode) {
-  return 0;
-}
 
 
 int GpioControlImpl::WritePin(GpioCbDataRWpin* data, GpioRWpinCb cb) {
@@ -89,9 +84,6 @@ int GpioControlImpl::WritePin(GpioCbDataRWpin* data, GpioRWpinCb cb) {
 }
 
 
-int GpioControlImpl::WritePin(int32_t pin, bool value) {
-  return 0;
-}
 
 
 int GpioControlImpl::ReadPin(GpioCbDataRWpin* data, GpioRWpinCb cb) {

@@ -18,27 +18,24 @@
 
 #include "iotjs_binding.h"
 #include "iotjs_objectwrap.h"
-#include "iotjs_gpiocbwrap.h"
 
 
 namespace iotjs {
 
-struct GpioCbDataSetpin {
+struct GpioCbData {
+  enum GpioType { SetPin, WritePin, ReadPin, SetPort, ReadPort, WritePort };
   void* data;
+  JObject* jgpioctl;
+
   int32_t pin;
   int32_t dir;
-  int32_t mode;
-};
-
-struct GpioCbDataRWpin {
-  void* data;
-  int32_t pin;
-  bool value;
+  int32_t mode; // only for set pin
+  bool value;   // only for read, write pin
+  GpioType type;
 };
 
 
-typedef void (*GpioSetpinCb)(GpioCbDataSetpin* cbdata, int err);
-typedef void (*GpioRWpinCb)(GpioCbDataRWpin* cbdata, int err);
+typedef void (*GpioCb)(GpioCbData* cbdata, int err);
 
 
 class GpioControl : public JObjectWrap {
@@ -51,11 +48,9 @@ public:
 
   virtual int Initialize(void) = 0;
   virtual void Release(void) = 0;
-  virtual int SetPin(GpioCbDataSetpin* data, GpioSetpinCb cb) = 0;
-  virtual int SetPin(int32_t pin, int32_t dir, int32_t mode) = 0;
-  virtual int WritePin(GpioCbDataRWpin* data, GpioRWpinCb cb) = 0;
-  virtual int WritePin(int32_t pin, bool value) = 0;
-  virtual int ReadPin(GpioCbDataRWpin* data, GpioRWpinCb cb) = 0;
+  virtual int SetPin(GpioCbData* data, GpioCb cb) = 0;
+  virtual int WritePin(GpioCbData* data, GpioCb cb) = 0;
+  virtual int ReadPin(GpioCbData* data, GpioCb cb) = 0;
   // Todo add for other APIs
 
 protected:

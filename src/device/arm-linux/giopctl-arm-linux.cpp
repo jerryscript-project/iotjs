@@ -26,11 +26,9 @@ public:
 
   virtual int Initialize(void);
   virtual void Release(void);
-  virtual int SetPin(GpioCbDataSetpin* setpin_data, GpioSetpinCb cb);
-  virtual int SetPin(int32_t pin, int32_t dir, int32_t mode);
-  virtual int WritePin(GpioCbDataRWpin* data, GpioRWpinCb cb);
-  virtual int WritePin(int32_t pin, bool value);
-  virtual int ReadPin(GpioCbDataRWpin* data, GpioRWpinCb cb);
+  virtual int SetPin(GpioCbData* setpin_data, GpioCb cb);
+  virtual int WritePin(GpioCbData* data, GpioCb cb);
+  virtual int ReadPin(GpioCbData* data, GpioCb cb);
 };
 
 
@@ -61,27 +59,20 @@ void GpioControlImpl::Release(void) {
 }
 
 
-int GpioControlImpl::SetPin(GpioCbDataSetpin* setpin_data, GpioSetpinCb cb) {
+int GpioControlImpl::SetPin(GpioCbData* setpin_data, GpioCb cb) {
   return 0;
 }
 
 
-int GpioControlImpl::SetPin(int32_t pin, int32_t dir, int32_t mode) {
+
+int GpioControlImpl::WritePin(GpioCbData* data, GpioCb cb) {
   return 0;
 }
 
 
-int GpioControlImpl::WritePin(GpioCbDataRWpin* data, GpioRWpinCb cb) {
-  return 0;
-}
 
 
-int GpioControlImpl::WritePin(int32_t pin, bool value) {
-  return 0;
-}
-
-
-int GpioControlImpl::ReadPin(GpioCbDataRWpin* data, GpioRWpinCb cb) {
+int GpioControlImpl::ReadPin(GpioCbData* data, GpioCb cb) {
   return 0;
 }
 

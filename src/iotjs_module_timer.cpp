@@ -138,6 +138,19 @@ JHANDLER_FUNCTION(Stop, handler) {
 }
 
 
+JHANDLER_FUNCTION(Now, handler) {
+  IOTJS_ASSERT(handler.GetThis()->IsObject());
+  Environment* env = Environment::GetEnv();
+
+  uv_update_time(env->loop());
+  uint64_t now = uv_now(env->loop());
+
+  JObject ret((double)now);
+  handler.Return(ret);
+
+  return true;
+}
+
 JHANDLER_FUNCTION(Timer, handler) {
   // `this` should be a object.
   IOTJS_ASSERT(handler.GetThis()->IsObject());
@@ -159,6 +172,8 @@ JObject* InitTimer() {
 
   if (timer == NULL) {
     timer = new JObject(Timer);
+
+    timer->SetMethod("now", Now);
 
     JObject prototype;
     timer->SetProperty("prototype", prototype);

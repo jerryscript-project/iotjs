@@ -24,7 +24,15 @@
 namespace iotjs {
 
 
-typedef ReqWrap<uv_fs_t> FsReqWrap;
+class FsReqWrap : public ReqWrap<uv_fs_t> {
+ public:
+  FsReqWrap(JObject& jcallback) : ReqWrap<uv_fs_t>(jcallback) {
+  }
+
+  ~FsReqWrap() {
+    uv_fs_req_cleanup(&_req);
+  }
+};
 
 
 static void After(uv_fs_t* req) {
@@ -66,8 +74,6 @@ static void After(uv_fs_t* req) {
   }
 
   JObject res = MakeCallback(cb, JObject::Null(), jarg);
-
-  uv_fs_req_cleanup(req);
 
   delete req_wrap;
 }

@@ -46,7 +46,9 @@ class String {
   // This constuctor will allocate new buffer to hold given string data.
   // If the second parameter `size` was given as `-1` the function calls
   // `strlen` to determin buffer size.
-  explicit String(const char* data, int size = -1);
+  // Third parameter determines initial capacity. If given as `-1` set the value
+  // equal to `size`.
+  explicit String(const char* data, int size = -1, int cap = -1);
 
   // Create string object from other string object.
   String(const String& other);

@@ -32,16 +32,22 @@ String ReadFile(const char* path) {
   size_t len = ftell(file);
   fseek(file, 0, SEEK_SET);
 
-  char* buff = AllocBuffer(len + 1);
+  String contents(NULL, 0, len);
 
-  size_t read = fread(buff, 1, len, file);
-  IOTJS_ASSERT(read == len);
+  char buff[128];
+  size_t total = 0;
 
-  *(buff+len) = 0;
+  while (total < len) {
+    size_t read = fread(buff, 1, 128, file);
+    IOTJS_ASSERT(read > 0);
+
+    contents.Append(buff, read);
+    total += read;
+  }
 
   fclose(file);
 
-  return String(buff);
+  return contents;
 }
 
 
@@ -68,22 +74,38 @@ String::String() {
 }
 
 
-String::String(const char* data, int size) {
+String::String(const char* data, int size, int cap) {
   if (size < 0) {
-    _size = strlen(data);
+    if (data != NULL) {
+      _size = strlen(data);
+    } else {
+      _size = 0;
+    }
   } else {
     _size = size;
   }
 
+  if (cap < 0) {
+    _cap = _size;
+  } else {
+    _cap = cap;
+  }
+
+  if (_cap < _size) {
+    _cap = _size;
+  }
+
   IOTJS_ASSERT(_size >= 0);
-  _cap = _size;
+  IOTJS_ASSERT(_cap >= 0);
 
   if (_cap > 0) {
-    IOTJS_ASSERT(data != NULL);
     _data = AllocBuffer(_cap + 1);
-    strncpy(_data, data, _size);
   } else {
     _data = NULL;
+  }
+
+  if (data != NULL) {
+    strncpy(_data, data, _size);
   }
 }
 
@@ -139,7 +161,6 @@ void String::Append(const char* data, int size) {
     // Have enough capacity to append data.
     strncpy(_data + _size, data, size);
     _size += size;
-    _data[_size] = 0;
   } else {
     // Lack of capacity, calculate next capacity.
     while (_cap < _size + size) {
@@ -149,8 +170,8 @@ void String::Append(const char* data, int size) {
     _data = ReallocBuffer(_data, _cap + 1);
     strncpy(_data + _size, data, size);
     _size += size;
-    _data[_size] = 0;
   }
+  _data[_size] = 0;
 }
 
 

@@ -99,6 +99,8 @@ function socketOnClose() {
 
   socket.read();
 
+  req.emit('close');
+
   if (req.res && req.res.readable) {
     // Socket closed before we emitted 'end'
     var res = req.res;
@@ -106,6 +108,11 @@ function socketOnClose() {
       res.emit('close');
     });
     res.push(null);
+  }
+  else if (!req.res) {
+    // socket closed before response starts.
+    var err = new Error('socket hang up');
+    req.emit('error', err);
   }
 
   if (parser) {
@@ -203,4 +210,22 @@ var responseOnEnd = function() {
   if (socket._socketState.writable) {
     socket.destroySoon();
   }
+};
+
+
+ClientRequest.prototype.setTimeout = function(ms, cb) {
+  var self = this;
+
+  if (cb) self.once('timeout', cb);
+
+  var emitTimeout = function() {
+    self.emit('timeout');
+  };
+
+  // In IoT.js, socket is already assigned,
+  // thus, it is sufficient to trigger timeout on socket 'connect' event.
+  this.socket.once('connect', function() {
+    self.socket.setTimeout(ms, emitTimeout);
+  });
+
 };

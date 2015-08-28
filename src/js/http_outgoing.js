@@ -173,3 +173,16 @@ OutgoingMessage.prototype.removeHeader = function(name) {
 OutgoingMessage.prototype.getHeader = function(name) {
   return this._headers[name];
 };
+
+
+OutgoingMessage.prototype.setTimeout = function(ms, cb) {
+  if (cb)
+    this.once('timeout', cb);
+
+  if (!this.socket) {
+    this.once('socket', function(socket) {
+      socket.setTimeout(msecs);
+    });
+  } else
+    this.socket.setTimeout(msecs);
+};

@@ -27,6 +27,8 @@ function IncomingMessage(socket) {
 
   this.headers = {};
 
+  this.complete = false;
+
   // for request (server)
   this.url = '';
   this.method = null;
@@ -57,4 +59,11 @@ IncomingMessage.prototype.addHeaders = function(headers) {
   for (var i=0; i<headers.length; i=i+2) {
     this.headers[headers[i]] = headers[i+1];
   }
+};
+
+
+IncomingMessage.prototype.setTimeout = function(ms, cb) {
+  if (cb)
+    this.once('timeout', cb);
+  this.socket.setTimeout(ms, cb);
 };

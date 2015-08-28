@@ -167,6 +167,7 @@ function Server(requestListener) {
     conn.destroy(err);
   });
 
+  this.timeout = 2*1000*60; // default timeout is 2 min
 }
 
 util.inherits(Server, net.Server);
@@ -177,6 +178,12 @@ exports.Server = Server;
 
 // TODO: Implement Server.prototype.setTimeout function
 // For this, socket.prototype.setTimeout is needed.
+Server.prototype.setTimeout = function (ms, cb) {
+  this.timeout = ms;
+  if (cb) {
+    this.on('timeout', cb);
+  }
+};
 
 
 function connectionListener(socket) {
@@ -199,6 +206,26 @@ function connectionListener(socket) {
   socket.on("end", socketOnEnd);
   socket.on("error", socketOnError);
   socket.on("close", socketOnClose);
+
+  if (self.timeout) {
+    socket.setTimeout(self.timeout);
+  }
+
+  socket.on('timeout', function() {
+
+    var serverTimeout = self.emit('timeout', socket);
+    var req = socket.parser && socket.parser.incoming;
+    var reqTimeout = req && !req.complete && req.emit('timeout', socket);
+    var res = socket._httpMessage;
+    var resTimeout = res && res.emit('timeout', socket);
+
+    // if user doesn't provide timeout handler, kill socket.
+    // otherwise, user cb must take care of timeouted socket.
+    if(!serverTimeout && !reqTimeout && !resTimeout)
+      socket.destroy();
+  });
+
+
 
   function socketOnData(data) {
     // parsing begin

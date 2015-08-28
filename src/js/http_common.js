@@ -43,8 +43,11 @@ function parserOnMessageComplete() {
   var parser = this;
   var stream = parser.incoming;
 
-  // no more data from incoming, stream will emit 'end' event
-  stream.push(null);
+  if (stream) {
+    stream.complete = true;
+    // no more data from incoming, stream will emit 'end' event
+    stream.push(null);
+  }
 
   stream.socket.resume();
 }

@@ -28,6 +28,7 @@ HandleWrap::HandleWrap(JObject& jobject, JObject& jholder, uv_handle_t* handle)
 
 
 HandleWrap::~HandleWrap() {
+  IOTJS_ASSERT(__handle == NULL);
 }
 
 
@@ -49,17 +50,20 @@ void HandleWrap::Close(OnCloseHandler on_close_cb) {
 }
 
 
-void HandleWrap::OnClose(uv_handle_t* handle) {
+static void OnDestroyHandleClosed(uv_handle_t* handle) {
   HandleWrap* wrap = reinterpret_cast<HandleWrap*>(handle->data);
-  IOTJS_ASSERT(wrap);
-  IOTJS_ASSERT(wrap->__handle == NULL);
+  IOTJS_ASSERT(wrap != NULL);
 
   delete wrap;
 }
 
 
 void HandleWrap::Destroy(void) {
-  Close(HandleWrap::OnClose);
+  if (__handle != NULL) {
+    Close(OnDestroyHandleClosed);
+  } else {
+    delete this;
+  }
 }
 
 

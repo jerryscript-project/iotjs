@@ -17,10 +17,11 @@ var assert = require('assert');
 var http = require('http');
 
 
+var responseCheck = '';
+
 // server side code
 // server will return the received msg from client
 // and shutdown
-
 var server = http.createServer(function (req, res) {
 
   var body = '';
@@ -37,7 +38,9 @@ var server = http.createServer(function (req, res) {
                        });
     res.write(body);
     res.end(function(){
-      if(body == 'close server') server.close();
+      if(body == 'close server') {
+        server.close();
+      }
     });
   };
 
@@ -45,7 +48,7 @@ var server = http.createServer(function (req, res) {
 
 });
 
-server.listen(3001,2);
+server.listen(3001, 3);
 
 
 // client side code
@@ -68,6 +71,7 @@ var postResponseHandler = function (res) {
   assert.equal(200, res.statusCode);
   var endHandler = function(){
     assert.equal(msg, res_body);
+    responseCheck += '1';
   };
   res.on('end', endHandler);
 
@@ -95,6 +99,7 @@ var getResponseHandler = function (res) {
   var endHandler = function(){
     // GET msg, no received body
     assert.equal('', res_body);
+    responseCheck += '2';
   };
   res.on('end', endHandler);
 
@@ -123,6 +128,7 @@ var finalResponseHandler = function (res) {
 
   var endHandler = function(){
     assert.equal(finalMsg, res_body);
+    responseCheck += '3';
   };
   res.on('end', endHandler);
 
@@ -134,3 +140,7 @@ var finalResponseHandler = function (res) {
 var finalReq = http.request(finalOptions, finalResponseHandler);
 finalReq.write(finalMsg);
 finalReq.end();
+
+process.on('exit', function() {
+  assert.equal(responseCheck.length, 3);
+});

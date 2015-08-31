@@ -18,8 +18,7 @@
 
 #include "uv.h"
 
-#include "iotjs_module.h"
-#include "iotjs_util.h"
+#include "iotjs_def.h"
 
 
 namespace iotjs {
@@ -27,18 +26,66 @@ namespace iotjs {
 
 class Environment {
  public:
-  Environment(int argc, char** argv, uv_loop_t* loop);
+  enum State {
+    kInitializing,
+    kRunningMain,
+    kRunningLoop,
+    kExiting
+  };
 
-  static Environment* GetEnv();
+  static Environment* GetEnv() {
+    if (Environment::_env == NULL) {
+      Environment::_env = new Environment();
+    }
+    return _env;
+  }
 
-  int argc() { return _argc; }
+  void Init(int argc, char** argv, uv_loop_t* loop) {
+    _argc = argc;
+    _argv = argv;
+    _loop = loop;
+  }
+
+  int argc() {return _argc; }
+
   char** argv() { return _argv; }
+
   uv_loop_t* loop() { return _loop; }
+
+  State state() { return _state; }
+
+  void GoStateRunningMain() {
+    IOTJS_ASSERT(_state == kInitializing);
+    _state = kRunningMain;
+  }
+
+  void GoStateRunningLoop() {
+    IOTJS_ASSERT(_state == kRunningMain);
+    _state = kRunningLoop;
+  }
+
+  void GoStateExiting() {
+    IOTJS_ASSERT(_state < kExiting);
+    _state = kExiting;
+  }
 
  private:
   int _argc;
   char** _argv;
   uv_loop_t* _loop;
+
+  State _state;
+
+
+ private:
+  Environment()
+      : _argc(0)
+      , _argv(NULL)
+      , _loop(NULL)
+      , _state(kInitializing) {
+  }
+
+  static Environment* _env;
 }; // class Environment
 
 } // namespace iotjs

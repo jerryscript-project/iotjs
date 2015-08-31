@@ -21,11 +21,6 @@ var assert = require('assert');
 var http = require('http');
 
 
-var responseCheck = '';
-
-// server side code
-// server will return the received msg from client
-// and shutdown
 var server = http.createServer(function (req, res) {
 
   var body = '';
@@ -42,9 +37,7 @@ var server = http.createServer(function (req, res) {
                        });
     res.write(body);
     res.end(function(){
-      if(body == 'close server') {
-        server.close();
-      }
+      if(body == 'close server') server.close();
     });
   };
 
@@ -52,47 +45,13 @@ var server = http.createServer(function (req, res) {
 
 });
 
-server.listen(3001, 3);
+server.listen(3005,5);
 
 
-// client side code
-// 1. send POST req to server and check response msg
-// 2. send GET req to server and check response msg
-// 3. send 'close server' msg
-
-// 1. POST req
-var msg = 'http request test msg';
-var options = {
-  method : 'POST',
-  port : 3001,
-  headers : {'Content-Length': msg.length}
-};
-
-
-var postResponseHandler = function (res) {
-  var res_body = '';
-
-  assert.equal(200, res.statusCode);
-  var endHandler = function(){
-    assert.equal(msg, res_body);
-    responseCheck += '1';
-  };
-  res.on('end', endHandler);
-
-  res.on('data', function(chunk){
-    res_body += chunk.toString();
-  });
-};
-
-var req = http.request(options, postResponseHandler);
-req.write(msg);
-req.end();
-
-
-// 2. GET req
+// 1. GET req
 options = {
   method : 'GET',
-  port : 3001
+  port : 3005
 };
 
 var getResponseHandler = function (res) {
@@ -103,7 +62,6 @@ var getResponseHandler = function (res) {
   var endHandler = function(){
     // GET msg, no received body
     assert.equal('', res_body);
-    responseCheck += '2';
   };
   res.on('end', endHandler);
 
@@ -112,17 +70,14 @@ var getResponseHandler = function (res) {
   });
 };
 
-
-var getReq = http.request(options, getResponseHandler);
-getReq.end();
+http.get(options, getResponseHandler);
 
 
-
-// 3. close server req
+// 2. close server req
 var finalMsg = 'close server';
 var finalOptions = {
   method : 'POST',
-  port : 3001,
+  port : 3005,
   headers : {'Content-Length': finalMsg.length}
 };
 
@@ -133,7 +88,6 @@ var finalResponseHandler = function (res) {
 
   var endHandler = function(){
     assert.equal(finalMsg, res_body);
-    responseCheck += '3';
   };
   res.on('end', endHandler);
 
@@ -145,7 +99,3 @@ var finalResponseHandler = function (res) {
 var finalReq = http.request(finalOptions, finalResponseHandler);
 finalReq.write(finalMsg);
 finalReq.end();
-
-process.on('exit', function() {
-  assert.equal(responseCheck.length, 3);
-});

@@ -134,13 +134,13 @@ static bool StartIoTjs(int argc, char** argv) {
 
 
 int Start(int argc, char** argv) {
+  InitDebugSettings();
+
   // Initalize JerryScript engine.
   if (!InitJerry()) {
     DLOG("InitJerry failed");
     return 1;
   }
-
-  InitDebugSettings();
 
   // Start IoT.js
   if (!StartIoTjs(argc, argv)) {
@@ -148,10 +148,10 @@ int Start(int argc, char** argv) {
     return 1;
   }
 
-  ReleaseDebugSettings();
-
   // Release JerryScript engine.
   ReleaseJerry();
+
+  ReleaseDebugSettings();
 
   return 0;
 }

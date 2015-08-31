@@ -32,3 +32,10 @@ exports.createServer = function(requestListener){
 
 
 exports.METHODS = HTTPParser.methods;
+
+
+exports.get = function(options, cb) {
+  var req = exports.request(options, cb);
+  req.end();
+  return req;
+};

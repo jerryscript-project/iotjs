@@ -74,7 +74,7 @@ static void CleanupModules() {
 
 static bool RunIoTjs(JObject* process) {
   // Evaluating 'iotjs.js' returns a function.
-  JResult jmain = JObject::Eval(String(mainjs), false, false);
+  JResult jmain = JObject::Eval(String(iotjs_s), false, false);
   IOTJS_ASSERT(jmain.IsOk());
 
   // Run the entry function passing process builtin.

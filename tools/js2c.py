@@ -19,6 +19,7 @@
 import sys
 import glob
 import os
+import re
 
 def extractName(path):
     return os.path.splitext(os.path.basename(path))[0]
@@ -31,6 +32,20 @@ def writeLine(fo, content, indent=0):
 
 def regroup(l, n):
     return [ l[i:i+n] for i in range(0, len(l), n) ]
+
+def removeComments(code):
+    pattern = r'(\".*?\"|\'.*?\')|(/\*.*?\*/|//[^\r\n]*$)'
+    regex = re.compile(pattern, re.MULTILINE | re.DOTALL)
+    def _replacer(match):
+        if match.group(2) is not None:
+            return ""
+        else:
+            return match.group(1)
+    return regex.sub(_replacer, code)
+
+def removeWhitespaces(code):
+    return re.sub('\n+', '\n', re.sub('\n +', '\n', code))
+
 
 LICENSE = '''/* Copyright 2015 Samsung Electronics Co., Ltd.
  *
@@ -62,6 +77,13 @@ FOOTER = '''}
 SRC_PATH = '../src/'
 JS_PATH = SRC_PATH + 'js/'
 
+
+# argument processing
+buildtype = 'debug'
+if len(sys.argv) >= 2:
+    buildtype = sys.argv[1]
+
+
 fout = open(SRC_PATH + 'iotjs_js.h', 'w')
 
 fout.write(LICENSE);
@@ -74,6 +96,12 @@ for path in files:
     fout.write('const char ' + name + '_s [] = {\n')
 
     code = open(path, 'r').read() + '\0'
+
+    # minimize code when release mode
+    if buildtype != 'debug':
+        code = removeComments(code)
+        code = removeWhitespaces(code)
+
     for line in regroup(code, 10):
         buf = ', '.join(map(lambda ch: str(ord(ch)), line))
         if line[-1] != '\0':

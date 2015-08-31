@@ -524,7 +524,7 @@ def build_libhttpparser():
 
 def build_iotjs():
     os.chdir(SCRIPT_PATH)
-    check_run_cmd('python', ['js2c.py'])
+    check_run_cmd('python', ['js2c.py', opt_build_type()])
 
     # iot.js build directory.
     build_home = join_path([opt_build_root(), 'iotjs'])

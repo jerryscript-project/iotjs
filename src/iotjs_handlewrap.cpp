@@ -59,10 +59,16 @@ static void OnDestroyHandleClosed(uv_handle_t* handle) {
 
 
 void HandleWrap::Destroy(void) {
-  if (__handle != NULL) {
-    Close(OnDestroyHandleClosed);
-  } else {
+  Environment* env = Environment::GetEnv();
+  if (__handle == NULL || env->state() == Environment::kExiting) {
+    // Delete handle here immediately without waiting on close if the handle was
+    // already closed or program is about to exit.
+    if (__handle != NULL) {
+      Close(NULL);
+    }
     delete this;
+  } else {
+    Close(OnDestroyHandleClosed);
   }
 }
 

@@ -29,6 +29,9 @@
 namespace iotjs {
 
 
+Environment* Environment::_env = NULL;
+
+
 static bool InitJerry() {
 
   uint32_t jerry_flag = JERRY_FLAG_ABORT_ON_FAIL;
@@ -95,33 +98,35 @@ static bool RunIoTjs(JObject* process) {
 }
 
 
-static bool StartIoTjs(int argc, char** argv) {
+static bool StartIoTjs(Environment* env) {
   // Get jerry global object.
   JObject global = JObject::Global();
 
-  // Create environtment.
-  Environment env(argc, argv, uv_default_loop());
-
   // Bind environment to global object.
-  global.SetNative((uintptr_t)(&env), NULL);
-
+  global.SetNative((uintptr_t)(env), NULL);
 
   // Initialize builtin modules.
   JObject* process = InitModules();
 
   // Call the entry.
   // load and call iotjs.js
+  env->GoStateRunningMain();
+
   RunIoTjs(process);
 
   // Run event loop.
+  env->GoStateRunningLoop();
+
   bool more;
   do {
-    more = uv_run(env.loop(), UV_RUN_ONCE);
+    more = uv_run(env->loop(), UV_RUN_ONCE);
     more |= ProcessNextTick();
     if (more == false) {
-      more = uv_loop_alive(env.loop());
+      more = uv_loop_alive(env->loop());
     }
   } while (more);
+
+  env->GoStateExiting();
 
   // Emit 'exit' event.
   ProcessEmitExit(0);
@@ -136,6 +141,10 @@ static bool StartIoTjs(int argc, char** argv) {
 int Start(int argc, char** argv) {
   InitDebugSettings();
 
+  // Create environtment.
+  Environment* env = Environment::GetEnv();
+  env->Init(argc, argv, uv_default_loop());
+
   // Initalize JerryScript engine.
   if (!InitJerry()) {
     DLOG("InitJerry failed");
@@ -143,7 +152,7 @@ int Start(int argc, char** argv) {
   }
 
   // Start IoT.js
-  if (!StartIoTjs(argc, argv)) {
+  if (!StartIoTjs(env)) {
     DLOG("StartIoTJs failed");
     return 1;
   }

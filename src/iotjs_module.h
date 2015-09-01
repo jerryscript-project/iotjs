@@ -30,14 +30,13 @@ typedef JObject* (*register_func)();
   F(BUFFER, Buffer, buffer) \
   F(CONSOLE, Console, console) \
   F(CONSTANTS, Constants, constants) \
+  F(DNS, Dns, dns) \
   F(FS, Fs, fs) \
+  F(GPIO, Gpio, gpio) \
+  F(HTTPPARSER, Httpparser, httpparser) \
   F(PROCESS, Process, process) \
   F(TCP, Tcp, tcp) \
-  F(TIMER, Timer, timer) \
-  F(GPIOCTL, GpioCtl, gpioctl) \
-  F(HTTPPARSER, Httpparser, httpparser) \
-  F(DNS, Dns, dns)
-
+  F(TIMER, Timer, timer)
 
 #define ENUMDEF_MODULE_LIST(upper, Camel, lower) \
   MODULE_ ## upper,

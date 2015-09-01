@@ -13,153 +13,311 @@
  * limitations under the License.
  */
 
-var gpioctl  = process.binding(process.binding.gpioctl)
-  , util     = require('util')
-  , assert   = require('assert')
-  , dev_open = false;
+var gpio = process.binding(process.binding.gpio);
+var eventEmiter = require('events').EventEmitter;
+var util = require('util');
+var assert  = require('assert');
 
 
-function GpioError(code, message) {
+var dev_open = false;
+
+
+function GpioError(code, operation, message) {
   this.name = 'GpioError';
   this.code = code;
-  this.message = message;
+  this.operation = operation
+  this.message = operation + ': ' + message;
 }
-
 
 util.inherits(GpioError, Error);
 
 
-gpioctl._docallback = function(callback, errcode, param) {
-  assert(util.isFunction(callback));
-  var err = null;
-  if (util.isNumber(errcode)) {
-    err = new GpioError(errcode, gpioctl.errMessage(errcode));
+function CreateGpioError(operation, errno) {
+  if (errno == 0) {
+    return null;
   }
-  callback(err, param);
-};
+
+  switch (errno) {
+    case gpio.kGpioErrInitialize:
+      return new GpioError(errno, operation, 'Failed to initilize GPIO');
+    case gpio.kGpioErrNotInitialized:
+      return new GpioError(errno, operation, 'GPIO not initialized');
+    case gpio.kGpioErrWrongUse:
+      return new GpioError(errno, operation, 'Wrong use of GPIO API');
+    case gpio.kGpioErrSysErr:
+      return new GpioError(errno, operation, 'System error');
+  }
+  return new GpioError(errno, operation, 'Unknown error');
+}
 
 
 function GPIO() {
+  eventEmiter.call(this);
 
+  this._initializing = false;
+  this._initialized = false;
 }
 
+util.inherits(GPIO, eventEmiter);
 
-GPIO.initialize = function() {
-  var err = gpioctl.initialize();
-  if (err >= 0) {
-    dev_open = true;
+
+// gpio.initialize(callback)
+//  callback: Function(err: GpioError | null)
+// event : 'initialize'
+GPIO.prototype.initialize = function(callback) {
+  var self = this;
+
+  // Initialize result handler.
+  var afterInitialize = function(errno) {
+    var err = CreateGpioError('initialize', errno);
+
+    if (errno == 0) {
+      self._initialized = true;
+    } else {
+      self._initialized = false;
+    }
+
+    // If callback was given, calls back.
+    if (util.isFunction(callback)) {
+      callback(err);
+    }
+
+    // Emits event according to result.
+    if (err) {
+      self.emit('error', err);
+    } else {
+      self.emit('initialize');
+    }
+  };
+
+  // In case of already initialized.
+  if (self._initialized) {
+    // callback with null (not error)
+    // not emit 'initialize' event.
+    if (util.isFunction(callback)) {
+      process.nextTick(function() {
+        callback(null);
+      });
+    };
+
+    return null;
   }
-  return err;
+
+  // Initialization is undergoing.
+  if (self._initializing) {
+    throw CreateGpioError('initialize', gpio.kGpioErrWrongUse);
+  }
+
+  // Initialize GPIO device.
+  this._initializing = true;
+  gpio.initialize(afterInitialize);
 };
 
 
-GPIO.release = function() {
-  if (dev_open) {
-    gpioctl.release();
-    dev_open = false;
+// gpio.release(callback)
+//  callback: Function(err: GpioError | null)
+// event: 'release'
+GPIO.prototype.release = function(callback) {
+  var self = this;
+
+  // Check initialized.
+  if (!self._initialized) {
+    throw CreateGpioError('release', gpio.kGpioErrNotInitialized);
   }
+
+  // Release result handler.
+  var afterRelease = function(errno) {
+    var err = CreateGpioError('release', errno);
+
+    if (errno == 0) {
+      self._initialized = false;
+    }
+
+    // If callback was given, calls back.
+    if (util.isFunction(callback)) {
+      callback(err);
+    }
+
+    // Emits event according to result.
+    if (err) {
+      self.emit('error', err);
+    } else {
+      self.emit('release');
+    }
+  };
+
+  // Release GPIO device.
+  gpio.release(afterRelease);
 };
 
 
-function getDirectionCode(direction) {
-  if (direction == 'out') return gpioctl.OUT;
-  if (direction == 'in') return gpioctl.IN;
-  if (direction == 'none') return gpioctl.NONE;
-  return -1;
-}
+// gpio.setPin(pinNumber, direction[, mode][, callback])
+// event: 'setpin'
+GPIO.prototype.setPin = function(pinNumber, direction, mode, callback) {
+  var self = this;
 
-function getModeCode(mode) {
-  if (mode == 'pullup') return gpioctl.PULLUP;
-  if (mode == 'pulldn') return gpioctl.PULLDN;
-  if (mode == 'float') return gpioctl.FLOAT;
-  if (mode == 'pushpull') return gpioctl.PUSHPULL;
-  if (mode == 'opendrain') return gpioctl.OPENDRAIN;
-  if (mode == undefined || mode == 'none' || mode == '') return gpioctl.NONE;
-  return -1;
-}
+  // Check initialized.
+  if (!self._initialized) {
+    throw CreateGpioError('setPin', gpio.kGpioErrNotInitialized);
+  }
 
-
-GPIO.setPin = function(pinNumber, direction, mode, callback) {
+  // Check arguments.
+  if (!util.isNumber(pinNumber)) {
+    throw new TypeError('Bad arguments - pinNumber');
+  }
+  if (!util.isString(direction)) {
+    throw new TypeError('Bad arguments - direction');
+  }
   if (util.isFunction(mode)) {
     callback = mode;
-    mode = undefined;
+    mode = 'none';
   }
-  var result = 0;
-  var dircode = getDirectionCode(direction);
-  var modecode = getModeCode(mode);
-
-  if (dircode < 0 || modecode < 0) {
-    result = gpioctl.ERR_INVALIDPARAM;
-  }
-  else {
-    result = gpioctl.setPin(pinNumber, dircode, modecode, callback);
+  if (util.isNullOrUndefined(mode) || mode == '') {
+    mode = 'none';
   }
 
-  if (result < 0) {
-    var err = new GpioError(result, gpioctl.errMessage(result));
+  var dirCode = convertDirection(direction);
+  var modeCode = convertMode(mode);
+
+  // setPin result handler.
+  var afterSetPin = function(errno) {
+    var err = CreateGpioError('setPin', errno);
+
+    // If callback was given, calls back.
     if (util.isFunction(callback)) {
-      process.nextTick(function() {
-        callback(err);
-      });
-    }
-    else {
-      throw err;
-    }
-  }
-};
-
-
-GPIO.writePin = function(pinNumber, value, callback) {
-  var result;
-  result = gpioctl.writePin(pinNumber, value, callback);
-  if (result < 0) {
-    var err = new GpioError(result, gpioctl.errMessage(result));
-    if (util.isFunction(callback)) {
-      process.nextTick(function() {
-        callback(err);
-      });
-    }
-    else {
-      throw err;
-    }
-  }
-};
-
-
-GPIO.readPin = function(pinNumber, callback) {
-  var result;
-  if (!util.isFunction(callback)) {
-    result = gpioctl.ERR_INVALIDPARAM;
-    throw new GpioError(result, gpioctl.errMessage(result));
-  }
-  result = gpioctl.readPin(pinNumber, callback);
-  if (result < 0) {
-    var err = new GpioError(result, gpioctl.errMessage(result));
-    process.nextTick(function() {
       callback(err);
-    });
+    }
+
+    // Emits event according to result.
+    if (err) {
+      self.emit('error', err);
+    } else {
+      self.emit('setPin', pinNumber, direction, mode);
+    }
+  };
+
+  // Set pin configuration.
+  gpio.setPin(pinNumber, dirCode, modeCode, afterSetPin);
+};
+
+
+// gpio.writePin(pinNumber, value[, callback])
+GPIO.prototype.writePin = function(pinNumber, value, callback) {
+  var self = this;
+
+  // Check initialized.
+  if (!self._initialized) {
+    throw CreateGpioError('writePin', gpio.kGpioErrNotInitialized);
   }
+
+  // Check arguments.
+  if (!util.isNumber(pinNumber)) {
+    throw new TypeError('Bad arguments - pinNumber');
+  }
+
+  // Make value boolean.
+  value = !!value;
+
+  // After writePin handler.
+  var afterWritePin = function(errno) {
+    var err = CreateGpioError('writePin', errno);
+
+    // If callback was given, calls back.
+    if (util.isFunction(callback)) {
+      callback(err);
+    }
+
+    // Emits error.
+    if (err) {
+      self.emit('error', err);
+    } else {
+      self.emit('writePin', pinNumber, value);
+    }
+  };
+
+  // write pin a value.
+  gpio.writePin(pinNumber, value, afterWritePin);
 };
 
 
-GPIO.setPort = function(portNumber, direction, mode, callback) {
+// gpio.readPin(pinNumber[, callback])
+GPIO.prototype.readPin = function(pinNumber, callback) {
+  var self = this;
+
+  // Check initialized.
+  if (!self._initialized) {
+    throw CreateGpioError('readPin', gpio.kGpioErrNotInitialized);
+  }
+
+  // Check arguments.
+  if (!util.isNumber(pinNumber)) {
+    throw new TypeError('Bad arguments - pinNumber');
+  }
+
+  // After readPin handler.
+  var afterReadPin = function(errno, value) {
+    var err = CreateGpioError('readPin', errno);
+
+    // calls back.
+    if (util.isFunction(callback)) {
+      callback(err, value);
+    }
+
+    // Emits error.
+    if (err) {
+      self.emit('error', err);
+    } else {
+      self.emit('readPin', pinNumber, value);
+    }
+  };
+
+  // Read value from a GPIO pin.
+  gpio.readPin(pinNumber, afterReadPin);
 };
 
 
-GPIO.writePort = function(portNumber, value, callback) {
+GPIO.prototype.setPort = function(portNumber, direction, mode, callback) {
+  assert.fail('GPIO.setPort() - not implemented');
 };
 
 
-GPIO.readPort = function(portNumber, callback) {
+GPIO.prototype.writePort = function(portNumber, value, callback) {
+  assert.fail('GPIO.writePort() - not implemented');
 };
 
 
-GPIO.query = function(queryOption, callback) {
+GPIO.prototype.readPort = function(portNumber, callback) {
+  assert.fail('GPIO.readPort() - not implemented');
+};
+
+
+GPIO.prototype.query = function(queryOption, callback) {
+  assert.fail('GPIO.query() - not implemented');
+};
+
+
+function convertDirection(direction) {
+  switch (direction) {
+    case 'in': return gpio.kGpioDirectionIn;
+    case 'out': return gpio.kGpioDirectionOut;
+    case 'none': return gpio.kGpioDirectionNone;
+  }
+  throw new TypeError('Bad arguments - direction');
 }
 
 
-GPIO.ERR_INITALIZE = gpioctl.ERR_INITALIZE;
-GPIO.ERR_INVALIDPARAM = gpioctl.ERR_INVALIDPARAM;
-GPIO.ERR_SYSERR = gpioctl.ERR_SYSERR;
+function convertMode(mode) {
+  switch (mode) {
+    case 'pullup': return gpio.kGpioModePullup;
+    case 'pulldn':
+    case 'pulldown': return gpio.kGpioModePulldown;
+    case 'float': return gpio.kGpioModeFloat;
+    case 'pushpull': return gpio.kGpioModePushpull;
+    case 'opendrain': return gpio.kGpioModeOpendrain;
+    case 'none': return gpio.kGpioModeNone;
+  }
+  throw new TypeError('bad arguments - mode');
+}
 
-module.exports = GPIO;
+
+module.exports = new GPIO();

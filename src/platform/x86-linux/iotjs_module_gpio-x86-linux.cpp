@@ -13,28 +13,22 @@
  * limitations under the License.
  */
 
-/*
-  @TIMEOUT=10
-  @SKIP
-    skip this test for there is no way to automatically confirm
-    correctness of gpio behavior on host machine.
-*/
 
-var assert = require('assert');
-var gpio = require('gpio');
+#if defined(__LINUX__)
 
 
-gpio.initialize();
+#include "../iotjs_module_gpio-linux-general.inl.h"
 
-gpio.on('initialize', function() {
-  console.log("initialized");
-  gpio.setPin(1, "out");
-});
 
-gpio.on('release', function() {
-  console.log('released');
-});
+namespace iotjs {
 
-gpio.on('error', function(err) {
-  console.log('error: ' + err);
-});
+
+Gpio* Gpio::Create(JObject& jgpio) {
+  return new GpioLinuxGeneral(jgpio);
+}
+
+
+} // namespace iotjs
+
+
+#endif

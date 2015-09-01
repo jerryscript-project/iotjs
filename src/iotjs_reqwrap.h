@@ -68,8 +68,8 @@ ReqWrap<T>::~ReqWrap() {
 
 template<typename T>
 JObject& ReqWrap<T>::jcallback() {
-  IOTJS_ASSERT(_jcallback != NULL);
-  return *_jcallback;
+  IOTJS_ASSERT(this->_jcallback != NULL);
+  return *(this->_jcallback);
 }
 
 

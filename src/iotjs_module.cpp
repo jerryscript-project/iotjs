@@ -24,7 +24,7 @@
 #include "iotjs_module_process.h"
 #include "iotjs_module_tcp.h"
 #include "iotjs_module_timer.h"
-#include "iotjs_module_gpioctl.h"
+#include "iotjs_module_gpio.h"
 #include "iotjs_module_httpparser.h"
 #include "iotjs_module_dns.h"
 

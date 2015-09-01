@@ -35,7 +35,6 @@ void InitDebugSettings() {
   dbglevel = getenv("IOTJS_DEBUG_LEVEL");
   dbglogfile = getenv("IOTJS_DEBUG_LOGFILE");
 #endif // defined(__LINUX__)
-
   if (dbglevel) {
     iotjs_debug_level = atoi(dbglevel);
     if (iotjs_debug_level < 0) iotjs_debug_level = 0;

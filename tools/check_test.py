@@ -31,7 +31,7 @@ TERM_BLUE = "\033[1;34m"
 TERM_EMPTY = "\033[0m"
 
 
-PROCESSES = multiprocessing.cpu_count() - 1
+PROCESSES = max(multiprocessing.cpu_count() - 1, 1)
 TEST_TIMEOUT = 10
 
 

@@ -35,7 +35,8 @@ typedef JObject* (*register_func)();
   F(TCP, Tcp, tcp) \
   F(TIMER, Timer, timer) \
   F(GPIOCTL, GpioCtl, gpioctl) \
-  F(HTTPPARSER, Httpparser, httpparser)
+  F(HTTPPARSER, Httpparser, httpparser) \
+  F(DNS, Dns, dns)
 
 
 #define ENUMDEF_MODULE_LIST(upper, Camel, lower) \

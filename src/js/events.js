@@ -31,6 +31,7 @@ EventEmitter.prototype.emit = function(type) {
 
   var listeners = this._events[type];
   if (util.isArray(listeners)) {
+    listeners = listeners.slice();
     var len = arguments.length;
     var args = new Array(len - 1);
     for (var i = 1; i < len; ++i) {
@@ -96,7 +97,8 @@ EventEmitter.prototype.removeListener = function(type, listener) {
   var list = this._events[type];
   if (Array.isArray(list)) {
     for (var i = list.length - 1; i >= 0; --i) {
-      if (list[i] == listener) {
+      if (list[i] == listener ||
+          (list[i].listener && list[i].listener == listener)) {
         list.splice(i, 1);
         break;
       }

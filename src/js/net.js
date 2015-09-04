@@ -81,8 +81,6 @@ Socket.prototype.connect = function() {
   var args = normalizeConnectArgs(arguments);
   var options = args[0];
   var callback = args[1];
-  var host = options.host ? options.host : '127.0.0.1';
-  var port = options.port;
 
   if (state.connecting || state.connected) {
     return self;
@@ -100,7 +98,35 @@ Socket.prototype.connect = function() {
 
   state.connecting = true;
 
-  self._handle.connect(host, port, afterConnect);
+  var dns = require('dns');
+  var host = options.host ? options.host : 'localhost';
+  var port = options.port;
+  var dnsopts = {
+    family: options.family >>> 0,
+    hints: 0
+  };
+
+  if (!util.isNumber(port) || port < 0 || port > 65535)
+    throw new RangeError('port should be >= 0 and < 65536: ' + options.port);
+
+  if (dnsopts.family !== 0 && dnsopts.family !== 4 && dnsopts.family !== 6)
+    throw new RangeError('port should be 4 or 6: ' + dnsopts.family);
+
+  self._host = host;
+  dns.lookup(host, dnsopts, function(err, ip, family) {
+    self.emit('lookup', err, ip, family);
+
+    if (err) {
+      process.nextTick(function() {
+        self.emit('error', err);
+        self._destroy();
+      });
+    } else {
+      self._resetTimeout();
+      self._handle.connect(ip, port, afterConnect);
+    }
+
+  });
 
   return self;
 };

@@ -243,7 +243,7 @@ function connectionListener(socket) {
   }
 
   function socketOnError(e) {
-    self.emit("client error on connection", e, this);
+    self.emit("clientError", e, this);
   }
 
   function socketOnEnd() {

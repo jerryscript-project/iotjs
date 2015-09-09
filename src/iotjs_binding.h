@@ -19,6 +19,8 @@
 #include "jerry-api.h"
 #include "iotjs_util.h"
 
+#include <stdio.h>
+
 
 namespace iotjs {
 
@@ -279,6 +281,13 @@ class JHandlerInfo {
 #define JHANDLER_THROW_RETURN(error_type, message) \
   JHANDLER_THROW(error_type, message); \
   return false;
+
+#define JHANDLER_CHECK(predicate) \
+  if (!(predicate)) { \
+    char buffer[64]; \
+    snprintf(buffer, 63, "Internal error (%s)", __func__); \
+    JHANDLER_THROW_RETURN(Error, buffer) \
+  }
 
 #define JHANDLER_FUNCTION(name) \
   static bool ___ ## name ## _native(JHandlerInfo& handler); \

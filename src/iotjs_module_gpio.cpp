@@ -50,8 +50,8 @@ Gpio* Gpio::GetInstance() {
 
 // initialize(afterInitalize)
 JHANDLER_FUNCTION(Initialize) {
-  IOTJS_ASSERT(handler.GetArgLength() == 1);
-  IOTJS_ASSERT(handler.GetArg(0)->IsFunction());
+  JHANDLER_CHECK(handler.GetArgLength() == 1);
+  JHANDLER_CHECK(handler.GetArg(0)->IsFunction());
 
   GpioReqWrap* req_wrap = new GpioReqWrap(*handler.GetArg(0));
   req_wrap->req()->op = kGpioOpInitize;
@@ -66,8 +66,8 @@ JHANDLER_FUNCTION(Initialize) {
 
 // release(afterInitalize)
 JHANDLER_FUNCTION(Release) {
-  IOTJS_ASSERT(handler.GetArgLength() == 1);
-  IOTJS_ASSERT(handler.GetArg(0)->IsFunction());
+  JHANDLER_CHECK(handler.GetArgLength() == 1);
+  JHANDLER_CHECK(handler.GetArg(0)->IsFunction());
 
   GpioReqWrap* req_wrap = new GpioReqWrap(*handler.GetArg(0));
   req_wrap->req()->op = kGpioOpRelease;
@@ -82,11 +82,11 @@ JHANDLER_FUNCTION(Release) {
 
 // setPin(pinNumber, direction, mode, afterSetPin)
 JHANDLER_FUNCTION(SetPin) {
-  IOTJS_ASSERT(handler.GetArgLength() == 4);
-  IOTJS_ASSERT(handler.GetArg(0)->IsNumber());
-  IOTJS_ASSERT(handler.GetArg(1)->IsNumber());
-  IOTJS_ASSERT(handler.GetArg(2)->IsNumber());
-  IOTJS_ASSERT(handler.GetArg(3)->IsFunction());
+  JHANDLER_CHECK(handler.GetArgLength() == 4);
+  JHANDLER_CHECK(handler.GetArg(0)->IsNumber());
+  JHANDLER_CHECK(handler.GetArg(1)->IsNumber());
+  JHANDLER_CHECK(handler.GetArg(2)->IsNumber());
+  JHANDLER_CHECK(handler.GetArg(3)->IsFunction());
 
   GpioReqWrap* req_wrap = new GpioReqWrap(*handler.GetArg(3));
   GpioReqData* req_data = req_wrap->req();
@@ -96,11 +96,14 @@ JHANDLER_FUNCTION(SetPin) {
   req_data->mode = (GpioMode)handler.GetArg(2)->GetInt32();
   req_data->op = kGpioOpSetPin;
 
-  IOTJS_ASSERT(req_data->dir >= kGpioDirectionNone &&
-               req_data->dir <= kGpioDirectionOut);
-
-  IOTJS_ASSERT(req_data->mode >= kGpioModeNone &&
-               req_data->mode <= kGpioModeOpendrain);
+  if (req_data->dir >= kGpioDirectionNone &&
+      req_data->dir <= kGpioDirectionOut) {
+    JHANDLER_THROW_RETURN(TypeError, "Invalid GPIO direction");
+  }
+  if (req_data->mode >= kGpioModeNone &&
+      req_data->mode <= kGpioModeOpendrain) {
+    JHANDLER_THROW_RETURN(TypeError, "Invalid GPIO mode");
+  }
 
   Gpio* gpio = Gpio::GetInstance();
   gpio->SetPin(req_wrap);
@@ -112,10 +115,10 @@ JHANDLER_FUNCTION(SetPin) {
 
 // writePin(pinNumber, value, afterWritePin)
 JHANDLER_FUNCTION(WritePin) {
-  IOTJS_ASSERT(handler.GetArgLength() == 3);
-  IOTJS_ASSERT(handler.GetArg(0)->IsNumber());
-  IOTJS_ASSERT(handler.GetArg(1)->IsBoolean());
-  IOTJS_ASSERT(handler.GetArg(2)->IsFunction());
+  JHANDLER_CHECK(handler.GetArgLength() == 3);
+  JHANDLER_CHECK(handler.GetArg(0)->IsNumber());
+  JHANDLER_CHECK(handler.GetArg(1)->IsBoolean());
+  JHANDLER_CHECK(handler.GetArg(2)->IsFunction());
 
   GpioReqWrap* req_wrap = new GpioReqWrap(*handler.GetArg(2));
   GpioReqData* req_data = req_wrap->req();
@@ -134,9 +137,9 @@ JHANDLER_FUNCTION(WritePin) {
 
 // readPin(pinNumber, afterReadPin)
 JHANDLER_FUNCTION(ReadPin) {
-  IOTJS_ASSERT(handler.GetArgLength() == 2);
-  IOTJS_ASSERT(handler.GetArg(0)->IsNumber());
-  IOTJS_ASSERT(handler.GetArg(1)->IsFunction());
+  JHANDLER_CHECK(handler.GetArgLength() == 2);
+  JHANDLER_CHECK(handler.GetArg(0)->IsNumber());
+  JHANDLER_CHECK(handler.GetArg(1)->IsFunction());
 
   GpioReqWrap* req_wrap = new GpioReqWrap(*handler.GetArg(1));
   GpioReqData* req_data = req_wrap->req();

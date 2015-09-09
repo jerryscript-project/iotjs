@@ -23,8 +23,8 @@ namespace iotjs {
 
 
 static void Print(JHandlerInfo& handler, FILE* out_fd) {
-  IOTJS_ASSERT(handler.GetArgLength() == 1);
-  IOTJS_ASSERT(handler.GetArg(0)->IsString());
+  JHANDLER_CHECK(handler.GetArgLength() == 1);
+  JHANDLER_CHECK(handler.GetArg(0)->IsString());
 
   String msg = handler.GetArg(0)->GetString();
   fprintf(out_fd, "%s", msg.data());

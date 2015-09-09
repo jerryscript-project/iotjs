@@ -291,9 +291,9 @@ void HTTPParserWrap::Initialize(http_parser_type type) {
 
 
 JHANDLER_FUNCTION(Reinitialize) {
-  IOTJS_ASSERT(handler.GetArgLength() == 1);
-  IOTJS_ASSERT(handler.GetThis()->IsObject());
-  IOTJS_ASSERT(handler.GetArg(0)->IsNumber());
+  JHANDLER_CHECK(handler.GetThis()->IsObject());
+  JHANDLER_CHECK(handler.GetArgLength() == 1);
+  JHANDLER_CHECK(handler.GetArg(0)->IsNumber());
 
   JObject* jparser = handler.GetThis();
 
@@ -311,8 +311,9 @@ JHANDLER_FUNCTION(Reinitialize) {
 
 
 JHANDLER_FUNCTION(Finish) {
-  IOTJS_ASSERT(handler.GetArgLength() == 0);
-  IOTJS_ASSERT(handler.GetThis()->IsObject());
+  JHANDLER_CHECK(handler.GetThis()->IsObject());
+  JHANDLER_CHECK(handler.GetArgLength() == 0);
+
   JObject* jparser = handler.GetThis();
   HTTPParserWrap* parser =
     reinterpret_cast<HTTPParserWrap*>(jparser->GetNative());
@@ -333,9 +334,9 @@ JHANDLER_FUNCTION(Finish) {
 
 
 JHANDLER_FUNCTION(Execute) {
-  IOTJS_ASSERT(handler.GetArgLength() == 1);
-  IOTJS_ASSERT(handler.GetThis()->IsObject());
-  IOTJS_ASSERT(handler.GetArg(0)->IsObject());
+  JHANDLER_CHECK(handler.GetThis()->IsObject());
+  JHANDLER_CHECK(handler.GetArgLength() == 1);
+  JHANDLER_CHECK(handler.GetArg(0)->IsObject());
 
   JObject* jparser = handler.GetThis();
   HTTPParserWrap* parser =
@@ -378,8 +379,8 @@ JHANDLER_FUNCTION(Execute) {
 
 
 JHANDLER_FUNCTION(Pause) {
-  IOTJS_ASSERT(handler.GetArgLength() == 0);
-  IOTJS_ASSERT(handler.GetThis()->IsObject());
+  JHANDLER_CHECK(handler.GetArgLength() == 0);
+  JHANDLER_CHECK(handler.GetThis()->IsObject());
   JObject* jparser = handler.GetThis();
   HTTPParserWrap* parser =
     reinterpret_cast<HTTPParserWrap*>(jparser->GetNative());
@@ -389,8 +390,8 @@ JHANDLER_FUNCTION(Pause) {
 
 
 JHANDLER_FUNCTION(Resume) {
-  IOTJS_ASSERT(handler.GetArgLength() == 0);
-  IOTJS_ASSERT(handler.GetThis()->IsObject());
+  JHANDLER_CHECK(handler.GetArgLength() == 0);
+  JHANDLER_CHECK(handler.GetThis()->IsObject());
   JObject* jparser = handler.GetThis();
   HTTPParserWrap* parser =
     reinterpret_cast<HTTPParserWrap*>(jparser->GetNative());
@@ -400,8 +401,9 @@ JHANDLER_FUNCTION(Resume) {
 
 
 JHANDLER_FUNCTION(HTTPParserCons) {
-  IOTJS_ASSERT(handler.GetArgLength() == 1);
-  IOTJS_ASSERT(handler.GetThis()->IsObject());
+  JHANDLER_CHECK(handler.GetThis()->IsObject());
+  JHANDLER_CHECK(handler.GetArgLength() == 1);
+  JHANDLER_CHECK(handler.GetArg(0)->IsNumber());
 
   JObject* jparser = handler.GetThis();
 
@@ -440,10 +442,7 @@ JObject* InitHttpparser() {
   HTTP_METHOD_MAP(V)
 #undef V
 
-
     JSETPROPERTY(HTTPParserConstructor, "methods", methods);
-
-
 
     JObject prototype;
     HTTPParserConstructor.SetProperty("prototype", prototype);

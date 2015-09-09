@@ -92,11 +92,13 @@ static void timerHandleTimeout(uv_timer_t* handle) {
 
 
 JHANDLER_FUNCTION(Start) {
-  IOTJS_ASSERT(handler.GetArgLength() >= 3);
-  IOTJS_ASSERT(handler.GetArg(2)->IsFunction());
+  JHANDLER_CHECK(handler.GetThis()->IsObject());
+  JHANDLER_CHECK(handler.GetArgLength() >= 3);
+  JHANDLER_CHECK(handler.GetArg(0)->IsNumber());
+  JHANDLER_CHECK(handler.GetArg(1)->IsNumber());
+  JHANDLER_CHECK(handler.GetArg(2)->IsFunction());
 
   JObject* jtimer = handler.GetThis();
-  IOTJS_ASSERT(jtimer->IsObject());
 
   int64_t timeout = handler.GetArg(0)->GetInt64();
   int64_t repeat = handler.GetArg(1)->GetInt64();
@@ -124,6 +126,8 @@ JHANDLER_FUNCTION(Start) {
 
 
 JHANDLER_FUNCTION(Stop) {
+  JHANDLER_CHECK(handler.GetThis()->IsObject());
+
   JObject* jtimer = handler.GetThis();
 
   TimerWrap* timer_wrap = reinterpret_cast<TimerWrap*>(jtimer->GetNative());
@@ -139,8 +143,7 @@ JHANDLER_FUNCTION(Stop) {
 
 
 JHANDLER_FUNCTION(Timer) {
-  // `this` should be a object.
-  IOTJS_ASSERT(handler.GetThis()->IsObject());
+  JHANDLER_CHECK(handler.GetThis()->IsObject());
 
   Environment* env = Environment::GetEnv();
   JObject* jtimer = handler.GetThis();

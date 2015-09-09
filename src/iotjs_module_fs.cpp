@@ -107,9 +107,9 @@ static void After(uv_fs_t* req) {
 
 
 JHANDLER_FUNCTION(Close) {
-  IOTJS_ASSERT(handler.GetThis()->IsObject());
-  IOTJS_ASSERT(handler.GetArgLength() >= 1);
-  IOTJS_ASSERT(handler.GetArg(0)->IsNumber());
+  JHANDLER_CHECK(handler.GetThis()->IsObject());
+  JHANDLER_CHECK(handler.GetArgLength() >= 1);
+  JHANDLER_CHECK(handler.GetArg(0)->IsNumber());
 
   Environment* env = Environment::GetEnv();
 
@@ -126,11 +126,11 @@ JHANDLER_FUNCTION(Close) {
 
 
 JHANDLER_FUNCTION(Open) {
-  IOTJS_ASSERT(handler.GetThis()->IsObject());
-  IOTJS_ASSERT(handler.GetArgLength() >= 3);
-  IOTJS_ASSERT(handler.GetArg(0)->IsString());
-  IOTJS_ASSERT(handler.GetArg(1)->IsNumber());
-  IOTJS_ASSERT(handler.GetArg(2)->IsNumber());
+  JHANDLER_CHECK(handler.GetThis()->IsObject());
+  JHANDLER_CHECK(handler.GetArgLength() >= 3);
+  JHANDLER_CHECK(handler.GetArg(0)->IsString());
+  JHANDLER_CHECK(handler.GetArg(1)->IsNumber());
+  JHANDLER_CHECK(handler.GetArg(2)->IsNumber());
 
   Environment* env = Environment::GetEnv();
 
@@ -150,13 +150,13 @@ JHANDLER_FUNCTION(Open) {
 
 
 JHANDLER_FUNCTION(Read) {
-  IOTJS_ASSERT(handler.GetThis()->IsObject());
-  IOTJS_ASSERT(handler.GetArgLength() >= 5);
-  IOTJS_ASSERT(handler.GetArg(0)->IsNumber());
-  IOTJS_ASSERT(handler.GetArg(1)->IsObject());
-  IOTJS_ASSERT(handler.GetArg(2)->IsNumber());
-  IOTJS_ASSERT(handler.GetArg(3)->IsNumber());
-  IOTJS_ASSERT(handler.GetArg(4)->IsNumber());
+  JHANDLER_CHECK(handler.GetThis()->IsObject());
+  JHANDLER_CHECK(handler.GetArgLength() >= 5);
+  JHANDLER_CHECK(handler.GetArg(0)->IsNumber());
+  JHANDLER_CHECK(handler.GetArg(1)->IsObject());
+  JHANDLER_CHECK(handler.GetArg(2)->IsNumber());
+  JHANDLER_CHECK(handler.GetArg(3)->IsNumber());
+  JHANDLER_CHECK(handler.GetArg(4)->IsNumber());
 
   Environment* env = Environment::GetEnv();
 
@@ -192,13 +192,13 @@ JHANDLER_FUNCTION(Read) {
 
 
 JHANDLER_FUNCTION(Write) {
-  IOTJS_ASSERT(handler.GetThis()->IsObject());
-  IOTJS_ASSERT(handler.GetArgLength() >= 5);
-  IOTJS_ASSERT(handler.GetArg(0)->IsNumber());
-  IOTJS_ASSERT(handler.GetArg(1)->IsObject());
-  IOTJS_ASSERT(handler.GetArg(2)->IsNumber());
-  IOTJS_ASSERT(handler.GetArg(3)->IsNumber());
-  IOTJS_ASSERT(handler.GetArg(4)->IsNumber());
+  JHANDLER_CHECK(handler.GetThis()->IsObject());
+  JHANDLER_CHECK(handler.GetArgLength() >= 5);
+  JHANDLER_CHECK(handler.GetArg(0)->IsNumber());
+  JHANDLER_CHECK(handler.GetArg(1)->IsObject());
+  JHANDLER_CHECK(handler.GetArg(2)->IsNumber());
+  JHANDLER_CHECK(handler.GetArg(3)->IsNumber());
+  JHANDLER_CHECK(handler.GetArg(4)->IsNumber());
 
   Environment* env = Environment::GetEnv();
 
@@ -280,20 +280,15 @@ JObject MakeStatObject(uv_stat_t* statbuf) {
 
 
 JHANDLER_FUNCTION(Stat) {
-  int argc = handler.GetArgLength();
-
-  if (argc < 1) {
-    JHANDLER_THROW_RETURN(TypeError, "path required");
-  }
-  if (!handler.GetArg(0)->IsString()) {
-    JHANDLER_THROW_RETURN(TypeError, "path must be a string");
-  }
+  JHANDLER_CHECK(handler.GetThis()->IsObject());
+  JHANDLER_CHECK(handler.GetArgLength() >= 1);
+  JHANDLER_CHECK(handler.GetArg(0)->IsString());
 
   Environment* env = Environment::GetEnv();
 
   String path = handler.GetArg(0)->GetString();
 
-  if (argc > 1 && handler.GetArg(1)->IsFunction()) {
+  if (handler.GetArgLength() > 1 && handler.GetArg(1)->IsFunction()) {
     FS_ASYNC(env, stat, handler.GetArg(1), path.data());
   } else {
     FS_SYNC(env, stat, path.data());

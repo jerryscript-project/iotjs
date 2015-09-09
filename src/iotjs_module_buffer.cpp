@@ -143,10 +143,10 @@ JObject CreateBuffer(size_t len) {
 
 
 JHANDLER_FUNCTION(Buffer) {
-  IOTJS_ASSERT(handler.GetThis()->IsObject());
-  IOTJS_ASSERT(handler.GetArgLength() == 2);
-  IOTJS_ASSERT(handler.GetArg(0)->IsObject());
-  IOTJS_ASSERT(handler.GetArg(1)->IsNumber());
+  JHANDLER_CHECK(handler.GetThis()->IsObject());
+  JHANDLER_CHECK(handler.GetArgLength() == 2);
+  JHANDLER_CHECK(handler.GetArg(0)->IsObject());
+  JHANDLER_CHECK(handler.GetArg(1)->IsNumber());
 
   int length = handler.GetArg(1)->GetInt32();
   JObject* jbuffer = handler.GetArg(0);
@@ -161,9 +161,9 @@ JHANDLER_FUNCTION(Buffer) {
 
 
 JHANDLER_FUNCTION(Compare) {
-  IOTJS_ASSERT(handler.GetThis()->IsObject());
-  IOTJS_ASSERT(handler.GetArgLength() == 1);
-  IOTJS_ASSERT(handler.GetArg(0)->IsObject());
+  JHANDLER_CHECK(handler.GetThis()->IsObject());
+  JHANDLER_CHECK(handler.GetArgLength() == 1);
+  JHANDLER_CHECK(handler.GetArg(0)->IsObject());
 
   JObject* jsrc_builtin = handler.GetThis();
   BufferWrap* src_buffer_wrap = BufferWrap::FromJBufferBuiltin(*jsrc_builtin);
@@ -178,12 +178,12 @@ JHANDLER_FUNCTION(Compare) {
 
 
 JHANDLER_FUNCTION(Copy) {
-  IOTJS_ASSERT(handler.GetThis()->IsObject());
-  IOTJS_ASSERT(handler.GetArgLength() == 4);
-  IOTJS_ASSERT(handler.GetArg(0)->IsObject());
-  IOTJS_ASSERT(handler.GetArg(1)->IsNumber());
-  IOTJS_ASSERT(handler.GetArg(2)->IsNumber());
-  IOTJS_ASSERT(handler.GetArg(3)->IsNumber());
+  JHANDLER_CHECK(handler.GetThis()->IsObject());
+  JHANDLER_CHECK(handler.GetArgLength() == 4);
+  JHANDLER_CHECK(handler.GetArg(0)->IsObject());
+  JHANDLER_CHECK(handler.GetArg(1)->IsNumber());
+  JHANDLER_CHECK(handler.GetArg(2)->IsNumber());
+  JHANDLER_CHECK(handler.GetArg(3)->IsNumber());
 
   JObject* jsrc_builtin = handler.GetThis();
   BufferWrap* src_buffer_wrap = BufferWrap::FromJBufferBuiltin(*jsrc_builtin);
@@ -207,10 +207,10 @@ JHANDLER_FUNCTION(Copy) {
 
 
 JHANDLER_FUNCTION(Write) {
-  IOTJS_ASSERT(handler.GetArgLength() == 3);
-  IOTJS_ASSERT(handler.GetArg(0)->IsString());
-  IOTJS_ASSERT(handler.GetArg(1)->IsNumber());
-  IOTJS_ASSERT(handler.GetArg(2)->IsNumber());
+  JHANDLER_CHECK(handler.GetArgLength() == 3);
+  JHANDLER_CHECK(handler.GetArg(0)->IsString());
+  JHANDLER_CHECK(handler.GetArg(1)->IsNumber());
+  JHANDLER_CHECK(handler.GetArg(2)->IsNumber());
 
   String src = handler.GetArg(0)->GetString();
   int offset = handler.GetArg(1)->GetInt32();
@@ -229,9 +229,9 @@ JHANDLER_FUNCTION(Write) {
 
 
 JHANDLER_FUNCTION(Slice) {
-  IOTJS_ASSERT(handler.GetArgLength() == 2);
-  IOTJS_ASSERT(handler.GetArg(0)->IsNumber());
-  IOTJS_ASSERT(handler.GetArg(1)->IsNumber());
+  JHANDLER_CHECK(handler.GetArgLength() == 2);
+  JHANDLER_CHECK(handler.GetArg(0)->IsNumber());
+  JHANDLER_CHECK(handler.GetArg(1)->IsNumber());
 
   JObject* jbuiltin = handler.GetThis();
   BufferWrap* buffer_wrap = BufferWrap::FromJBufferBuiltin(*jbuiltin);
@@ -252,10 +252,10 @@ JHANDLER_FUNCTION(Slice) {
 
 
 JHANDLER_FUNCTION(ToString) {
-  IOTJS_ASSERT(handler.GetThis()->IsObject());
-  IOTJS_ASSERT(handler.GetArgLength() == 2);
-  IOTJS_ASSERT(handler.GetArg(0)->IsNumber());
-  IOTJS_ASSERT(handler.GetArg(1)->IsNumber());
+  JHANDLER_CHECK(handler.GetThis()->IsObject());
+  JHANDLER_CHECK(handler.GetArgLength() == 2);
+  JHANDLER_CHECK(handler.GetArg(0)->IsNumber());
+  JHANDLER_CHECK(handler.GetArg(1)->IsNumber());
 
   JObject* jbuiltin = handler.GetThis();
   BufferWrap* buffer_wrap = BufferWrap::FromJBufferBuiltin(*jbuiltin);

@@ -66,12 +66,12 @@ static void AfterGetAddrInfo(uv_getaddrinfo_t* req, int status, addrinfo* res) {
 
 
 JHANDLER_FUNCTION(GetAddrInfo) {
-  IOTJS_ASSERT(handler.GetThis()->IsObject());
-  IOTJS_ASSERT(handler.GetArgLength() == 4);
-  IOTJS_ASSERT(handler.GetArg(0)->IsString());
-  IOTJS_ASSERT(handler.GetArg(1)->IsNumber());
-  IOTJS_ASSERT(handler.GetArg(2)->IsNumber());
-  IOTJS_ASSERT(handler.GetArg(3)->IsFunction());
+  JHANDLER_CHECK(handler.GetThis()->IsObject());
+  JHANDLER_CHECK(handler.GetArgLength() == 4);
+  JHANDLER_CHECK(handler.GetArg(0)->IsString());
+  JHANDLER_CHECK(handler.GetArg(1)->IsNumber());
+  JHANDLER_CHECK(handler.GetArg(2)->IsNumber());
+  JHANDLER_CHECK(handler.GetArg(3)->IsFunction());
 
   String hostname = handler.GetArg(0)->GetString();
   int option = handler.GetArg(1)->GetInt32();
@@ -86,7 +86,7 @@ JHANDLER_FUNCTION(GetAddrInfo) {
   } else if (option == 6) {
     family = AF_INET6;
   } else {
-    IOTJS_ASSERT(0 && "bad address family");
+    JHANDLER_THROW_RETURN(TypeError, "bad address family");
   }
 
   GetAddrInfoReqWrap* req_wrap = new GetAddrInfoReqWrap(*jcallback);

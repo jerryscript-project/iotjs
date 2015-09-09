@@ -55,7 +55,11 @@ typedef ReqWrap<uv_shutdown_t> ShutdownReqWrap;
 
 
 JHANDLER_FUNCTION(TCP) {
-  IOTJS_ASSERT(handler.GetThis()->IsObject());
+  JHANDLER_CHECK(handler.GetThis()->IsObject());
+  JHANDLER_CHECK(handler.GetArgLength() == 1);
+  JHANDLER_CHECK(handler.GetArg(0)->IsObject() ||
+                 handler.GetArg(0)->IsUndefined() ||
+                 handler.GetArg(0)->IsNull());
 
   Environment* env = Environment::GetEnv();
   JObject* jtcp = handler.GetThis();
@@ -93,7 +97,7 @@ static void AfterClose(uv_handle_t* handle) {
 
 // Close socket
 JHANDLER_FUNCTION(Close) {
-  IOTJS_ASSERT(handler.GetThis()->IsObject());
+  JHANDLER_CHECK(handler.GetThis()->IsObject());
 
   JObject* jtcp = handler.GetThis();
   HandleWrap* wrap = reinterpret_cast<HandleWrap*>(jtcp->GetNative());
@@ -110,10 +114,10 @@ JHANDLER_FUNCTION(Close) {
 // [0] address
 // [1] port
 JHANDLER_FUNCTION(Bind) {
-  IOTJS_ASSERT(handler.GetThis()->IsObject());
-  IOTJS_ASSERT(handler.GetArgLength() == 2);
-  IOTJS_ASSERT(handler.GetArg(0)->IsString());
-  IOTJS_ASSERT(handler.GetArg(1)->IsNumber());
+  JHANDLER_CHECK(handler.GetThis()->IsObject());
+  JHANDLER_CHECK(handler.GetArgLength() == 2);
+  JHANDLER_CHECK(handler.GetArg(0)->IsString());
+  JHANDLER_CHECK(handler.GetArg(1)->IsNumber());
 
   String address = handler.GetArg(0)->GetString();
   int port = handler.GetArg(1)->GetInt32();
@@ -165,11 +169,11 @@ static void AfterConnect(uv_connect_t* req, int status) {
 // [1] port
 // [2] callback
 JHANDLER_FUNCTION(Connect) {
-  IOTJS_ASSERT(handler.GetThis()->IsObject());
-  IOTJS_ASSERT(handler.GetArgLength() == 3);
-  IOTJS_ASSERT(handler.GetArg(0)->IsString());
-  IOTJS_ASSERT(handler.GetArg(1)->IsNumber());
-  IOTJS_ASSERT(handler.GetArg(2)->IsFunction());
+  JHANDLER_CHECK(handler.GetThis()->IsObject());
+  JHANDLER_CHECK(handler.GetArgLength() == 3);
+  JHANDLER_CHECK(handler.GetArg(0)->IsString());
+  JHANDLER_CHECK(handler.GetArg(1)->IsNumber());
+  JHANDLER_CHECK(handler.GetArg(2)->IsFunction());
 
   String address = handler.GetArg(0)->GetString();
   int port = handler.GetArg(1)->GetInt32();
@@ -252,7 +256,9 @@ static void OnConnection(uv_stream_t* handle, int status) {
 
 
 JHANDLER_FUNCTION(Listen) {
-  IOTJS_ASSERT(handler.GetThis()->IsObject());
+  JHANDLER_CHECK(handler.GetThis()->IsObject());
+  JHANDLER_CHECK(handler.GetArgLength() == 1);
+  JHANDLER_CHECK(handler.GetArg(0)->IsNumber());
 
   TcpWrap* tcp_wrap = TcpWrap::FromJObject(handler.GetThis());
 
@@ -293,10 +299,10 @@ void AfterWrite(uv_write_t* req, int status) {
 
 
 JHANDLER_FUNCTION(Write) {
-  IOTJS_ASSERT(handler.GetThis()->IsObject());
-  IOTJS_ASSERT(handler.GetArgLength() == 2);
-  IOTJS_ASSERT(handler.GetArg(0)->IsObject());
-  IOTJS_ASSERT(handler.GetArg(1)->IsFunction());
+  JHANDLER_CHECK(handler.GetThis()->IsObject());
+  JHANDLER_CHECK(handler.GetArgLength() == 2);
+  JHANDLER_CHECK(handler.GetArg(0)->IsObject());
+  JHANDLER_CHECK(handler.GetArg(1)->IsFunction());
 
   TcpWrap* tcp_wrap = TcpWrap::FromJObject(handler.GetThis());
   IOTJS_ASSERT(tcp_wrap != NULL);
@@ -380,7 +386,7 @@ void OnRead(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
 
 
 JHANDLER_FUNCTION(ReadStart) {
-  IOTJS_ASSERT(handler.GetThis()->IsObject());
+  JHANDLER_CHECK(handler.GetThis()->IsObject());
 
   TcpWrap* tcp_wrap = TcpWrap::FromJObject(handler.GetThis());
   IOTJS_ASSERT(tcp_wrap != NULL);
@@ -419,9 +425,9 @@ static void AfterShutdown(uv_shutdown_t* req, int status) {
 
 
 JHANDLER_FUNCTION(Shutdown) {
-  IOTJS_ASSERT(handler.GetThis()->IsObject());
-  IOTJS_ASSERT(handler.GetArgLength() == 1);
-  IOTJS_ASSERT(handler.GetArg(0)->IsFunction());
+  JHANDLER_CHECK(handler.GetThis()->IsObject());
+  JHANDLER_CHECK(handler.GetArgLength() == 1);
+  JHANDLER_CHECK(handler.GetArg(0)->IsFunction());
 
   TcpWrap* tcp_wrap = TcpWrap::FromJObject(handler.GetThis());
   IOTJS_ASSERT(tcp_wrap != NULL);
@@ -446,10 +452,10 @@ JHANDLER_FUNCTION(Shutdown) {
 // [0] enable
 // [1] delay
 JHANDLER_FUNCTION(SetKeepAlive) {
-  IOTJS_ASSERT(handler.GetThis()->IsObject());
-  IOTJS_ASSERT(handler.GetArgLength() == 2);
-  IOTJS_ASSERT(handler.GetArg(0)->IsNumber());
-  IOTJS_ASSERT(handler.GetArg(1)->IsNumber());
+  JHANDLER_CHECK(handler.GetThis()->IsObject());
+  JHANDLER_CHECK(handler.GetArgLength() == 2);
+  JHANDLER_CHECK(handler.GetArg(0)->IsNumber());
+  JHANDLER_CHECK(handler.GetArg(1)->IsNumber());
 
   int enable = handler.GetArg(0)->GetInt32();
   unsigned int delay = (unsigned int) handler.GetArg(1)->GetInt32();
@@ -464,9 +470,9 @@ JHANDLER_FUNCTION(SetKeepAlive) {
 
 
 JHANDLER_FUNCTION(SetHolder) {
-  IOTJS_ASSERT(handler.GetThis()->IsObject());
-  IOTJS_ASSERT(handler.GetArgLength() == 1);
-  IOTJS_ASSERT(handler.GetArg(0)->IsObject());
+  JHANDLER_CHECK(handler.GetThis()->IsObject());
+  JHANDLER_CHECK(handler.GetArgLength() == 1);
+  JHANDLER_CHECK(handler.GetArg(0)->IsObject());
 
   TcpWrap* tcp_wrap = TcpWrap::FromJObject(handler.GetThis());
 

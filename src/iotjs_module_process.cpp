@@ -101,8 +101,8 @@ JObject MakeCallback(JObject& function, JObject& this_, JArgList& args) {
 
 
 JHANDLER_FUNCTION(Binding) {
-  IOTJS_ASSERT(handler.GetArgLength() == 1);
-  IOTJS_ASSERT(handler.GetArg(0)->IsNumber());
+  JHANDLER_CHECK(handler.GetArgLength() == 1);
+  JHANDLER_CHECK(handler.GetArg(0)->IsNumber());
 
   int module_kind = handler.GetArg(0)->GetInt32();
 
@@ -140,8 +140,8 @@ static JResult WrapEval(const String& source) {
 
 
 JHANDLER_FUNCTION(Compile){
-  IOTJS_ASSERT(handler.GetArgLength() == 1);
-  IOTJS_ASSERT(handler.GetArg(0)->IsString());
+  JHANDLER_CHECK(handler.GetArgLength() == 1);
+  JHANDLER_CHECK(handler.GetArg(0)->IsString());
 
   String source = handler.GetArg(0)->GetString();
 
@@ -158,8 +158,8 @@ JHANDLER_FUNCTION(Compile){
 
 
 JHANDLER_FUNCTION(CompileNativePtr){
-  IOTJS_ASSERT(handler.GetArgLength() == 1);
-  IOTJS_ASSERT(handler.GetArg(0)->IsObject());
+  JHANDLER_CHECK(handler.GetArgLength() == 1);
+  JHANDLER_CHECK(handler.GetArg(0)->IsObject());
 
   String source((const char*)handler.GetArg(0)->GetNative());
 
@@ -176,8 +176,8 @@ JHANDLER_FUNCTION(CompileNativePtr){
 
 
 JHANDLER_FUNCTION(ReadSource){
-  IOTJS_ASSERT(handler.GetArgLength() == 1);
-  IOTJS_ASSERT(handler.GetArg(0)->IsString());
+  JHANDLER_CHECK(handler.GetArgLength() == 1);
+  JHANDLER_CHECK(handler.GetArg(0)->IsString());
 
   String path = handler.GetArg(0)->GetString();
   String code = ReadFile(path.data());
@@ -190,7 +190,7 @@ JHANDLER_FUNCTION(ReadSource){
 
 
 JHANDLER_FUNCTION(Cwd){
-  IOTJS_ASSERT(handler.GetArgLength() == 0);
+  JHANDLER_CHECK(handler.GetArgLength() == 0);
 
   char path[IOTJS_MAX_PATH_SIZE];
   size_t size_path = sizeof(path);
@@ -206,8 +206,8 @@ JHANDLER_FUNCTION(Cwd){
 
 
 JHANDLER_FUNCTION(DoExit) {
-  IOTJS_ASSERT(handler.GetArgLength() == 1);
-  IOTJS_ASSERT(handler.GetArg(0)->IsNumber());
+  JHANDLER_CHECK(handler.GetArgLength() == 1);
+  JHANDLER_CHECK(handler.GetArg(0)->IsNumber());
 
   int exit_code = handler.GetArg(0)->GetInt32();
 
@@ -217,7 +217,7 @@ JHANDLER_FUNCTION(DoExit) {
 
 // Initialize `process.argv`
 JHANDLER_FUNCTION(InitArgv) {
-  IOTJS_ASSERT(handler.GetThis()->IsObject());
+  JHANDLER_CHECK(handler.GetThis()->IsObject());
 
   // environtment
   Environment* env = Environment::GetEnv();

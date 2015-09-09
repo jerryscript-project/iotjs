@@ -272,31 +272,25 @@ class JHandlerInfo {
 };
 
 
-#define JHANDLER_THROW(handler_info, error_type, message) \
+#define JHANDLER_THROW(error_type, message) \
   JObject error = JObject::error_type(message); \
-  handler_info.Throw(error); \
+  handler.Throw(error);
 
-
-#define JHANDLER_THROW_RETURN(handler_info, error_type, message) \
-  JHANDLER_THROW(handler_info, error_type, message); \
+#define JHANDLER_THROW_RETURN(error_type, message) \
+  JHANDLER_THROW(error_type, message); \
   return false;
 
-
-#define JHANDLER_FUNCTION(handler, arg_name) \
-  static bool ___ ## handler ## _wrap(JHandlerInfo& arg_name); \
-  static bool handler(const JRawObjectType *function_obj_p, \
-                      const JRawValueType *this_p, \
-                      JRawValueType *ret_val_p, \
-                      const JRawValueType args_p [], \
-                      const JRawLengthType args_cnt) { \
-    JHandlerInfo info(function_obj_p, this_p, ret_val_p, args_p, args_cnt); \
-    return ___ ## handler ## _wrap(info); \
+#define JHANDLER_FUNCTION(name) \
+  static bool ___ ## name ## _native(JHandlerInfo& handler); \
+  static bool name(const JRawObjectType *function_obj_p, \
+                   const JRawValueType *this_p, \
+                   JRawValueType *ret_val_p, \
+                   const JRawValueType args_p [], \
+                   const JRawLengthType args_cnt) { \
+    JHandlerInfo handler(function_obj_p, this_p, ret_val_p, args_p, args_cnt); \
+    return ___ ## name ## _native(handler); \
   } \
-  static bool ___ ## handler ## _wrap(JHandlerInfo& arg_name) \
-
-
-#define JFREE_HANDLER_FUNCTION(handler, arg_name) \
-  static void handler(const uintptr_t arg_name) \
+  static bool ___ ## name ## _native(JHandlerInfo& handler)
 
 
 } // namespace iotjs

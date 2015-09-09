@@ -142,7 +142,7 @@ JObject CreateBuffer(size_t len) {
 
 
 
-JHANDLER_FUNCTION(Buffer, handler) {
+JHANDLER_FUNCTION(Buffer) {
   IOTJS_ASSERT(handler.GetThis()->IsObject());
   IOTJS_ASSERT(handler.GetArgLength() == 2);
   IOTJS_ASSERT(handler.GetArg(0)->IsObject());
@@ -160,7 +160,7 @@ JHANDLER_FUNCTION(Buffer, handler) {
 }
 
 
-JHANDLER_FUNCTION(Compare, handler) {
+JHANDLER_FUNCTION(Compare) {
   IOTJS_ASSERT(handler.GetThis()->IsObject());
   IOTJS_ASSERT(handler.GetArgLength() == 1);
   IOTJS_ASSERT(handler.GetArg(0)->IsObject());
@@ -177,7 +177,7 @@ JHANDLER_FUNCTION(Compare, handler) {
 }
 
 
-JHANDLER_FUNCTION(Copy, handler) {
+JHANDLER_FUNCTION(Copy) {
   IOTJS_ASSERT(handler.GetThis()->IsObject());
   IOTJS_ASSERT(handler.GetArgLength() == 4);
   IOTJS_ASSERT(handler.GetArg(0)->IsObject());
@@ -206,7 +206,7 @@ JHANDLER_FUNCTION(Copy, handler) {
 }
 
 
-JHANDLER_FUNCTION(Write, handler) {
+JHANDLER_FUNCTION(Write) {
   IOTJS_ASSERT(handler.GetArgLength() == 3);
   IOTJS_ASSERT(handler.GetArg(0)->IsString());
   IOTJS_ASSERT(handler.GetArg(1)->IsNumber());
@@ -228,7 +228,7 @@ JHANDLER_FUNCTION(Write, handler) {
 }
 
 
-JHANDLER_FUNCTION(Slice, handler) {
+JHANDLER_FUNCTION(Slice) {
   IOTJS_ASSERT(handler.GetArgLength() == 2);
   IOTJS_ASSERT(handler.GetArg(0)->IsNumber());
   IOTJS_ASSERT(handler.GetArg(1)->IsNumber());
@@ -251,7 +251,7 @@ JHANDLER_FUNCTION(Slice, handler) {
 }
 
 
-JHANDLER_FUNCTION(ToString, handler) {
+JHANDLER_FUNCTION(ToString) {
   IOTJS_ASSERT(handler.GetThis()->IsObject());
   IOTJS_ASSERT(handler.GetArgLength() == 2);
   IOTJS_ASSERT(handler.GetArg(0)->IsNumber());

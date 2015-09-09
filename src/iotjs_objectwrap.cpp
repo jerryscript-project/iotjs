@@ -20,7 +20,7 @@
 namespace iotjs {
 
 
-JFREE_HANDLER_FUNCTION(FreeObjectWrap, wrapper) {
+static void FreeObjectWrap(const uintptr_t wrapper) {
   // native pointer must not be NULL.
   IOTJS_ASSERT(wrapper != 0);
 

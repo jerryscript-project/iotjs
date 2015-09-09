@@ -91,7 +91,7 @@ static void timerHandleTimeout(uv_timer_t* handle) {
 }
 
 
-JHANDLER_FUNCTION(Start, handler) {
+JHANDLER_FUNCTION(Start) {
   IOTJS_ASSERT(handler.GetArgLength() >= 3);
   IOTJS_ASSERT(handler.GetArg(2)->IsFunction());
 
@@ -123,7 +123,7 @@ JHANDLER_FUNCTION(Start, handler) {
 }
 
 
-JHANDLER_FUNCTION(Stop, handler) {
+JHANDLER_FUNCTION(Stop) {
   JObject* jtimer = handler.GetThis();
 
   TimerWrap* timer_wrap = reinterpret_cast<TimerWrap*>(jtimer->GetNative());
@@ -138,7 +138,7 @@ JHANDLER_FUNCTION(Stop, handler) {
 }
 
 
-JHANDLER_FUNCTION(Timer, handler) {
+JHANDLER_FUNCTION(Timer) {
   // `this` should be a object.
   IOTJS_ASSERT(handler.GetThis()->IsObject());
 

@@ -49,7 +49,7 @@ Gpio* Gpio::GetInstance() {
 
 
 // initialize(afterInitalize)
-JHANDLER_FUNCTION(Initialize, handler) {
+JHANDLER_FUNCTION(Initialize) {
   IOTJS_ASSERT(handler.GetArgLength() == 1);
   IOTJS_ASSERT(handler.GetArg(0)->IsFunction());
 
@@ -65,7 +65,7 @@ JHANDLER_FUNCTION(Initialize, handler) {
 
 
 // release(afterInitalize)
-JHANDLER_FUNCTION(Release, handler) {
+JHANDLER_FUNCTION(Release) {
   IOTJS_ASSERT(handler.GetArgLength() == 1);
   IOTJS_ASSERT(handler.GetArg(0)->IsFunction());
 
@@ -81,7 +81,7 @@ JHANDLER_FUNCTION(Release, handler) {
 
 
 // setPin(pinNumber, direction, mode, afterSetPin)
-JHANDLER_FUNCTION(SetPin, handler) {
+JHANDLER_FUNCTION(SetPin) {
   IOTJS_ASSERT(handler.GetArgLength() == 4);
   IOTJS_ASSERT(handler.GetArg(0)->IsNumber());
   IOTJS_ASSERT(handler.GetArg(1)->IsNumber());
@@ -111,7 +111,7 @@ JHANDLER_FUNCTION(SetPin, handler) {
 
 
 // writePin(pinNumber, value, afterWritePin)
-JHANDLER_FUNCTION(WritePin, handler) {
+JHANDLER_FUNCTION(WritePin) {
   IOTJS_ASSERT(handler.GetArgLength() == 3);
   IOTJS_ASSERT(handler.GetArg(0)->IsNumber());
   IOTJS_ASSERT(handler.GetArg(1)->IsBoolean());
@@ -133,7 +133,7 @@ JHANDLER_FUNCTION(WritePin, handler) {
 
 
 // readPin(pinNumber, afterReadPin)
-JHANDLER_FUNCTION(ReadPin, handler) {
+JHANDLER_FUNCTION(ReadPin) {
   IOTJS_ASSERT(handler.GetArgLength() == 2);
   IOTJS_ASSERT(handler.GetArg(0)->IsNumber());
   IOTJS_ASSERT(handler.GetArg(1)->IsFunction());
@@ -152,7 +152,7 @@ JHANDLER_FUNCTION(ReadPin, handler) {
 }
 
 
-JHANDLER_FUNCTION(SetPort, handler) {
+JHANDLER_FUNCTION(SetPort) {
   IOTJS_ASSERT(!"Not implemented");
 
   handler.Return(JObject::Null());
@@ -160,7 +160,7 @@ JHANDLER_FUNCTION(SetPort, handler) {
 }
 
 
-JHANDLER_FUNCTION(WritePort, handler) {
+JHANDLER_FUNCTION(WritePort) {
   IOTJS_ASSERT(!"Not implemented");
 
   handler.Return(JObject::Null());
@@ -168,7 +168,7 @@ JHANDLER_FUNCTION(WritePort, handler) {
 }
 
 
-JHANDLER_FUNCTION(ReadPort, handler) {
+JHANDLER_FUNCTION(ReadPort) {
   IOTJS_ASSERT(!"Not implemented");
 
   handler.Return(JObject::Null());
@@ -176,7 +176,7 @@ JHANDLER_FUNCTION(ReadPort, handler) {
 }
 
 
-JHANDLER_FUNCTION(Query, handler) {
+JHANDLER_FUNCTION(Query) {
   IOTJS_ASSERT(!"Not implemented");
 
   handler.Return(JObject::Null());

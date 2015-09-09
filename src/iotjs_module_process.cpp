@@ -100,7 +100,7 @@ JObject MakeCallback(JObject& function, JObject& this_, JArgList& args) {
 }
 
 
-JHANDLER_FUNCTION(Binding, handler) {
+JHANDLER_FUNCTION(Binding) {
   IOTJS_ASSERT(handler.GetArgLength() == 1);
   IOTJS_ASSERT(handler.GetArg(0)->IsNumber());
 
@@ -139,7 +139,7 @@ static JResult WrapEval(const String& source) {
 }
 
 
-JHANDLER_FUNCTION(Compile, handler){
+JHANDLER_FUNCTION(Compile){
   IOTJS_ASSERT(handler.GetArgLength() == 1);
   IOTJS_ASSERT(handler.GetArg(0)->IsString());
 
@@ -157,7 +157,7 @@ JHANDLER_FUNCTION(Compile, handler){
 }
 
 
-JHANDLER_FUNCTION(CompileNativePtr, handler){
+JHANDLER_FUNCTION(CompileNativePtr){
   IOTJS_ASSERT(handler.GetArgLength() == 1);
   IOTJS_ASSERT(handler.GetArg(0)->IsObject());
 
@@ -175,7 +175,7 @@ JHANDLER_FUNCTION(CompileNativePtr, handler){
 }
 
 
-JHANDLER_FUNCTION(ReadSource, handler){
+JHANDLER_FUNCTION(ReadSource){
   IOTJS_ASSERT(handler.GetArgLength() == 1);
   IOTJS_ASSERT(handler.GetArg(0)->IsString());
 
@@ -189,14 +189,14 @@ JHANDLER_FUNCTION(ReadSource, handler){
 }
 
 
-JHANDLER_FUNCTION(Cwd, handler){
+JHANDLER_FUNCTION(Cwd){
   IOTJS_ASSERT(handler.GetArgLength() == 0);
 
   char path[IOTJS_MAX_PATH_SIZE];
   size_t size_path = sizeof(path);
   int err = uv_cwd(path, &size_path);
   if (err) {
-    JHANDLER_THROW_RETURN(handler, Error, "cwd error");
+    JHANDLER_THROW_RETURN(Error, "cwd error");
   }
   JObject ret(path);
   handler.Return(ret);
@@ -205,7 +205,7 @@ JHANDLER_FUNCTION(Cwd, handler){
 }
 
 
-JHANDLER_FUNCTION(DoExit, handler) {
+JHANDLER_FUNCTION(DoExit) {
   IOTJS_ASSERT(handler.GetArgLength() == 1);
   IOTJS_ASSERT(handler.GetArg(0)->IsNumber());
 
@@ -216,7 +216,7 @@ JHANDLER_FUNCTION(DoExit, handler) {
 
 
 // Initialize `process.argv`
-JHANDLER_FUNCTION(InitArgv, handler) {
+JHANDLER_FUNCTION(InitArgv) {
   IOTJS_ASSERT(handler.GetThis()->IsObject());
 
   // environtment

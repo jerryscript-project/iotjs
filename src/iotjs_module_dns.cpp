@@ -65,7 +65,7 @@ static void AfterGetAddrInfo(uv_getaddrinfo_t* req, int status, addrinfo* res) {
 }
 
 
-JHANDLER_FUNCTION(GetAddrInfo, handler) {
+JHANDLER_FUNCTION(GetAddrInfo) {
   IOTJS_ASSERT(handler.GetThis()->IsObject());
   IOTJS_ASSERT(handler.GetArgLength() == 4);
   IOTJS_ASSERT(handler.GetArg(0)->IsString());

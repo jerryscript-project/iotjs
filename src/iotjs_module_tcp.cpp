@@ -54,7 +54,7 @@ typedef ReqWrap<uv_write_t> WriteReqWrap;
 typedef ReqWrap<uv_shutdown_t> ShutdownReqWrap;
 
 
-JHANDLER_FUNCTION(TCP, handler) {
+JHANDLER_FUNCTION(TCP) {
   IOTJS_ASSERT(handler.GetThis()->IsObject());
 
   Environment* env = Environment::GetEnv();
@@ -69,7 +69,7 @@ JHANDLER_FUNCTION(TCP, handler) {
 }
 
 
-JHANDLER_FUNCTION(Open, handler) {
+JHANDLER_FUNCTION(Open) {
   return true;
 }
 
@@ -92,7 +92,7 @@ static void AfterClose(uv_handle_t* handle) {
 
 
 // Close socket
-JHANDLER_FUNCTION(Close, handler) {
+JHANDLER_FUNCTION(Close) {
   IOTJS_ASSERT(handler.GetThis()->IsObject());
 
   JObject* jtcp = handler.GetThis();
@@ -109,7 +109,7 @@ JHANDLER_FUNCTION(Close, handler) {
 // start listening.
 // [0] address
 // [1] port
-JHANDLER_FUNCTION(Bind, handler) {
+JHANDLER_FUNCTION(Bind) {
   IOTJS_ASSERT(handler.GetThis()->IsObject());
   IOTJS_ASSERT(handler.GetArgLength() == 2);
   IOTJS_ASSERT(handler.GetArg(0)->IsString());
@@ -164,7 +164,7 @@ static void AfterConnect(uv_connect_t* req, int status) {
 // [0] address
 // [1] port
 // [2] callback
-JHANDLER_FUNCTION(Connect, handler) {
+JHANDLER_FUNCTION(Connect) {
   IOTJS_ASSERT(handler.GetThis()->IsObject());
   IOTJS_ASSERT(handler.GetArgLength() == 3);
   IOTJS_ASSERT(handler.GetArg(0)->IsString());
@@ -251,7 +251,7 @@ static void OnConnection(uv_stream_t* handle, int status) {
 }
 
 
-JHANDLER_FUNCTION(Listen, handler) {
+JHANDLER_FUNCTION(Listen) {
   IOTJS_ASSERT(handler.GetThis()->IsObject());
 
   TcpWrap* tcp_wrap = TcpWrap::FromJObject(handler.GetThis());
@@ -292,7 +292,7 @@ void AfterWrite(uv_write_t* req, int status) {
 }
 
 
-JHANDLER_FUNCTION(Write, handler) {
+JHANDLER_FUNCTION(Write) {
   IOTJS_ASSERT(handler.GetThis()->IsObject());
   IOTJS_ASSERT(handler.GetArgLength() == 2);
   IOTJS_ASSERT(handler.GetArg(0)->IsObject());
@@ -379,7 +379,7 @@ void OnRead(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
 }
 
 
-JHANDLER_FUNCTION(ReadStart, handler) {
+JHANDLER_FUNCTION(ReadStart) {
   IOTJS_ASSERT(handler.GetThis()->IsObject());
 
   TcpWrap* tcp_wrap = TcpWrap::FromJObject(handler.GetThis());
@@ -418,7 +418,7 @@ static void AfterShutdown(uv_shutdown_t* req, int status) {
 }
 
 
-JHANDLER_FUNCTION(Shutdown, handler) {
+JHANDLER_FUNCTION(Shutdown) {
   IOTJS_ASSERT(handler.GetThis()->IsObject());
   IOTJS_ASSERT(handler.GetArgLength() == 1);
   IOTJS_ASSERT(handler.GetArg(0)->IsFunction());
@@ -445,7 +445,7 @@ JHANDLER_FUNCTION(Shutdown, handler) {
 // Enable/Disable keepalive option.
 // [0] enable
 // [1] delay
-JHANDLER_FUNCTION(SetKeepAlive, handler) {
+JHANDLER_FUNCTION(SetKeepAlive) {
   IOTJS_ASSERT(handler.GetThis()->IsObject());
   IOTJS_ASSERT(handler.GetArgLength() == 2);
   IOTJS_ASSERT(handler.GetArg(0)->IsNumber());
@@ -463,7 +463,7 @@ JHANDLER_FUNCTION(SetKeepAlive, handler) {
 }
 
 
-JHANDLER_FUNCTION(SetHolder, handler) {
+JHANDLER_FUNCTION(SetHolder) {
   IOTJS_ASSERT(handler.GetThis()->IsObject());
   IOTJS_ASSERT(handler.GetArgLength() == 1);
   IOTJS_ASSERT(handler.GetArg(0)->IsObject());

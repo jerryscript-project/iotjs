@@ -106,7 +106,7 @@ static void After(uv_fs_t* req) {
   } \
 
 
-JHANDLER_FUNCTION(Close, handler) {
+JHANDLER_FUNCTION(Close) {
   IOTJS_ASSERT(handler.GetThis()->IsObject());
   IOTJS_ASSERT(handler.GetArgLength() >= 1);
   IOTJS_ASSERT(handler.GetArg(0)->IsNumber());
@@ -125,7 +125,7 @@ JHANDLER_FUNCTION(Close, handler) {
 }
 
 
-JHANDLER_FUNCTION(Open, handler) {
+JHANDLER_FUNCTION(Open) {
   IOTJS_ASSERT(handler.GetThis()->IsObject());
   IOTJS_ASSERT(handler.GetArgLength() >= 3);
   IOTJS_ASSERT(handler.GetArg(0)->IsString());
@@ -149,7 +149,7 @@ JHANDLER_FUNCTION(Open, handler) {
 }
 
 
-JHANDLER_FUNCTION(Read, handler) {
+JHANDLER_FUNCTION(Read) {
   IOTJS_ASSERT(handler.GetThis()->IsObject());
   IOTJS_ASSERT(handler.GetArgLength() >= 5);
   IOTJS_ASSERT(handler.GetArg(0)->IsNumber());
@@ -171,10 +171,10 @@ JHANDLER_FUNCTION(Read, handler) {
   int data_length = buffer_wrap->length();
 
   if (offset >= data_length) {
-    JHANDLER_THROW_RETURN(handler, RangeError, "offset out of bound");
+    JHANDLER_THROW_RETURN(RangeError, "offset out of bound");
   }
   if (offset + length > data_length) {
-    JHANDLER_THROW_RETURN(handler, RangeError, "length out of bound");
+    JHANDLER_THROW_RETURN(RangeError, "length out of bound");
   }
 
   uv_buf_t uvbuf = uv_buf_init(reinterpret_cast<char*>(data + offset),
@@ -191,7 +191,7 @@ JHANDLER_FUNCTION(Read, handler) {
 }
 
 
-JHANDLER_FUNCTION(Write, handler) {
+JHANDLER_FUNCTION(Write) {
   IOTJS_ASSERT(handler.GetThis()->IsObject());
   IOTJS_ASSERT(handler.GetArgLength() >= 5);
   IOTJS_ASSERT(handler.GetArg(0)->IsNumber());
@@ -213,10 +213,10 @@ JHANDLER_FUNCTION(Write, handler) {
   int data_length = buffer_wrap->length();
 
   if (offset >= data_length) {
-    JHANDLER_THROW_RETURN(handler, RangeError, "offset out of bound");
+    JHANDLER_THROW_RETURN(RangeError, "offset out of bound");
   }
   if (offset + length > data_length) {
-    JHANDLER_THROW_RETURN(handler, RangeError, "length out of bound");
+    JHANDLER_THROW_RETURN(RangeError, "length out of bound");
   }
 
   uv_buf_t uvbuf = uv_buf_init(reinterpret_cast<char*>(data + offset),
@@ -279,14 +279,14 @@ JObject MakeStatObject(uv_stat_t* statbuf) {
 }
 
 
-JHANDLER_FUNCTION(Stat, handler) {
+JHANDLER_FUNCTION(Stat) {
   int argc = handler.GetArgLength();
 
   if (argc < 1) {
-    JHANDLER_THROW_RETURN(handler, TypeError, "path required");
+    JHANDLER_THROW_RETURN(TypeError, "path required");
   }
   if (!handler.GetArg(0)->IsString()) {
-    JHANDLER_THROW_RETURN(handler, TypeError, "path must be a string");
+    JHANDLER_THROW_RETURN(TypeError, "path must be a string");
   }
 
   Environment* env = Environment::GetEnv();

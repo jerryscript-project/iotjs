@@ -31,13 +31,13 @@ static void Print(JHandlerInfo& handler, FILE* out_fd) {
 }
 
 
-JHANDLER_FUNCTION(Stdout, handler) {
+JHANDLER_FUNCTION(Stdout) {
   Print(handler, stdout);
   return true;
 }
 
 
-JHANDLER_FUNCTION(Stderr, handler) {
+JHANDLER_FUNCTION(Stderr) {
   Print(handler, stderr);
   return true;
 }

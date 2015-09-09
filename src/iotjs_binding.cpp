@@ -181,7 +181,7 @@ JObject JObject::EvalError(const char* message) {
 
 
 JObject JObject::EvalError(const String& message) {
-  return CreateError(message.data(), JERRY_API_ERROR_COMMON);
+  return CreateError(message.data(), JERRY_API_ERROR_EVAL);
 }
 
 
@@ -191,7 +191,7 @@ JObject JObject::RangeError(const char* message) {
 
 
 JObject JObject::RangeError(const String& message) {
-  return CreateError(message.data(), JERRY_API_ERROR_COMMON);
+  return CreateError(message.data(), JERRY_API_ERROR_RANGE);
 }
 
 
@@ -201,7 +201,7 @@ JObject JObject::ReferenceError(const char* message) {
 
 
 JObject JObject::ReferenceError(const String& message) {
-  return CreateError(message.data(), JERRY_API_ERROR_COMMON);
+  return CreateError(message.data(), JERRY_API_ERROR_REFERENCE);
 }
 
 
@@ -211,7 +211,7 @@ JObject JObject::SyntaxError(const char* message) {
 
 
 JObject JObject::SyntaxError(const String& message) {
-  return CreateError(message.data(), JERRY_API_ERROR_COMMON);
+  return CreateError(message.data(), JERRY_API_ERROR_SYNTAX);
 }
 
 
@@ -221,17 +221,17 @@ JObject JObject::TypeError(const char* message) {
 
 
 JObject JObject::TypeError(const String& message) {
-  return CreateError(message.data(), JERRY_API_ERROR_COMMON);
+  return CreateError(message.data(), JERRY_API_ERROR_TYPE);
 }
 
 
 JObject JObject::URIError(const char* message) {
-  return CreateError(message, JERRY_API_ERROR_COMMON);
+  return CreateError(message, JERRY_API_ERROR_URI);
 }
 
 
 JObject JObject::URIError(const String& message) {
-  return CreateError(message.data(), JERRY_API_ERROR_COMMON);
+  return CreateError(message.data(), JERRY_API_ERROR_URI);
 }
 
 

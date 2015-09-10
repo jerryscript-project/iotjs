@@ -29,6 +29,17 @@ EventEmitter.prototype.emit = function(type) {
     this._events = {};
   }
 
+  // About to emit 'error' event but there are no listeners for it.
+  if (type === 'error' && !this._events.error) {
+    var err = arguments[1];
+    if (err instanceof Error) {
+      throw err;
+    } else {
+      throw Error("Uncaught 'error' event");
+    }
+    return false;
+  }
+
   var listeners = this._events[type];
   if (util.isArray(listeners)) {
     listeners = listeners.slice();

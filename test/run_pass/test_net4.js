@@ -50,12 +50,11 @@ socket.connect(port, "127.0.0.1");
 
 socket.on('connect', function() {
   timers.setTimeout(function() {
-    socket.write('Hello IoT.js');
+    assert.throws(
+      function() {
+        socket.write('Hello IoT.js');
+      }, Error);
   }, writeat);
-});
-
-socket.on('end', function() {
-  socket.end();
 });
 
 process.on('exit', function(code) {

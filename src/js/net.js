@@ -252,9 +252,12 @@ Socket.prototype._onclose = function() {
   this.emit('close');
 
   if (this.server) {
-    var sockets = this.server._sockets;
+    var server = this.server;
+    var sockets = server._sockets;
     var idx = sockets.indexOf(this);
+    sockets.count--;
     delete sockets[idx];
+    server._emitCloseIfDrained();
   }
 };
 
@@ -408,6 +411,7 @@ function Server(options, connectionListener) {
 
   this._handle = null;
   this._sockets = [];
+  this._sockets.count = 0;
 
   this.allowHalfOpen = options.allowHalfOpen || false;
 }
@@ -472,12 +476,39 @@ Server.prototype.listen = function() {
 
 Server.prototype.close = function(callback) {
   if (util.isFunction(callback)) {
-    this.once('close', callback);
+    if (!this._handle) {
+      this.once('close', function() {
+        callback(new Error('Not running'));
+      });
+    } else {
+      this.once('close', callback);
+    }
   }
   if (this._handle) {
     this._handle.close();
+
+    // FIXME(wateret) _handleTemp is a temporary handle storage
+    // that prevents the socket object from garbage collection.
+    // Below line should be removed after issue #221 is resolved.
+    this._handleTemp = this._handle;
+
+    this._handle = null;
   }
+  this._emitCloseIfDrained();
   return this;
+};
+
+
+Server.prototype._emitCloseIfDrained = function() {
+  var self = this;
+
+  if (self._handle || self._sockets.count > 0) {
+    return;
+  }
+
+  process.nextTick(function() {
+    self.emit('close');
+  });
 };
 
 
@@ -502,13 +533,13 @@ Server.prototype._onconnection = function(status, clientHandle) {
   onSocketConnect(socket);
 
   this._sockets.push(socket);
+  this._sockets.count++;
 
   this.emit('connection', socket);
 };
 
 
 Server.prototype._onclose = function() {
-  this.emit('close');
 };
 
 

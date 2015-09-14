@@ -30,8 +30,7 @@ static void FreeObjectWrap(const uintptr_t wrapper) {
 
 
 JObjectWrap::JObjectWrap(JObject& jobject)
-    : _jobject(NULL)
-    , _jholder(NULL) {
+    : _jobject(NULL) {
   IOTJS_ASSERT(jobject.IsObject());
 
   // This wrapper hold pointer to the javascript object but never increase
@@ -44,46 +43,17 @@ JObjectWrap::JObjectWrap(JObject& jobject)
 }
 
 
-JObjectWrap::JObjectWrap(JObject& jobject, JObject& jholder)
-    : JObjectWrap(jobject) {
-  IOTJS_ASSERT(jholder.IsObject() || jholder.IsNull() || jholder.IsUndefined());
-
-  if (jholder.IsObject()) {
-    set_jholder(jholder);
-  }
-}
-
-
 JObjectWrap::~JObjectWrap() {
   IOTJS_ASSERT(_jobject != NULL);
   IOTJS_ASSERT(_jobject->IsObject());
 
   delete _jobject;
-
-  if (_jholder != NULL) {
-    delete _jholder;
-  }
 }
 
 
 JObject& JObjectWrap::jobject() {
   IOTJS_ASSERT(_jobject != NULL);
   return *_jobject;
-}
-
-
-JObject& JObjectWrap::jholder() {
-  IOTJS_ASSERT(_jholder != NULL);
-  return *_jholder;
-}
-
-
-void JObjectWrap::set_jholder(JObject& jholder) {
-  IOTJS_ASSERT(_jholder == NULL);
-  IOTJS_ASSERT(jholder.IsObject());
-
-  JRawValueType raw_value = jholder.raw_value();
-  _jholder = new JObject(&raw_value, false);
 }
 
 

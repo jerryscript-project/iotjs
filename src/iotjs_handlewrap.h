@@ -32,7 +32,6 @@ namespace iotjs {
 class HandleWrap : public JObjectWrap {
  public:
   HandleWrap(JObject& jobject, /* Object that connect with the uv handle*/
-             JObject& jholder, /* Object holding the object */
              uv_handle_t* handle);
 
   virtual ~HandleWrap();

@@ -20,8 +20,8 @@
 namespace iotjs {
 
 
-HandleWrap::HandleWrap(JObject& jobject, JObject& jholder, uv_handle_t* handle)
-    : JObjectWrap(jobject, jholder)
+HandleWrap::HandleWrap(JObject& jobject, uv_handle_t* handle)
+    : JObjectWrap(jobject)
     , __handle(handle) {
   __handle->data = this;
 }

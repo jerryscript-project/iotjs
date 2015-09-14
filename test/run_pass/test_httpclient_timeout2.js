@@ -33,9 +33,6 @@ var server = http.createServer(function(req, res) {
 });
 
 
-
-
-
 server.listen(options.port, function() {
   var req = http.request(options, function(res) {
     var destroyer = function() {
@@ -48,7 +45,6 @@ server.listen(options.port, function() {
       // after connection established
       req.setTimeout(100, destroyer);
     });
-
   });
 
   req.on('close', function() {

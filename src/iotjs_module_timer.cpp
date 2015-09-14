@@ -25,9 +25,7 @@ namespace iotjs {
 class TimerWrap : public HandleWrap {
  public:
   explicit TimerWrap(Environment* env, JObject& jtimer)
-      : HandleWrap(jtimer,
-                   JObject::Null(),
-                   reinterpret_cast<uv_handle_t*>(&_handle))
+      : HandleWrap(jtimer, reinterpret_cast<uv_handle_t*>(&_handle))
       , _timeout(0)
       , _repeat(0)
       , _jcallback(NULL) {

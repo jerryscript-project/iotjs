@@ -32,15 +32,15 @@ JObject CreateBuffer(size_t len);
 
 class BufferWrap : public JObjectWrap {
  public:
-  BufferWrap(JObject& jbuffer, JObject& jbuiltin, size_t length);
+  BufferWrap(JObject& jbuiltin, size_t length);
 
   virtual ~BufferWrap();
 
   static BufferWrap* FromJBufferBuiltin(JObject& jbuiltin);
   static BufferWrap* FromJBuffer(JObject& jbuffer);
 
-  JObject& jbuiltin();
-  JObject& jbuffer();
+  JObject jbuiltin();
+  JObject jbuffer();
 
   char* buffer();
   size_t length();

@@ -17,13 +17,13 @@
 var EventEmitter = require('events').EventEmitter;
 var stream = require('stream');
 var util = require('util');
-var timers = require('timers');
+var assert = require('assert');
 
 var TCP = process.binding(process.binding.tcp);
 
 
-function createTCP(socket) {
-  var tcp = new TCP(socket);
+function createTCP() {
+  var tcp = new TCP();
   return tcp;
 }
 
@@ -62,7 +62,6 @@ function Socket(options) {
 
   if (options.handle) {
     this._handle = options.handle;
-    this._handle._setHolder(this);
   }
 
   this.on('finish', onSocketFinish);
@@ -87,14 +86,14 @@ Socket.prototype.connect = function() {
   }
 
   if (!self._handle) {
-    self._handle = createTCP(this);
+    self._handle = createTCP();
   }
 
   if (util.isFunction(callback)) {
     self.once('connect', callback);
   }
 
-  self._resetTimeout();
+  resetSocketTimeout(self);
 
   state.connecting = true;
 
@@ -122,10 +121,9 @@ Socket.prototype.connect = function() {
         self._destroy();
       });
     } else {
-      self._resetTimeout();
-      self._handle.connect(ip, port, afterConnect);
+      resetSocketTimeout(self);
+      connect(self, ip, port);
     }
-
   });
 
   return self;
@@ -141,20 +139,21 @@ Socket.prototype.write = function(data, callback) {
 };
 
 
-Socket.prototype._write = function(chunk, callback) {
+Socket.prototype._write = function(chunk, callback, afterWrite) {
+  assert(util.isFunction(afterWrite));
+
   var self = this;
 
-  self._resetTimeout();
+  resetSocketTimeout(self);
 
-  var cb = function(status) {
-    self._onwrite(status);
+  self._handle.owner = self;
 
+  self._handle.write(chunk, function(status) {
+    afterWrite(status);
     if (util.isFunction(callback)) {
-      callback(status);
+      callback.call(self, status);
     }
-  };
-
-  this._handle.write(chunk, cb);
+  });
 };
 
 
@@ -184,11 +183,10 @@ Socket.prototype.destroy = function() {
   }
 
   // unset timeout
-  self._clearTimeout();
+  clearSocketTimeout(self);
 
   if (self._writableState.ended) {
-    self._handle.close();
-    state.destroyed = true;
+    close(self);
   } else {
     self.once('finish', function() {
       self.destroy();
@@ -223,84 +221,80 @@ Socket.prototype.setKeepAlive = function(enable, delay) {
 };
 
 
-Socket.prototype._onread = function(nread, isEOF, buffer) {
-  var self = this;
-  var state = self._socketState;
-
-  self._resetTimeout();
-
-  if (isEOF) {
-    // pushing readable stream null means EOF.
-    stream.Readable.prototype.push.call(this, null);
-
-    if (self._readableState.length == 0) {
-      // this socket is no longer readable.
-      state.readable = false;
-      // destory if this socket is not writable.
-      maybeDestroy(self);
-    }
-  } else if (nread < 0) {
-    var err = new Error('read error: ' + nread);
-    stream.Readable.prototype.error.call(this, err);
-  } else if (nread > 0) {
-    stream.Readable.prototype.push.call(this, buffer);
-  }
-};
-
-
-Socket.prototype._onclose = function() {
-  this.emit('close');
-
-  if (this.server) {
-    var server = this.server;
-    var sockets = server._sockets;
-    var idx = sockets.indexOf(this);
-    sockets.count--;
-    delete sockets[idx];
-    server._emitCloseIfDrained();
-  }
-};
-
-
-Socket.prototype._clearTimeout = function() {
-  var self = this;
-  if (self._timer) {
-    timers.clearTimeout(self._timer);
-    self._timer = null;
-  }
-};
-
-
-Socket.prototype._resetTimeout = function() {
-  var self = this;
-
-  if (!self.destroyed) {
-    // start timeout over again
-    self._clearTimeout();
-    self._timer = timers.setTimeout(function() {
-      self.emit('timeout');
-      self._clearTimeout();
-    }, self._timeout);
-  }
-};
-
-
 Socket.prototype.setTimeout = function(msecs, callback) {
   var self = this;
+
   self._timeout = msecs;
-  self._clearTimeout();
+  clearSocketTimeout(self);
+
   if (msecs === 0) {
     if (callback) {
       self.removeListener('timeout', callback);
     }
   } else {
-    self._timer = timers.setTimeout(function() {
+    self._timer = setTimeout(function() {
       self.emit('timeout');
-      self._clearTimeout();
+      clearSocketTimeout(self);
     }, msecs);
     if (callback) {
       self.once('timeout', callback);
     }
+  }
+};
+
+
+function connect(socket, ip, port) {
+  var afterConnect = function(status) {
+    var state = socket._socketState;
+    state.connecting = false;
+
+    if (status == 0) {
+      onSocketConnect(socket);
+      socket.emit('connect');
+    } else {
+      emitError(socket, new Error('connect failed - status: ' + status));
+    }
+  };
+
+  socket._handle.connect(ip, port, afterConnect);
+}
+
+
+function close(socket) {
+  socket._handle.owner = socket;
+  socket._handle.onclose = function() {
+    socket.emit('close');
+  };
+
+  socket._handle.close();
+
+  if (this._server) {
+    var server = this._server;
+    var sockets = server._sockets;
+    var idx = sockets.indexOf(this);
+    delete sockets[idx];
+    sockets.count--;
+    server._emitCloseIfDrained();
+  }
+}
+
+
+function resetSocketTimeout(socket) {
+  if (!socket.destroyed) {
+    // start timeout over again
+    clearSocketTimeout(socket);
+    socket._timer = setTimeout(function() {
+      socket.emit('timeout');
+      clearSocketTimeout(socket);
+    }, socket._timeout);
+  }
+};
+
+
+function clearSocketTimeout(socket) {
+  if (socket._timer) {
+    clearTimeout(socket._timer);
+    socket._timer = null;
   }
 };
 
@@ -327,30 +321,39 @@ function onSocketConnect(socket) {
   state.connecting = false;
   state.connected = true;
 
+  resetSocketTimeout(socket);
+
   socket._readyToWrite();
 
   // `readStart` on next tick, after connection event handled.
   process.nextTick(function() {
+    socket._handle.owner = socket;
+    socket._handle.onread = onread;
     socket._handle.readStart();
   });
 }
 
 
-// After socket connection.
-function afterConnect(status) {
-  var self = this;
-  var state = self._socketState;
+function onread(socket, nread, isEOF, buffer) {
+  var state = socket._socketState;
 
-  state.connecting = false;
+  resetSocketTimeout(socket);
 
-  if (status == 0) {
-    self._resetTimeout();
-    onSocketConnect(self);
+  if (isEOF) {
+    // pushing readable stream null means EOF.
+    stream.Readable.prototype.push.call(socket, null);
 
-    // emit 'connect' event
-    self.emit('connect');
-  } else {
-    emitError(self, new Error('connect failed - status: ' + status));
+    if (socket._readableState.length == 0) {
+      // this socket is no longer readable.
+      state.readable = false;
+      // destory if this socket is not writable.
+      maybeDestroy(socket);
+    }
+  } else if (nread < 0) {
+    var err = new Error('read error: ' + nread);
+    stream.Readable.prototype.error.call(socket, err);
+  } else if (nread > 0) {
+    stream.Readable.prototype.push.call(socket, buffer);
   }
 }
 
@@ -359,12 +362,17 @@ function afterConnect(status) {
 function onSocketFinish() {
   var self = this;
   var state = self._socketState;
+
   if (!state.readable || self._readableState.ended) {
     // no readable steram or ended, destory(close) socket.
     return self.destroy();
   } else {
     // Readable stream alive, shutdown only outgoing stream.
-    var err = self._handle.shutdown(onShutdown);
+    var err = self._handle.shutdown(function() {
+      if (self._readableState.ended) {
+        self.destroy();
+      }
+    });
   }
 }
 
@@ -378,15 +386,6 @@ function onSocketEnd() {
   if (!state.allowHalfOpen) {
     this.destroySoon();
   }
-}
-
-
-function onShutdown(status) {
- var self = this;
-
- if (self._readableState.ended) {
-  self.destroy();
- }
 }
 
 
@@ -420,12 +419,7 @@ function Server(options, connectionListener) {
 util.inherits(Server, EventEmitter);
 
 
-// This is needed for native handler to create TCP instance.
-// Jerry API does not provide functionality for creating object via specific
-// constructor hence native handler could not create such instance by itself.
-Server.prototype._createTCP = createTCP;
-
-
+// listen
 Server.prototype.listen = function() {
   var self = this;
 
@@ -449,7 +443,7 @@ Server.prototype.listen = function() {
 
   // Create server handle.
   if (!self._handle) {
-    self._handle = createTCP(self);
+    self._handle = createTCP();
   }
 
   // bind port
@@ -460,7 +454,12 @@ Server.prototype.listen = function() {
   }
 
   // listen
-  err = self._handle.listen(backlog);
+  self._handle.onconnection = onconnection;
+  self._handle.createTCP = createTCP;
+  self._handle.owner = self;
+
+  var err = self._handle.listen(backlog);
+
   if (err) {
     self._handle.close();
     return err;
@@ -514,33 +513,33 @@ Server.prototype._emitCloseIfDrained = function() {
 
 // This function is called after server accepted connection request
 // from a client.
+//  This binding
+//   * server tcp handle
 //  Parameters
 //   * status - status code
 //   * clientHandle - client socket handle (tcp).
-Server.prototype._onconnection = function(status, clientHandle) {
+function onconnection(status, clientHandle) {
+  var server = this.owner;
+
   if (status) {
-    this.emit('error', new Error('accept error: ' + status));
+    server.emit('error', new Error('accept error: ' + status));
     return;
   }
 
   // Create socket object for connecting client.
   var socket = new Socket({
     handle: clientHandle,
-    allowHalfOpen: this.allowHalfOpen
+    allowHalfOpen: server.allowHalfOpen
   });
+  socket._server = server;
 
-  socket.server = this;
   onSocketConnect(socket);
 
-  this._sockets.push(socket);
-  this._sockets.count++;
+  server._sockets.push(socket);
+  server._sockets.count++;
 
-  this.emit('connection', socket);
-};
-
-
-Server.prototype._onclose = function() {
-};
+  server.emit('connection', socket);
+}
 
 
 function normalizeListenArgs(args) {
@@ -599,3 +598,4 @@ exports.connect = exports.createConnection = function() {
 
 module.exports.Socket = Socket;
 module.exports.Server = Server;
+

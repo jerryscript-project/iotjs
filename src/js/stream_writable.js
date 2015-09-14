@@ -208,8 +208,12 @@ function doWrite(stream, chunk, callback) {
   state.writing = true;
   state.writingLength = chunk.length;
 
+  var afterWrite = function(status) {
+    stream._onwrite(status);
+  };
+
   // Write down the chunk data.
-  stream._write(chunk, callback, stream._onwrite);
+  stream._write(chunk, callback, afterWrite);
 }
 
 

@@ -28,19 +28,14 @@ namespace iotjs {
 class JObjectWrap {
  public:
   explicit JObjectWrap(JObject& jobject);
-  explicit JObjectWrap(JObject& jobject, JObject& jholder);
-
   virtual ~JObjectWrap();
 
   JObject& jobject();
-  JObject& jholder();
-  void set_jholder(JObject& jholder);
 
   virtual void Destroy(void);
 
  protected:
   JObject* _jobject;
-  JObject* _jholder;
 };
 
 

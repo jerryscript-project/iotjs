@@ -28,9 +28,8 @@ namespace iotjs {
 class TcpWrap : public HandleWrap {
  public:
   explicit TcpWrap(Environment* env,
-                   JObject& jtcp,
-                   JObject& jholder)
-      : HandleWrap(jtcp, jholder, reinterpret_cast<uv_handle_t*>(&_handle)) {
+                   JObject& jtcp)
+      : HandleWrap(jtcp, reinterpret_cast<uv_handle_t*>(&_handle)) {
     uv_tcp_init(env->loop(), &_handle);
   }
 
@@ -56,16 +55,12 @@ typedef ReqWrap<uv_shutdown_t> ShutdownReqWrap;
 
 JHANDLER_FUNCTION(TCP) {
   JHANDLER_CHECK(handler.GetThis()->IsObject());
-  JHANDLER_CHECK(handler.GetArgLength() == 1);
-  JHANDLER_CHECK(handler.GetArg(0)->IsObject() ||
-                 handler.GetArg(0)->IsUndefined() ||
-                 handler.GetArg(0)->IsNull());
+  JHANDLER_CHECK(handler.GetArgLength() == 0);
 
   Environment* env = Environment::GetEnv();
   JObject* jtcp = handler.GetThis();
-  JObject* jholder = handler.GetArg(0);
 
-  TcpWrap* tcp_wrap = new TcpWrap(env, *jtcp, *jholder);
+  TcpWrap* tcp_wrap = new TcpWrap(env, *jtcp);
   IOTJS_ASSERT(tcp_wrap->jobject().IsObject());
   IOTJS_ASSERT(jtcp->GetNative() != 0);
 
@@ -83,15 +78,15 @@ static void AfterClose(uv_handle_t* handle) {
   HandleWrap* tcp_wrap = HandleWrap::FromHandle(handle);
   IOTJS_ASSERT(tcp_wrap != NULL);
 
-  // socket object.
-  JObject jsocket = tcp_wrap->jholder();
-  IOTJS_ASSERT(jsocket.IsObject());
+  // tcp object.
+  JObject jtcp = tcp_wrap->jobject();
+  IOTJS_ASSERT(jtcp.IsObject());
 
-  // internal close callback.
-  JObject jonclose = jsocket.GetProperty("_onclose");
-  IOTJS_ASSERT(jonclose.IsFunction());
-
-  MakeCallback(jonclose, jsocket, JArgList::Empty());
+  // callback function.
+  JObject jcallback = jtcp.GetProperty("onclose");
+  if (jcallback.IsFunction()) {
+    MakeCallback(jcallback, JObject::Null(), JArgList::Empty());
+  }
 }
 
 
@@ -145,8 +140,6 @@ static void AfterConnect(uv_connect_t* req, int status) {
   IOTJS_ASSERT(req_wrap != NULL);
   IOTJS_ASSERT(tcp_wrap != NULL);
 
-  JObject jsocket = tcp_wrap->jholder();
-
   // Take callback function object.
   //  function afterConnect(status)
   JObject jcallback = req_wrap->jcallback();
@@ -157,7 +150,7 @@ static void AfterConnect(uv_connect_t* req, int status) {
   args.Add(JVal::Number(status));
 
   // Make callback.
-  MakeCallback(jcallback, jsocket, args);
+  MakeCallback(jcallback, JObject::Null(), args);
 
   // Release request wrapper.
   delete req_wrap;
@@ -216,12 +209,12 @@ static void OnConnection(uv_stream_t* handle, int status) {
   TcpWrap* tcp_wrap = reinterpret_cast<TcpWrap*>(handle->data);
   IOTJS_ASSERT(tcp_wrap->tcp_handle() == reinterpret_cast<uv_tcp_t*>(handle));
 
-  // Server object.
-  JObject jserver = tcp_wrap->jholder();
-  IOTJS_ASSERT(jserver.IsObject());
+  // Tcp object
+  JObject jtcp = tcp_wrap->jobject();
+  IOTJS_ASSERT(jtcp.IsObject());
 
   // `onconnection` callback.
-  JObject jonconnection = jserver.GetProperty("_onconnection");
+  JObject jonconnection = jtcp.GetProperty("onconnection");
   IOTJS_ASSERT(jonconnection.IsFunction());
 
   // The callback takes two parameter
@@ -232,10 +225,11 @@ static void OnConnection(uv_stream_t* handle, int status) {
 
   if (status == 0) {
     // Create client socket handle wrapper.
-    JObject jfunc_create_tcp = jserver.GetProperty("_createTCP");
-    IOTJS_ASSERT(jfunc_create_tcp.IsFunction());
+    JObject jcreate_tcp = jtcp.GetProperty("createTCP");
+    IOTJS_ASSERT(jcreate_tcp.IsFunction());
 
-    JObject jclient_tcp = jfunc_create_tcp.CallOk(jserver, JArgList::Empty());
+    JObject jclient_tcp = jcreate_tcp.CallOk(JObject::Null(),
+                                             JArgList::Empty());
     IOTJS_ASSERT(jclient_tcp.IsObject());
 
     TcpWrap* tcp_wrap = reinterpret_cast<TcpWrap*>(jclient_tcp.GetNative());
@@ -251,7 +245,7 @@ static void OnConnection(uv_stream_t* handle, int status) {
     args.Add(jclient_tcp);
   }
 
-  MakeCallback(jonconnection, jserver, args);
+  MakeCallback(jonconnection, jtcp, args);
 }
 
 
@@ -280,9 +274,6 @@ void AfterWrite(uv_write_t* req, int status) {
   IOTJS_ASSERT(req_wrap != NULL);
   IOTJS_ASSERT(tcp_wrap != NULL);
 
-  // holder socket.
-  JObject jsocket = tcp_wrap->jholder();
-
   // Take callback function object.
   JObject jcallback = req_wrap->jcallback();
 
@@ -291,7 +282,7 @@ void AfterWrite(uv_write_t* req, int status) {
   args.Add(JVal::Number(status));
 
   // Make callback.
-  MakeCallback(jcallback, jsocket, args);
+  MakeCallback(jcallback, JObject::Null(), args);
 
   // Release request wrapper.
   delete req_wrap;
@@ -349,14 +340,20 @@ void OnRead(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
   TcpWrap* tcp_wrap = reinterpret_cast<TcpWrap*>(handle->data);
   IOTJS_ASSERT(tcp_wrap != NULL);
 
-  JObject jsocket = tcp_wrap->jholder();
+  // tcp handle
+  JObject jtcp = tcp_wrap->jobject();
+  IOTJS_ASSERT(jtcp.IsObject());
+
+  // socket object
+  JObject jsocket = jtcp.GetProperty("owner");
   IOTJS_ASSERT(jsocket.IsObject());
 
-  // Socket.prototype._onread = function(nread, isEOF, buffer)
-  JObject jonread = jsocket.GetProperty("_onread");
+  // onread callback
+  JObject jonread = jtcp.GetProperty("onread");
   IOTJS_ASSERT(jonread.IsFunction());
 
-  JArgList jargs(3);
+  JArgList jargs(4);
+  jargs.Add(jsocket);
   jargs.Add(JVal::Number((int)nread));
   jargs.Add(JVal::Bool(false));
 
@@ -366,9 +363,9 @@ void OnRead(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
     }
     if (nread < 0) {
       if (nread == UV__EOF) {
-        jargs.Set(1, JVal::Bool(true));
+        jargs.Set(2, JVal::Bool(true));
       }
-      MakeCallback(jonread, jsocket, jargs);
+      MakeCallback(jonread, JObject::Null(), jargs);
     }
     return;
   }
@@ -379,7 +376,7 @@ void OnRead(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
   buffer_wrap->Copy(buf->base, nread);
 
   jargs.Add(jbuffer);
-  MakeCallback(jonread, jsocket, jargs);
+  MakeCallback(jonread, JObject::Null(), jargs);
 
   ReleaseBuffer(buf->base);
 }
@@ -408,9 +405,6 @@ static void AfterShutdown(uv_shutdown_t* req, int status) {
   IOTJS_ASSERT(req_wrap != NULL);
   IOTJS_ASSERT(tcp_wrap != NULL);
 
-  JObject jsocket = tcp_wrap->jholder();
-  IOTJS_ASSERT(jsocket.IsObject());
-
   // function onShutdown(status)
   JObject jonshutdown(req_wrap->jcallback());
   IOTJS_ASSERT(jonshutdown.IsFunction());
@@ -418,7 +412,7 @@ static void AfterShutdown(uv_shutdown_t* req, int status) {
   JArgList args(1);
   args.Add(JVal::Number(status));
 
-  MakeCallback(jonshutdown, jsocket, args);
+  MakeCallback(jonshutdown, JObject::Null(), args);
 
   delete req_wrap;
 }
@@ -469,21 +463,6 @@ JHANDLER_FUNCTION(SetKeepAlive) {
 }
 
 
-JHANDLER_FUNCTION(SetHolder) {
-  JHANDLER_CHECK(handler.GetThis()->IsObject());
-  JHANDLER_CHECK(handler.GetArgLength() == 1);
-  JHANDLER_CHECK(handler.GetArg(0)->IsObject());
-
-  TcpWrap* tcp_wrap = TcpWrap::FromJObject(handler.GetThis());
-
-  JObject* jholder = handler.GetArg(0);
-
-  tcp_wrap->set_jholder(*jholder);
-
-  return true;
-}
-
-
 JObject* InitTcp() {
   Module* module = GetBuiltinModule(MODULE_TCP);
   JObject* tcp = module->module;
@@ -503,7 +482,6 @@ JObject* InitTcp() {
     prototype.SetMethod("readStart", ReadStart);
     prototype.SetMethod("shutdown", Shutdown);
     prototype.SetMethod("setKeepAlive", SetKeepAlive);
-    prototype.SetMethod("_setHolder", SetHolder);
 
     module->module = tcp;
   }

@@ -23,10 +23,9 @@
 namespace iotjs {
 
 
-BufferWrap::BufferWrap(JObject& jbuffer,
-                       JObject& jbuiltin,
+BufferWrap::BufferWrap(JObject& jbuiltin,
                        size_t length)
-    : JObjectWrap(jbuiltin, jbuffer)
+    : JObjectWrap(jbuiltin)
     , _buffer(NULL)
     , _length(length) {
   _buffer = AllocBuffer(length);
@@ -57,13 +56,13 @@ BufferWrap* BufferWrap::FromJBuffer(JObject& jbuffer) {
 
 
 
-JObject& BufferWrap::jbuiltin() {
+JObject BufferWrap::jbuiltin() {
   return jobject();
 }
 
 
-JObject& BufferWrap::jbuffer() {
-  return jholder();
+JObject BufferWrap::jbuffer() {
+  return jbuiltin().GetProperty("_buffer");
 }
 
 
@@ -152,7 +151,9 @@ JHANDLER_FUNCTION(Buffer) {
   JObject* jbuffer = handler.GetArg(0);
   JObject* jbuiltin = handler.GetThis();
 
-  BufferWrap* buffer_wrap = new BufferWrap(*jbuffer, *jbuiltin, length);
+  jbuiltin->SetProperty("_buffer", *jbuffer);
+
+  BufferWrap* buffer_wrap = new BufferWrap(*jbuiltin, length);
   IOTJS_ASSERT(buffer_wrap == (BufferWrap*)(jbuiltin->GetNative()));
   IOTJS_ASSERT(buffer_wrap->buffer() != NULL);
 

@@ -152,6 +152,7 @@ def run_test(arg):
     exitcode = 0
     attr_mismatched = False
     error_msg = ''
+    timeout_expired = False
 
     # run the test.
     try:
@@ -159,6 +160,8 @@ def run_test(arg):
                                               stderr=subprocess.STDOUT,
                                               timeout=test_attr['timeout'])
         test_output = test_output.decode().strip()
+    except subprocess.TimeoutExpired:
+        timeout_expired = True
     except Exception as e:
         exitcode = int(e.returncode)
         test_output = e.output.decode().strip()
@@ -179,6 +182,11 @@ def run_test(arg):
     # attribute mismatched
     if attr_mismatched:
         test_failed = True
+
+    # timeout expired
+    if timeout_expired:
+        test_failed = True
+        error_msg = 'timed out after %d seconds' % test_attr['timeout']
 
     # This test should have passed but failed.
     if not should_fail and exitcode != 0:

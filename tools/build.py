@@ -479,6 +479,13 @@ def build_libhttpparser():
 
     httpparser_cmake_opt = [HTTPPARSER_ROOT]
 
+    if opt_target_arch() == 'arm' and opt_target_os() =='nuttx':
+        httpparser_cmake_opt.append('-DNUTTX_HOME=' + opt_nuttx_home())
+        httpparser_cmake_opt.append('-DOS=NUTTX')
+        options['buildlib'] = True
+    else:
+        httpparser_cmake_opt.append('-DOS=LINUX')
+
     httpparser_cmake_opt.append('-DCMAKE_TOOLCHAIN_FILE=' +
                            opt_cmake_toolchain_file())
 
@@ -498,6 +505,7 @@ def build_libhttpparser():
         httpparser_cmake_opt.append('-DBUILDTYPE=' + build_type)
 
         # cmake
+        check_run_cmd('cmake', httpparser_cmake_opt)
         check_run_cmd('cmake', httpparser_cmake_opt)
 
         check_run_cmd('make')

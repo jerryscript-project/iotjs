@@ -121,18 +121,18 @@ JHANDLER_FUNCTION(Binding) {
 }
 
 
-static JResult WrapEval(const String& source) {
+static JResult WrapEval(const char* source) {
   static const char* wrapper[2] = {
       "(function(exports, require, module) {\n",
       "});\n" };
 
   int len1 = strlen(wrapper[0]);
-  int len2 = strlen(source.data());
+  int len2 = strlen(source);
   int len3 = strlen(wrapper[1]);
 
   String code("", len1 + len2 + len3 + 1);
   strcpy(code.data(), wrapper[0]);
-  strcat(code.data() + len1, source.data());
+  strcat(code.data() + len1, source);
   strcat(code.data() + len1 + len2, wrapper[1]);
 
   return JObject::Eval(code);
@@ -143,9 +143,7 @@ JHANDLER_FUNCTION(Compile){
   JHANDLER_CHECK(handler.GetArgLength() == 1);
   JHANDLER_CHECK(handler.GetArg(0)->IsString());
 
-  String source = handler.GetArg(0)->GetString();
-
-  JResult jres = WrapEval(source);
+  JResult jres = WrapEval(handler.GetArg(0)->GetString().data());
 
   if (jres.IsOk()) {
     handler.Return(jres.value());
@@ -161,9 +159,7 @@ JHANDLER_FUNCTION(CompileNativePtr){
   JHANDLER_CHECK(handler.GetArgLength() == 1);
   JHANDLER_CHECK(handler.GetArg(0)->IsObject());
 
-  String source((const char*)handler.GetArg(0)->GetNative());
-
-  JResult jres = WrapEval(source);
+  JResult jres = WrapEval((const char*)handler.GetArg(0)->GetNative());
 
   if (jres.IsOk()) {
     handler.Return(jres.value());

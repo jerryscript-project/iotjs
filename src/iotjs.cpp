@@ -141,21 +141,26 @@ static bool StartIoTjs(Environment* env) {
 int Start(int argc, char** argv) {
   InitDebugSettings();
 
-  // Create environtment.
-  Environment* env = Environment::GetEnv();
-  env->Init(argc, argv, uv_default_loop());
-
   // Initalize JerryScript engine.
   if (!InitJerry()) {
     DLOG("InitJerry failed");
     return 1;
   }
 
+  // Create environtment.
+  Environment* env = Environment::GetEnv();
+
+  // Init environment with argument and uv loop.
+  env->Init(argc, argv, uv_default_loop());
+
   // Start IoT.js
   if (!StartIoTjs(env)) {
     DLOG("StartIoTJs failed");
     return 1;
   }
+
+  // close uv loop.
+  uv_loop_close(env->loop());
 
   // Release JerryScript engine.
   ReleaseJerry();

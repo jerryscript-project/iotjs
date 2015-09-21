@@ -62,6 +62,7 @@ function Socket(options) {
 
   if (options.handle) {
     this._handle = options.handle;
+    this._handle.owner = this;
   }
 
   this.on('finish', onSocketFinish);
@@ -87,6 +88,7 @@ Socket.prototype.connect = function() {
 
   if (!self._handle) {
     self._handle = createTCP();
+    self._handle.owner = self;
   }
 
   if (util.isFunction(callback)) {
@@ -485,12 +487,6 @@ Server.prototype.close = function(callback) {
   }
   if (this._handle) {
     this._handle.close();
-
-    // FIXME(wateret) _handleTemp is a temporary handle storage
-    // that prevents the socket object from garbage collection.
-    // Below line should be removed after issue #221 is resolved.
-    this._handleTemp = this._handle;
-
     this._handle = null;
   }
   this._emitCloseIfDrained();

@@ -26,70 +26,106 @@ class TimerWrap : public HandleWrap {
  public:
   explicit TimerWrap(Environment* env, JObject& jtimer)
       : HandleWrap(jtimer, reinterpret_cast<uv_handle_t*>(&_handle))
-      , _timeout(0)
-      , _repeat(0)
       , _jcallback(NULL) {
+    // Initialze timer handler.
     uv_timer_init(env->loop(), &_handle);
   }
 
-  virtual ~TimerWrap() {
-    if (_jcallback != NULL) {
-      delete _jcallback;
-    }
-  }
+  // Timer timeout callback handler.
+  void OnTimeout();
 
-  static TimerWrap* FromHandle(uv_timer_t* handle) {
-    TimerWrap* timer_wrap = static_cast<TimerWrap*>(handle->data);
-    IOTJS_ASSERT(handle == timer_wrap->handle_ptr());
-    return timer_wrap;
-  }
+  // Timer close callback handler.
+  void OnClose();
 
-  uv_timer_t* handle_ptr() {
-    return &_handle;
-  }
+  // Start timer.
+  int Start(int64_t timeout, int64_t repeat, JObject& jcallback);
 
-  void set_timeout(int64_t timeout) {
-    _timeout = timeout;
-  }
+  // Stop & close timer.
+  int Stop();
 
-  void set_repeat(int64_t repeat) {
-    _repeat = repeat;
-  }
-
-  void set_callback(JObject& jcallback) {
-    IOTJS_ASSERT(_jcallback == NULL);
-    IOTJS_ASSERT(jcallback.IsFunction());
-
-    JRawValueType raw_value = jcallback.raw_value();
-    _jcallback = new JObject(&raw_value, false);
-  }
-
-  void OnTimeout() {
-    if (_jcallback != NULL) {
-      IOTJS_ASSERT(jobject().IsObject());
-      IOTJS_ASSERT(_jcallback->IsFunction());
-      MakeCallback(*_jcallback, jobject(), JArgList::Empty());
-    }
-  }
+  // Retreive javascript callback function.
+  JObject* jcallback() { return _jcallback; }
 
  protected:
+  // timer handle.
   uv_timer_t _handle;
-  int64_t _timeout;
-  int64_t _repeat;
+
+  // Javascript callback function.
   JObject* _jcallback;
 };
 
 
-static void timerHandleTimeout(uv_timer_t* handle) {
-  TimerWrap* timer_wrap = TimerWrap::FromHandle(handle);
-  IOTJS_ASSERT(timer_wrap->jobject().IsObject());
-  if (timer_wrap) {
-    timer_wrap->OnTimeout();
+// This function is called from uv when timeout expires.
+static void TimeoutHandler(uv_timer_t* handle) {
+  // Find timer wrap from handle.
+  HandleWrap* handle_wrap = HandleWrap::FromHandle((uv_handle_t*)handle);
+  TimerWrap* timer_wrap = reinterpret_cast<TimerWrap*>(handle_wrap);
+
+  // Call the timeout handler.
+  timer_wrap->OnTimeout();
+}
+
+
+void TimerWrap::OnTimeout() {
+  // Verification.
+  IOTJS_ASSERT(jobject().IsObject());
+  IOTJS_ASSERT(_jcallback != NULL);
+  IOTJS_ASSERT(_jcallback->IsFunction());
+
+  // Call javascirpt timeout callback function.
+  MakeCallback(*_jcallback, jobject(), JArgList::Empty());
+}
+
+
+// Start timer.
+int TimerWrap::Start(int64_t timeout, int64_t repeat, JObject& jcallback) {
+  // We should not have javascript callback handler yet.
+  IOTJS_ASSERT(_jcallback == NULL);
+  IOTJS_ASSERT(jcallback.IsFunction());
+
+  // Create new Javascirpt function reference for the callback function.
+  _jcallback = new JObject(jcallback);
+
+  // Start uv timer.
+  return uv_timer_start(&_handle,
+                        TimeoutHandler,
+                        timeout,
+                        repeat);
+}
+
+
+// This function is called from uv after timer close.
+static void OnTimerClose(uv_handle_t* handle) {
+  // Find timer wrap from handle.
+  HandleWrap* handle_wrap = HandleWrap::FromHandle(handle);
+  TimerWrap* timer_wrap = reinterpret_cast<TimerWrap*>(handle_wrap);
+
+  // Call the close handler.
+  timer_wrap->OnClose();
+}
+
+
+void TimerWrap::OnClose() {
+  // If we have javascript timeout callback reference, release it.
+  if (_jcallback != NULL) {
+    delete _jcallback;
+    _jcallback = NULL;
   }
 }
 
 
+int TimerWrap::Stop() {
+  // Close timer.
+  if (!uv_is_closing(__handle)) {
+    Close(OnTimerClose);
+  }
+
+  return 0;
+}
+
+
 JHANDLER_FUNCTION(Start) {
+  // Check parameters.
   JHANDLER_CHECK(handler.GetThis()->IsObject());
   JHANDLER_CHECK(handler.GetArgLength() >= 3);
   JHANDLER_CHECK(handler.GetArg(0)->IsNumber());
@@ -98,25 +134,23 @@ JHANDLER_FUNCTION(Start) {
 
   JObject* jtimer = handler.GetThis();
 
-  int64_t timeout = handler.GetArg(0)->GetInt64();
-  int64_t repeat = handler.GetArg(1)->GetInt64();
-  JObject* jcallback = handler.GetArg(2);
-
+  // Take timer wrap.
   TimerWrap* timer_wrap = reinterpret_cast<TimerWrap*>(jtimer->GetNative());
   IOTJS_ASSERT(timer_wrap != NULL);
   IOTJS_ASSERT(timer_wrap->jobject().IsObject());
 
-  timer_wrap->set_timeout(timeout);
-  timer_wrap->set_repeat(repeat);
-  timer_wrap->set_callback(*jcallback);
+  // parameters.
+  int64_t timeout = handler.GetArg(0)->GetInt64();
+  int64_t repeat = handler.GetArg(1)->GetInt64();
+  JObject* jcallback = handler.GetArg(2);
 
-  int err;
-  err = uv_timer_start(timer_wrap->handle_ptr(),
-                       timerHandleTimeout,
-                       timeout,
-                       repeat);
+  // We do not permit double start.
+  JHANDLER_CHECK(timer_wrap->jcallback() == NULL);
 
-  JObject ret(err);
+  // Start timer.
+  int res = timer_wrap->Start(timeout, repeat, *jcallback);
+
+  JObject ret(res);
   handler.Return(ret);
 
   return true;
@@ -130,10 +164,12 @@ JHANDLER_FUNCTION(Stop) {
 
   TimerWrap* timer_wrap = reinterpret_cast<TimerWrap*>(jtimer->GetNative());
   IOTJS_ASSERT(timer_wrap != NULL);
+  IOTJS_ASSERT(timer_wrap->jobject().IsObject());
 
-  int err = uv_timer_stop(timer_wrap->handle_ptr());
+  // Stop timer.
+  int res = timer_wrap->Stop();
 
-  JObject ret(err);
+  JObject ret(res);
   handler.Return(ret);
 
   return true;

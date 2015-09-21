@@ -13,10 +13,6 @@
  * limitations under the License.
  */
 
- /*
-   @SKIP
- */
-
 
 var net = require('net');
 var assert = require('assert');
@@ -25,7 +21,7 @@ var stream = require('stream');
 
 var port = 9827;
 
-var count = 50;
+var count = 40;
 var check = [];
 
 function serverListen() {

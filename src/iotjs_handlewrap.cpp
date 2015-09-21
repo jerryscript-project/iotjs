@@ -22,12 +22,18 @@ namespace iotjs {
 
 HandleWrap::HandleWrap(JObject& jobject, uv_handle_t* handle)
     : JObjectWrap(jobject)
-    , __handle(handle) {
+    , __handle(handle)
+    , _on_close_cb(NULL) {
   __handle->data = this;
+
+  // Increase ref count of Javascirpt object to gurantee it is alive until the
+  // handle has closed.
+  _jobject->Ref();
 }
 
 
 HandleWrap::~HandleWrap() {
+  // Handle should have been release before this.
   IOTJS_ASSERT(__handle == NULL);
 }
 
@@ -35,41 +41,49 @@ HandleWrap::~HandleWrap() {
 HandleWrap* HandleWrap::FromHandle(uv_handle_t* handle) {
   HandleWrap* wrap = reinterpret_cast<HandleWrap*>(handle->data);
   IOTJS_ASSERT(wrap != NULL);
+  IOTJS_ASSERT(wrap->__handle == handle);
   return wrap;
+}
+
+
+void HandleWrap::OnClose() {
+  // The handle closed.
+  // Calls registered close handler function.
+  if (_on_close_cb) {
+    _on_close_cb(__handle);
+  }
+
+  // Set handle null.
+  __handle = NULL;
+
+  // Decrease ref count of Javascript object. From now the object can be
+  // recliamed.
+  _jobject->Unref();
+}
+
+
+static void OnHandleClosed(uv_handle_t* handle) {
+  HandleWrap* wrap = HandleWrap::FromHandle(handle);
+  wrap->OnClose();
 }
 
 
 // Close handle.
 void HandleWrap::Close(OnCloseHandler on_close_cb) {
-  if (__handle != NULL) {
-    uv_close(__handle, on_close_cb);
-    __handle = NULL;
+  if (__handle != NULL && !uv_is_closing(__handle)) {
+    _on_close_cb = on_close_cb;
+    uv_close(__handle, OnHandleClosed);
   } else {
     DDLOG("Attempt to close uninitialized or already closed handle");
   }
 }
 
 
-static void OnDestroyHandleClosed(uv_handle_t* handle) {
-  HandleWrap* wrap = reinterpret_cast<HandleWrap*>(handle->data);
-  IOTJS_ASSERT(wrap != NULL);
-
-  delete wrap;
-}
-
-
 void HandleWrap::Destroy(void) {
-  Environment* env = Environment::GetEnv();
-  if (__handle == NULL || env->state() == Environment::kExiting) {
-    // Delete handle here immediately without waiting on close if the handle was
-    // already closed or program is about to exit.
-    if (__handle != NULL) {
-      Close(NULL);
-    }
-    delete this;
-  } else {
-    Close(OnDestroyHandleClosed);
-  }
+  // Handle should have been release before this.
+  IOTJS_ASSERT(__handle == NULL);
+
+  JObjectWrap::Destroy();
 }
 
 

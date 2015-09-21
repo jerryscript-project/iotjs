@@ -18,6 +18,7 @@
 #include "iotjs.h"
 #include "iotjs_js.h"
 #include "iotjs_string_ext.h"
+#include "iotjs_handlewrap.h"
 
 #include "jerry.h"
 #include "jerry-api.h"
@@ -138,6 +139,14 @@ static bool StartIoTjs(Environment* env) {
 }
 
 
+static void UvWalkToCloseCallback(uv_handle_t* handle, void* arg) {
+  HandleWrap* handle_wrap = HandleWrap::FromHandle(handle);
+  IOTJS_ASSERT(handle_wrap != NULL);
+
+  handle_wrap->Close(NULL);
+}
+
+
 int Start(int argc, char** argv) {
   InitDebugSettings();
 
@@ -160,7 +169,12 @@ int Start(int argc, char** argv) {
   }
 
   // close uv loop.
-  uv_loop_close(env->loop());
+  //uv_stop(env->loop());
+  uv_walk(env->loop(), UvWalkToCloseCallback, NULL);
+  uv_run(env->loop(), UV_RUN_DEFAULT);
+
+  int res = uv_loop_close(env->loop());
+  IOTJS_ASSERT(res == 0);
 
   // Release JerryScript engine.
   ReleaseJerry();

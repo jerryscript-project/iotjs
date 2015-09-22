@@ -96,12 +96,12 @@ JHANDLER_FUNCTION(SetPin) {
   req_data->mode = (GpioMode)handler.GetArg(2)->GetInt32();
   req_data->op = kGpioOpSetPin;
 
-  if (req_data->dir >= kGpioDirectionNone &&
-      req_data->dir <= kGpioDirectionOut) {
+  if (req_data->dir < kGpioDirectionNone ||
+      req_data->dir > kGpioDirectionOut) {
     JHANDLER_THROW_RETURN(TypeError, "Invalid GPIO direction");
   }
-  if (req_data->mode >= kGpioModeNone &&
-      req_data->mode <= kGpioModeOpendrain) {
+  if (req_data->mode < kGpioModeNone ||
+      req_data->mode > kGpioModeOpendrain) {
     JHANDLER_THROW_RETURN(TypeError, "Invalid GPIO mode");
   }
 

@@ -33,6 +33,7 @@ set(FLAGS_COMMON -mcpu=cortex-m4
                  -mfloat-abi=hard
                  -D__NUTTX__
                  -D__ARM__
+                 -DCONFIG_WCHAR_BUILTIN
                  -Os
                  -fno-strict-aliasing
                  -fno-strength-reduce

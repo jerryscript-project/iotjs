@@ -14,21 +14,14 @@
 
 cmake_minimum_required(VERSION 2.8)
 
-project(IOTJS)
+set(LIBTUV_ROOT ${DEP_ROOT}/libtuv)
+set(LIBTUV_INCDIR ${LIBTUV_ROOT}/include
+                  ${LIBTUV_ROOT}/source
+                  ${LIBTUV_ROOT}/source/${TARGET_OS})
+set(LIBTUV_LIB ${LIB_ROOT}/libtuv.a)
 
-set(IOTJS_VERSION_MAJOR 0)
-set(IOTJS_VERSION_MINOR 1)
 
-include(cmake/config.cmake)
-if(DEFINED WITH_TUV)
-  include(cmake/libtuv.cmake)
-else()
-  include(cmake/libuv.cmake)
-endif()
-include(cmake/jerry.cmake)
-include(cmake/http-parser.cmake)
-if(DEFINED WITH_TUV)
-  include(cmake/iotjstuv.cmake)
-else()
-  include(cmake/iotjs.cmake)
-endif()
+add_custom_command(OUTPUT ${LIBTUV_LIB}
+                   COMMAND touch ${LIBTUV_LIB})
+
+add_custom_target(targetLibtuv DEPENDS ${LIBTUV_LIB})

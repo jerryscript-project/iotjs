@@ -75,6 +75,7 @@
 
 #include <uv.h>
 #include <assert.h>
+#include <limits.h> /* PATH_MAX */
 
 
 #endif /* IOTJS_DEF_H */

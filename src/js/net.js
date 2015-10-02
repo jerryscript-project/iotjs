@@ -272,10 +272,7 @@ function close(socket) {
 
   if (this._server) {
     var server = this._server;
-    var sockets = server._sockets;
-    var idx = sockets.indexOf(this);
-    delete sockets[idx];
-    sockets.count--;
+    server._socketCount--;
     server._emitCloseIfDrained();
   }
 }
@@ -411,8 +408,7 @@ function Server(options, connectionListener) {
   }
 
   this._handle = null;
-  this._sockets = [];
-  this._sockets.count = 0;
+  this._socketCount = 0;
 
   this.allowHalfOpen = options.allowHalfOpen || false;
 }
@@ -497,7 +493,7 @@ Server.prototype.close = function(callback) {
 Server.prototype._emitCloseIfDrained = function() {
   var self = this;
 
-  if (self._handle || self._sockets.count > 0) {
+  if (self._handle || self._socketCount > 0) {
     return;
   }
 
@@ -531,8 +527,7 @@ function onconnection(status, clientHandle) {
 
   onSocketConnect(socket);
 
-  server._sockets.push(socket);
-  server._sockets.count++;
+  server._socketCount++;
 
   server.emit('connection', socket);
 }

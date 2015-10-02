@@ -20,11 +20,6 @@ var util = require('util');
 var TIMEOUT_MAX = 2147483647; // 2^31-1
 
 
-// Timeout holders
-// Todo, profile and optimize
-var timersList = [];
-
-
 function Timeout(after) {
   this.after = after;
   this.isrepeat = false;
@@ -50,14 +45,13 @@ Timeout.prototype.activate = function() {
 
   if (this.isrepeat) {
     repeat = this.after;
+
   }
 
   handler.timeoutObj = this;
   this.handler = handler;
 
   handler.start(this.after, repeat, handleTimeout);
-
-  timersList.push(this);
 };
 
 
@@ -67,12 +61,6 @@ Timeout.prototype.close = function() {
     this.handler.timeoutObj = undefined;
     this.handler.stop();
     this.handler = undefined;
-  }
-
-  // remove 'this' from list
-  var idx = timersList.indexOf(this);
-  if (idx > -1) {
-    timersList.splice(idx, 1);
   }
 };
 

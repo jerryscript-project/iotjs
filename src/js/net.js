@@ -270,8 +270,8 @@ function close(socket) {
 
   socket._handle.close();
 
-  if (this._server) {
-    var server = this._server;
+  if (socket._server) {
+    var server = socket._server;
     server._socketCount--;
     server._emitCloseIfDrained();
   }

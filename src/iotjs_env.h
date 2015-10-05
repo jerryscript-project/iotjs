@@ -40,6 +40,13 @@ class Environment {
     return _env;
   }
 
+  static void Release() {
+    if (Environment::_env) {
+      delete Environment::_env;
+      Environment::_env = NULL;
+    }
+  }
+
   void Init(int argc, char** argv, uv_loop_t* loop) {
     _argc = argc;
     _argv = argv;

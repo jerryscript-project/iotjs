@@ -176,6 +176,9 @@ int Start(int argc, char** argv) {
   int res = uv_loop_close(env->loop());
   IOTJS_ASSERT(res == 0);
 
+  // Release environment.
+  Environment::Release();
+
   // Release JerryScript engine.
   ReleaseJerry();
 

@@ -169,6 +169,8 @@ JHANDLER_FUNCTION(Read) {
   BufferWrap* buffer_wrap = BufferWrap::FromJBuffer(*jbuffer);
   char* data = buffer_wrap->buffer();
   int data_length = buffer_wrap->length();
+  JHANDLER_CHECK(data != NULL);
+  JHANDLER_CHECK(data_length > 0);
 
   if (offset >= data_length) {
     JHANDLER_THROW_RETURN(RangeError, "offset out of bound");
@@ -211,6 +213,8 @@ JHANDLER_FUNCTION(Write) {
   BufferWrap* buffer_wrap = BufferWrap::FromJBuffer(*jbuffer);
   char* data = buffer_wrap->buffer();
   int data_length = buffer_wrap->length();
+  JHANDLER_CHECK(data != NULL);
+  JHANDLER_CHECK(data_length > 0);
 
   if (offset >= data_length) {
     JHANDLER_THROW_RETURN(RangeError, "offset out of bound");

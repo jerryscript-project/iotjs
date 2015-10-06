@@ -347,7 +347,8 @@ JHANDLER_FUNCTION(Execute) {
   BufferWrap* buffer = BufferWrap::FromJBuffer(*jbuffer);
   char* buf_data = buffer->buffer();
   int buf_len = buffer->length();
-
+  JHANDLER_CHECK(buf_data != NULL);
+  JHANDLER_CHECK(buf_len > 0);
 
   parser->cur_jbuf = jbuffer;
   parser->cur_buf = buf_data;

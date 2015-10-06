@@ -28,8 +28,10 @@ BufferWrap::BufferWrap(JObject& jbuiltin,
     : JObjectWrap(jbuiltin)
     , _buffer(NULL)
     , _length(length) {
-  _buffer = AllocBuffer(length);
-  IOTJS_ASSERT(_buffer != NULL);
+  if (length > 0) {
+    _buffer = AllocBuffer(length);
+    IOTJS_ASSERT(_buffer != NULL);
+  }
 }
 
 
@@ -155,7 +157,7 @@ JHANDLER_FUNCTION(Buffer) {
 
   BufferWrap* buffer_wrap = new BufferWrap(*jbuiltin, length);
   IOTJS_ASSERT(buffer_wrap == (BufferWrap*)(jbuiltin->GetNative()));
-  IOTJS_ASSERT(buffer_wrap->buffer() != NULL);
+  IOTJS_ASSERT(length == 0 || buffer_wrap->buffer() != NULL);
 
   return true;
 }
@@ -240,7 +242,7 @@ JHANDLER_FUNCTION(Slice) {
   int start = handler.GetArg(0)->GetInt32();
   int end = handler.GetArg(1)->GetInt32();
   int length = end - start;
-  IOTJS_ASSERT(length >= 0);
+  JHANDLER_CHECK(length >= 0);
 
   JObject jnew_buffer = CreateBuffer(length);
   BufferWrap* new_buffer_wrap = BufferWrap::FromJBuffer(jnew_buffer);
@@ -264,7 +266,7 @@ JHANDLER_FUNCTION(ToString) {
   int start = handler.GetArg(0)->GetInt32();
   int end = handler.GetArg(1)->GetInt32();
   int length = end - start;
-  IOTJS_ASSERT(length >= 0);
+  JHANDLER_CHECK(length >= 0);
 
   String str("", length + 1);
 

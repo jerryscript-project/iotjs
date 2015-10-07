@@ -189,6 +189,7 @@ Socket.prototype.destroy = function() {
 
   if (self._writableState.ended) {
     close(self);
+    state.destroyed = true;
   } else {
     self.once('finish', function() {
       self.destroy();
@@ -274,6 +275,7 @@ function close(socket) {
     var server = socket._server;
     server._socketCount--;
     server._emitCloseIfDrained();
+    socket._server = null;
   }
 }
 

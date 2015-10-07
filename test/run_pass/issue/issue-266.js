@@ -19,7 +19,7 @@ var assert = require('assert');
 
 
 var server = net.createServer();
-var port = 11266;
+var port = 30266;
 
 var server = net.createServer();
 server.listen(port);

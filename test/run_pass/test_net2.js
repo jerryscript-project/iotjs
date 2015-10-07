@@ -19,7 +19,7 @@
 
 var net = require('net');
 
-var port = 9832;
+var port = 22702;
 
 var server = net.createServer({
   allowHalfOpen: true

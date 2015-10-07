@@ -17,7 +17,7 @@ var net = require('net');
 var assert = require('assert');
 var timers = require('timers');
 
-var port = 9826;
+var port = 22708;
 
 var server = net.createServer();
 

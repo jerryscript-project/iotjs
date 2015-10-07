@@ -19,7 +19,7 @@ var assert = require('assert');
 var timers = require('timers');
 var stream = require('stream');
 
-var port = 9827;
+var port = 22707;
 
 var count = 40;
 var check = [];

@@ -23,7 +23,7 @@ var timers = require('timers');
 
 
 var server = net.createServer();
-var port = 9829;
+var port = 22705;
 var timeout = 2000;
 var writeat = 1000;
 var msg = '';

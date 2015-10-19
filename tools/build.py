@@ -318,6 +318,8 @@ def build_libuv():
             check_run_cmd('./nuttx-configure', [opt_nuttx_home()])
         elif opt_target_arch() == 'arm' and opt_target_os() =='linux':
             check_run_cmd('./armlinux-configure')
+        elif opt_target_arch() == 'i686':
+            check_run_cmd('./gyp_uv.py', ['-f', 'make', '-Dtarget_arch=ia32'])
         else:
             check_run_cmd('./gyp_uv.py', ['-f', 'make'])
 

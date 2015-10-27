@@ -17,6 +17,11 @@ cmake_minimum_required(VERSION 2.8)
 file(GLOB LIB_IOTJS_SRC ${SRC_ROOT}/*.cpp
                         ${SRC_ROOT}/platform/${PLATFORM_DESCRIPT}/*.cpp)
 
+# LTO
+if("${ENABLE_LTO}" STREQUAL "ON")
+  set(CFLAGS "${CFLAGS} -flto")
+endif()
+
 set(LIB_IOTJS_CFLAGS ${CFLAGS})
 set(LIB_IOTJS_INCDIR ${TARGET_INC}
                      ${INC_ROOT}

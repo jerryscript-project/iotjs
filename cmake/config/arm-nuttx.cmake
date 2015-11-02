@@ -32,6 +32,7 @@ set(FLAGS_COMMON -mcpu=cortex-m4
                  -mfpu=fpv4-sp-d16
                  -mfloat-abi=hard
                  -D__NUTTX__
+                 -DCONFIG_C99_BOOL8
                  -D__ARM__
                  -DCONFIG_WCHAR_BUILTIN
                  -Os
@@ -51,4 +52,3 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti")
 
 set(TARGET_INC ${TARGET_INC} "${NUTTX_HOME}/include")
 set(TARGET_INC ${TARGET_INC} "${NUTTX_HOME}/include/cxx")
-

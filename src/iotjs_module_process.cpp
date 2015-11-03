@@ -259,7 +259,7 @@ static void SetProcessIotjs(JObject* process) {
   JObject iotjs;
   process->SetProperty("iotjs", iotjs);
 
-  JObject jboard(TARGET_BOARD);
+  JObject jboard(TOSTRING(TARGET_BOARD));
   iotjs.SetProperty("board", jboard);
 }
 

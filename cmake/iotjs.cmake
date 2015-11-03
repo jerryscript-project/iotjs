@@ -17,7 +17,8 @@ cmake_minimum_required(VERSION 2.8)
 file(GLOB LIB_IOTJS_SRC ${SRC_ROOT}/*.cpp
                         ${SRC_ROOT}/platform/${PLATFORM_DESCRIPT}/*.cpp)
 
-set(LIB_IOTJS_CFLAGS ${CFLAGS})
+
+set(LIB_IOTJS_CFLAGS ${IOTJS_CFLAGS})
 set(LIB_IOTJS_INCDIR ${TARGET_INC}
                      ${INC_ROOT}
                      ${SRC_ROOT}
@@ -42,7 +43,6 @@ BuildLibIoTjs()
 
 set(SRC_MAIN ${ROOT}/iotjs_linux.cpp)
 
-set(IOTJS_CFLAGS ${CFLAGS})
 set(IOTJS_INCDIR ${INC_ROOT} ${SRC_ROOT} ${JERRY_INCDIR} ${LIBUV_INCDIR})
 
 function(BuildIoTjs)

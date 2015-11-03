@@ -59,6 +59,14 @@
  #define TARGET_OS "unknown"
 #endif
 
+#if !defined(STRINGIFY)
+ #define STRINGIFY(x) #x
+#endif
+
+#if !defined(TOSTRING)
+ #define TOSTRING(x) STRINGIFY(x)
+#endif
+
 
 #if !defined(TARGET_BOARD)
  #define TARGET_BOARD "unknown"

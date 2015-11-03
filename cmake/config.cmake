@@ -14,53 +14,51 @@
 
 cmake_minimum_required(VERSION 2.8)
 
-string(TOLOWER ${CMAKE_SYSTEM_NAME} CFG_SYS_NAME)
-string(TOLOWER ${CMAKE_SYSTEM_PROCESSOR} CFG_SYS_PROCESSOR)
-
-if(${CFG_SYS_NAME} STREQUAL "linux")
-  if(${CFG_SYS_PROCESSOR} STREQUAL "x86" OR
-     ${CFG_SYS_PROCESSOR} STREQUAL "x86_64")
-    set(PLATFORM_DESCRIPT "x86-linux")
-  elseif(${CFG_SYS_PROCESSOR} STREQUAL "arm")
-    set(PLATFORM_DESCRIPT "arm-linux")
-  endif()
-elseif(${CFG_SYS_NAME} STREQUAL "darwin")
-  message(fatal "Darwin not ready")
-elseif(${CFG_SYS_NAME} STREQUAL "external")
-  if(${CFG_SYS_PROCESSOR} STREQUAL "arm")
-    set(PLATFORM_DESCRIPT "arm-nuttx")
-  endif()
-endif()
-
 set(CC ${CMAKE_C_COMPILER})
 set(CXX ${CMAKE_CXX_COMPILER})
 
-set(CFLAGS ${CMAKE_CXX_FLAGS})
-set(CFLAGS "${CFLAGS} -std=c++11")
-if (NOT(${NO_PTHREAD}))
-    set(CFLAGS "${CFLAGS} -pthread -Wall")
+
+# common compile flags
+set(CFLAGS_COMMON "${CFLAGS_COMMON} -fpermissive")
+set(CFLAGS_COMMON "${CFLAGS_COMMON} -fno-rtti")
+set(CFLAGS_COMMON "${CFLAGS_COMMON} -s")
+set(CFLAGS_COMMON "${CFLAGS_COMMON} -Wl,-Map=iotjstuv.map")
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-exceptions")
+
+
+set(IOTJS_CFLAGS "${IOTJS_CFLAGS} ${CFLAGS_COMMON}")
+set(IOTJS_CFLAGS "${IOTJS_CFLAGS} ${CMAKE_CXX_FLAGS}")
+set(IOTJS_LINK_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
+
+
+string(TOLOWER ${CMAKE_SYSTEM_NAME} CFG_SYS_NAME_LOWER)
+string(TOUPPER ${CMAKE_SYSTEM_NAME} CFG_SYS_NAME)
+string(TOUPPER ${CMAKE_SYSTEM_PROCESSOR} CFG_SYS_PROCESSOR)
+
+
+set(IOTJS_CFLAGS ${IOTJS_CFLAGS} ${CFLAGS_${CFG_SYS_NAME}})
+set(IOTJS_CFLAGS ${IOTJS_CFLAGS} ${CFLAGS_${CFG_SYS_PROCESSOR}})
+
+
+if(${CFG_SYS_NAME} STREQUAL "DARWIN")
+  message(fatal "Darwin not ready")
 endif()
+
+
+if(${CFG_SYS_PROCESSOR} STREQUAL "ARM")
+  set(PLATFORM_ARCH "arm")
+elseif(${CFG_SYS_PROCESSOR} MATCHES "I686|X86|X86_64")
+  set(PLATFORM_ARCH "x86")
+else()
+  message(fatal "Unsupported processor ${CFG_SYS_PROCESSOR}")
+endif()
+
 
 set(ROOT ${CMAKE_SOURCE_DIR})
 set(SRC_ROOT ${ROOT}/src)
 set(INC_ROOT ${ROOT}/include)
 set(DEP_ROOT ${ROOT}/deps)
 set(BIN_ROOT ${CMAKE_BINARY_DIR})
-set(LIB_ROOT ${BIN_ROOT}/../libs)
-
-if (${CMAKE_BUILD_TYPE} STREQUAL "Release")
-  set(CFLAGS "${CFLAGS} -O2")
-else ()
-  set(CFLAGS "${CFLAGS} -g")
-  set(CFLAGS "${CFLAGS} -DENABLE_DEBUG_LOG")
-endif()
-
-if ("${JERRY_MEM_STATS}" STREQUAL "YES")
-  set(CFLAGS "${CFLAGS} -DENABLE_JERRY_MEM_STATS -DMEM_STATS")
-endif()
-unset(JERRY_MEM_STATS CACHE)
-
-if (NOT ${TARGET_BOARD} STREQUAL "")
-  set(CFLAGS "${CFLAGS} -DTARGET_BOARD='\"${TARGET_BOARD}\"'")
-endif()
-unset(TARGET_BOARD CACHE)
+set(LIB_ROOT ${BIN_ROOT}/../lib)

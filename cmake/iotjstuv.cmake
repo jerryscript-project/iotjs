@@ -17,14 +17,17 @@ cmake_minimum_required(VERSION 2.8)
 file(GLOB LIB_IOTJS_SRC ${SRC_ROOT}/*.cpp
                         ${SRC_ROOT}/platform/${PLATFORM_DESCRIPT}/*.cpp)
 
-set(LIB_IOTJS_CFLAGS ${CFLAGS})
-set(LIB_IOTJS_INCDIR ${TARGET_INC}
+string(REPLACE ";" " " IOTJS_CFLAGS_STR "${IOTJS_CFLAGS}")
+string(REPLACE ";" " " IOTJS_LINK_FLAGS_STR "${IOTJS_LINK_FLAGS}")
+separate_arguments(EXTERNAL_INCLUDE_DIR)
+
+set(LIB_IOTJS_CFLAGS ${IOTJS_CFLAGS_STR})
+set(LIB_IOTJS_INCDIR ${EXTERNAL_INCLUDE_DIR}
                      ${INC_ROOT}
                      ${SRC_ROOT}
                      ${JERRY_INCDIR}
                      ${LIBTUV_INCDIR}
                      ${HTTPPARSER_INCDIR})
-
 
 add_custom_target(targetLibIoTjs)
 
@@ -42,19 +45,19 @@ BuildLibIoTjs()
 
 set(SRC_MAIN ${ROOT}/iotjs_linux.cpp)
 
-set(IOTJS_CFLAGS ${CFLAGS})
-set(IOTJS_INCDIR ${INC_ROOT} ${SRC_ROOT} ${JERRY_INCDIR} ${LIBUV_INCDIR})
+set(BIN_IOTJS_CFLAGS ${IOTJS_CFLAGS_STR})
+set(BIN_IOTJS_LINK_FLAGS ${IOTJS_LINK_FLAGS_STR})
+set(BIN_IOTJS_INCDIR ${LIB_IOTJS_INCDIR})
 
 function(BuildIoTjs)
   set(targetName iotjs)
 
   add_executable(${targetName} ${SRC_MAIN})
   set_property(TARGET ${targetName}
-               PROPERTY COMPILE_FLAGS "${IOTJS_CFLAGS} -Wl,-Map=iotjstuv.map")
+               PROPERTY COMPILE_FLAGS ${BIN_IOTJS_CFLAGS})
   set_property(TARGET ${targetName}
-               PROPERTY LINK_FLAGS "${IOTJS_CFLAGS} -Wl,-Map=iotjstuv.map")
-  target_include_directories(${targetName} PRIVATE ${LIB_IOTJS_INCDIR})
-  target_include_directories(${targetName} SYSTEM PRIVATE ${TARGET_INC})
+               PROPERTY LINK_FLAGS ${BIN_IOTJS_LINK_FLAGS})
+  target_include_directories(${targetName} PRIVATE ${BIN_IOTJS_INCDIR})
   target_link_libraries(${targetName} libiotjs ${JERRY_LIB}
     ${LIBTUV_LIB} ${HTTPPARSER_LIB})
   add_dependencies(targetLibIoTjs ${targetName})
@@ -66,10 +69,10 @@ function(BuildIoTjsLib)
 
   add_library(${targetName} ${SRC_MAIN})
   set_property(TARGET ${targetName}
-               PROPERTY COMPILE_FLAGS "${IOTJS_CFLAGS}")
+               PROPERTY COMPILE_FLAGS ${BIN_IOTJS_CFLAGS})
   set_property(TARGET ${targetName}
-               PROPERTY LINK_FLAGS "${IOTJS_CFLAGS}")
-  target_include_directories(${targetName} PRIVATE ${LIB_IOTJS_INCDIR})
+               PROPERTY LINK_FLAGS ${BIN_IOTJS_LINK_FLAGS})
+  target_include_directories(${targetName} PRIVATE ${BIN_IOTJS_INCDIR})
   target_link_libraries(${targetName} libiotjs ${JERRY_LIB}
     ${LIBTUV_LIB} ${HTTPPARSER_LIB})
   add_dependencies(targetLibIoTjs ${targetName})

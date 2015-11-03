@@ -22,33 +22,3 @@ set(EXTERNAL_CMAKE_CXX_COMPILER arm-none-eabi-g++)
 
 CMAKE_FORCE_C_COMPILER(${EXTERNAL_CMAKE_C_COMPILER} GNU)
 CMAKE_FORCE_CXX_COMPILER(${EXTERNAL_CMAKE_CXX_COMPILER} GNU)
-
-set(NO_PTHREAD YES)
-set(BUILD_TO_LIB YES)
-
-set(FLAGS_COMMON -mcpu=cortex-m4
-                 -mthumb
-                 -march=armv7e-m
-                 -mfpu=fpv4-sp-d16
-                 -mfloat-abi=hard
-                 -D__NUTTX__
-                 -D__ARM__
-                 -DCONFIG_WCHAR_BUILTIN
-                 -Os
-                 -fno-strict-aliasing
-                 -fno-strength-reduce
-                 -fomit-frame-pointer)
-
-foreach(FLAG ${FLAGS_COMMON})
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${FLAG}")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${FLAG}")
-endforeach()
-
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-exceptions")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-builtin")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti")
-
-set(TARGET_INC ${TARGET_INC} "${NUTTX_HOME}/include")
-set(TARGET_INC ${TARGET_INC} "${NUTTX_HOME}/include/cxx")
-

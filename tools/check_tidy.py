@@ -99,7 +99,6 @@ def check_tidy(src_dir):
                                            'incorrent license')
                 license_checked = True
 
-    print
     print "* total line of code: %d" % count_lines
     print ("* total non-black line of code: %d"
            % (count_lines - count_empty_lines))

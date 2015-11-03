@@ -63,7 +63,7 @@ CHECKTEST = join_path([SCRIPT_PATH, 'check_test.py'])
 
 # Default build configuration file path.
 DEFAULT_CONFIG_PATH = join_path([PROJECT_HOME, 'build.default.config'])
-
+WORKING_CONFIG_PATH = join_path([PROJECT_HOME, 'build.config'])
 
 def mkdir(path):
     if not os.path.exists(path):
@@ -115,7 +115,11 @@ def init_option():
     # Check config option.
     arg_config = filter(lambda x: x.startswith('--config='), sys.argv)
 
-    config_path = DEFAULT_CONFIG_PATH
+    if not os.path.exists(WORKING_CONFIG_PATH):
+        shutil.copy(DEFAULT_CONFIG_PATH, WORKING_CONFIG_PATH)
+
+    config_path = WORKING_CONFIG_PATH
+
     if len(arg_config) != 0:
         config_path = arg_config[-1].split('=', 1)[1]
 

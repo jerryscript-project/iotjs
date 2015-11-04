@@ -486,8 +486,8 @@ def build_libjerry():
         # prepare cmake command line option.
         jerry_cmake_opt = [JERRY_ROOT]
 
-        # set lto off.
-        jerry_cmake_opt.append('-DENABLE_LTO=OFF')
+        # set lto on.
+        jerry_cmake_opt.append('-DENABLE_LTO=ON')
 
         # tool chain file.
         jerry_cmake_opt.append('-DCMAKE_TOOLCHAIN_FILE=' +
@@ -635,6 +635,9 @@ def build_iotjs():
     # IoT.js is using cmake.
     # prepare cmake command line option.
     iotjs_cmake_opt = [ROOT, "-DCMAKE_BUILD_TYPE=" + build_type]
+
+    # set lto on.
+    iotjs_cmake_opt.append('-DENABLE_LTO=ON')
 
     # set toolchain file.
     iotjs_cmake_opt.append('-DCMAKE_TOOLCHAIN_FILE=' +

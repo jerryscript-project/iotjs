@@ -79,12 +79,11 @@ def print_cmd_line(cmd, args):
     print
 
 
-def print_error(msg, exitcode = 0):
+def fail(msg):
     print
     print "%s%s%s" % (TERM_RED, msg, TERM_EMPTY)
     print
-    if exitcode != 0:
-        exit(exitcode)
+    exit(1)
 
 
 def run_cmd(cmd, args = []):
@@ -95,7 +94,7 @@ def run_cmd(cmd, args = []):
 def check_run_cmd(cmd, args = []):
     retcode = run_cmd(cmd, args)
     if retcode != 0:
-        print_error("[Failed - %d] %s" % (retcode, cmd_line(cmd, args)), 1)
+        fail("[Failed - %d] %s" % (retcode, cmd_line(cmd, args)))
 
 
 # Retrieve host OS name.
@@ -217,11 +216,11 @@ def adjust_option(option):
     if option.target_os.lower() == 'nuttx':
         option.buildlib = True;
         if option.nuttx_home == '':
-            print_error('--nuttx-home needed for nuttx target', 1)
+            fail('--nuttx-home needed for nuttx target')
         else:
             option.nuttx_home = path.abspath(option.nuttx_home)
             if not path.exists(option.nuttx_home):
-                print_error('--nuttx-home %s not exists' % option.nuttx_home, 1)
+                fail('--nuttx-home %s not exists' % option.nuttx_home)
     if option.target_arch == 'x86':
         option.target_arch = 'i686'
     if option.target_arch == 'x64':
@@ -272,6 +271,12 @@ def set_global_vars(option):
 
     global jerry_output_path
     jerry_output_path = join_path([host_build_bins, 'jerry'])
+
+    global libjerry_output_path
+    libjerry_output_path = join_path([build_libs, 'libjerrycore.a'])
+
+    global libfdlibm_output_path
+    libfdlibm_output_path = join_path([build_libs, 'libfdlibm.a'])
 
     global iotjs_output_path
     iotjs_output_path = join_path([build_bins, 'iotjs'])
@@ -350,8 +355,7 @@ def inflate_cmake_option(cmake_opt, option):
 def build_tuv(option):
     # Check if libtuv submodule exists.
     if not os.path.exists(TUV_ROOT):
-        print_error('libtuv submodule not exists!')
-        return False
+        fail('libtuv submodule not exists!')
 
     # Move working directory to libtuv build directory.
     build_home = join_path([build_root, 'deps', 'libtuv'])
@@ -387,8 +391,7 @@ def build_tuv(option):
     # libtuv output
     output = join_path([build_home, 'libtuv.a'])
     if not os.path.exists(output):
-        print_error('libtuv builud failed - target not produced.')
-        return False
+        fail('libtuv builud failed - target not produced.')
 
     # copy output to libs directory
     mkdir(build_libs)
@@ -402,8 +405,7 @@ def build_tuv(option):
 def build_jerry(option):
     # Check if JerryScript submodule exists.
     if not os.path.exists(JERRY_ROOT):
-        print_error('JerryScript submodule not exists!')
-        return False
+        fail('JerryScript submodule not exists!')
 
     # Move working directory to JerryScript build directory.
     build_home = join_path([host_build_root, 'deps', 'jerry'])
@@ -436,8 +438,7 @@ def build_jerry(option):
     # Check output
     output = target_jerry['output_path']
     if not os.path.exists(output):
-        print_error('JerryScript builud failed - target not produced.')
-        return False
+        fail('JerryScript builud failed - target not produced.')
 
     # copy
     shutil.copy(output, jerry_output_path)
@@ -448,8 +449,7 @@ def build_jerry(option):
 def build_libjerry(option):
     # Check if JerryScript submodule exists.
     if not os.path.exists(JERRY_ROOT):
-        print_error('JerryScript submodule not exists!')
-        return False
+        fail('JerryScript submodule not exists!')
 
     # Move working directory to JerryScript build directory.
     build_home = join_path([build_root, 'deps', 'jerry'])
@@ -490,7 +490,7 @@ def build_libjerry(option):
         'target_name': target_libjerry_name,
         'output_path': join_path([build_home, 'jerry-core',
                                   'lib%s.a' % target_libjerry_name]),
-        'dest_path': join_path([build_libs, 'libjerrycore.a'])
+        'dest_path': libjerry_output_path
     }
 
     # make target - libjerry for mem stat
@@ -499,7 +499,7 @@ def build_libjerry(option):
         'target_name': target_libjerry_ms_name,
         'output_path': join_path([build_home, 'jerry-core',
                                   'lib%s.a' % target_libjerry_ms_name]),
-        'dest_path': join_path([build_libs, 'libjerrycore.a'])
+        'dest_path': libjerry_output_path
     }
 
     # make target - target_libfdlibm
@@ -508,7 +508,7 @@ def build_libjerry(option):
         'target_name': target_libfdlibm_name,
         'output_path': join_path([build_home, 'third-party', 'fdlibm',
                                   'lib%s.a' % target_libfdlibm_name]),
-        'dest_path': join_path([build_libs, 'libfdlibm.a'])
+        'dest_path': libfdlibm_output_path
     }
 
     targets = [target_libfdlibm]
@@ -531,8 +531,7 @@ def build_libjerry(option):
         output = target['output_path']
         if not os.path.exists(output):
             print output
-            print_error('JerryScript builud failed - target not produced.')
-            return False
+            fail('JerryScript builud failed - target not produced.')
 
         # copy
         shutil.copy(output, target['dest_path'])
@@ -580,8 +579,7 @@ def build_libhttpparser(option):
     # Output
     output = join_path([build_home, 'libhttpparser.a'])
     if not os.path.exists(output):
-            print_error('libhttpparser builud failed - target not produced.')
-            return False
+            fail('libhttpparser builud failed - target not produced.')
 
     # copy
     shutil.copy(output, libhttpparser_output_path)
@@ -637,8 +635,7 @@ def build_iotjs(option):
                         'liblibiotjs.a' if option.buildlib else 'iotjs'])
 
     if not os.path.exists(output):
-            print_error('IoT.js builud failed - target not produced.')
-            return False
+            fail('IoT.js builud failed - target not produced.')
 
     # copy
     dest_path = libiotjs_output_path if option.buildlib else iotjs_output_path
@@ -651,6 +648,18 @@ def run_checktest():
     # iot.js executable
     iotjs = join_path([build_root, 'iotjs', 'iotjs'])
     return run_cmd(CHECKTEST, [iotjs]) == 0
+
+
+def copy_libraries_for_nuttx(option):
+    nuttx_lib_path = join_path([option.nuttx_home, 'lib'])
+
+    shutil.copy(libhttpparser_output_path, nuttx_lib_path)
+    shutil.copy(libtuv_output_path, nuttx_lib_path)
+    shutil.copy(libjerry_output_path, nuttx_lib_path)
+    shutil.copy(libfdlibm_output_path, nuttx_lib_path)
+    shutil.copy(libiotjs_output_path, nuttx_lib_path)
+
+    return True
 
 
 # Initialize build option object.
@@ -674,7 +683,7 @@ create_build_directories(option)
 print_progress('Tidy checking')
 if not option.no_check_tidy:
     if not check_tidy(PROJECT_HOME):
-        print_error("Failed check_tidy", 1)
+        fail("Failed check_tidy")
 
 # Perform init-submodule.
 print_progress('Initialize submodules')
@@ -688,24 +697,24 @@ mkdir(build_root)
 # build tuv.
 print_progress('Build libtuv')
 if not build_tuv(option):
-    print_error('Failed to build libtuv', 1)
+    fail('Failed to build libtuv')
 
 # build jerry.
 print_progress('Build JerryScript')
 if not build_jerry(option):
-    print_error('Failed to build jerry', 1)
+    fail('Failed to build jerry')
 if not build_libjerry(option):
-    print_error('Failed to build libjerry', 1)
+    fail('Failed to build libjerry')
 
 # build httpparser
 print_progress('Build libhttpparser')
 if not build_libhttpparser(option):
-    print_error('Failed to build libhttpparser', 1)
+    fail('Failed to build libhttpparser')
 
 # build iotjs.
 print_progress('Build IoT.js')
 if not build_iotjs(option):
-    print_error('Failed to build IoT.js', 1)
+    fail('Failed to build IoT.js')
 
 # check unit test.
 if not option.no_check_test:
@@ -719,7 +728,13 @@ if not option.no_check_test:
         print
     else:
         if not run_checktest():
-            print_error('Failed to pass unit tests', 1)
+            fail('Failed to pass unit tests')
+
+# copy output libraries to nuttx lib directory.
+if option.target_os == 'nuttx':
+    print_progress('Copy libraries')
+    if not copy_libraries_for_nuttx(option):
+        fail("Failed to copy libraries")
 
 print
 print "%sIoT.js Build Succeeded!!%s" % (TERM_GREEN, TERM_EMPTY)

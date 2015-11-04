@@ -179,8 +179,6 @@ def init_option():
 
     parser.add_argument('--external-static-lib', action='append')
 
-    parser.add_argument('--external-shared-lib', action='append')
-
     parser.add_argument('--jerry-cmake-param', action='append')
 
     parser.add_argument('--jerry-compile-flag', action='append')
@@ -213,6 +211,7 @@ def init_option():
 def adjust_option(option):
     if option.jerry_memstat:
         option.buildtype = 'debug'
+        option.no_check_test = True
     if option.target_os.lower() == 'nuttx':
         option.buildlib = True;
         if option.nuttx_home == '':
@@ -225,6 +224,22 @@ def adjust_option(option):
         option.target_arch = 'i686'
     if option.target_arch == 'x64':
         option.target_arch = 'x86_64'
+    if option.cmake_param == None:
+        option.cmake_param = []
+    if option.compile_flag == None:
+        option.compile_flag = []
+    if option.link_flag == None:
+        option.link_flag = []
+    if option.external_include_dir == None:
+        option.external_include_dir = []
+    if option.external_static_lib == None:
+        option.external_static_lib = []
+    if option.jerry_cmake_param == None:
+        option.jerry_cmake_param = []
+    if option.jerry_compile_flag == None:
+        option.jerry_compile_flag = []
+    if option.jerry_link_flag == None:
+        option.jerry_link_flag = []
 
 
 def print_build_option(option):
@@ -324,11 +339,8 @@ def inflate_cmake_option(cmake_opt, option, for_jerry=False):
     if option.target_board:
         compile_flags += config_compile_flags['board'][option.target_board]
 
-    if isinstance(option.compile_flag, list):
-        compile_flags += option.compile_flag
-
-    if for_jerry and isinstance(option.jerry_compile_flag, list):
-        compile_flags += option.jerry_compile_flag
+    compile_flags += option.compile_flag
+    compile_flags += option.jerry_compile_flag if for_jerry else []
 
     cmake_opt.append('-DCMAKE_C_FLAGS=' + ' '.join(compile_flags))
     cmake_opt.append('-DCMAKE_CXX_FLAGS=' + ' '.join(compile_flags))
@@ -340,11 +352,8 @@ def inflate_cmake_option(cmake_opt, option, for_jerry=False):
     config_link_flags = option.config['link_flags']
     link_flags += config_link_flags['os'][option.target_os]
 
-    if isinstance(option.link_flag, list):
-        link_flags += option.link_flag
-
-    if for_jerry and isinstance(option.jerry_link_flag, list):
-        link_flags += option.jerry_link_flag
+    link_flags += option.link_flag
+    link_flags += option.jerry_link_flag if for_jerry else []
 
     if option.jerry_lto:
         link_flags.append('-flto')
@@ -424,6 +433,7 @@ def build_jerry(option):
     cmake_opt = [JERRY_ROOT]
     cmake_opt.append('-DCMAKE_TOOLCHAIN_FILE=' + host_cmake_toolchain_file)
 
+    # Turn off LTO for jerry bin to save build time.
     cmake_opt.append('-DENABLE_LTO=OFF')
 
     # Run cmake.
@@ -478,16 +488,16 @@ def build_libjerry(option):
     if option.target_os == 'linux':
         cmake_opt.append('-DUSE_COMPILER_DEFAULT_LIBC=YES')
 
-    # jerry heap limit
+    # --jerry-heaplimit
     if option.jerry_heaplimit:
         cmake_opt.append('-DEXTERNAL_MEM_HEAP_SIZE_KB=' +
                          str(option.jerry_heaplimit))
 
-    # jerry-lto
+    # --jerry-lto
     cmake_opt.append('-DENABLE_LTO=%s' % ('ON' if option.jerry_lto else 'OFF'))
 
-    if isinstance(option.jerry_cmake_param, list):
-        cmake_opt += option.jerry_cmake_param
+    # --jerry-cmake-param
+    cmake_opt += option.jerry_cmake_param
 
     # inflate cmake option.
     inflate_cmake_option(cmake_opt, option, for_jerry=True)
@@ -619,11 +629,16 @@ def build_iotjs(option):
         cmake_opt.append('-DNUTTX_HOME=' + option.nuttx_home)
         option.buildlib = True
 
+    # --build-lib
     if option.buildlib:
         cmake_opt.append('-DBUILD_TO_LIB=YES')
 
-    if isinstance(option.cmake_param, list):
-        cmake_opt += option.cmake_param
+    # --jerry-memstat
+    if option.jerry_memstat:
+        option.compile_flag.append('-DENABLE_JERRY_MEM_STATS')
+
+    # --cmake-param
+    cmake_opt += option.cmake_param
 
     # inflate cmake option
     inflate_cmake_option(cmake_opt, option)

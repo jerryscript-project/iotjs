@@ -313,7 +313,7 @@ def init_submodule():
     check_run_cmd('git', ['submodule', 'update']);
 
 
-def inflate_cmake_option(cmake_opt, option):
+def inflate_cmake_option(cmake_opt, option, for_jerry=False):
     # compile flags
     compile_flags = []
 
@@ -325,10 +325,14 @@ def inflate_cmake_option(cmake_opt, option):
         compile_flags += config_compile_flags['board'][option.target_board]
 
     if isinstance(option.compile_flag, list):
-        compile_flags = compile_flags + option.compile_flag
+        compile_flags += option.compile_flag
+
+    if for_jerry and isinstance(option.jerry_compile_flag, list):
+        compile_flags += option.jerry_compile_flag
 
     cmake_opt.append('-DCMAKE_C_FLAGS=' + ' '.join(compile_flags))
     cmake_opt.append('-DCMAKE_CXX_FLAGS=' + ' '.join(compile_flags))
+
 
     # link flags
     link_flags = []
@@ -338,6 +342,10 @@ def inflate_cmake_option(cmake_opt, option):
 
     if isinstance(option.link_flag, list):
         link_flags += option.link_flag
+
+    if for_jerry and isinstance(option.jerry_link_flag, list):
+        link_flags += option.jerry_link_flag
+
     if option.jerry_lto:
         link_flags.append('-flto')
 
@@ -478,8 +486,11 @@ def build_libjerry(option):
     # jerry-lto
     cmake_opt.append('-DENABLE_LTO=%s' % ('ON' if option.jerry_lto else 'OFF'))
 
+    if isinstance(option.jerry_cmake_param, list):
+        cmake_opt += option.jerry_cmake_param
+
     # inflate cmake option.
-    inflate_cmake_option(cmake_opt, option)
+    inflate_cmake_option(cmake_opt, option, for_jerry=True)
 
     # Run cmake.
     check_run_cmd('cmake', cmake_opt)
@@ -612,8 +623,7 @@ def build_iotjs(option):
         cmake_opt.append('-DBUILD_TO_LIB=YES')
 
     if isinstance(option.cmake_param, list):
-        for param in option.cmake_param:
-            cmake_opt.append(param)
+        cmake_opt += option.cmake_param
 
     # inflate cmake option
     inflate_cmake_option(cmake_opt, option)
@@ -628,7 +638,6 @@ def build_iotjs(option):
 
     # Run make
     check_run_cmd('make', make_opt)
-
 
     # Output
     output = join_path([build_home,

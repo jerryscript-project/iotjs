@@ -99,8 +99,9 @@ ServerResponse.prototype.writeHead = function(statusCode, reason, obj) {
     obj = reason;
   }
 
-  var statusLine = 'HTTP/1.1 ' + statusCode.toString() + ' ' +
-                   this.statusMessage + "\r\n";
+  var statusLine = util.format('HTTP/1.1 %s %s\r\n',
+                               statusCode.toString(),
+                               this.statusMessage);
 
   this.statusCode = statusCode;
 
@@ -110,14 +111,11 @@ ServerResponse.prototype.writeHead = function(statusCode, reason, obj) {
     this._hasBody = false;
   }
 
-  var keys;
-  if (obj) {
-    if (this._headers === null) {
+  if (util.isObject(obj)) {
+    if (util.isNullOrUndefined(this._headers)) {
       this._headers = {};
     }
-    keys = Object.keys(obj);
-    for (var i=0;i<keys.length;i++) {
-      var key = keys[i];
+    for (key in Object.keys(obj)) {
       this._headers[key] = obj[key];
     }
   }
@@ -136,15 +134,14 @@ ServerResponse.prototype.assignSocket = function(socket) {
 
 
 function onServerResponseClose() {
-  if (this._httpMessage){
+  if (this._httpMessage) {
     this._httpMessage.emit('close');
   }
 }
 
 
-ServerResponse.prototype.detachSocket = function(socket) {
-
-  socket._httpMessage = null;
+ServerResponse.prototype.detachSocket = function() {
+  this.socket._httpMessage = null;
   this.socket = this.connection = null;
 };
 
@@ -163,16 +160,14 @@ function Server(requestListener) {
   this.httpAllowHalfOpen = false;
 
   this.on('connection', connectionListener);
-  this.on('clientError', function(err,conn) {
+  this.on('clientError', function(err, conn) {
     conn.destroy(err);
   });
 
-  this.timeout = 2*1000*60; // default timeout is 2 min
+  this.timeout = 2 * 1000 * 60; // default timeout is 2 min
 }
 
 util.inherits(Server, net.Server);
-
-
 exports.Server = Server;
 
 
@@ -187,7 +182,7 @@ Server.prototype.setTimeout = function (ms, cb) {
 
 
 function connectionListener(socket) {
-  var self = this;
+  var server = this;
 
   // cf) In Node.js, freelist returns a new parser.
   // parser initialize
@@ -204,88 +199,107 @@ function connectionListener(socket) {
 
   socket.on("data", socketOnData);
   socket.on("end", socketOnEnd);
-  socket.on("error", socketOnError);
   socket.on("close", socketOnClose);
+  socket.on('timeout', socketOnTimeout);
+  socket.on("error", socketOnError);
 
-  if (self.timeout) {
-    socket.setTimeout(self.timeout);
+  if (server.timeout) {
+    socket.setTimeout(server.timeout);
+  }
+}
+
+
+function socketOnData(data) {
+  var socket = this;
+
+  // Begin parsing
+  var ret = socket.parser.execute(data);
+
+  if (ret instanceof Error) {
+    socket.destroy();
+  }
+}
+
+
+function socketOnEnd() {
+  var socket = this;
+  var server = socket._server;
+  var ret = socket.parser.finish();
+
+  if (ret instanceof Error) {
+    socket.destroy();
+    return;
   }
 
-  socket.on('timeout', function() {
+  socket.parser = null;
 
-    var serverTimeout = self.emit('timeout', socket);
-    var req = socket.parser && socket.parser.incoming;
-    var reqTimeout = req && !req.complete && req.emit('timeout', socket);
-    var res = socket._httpMessage;
-    var resTimeout = res && res.emit('timeout', socket);
-
-    // if user doesn't provide timeout handler, kill socket.
-    // otherwise, user cb must take care of timeouted socket.
-    if(!serverTimeout && !reqTimeout && !resTimeout)
-      socket.destroy();
-  });
-
-
-
-  function socketOnData(data) {
-    // parsing begin
-    var ret = parser.execute(data);
-
-    if (ret instanceof Error) {
-      socket.destroy();
-    }
+  if (!server.httpAllowHalfOpen && socket._socketState.writable) {
+    socket.end();
   }
+}
 
-  function socketOnClose() {
-    if (this.parser) {
-      this.parser = null;
-    }
+
+function socketOnClose() {
+  var socket = this;
+
+  if (socket.parser) {
+    socket.parser = null;
   }
+}
 
-  function socketOnError(e) {
-    self.emit("clientError", e, this);
+
+function socketOnTimeout() {
+  var socket = this;
+  var server = socket._server;
+
+  var serverTimeout = server.emit('timeout', socket);
+  var req = socket.parser && socket.parser.incoming;
+  var reqTimeout = req && !req.complete && req.emit('timeout', socket);
+  var res = socket._httpMessage;
+  var resTimeout = res && res.emit('timeout', socket);
+
+  // if user doesn't provide timeout handler, kill socket.
+  // otherwise, user cb must take care of timeouted socket.
+  if (!serverTimeout && !reqTimeout && !resTimeout) {
+    socket.destroy();
   }
+}
 
-  function socketOnEnd() {
-    var socket = this;
-    var ret = parser.finish();
 
-    if (ret instanceof Error) {
-      socket.destroy();
-      return;
-    }
+function socketOnError(err) {
+  var socket = this;
+  var server = socket._server;
 
-    this.parser = null;
+  server.emit("clientError", err, socket);
+}
 
-    if (!self.httpAllowHalfOpen && socket._socketState.writable) {
-      socket.end();
-    }
-  }
 
-  // This is called by parserOnHeadersComplete after req header is parsed.
-  // TODO: keepalive support
-  function parserOnIncoming(req, shouldKeepAlive) {
+// This is called by parserOnHeadersComplete after req header is parsed.
+// TODO: keepalive support
+function parserOnIncoming(req, shouldKeepAlive) {
+  var socket = req.socket;
+  var server = socket._server;
 
-    var res = new ServerResponse(req);
+  var res = new ServerResponse(req);
+  res.assignSocket(socket);
+  res.on('prefinish', resOnFinish);
 
-    res.assignSocket(socket);
+  server.emit('request', req, res);
 
-    // This cb is called when response ended
-    // (res.end emits 'prefinish' event)
-    function resOnFinish() {
-      res.detachSocket(socket);
+  // In server, HTTPParser determines whether body should be parsed or not.
+  // It is fine to return false
+  return false;
+}
 
-      // cf) In Node, ConnectionListener has a list of incoming msgs.
-      socket.destroySoon();
-    }
 
-    res.on('prefinish', resOnFinish);
+// This cb is called when response ended
+// (res.end emits 'prefinish' event)
+function resOnFinish() {
+  var res = this;
+  var socket = res.socket;
 
-    self.emit('request', req, res);
+  res.detachSocket();
 
-    // In server, HTTPParser determines whether body should be parsed or not.
-    // It is fine to return false
-    return false;
-  }
-
+  // cf) In Node, ConnectionListener has a list of incoming msgs.
+  socket.destroySoon();
 }

@@ -201,6 +201,8 @@ def init_option():
 
     parser.add_argument('--nuttx-home', default='')
 
+    parser.add_argument('--no-snapshot', action='store_true')
+
     # parse argument.
     option = parser.parse_args(argv)
     option.config = config
@@ -611,7 +613,10 @@ def build_libhttpparser(option):
 def build_iotjs(option):
     # Run js2c
     os.chdir(SCRIPT_PATH)
-    check_run_cmd('python', ['js2c.py', option.buildtype, jerry_output_path])
+    check_run_cmd('python', ['js2c.py', option.buildtype,
+                             ('no_snapshot'
+                              if option.no_snapshot else 'snapshot'),
+                             jerry_output_path])
 
     # Move working directory to IoT.js build directory.
     build_home = join_path([build_root, 'iotjs'])
@@ -624,6 +629,9 @@ def build_iotjs(option):
     cmake_opt.append('-DCMAKE_BUILD_TYPE=' + option.buildtype.capitalize())
     cmake_opt.append('-DTARGET_OS=' + option.target_os)
     cmake_opt.append('-DPLATFORM_DESCRIPT=' + platform_descriptor)
+
+    if not option.no_snapshot:
+        option.compile_flag.append('-DENABLE_SNAPSHOT')
 
     if option.target_os == 'nuttx':
         cmake_opt.append('-DNUTTX_HOME=' + option.nuttx_home)

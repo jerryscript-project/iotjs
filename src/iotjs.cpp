@@ -78,7 +78,11 @@ static void CleanupModules() {
 
 static bool RunIoTjs(JObject* process) {
   // Evaluating 'iotjs.js' returns a function.
+#ifndef ENABLE_SNAPSHOT
   JResult jmain = JObject::Eval(String(iotjs_s), false, false);
+#else
+  JResult jmain = JObject::ExecSnapshot(iotjs_s, iotjs_l);
+#endif
   IOTJS_ASSERT(jmain.IsOk());
 
   // Run the entry function passing process builtin.

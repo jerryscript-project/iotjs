@@ -20,6 +20,7 @@ import sys
 import glob
 import os
 import re
+import subprocess
 
 def extractName(path):
     return os.path.splitext(os.path.basename(path))[0]
@@ -76,13 +77,15 @@ FOOTER = '''}
 
 SRC_PATH = '../src/'
 JS_PATH = SRC_PATH + 'js/'
-
+DUMPER = ""
 
 # argument processing
 buildtype = 'debug'
+no_snapshot = False
 if len(sys.argv) >= 2:
     buildtype = sys.argv[1]
-
+    no_snapshot = True if sys.argv[2] == 'no_snapshot' else False
+    DUMPER = sys.argv[3]
 
 fout = open(SRC_PATH + 'iotjs_js.h', 'w')
 
@@ -93,32 +96,79 @@ files = glob.glob(JS_PATH + '*.js')
 for path in files:
     name = extractName(path)
     fout.write('const char ' + name + '_n [] = "' + name + '";\n')
-    fout.write('const char ' + name + '_s [] = {\n')
+    if no_snapshot == True:
+        fout.write('const char ' + name + '_s [] = {\n')
+        code = open(path, 'r').read() + '\0'
 
-    code = open(path, 'r').read() + '\0'
+        # minimize code when release mode
+        if buildtype != 'debug':
+            code = removeComments(code)
+            code = removeWhitespaces(code)
 
-    # minimize code when release mode
-    if buildtype != 'debug':
-        code = removeComments(code)
-        code = removeWhitespaces(code)
+        for line in regroup(code, 10):
+            buf = ', '.join(map(lambda ch: str(ord(ch)), line))
+            if line[-1] != '\0':
+                buf += ','
+            writeLine(fout, buf, 1)
 
-    for line in regroup(code, 10):
-        buf = ', '.join(map(lambda ch: str(ord(ch)), line))
-        if line[-1] != '\0':
+        writeLine(fout, '};')
+        writeLine(fout, 'const int ' + name + '_l = ' + str(len(code)-1) + ';')
+
+    else:
+        fout.write('const unsigned char ' + name + '_s [] = {\n')
+
+        fmodule = open(path, 'r')
+        module = fmodule.read()
+        fmodule.close()
+
+        fmodule_wrapped = open(path + '.wrapped', 'w')
+        # FIXME
+        if name != 'iotjs':
+            #fmodule_wrapped.write ("(function (a, b, c) {\n")
+            fmodule_wrapped.write (
+                "(function(exports, require, module) {\n");
+
+        fmodule_wrapped.write (module)
+
+        if name != 'iotjs':
+            fmodule_wrapped.write ("});\n");
+            #fmodule_wrapped.write ("wwwwrap(a, b, c); });\n")
+        fmodule_wrapped.close()
+
+        # FIXME
+        ret = subprocess.call([DUMPER,
+                               '--dump-snapshot-for-eval',
+                               path + '.snapshot',
+                               path + '.wrapped'])
+        if ret != 0:
+            msg = 'Failed to dump ' + path + (": - %d]" % (ret))
+            print "%s%s%s" % ("\033[1;31m", msg, "\033[0m")
+            exit(1)
+
+        code = open(path + '.snapshot', 'r').read()
+
+        os.remove (path + '.wrapped')
+        os.remove (path + '.snapshot')
+
+        for line in regroup(code, 8):
+            buf = ', '.join(map(lambda ch: "0x{:02x}".format(ord(ch)), line))
             buf += ','
-        writeLine(fout, buf, 1)
-    writeLine(fout, '};')
-    writeLine(fout, 'const int ' + name + '_l = ' + str(len(code)-1) + ';')
+            writeLine(fout, buf, 1)
+        writeLine(fout, '};')
+        writeLine(fout, 'const int ' + name + '_l = sizeof (' + name + '_s);')
+
+
 
 NATIVE_STRUCT = '''
 struct native_mod {
-  const char* name;
-  const char* source;
-  const int length;
+const char* name;
+const void* code;
+const size_t length;
 };
 
 __attribute__ ((used)) static struct native_mod natives[] = {
 '''
+
 fout.write(NATIVE_STRUCT)
 filenames = map(extractName, files)
 for name in filenames:

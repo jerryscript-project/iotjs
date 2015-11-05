@@ -213,8 +213,8 @@
     // process.native_sources has a list of pointers to
     // the source strings defined in 'iotjs_js.h', not
     // source strings.
-    var source = process.native_sources[this.id];
-    var fn = process.compileNativePtr(source);
+
+    var fn = process.compileNativePtr(this.id);
     fn(this.exports, Native.require, this);
   };
 

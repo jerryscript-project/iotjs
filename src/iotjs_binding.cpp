@@ -460,6 +460,30 @@ String JObject::GetString() {
 }
 
 
+#ifdef ENABLE_SNAPSHOT
+JResult JObject::ExecSnapshot(const void *snapshot_p,
+                              size_t snapshot_size) {
+  JRawValueType res;
+  jerry_completion_code_t ret;
+  ret = jerry_exec_snapshot (snapshot_p,
+                             snapshot_size,
+                             false, /* the snapshot buffer
+                                     * can be referenced
+                                     * until jerry_cleanup is not called */
+                             &res);
+
+  IOTJS_ASSERT(ret == JERRY_COMPLETION_CODE_OK ||
+               ret == JERRY_COMPLETION_CODE_UNHANDLED_EXCEPTION);
+
+  JResultType type = (ret == JERRY_COMPLETION_CODE_OK)
+                     ? JRESULT_OK
+                     : JRESULT_EXCEPTION;
+
+  return JResult(&res, type);
+}
+#endif
+
+
 JResult::JResult(const JObject& value, JResultType type)
     : _value(value)
     , _type(type) {

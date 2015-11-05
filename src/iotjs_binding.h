@@ -170,6 +170,12 @@ class JObject {
   // Returns value for string contents of string object.
   String GetString();
 
+#ifdef ENABLE_SNAPSHOT
+  // Evaluate javascript snapshot.
+  static JResult ExecSnapshot(const void *snapshot_p,
+                              size_t snapshot_size);
+#endif
+
   // Calls javascript function.
   JResult Call(JObject& this_, JArgList& arg);
   JObject CallOk(JObject& this_, JArgList& arg);

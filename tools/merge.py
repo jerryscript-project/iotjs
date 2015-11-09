@@ -23,8 +23,11 @@ from os import path
 
 SCRIPT_PATH = path.dirname(path.abspath(__file__))
 
-BUILD_SCRIPT_DEBUG = path.join(SCRIPT_PATH, "build.py --buildtype=debug")
-BUILD_SCRIPT_RELEASE = path.join(SCRIPT_PATH, "build.py --buildtype=release")
+BUILD_SCRIPT_DEBUG = path.join(SCRIPT_PATH,
+    'build.py --clean --config=.build.default.config --buildtype=debug')
+
+BUILD_SCRIPT_RELEASE = path.join(SCRIPT_PATH,
+    'build.py --clean --config=.build.default.config --buildtype=release')
 
 GIT_REPO_FORMAT = 'https://github.com/%s/iotjs.git'
 

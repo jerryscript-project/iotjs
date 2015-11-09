@@ -29,7 +29,8 @@ String ReadFile(const char* path) {
   IOTJS_ASSERT(file != NULL);
 
   fseek(file, 0, SEEK_END);
-  size_t len = ftell(file);
+  long len = ftell(file);
+  IOTJS_ASSERT(len >= 0);
   fseek(file, 0, SEEK_SET);
 
   String contents(NULL, 0, len);
@@ -104,7 +105,7 @@ String::String(const char* data, int size, int cap) {
     _data = NULL;
   }
 
-  if (data != NULL) {
+  if (_data != NULL && data != NULL) {
     strncpy(_data, data, _size);
   }
 }

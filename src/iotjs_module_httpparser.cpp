@@ -287,6 +287,9 @@ void HTTPParserWrap::Initialize(http_parser_type type) {
   n_fields = 0;
   n_values = 0;
   flushed = false;
+  cur_jbuf = NULL;
+  cur_buf = NULL;
+  cur_buf_len = 0;
 }
 
 

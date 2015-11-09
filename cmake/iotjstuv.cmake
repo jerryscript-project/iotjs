@@ -20,6 +20,8 @@ file(GLOB LIB_IOTJS_SRC ${SRC_ROOT}/*.cpp
 string(REPLACE ";" " " IOTJS_CFLAGS_STR "${IOTJS_CFLAGS}")
 string(REPLACE ";" " " IOTJS_LINK_FLAGS_STR "${IOTJS_LINK_FLAGS}")
 separate_arguments(EXTERNAL_INCLUDE_DIR)
+separate_arguments(EXTERNAL_STATIC_LIB)
+separate_arguments(EXTERNAL_SHARED_LIB)
 
 set(LIB_IOTJS_CFLAGS ${IOTJS_CFLAGS_STR})
 set(LIB_IOTJS_INCDIR ${EXTERNAL_INCLUDE_DIR}
@@ -58,8 +60,8 @@ function(BuildIoTjs)
   set_property(TARGET ${targetName}
                PROPERTY LINK_FLAGS ${BIN_IOTJS_LINK_FLAGS})
   target_include_directories(${targetName} PRIVATE ${BIN_IOTJS_INCDIR})
-  target_link_libraries(${targetName} libiotjs ${JERRY_LIB}
-    ${LIBTUV_LIB} ${HTTPPARSER_LIB})
+  target_link_libraries(${targetName} libiotjs ${JERRY_LIB} ${LIBTUV_LIB}
+    ${HTTPPARSER_LIB} ${EXTERNAL_STATIC_LIB} ${EXTERNAL_SHARED_LIB})
   add_dependencies(targetLibIoTjs ${targetName})
 
 endfunction()
@@ -73,8 +75,8 @@ function(BuildIoTjsLib)
   set_property(TARGET ${targetName}
                PROPERTY LINK_FLAGS ${BIN_IOTJS_LINK_FLAGS})
   target_include_directories(${targetName} PRIVATE ${BIN_IOTJS_INCDIR})
-  target_link_libraries(${targetName} libiotjs ${JERRY_LIB}
-    ${LIBTUV_LIB} ${HTTPPARSER_LIB})
+  target_link_libraries(${targetName} libiotjs ${JERRY_LIB} ${LIBTUV_LIB}
+    ${HTTPPARSER_LIB} ${EXTERNAL_STATIC_LIB} ${EXTERNAL_SHARED_LIB})
   add_dependencies(targetLibIoTjs ${targetName})
 endfunction()
 

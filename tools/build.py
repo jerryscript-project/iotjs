@@ -179,6 +179,8 @@ def init_option():
 
     parser.add_argument('--external-static-lib', action='append')
 
+    parser.add_argument('--external-shared-lib', action='append')
+
     parser.add_argument('--jerry-cmake-param', action='append')
 
     parser.add_argument('--jerry-compile-flag', action='append')
@@ -234,6 +236,8 @@ def adjust_option(option):
         option.external_include_dir = []
     if option.external_static_lib == None:
         option.external_static_lib = []
+    if option.external_shared_lib == None:
+        option.external_shared_lib = []
     if option.jerry_cmake_param == None:
         option.jerry_cmake_param = []
     if option.jerry_compile_flag == None:
@@ -639,6 +643,14 @@ def build_iotjs(option):
 
     # --cmake-param
     cmake_opt += option.cmake_param
+
+    # --external_static_lib
+    cmake_opt.append('-DEXTERNAL_STATIC_LIB=' +
+                    ' '.join(option.external_static_lib))
+
+    # --external_shared_lib
+    cmake_opt.append('-DEXTERNAL_SHARED_LIB=' +
+                    ' '.join(option.external_shared_lib))
 
     # inflate cmake option
     inflate_cmake_option(cmake_opt, option)

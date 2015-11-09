@@ -88,22 +88,25 @@ JHANDLER_FUNCTION(SetPin) {
   JHANDLER_CHECK(handler.GetArg(2)->IsNumber());
   JHANDLER_CHECK(handler.GetArg(3)->IsFunction());
 
+  GpioDirection dir = (GpioDirection)handler.GetArg(1)->GetInt32();
+  GpioMode mode = (GpioMode)handler.GetArg(2)->GetInt32();
+
+  if (dir < kGpioDirectionNone ||
+      dir > kGpioDirectionOut) {
+    JHANDLER_THROW_RETURN(TypeError, "Invalid GPIO direction");
+  }
+  if (mode < kGpioModeNone ||
+      mode > kGpioModeOpendrain) {
+    JHANDLER_THROW_RETURN(TypeError, "Invalid GPIO mode");
+  }
+
   GpioReqWrap* req_wrap = new GpioReqWrap(*handler.GetArg(3));
   GpioReqData* req_data = req_wrap->req();
 
   req_data->pin = handler.GetArg(0)->GetInt32();
-  req_data->dir = (GpioDirection)handler.GetArg(1)->GetInt32();
-  req_data->mode = (GpioMode)handler.GetArg(2)->GetInt32();
+  req_data->dir = dir;
+  req_data->mode = mode;
   req_data->op = kGpioOpSetPin;
-
-  if (req_data->dir < kGpioDirectionNone ||
-      req_data->dir > kGpioDirectionOut) {
-    JHANDLER_THROW_RETURN(TypeError, "Invalid GPIO direction");
-  }
-  if (req_data->mode < kGpioModeNone ||
-      req_data->mode > kGpioModeOpendrain) {
-    JHANDLER_THROW_RETURN(TypeError, "Invalid GPIO mode");
-  }
 
   Gpio* gpio = Gpio::GetInstance();
   gpio->SetPin(req_wrap);

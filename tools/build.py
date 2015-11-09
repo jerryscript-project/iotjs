@@ -62,7 +62,7 @@ HTTPPARSER_ROOT = join_path([DEPS_ROOT, 'http-parser/'])
 CHECKTEST = join_path([SCRIPT_PATH, 'check_test.py'])
 
 # Default build configuration file path.
-DEFAULT_CONFIG_PATH = join_path([PROJECT_HOME, 'build.default.config'])
+DEFAULT_CONFIG_PATH = join_path([PROJECT_HOME, '.build.default.config'])
 WORKING_CONFIG_PATH = join_path([PROJECT_HOME, 'build.config'])
 
 def mkdir(path):

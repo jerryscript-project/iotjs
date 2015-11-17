@@ -13,8 +13,16 @@
  * limitations under the License.
  */
 
-/**
-  @NOTEST
-*/
+var assert = require('assert');
 
-exports.i = -100;
+var sequence = '';
+
+process.nextTick(function() {
+  sequence += '2'
+});
+
+sequence = '1';
+
+process.on('exit', function() {
+  assert.equal(sequence, '12');
+});

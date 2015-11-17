@@ -19,6 +19,7 @@ var util = require('util');
 
 
 var timerFired = false;
+var shouldnotFired = false;
 
 setTimeout(function(a, b, c) {
   assert.equal(arguments.length, 3);
@@ -46,8 +47,15 @@ setInterval(function(list) {
 }, 100, [0, 1, 4, 9, 16]);
 
 
+var t = setTimeout(function() {
+  shouldnotFired = true;
+}, 100);
+clearTimeout(t);
+
+
 process.on('exit', function(code) {
   assert.equal(code, 0);
   assert(timerFired);
   assert.equal(i, 5);
+  assert.equal(shouldnotFired, false);
 });

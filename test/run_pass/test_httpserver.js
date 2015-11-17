@@ -22,7 +22,11 @@ var http = require('http');
 
 
 var responseCheck = '';
-
+var connectionEvent = 0;
+var serverCloseEvent = 0;
+var requestEvent = 0;
+var responseEvent = 0;
+var socketEvent = 0;
 // server side code
 // server will return the received msg from client
 // and shutdown
@@ -50,6 +54,18 @@ var server = http.createServer(function (req, res) {
 
   req.on('end', endHandler);
 
+});
+
+server.on('request', function() {
+  requestEvent++;
+});
+
+server.on('connection', function() {
+  connectionEvent++;
+});
+
+server.on('close', function() {
+  serverCloseEvent++;
 });
 
 server.listen(3001, 3);
@@ -85,6 +101,12 @@ var postResponseHandler = function (res) {
 };
 
 var req = http.request(options, postResponseHandler);
+req.on('response', function() {
+  responseEvent++;
+});
+req.on('socket', function() {
+  socketEvent++;
+});
 req.write(msg);
 req.end();
 
@@ -114,6 +136,12 @@ var getResponseHandler = function (res) {
 
 
 var getReq = http.request(options, getResponseHandler);
+getReq.on('response', function() {
+  responseEvent++;
+});
+getReq.on('socket', function() {
+  socketEvent++;
+});
 getReq.end();
 
 
@@ -143,9 +171,20 @@ var finalResponseHandler = function (res) {
 };
 
 var finalReq = http.request(finalOptions, finalResponseHandler);
+finalReq.on('response', function() {
+  responseEvent++;
+});
+finalReq.on('socket', function() {
+  socketEvent++;
+});
 finalReq.write(finalMsg);
 finalReq.end();
 
 process.on('exit', function() {
   assert.equal(responseCheck.length, 3);
+  assert.equal(connectionEvent, 3);
+  assert.equal(serverCloseEvent, 1);
+  assert.equal(requestEvent, 3);
+  assert.equal(responseEvent, 3);
+  assert.equal(socketEvent, 3);
 });

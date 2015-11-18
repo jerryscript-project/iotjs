@@ -49,6 +49,11 @@ fs.Stats.prototype.isDirectory = function() {
 };
 
 
+fs.Stats.prototype.isFile = function() {
+  return ((this.mode & constants.S_IFMT) === constants.S_IFREG);
+};
+
+
 fsBuiltin._createStat = function(stat) {
   return new fs.Stats(stat);
 };

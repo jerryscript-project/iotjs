@@ -48,9 +48,39 @@ function Buffer(subject) {
 
 
 // Buffer.byteLength(string)
-Buffer.byteLength = function(str) {
-  // FIXME: Returns actual byte length of string not counts of characters.
-  return str.length;
+Buffer.byteLength = function(str, enc) {
+  var ret;
+  str = str + '';
+
+  if (util.isUndefined(enc)) enc = 'cesu8';
+
+  switch (enc) {
+    case 'ascii':
+    case 'binary':
+    case 'raw':
+      ret = str.length;
+      break;
+    case 'ucs2':
+    case 'ucs-2':
+    case 'utf16le':
+    case 'utf-16le':
+      ret = 2*str.length;
+      break;
+    case 'hex':
+      ret = str.length >>> 1;
+      break;
+    case 'utf8':
+    case 'utf-8':
+      ret = bufferBuiltin.utf8Length(str);
+      break;
+    case 'cesu8':
+    case 'cesu-8':
+      ret = bufferBuiltin.cesu8Length(str);
+      break;
+    default:
+      throw new TypeError('Error: Unsupported encoding');
+  }
+  return ret;
 };
 
 

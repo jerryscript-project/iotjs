@@ -251,10 +251,15 @@ function connect(socket, ip, port) {
     var state = socket._socketState;
     state.connecting = false;
 
+    if (state.destroyed) {
+      return;
+    }
+
     if (status == 0) {
       onSocketConnect(socket);
       socket.emit('connect');
     } else {
+      socket.destroy();
       emitError(socket, new Error('connect failed - status: ' + status));
     }
   };
@@ -281,7 +286,9 @@ function close(socket) {
 
 
 function resetSocketTimeout(socket) {
-  if (!socket.destroyed) {
+  var state = socket._socketState;
+
+  if (!state.destroyed) {
     // start timeout over again
     clearSocketTimeout(socket);
     socket._timer = setTimeout(function() {

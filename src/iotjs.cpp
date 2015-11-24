@@ -39,7 +39,7 @@ static bool InitJerry() {
 
 #ifdef ENABLE_JERRY_MEM_STATS
   jerry_flag |= JERRY_FLAG_MEM_STATS;
-  jerry_flag |= JERRY_FLAG_SHOW_OPCODES;
+//  jerry_flag |= JERRY_FLAG_SHOW_OPCODES;
 #endif
 
   jerry_init(jerry_flag);

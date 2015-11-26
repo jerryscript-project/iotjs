@@ -33,19 +33,28 @@ namespace iotjs {
 Environment* Environment::_env = NULL;
 
 
-static bool InitJerry() {
-
+/**
+ * Initialize JerryScript.
+ */
+static bool InitJerry(Environment* env) {
+  // Set jerry run flags.
   uint32_t jerry_flag = JERRY_FLAG_ABORT_ON_FAIL;
 
-#ifdef ENABLE_JERRY_MEM_STATS
-  jerry_flag |= JERRY_FLAG_MEM_STATS;
-  jerry_flag |= JERRY_FLAG_SHOW_OPCODES;
-#endif
+  if (env->config()->memstat) {
+    jerry_flag |= JERRY_FLAG_MEM_STATS;
+  }
 
+  if (env->config()->show_opcode) {
+    jerry_flag |= JERRY_FLAG_SHOW_OPCODES;
+  }
+
+  // Initialize jerry.
   jerry_init(jerry_flag);
 
+  // Set magic strings.
   InitJerryMagicStringEx();
 
+  // Do parse and run to generate initial javascript environment.
   if (!jerry_parse((jerry_api_char_t*)"", 0)) {
     DLOG("jerry_parse() failed");
     return false;
@@ -152,19 +161,26 @@ static void UvWalkToCloseCallback(uv_handle_t* handle, void* arg) {
 
 
 int Start(int argc, char** argv) {
+  // Initialize debug print.
   InitDebugSettings();
-
-  // Initalize JerryScript engine.
-  if (!InitJerry()) {
-    DLOG("InitJerry failed");
-    return 1;
-  }
 
   // Create environtment.
   Environment* env = Environment::GetEnv();
 
-  // Init environment with argument and uv loop.
-  env->Init(argc, argv, uv_default_loop());
+  // Parse command line arguemnts.
+  if (!env->ParseCommandLineArgument(argc, argv)) {
+    DLOG("ParseCommandLineArgument failed");
+    return 1;
+  }
+
+  // Set event loop.
+  env->set_loop(uv_default_loop());
+
+  // Initalize JerryScript engine.
+  if (!InitJerry(env)) {
+    DLOG("InitJerry failed");
+    return 1;
+  }
 
   // Start IoT.js
   if (!StartIoTjs(env)) {
@@ -180,12 +196,13 @@ int Start(int argc, char** argv) {
   int res = uv_loop_close(env->loop());
   IOTJS_ASSERT(res == 0);
 
-  // Release environment.
-  Environment::Release();
-
   // Release JerryScript engine.
   ReleaseJerry();
 
+  // Release environment.
+  Environment::Release();
+
+  // Release debug print setting.
   ReleaseDebugSettings();
 
   return 0;
@@ -196,10 +213,5 @@ int Start(int argc, char** argv) {
 
 
 extern "C" int iotjs_entry(int argc, char** argv) {
-  if (argc < 2) {
-    fprintf(stderr, "Usage: iotjs <js>\n");
-    return 1;
-  }
-
   return iotjs::Start(argc, argv);
 }

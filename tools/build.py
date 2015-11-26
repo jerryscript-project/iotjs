@@ -213,9 +213,6 @@ def init_option():
 
 
 def adjust_option(option):
-    if option.jerry_memstat:
-        option.buildtype = 'debug'
-        option.no_check_test = True
     if option.target_os.lower() == 'nuttx':
         option.buildlib = True;
         if option.nuttx_home == '':
@@ -644,10 +641,6 @@ def build_iotjs(option):
     # --build-lib
     if option.buildlib:
         cmake_opt.append('-DBUILD_TO_LIB=YES')
-
-    # --jerry-memstat
-    if option.jerry_memstat:
-        option.compile_flag.append('-DENABLE_JERRY_MEM_STATS')
 
     # --cmake-param
     cmake_opt += option.cmake_param

@@ -189,7 +189,7 @@ def init_option():
 
     parser.add_argument('--jerry-lto', action='store_true')
 
-    parser.add_argument('--separate-heap', action='store_true')
+    parser.add_argument('--use-ccm', action='store_true')
 
     parser.add_argument('--jerry-heaplimit', type=int)
 
@@ -501,9 +501,9 @@ def build_libjerry(option):
         cmake_opt.append('-DEXTERNAL_MEM_HEAP_SIZE_KB=' +
                          str(option.jerry_heaplimit))
 
-    # --separate-heap
-    if option.separate_heap:
-        cmake_opt.append('-DJERRY_HEAP_SECTION_ATTR=\".jerry_mem\"')
+    # --use-ccm
+    if option.use_ccm:
+        cmake_opt.append('-DJERRY_HEAP_SECTION_ATTR=\".sram_section\"')
 
     # --jerry-lto
     cmake_opt.append('-DENABLE_LTO=%s' % ('ON' if option.jerry_lto else 'OFF'))

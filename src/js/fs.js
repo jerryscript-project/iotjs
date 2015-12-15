@@ -59,6 +59,37 @@ fsBuiltin._createStat = function(stat) {
 };
 
 
+fs.exists = function(path, callback) {
+  if (!path || !path.length) {
+    process.nextTick(function () {
+      if (callback) callback(false);
+    });
+    return;
+  }
+
+  var cb = function(err, stat) {
+    if (callback) callback(err ? false : true);
+  };
+
+  fsBuiltin.stat(checkArgString(path, 'path'),
+                 checkArgFunction(cb, 'callback'));
+};
+
+
+fs.existsSync = function(path) {
+  if (!path || !path.length) {
+    return false;
+  }
+
+  try {
+    fsBuiltin.stat(checkArgString(path, 'path'));
+    return true;
+  } catch (e) {
+    return false;
+  }
+};
+
+
 fs.stat = function(path, callback) {
   fsBuiltin.stat(checkArgString(path, 'path'),
                  checkArgFunction(callback, 'callback'));

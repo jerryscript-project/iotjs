@@ -67,10 +67,16 @@ LICENSE = '''/* Copyright 2015 Samsung Electronics Co., Ltd.
  */
 '''
 
-HEADER = '''#ifndef IOTJS_JS_H
+HEADER1 = '''#ifndef IOTJS_JS_H
 #define IOTJS_JS_H
 namespace iotjs {
 '''
+
+HEADER2 = '''#ifndef NATIVE_JS_H
+#define NATIVE_JS_H
+namespace iotjs {
+'''
+
 FOOTER = '''}
 #endif
 '''
@@ -87,14 +93,20 @@ if len(sys.argv) >= 2:
     no_snapshot = True if sys.argv[2] == 'no_snapshot' else False
     DUMPER = sys.argv[3]
 
-fout = open(SRC_PATH + 'iotjs_js.h', 'w')
-
-fout.write(LICENSE);
-fout.write(HEADER);
+fout1 = open(SRC_PATH + 'iotjs_js.h', 'w')
+fout2 = open(SRC_PATH + 'native_js.h', 'w')
+fout1.write(LICENSE);
+fout1.write(HEADER1);
+fout2.write(LICENSE);
+fout2.write(HEADER2);
 
 files = glob.glob(JS_PATH + '*.js')
 for path in files:
     name = extractName(path)
+    if name != 'iotjs':
+        fout = fout2
+    else:
+        fout = fout1
     fout.write('const char ' + name + '_n [] = "' + name + '";\n')
     if no_snapshot == True:
         fout.write('const char ' + name + '_s [] = {\n')
@@ -169,11 +181,14 @@ const size_t length;
 __attribute__ ((used)) static struct native_mod natives[] = {
 '''
 
-fout.write(NATIVE_STRUCT)
+fout2.write(NATIVE_STRUCT)
 filenames = map(extractName, files)
 for name in filenames:
-    writeLine(fout, '{ ' + name + '_n, ' + name + '_s, ' + name + '_l },', 1)
-writeLine(fout, '{ NULL, NULL, 0 }', 1)
-writeLine(fout, '};')
+    if name != 'iotjs':
+        writeLine(fout2,
+                  '{ ' + name + '_n, ' + name + '_s, ' + name + '_l },', 1)
+writeLine(fout2, '{ NULL, NULL, 0 }', 1)
+writeLine(fout2, '};')
 
-fout.write(FOOTER)
+fout1.write(FOOTER)
+fout2.write(FOOTER)

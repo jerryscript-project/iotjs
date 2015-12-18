@@ -18,6 +18,7 @@ Current supported platforms are **Linux and NuttX**
 * Raspberry Pi 2
     * [Setting Raspberry Pi 2](Setting-Raspberry-Pi-2-for-IoT.js.md)
     * [Build for ARM Linux (RPi2)](Build-for-ARM-Linux-\(RPi2\).md)
+* [Build for Intel Edison with mraa](Build-for-Edison-with-mraa.md)
 
 ##### Platforms to support
 * OSX 10.10 as development host

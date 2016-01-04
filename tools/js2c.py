@@ -72,13 +72,16 @@ HEADER1 = '''#ifndef IOTJS_JS_H
 namespace iotjs {
 '''
 
-HEADER2 = '''#ifndef NATIVE_JS_H
-#define NATIVE_JS_H
+FOOTER1 = '''}
+#endif
+'''
+
+HEADER2 = '''#include <stdio.h>
+#include "iotjs_js.h"
 namespace iotjs {
 '''
 
-FOOTER = '''}
-#endif
+FOOTER2 = '''}
 '''
 
 SRC_PATH = '../src/'
@@ -93,23 +96,22 @@ if len(sys.argv) >= 2:
     no_snapshot = True if sys.argv[2] == 'no_snapshot' else False
     DUMPER = sys.argv[3]
 
-fout1 = open(SRC_PATH + 'iotjs_js.h', 'w')
-fout2 = open(SRC_PATH + 'native_js.h', 'w')
-fout1.write(LICENSE);
-fout1.write(HEADER1);
-fout2.write(LICENSE);
-fout2.write(HEADER2);
+fout_h = open(SRC_PATH + 'iotjs_js.h', 'w')
+fout_cpp = open(SRC_PATH + 'iotjs_js.cpp', 'w')
+fout_h.write(LICENSE);
+fout_h.write(HEADER1);
+fout_cpp.write(LICENSE);
+fout_cpp.write(HEADER2);
 
 files = glob.glob(JS_PATH + '*.js')
 for path in files:
     name = extractName(path)
-    if name != 'iotjs':
-        fout = fout2
-    else:
-        fout = fout1
-    fout.write('const char ' + name + '_n [] = "' + name + '";\n')
+    fout_cpp.write('const char ' + name + '_n [] = "' + name + '";\n')
+    fout_h.write('extern const char ' + name + '_n [];\n')
+    fout_h.write('extern const int ' + name + '_l;\n')
     if no_snapshot == True:
-        fout.write('const char ' + name + '_s [] = {\n')
+        fout_h.write('extern const char ' + name + '_s [];\n')
+        fout_cpp.write('const char ' + name + '_s [] = {\n')
         code = open(path, 'r').read() + '\0'
 
         # minimize code when release mode
@@ -121,13 +123,15 @@ for path in files:
             buf = ', '.join(map(lambda ch: str(ord(ch)), line))
             if line[-1] != '\0':
                 buf += ','
-            writeLine(fout, buf, 1)
+            writeLine(fout_cpp, buf, 1)
 
-        writeLine(fout, '};')
-        writeLine(fout, 'const int ' + name + '_l = ' + str(len(code)-1) + ';')
+        writeLine(fout_cpp, '};')
+        writeLine(fout_cpp,
+                  'const int ' + name + '_l = ' + str(len(code)-1) + ';')
 
     else:
-        fout.write('const unsigned char ' + name + '_s [] = {\n')
+        fout_h.write('extern const unsigned char ' + name + '_s [];\n')
+        fout_cpp.write('const unsigned char ' + name + '_s [] = {\n')
 
         fmodule = open(path, 'r')
         module = fmodule.read()
@@ -165,30 +169,35 @@ for path in files:
         for line in regroup(code, 8):
             buf = ', '.join(map(lambda ch: "0x{:02x}".format(ord(ch)), line))
             buf += ','
-            writeLine(fout, buf, 1)
-        writeLine(fout, '};')
-        writeLine(fout, 'const int ' + name + '_l = sizeof (' + name + '_s);')
+            writeLine(fout_cpp, buf, 1)
+        writeLine(fout_cpp, '};')
+        writeLine(fout_cpp,
+                  'const int ' + name + '_l = sizeof (' + name + '_s);')
 
 
 
-NATIVE_STRUCT = '''
+NATIVE_STRUCT1 = '''
 struct native_mod {
 const char* name;
 const void* code;
 const size_t length;
 };
 
-__attribute__ ((used)) static struct native_mod natives[] = {
+extern const struct native_mod natives[];
 '''
 
-fout2.write(NATIVE_STRUCT)
+NATIVE_STRUCT2 = '''
+__attribute__ ((used)) const struct native_mod natives[] = {
+'''
+
+fout_h.write(NATIVE_STRUCT1)
+fout_cpp.write(NATIVE_STRUCT2)
 filenames = map(extractName, files)
 for name in filenames:
-    if name != 'iotjs':
-        writeLine(fout2,
-                  '{ ' + name + '_n, ' + name + '_s, ' + name + '_l },', 1)
-writeLine(fout2, '{ NULL, NULL, 0 }', 1)
-writeLine(fout2, '};')
+    writeLine(fout_cpp,
+              '{ ' + name + '_n, ' + name + '_s, ' + name + '_l },', 1)
+writeLine(fout_cpp, '{ NULL, NULL, 0 }', 1)
+writeLine(fout_cpp, '};')
 
-fout1.write(FOOTER)
-fout2.write(FOOTER)
+fout_h.write(FOOTER1)
+fout_cpp.write(FOOTER2)

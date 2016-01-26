@@ -160,11 +160,11 @@ def init_option():
     parser.add_argument('--buildlib', action='store_true')
 
     parser.add_argument('--target-arch',
-                        choices=['arm', 'x86', 'i686', 'x86_64', 'x64'],
+                        choices=['arm', 'mips', 'x86', 'i686', 'x86_64', 'x64'],
                         default=sys_arch())
 
     parser.add_argument('--target-os',
-                        choices=['linux', 'darwin', 'osx', 'nuttx'],
+                        choices=['linux', 'darwin', 'osx', 'nuttx', 'openwrt'],
                         default=sys_os())
 
     parser.add_argument('--target-board', default='')
@@ -488,7 +488,7 @@ def build_libjerry(option):
         if option.target_arch == 'arm':
             cmake_opt.append('-DEXTERNAL_CMAKE_SYSTEM_PROCESSOR=arm')
 
-    if option.target_os == 'linux':
+    if option.target_os == 'linux' or option.target_os == 'openwrt':
         cmake_opt.append('-DUSE_COMPILER_DEFAULT_LIBC=YES')
 
     # --jerry-heaplimit
@@ -583,7 +583,7 @@ def build_libhttpparser(option):
     if option.target_os == 'nuttx':
         cmake_opt.append('-DNUTTX_HOME=' + option.nuttx_home)
         cmake_opt.append('-DOS=NUTTX')
-    if option.target_os =='linux':
+    if option.target_os =='linux' or option.target_os == 'openwrt':
         cmake_opt.append('-DOS=LINUX')
 
     # inflate cmake option.

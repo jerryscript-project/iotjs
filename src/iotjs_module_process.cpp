@@ -130,10 +130,10 @@ static JResult WrapEval(const char* source) {
   int len2 = strlen(source);
   int len3 = strlen(wrapper[1]);
 
-  String code("", len1 + len2 + len3 + 1);
+  String code(NULL, len1 + len2 + len3);
   strcpy(code.data(), wrapper[0]);
-  strcat(code.data() + len1, source);
-  strcat(code.data() + len1 + len2, wrapper[1]);
+  strcpy(code.data() + len1, source);
+  strcpy(code.data() + len1 + len2, wrapper[1]);
 
   return JObject::Eval(code);
 }

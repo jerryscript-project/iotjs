@@ -49,6 +49,8 @@ endif()
 
 if(${CFG_SYS_PROCESSOR} STREQUAL "ARM")
   set(PLATFORM_ARCH "arm")
+elseif(${CFG_SYS_PROCESSOR} STREQUAL "MIPS")
+  set(PLATFORM_ARCH "mips")
 elseif(${CFG_SYS_PROCESSOR} MATCHES "I686|X86|X86_64")
   set(PLATFORM_ARCH "x86")
 else()

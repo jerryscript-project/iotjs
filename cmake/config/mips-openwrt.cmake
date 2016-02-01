@@ -12,24 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cmake_minimum_required(VERSION 2.8)
+include(CMakeForceCompiler)
 
-set(LIBTUV_ROOT ${DEP_ROOT}/libtuv)
+set(CMAKE_SYSTEM_NAME Openwrt)
+set(CMAKE_SYSTEM_PROCESSOR mips)
 
-if(${TARGET_OS} STREQUAL "openwrt")
-	set(LIBTUV_INCDIR ${LIBTUV_ROOT}/include
-                  ${LIBTUV_ROOT}/source
-                  ${LIBTUV_ROOT}/source/linux)
-else()
-	set(LIBTUV_INCDIR ${LIBTUV_ROOT}/include
-                  ${LIBTUV_ROOT}/source
-                  ${LIBTUV_ROOT}/source/${TARGET_OS})
-endif()
+set(EXTERNAL_CMAKE_C_COMPILER mipsel-openwrt-linux-gcc)
+set(EXTERNAL_CMAKE_CXX_COMPILER mipsel-openwrt-linux-g++)
 
-set(LIBTUV_LIB ${LIB_ROOT}/libtuv.a)
-
-
-add_custom_command(OUTPUT ${LIBTUV_LIB}
-                   COMMAND touch ${LIBTUV_LIB})
-
-add_custom_target(targetLibtuv DEPENDS ${LIBTUV_LIB})
+CMAKE_FORCE_C_COMPILER(${EXTERNAL_CMAKE_C_COMPILER} GNU)
+CMAKE_FORCE_CXX_COMPILER(${EXTERNAL_CMAKE_CXX_COMPILER} GNU)

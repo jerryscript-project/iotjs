@@ -1,4 +1,4 @@
-/* Copyright 2015 Samsung Electronics Co., Ltd.
+/* Copyright 2015-2016 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -121,19 +121,18 @@ JHANDLER_FUNCTION(Binding) {
 }
 
 
-static JResult WrapEval(const char* source) {
+static JResult WrapEval(const char* source, size_t length) {
   static const char* wrapper[2] = {
       "(function(exports, require, module) {\n",
       "});\n" };
 
-  int len1 = strlen(wrapper[0]);
-  int len2 = strlen(source);
-  int len3 = strlen(wrapper[1]);
+  int len0 = strlen(wrapper[0]);
+  int len1 = strlen(wrapper[1]);
 
-  String code(NULL, len1 + len2 + len3);
+  String code(NULL, len0 + length + len1);
   strcpy(code.data(), wrapper[0]);
-  strcpy(code.data() + len1, source);
-  strcpy(code.data() + len1 + len2, wrapper[1]);
+  strcpy(code.data() + len0, source);
+  strcpy(code.data() + len0 + length, wrapper[1]);
 
   return JObject::Eval(code);
 }
@@ -143,7 +142,9 @@ JHANDLER_FUNCTION(Compile){
   JHANDLER_CHECK(handler.GetArgLength() == 1);
   JHANDLER_CHECK(handler.GetArg(0)->IsString());
 
-  JResult jres = WrapEval(handler.GetArg(0)->GetString().data());
+  String source = handler.GetArg(0)->GetString();
+
+  JResult jres = WrapEval(source.data(), source.size());
 
   if (jres.IsOk()) {
     handler.Return(jres.value());
@@ -159,20 +160,11 @@ JHANDLER_FUNCTION(CompileNativePtr){
   JHANDLER_CHECK(handler.GetArgLength() == 1);
   JHANDLER_CHECK(handler.GetArg(0)->IsString());
 
-  String id (handler.GetArg(0)->GetString());
+  String id = handler.GetArg(0)->GetString();
 
   int i=0;
   while (natives[i].name != NULL) {
-    const char *name_iter_p = natives[i].name;
-    size_t name_len = 0;
-    while (*name_iter_p != '\0')
-    {
-      name_len++;
-      name_iter_p++;
-    }
-
-    if (name_len == (size_t) id.size ()
-        && !strncmp (natives[i].name, id.data(), id.size())) {
+    if (!strcmp(natives[i].name, id.data())) {
       break;
     }
 
@@ -184,7 +176,7 @@ JHANDLER_FUNCTION(CompileNativePtr){
     JResult jres = JObject::ExecSnapshot(natives[i].code,
                                          natives[i].length);
 #else
-    JResult jres = WrapEval((const char*)natives[i].code);
+    JResult jres = WrapEval((const char*)natives[i].code, natives[i].length);
 #endif
 
     if (jres.IsOk()) {

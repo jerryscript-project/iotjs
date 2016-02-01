@@ -1,4 +1,4 @@
-/* Copyright 2015 Samsung Electronics Co., Ltd.
+/* Copyright 2015-2016 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -91,7 +91,7 @@ static void CleanupModules() {
 static bool RunIoTjs(JObject* process) {
   // Evaluating 'iotjs.js' returns a function.
 #ifndef ENABLE_SNAPSHOT
-  JResult jmain = JObject::Eval(String(iotjs_s), false, false);
+  JResult jmain = JObject::Eval(String(iotjs_s, iotjs_l), false, false);
 #else
   JResult jmain = JObject::ExecSnapshot(iotjs_s, iotjs_l);
 #endif

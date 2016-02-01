@@ -1,4 +1,4 @@
-/* Copyright 2015 Samsung Electronics Co., Ltd.
+/* Copyright 2015-2016 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -105,10 +105,9 @@ JObject::JObject(const char* v) {
 
 
 JObject::JObject(const String& v) {
-  IOTJS_ASSERT(!v.IsEmpty());
   _obj_val.type = JERRY_API_DATA_TYPE_STRING;
-  _obj_val.u.v_string = jerry_api_create_string(
-      reinterpret_cast<const jerry_api_char_t*>(v.data()));
+  _obj_val.u.v_string = jerry_api_create_string_sz(
+      reinterpret_cast<const jerry_api_char_t*>(v.data()), v.size());
   _unref_at_close = true;
 }
 
@@ -170,18 +169,8 @@ JObject JObject::Error(const char* message) {
 }
 
 
-JObject JObject::Error(const String& message) {
-  return CreateError(message.data(), JERRY_API_ERROR_COMMON);
-}
-
-
 JObject JObject::EvalError(const char* message) {
   return CreateError(message, JERRY_API_ERROR_EVAL);
-}
-
-
-JObject JObject::EvalError(const String& message) {
-  return CreateError(message.data(), JERRY_API_ERROR_EVAL);
 }
 
 
@@ -190,18 +179,8 @@ JObject JObject::RangeError(const char* message) {
 }
 
 
-JObject JObject::RangeError(const String& message) {
-  return CreateError(message.data(), JERRY_API_ERROR_RANGE);
-}
-
-
 JObject JObject::ReferenceError(const char* message) {
   return CreateError(message, JERRY_API_ERROR_REFERENCE);
-}
-
-
-JObject JObject::ReferenceError(const String& message) {
-  return CreateError(message.data(), JERRY_API_ERROR_REFERENCE);
 }
 
 
@@ -210,28 +189,13 @@ JObject JObject::SyntaxError(const char* message) {
 }
 
 
-JObject JObject::SyntaxError(const String& message) {
-  return CreateError(message.data(), JERRY_API_ERROR_SYNTAX);
-}
-
-
 JObject JObject::TypeError(const char* message) {
   return CreateError(message, JERRY_API_ERROR_TYPE);
 }
 
 
-JObject JObject::TypeError(const String& message) {
-  return CreateError(message.data(), JERRY_API_ERROR_TYPE);
-}
-
-
 JObject JObject::URIError(const char* message) {
   return CreateError(message, JERRY_API_ERROR_URI);
-}
-
-
-JObject JObject::URIError(const String& message) {
-  return CreateError(message.data(), JERRY_API_ERROR_URI);
 }
 
 
@@ -275,11 +239,6 @@ void JObject::SetProperty(const char* name, const JObject& val) {
 }
 
 
-void JObject::SetProperty(const String& name, const JObject& val) {
-  SetProperty(name.data(), val);
-}
-
-
 void JObject::SetProperty(const char* name, JRawValueType val) {
   IOTJS_ASSERT(IsObject());
   bool is_ok  = jerry_api_set_object_field_value(
@@ -287,11 +246,6 @@ void JObject::SetProperty(const char* name, JRawValueType val) {
         reinterpret_cast<const jerry_api_char_t*>(name),
         &val);
   IOTJS_ASSERT(is_ok);
-}
-
-
-void JObject::SetProperty(const String& name, JRawValueType val) {
-  SetProperty(name.data(), val);
 }
 
 
@@ -304,11 +258,6 @@ JObject JObject::GetProperty(const char* name) {
       &res);
   IOTJS_ASSERT(is_ok);
   return JObject(&res);
-}
-
-
-JObject JObject::GetProperty(const String& name) {
-  return GetProperty(name.data());
 }
 
 
@@ -446,7 +395,7 @@ String JObject::GetString() {
 
   jerry_api_size_t size = jerry_api_get_string_size(_obj_val.u.v_string);
 
-  String res("", size);
+  String res(NULL, size);
 
   jerry_api_char_t* buffer = reinterpret_cast<jerry_api_char_t*>(res.data());
 

@@ -1,4 +1,4 @@
-/* Copyright 2015 Samsung Electronics Co., Ltd.
+/* Copyright 2015-2016 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -116,8 +116,8 @@ public:
       char index_string1 [5];
       sprintf(index_string0,"%d",i*2);
       sprintf(index_string1,"%d",i*2+1);
-      JObject v(values[i].data());
-      JObject f(fields[i].data());
+      JObject v(values[i]);
+      JObject f(fields[i]);
       jheader.SetProperty(index_string0, f);
       jheader.SetProperty(index_string1, v);
 
@@ -147,7 +147,7 @@ public:
       JSETPROPERTY(info, "headers", makeHeader());
       if ( parser.type == HTTP_REQUEST) {
         IOTJS_ASSERT(!url.IsEmpty());
-        JSETPROPERTY(info, "url", url.data());
+        JSETPROPERTY(info, "url", url);
       }
     }
     n_fields = n_values = 0;
@@ -160,7 +160,7 @@ public:
     // Status
     if (parser.type == HTTP_RESPONSE) {
       JSETPROPERTY(info, "status", (int32_t)parser.status_code);
-      JSETPROPERTY(info, "status_msg", status_msg.data());
+      JSETPROPERTY(info, "status_msg", status_msg);
     }
 
 
@@ -218,7 +218,7 @@ public:
     JObject jheader(makeHeader());
     argv.Add(jheader);
     if (parser.type == HTTP_REQUEST && !url.IsEmpty()) {
-      JObject jurl(url.data());
+      JObject jurl(url);
       argv.Add(jurl);
     }
 

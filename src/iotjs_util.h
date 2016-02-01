@@ -1,4 +1,4 @@
-/* Copyright 2015 Samsung Electronics Co., Ltd.
+/* Copyright 2015-2016 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,6 +51,9 @@ class String {
   explicit String(const char* data, int size = -1, int cap = -1);
 
   // Create string object from other string object.
+  // (Actually unimplemented. Declaration of copy constructor is needed for
+  // return value optimization to work. However, linker error will be emitted
+  // if copy construction is used in any other situation.)
   String(const String& other);
 
   // Destructor

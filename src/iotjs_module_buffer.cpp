@@ -1,4 +1,4 @@
-/* Copyright 2015 Samsung Electronics Co., Ltd.
+/* Copyright 2015-2016 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -268,9 +268,9 @@ JHANDLER_FUNCTION(ToString) {
   int length = end - start;
   JHANDLER_CHECK(length >= 0);
 
-  String str("", length + 1);
+  length = strnlen(buffer_wrap->buffer() + start, length);
 
-  strncpy(str.data(), buffer_wrap->buffer() + start, length);
+  String str(buffer_wrap->buffer() + start, length);
 
   JObject ret(str);
   handler.Return(ret);

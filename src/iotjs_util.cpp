@@ -1,4 +1,4 @@
-/* Copyright 2015 Samsung Electronics Co., Ltd.
+/* Copyright 2015-2016 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,18 +33,12 @@ String ReadFile(const char* path) {
   IOTJS_ASSERT(len >= 0);
   fseek(file, 0, SEEK_SET);
 
-  String contents(NULL, 0, len);
+  String contents(NULL, len);
 
-  char buff[128];
-  size_t total = 0;
+  size_t read = fread(contents.data(), 1, len, file);
+  IOTJS_ASSERT(read == len);
 
-  while (total < len) {
-    size_t read = fread(buff, 1, 128, file);
-    IOTJS_ASSERT(read > 0);
-
-    contents.Append(buff, read);
-    total += read;
-  }
+  *(contents.data() + len) = 0;
 
   fclose(file);
 

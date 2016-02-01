@@ -1,4 +1,4 @@
-/* Copyright 2015 Samsung Electronics Co., Ltd.
+/* Copyright 2015-2016 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -91,26 +91,12 @@ class JObject {
 
   // Create a javascript error object.
   static JObject Error(const char* message);
-  static JObject Error(const String& message);
-
   static JObject EvalError(const char* message);
-  static JObject EvalError(const String& message);
-
   static JObject RangeError(const char* message);
-  static JObject RangeError(const String& message);
-
   static JObject ReferenceError(const char* message);
-  static JObject ReferenceError(const String& message);
-
   static JObject SyntaxError(const char* message);
-  static JObject SyntaxError(const String& message);
-
   static JObject TypeError(const char* message);
-  static JObject TypeError(const String& message);
-
   static JObject URIError(const char* message);
-  static JObject URIError(const String& message);
-
 
   // Evaluate javascript source file.
   static JResult Eval(const String& source,
@@ -143,13 +129,9 @@ class JObject {
 
   // Sets & gets property for the javascript object.
   void SetProperty(const char* name, const JObject& val);
-  void SetProperty(const String& name, const JObject& val);
-
   void SetProperty(const char* name, JRawValueType val);
-  void SetProperty(const String& name, JRawValueType val);
 
   JObject GetProperty(const char* name);
-  JObject GetProperty(const String& name);
 
   // Sets & gets native data for the javascript object.
   void SetNative(uintptr_t ptr, JFreeHandlerType free_handler);

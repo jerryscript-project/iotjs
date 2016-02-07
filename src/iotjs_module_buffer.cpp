@@ -163,6 +163,43 @@ JHANDLER_FUNCTION(Buffer) {
 }
 
 
+JHANDLER_FUNCTION(utf8Length) {
+  JHANDLER_CHECK(handler.GetArgLength() == 1);
+  JHANDLER_CHECK(handler.GetArg(0)->IsString());
+
+  // src.size() returns length of cesu8 encoded string
+  String src = handler.GetArg(0)->GetString();
+  int len_required = src.UTF8(NULL);
+
+  handler.Return(JVal::Number(len_required));
+  return true;
+}
+
+
+JHANDLER_FUNCTION(utf16Length) {
+  JHANDLER_CHECK(handler.GetArgLength() == 1);
+  JHANDLER_CHECK(handler.GetArg(0)->IsString());
+
+  // src.size() returns length of cesu8 encoded string
+  String src = handler.GetArg(0)->GetString();
+  int len_required = src.UTF16be(NULL);
+
+  handler.Return(JVal::Number(len_required));
+  return true;
+}
+
+
+JHANDLER_FUNCTION(cesu8Length) {
+  JHANDLER_CHECK(handler.GetArgLength() == 1);
+  JHANDLER_CHECK(handler.GetArg(0)->IsString());
+
+  String src = handler.GetArg(0)->GetString();
+
+  handler.Return(JVal::Number(src.size()));
+  return true;
+}
+
+
 JHANDLER_FUNCTION(Compare) {
   JHANDLER_CHECK(handler.GetThis()->IsObject());
   JHANDLER_CHECK(handler.GetArgLength() == 1);
@@ -288,6 +325,9 @@ JObject* InitBuffer() {
 
     JObject prototype;
     buffer->SetProperty("prototype", prototype);
+    buffer->SetMethod("utf8Length", utf8Length);
+    buffer->SetMethod("utf16Length", utf16Length);
+    buffer->SetMethod("cesu8Length", cesu8Length);
 
     prototype.SetMethod("compare", Compare);
     prototype.SetMethod("copy", Copy);

@@ -70,6 +70,9 @@ class String {
 
   int size() const;
 
+  int UTF16be(uint16_t* out);
+  int UTF8(uint8_t* out);
+
  protected:
   // Buffer for containing the string data.
   char* _data;

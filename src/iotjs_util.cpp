@@ -188,4 +188,156 @@ int String::size() const {
 }
 
 
+#define ONEBYTECESU(var)   (!((((uint8_t)var)>>7) & 1))     // 0xxxxxxx
+#define TWOBYTECESU(var)   ((((uint8_t)var)>>5) == 6)       // 110xxxxx
+#define THREEBYTECESU(var) ((((uint8_t)var)>>5) == 7)       // 1110xxxx
+
+
+int String::UTF16be(uint16_t* out) {
+  // Convert _data(cesu8 encoded) to utf16 format
+  int out_bytes = 0;
+  int processed_bytes = 0;
+  uint8_t* src = _data;
+  while (processed_bytes < _size-1) {
+    if(ONEBYTECESU(*src)) {
+      if (out != NULL) *out = (uint16_t)(*src);
+      // 1 cesu byte to 1 utf16 code unit(2bytes)
+      src++;
+      processed_bytes++;
+    }
+    else if(TWOBYTECESU(*src)) {
+      uint16_t high = ((*src) & 0x1f);  // mask out first 3 bits
+      src++;
+      processed_bytes++;
+      uint16_t low = ((*src) & 0x3f);   // mask out first 2 bits
+      src++;
+      processed_bytes++;
+      if (out != NULL) *out = ((high << 6) | low);
+    }
+    else if(THREEBYTECESU(*src)) {
+      uint16_t high1 = ((*src) & 0x0f);  // mask out first 4 bits
+      src++;
+      processed_bytes++;
+      uint16_t high2 = ((*src) & 0x3f); // mask out first 2 bits
+      src++;
+      processed_bytes++;
+      uint16_t low = ((*src) & 0x3f);  // mask out first 2 bits
+      src++;
+      processed_bytes++;
+      if (out != NULL) *out = ((high1 << 12) | (high2 << 6)
+                               | low);
+    }
+    out_bytes += 2;
+    if(out != NULL) out++;
+  }
+
+  return out_bytes;
+}
+
+#define ONEBYTEUTF16(var)   ((var) <= 0x7f)     // 000000000xxxxxxx
+#define TWOBYTEUTF16(var)   ((var) <= 0x7ff)    // 00000xxxxxxxxxxx
+#define FOURBYTEUTF16(var)  ((var >> 10) == 54) // 110110yy yyxxxxxx
+                                                // 110111xx xxxxxxxx
+
+
+
+// in_len is not # of bytes to be processed, # of utf16 code unit(16bits)
+int UTF16toUTF8(uint16_t* in, size_t in_len, uint8_t* out) {
+  int processed_codeunit = 0;
+  int out_bytes = 0;
+  while(processed_codeunit < in_len) {
+    if (ONEBYTEUTF16(*in)) {
+      if (out != NULL) {
+        (*out) = (uint8_t)*in;
+        out++;
+      }
+      processed_codeunit++;
+      in++;
+      out_bytes++;
+    }
+    else if (TWOBYTEUTF16(*in)) {
+      uint16_t high = (*in >> 6) | (6 << 5);
+      uint16_t low = ((*in & 0x3f ) | (2 << 6));
+
+      if (out != NULL) {
+        *out = (uint8_t)high;
+        out++;
+      }
+      if (out != NULL) {
+        *out = (uint8_t)low;
+        out++;
+      }
+
+      in++;
+      processed_codeunit++;
+      out_bytes += 2;
+    }
+    else if (FOURBYTEUTF16(*in)) {
+      uint16_t yyyy = (*in << 6) >> 12;
+      uint16_t zzzzz = yyyy + 1;
+      uint16_t xxxxxx = (*in & 0x3f);
+
+      if (out != NULL) {
+        *out = (uint8_t)((zzzzz >> 2) | (30 << 3));
+        out++;
+      }
+      if (out != NULL) {
+        *out = (uint8_t)((2 << 6) | ((zzzzz >> 3) << 4) | (xxxxxx >> 2));
+        out++;
+      }
+      in++;
+
+      uint16_t xxxxxxxxxx = (*in << 6) >> 6;
+      if (out != NULL) {
+        *out = (uint8_t)((2 << 6) | ((xxxxxx >> 4) << 4) | (xxxxxxxxxx >> 6) );
+        out++;
+      }
+      if (out != NULL) {
+        *out = (uint8_t)((2 << 6) | ((xxxxxxxxxx & 0x3f)));
+        out++;
+      }
+      in++;
+
+      processed_codeunit += 2;
+      out_bytes += 4;
+
+    }
+    else { // three bytes for utf8
+      if (out != NULL) {
+        *out = (uint8_t)((*in >> 12) | (14 << 4));
+        out++;
+      }
+      if (out != NULL) {
+        *out = (uint8_t)((*in >> 10) | (2 << 6));
+        out++;
+      }
+      if (out != NULL) {
+        *out = (uint8_t)((*in & 0x3f) | (2 << 6));
+        out++;
+      }
+
+      in++;
+      processed_codeunit++;
+      out_bytes += 3;
+    }
+  }
+  return out_bytes;
+}
+
+
+int String::UTF8(uint8_t* out) {
+  // Convert _data(cesu8 encoded) to utf8 format
+  // 1. cesu8 to utf16
+  int utf16len = UTF16be(NULL);
+  uint16_t *buf_utf16 = (uint16_t*)AllocBuffer(utf16len);
+  UTF16be(buf_utf16);
+
+  // 2. utf16be to utf8
+  int utf8len = UTF16toUTF8(buf_utf16, utf16len/2, NULL);
+  UTF16toUTF8(buf_utf16, utf16len/2, out);
+
+  ReleaseBuffer((char*)buf_utf16);
+  return utf8len;
+}
+
 } // namespace iotjs

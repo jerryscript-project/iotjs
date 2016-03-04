@@ -73,38 +73,41 @@ Module.resolveFilepath = function(id, directories) {
 
   for(var i = 0; i<directories.length ; i++) {
     var dir = directories[i];
+    var dirid = dir + id;
+
     // 1. 'id'
-    var filepath = Module.tryPath(dir+id);
+    var filepath = Module.tryPath(dirid);
 
     if(filepath){
       return filepath;
     }
 
     // 2. 'id.js'
-    filepath = Module.tryPath(dir+id+'.js');
+    filepath = Module.tryPath(dirid + '.js');
 
     if(filepath){
       return filepath;
     }
 
-    // 3. package path /node_modules/id
-    var packagepath = dir + id;
-    var jsonpath = packagepath + "/package.json";
+    // 3. id/package.json -> id/{main}
+    var jsonpath = dirid + '/package.json';
     filepath = Module.tryPath(jsonpath);
+
     if(filepath){
       var pkgSrc = process.readSource(jsonpath);
       var pkgMainFile = process.JSONParse(pkgSrc).main;
-      filepath = Module.tryPath(packagepath + "/" + pkgMainFile);
-      if(filepath){
-        return filepath;
-      }
-      // index.js
-      filepath = Module.tryPath(packagepath + "/" + "index.js");
+      filepath = Module.tryPath(dirid + '/' + pkgMainFile);
+
       if(filepath){
         return filepath;
       }
     }
 
+    // 4. id/index.js
+    filepath = Module.tryPath(dirid + '/index.js');
+    if(filepath){
+      return filepath;
+    }
   }
 
   return false;

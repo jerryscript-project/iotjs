@@ -55,13 +55,16 @@ static bool InitJerry(Environment* env) {
   InitJerryMagicStringEx();
 
   // Do parse and run to generate initial javascript environment.
-  if (!jerry_parse((jerry_api_char_t*)"", 0)) {
+  jerry_api_object_t *err_obj_p = NULL;
+  if (!jerry_parse((jerry_api_char_t*)"", 0, &err_obj_p)) {
     DLOG("jerry_parse() failed");
+    jerry_api_release_object (err_obj_p);
     return false;
   }
 
-  if (jerry_run() != JERRY_COMPLETION_CODE_OK) {
+  if (jerry_run(&err_obj_p) != JERRY_COMPLETION_CODE_OK) {
     DLOG("jerry_run() failed");
+    jerry_api_release_object (err_obj_p);
     return false;
   }
 

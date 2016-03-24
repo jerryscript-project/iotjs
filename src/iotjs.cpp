@@ -181,7 +181,7 @@ int Start(int argc, char** argv) {
   // Set event loop.
   env->set_loop(uv_default_loop());
 
-  // Initalize JerryScript engine.
+  // Initialize JerryScript engine.
   if (!InitJerry(env)) {
     DLOG("InitJerry failed");
     return 1;

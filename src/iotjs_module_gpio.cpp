@@ -48,7 +48,7 @@ Gpio* Gpio::GetInstance() {
 }
 
 
-// initialize(afterInitalize)
+// initialize(afterInitialize)
 JHANDLER_FUNCTION(Initialize) {
   JHANDLER_CHECK(handler.GetArgLength() == 1);
   JHANDLER_CHECK(handler.GetArg(0)->IsFunction());
@@ -64,7 +64,7 @@ JHANDLER_FUNCTION(Initialize) {
 }
 
 
-// release(afterInitalize)
+// release(afterInitialize)
 JHANDLER_FUNCTION(Release) {
   JHANDLER_CHECK(handler.GetArgLength() == 1);
   JHANDLER_CHECK(handler.GetArg(0)->IsFunction());

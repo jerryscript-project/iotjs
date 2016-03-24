@@ -26,7 +26,7 @@ HandleWrap::HandleWrap(JObject& jobject, uv_handle_t* handle)
     , _on_close_cb(NULL) {
   __handle->data = this;
 
-  // Increase ref count of Javascirpt object to gurantee it is alive until the
+  // Increase ref count of Javascirpt object to guarantee it is alive until the
   // handle has closed.
   _jobject->Ref();
 }

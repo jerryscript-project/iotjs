@@ -43,7 +43,7 @@ class TimerWrap : public HandleWrap {
   // Stop & close timer.
   int Stop();
 
-  // Retreive javascript callback function.
+  // Retrieve javascript callback function.
   JObject* jcallback() { return _jcallback; }
 
  protected:

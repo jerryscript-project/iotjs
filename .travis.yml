@@ -1,0 +1,18 @@
+language: cpp
+
+os: linux
+dist: trusty
+sudo: required
+
+before_install:
+  - deps/jerry/tools/apt-get-install-deps.sh
+
+install:
+
+script: "tools/build.py $OPTS"
+
+env:
+  - OPTS="--buildtype=debug"
+  - OPTS="--buildtype=release"
+  - OPTS="--jerry-lto"
+  - OPTS="--no-snapshot"

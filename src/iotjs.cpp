@@ -49,7 +49,7 @@ static bool InitJerry(Environment* env) {
   }
 
   // Initialize jerry.
-  jerry_init(jerry_flag);
+  jerry_init((jerry_flag_t) jerry_flag);
 
   // Set magic strings.
   InitJerryMagicStringEx();

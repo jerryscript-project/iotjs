@@ -391,6 +391,8 @@ def build_tuv(option):
     cmake_opt.append('-DCMAKE_BUILD_TYPE=' + option.buildtype)
     cmake_opt.append('-DTARGET_PLATFORM=' + target_tuple)
     cmake_opt.append('-DLIBTUV_CUSTOM_LIB_OUT=' + build_home)
+    cmake_opt.append('-DBUILDTESTER=no')
+    cmake_opt.append('-DBUILDAPIEMULTESTER=no')
 
     if option.target_os == 'nuttx':
         cmake_opt.append('-DTARGET_SYSTEMROOT=' + option.nuttx_home);

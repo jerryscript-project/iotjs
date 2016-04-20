@@ -3,7 +3,7 @@
 /build
 /build/*
 /src/iotjs_js.h
-/src/native_js.h
+/src/iotjs_js.cpp
 /test/tmp/*
 
 # IDE related files

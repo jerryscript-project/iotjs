@@ -15,7 +15,7 @@
 
 #include "iotjs_def.h"
 #include "iotjs_module_process.h"
-#include "native_js.h"
+#include "iotjs_js.cpp"
 
 #include <stdio.h>
 #include <stdlib.h>

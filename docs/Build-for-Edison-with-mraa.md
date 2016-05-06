@@ -29,6 +29,7 @@ In host PC
 ```
 cd mraa
 scp root@{edison ip}:/usr/lib/libmraa.so .
+scp root@{edison ip}:/usr/lib/libft4222.so .
 scp root@{edison ip}:/usr/include/mraa.h .
 scp -r root@{edison ip}:/usr/include/mraa .
 ```
@@ -40,10 +41,11 @@ in the folder `iotjs`
 ./tools/build.py \
 --target-arch=i686 \
 --compile-flag="-DUSING_MRAA" \
---external-include-dir="/home/jzd/iotjs/mraa" \
---external-shared-lib="/home/jzd/iotjs/mraa/libmraa.so"
+--external-include-dir="/home/jzd/edison/mraa" \
+--external-shared-lib="/home/jzd/edison/mraa/libmraa.so"
 ```
 **NOTE:** You should replace the above path with actual path in your host.
+The Yocto mraa.h will generate problems with check_tidy.py if it is inside the iotjs project.
 
 ## 3. Copy the binary into Edison
 

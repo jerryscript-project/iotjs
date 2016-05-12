@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# Copyright 2015 Samsung Electronics Co., Ltd.
+# Copyright 2015-2016 Samsung Electronics Co., Ltd.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -295,9 +295,6 @@ def set_global_vars(option):
     global libjerry_output_path
     libjerry_output_path = join_path([build_libs, 'libjerrycore.a'])
 
-    global libfdlibm_output_path
-    libfdlibm_output_path = join_path([build_libs, 'libfdlibm.a'])
-
     global iotjs_output_path
     iotjs_output_path = join_path([build_bins, 'iotjs'])
 
@@ -496,7 +493,7 @@ def build_libjerry(option):
             cmake_opt.append('-DEXTERNAL_CMAKE_SYSTEM_PROCESSOR=arm')
 
     if option.target_os == 'linux':
-        cmake_opt.append('-DUSE_COMPILER_DEFAULT_LIBC=YES')
+        cmake_opt.append('-DCOMPILER_DEFAULT_LIBC=ON')
 
     # --jerry-heaplimit
     if option.jerry_heaplimit:
@@ -538,16 +535,7 @@ def build_libjerry(option):
         'dest_path': libjerry_output_path
     }
 
-    # make target - target_libfdlibm
-    target_libfdlibm_name = '%s.jerry-fdlibm.third_party.lib' % option.buildtype
-    target_libfdlibm = {
-        'target_name': target_libfdlibm_name,
-        'output_path': join_path([build_home, 'third-party', 'fdlibm',
-                                  'lib%s.a' % target_libfdlibm_name]),
-        'dest_path': libfdlibm_output_path
-    }
-
-    targets = [target_libfdlibm]
+    targets = []
     if option.jerry_memstat:
         targets.append(target_libjerry_ms)
     else:
@@ -705,7 +693,6 @@ def copy_libraries_for_nuttx(option):
     shutil.copy(libhttpparser_output_path, nuttx_lib_path)
     shutil.copy(libtuv_output_path, nuttx_lib_path)
     shutil.copy(libjerry_output_path, nuttx_lib_path)
-    shutil.copy(libfdlibm_output_path, nuttx_lib_path)
     shutil.copy(libiotjs_output_path, nuttx_lib_path)
 
     return True

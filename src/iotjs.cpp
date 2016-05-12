@@ -22,6 +22,7 @@
 
 #include "jerry.h"
 #include "jerry-api.h"
+#include "jerry-port.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -38,7 +39,7 @@ Environment* Environment::_env = NULL;
  */
 static bool InitJerry(Environment* env) {
   // Set jerry run flags.
-  uint32_t jerry_flag = JERRY_FLAG_ABORT_ON_FAIL;
+  uint32_t jerry_flag = JERRY_FLAG_EMPTY;
 
   if (env->config()->memstat) {
     jerry_flag |= JERRY_FLAG_MEM_STATS;
@@ -62,9 +63,10 @@ static bool InitJerry(Environment* env) {
     return false;
   }
 
-  if (jerry_run(&err_obj_p) != JERRY_COMPLETION_CODE_OK) {
+  jerry_api_value_t err_val;
+  if (jerry_run(&err_val) != JERRY_COMPLETION_CODE_OK) {
     DLOG("jerry_run() failed");
-    jerry_api_release_object (err_obj_p);
+    jerry_api_release_value (&err_val);
     return false;
   }
 

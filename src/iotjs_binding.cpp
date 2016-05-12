@@ -256,7 +256,6 @@ JObject JObject::GetProperty(const char* name) {
       _obj_val.u.v_object,
       reinterpret_cast<const jerry_api_char_t*>(name),
       &res);
-  IOTJS_ASSERT(is_ok);
   return JObject(&res);
 }
 

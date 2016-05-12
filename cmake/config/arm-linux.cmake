@@ -1,4 +1,4 @@
-# Copyright 2015 Samsung Electronics Co., Ltd.
+# Copyright 2015-2016 Samsung Electronics Co., Ltd.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
 include(CMakeForceCompiler)
 
 set(CMAKE_SYSTEM_NAME Linux)
-set(CMAKE_SYSTEM_PROCESSOR arm)
+set(CMAKE_SYSTEM_PROCESSOR armv7l-hf)
 
 set(EXTERNAL_CMAKE_C_COMPILER arm-linux-gnueabihf-gcc)
 set(EXTERNAL_CMAKE_CXX_COMPILER arm-linux-gnueabihf-g++)

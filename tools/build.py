@@ -399,6 +399,9 @@ def build_tuv(option):
     if option.target_os == 'nuttx':
         cmake_opt.append('-DTARGET_SYSTEMROOT=' + option.nuttx_home);
 
+    if option.target_board:
+        cmake_opt.append('-DTARGET_BOARD=' + option.target_board)
+
     # inflate cmake option.
     inflate_cmake_option(cmake_opt, option)
 

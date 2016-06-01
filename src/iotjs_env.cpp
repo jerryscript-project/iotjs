@@ -60,10 +60,6 @@ bool Environment::ParseCommandLineArgument(int argc, char** argv) {
     return false;
   }
 
-  // Second argument should be IoT.js application.
-  char* app = argv[1];
-  _argc = 2;
-
   // Parse IoT.js command line arguments.
   int i = 2;
   while (i < argc) {
@@ -83,6 +79,7 @@ bool Environment::ParseCommandLineArgument(int argc, char** argv) {
   }
 
   // Remaining arguments are for application.
+  _argc = 2;
   _argv = new char*[_argc + argc - i];
   _argv[0] = argv[0];
   _argv[1] = argv[1];

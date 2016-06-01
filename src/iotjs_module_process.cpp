@@ -124,7 +124,7 @@ JHANDLER_FUNCTION(Binding) {
 static JResult WrapEval(const char* source, size_t length) {
   static const char* wrapper[2] = {
       "(function(exports, require, module) {\n",
-      "});\n" };
+      "\n});\n" };
 
   int len0 = strlen(wrapper[0]);
   int len1 = strlen(wrapper[1]);

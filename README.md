@@ -3,7 +3,7 @@
 [![License](https://img.shields.io/badge/licence-Apache%202.0-brightgreen.svg?style=flat)](LICENSE)
 [![Build Status](https://travis-ci.org/Samsung/iotjs.svg?branch=master)](https://travis-ci.org/Samsung/iotjs)
 
-You can find project details on our [project page](http://samsung.github.io/iotjs/) and [wiki](https://github.com/Samsung/iotjs/wiki).
+You can find project details on our [wiki](https://github.com/Samsung/iotjs/wiki).
 
 ## Quick Start
 ### How to Build

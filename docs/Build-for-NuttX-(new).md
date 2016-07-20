@@ -2,7 +2,7 @@
 
 This page describes short version to use with latest version of NuttX for STM32F4-Discovery with BB.
 
-Please read [Build for NuttX](Build-For-NuttX.md) page and understand full procedure.
+Please read [Build for NuttX](Build-for-NuttX.md) page and understand full procedure.
 
 #### Get NuttX for IoT.js
 

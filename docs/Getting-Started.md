@@ -7,17 +7,17 @@ IoT.js is built based on JerryScript(lightweight JavaScript engine) and libuv fo
 * libuv: https://github.com/Samsung/libuv.git 
 
 ### Build script
-There is a script to help you build IoT.js called "[build.py](Build Script)" in source repository.
+There is a script to help you build IoT.js called "[build.py](../tools/build.py)" in source repository.
 
 ### Supported platforms 
 Current supported platforms are **Linux and NuttX**
 
 * [Build for Linux](Build-for-Linux.md): Ubuntu 14.04 is used as a base platform.
 * [Build for NuttX](Build-for-NuttX.md): NuttX 7.9 (Feb 15, 2015)
-* [Build for Nuttx (new)](Build-for-Nuttx-\(new\).md): NuttX latest version
+* [Build for Nuttx (new)](Build-for-NuttX-(new).md): NuttX latest version
 * Raspberry Pi 2
-    * [Setting Raspberry Pi 2](Setting-Raspberry-Pi-2-for-IoT.js.md)
-    * [Build for ARM Linux (RPi2)](Build-for-ARM-Linux-\(RPi2\).md)
+    * [Setting Raspberry Pi 2](Setting-Raspberry-Pi-2.md)
+    * [Build for ARM Linux (RPi2)](Build-for-ARM-Linux-(RPi2).md)
 * [Build for Intel Edison with mraa](Build-for-Edison-with-mraa.md)
 
 ##### Platforms to support

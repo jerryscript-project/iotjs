@@ -1,4 +1,4 @@
-iIt's not that different for ARM-Linux targets, it's almost same as [Build for Linux](Build-for-Linux.md) page.
+It's not that different for ARM-Linux targets, it's almost same as [Build for Linux](Build-for-Linux.md) page.
 
 
 ### Prerequisite
@@ -14,8 +14,8 @@ sudo apt-get install gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf
 Giving `target-arch` and `target-os` will do. Rest is up to cross compiler and make system.
 
 ```
-./tools/build.py --buildtype=release --noinit-submodule \
---target-arch=arm --target-os=linux
+./tools/build.py --buildtype=release --no-init-submodule \
+--target-arch=arm --target-os=linux --target-board=rpi2 
 ```
 
 ### Running in Raspberry Pi 2

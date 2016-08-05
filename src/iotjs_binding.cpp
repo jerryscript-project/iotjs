@@ -23,49 +23,35 @@ namespace iotjs {
 
 
 #define JVAL_IS_NULL(val_p) \
-    ((val_p)->type == JERRY_API_DATA_TYPE_NULL)
+    jerry_value_is_null(*val_p)
 
 #define JVAL_IS_UNDEFINED(val_p) \
-    ((val_p)->type == JERRY_API_DATA_TYPE_UNDEFINED)
+    jerry_value_is_undefined(*val_p)
 
 #define JVAL_IS_STRING(val_p) \
-    ((val_p)->type == JERRY_API_DATA_TYPE_STRING)
+    jerry_value_is_string(*val_p)
 
 #define JVAL_IS_OBJECT(val_p) \
-    ((val_p)->type == JERRY_API_DATA_TYPE_OBJECT)
+    jerry_value_is_object(*val_p)
 
 #define JVAL_IS_FUNCTION(val_p) \
-    (JVAL_IS_OBJECT(val_p) && jerry_api_is_function((val_p)->u.v_object))
+    jerry_value_is_function(*val_p)
 
 #define JVAL_IS_BOOLEAN(val_p) \
-    ((val_p)->type == JERRY_API_DATA_TYPE_BOOLEAN)
+    jerry_value_is_boolean(*val_p)
 
 #define JVAL_IS_NUMBER(val_p) \
-    (((val_p)->type == JERRY_API_DATA_TYPE_FLOAT32) || \
-     ((val_p)->type == JERRY_API_DATA_TYPE_FLOAT64) || \
-     ((val_p)->type == JERRY_API_DATA_TYPE_UINT32))
+    jerry_value_is_number(*val_p)
 
 #define JVAL_TO_BOOLEAN(val_p) \
-    (val_p)->u.v_bool
+    jerry_get_boolean_value(*val_p)
 
 #define JVAL_TO_NUMBER(val_p) \
-    ((val_p)->type == JERRY_API_DATA_TYPE_FLOAT32 ? \
-       static_cast<double>((val_p)->u.v_float32) : \
-     (val_p)->type == JERRY_API_DATA_TYPE_FLOAT64 ? \
-       static_cast<double>((val_p)->u.v_float64) : \
-     static_cast<double>((val_p)->u.v_uint32))
-
-
-
-JRawObjectType* GetGlobal() {
-  return jerry_api_get_global();
-}
-
+    jerry_get_number_value(*val_p)
 
 
 JObject::JObject() {
-  JRawObjectType* new_obj = jerry_api_create_object();
-  _obj_val = JVal::Object(new_obj);
+  _obj_val = jerry_create_object();
   _unref_at_close = true;
 }
 
@@ -85,49 +71,39 @@ JObject::JObject(bool v) {
 
 JObject::JObject(int v) {
   _obj_val = JVal::Number(v);
-  _unref_at_close = false;
+  _unref_at_close = true;
 }
 
 
 JObject::JObject(double v) {
   _obj_val = JVal::Number(v);
-  _unref_at_close = false;
+  _unref_at_close = true;
 }
 
 
 JObject::JObject(const char* v) {
   IOTJS_ASSERT(v != NULL);
-  _obj_val.type = JERRY_API_DATA_TYPE_STRING;
-  _obj_val.u.v_string = jerry_api_create_string(
-      reinterpret_cast<const jerry_api_char_t*>(v));
+  _obj_val = jerry_create_string(reinterpret_cast<const jerry_char_t*>(v));
   _unref_at_close = true;
 }
 
 
 JObject::JObject(const String& v) {
-  _obj_val.type = JERRY_API_DATA_TYPE_STRING;
-  _obj_val.u.v_string = jerry_api_create_string_sz(
-      reinterpret_cast<const jerry_api_char_t*>(v.data()), v.size());
+  _obj_val = jerry_create_string_sz(
+      reinterpret_cast<const jerry_char_t*>(v.data()), v.size());
   _unref_at_close = true;
 }
 
 
-JObject::JObject(const JRawObjectType* obj, bool need_unref) {
-  _obj_val = JVal::Object(obj);
-  _unref_at_close = need_unref;
-}
-
-
-JObject::JObject(const JRawValueType* val, bool need_unref) {
-  _obj_val = *val;
+JObject::JObject(const JRawValueType val, bool need_unref) {
+  _obj_val = val;
   _unref_at_close = need_unref;
 }
 
 
 JObject::JObject(JHandlerType handler) {
-  _obj_val.u.v_object = jerry_api_create_external_function(handler);
-  IOTJS_ASSERT(jerry_api_is_constructor(_obj_val.u.v_object));
-  _obj_val.type = JERRY_API_DATA_TYPE_OBJECT;
+  _obj_val = jerry_create_external_function(handler);
+  IOTJS_ASSERT(jerry_value_is_constructor(_obj_val));
   _unref_at_close = true;
 }
 
@@ -139,142 +115,132 @@ JObject::~JObject() {
 }
 
 
-static JRawValueType jnull_val = JVal::Null();
-static JObject jnull(&jnull_val);
 JObject& JObject::Null() {
-  return jnull;
+  static JObject null(JVal::Null(), false);
+  return null;
 }
 
-
-static JRawValueType jundefined_val = JVal::Undefined();
-static JObject jundefined(&jundefined_val);
 JObject& JObject::Undefined() {
-  return jundefined;
+  static JObject undefined(JVal::Undefined(), false);
+  return undefined;
 }
 
 
 JObject JObject::Global() {
-  return JObject(GetGlobal());
+  return JObject((JRawValueType) jerry_get_global_object(), true);
 }
 
 
-JObject CreateError(const char* message, jerry_api_error_t error) {
-  return JObject(jerry_api_create_error(
-      error, reinterpret_cast<const jerry_api_char_t*>(message)));
+JObject CreateError(const char* message, jerry_error_t error) {
+  JRawValueType error_value = jerry_create_error(error,
+      reinterpret_cast<const jerry_char_t*>(message));
+  jerry_value_clear_error_flag(&error_value);
+  return JObject(error_value);
 }
 
 
 JObject JObject::Error(const char* message) {
-  return CreateError(message, JERRY_API_ERROR_COMMON);
+  return CreateError(message, JERRY_ERROR_COMMON);
 }
 
 
 JObject JObject::EvalError(const char* message) {
-  return CreateError(message, JERRY_API_ERROR_EVAL);
+  return CreateError(message, JERRY_ERROR_EVAL);
 }
 
 
 JObject JObject::RangeError(const char* message) {
-  return CreateError(message, JERRY_API_ERROR_RANGE);
+  return CreateError(message, JERRY_ERROR_RANGE);
 }
 
 
 JObject JObject::ReferenceError(const char* message) {
-  return CreateError(message, JERRY_API_ERROR_REFERENCE);
+  return CreateError(message, JERRY_ERROR_REFERENCE);
 }
 
 
 JObject JObject::SyntaxError(const char* message) {
-  return CreateError(message, JERRY_API_ERROR_SYNTAX);
+  return CreateError(message, JERRY_ERROR_SYNTAX);
 }
 
 
 JObject JObject::TypeError(const char* message) {
-  return CreateError(message, JERRY_API_ERROR_TYPE);
+  return CreateError(message, JERRY_ERROR_TYPE);
 }
 
 
 JObject JObject::URIError(const char* message) {
-  return CreateError(message, JERRY_API_ERROR_URI);
+  return CreateError(message, JERRY_ERROR_URI);
 }
 
 
 JResult JObject::Eval(const String& source,
-                      bool direct_mode,
                       bool strict_mode) {
-  JRawValueType res;
-  jerry_completion_code_t ret = jerry_api_eval(
-      reinterpret_cast<const jerry_api_char_t*>(source.data()),
+  JRawValueType res = jerry_eval(
+      reinterpret_cast<const jerry_char_t*>(source.data()),
       source.size(),
-      direct_mode,
-      strict_mode,
-      &res);
+      strict_mode);
 
-  IOTJS_ASSERT(ret == JERRY_COMPLETION_CODE_OK ||
-               ret == JERRY_COMPLETION_CODE_UNHANDLED_EXCEPTION);
+  JResultType type = jerry_value_has_error_flag(res)
+      ? JRESULT_EXCEPTION
+      : JRESULT_OK;
 
-  JResultType type = (ret == JERRY_COMPLETION_CODE_OK)
-                     ? JRESULT_OK
-                     : JRESULT_EXCEPTION;
+  jerry_value_clear_error_flag(&res);
 
-  return JResult(&res, type);
+  return JResult(res, type);
 }
 
 
 void JObject::SetMethod(const char* name, JHandlerType handler) {
   IOTJS_ASSERT(IsObject());
-  JObject method(jerry_api_create_external_function(handler));
+  JObject method(jerry_create_external_function(handler));
   SetProperty(name, method);
 }
 
 
 void JObject::SetProperty(const char* name, const JObject& val) {
   IOTJS_ASSERT(IsObject());
-  JRawValueType v = val.raw_value();
-  bool is_ok  = jerry_api_set_object_field_value(
-      _obj_val.u.v_object,
-      reinterpret_cast<const jerry_api_char_t*>(name),
-      &v);
-  IOTJS_ASSERT(is_ok);
+  SetProperty(name, val.raw_value());
 }
 
 
 void JObject::SetProperty(const char* name, JRawValueType val) {
   IOTJS_ASSERT(IsObject());
-  bool is_ok  = jerry_api_set_object_field_value(
-        _obj_val.u.v_object,
-        reinterpret_cast<const jerry_api_char_t*>(name),
-        &val);
-  IOTJS_ASSERT(is_ok);
+  JRawValueType prop_name = jerry_create_string(
+      reinterpret_cast<const jerry_char_t*>(name));
+  JRawValueType ret_val = jerry_set_property(
+      _obj_val,
+      prop_name,
+      val);
+  jerry_release_value(prop_name);
+  IOTJS_ASSERT(!jerry_value_has_error_flag(ret_val));
+  jerry_release_value(ret_val);
 }
 
 
 JObject JObject::GetProperty(const char* name) {
   IOTJS_ASSERT(IsObject());
-  JRawValueType res;
-  bool is_ok = jerry_api_get_object_field_value(
-      _obj_val.u.v_object,
-      reinterpret_cast<const jerry_api_char_t*>(name),
-      &res);
-  return JObject(&res);
+  JRawValueType prop_name = jerry_create_string(
+      reinterpret_cast<const jerry_char_t*>(name));
+  JRawValueType res = jerry_get_property(_obj_val, prop_name);
+  jerry_release_value(prop_name);
+
+  if (jerry_value_has_error_flag (res)) {
+    jerry_release_value (res);
+    return JObject::Undefined();
+  }
+
+  return JObject(res);
 }
 
 
 void JObject::Ref() {
-  if (JVAL_IS_STRING(&_obj_val)) {
-    jerry_api_acquire_string(_obj_val.u.v_string);
-  } else if (JVAL_IS_OBJECT(&_obj_val)) {
-    jerry_api_acquire_object(_obj_val.u.v_object);
-  }
+  jerry_acquire_value(_obj_val);
 }
 
 
 void JObject::Unref() {
-  if (JVAL_IS_STRING(&_obj_val)) {
-    jerry_api_release_string(_obj_val.u.v_string);
-  } else if (JVAL_IS_OBJECT(&_obj_val)) {
-    jerry_api_release_object(_obj_val.u.v_object);
-  }
+  jerry_release_value (_obj_val);
 }
 
 
@@ -315,14 +281,14 @@ bool JObject::IsFunction() {
 
 void JObject::SetNative(uintptr_t ptr, JFreeHandlerType free_handler) {
   IOTJS_ASSERT(IsObject());
-  jerry_api_set_object_native_handle(_obj_val.u.v_object, ptr, free_handler);
+  jerry_set_object_native_handle(_obj_val, ptr, free_handler);
 }
 
 
 uintptr_t JObject::GetNative() {
   IOTJS_ASSERT(IsObject());
   uintptr_t ptr;
-  jerry_api_get_object_native_handle(_obj_val.u.v_object, &ptr);
+  jerry_get_object_native_handle(_obj_val, &ptr);
   return ptr;
 }
 
@@ -330,8 +296,6 @@ uintptr_t JObject::GetNative() {
 JResult JObject::Call(JObject& this_, JArgList& arg) {
   IOTJS_ASSERT(IsFunction());
 
-  JRawObjectType* this_obj_p = this_.IsNull() ? NULL
-                                              : this_.raw_value().u.v_object;
   JRawValueType res;
   JRawValueType* val_args = NULL;
   uint16_t val_argv = 0;
@@ -344,19 +308,19 @@ JResult JObject::Call(JObject& this_, JArgList& arg) {
     }
   }
 
-  bool is_ok = jerry_api_call_function(_obj_val.u.v_object,
-                                       this_obj_p,
-                                       &res,
-                                       val_args,
-                                       val_argv);
+  res = jerry_call_function(_obj_val, this_.raw_value(), val_args, val_argv);
 
   if (val_args) {
     delete [] val_args;
   }
 
-  JResultType type = is_ok ? JRESULT_OK : JRESULT_EXCEPTION;
+  JResultType type = jerry_value_has_error_flag(res)
+      ? JRESULT_EXCEPTION
+      : JRESULT_OK;
 
-  return JResult(&res, type);
+  jerry_value_clear_error_flag(&res);
+
+  return JResult(res, type);
 }
 
 
@@ -392,15 +356,13 @@ double JObject::GetNumber() {
 String JObject::GetString() {
   IOTJS_ASSERT(IsString());
 
-  jerry_api_size_t size = jerry_api_get_string_size(_obj_val.u.v_string);
+  jerry_size_t size = jerry_get_string_size(_obj_val);
 
   String res(NULL, size);
 
-  jerry_api_char_t* buffer = reinterpret_cast<jerry_api_char_t*>(res.data());
+  jerry_char_t* buffer = reinterpret_cast<jerry_char_t*>(res.data());
 
-  size_t check = jerry_api_string_to_char_buffer(_obj_val.u.v_string,
-                                                 buffer,
-                                                 size);
+  size_t check = jerry_string_to_char_buffer(_obj_val, buffer, size);
 
   IOTJS_ASSERT(check == size);
 
@@ -411,23 +373,19 @@ String JObject::GetString() {
 #ifdef ENABLE_SNAPSHOT
 JResult JObject::ExecSnapshot(const void *snapshot_p,
                               size_t snapshot_size) {
-  JRawValueType res;
-  jerry_completion_code_t ret;
-  ret = jerry_exec_snapshot (snapshot_p,
-                             snapshot_size,
-                             false, /* the snapshot buffer
-                                     * can be referenced
-                                     * until jerry_cleanup is not called */
-                             &res);
+  JRawValueType res = jerry_exec_snapshot(
+      snapshot_p,
+      snapshot_size,
+      false); /* the snapshot buffer can be referenced
+               * until jerry_cleanup is not called */
 
-  IOTJS_ASSERT(ret == JERRY_COMPLETION_CODE_OK ||
-               ret == JERRY_COMPLETION_CODE_UNHANDLED_EXCEPTION);
+  JResultType type = jerry_value_has_error_flag(res)
+      ? JRESULT_EXCEPTION
+      : JRESULT_OK;
 
-  JResultType type = (ret == JERRY_COMPLETION_CODE_OK)
-                     ? JRESULT_OK
-                     : JRESULT_EXCEPTION;
+  jerry_value_clear_error_flag(&res);
 
-  return JResult(&res, type);
+  return JResult(res, type);
 }
 #endif
 
@@ -438,7 +396,7 @@ JResult::JResult(const JObject& value, JResultType type)
 }
 
 
-JResult::JResult(const JRawValueType* raw_val, JResultType type)
+JResult::JResult(const JRawValueType raw_val, JResultType type)
     : _value(raw_val)
     , _type(type) {
 }
@@ -471,33 +429,18 @@ bool JResult::IsException() const {
 }
 
 
-
-JRawValueType JVal::Void() {
-  JRawValueType val;
-  val.type = JERRY_API_DATA_TYPE_VOID;
-  return val;
-}
-
-
 JRawValueType JVal::Undefined() {
-  JRawValueType val;
-  val.type = JERRY_API_DATA_TYPE_UNDEFINED;
-  return val;
+  return jerry_create_undefined();
 }
 
 
 JRawValueType JVal::Null() {
-  JRawValueType val;
-  val.type = JERRY_API_DATA_TYPE_NULL;
-  return val;
+  return jerry_create_null();
 }
 
 
 JRawValueType JVal::Bool(bool v) {
-  JRawValueType val;
-  val.type = JERRY_API_DATA_TYPE_BOOLEAN;
-  val.u.v_bool = v;
-  return val;
+  return jerry_create_boolean(v);
 }
 
 
@@ -507,18 +450,12 @@ JRawValueType JVal::Number(int v) {
 
 
 JRawValueType JVal::Number(double v) {
-  JRawValueType val;
-  val.type = JERRY_API_DATA_TYPE_FLOAT64;
-  val.u.v_float64 = v;
-  return val;
+  return jerry_create_number(v);
 }
 
 
-JRawValueType JVal::Object(const JRawObjectType* obj) {
-  JRawValueType val;
-  val.type = JERRY_API_DATA_TYPE_OBJECT;
-  val.u.v_object = const_cast<JRawObjectType*>(obj);
-  return val;
+JRawValueType JVal::Object() {
+  return jerry_create_object();
 }
 
 
@@ -563,7 +500,7 @@ void JArgList::Add(JObject& x) {
 
 
 void JArgList::Add(JRawValueType x) {
-  JObject jtmp(&x);
+  JObject jtmp(x);
   Add(jtmp);
 }
 
@@ -578,7 +515,7 @@ void JArgList::Set(uint16_t i, JObject& x) {
 
 
 void JArgList::Set(uint16_t i, JRawValueType x) {
-  JObject jtmp(&x);
+  JObject jtmp(x);
   Set(i, jtmp);
 }
 
@@ -589,19 +526,19 @@ JObject* JArgList::Get(uint16_t i) {
 }
 
 
-JHandlerInfo::JHandlerInfo(const JRawObjectType* function_obj_p,
-                           const JRawValueType* this_p,
+JHandlerInfo::JHandlerInfo(const JRawValueType func_obj_val,
+                           const JRawValueType this_val,
                            JRawValueType* ret_val_p,
                            const JRawValueType args_p[],
                            const uint16_t args_cnt)
-    : _function(function_obj_p, false)
-    , _this(this_p, false)
+    : _function(func_obj_val, false)
+    , _this(this_val, false)
     , _arg_list(args_cnt)
     , _ret_val_p(ret_val_p)
     , _thrown(false) {
   if (args_cnt > 0) {
     for (int i = 0; i < args_cnt; ++i) {
-      JObject arg(&args_p[i], false);
+      JObject arg(args_p[i], false);
       _arg_list.Add(arg);
     }
   }
@@ -639,7 +576,7 @@ void JHandlerInfo::Return(JObject& ret) {
 
 
 void JHandlerInfo::Return(JRawValueType raw_val) {
-  JObject jret(&raw_val);
+  JObject jret(raw_val);
   Return(jret);
 }
 
@@ -649,13 +586,14 @@ void JHandlerInfo::Throw(JObject& ret) {
 
   ret.Ref();
   *_ret_val_p = ret.raw_value();
+  jerry_value_set_error_flag(_ret_val_p);
 
   _thrown = true;
 }
 
 
 void JHandlerInfo::Throw(JRawValueType raw_val) {
-  JObject jthrow(&raw_val);
+  JObject jthrow(raw_val);
   Throw(jthrow);
 }
 

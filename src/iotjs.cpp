@@ -20,7 +20,6 @@
 #include "iotjs_string_ext.h"
 #include "iotjs_handlewrap.h"
 
-#include "jerry.h"
 #include "jerry-api.h"
 #include "jerry-port.h"
 
@@ -39,37 +38,40 @@ Environment* Environment::_env = NULL;
  */
 static bool InitJerry(Environment* env) {
   // Set jerry run flags.
-  uint32_t jerry_flag = JERRY_FLAG_EMPTY;
+  uint32_t jerry_flag = JERRY_INIT_EMPTY;
 
   if (env->config()->memstat) {
-    jerry_flag |= JERRY_FLAG_MEM_STATS;
+    jerry_flag |= JERRY_INIT_MEM_STATS;
   }
 
   if (env->config()->show_opcode) {
-    jerry_flag |= JERRY_FLAG_SHOW_OPCODES;
+    jerry_flag |= JERRY_INIT_SHOW_OPCODES;
   }
 
   // Initialize jerry.
-  jerry_init((jerry_flag_t) jerry_flag);
+  jerry_init((jerry_init_flag_t) jerry_flag);
 
   // Set magic strings.
   InitJerryMagicStringEx();
 
   // Do parse and run to generate initial javascript environment.
-  jerry_api_object_t *err_obj_p = NULL;
-  if (!jerry_parse((jerry_api_char_t*)"", 0, &err_obj_p)) {
+  jerry_value_t parsed_code = jerry_parse((jerry_char_t*)"", 0, false);
+  if (jerry_value_has_error_flag(parsed_code)) {
     DLOG("jerry_parse() failed");
-    jerry_api_release_object (err_obj_p);
+    jerry_release_value(parsed_code);
     return false;
   }
 
-  jerry_api_value_t err_val;
-  if (jerry_run(&err_val) != JERRY_COMPLETION_CODE_OK) {
+  jerry_value_t ret_val = jerry_run(parsed_code);
+  if (jerry_value_has_error_flag(ret_val)) {
     DLOG("jerry_run() failed");
-    jerry_api_release_value (&err_val);
+    jerry_release_value(parsed_code);
+    jerry_release_value(ret_val);
     return false;
   }
 
+  jerry_release_value(parsed_code);
+  jerry_release_value(ret_val);
   return true;
 }
 
@@ -93,7 +95,7 @@ static void CleanupModules() {
 static bool RunIoTjs(JObject* process) {
   // Evaluating 'iotjs.js' returns a function.
 #ifndef ENABLE_SNAPSHOT
-  JResult jmain = JObject::Eval(String(iotjs_s, iotjs_l), false, false);
+  JResult jmain = JObject::Eval(String(iotjs_s, iotjs_l), false);
 #else
   JResult jmain = JObject::ExecSnapshot(iotjs_s, iotjs_l);
 #endif

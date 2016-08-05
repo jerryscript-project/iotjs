@@ -152,8 +152,6 @@ JHANDLER_FUNCTION(Start) {
 
   JObject ret(res);
   handler.Return(ret);
-
-  return true;
 }
 
 
@@ -171,8 +169,6 @@ JHANDLER_FUNCTION(Stop) {
 
   JObject ret(res);
   handler.Return(ret);
-
-  return true;
 }
 
 
@@ -185,8 +181,6 @@ JHANDLER_FUNCTION(Timer) {
   TimerWrap* timer_wrap = new TimerWrap(env, *jtimer);
   IOTJS_ASSERT(timer_wrap->jobject().IsObject());
   IOTJS_ASSERT(jtimer->GetNative() != 0);;
-
-  return true;
 }
 
 

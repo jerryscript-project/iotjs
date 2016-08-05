@@ -308,8 +308,6 @@ JHANDLER_FUNCTION(Reinitialize) {
   HTTPParserWrap* parser =
     reinterpret_cast<HTTPParserWrap*>(jparser->GetNative());
   parser->Initialize(httpparser_type);
-
-  return true;
 }
 
 
@@ -331,8 +329,6 @@ JHANDLER_FUNCTION(Finish) {
     JSETPROPERTY(eobj, "code", http_errno_name(err));
     handler.Return(eobj);
   }
-
-  return true;
 }
 
 
@@ -377,8 +373,6 @@ JHANDLER_FUNCTION(Execute) {
     JObject ret(nparsed);
     handler.Return(ret);
   }
-
-  return true;
 }
 
 
@@ -389,7 +383,6 @@ JHANDLER_FUNCTION(Pause) {
   HTTPParserWrap* parser =
     reinterpret_cast<HTTPParserWrap*>(jparser->GetNative());
   http_parser_pause(&parser->parser, 1);
-  return true;
 }
 
 
@@ -400,7 +393,6 @@ JHANDLER_FUNCTION(Resume) {
   HTTPParserWrap* parser =
     reinterpret_cast<HTTPParserWrap*>(jparser->GetNative());
   http_parser_pause(&parser->parser, 0);
-  return true;
 }
 
 
@@ -420,7 +412,6 @@ JHANDLER_FUNCTION(HTTPParserCons) {
   IOTJS_ASSERT(httpparser_wrap->jobject().IsObject());
   IOTJS_ASSERT(reinterpret_cast<HTTPParserWrap*>(jparser->GetNative())
          == httpparser_wrap);
-  return true;
 }
 
 

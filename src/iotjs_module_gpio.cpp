@@ -59,8 +59,7 @@ JHANDLER_FUNCTION(Initialize) {
   Gpio* gpio = Gpio::GetInstance();
   gpio->Initialize(req_wrap);
 
-  handler.Return(JObject::Null());
-  return true;
+  handler.Return(JVal::Null());
 }
 
 
@@ -75,8 +74,7 @@ JHANDLER_FUNCTION(Release) {
   Gpio* gpio = Gpio::GetInstance();
   gpio->Release(req_wrap);
 
-  handler.Return(JObject::Null());
-  return true;
+  handler.Return(JVal::Null());
 }
 
 
@@ -111,8 +109,7 @@ JHANDLER_FUNCTION(SetPin) {
   Gpio* gpio = Gpio::GetInstance();
   gpio->SetPin(req_wrap);
 
-  handler.Return(JObject::Null());
-  return true;
+  handler.Return(JVal::Null());
 }
 
 
@@ -133,8 +130,7 @@ JHANDLER_FUNCTION(WritePin) {
   Gpio* gpio = Gpio::GetInstance();
   gpio->WritePin(req_wrap);
 
-  handler.Return(JObject::Null());
-  return true;
+  handler.Return(JVal::Null());
 }
 
 
@@ -153,40 +149,35 @@ JHANDLER_FUNCTION(ReadPin) {
   Gpio* gpio = Gpio::GetInstance();
   gpio->ReadPin(req_wrap);
 
-  handler.Return(JObject::Null());
-  return true;
+  handler.Return(JVal::Null());
 }
 
 
 JHANDLER_FUNCTION(SetPort) {
   IOTJS_ASSERT(!"Not implemented");
 
-  handler.Return(JObject::Null());
-  return true;
+  handler.Return(JVal::Null());
 }
 
 
 JHANDLER_FUNCTION(WritePort) {
   IOTJS_ASSERT(!"Not implemented");
 
-  handler.Return(JObject::Null());
-  return true;
+  handler.Return(JVal::Null());
 }
 
 
 JHANDLER_FUNCTION(ReadPort) {
   IOTJS_ASSERT(!"Not implemented");
 
-  handler.Return(JObject::Null());
-  return true;
+  handler.Return(JVal::Null());
 }
 
 
 JHANDLER_FUNCTION(Query) {
   IOTJS_ASSERT(!"Not implemented");
 
-  handler.Return(JObject::Null());
-  return true;
+  handler.Return(JVal::Null());
 }
 
 

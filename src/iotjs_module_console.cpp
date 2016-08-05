@@ -22,24 +22,22 @@
 namespace iotjs {
 
 
-static bool Print(JHandlerInfo& handler, FILE* out_fd) {
+static void Print(JHandlerInfo& handler, FILE* out_fd) {
   JHANDLER_CHECK(handler.GetArgLength() == 1);
   JHANDLER_CHECK(handler.GetArg(0)->IsString());
 
   String msg = handler.GetArg(0)->GetString();
   fprintf(out_fd, "%s", msg.data());
-
-  return true;
 }
 
 
 JHANDLER_FUNCTION(Stdout) {
-  return Print(handler, stdout);
+  Print(handler, stdout);
 }
 
 
 JHANDLER_FUNCTION(Stderr) {
-  return Print(handler, stderr);
+  Print(handler, stderr);
 }
 
 

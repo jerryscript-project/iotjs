@@ -26,7 +26,7 @@ For Additional information see [Getting Started](docs/Getting-Started.md).
 - [API Reference](docs/IoT.js-API-reference.md)
 
 ## License
-JerryScript is Open Source software under the [Apache 2.0 license](https://www.apache.org/licenses/LICENSE-2.0). Complete license and copyright information can be found within the code.
+IoT.js is Open Source software under the [Apache 2.0 license](https://www.apache.org/licenses/LICENSE-2.0). Complete license and copyright information can be found within the code.
 
 > Copyright 2015 Samsung Electronics Co., Ltd.
 

@@ -1,4 +1,4 @@
-i# IoT.js modules
+# IoT.js modules
 ## Basic API
 * [Assert](IoT.js-API-Assert.md)
 * [Buffer](IoT.js-API-Buffer.md)

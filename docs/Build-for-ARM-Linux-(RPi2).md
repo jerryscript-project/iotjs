@@ -3,7 +3,7 @@ It's not that different for ARM-Linux targets, it's almost same as [Build for Li
 
 ### Prerequisite
 
-Install arm linux cross compiler
+Install arm linux cross compiler.
 
 ```
 sudo apt-get install gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf
@@ -11,7 +11,7 @@ sudo apt-get install gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf
 
 
 ### Raspberry Pi 2 build
-Giving `target-arch` and `target-os` will do. Rest is up to cross compiler and make system.
+Giving `target-arch`, `target-os` and `target-board` will do. Rest is up to cross compiler and make system.
 
 ```
 ./tools/build.py --buildtype=release --no-init-submodule \

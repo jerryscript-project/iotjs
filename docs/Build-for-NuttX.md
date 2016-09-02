@@ -172,7 +172,7 @@ As noted in [Build for Linux](Build-for-Linux.md) page, you need to give additio
 --target-os=nuttx 
 --nuttx-home=(full path of nuttx home where .config file exist)
 --buildlib
---no-checktest
+--no-check-test
 ```
 Have to disable 'checktest' as test with Nuttx binaries are not possible.
 `buildlib` for nuttx is turned on for default.
@@ -199,7 +199,7 @@ If you have harmony in /home/maxwell/harmony, for example;
 ```
 cd harmony/iotjs
 ./tools/build.py --buildtype=release --target-arch=arm --target-os=nuttx \
---nuttx-home=/home/maxwell/harmony/nuttx/nuttx --no-checktest
+--nuttx-home=/home/maxwell/harmony/nuttx/nuttx --no-check-test
 ```
 
 ### 4. Copy libraries to nuttx/nuttx/lib folder

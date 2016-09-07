@@ -48,7 +48,7 @@ static void After(uv_fs_t* req) {
     JObject jerror(CreateUVException(req->result, "open"));
     jarg.Add(jerror);
   } else {
-    jarg.Add(JObject::Null());
+    jarg.Add(JVal::Null());
     switch (req->fs_type) {
       case UV_FS_CLOSE:
       {
@@ -69,11 +69,11 @@ static void After(uv_fs_t* req) {
         break;
       }
       default:
-        jarg.Add(JObject::Null());
+        jarg.Add(JVal::Null());
     }
   }
 
-  JObject res = MakeCallback(cb, JObject::Null(), jarg);
+  JObject res = MakeCallback(cb, JObject::Undefined(), jarg);
 
   delete req_wrap;
 }
@@ -90,7 +90,7 @@ static void After(uv_fs_t* req) {
     fs_req->result = err; \
     After(fs_req); \
   } \
-  handler.Return(JObject::Null()); \
+  handler.Return(JVal::Null());
 
 
 #define FS_SYNC(env, syscall, ...) \
@@ -102,8 +102,8 @@ static void After(uv_fs_t* req) {
   if (err < 0) { \
     JObject jerror(CreateUVException(err, #syscall)); \
     handler.Throw(jerror); \
-    return false; \
-  } \
+    return; \
+  }
 
 
 JHANDLER_FUNCTION(Close) {
@@ -120,8 +120,6 @@ JHANDLER_FUNCTION(Close) {
   } else {
     FS_SYNC(env, close, fd);
   }
-
-  return !handler.HasThrown();
 }
 
 
@@ -144,8 +142,6 @@ JHANDLER_FUNCTION(Open) {
     FS_SYNC(env, open, path.data(), flags, mode);
     handler.Return(JVal::Number(err));
   }
-
-  return !handler.HasThrown();
 }
 
 
@@ -188,8 +184,6 @@ JHANDLER_FUNCTION(Read) {
     FS_SYNC(env, read, fd, &uvbuf, 1, position);
     handler.Return(JVal::Number(err));
   }
-
-  return !handler.HasThrown();
 }
 
 
@@ -232,8 +226,6 @@ JHANDLER_FUNCTION(Write) {
     FS_SYNC(env, write, fd, &uvbuf, 1, position);
     handler.Return(JVal::Number(err));
   }
-
-  return !handler.HasThrown();
 }
 
 
@@ -276,7 +268,7 @@ JObject MakeStatObject(uv_stat_t* statbuf) {
   JArgList jargs(1);
   jargs.Add(jstat);
 
-  JResult jstat_res(createStat.Call(JObject::Null(), jargs));
+  JResult jstat_res(createStat.Call(JObject::Undefined(), jargs));
   IOTJS_ASSERT(jstat_res.IsOk());
 
   return jstat_res.value();
@@ -300,8 +292,6 @@ JHANDLER_FUNCTION(Stat) {
     JObject ret(MakeStatObject(s));
     handler.Return(ret);
   }
-
-  return true;
 }
 
 

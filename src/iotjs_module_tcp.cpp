@@ -63,13 +63,10 @@ JHANDLER_FUNCTION(TCP) {
   TcpWrap* tcp_wrap = new TcpWrap(env, *jtcp);
   IOTJS_ASSERT(tcp_wrap->jobject().IsObject());
   IOTJS_ASSERT(jtcp->GetNative() != 0);
-
-  return true;
 }
 
 
 JHANDLER_FUNCTION(Open) {
-  return true;
 }
 
 
@@ -85,7 +82,7 @@ static void AfterClose(uv_handle_t* handle) {
   // callback function.
   JObject jcallback = jtcp.GetProperty("onclose");
   if (jcallback.IsFunction()) {
-    MakeCallback(jcallback, JObject::Null(), JArgList::Empty());
+    MakeCallback(jcallback, JObject::Undefined(), JArgList::Empty());
   }
 }
 
@@ -99,8 +96,6 @@ JHANDLER_FUNCTION(Close) {
 
   // close uv handle, `AfterClose` will be called after socket closed.
   wrap->Close(AfterClose);
-
-  return true;
 }
 
 
@@ -128,8 +123,6 @@ JHANDLER_FUNCTION(Bind) {
   }
 
   handler.Return(JVal::Number(err));
-
-  return true;
 }
 
 
@@ -150,7 +143,7 @@ static void AfterConnect(uv_connect_t* req, int status) {
   args.Add(JVal::Number(status));
 
   // Make callback.
-  MakeCallback(jcallback, JObject::Null(), args);
+  MakeCallback(jcallback, JObject::Undefined(), args);
 
   // Release request wrapper.
   delete req_wrap;
@@ -195,8 +188,6 @@ JHANDLER_FUNCTION(Connect) {
 
   JObject ret(err);
   handler.Return(ret);
-
-  return true;
 }
 
 
@@ -228,8 +219,9 @@ static void OnConnection(uv_stream_t* handle, int status) {
     JObject jcreate_tcp = jtcp.GetProperty("createTCP");
     IOTJS_ASSERT(jcreate_tcp.IsFunction());
 
-    JObject jclient_tcp = jcreate_tcp.CallOk(JObject::Null(),
-                                             JArgList::Empty());
+    JObject jclient_tcp = jcreate_tcp.CallOk(
+        JObject::Undefined(),
+        JArgList::Empty());
     IOTJS_ASSERT(jclient_tcp.IsObject());
 
     TcpWrap* tcp_wrap = reinterpret_cast<TcpWrap*>(jclient_tcp.GetNative());
@@ -263,8 +255,6 @@ JHANDLER_FUNCTION(Listen) {
                       OnConnection);
 
   handler.Return(JVal::Number(err));
-
-  return true;
 }
 
 
@@ -282,7 +272,7 @@ void AfterWrite(uv_write_t* req, int status) {
   args.Add(JVal::Number(status));
 
   // Make callback.
-  MakeCallback(jcallback, JObject::Null(), args);
+  MakeCallback(jcallback, JObject::Undefined(), args);
 
   // Release request wrapper.
   delete req_wrap;
@@ -321,8 +311,6 @@ JHANDLER_FUNCTION(Write) {
   }
 
   handler.Return(JVal::Number(err));
-
-  return true;
 }
 
 
@@ -365,7 +353,8 @@ void OnRead(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
       if (nread == UV__EOF) {
         jargs.Set(2, JVal::Bool(true));
       }
-      MakeCallback(jonread, JObject::Null(), jargs);
+
+      MakeCallback(jonread, JObject::Undefined(), jargs);
     }
     return;
   }
@@ -376,7 +365,7 @@ void OnRead(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
   buffer_wrap->Copy(buf->base, nread);
 
   jargs.Add(jbuffer);
-  MakeCallback(jonread, JObject::Null(), jargs);
+  MakeCallback(jonread, JObject::Undefined(), jargs);
 
   ReleaseBuffer(buf->base);
 }
@@ -394,8 +383,6 @@ JHANDLER_FUNCTION(ReadStart) {
       OnRead);
 
   handler.Return(JVal::Number(err));
-
-  return true;
 }
 
 
@@ -412,7 +399,7 @@ static void AfterShutdown(uv_shutdown_t* req, int status) {
   JArgList args(1);
   args.Add(JVal::Number(status));
 
-  MakeCallback(jonshutdown, JObject::Null(), args);
+  MakeCallback(jonshutdown, JObject::Undefined(), args);
 
   delete req_wrap;
 }
@@ -437,8 +424,6 @@ JHANDLER_FUNCTION(Shutdown) {
   }
 
   handler.Return(JVal::Number(err));
-
-  return true;
 }
 
 
@@ -458,8 +443,6 @@ JHANDLER_FUNCTION(SetKeepAlive) {
   int err = uv_tcp_keepalive(wrap->tcp_handle(), enable, delay);
 
   handler.Return(JVal::Number(err));
-
-  return true;
 }
 
 

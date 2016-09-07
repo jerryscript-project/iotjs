@@ -43,8 +43,12 @@ void UncaughtException(JObject& jexception) {
   JObject jonuncaughtexception(process->GetProperty("_onUncaughtExcecption"));
   IOTJS_ASSERT(jonuncaughtexception.IsFunction());
 
+  JRawValueType jexception_val = jerry_acquire_value(jexception.raw_value());
+  jerry_value_clear_error_flag(&jexception_val);
+  JObject jexception_obj(jexception_val);
+
   JArgList args(1);
-  args.Add(jexception);
+  args.Add(jexception_obj);
 
   JResult jres = jonuncaughtexception.Call(*process, args);
   IOTJS_ASSERT(jres.IsOk());
@@ -60,7 +64,7 @@ void ProcessEmitExit(int code) {
   JArgList args(1);
   args.Add(JVal::Number(code));
 
-  JResult jres = jexit.Call(JObject::Null(), args);
+  JResult jres = jexit.Call(JObject::Undefined(), args);
   if (!jres.IsOk()) {
     exit(2);
   }
@@ -74,7 +78,7 @@ bool ProcessNextTick() {
   JObject jon_next_tick(process->GetProperty("_onNextTick"));
   IOTJS_ASSERT(jon_next_tick.IsFunction());
 
-  JResult jres = jon_next_tick.Call(JObject::Null(), JArgList::Empty());
+  JResult jres = jon_next_tick.Call(JObject::Undefined(), JArgList::Empty());
   IOTJS_ASSERT(jres.IsOk());
   IOTJS_ASSERT(jres.value().IsBoolean());
 
@@ -116,8 +120,6 @@ JHANDLER_FUNCTION(Binding) {
   }
 
   handler.Return(*module->module);
-
-  return true;
 }
 
 
@@ -151,8 +153,6 @@ JHANDLER_FUNCTION(Compile){
   } else {
     handler.Throw(jres.value());
   }
-
-  return !handler.HasThrown();
 }
 
 
@@ -188,8 +188,6 @@ JHANDLER_FUNCTION(CompileNativePtr){
     JObject jerror = JObject::Error ("Unknown native module");
     handler.Throw(jerror);
   }
-
-  return !handler.HasThrown();
 }
 
 
@@ -202,8 +200,6 @@ JHANDLER_FUNCTION(ReadSource){
 
   JObject ret(code);
   handler.Return(ret);
-
-  return true;
 }
 
 
@@ -218,8 +214,6 @@ JHANDLER_FUNCTION(Cwd){
   }
   JObject ret(path);
   handler.Return(ret);
-
-  return true;
 }
 
 
@@ -249,8 +243,6 @@ JHANDLER_FUNCTION(InitArgv) {
     JObject value(env->argv()[i]);
     jargv.SetProperty(index, value);
   }
-
-  return true;
 }
 
 

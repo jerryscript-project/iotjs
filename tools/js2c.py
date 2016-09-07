@@ -106,12 +106,12 @@ fout_cpp.write(HEADER2);
 files = glob.glob(JS_PATH + '*.js')
 for path in files:
     name = extractName(path)
-    fout_cpp.write('const char ' + name + '_n [] = "' + name + '";\n')
-    fout_h.write('extern const char ' + name + '_n [];\n')
+    fout_cpp.write('const char ' + name + '_n[] = "' + name + '";\n')
+    fout_h.write('extern const char ' + name + '_n[];\n')
     fout_h.write('extern const int ' + name + '_l;\n')
     if no_snapshot == True:
-        fout_h.write('extern const char ' + name + '_s [];\n')
-        fout_cpp.write('const char ' + name + '_s [] = {\n')
+        fout_h.write('extern const char ' + name + '_s[];\n')
+        fout_cpp.write('const char ' + name + '_s[] = {\n')
         code = open(path, 'r').read() + '\0'
 
         # minimize code when release mode
@@ -130,8 +130,8 @@ for path in files:
                   'const int ' + name + '_l = ' + str(len(code)-1) + ';')
 
     else:
-        fout_h.write('extern const unsigned char ' + name + '_s [];\n')
-        fout_cpp.write('const unsigned char ' + name + '_s [] = {\n')
+        fout_h.write('extern const unsigned char ' + name + '_s[];\n')
+        fout_cpp.write('const unsigned char ' + name + '_s[] = {\n')
 
         fmodule = open(path, 'r')
         module = fmodule.read()
@@ -172,7 +172,7 @@ for path in files:
             writeLine(fout_cpp, buf, 1)
         writeLine(fout_cpp, '};')
         writeLine(fout_cpp,
-                  'const int ' + name + '_l = sizeof (' + name + '_s);')
+                  'const int ' + name + '_l = sizeof(' + name + '_s);')
 
 
 

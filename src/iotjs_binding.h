@@ -27,9 +27,8 @@ namespace iotjs {
 
 typedef jerry_external_handler_t JHandlerType;
 typedef jerry_object_free_callback_t JFreeHandlerType;
-typedef jerry_api_object_t JRawObjectType;
-typedef jerry_api_value_t JRawValueType;
-typedef jerry_api_length_t JRawLengthType;
+typedef jerry_value_t JRawValueType;
+typedef jerry_length_t JRawLengthType;
 
 
 class JObject;
@@ -66,15 +65,10 @@ class JObject {
   explicit JObject(const char* v);
   explicit JObject(const String& v);
 
-  // Creates a object from `JRawObjectType*`.
-  // If second argument set true, then ref count for the object will be
-  // decreased when this wrapper is being destroyed.
-  explicit JObject(const JRawObjectType* obj, bool need_unref = true);
-
   // Creates a object from `JRawValueType*`.
   // If second argument set true, then ref count for the object will be
   // decreased when this wrapper is being destroyed.
-  explicit JObject(const JRawValueType* val, bool need_unref = true);
+  explicit JObject(const JRawValueType val, bool need_unref = true);
 
   // Creates a javascript function object.
   // When the function is called, the handler will be triggered.
@@ -100,7 +94,6 @@ class JObject {
 
   // Evaluate javascript source file.
   static JResult Eval(const String& source,
-                      bool direct_mode = true,
                       bool strict_mode = false);
 
 
@@ -177,7 +170,7 @@ class JObject {
 class JResult {
  public:
   JResult(const JObject& value, JResultType type);
-  JResult(const JRawValueType* raw_val, JResultType type);
+  JResult(const JRawValueType raw_val, JResultType type);
   JResult(const JResult& other);
 
   JObject& value();
@@ -197,13 +190,12 @@ class JResult {
 
 class JVal {
  public:
-  static JRawValueType Void();
   static JRawValueType Undefined();
   static JRawValueType Null();
   static JRawValueType Bool(bool v);
   static JRawValueType Number(int v);
   static JRawValueType Number(double v);
-  static JRawValueType Object(const JRawObjectType* obj);
+  static JRawValueType Object();
 };
 
 
@@ -233,8 +225,8 @@ class JArgList {
 
 class JHandlerInfo {
  public:
-  JHandlerInfo(const JRawObjectType* function_obj_p,
-               const JRawValueType* this_p,
+  JHandlerInfo(const JRawValueType func_obj_val,
+               const JRawValueType this_val,
                JRawValueType* ret_val_p,
                const JRawValueType args_p[],
                const uint16_t args_cnt);
@@ -268,7 +260,7 @@ class JHandlerInfo {
 
 #define JHANDLER_THROW_RETURN(error_type, message) \
   JHANDLER_THROW(error_type, message); \
-  return false;
+  return;
 
 #define JHANDLER_CHECK(predicate) \
   if (!(predicate)) { \
@@ -278,16 +270,17 @@ class JHandlerInfo {
   }
 
 #define JHANDLER_FUNCTION(name) \
-  static bool ___ ## name ## _native(JHandlerInfo& handler); \
-  static bool name(const JRawObjectType *function_obj_p, \
-                   const JRawValueType *this_p, \
-                   JRawValueType *ret_val_p, \
-                   const JRawValueType args_p [], \
-                   const JRawLengthType args_cnt) { \
-    JHandlerInfo handler(function_obj_p, this_p, ret_val_p, args_p, args_cnt); \
-    return ___ ## name ## _native(handler); \
+  static void ___ ## name ## _native(JHandlerInfo& handler); \
+  static JRawValueType name(const JRawValueType func_obj_val, \
+                            const JRawValueType this_val, \
+                            const JRawValueType args_p [], \
+                            const JRawLengthType args_cnt) { \
+    JRawValueType ret_val = jerry_create_undefined(); \
+    JHandlerInfo handler(func_obj_val, this_val, &ret_val, args_p, args_cnt); \
+    ___ ## name ## _native(handler); \
+    return ret_val; \
   } \
-  static bool ___ ## name ## _native(JHandlerInfo& handler)
+  static void ___ ## name ## _native(JHandlerInfo& handler)
 
 
 } // namespace iotjs

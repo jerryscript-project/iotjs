@@ -36,7 +36,7 @@ JObjectWrap::JObjectWrap(JObject& jobject)
   // This wrapper hold pointer to the javascript object but never increase
   // reference count.
   JRawValueType raw_value = jobject.raw_value();
-  _jobject = new JObject(&raw_value, false);
+  _jobject = new JObject(raw_value, false);
   // Set native pointer of the object to be this wrapper.
   // If the object is freed by GC, the wrapper instance should also be freed.
   _jobject->SetNative((uintptr_t)this, FreeObjectWrap);
@@ -45,7 +45,6 @@ JObjectWrap::JObjectWrap(JObject& jobject)
 
 JObjectWrap::~JObjectWrap() {
   IOTJS_ASSERT(_jobject != NULL);
-  IOTJS_ASSERT(_jobject->IsObject());
 
   delete _jobject;
 }

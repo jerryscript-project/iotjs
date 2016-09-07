@@ -345,8 +345,9 @@ def inflate_cmake_option(cmake_opt, option, for_jerry=False):
     compile_flags += option.jerry_compile_flag if for_jerry else []
 
     cmake_opt.append('-DCMAKE_C_FLAGS=' + ' '.join(compile_flags))
-    cmake_opt.append('-DCMAKE_CXX_FLAGS=' + ' '.join(compile_flags))
 
+    if not for_jerry:
+        cmake_opt.append('-DCMAKE_CXX_FLAGS=' + ' '.join(compile_flags))
 
     # link flags
     link_flags = []
@@ -415,7 +416,7 @@ def build_tuv(option):
     # libtuv output
     output = join_path([build_home, 'libtuv.a'])
     if not os.path.exists(output):
-        fail('libtuv builud failed - target not produced.')
+        fail('libtuv build failed - target not produced.')
 
     # copy output to libs directory
     mkdir(build_libs)
@@ -438,22 +439,29 @@ def build_jerry(option):
 
     # Set JerryScript cmake option.
     cmake_opt = [JERRY_ROOT]
+
     cmake_opt.append('-DCMAKE_TOOLCHAIN_FILE=' + host_cmake_toolchain_file)
+
+    if option.buildtype == 'debug':
+        cmake_opt.append('-DCMAKE_BUILD_TYPE=Debug')
 
     # Turn off LTO for jerry bin to save build time.
     cmake_opt.append('-DENABLE_LTO=OFF')
 
+    # Turn on snapshot
+    if not option.no_snapshot:
+        cmake_opt.append('-DFEATURE_SNAPSHOT_SAVE=ON')
+
     # Run cmake.
     check_run_cmd('cmake', cmake_opt)
 
-    target_jerry_name = '%s.%s' % (option.buildtype, sys_os())
     target_jerry = {
-        'target_name': target_jerry_name,
-        'output_path': join_path([build_home, target_jerry_name])
+        'target_name': 'jerry',
+        'output_path': join_path([build_home, 'bin/jerry'])
     }
 
     # Make option.
-    make_opt = ['-C', build_home, target_jerry['target_name']]
+    make_opt = ['-C', build_home]
     if not option.no_parallel_build:
         make_opt.append('-j')
 
@@ -463,7 +471,8 @@ def build_jerry(option):
     # Check output
     output = target_jerry['output_path']
     if not os.path.exists(output):
-        fail('JerryScript builud failed - target not produced.')
+        print output
+        fail('JerryScript build failed - target not produced.')
 
     # copy
     shutil.copy(output, jerry_output_path)
@@ -486,6 +495,9 @@ def build_libjerry(option):
 
     cmake_opt.append('-DCMAKE_TOOLCHAIN_FILE=' + cmake_toolchain_file)
 
+    if option.buildtype == 'debug':
+        cmake_opt.append('-DCMAKE_BUILD_TYPE=Debug')
+
     if option.target_os == 'nuttx':
         cmake_opt.append('-DEXTERNAL_LIBC_INTERFACE=' +
                          join_path([option.nuttx_home, 'include']))
@@ -494,10 +506,11 @@ def build_libjerry(option):
 
     if option.target_os == 'linux':
         cmake_opt.append('-DCOMPILER_DEFAULT_LIBC=ON')
+        cmake_opt.append('-DJERRY_LIBC=OFF')
 
     # --jerry-heaplimit
     if option.jerry_heaplimit:
-        cmake_opt.append('-DEXTERNAL_MEM_HEAP_SIZE_KB=' +
+        cmake_opt.append('-DMEM_HEAP_SIZE_KB=' +
                          str(option.jerry_heaplimit))
 
     # --jerry-heap-section
@@ -507,6 +520,14 @@ def build_libjerry(option):
 
     # --jerry-lto
     cmake_opt.append('-DENABLE_LTO=%s' % ('ON' if option.jerry_lto else 'OFF'))
+
+    if option.jerry_memstat:
+        cmake_opt.append('-DFEATURE_MEM_STATS=ON')
+
+    # Turn on snapshot
+    cmake_opt.append('-DFEATURE_SNAPSHOT_SAVE=OFF')
+    if not option.no_snapshot:
+        cmake_opt.append('-DFEATURE_SNAPSHOT_EXEC=ON')
 
     # --jerry-cmake-param
     cmake_opt += option.jerry_cmake_param
@@ -518,28 +539,16 @@ def build_libjerry(option):
     check_run_cmd('cmake', cmake_opt)
 
     # make target - libjerry
-    target_libjerry_name = '%s.jerry-core' % option.buildtype
+    target_libjerry_name = 'jerry-core'
     target_libjerry = {
         'target_name': target_libjerry_name,
-        'output_path': join_path([build_home, 'jerry-core',
+        'output_path': join_path([build_home, 'lib',
                                   'lib%s.a' % target_libjerry_name]),
         'dest_path': libjerry_output_path
     }
 
-    # make target - libjerry for mem stat
-    target_libjerry_ms_name = '%s-mem_stats.jerry-core' % option.buildtype
-    target_libjerry_ms = {
-        'target_name': target_libjerry_ms_name,
-        'output_path': join_path([build_home, 'jerry-core',
-                                  'lib%s.a' % target_libjerry_ms_name]),
-        'dest_path': libjerry_output_path
-    }
-
     targets = []
-    if option.jerry_memstat:
-        targets.append(target_libjerry_ms)
-    else:
-        targets.append(target_libjerry)
+    targets.append(target_libjerry)
 
     # make the target.
     for target in targets:
@@ -555,7 +564,7 @@ def build_libjerry(option):
         output = target['output_path']
         if not os.path.exists(output):
             print output
-            fail('JerryScript builud failed - target not produced.')
+            fail('JerryScript build failed - target not produced.')
 
         # copy
         shutil.copy(output, target['dest_path'])
@@ -603,7 +612,7 @@ def build_libhttpparser(option):
     # Output
     output = join_path([build_home, 'libhttpparser.a'])
     if not os.path.exists(output):
-            fail('libhttpparser builud failed - target not produced.')
+            fail('libhttpparser build failed - target not produced.')
 
     # copy
     shutil.copy(output, libhttpparser_output_path)
@@ -672,7 +681,7 @@ def build_iotjs(option):
                         'liblibiotjs.a' if option.buildlib else 'iotjs'])
 
     if not os.path.exists(output):
-            fail('IoT.js builud failed - target not produced.')
+            fail('IoT.js build failed - target not produced.')
 
     # copy
     dest_path = libiotjs_output_path if option.buildlib else iotjs_output_path

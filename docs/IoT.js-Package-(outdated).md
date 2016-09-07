@@ -1,3 +1,5 @@
+**The content on this page does not work. Currently, there is no plan to run ipm server. This document will leave for discussion in the future.**
+
 IoT.js follows the practice of node.js npm to provide module development community with separate IoT.js own registry.
 
 * To see what it actually is, please visit [www.npmjs.com](https://www.npmjs.com/), and also [docs.npmjs.com](https://docs.npmjs.com/).

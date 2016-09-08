@@ -42,6 +42,9 @@ buff2.write("fgh", 5);
 assert.equal(buff2.toString(), "abcdefgh");
 assert.equal(buff2.length ,10);
 
+assert.throws(function() { buff2.write("ijk", -1); }, RangeError);
+assert.throws(function() { buff2.write("ijk", 10); }, RangeError);
+
 var buff3 = Buffer.concat([buff1, buff2]);
 assert.equal(buff3.toString(), "testabcdefgh");
 assert.equal(buff3.length ,14);
@@ -52,6 +55,7 @@ buff5.copy(buff4);
 assert.equal(buff4.toString(), 'a1b2c3');
 buff5.copy(buff4, 4, 2);
 assert.equal(buff4.toString(), 'a1b2b2c3');
+assert.throws(function() { buff5.copy(buff4, -1); }, RangeError);
 
 
 var buff6 = buff3.slice(1);

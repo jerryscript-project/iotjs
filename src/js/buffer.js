@@ -122,12 +122,8 @@ Buffer.prototype.copy = function(target, targetStart, sourceStart, sourceEnd) {
   sourceStart = util.isUndefined(sourceStart) ? 0 : ~~sourceStart;
   sourceEnd = util.isUndefined(sourceEnd) ? this.length : ~~ sourceEnd;
 
-  targetStart = boundRange(targetStart, 0, target.length);
-  sourceStart = boundRange(sourceStart, 0, this.length);
-  sourceEnd = boundRange(sourceEnd, 0, this.length);
-
-  if (sourceEnd < sourceStart) {
-    sourceEnd = sourceStart;
+  if ((sourceEnd > sourceStart) && (targetStart < 0)) {
+    throw new RangeError('Attempt to write outside buffer bounds');
   }
 
   return this._builtin.copy(target, targetStart, sourceStart, sourceEnd);
@@ -146,12 +142,12 @@ Buffer.prototype.write = function(string, offset, length) {
   }
 
   offset = util.isUndefined(offset) ? 0 : ~~offset;
-  offset = boundRange(offset, 0, this.length);
+  if (string.length > 0 && (offset < 0 || offset >= this.length)) {
+    throw new RangeError('Attempt to write outside buffer bounds');
+  }
 
   var remaining = this.length - offset;
   length = util.isUndefined(length) ? remaining : ~~length;
-  length = boundRange(length, 0, remaining);
-  length = boundRange(length, 0, string.length);
 
   return this._builtin.write(string, offset, length);
 };
@@ -167,20 +163,6 @@ Buffer.prototype.slice = function(start, end) {
   start = util.isUndefined(start) ? 0 : ~~start;
   end = util.isUndefined(end) ? this.length : ~~end;
 
-  if (start < 0) {
-    start += this.length;
-  }
-  start = boundRange(start, 0, this.length);
-
-  if (end < 0) {
-    end += this.length;
-  }
-  end = boundRange(end, 0, this.length);
-
-  if (end < start) {
-    end = start;
-  }
-
   return this._builtin.slice(start, end);
 };
 
@@ -195,22 +177,8 @@ Buffer.prototype.toString = function(start, end) {
   start = util.isUndefined(start) ? 0 : ~~start;
   end = util.isUndefined(end) ? this.length : ~~end;
 
-  start = boundRange(start, 0, this.length);
-  end = boundRange(end, 0, this.length);
-
-  if (end < start) {
-    end = start;
-  }
-
   return this._builtin.toString(start, end);
 };
-
-
-function boundRange(v, low, upper) {
-  if (v < low) return low;
-  if (v > upper) return upper;
-  return v;
-}
 
 
 module.exports = Buffer;

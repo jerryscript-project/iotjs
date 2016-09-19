@@ -93,7 +93,7 @@ String::String(const char* data, int size, int cap) {
   IOTJS_ASSERT(_size >= 0);
   IOTJS_ASSERT(_cap >= 0);
 
-  if (_cap > 0) {
+  if (_cap >= 0) {
     _data = AllocBuffer(_cap + 1);
   } else {
     _data = NULL;

@@ -1,7 +1,7 @@
 # Build IoT.js with mraa for Intel Edison
 
-Edison board has Yocto Linux OS, so it is a enhanced case in [Build for Linux](https://github.com/Samsung/iotjs/wiki/Build-for-Linux).
-Edison board has mraa inside, so we can implement IoT.js's gpio module with mraa. See [#295](https://github.com/Samsung/iotjs/pull/295).
+Edison board has Yocto Linux OS, so it is an enhanced case in the [Build for Linux](https://github.com/Samsung/iotjs/wiki/Build-for-Linux) page.
+Edison board has mraa inside, so you can implement IoT.js's gpio module with mraa. See the [#295](https://github.com/Samsung/iotjs/pull/295) page.
 
 ## Overall steps
 
@@ -23,9 +23,9 @@ mkdir mraa
 
 Step 1, 3 and 4 of [this official page](https://software.intel.com/en-us/get-started-edison-linux) describe how to get started with edison and how to setup its network. Then we can get Edison's IP.
 
-In this step, we use SCP to get the mraa library/headers in Edison. You can also use SD-card, USB-stick or other network tools.
+In this step, we use `scp` to get the mraa library/headers in Edison. You can also use SD-card, USB-stick or other network tools.
 
-In host PC
+In host PC,
 ```
 cd mraa
 scp root@{edison ip}:/usr/lib/libmraa.so .
@@ -36,7 +36,7 @@ scp -r root@{edison ip}:/usr/include/mraa .
 
 ## 2. Build IoT.js with mraa and i686
 
-in the folder `iotjs`
+In the `iotjs` directory,
 ```
 ./tools/build.py \
 --target-arch=i686 \
@@ -78,4 +78,4 @@ cd /home/root
 
 ## Optional steps
 
-For better experience in Edison, we can upgrade its firmware to the lastest version. see https://software.intel.com/en-us/flashing-your-firmware-edison for details.
+For better experiences in Edison, you can upgrade its firmware to the latest version. See https://software.intel.com/en-us/flashing-your-firmware-edison for more details.

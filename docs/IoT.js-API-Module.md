@@ -1,16 +1,16 @@
-## Module 
-``` module ``` implements ``` require ``` function. 
+## Module
+``` module ``` implements ``` require ``` function.
 Since ``` require ``` function is implicitly passed to user code, user do not need to import it explicitly.
 
 ### Methods
 #### require(id)
 * ``` id : String ``` - module name to be loaded
 
-load the module named 'id'
+Loads the module named 'id'
 
 ### Module Loading by ``` require ``` function
 #### ``` require ``` search paths
-``` require ``` function finds modules in the order of 
+``` require ``` function finds modules in the order of
 
 1. caller's directory of ``` require ``` function
 2. node_modules under the caller's directory
@@ -28,4 +28,4 @@ For each directory in search paths above,
 For a given id, if a directory id exists, module system consider the directory as a package.
 
 0. if 'id/node_modules/package.json' contains 'main' property, load the file named main property.
-1. if either id/node_modules/package.json or main property exists, load index.js 
+1. if either id/node_modules/package.json or main property exists, load index.js

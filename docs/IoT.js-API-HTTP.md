@@ -51,17 +51,17 @@ Wait for new TCP connection with specified port and hostname. If no hostname is 
 #### close([callback])
 * `callback: Function`
 
-Stop accecpting new connection to this server. However, the existing connections is preserved. When server is finally closed after all connection closed, callback is called.
+Stop accecpting new connection to this server. However, the existing connections are preserved. When server is finally closed after all connections are closed, a callback is called.
 
 #### setTimeout(ms, cb)
 
 * `ms: Number`
 * `cb: Function`
 
-Register cb for 'timeout' event and set socket's timeout value to ms. This event will be triggered by the underlying socket's 'timeout' event.
+Registers cb for 'timeout' event and sets socket's timeout value to ms. This event will be triggered by the underlying socket's 'timeout' event.
 
 If cb is not provided, the socket will be destroyed automatically after timeout.
-If you provides cb, you should handle the socket's timeout.
+If you provide cb, you should handle the socket's timeout.
 
 Default timeout for server is 2 minutes.
 
@@ -121,13 +121,13 @@ If you provides cb, you should handle the socket's timeout.
 ## Class: http.ServerResponse
 ### Event
 #### 'end'
-Thit event is fired when no more data to be sent.
+This event is fired when no more data to be sent.
 
 #### 'close'
 When underlying connection is closed, 'close' event is emitted.
 
 #### 'finish'
-Thit event is emitted when the response has been sent. It does not guarantee that client has received data yet.
+This event is emitted when the response has been sent. It does not guarantee that client has received data yet.
 
 ### Method
 #### writeHead(statusCode[, statusMessage][, headers])
@@ -174,7 +174,7 @@ If `callback` is specified, it is called when the response stream is finished.
 * `ms: Number`
 * `cb: Function`
 
-Register cb for 'timeout' event and set socket's timeout value to ms. This event will be triggered by the underlying socket's 'timeout' event.
+Registers cb for 'timeout' event and set socket's timeout value to ms. This event will be triggered by the underlying socket's 'timeout' event.
 
 
 
@@ -192,7 +192,7 @@ When underlying connection is closed, 'close' event is emitted.
 * `ms: Number`
 * `cb: Function`
 
-Register cb for 'timeout' event set socket's timeout value to ms. This event will be triggered by the underlying socket's 'timeout' event.
+Registers cb for 'timeout' event set socket's timeout value to ms. This event will be triggered by the underlying socket's 'timeout' event.
 
 
 
@@ -201,10 +201,10 @@ Register cb for 'timeout' event set socket's timeout value to ms. This event wil
 HTTP header object.
 
 #### method
-Request method as `String`
+Requests method as `String`
 
 #### url
-Request URL as `String`
+Requests URL as `String`
 
 #### statusCode
 HTTP response status code as `Number` of 3-digit.

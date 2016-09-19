@@ -1,18 +1,18 @@
 #### About
 
-This page describes short version to use with latest version of NuttX for STM32F4-Discovery with BB.
+This page describes a short version to use with the latest version of NuttX for STM32F4-Discovery with BB.
 
-Please read [Build for NuttX](https://github.com/Samsung/iotjs/wiki/Build-for-NuttX) page and understand full procedure.
+Please read the [Build for NuttX](https://github.com/Samsung/iotjs/wiki/Build-for-NuttX) page and understand full procedures.
 
 #### Get NuttX for IoT.js
 
-Follow [Building nuttx for iotjs](https://bitbucket.org/seanshpark/nuttx/wiki/Home) page.
+Follow the [Building nuttx for iotjs](https://bitbucket.org/seanshpark/nuttx/wiki/Home) page.
 
 You should first build NuttX before building IoT.js, it depends on system header files. When NuttX tells you that it needs `libtuv` then come here again and continue with below sections.
 
 #### Build IoT.js for NuttX
 
-Giving these options are needed
+These options are needed.
 ```
 --target-arch=arm
 --target-os=nuttx
@@ -20,7 +20,7 @@ Giving these options are needed
 --target-board=stm32f4dis
 ```
 
-for example,
+For example,
 ```
 ./tools/build.py \
 --target-arch=arm --target-os=nuttx --nuttx-home=/home/user/harmony/nuttx/nuttx \
@@ -28,13 +28,13 @@ for example,
 --buildtype=release
 ```
 
-Library files will be copied to nuttx/lib folder when build is success.
+Library files will be copied to nuttx/lib folder when build is successful.
 
 Now continue on with NuttX build.
 
 #### NuttX build and flashing
 
-in nuttx
+In nuttx,
 ```
 make
 sudo ../../stlink/st-flash write nuttx.bin 0x8000000
@@ -54,15 +54,15 @@ Below is current NuttX configuration so that you can try with IoT.js
 
 If you get an error something like this,
 ```
-iotjs/deps/jerry/jerry-core/jerry.cpp:1605:26: 
-  error: conversion to 'unsigned char:1' from 'uint32_t {aka unsigned int}' 
+iotjs/deps/jerry/jerry-core/jerry.cpp:1605:26:
+  error: conversion to 'unsigned char:1' from 'uint32_t {aka unsigned int}'
   may alter its value [-Werror=conversion]
 ```
-it's about [this, #279](https://github.com/Samsung/iotjs/pull/279). Updating nuttx/configs source to latest version and run `./configure.sh stm32f4discovery/iotjs` in `nuttx/tools` may solve the problem.
+It's about [this, #279](https://github.com/Samsung/iotjs/pull/279). It may solve the problem to update nuttx/configs source to the latest version and run `./configure.sh stm32f4discovery/iotjs` in `nuttx/tools`.
 
 ##### redeclaration of C++ built-in type 'wchar_t'
 
-If tis error occurs when building IoT.js, you should define preprocessor variable `CONFIG_WCHAR_BUILTIN` when building IoT.js.
+If this error occurs when building IoT.js, you should define preprocessor variable `CONFIG_WCHAR_BUILTIN` when building IoT.js.
 
 cmake/config.cmake:
 ```cmake

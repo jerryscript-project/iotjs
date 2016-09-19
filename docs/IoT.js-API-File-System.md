@@ -49,7 +49,7 @@
  * `err: Error`
  * `data: Buffer`
 
-Asynchronously read entire file.
+Reads entire file asynchronously.
 
 #### fs.readFileSync(path[, options], callback)
 
@@ -58,9 +58,9 @@ Asynchronously read entire file.
  * `encoding: String`, Default: `null` - encoding of the file.
  * `flag: String`, Default: `r` - file open flag.
 
-synchronously read entire file.
+Reads entire file synchronously.
 
-#### fs.write(fd, buffer, offset, length, position, callback) 
+#### fs.write(fd, buffer, offset, length, position, callback)
 
 * `fd: Int` - file descriptor.
 * `buffer: Buffer` - buffer that the data will be written from.
@@ -71,7 +71,7 @@ synchronously read entire file.
  * `err: Error`
  * `byteWrite: Int`
 
-#### fs.writeSync(fd, buffer, offset, length, position) 
+#### fs.writeSync(fd, buffer, offset, length, position)
 
 * `fd: Int` - file descriptor.
 * `buffer: Buffer` - buffer that the data will be written from.
@@ -83,13 +83,13 @@ synchronously read entire file.
 
 * `fd: Int` - file descriptor.
 
-Close the file of fd asynchronously.
+Closes the file of fd asynchronously.
 
 #### fs.closeSync(fd)
 
 * `fd: Int` - file descriptor.
 
-Close the file of fd synchronously.
+Closes the file of fd synchronously.
 
 #### fs.stat(path, callback)
 
@@ -121,8 +121,8 @@ fs.Stats class is a object returned from ```fs.stats()```,```fs.fstats()``` and 
 
 #### stats.isDirectory()
 
-return true if stated file is a directory
+Returns true if stated file is a directory
 
 #### stats.isFile()
 
-return true if stated file is a file
+Returns true if stated file is a file

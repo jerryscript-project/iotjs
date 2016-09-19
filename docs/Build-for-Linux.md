@@ -7,11 +7,11 @@
 ***
 
 #### Build Host
-Ubuntu 14.04 is recommended. Other Unix like platforms can be used. If it doesn't seem to work properly on other platforms, please look into [Issues](https://github.com/Samsung/iotjs/issues). Someone may have already tried. If you can't find any related one, please leave an issue for help.
+Ubuntu 14.04 is recommended. Other Unix like platforms can be used. If it doesn't seem to work properly on other platforms, please look into the [Issues](https://github.com/Samsung/iotjs/issues) page. Someone may have already tried. If you can't find any related one, please leave an issue for help.
 
 #### Directory structure
 
-This document assumes 'harmony' as the root directory. _JerryScript_, _libtuv_ and _libuv_ are included as sub-modules in deps folder.
+This document assumes 'harmony' as the root directory. _JerryScript_, _libtuv_ and _libuv_ are included as sub-modules in `deps` directory.
 
 * harmony
     * iotjs
@@ -22,7 +22,7 @@ This document assumes 'harmony' as the root directory. _JerryScript_, _libtuv_ a
             * libtuv
 
 
-※ harmony? It's from initial code name of our project. (_Sounds good, isn't it? :)_)
+※ harmony? It's from the initial code name of our project. (_Sounds good, isn't it? :)_)
 
 #### Prerequisite
 
@@ -32,25 +32,25 @@ You need to install some packages to build IoT.js, as follows;
 sudo apt-get install gyp cmake build-essential
 ```
 
-gcc/g++ compiler 4.8 and upper versions are required to compile. If you have any problems upgrading to 4.8, please google. One of those helped me is [how-to-install-gcc-4-8](http://askubuntu.com/questions/271388/how-to-install-gcc-4-8).
+gcc/g++ compiler 4.8 or higher versions are required to compile. If you don't know how to do it, you can get some help from [how-to-install-gcc-4-8](http://askubuntu.com/questions/271388/how-to-install-gcc-4-8) or google.
 
 ### 1. Get the sources
 
-Clone our repository to look around and test it. If it attracts you and want to try something interests, please fork it.
+Clone our repository to look around and test it. If it attracts you and you want to try something interested, please fork it.
 
-To get the source for this repository, 
+To get the source for this repository,
 ```
 cd harmony
 git clone https://github.com/Samsung/iotjs.git
 cd iotjs
 ```
 
-Sub modules(_http-parser_, _JerryScript_, _libuv_ and _libtuv_) will be pulled. And matching hash will be checked out for your current IoT.js version when you run the build script.
+Sub-modules(_http-parser_, _JerryScript_, _libuv_ and _libtuv_) will be pulled. And matching hash will be checked out for your current IoT.js version when you run the build script.
 
 
 ### 2. Build all at once
 
-IoT.js and required sub-modules are generated all at once in tools folder with build.py.
+IoT.js and required sub-modules are generated all at once in tools directory with build.py.
 
 ```
 cd iotjs
@@ -91,7 +91,7 @@ no-snapshot
 nuttx-home= (no default value)
 ```
 
-To give options, please use two dashes '--' before the option name as described in following sections.
+To give options, please use two dashes '--' before the option name as described in the following sections.
 
 Options that may need explanations.
 * builddir: compile intermediate and output files are generated here.
@@ -102,24 +102,24 @@ Options that may need explanations.
 * no-check-test: do not run all tests in test folder after build.
 * nuttx-home: it's NuttX platform specific, to tell where the NuttX configuration and header files are.
 
-If you want to more detail about options, please check [Build Script](https://github.com/Samsung/iotjs/wiki/Build%20Script).
+If you want to know more details about options, please check the [Build Script](https://github.com/Samsung/iotjs/wiki/Build%20Script) page.
 
 
 #### Options example
 
-It's a good practice to build in separate folder, like 'build'. IoT.js generates all outputs into separate **'build'** folder. You can change this by --builddir option. Usually you won't need to use this option. Target and architecture name are used as a name for a folder inside 'build' folder.
+It's a good practice to build in separate directory, like 'build'. IoT.js generates all outputs into separate **'build'** directory. You can change this by --builddir option. Usually you won't need to use this option. Target and architecture name are used as a name for a directory inside 'build' directory.
 
-To build debug version and results to 'output' folder
+To build debug version, type the command like below. And you can find the binary in 'output' directory.
 ```
 ./tools/build.py --builddir=output
 ```
 
-If you want to build 32bit version in x86_64 and debug version only produce a library,
+To build 32bit version in x86_64 with debug version as a library, type the command like below.
 ```
 ./tools/build.py --target-arch=i686 --buildlib
 ```
 
-To build release version and with different jerry revision. assume you have already checked it out.
+To build release version with different jerry revision, type the command like below. (Assume that you have already checked it out.)
 ```
 ./tools/build.py --buildtype=release --no-init-submodule
 ```
@@ -144,7 +144,7 @@ make
 
 ### 3. Execute IoT.js
 
-Executable name is **'iotjs'** and resides in (target-arch)-(target-os)/(buildtype)/iotjs. 
+Executable name is **'iotjs'** and resides in (target-arch)-(target-os)/(buildtype)/iotjs.
 To run greetings JavaScript in test folder, for example;
 
 ```

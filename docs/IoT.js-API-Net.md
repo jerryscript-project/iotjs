@@ -44,14 +44,14 @@ You can create `net.Server` instance with `net.createServer()`.
 * `backlog: Number`
 * `listenListener: Function()`
 
-Start listening and accepting connections on specified port and host.
+Starts listening and accepting connections on specified port and host.
 
 
 #### server.close([closeListener])
 
 * `closeListener: Function()`
 
-Stop listening new arriving connection.
+Stops listening new arriving connection.
 
 Server socket will finally close when all existing connections are closed, then emit 'close' event.
 
@@ -60,7 +60,7 @@ Server socket will finally close when all existing connections are closed, then 
 ### Event
 
 #### `'listening'`
-Emittied when server has been started listening.
+Emitted when server has been started listening.
 
 #### `'connection(socket)'`
 * `socket: net.Socket`
@@ -194,4 +194,3 @@ Emitted when the socket closed.
 #### `'error'`
 
 Emitted when an error occurs.
-

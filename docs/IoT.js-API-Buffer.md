@@ -1,4 +1,4 @@
-IoT.js provides Buffer to compensate the lack of pure Javascript's capability of manipulating binary data, Javascript string is only suitable for Unicode string. Buffer allow you handling sequence of binary data in Javascript world.
+IoT.js provides Buffer to compensate the lack of pure Javascript's capability of manipulating binary data, Javascript string is only suitable for Unicode string. Buffer allows you to handle sequence of binary data in Javascript world.
 
 ## Class: Buffer
 Buffer class is a global type. you can create a buffer object in several way.
@@ -18,7 +18,7 @@ Allocate a new buffer copied from given `buffer`.
 #### new Buffer(str)
 * `str: String`
 
-Allocate a new buffer containing given `str`. 
+Allocate a new buffer containing given `str`.
 
 
 ### Class Methods
@@ -28,8 +28,8 @@ Allocate a new buffer containing given `str`.
 * `encoding: String`
 * Return: `Number`
 
-Returns actual byte length of `string` encoded by `encoding`. UTF-8 encoding is on default.
-Note that it may different from `String.prototype.length` since that returns number of characters in a string.
+Returns actual byte length of `string` encoded by `encoding`. UTF-8 encoding is by default.
+Note that it may be different from `String.prototype.length` since that returns the number of characters in a string.
 
 #### Buffer.concat(list)
 * `list: Array of Buffer`
@@ -65,7 +65,7 @@ Returns whether `this` and `otherBuffer` have the same bytes.
 * `otherBuffer: Buffer`
 * Return: `Number`
 
-Returns a number indicating which buffer comes first between `this` and `otherBuffer` when lexicographical ly sorted. 
+Returns a number indicating which buffer comes first between `this` and `otherBuffer` when lexicographically sorted.
 
 #### buf.write(string[,offset[,length]])
 * `string: String` - data to be written to buffer
@@ -73,7 +73,7 @@ Returns a number indicating which buffer comes first between `this` and `otherBu
 * `length: Number`, Default: `buffer.length - offset` - total length to be written.
 * Return: `Number` - total number of bytes written.
 
-Writes `string` to buffer starts at `offset`. Returns total number of bytes written to the buffer.
+Writes `string` to buffer starting from `offset`. Returns total number of bytes written to the buffer.
 
 #### buf.toString([,start[,end]])
 * `start: Number`, Default: `0`

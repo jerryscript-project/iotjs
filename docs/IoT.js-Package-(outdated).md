@@ -60,7 +60,7 @@ About to write to /(your working folder)/package.json:
   "author": "(your name) <your email address> (your blog page)",
   "license": "ISC"
 }
- 
+
 Is this ok? (yes) yes
 ```
 
@@ -69,7 +69,7 @@ and all things are good to go, publish.
 npm publish ./
 ```
 
-Please visit [npmjs.org](https://docs.npmjs.com/getting-started/publishing-npm-packages) for detailed explanation.
+Please visit [npmjs.org](https://docs.npmjs.com/getting-started/publishing-npm-packages) for detailed explanations.
 
 
 ### About the license of each packages
@@ -118,5 +118,4 @@ Searching is possible with search command. See [docs.npmjs.com/cli/search](https
 npm search <keyword>
 ```
 
-If you omit the keyword it'll list all packages registered.
-
+If you omit the keyword, it'll list all packages registered.

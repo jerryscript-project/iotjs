@@ -72,7 +72,7 @@ def is_javascript(name):
 
 
 def read_file_contents(filepath):
-    f = open(filepath, 'r')
+    f = open(filepath, 'r', encoding='utf-8')
     return f.read().encode().decode().strip()
 
 

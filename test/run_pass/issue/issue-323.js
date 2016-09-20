@@ -25,3 +25,10 @@ assert.throws(
     Error
 );
 
+assert.throws(
+  function() {
+    var open1 = fs.openSync(fileName, 'r');
+  },
+  Error
+);
+

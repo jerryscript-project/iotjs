@@ -26,7 +26,7 @@ This function must be called before other GPIO functions.
 
 * `callback: Function(err: GpioError | null)`
 
-Release GPIO device.
+Releases GPIO device.
 After this function any other GPIO function call except `initialize()` will be failed.
 
 `callback` will be called after GPIO device is released.
@@ -38,10 +38,10 @@ After this function any other GPIO function call except `initialize()` will be f
 
 * `pinNumber: Number`: pin number to configure
 * `direction: 'in' | 'out' | 'none'`: direction of the pin. `'none'` for releasing GPIO pin.
-* `mode: 'pullup' | 'pulldn' | 'float' | 'pushpull' | 'opendrain' | 'none' | '' | undefined` : pin mode. 
+* `mode: 'pullup' | 'pulldn' | 'float' | 'pushpull' | 'opendrain' | 'none' | '' | undefined` : pin mode.
 * `callback: Function(err: GpioError | null)`.
 
-Set GPIO pin configuration.
+Sets GPIO pin configuration.
 
 `callback` will be called after GPIO pin is set.
 
@@ -53,7 +53,7 @@ Set GPIO pin configuration.
 * `value: Boolean`.
 * `callback: Function(err: Error | null)`.
 
-Write out a boolean value to a GPIO pin.
+Writes out a boolean value to a GPIO pin.
 
 `callback` will be called after I/O finishes.
 
@@ -64,7 +64,7 @@ Write out a boolean value to a GPIO pin.
 * `pinNumber: Number` - pin number to read.
 * `callback: Function(err: Error | null, value: Boolean)`.
 
-Read boolean value from a GPIO pin.
+Reads boolean value from a GPIO pin.
 
 `callback` will be called with the value.
 
@@ -77,9 +77,9 @@ Read boolean value from a GPIO pin.
 * `mode: String` - pin mode.
 * `callback: Function(err: Error | null)`.
 
-Set GPIO port configuration.
+Sets GPIO port configuration.
 
-All pins bound to this port will have the given configuration. 
+All pins bound to this port will have the given configuration.
 
 `callback` will be called after GPIO port is set.
 
@@ -93,7 +93,7 @@ All pins bound to this port will have the given configuration.
 * `value: Number`.
 * `callback: Function(err: Error | null)`.
 
-Write out the given value to a GPIO port.
+Writes out the given value to a GPIO port.
 
 `callback` will be called after the value flushed.
 
@@ -102,7 +102,7 @@ Write out the given value to a GPIO port.
 * `portNumber: Number` - port number to read.
 * `callback: Function(err: Error | null, value: Number)`.
 
-Read value from a GPIO port.
+Reads value from a GPIO port.
 
 `callback` will be called with the value.
 
@@ -142,4 +142,3 @@ Emitted when there is an error.
 
 `GpioError` is for represent error occurs during GPIO processing.
 `GpioError` inherits `Error`.
-

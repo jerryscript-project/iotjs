@@ -9,10 +9,10 @@ Assert module will produce `AssertionError` in case of assertion failure. `Asser
 The name of `AssertionError` is 'AssertionError` this is fixed.
 
 #### actual
-This property contains the value what actually be.
+This property contains the actual value.
 
 #### expected
-This property contains the value what expected is.
+This property contains the expected value.
 
 #### operator
 This property contains the operator used for evaluating `actual` with `expected`.
@@ -27,22 +27,22 @@ You can get assert module by `require('assert')` the module provide.
 Throw an `AssertionError` exception.
 
 #### assert(value, message)
-Test if `value` is true, throws an `AssertionError` exception if `value` evaluates `false`.
+Test if `value` is true, it throws an `AssertionError` exception if `value` evaluates `false`.
 
 #### assert.equal(actual, expected, message)
-Test if `actual == expected` evaluates `true`, if not, throws an exception.
+Test if `actual == expected` is evaluated to `true`, if not, it throws an exception.
 
 #### assert.notEqual(actual, expected, message)
-Test if `actual != expected` evaluates `true`, if not, throws an exception.
+Test if `actual != expected` is evaluated to `true`, if not, it throws an exception.
 
 #### assert.strictEqual(actual, expected, message)
-Test if `actual === expected` evaluates `true`, if not, throws an exception.
+Test if `actual === expected` is evaluated to `true`, if not, it throws an exception.
 
 #### assert.notStrictEqual(actual, expected, message)
-Test if `actual !== expected` evaluates `true`, if not, throws an exception.
+Test if `actual !== expected` is evaluated to `true`, if not, it throws an exception.
 
 #### assert.throws(block, expected, message)
-Test if the given `block` throws `expected` error, if not, throws an exception.
+Test if the given `block` throws an `expected` error, if not, it throws an exception.
 
 #### assert.doesNotThrows(block, message)
-Test if the given `block` does not throws any exception, if not, throws an exception.
+Test if the given `block` does not throw any exception, if not, it throws an exception.

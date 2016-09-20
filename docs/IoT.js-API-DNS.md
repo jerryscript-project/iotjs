@@ -1,6 +1,6 @@
 ## Module: dns
 
-IoT.js provides dns module
+IoT.js provides dns module.
 
 ### Methods
 
@@ -9,7 +9,7 @@ IoT.js provides dns module
 * `options: Object | Number`
 * `callback: Function(err: Error, address: String, family: Number)`
 
-Resolves a hostname into the first found A (IPv4) or AAAA (IPv6) record. 
+Resolves a hostname into the first found A (IPv4) or AAAA (IPv6) record.
 
 #### dns.resolve(hostname[, rrtype], callback)
 * `hostname: String`

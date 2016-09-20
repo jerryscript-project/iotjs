@@ -4,12 +4,12 @@ IoT.js is built based on JerryScript(lightweight JavaScript engine) and libuv fo
 #### Source repositories
 * IoT.js: https://github.com/Samsung/iotjs.git
 * JerryScript: https://github.com/Samsung/jerryscript.git
-* libuv: https://github.com/Samsung/libuv.git 
+* libuv: https://github.com/Samsung/libuv.git
 
 ### Build script
 There is a script to help you build IoT.js called "[build.py](../tools/build.py)" in source repository.
 
-### Supported platforms 
+### Supported platforms
 Current supported platforms are **Linux and NuttX**
 
 * [Build for Linux](Build-for-Linux.md): Ubuntu 14.04 is used as a base platform.
@@ -40,10 +40,10 @@ Current supported platforms are **Linux and NuttX**
 We may need to control `things` directly from ECMAScript code. How can we make it possible? Let's first describe it at [GPIO API](IoT.js-API-GPIO.md) page.
 
 ### IoT.js Package
-IoT.js also uses NPM tool, node package manager, as for package development and sharing. Visit [IoT.js package](IoT.js-package.md) page for more information.
+IoT.js also uses NPM tool, node package manager, as for package development and sharing. Visit the [IoT.js package](IoT.js-package.md) page for more information.
 
 #### When something goes wrong
-Please read [Logging IoT.js execution](Logging-IoT.js-execution.md) how to display and add log messages while developing.
+Please read the [Logging IoT.js execution](Logging-IoT.js-execution.md) page how to display and add log messages while developing.
 
 
 ### [IoT.js API Reference](IoT.js-API-Reference.md)

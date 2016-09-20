@@ -1,7 +1,7 @@
 The application programming model of IoT.js is based on event-driven programming. Thus many objects in IoT.js emit events. `events.EventEmitter` plays a role as base class for such objects.
 
 ## Class: EventEmitter
-User application would not directly create an instance of `EventEmitter` since `EventEmitter` is an abstract trait which defines its behavior and grants to sub-classes. 
+User application would not directly create an instance of `EventEmitter` since `EventEmitter` is an abstract trait which defines its behavior and grants to sub-classes.
 
 ## Instance of EventEmitter
 
@@ -29,21 +29,21 @@ The listener will be invoked at the next event and removed.
 * `listener: Function([args..])`
 * Returns emitter
 
-Removes listener from list of event listeners.
+Removes listener from the list of event listeners.
 
-If you added the same listener multiple times, this will remove only one instance of them.
+If you add the same listener multiple times, this removes only one instance of them.
 #### emiiter.removeAllListener([event])
 * `event: String`
 * Returns emitter
 
 Removes all listeners.
 
-If `event` was specified, only removes listeners for that event.
+If `event` was specified, it only removes listeners for that event.
 
 #### emitter.emit(event[, arg1[, arg2[...]]])
 * `event: String`
 * Returns `Boolean`
 
-Invoke each of listeners with supplied arguments.
+Invokes each of listener with supplied arguments.
 
 Returns `true` if there were listeners, `false` otherwise.

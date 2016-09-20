@@ -1,6 +1,6 @@
 ### About this page
 
-Please read this page as historical information and follow [Build-for-Nuttx-(new)](Build-for-NuttX-\(new\).md) page for actual build and flashing. IoT.js has changed so some parts won't compile with previous version of NuttX.
+Please read this page as historical information and follow the [Build-for-Nuttx-(new)](Build-for-NuttX-\(new\).md) page for actual build and flashing. IoT.js has changed, so some parts won't be compiled with the previous versions of NuttX.
 
 ### Overall steps to build for NuttX
 1. Get the sources
@@ -10,29 +10,29 @@ Please read this page as historical information and follow [Build-for-Nuttx-(new
 5. Build NuttX
 
 #### Problems working with NuttX
-Please acknowledge that we are not experts on NuttX and may have trouble to resolve each problem you may be faced. For general NuttX issues, please read documents at [NuttX Home page](http://nuttx.org/). [NuttX forum](https://groups.yahoo.com/neo/groups/nuttx/info) also would be helpful.
+Please acknowledge that you are not experts on NuttX and may face troubles. For general NuttX issues, please read documents at [NuttX Home page](http://nuttx.org/). [NuttX forum](https://groups.yahoo.com/neo/groups/nuttx/info) also would be helpful.
 
 #### Build Host
 We recommend Ubuntu 14.04. Other platforms can be used but not verified by us.
 
 #### Target board
-Our work and this document describes [STM32F4-discovery with BB](http://www.st.com/web/en/catalog/tools/FM116/SC959/SS1532/LN1199/PF255417) as reference target. 
+We work on STM32F4 board for NuttX and the detail of the reference board is well described at [STM32F4-discovery with BB](http://www.st.com/web/en/catalog/tools/FM116/SC959/SS1532/LN1199/PF255417).
 
 ##### Relation with STM board?
-We do not have any business relation with STM board. It is selected because it has enough RAM and Flash ROM so that development can be more comfortable. And it have lots of pins to play with. 
+We do not have any business relation with STM board. It is selected because it has enough RAM and Flash ROM, so that development can be more comfortable. And it has lots of pins to play with.
 
 When IoT.js is built up and optimised, it may work in devices having smaller resource.
 
 
-#### Toolchain 
+#### Toolchain
 
-As for STM32F4-discovery uses ARM, we recommend gcc-arm-none-eabi version 4.8. Refer [this](https://pixhawk.org/dev/toolchain_installation_lin) page how to install if you do not have installed yet.
+As STM32F4-discovery is ARM based, we recommend gcc-arm-none-eabi version 4.8. Refer [this](https://pixhawk.org/dev/toolchain_installation_lin) page how to install if you do not have installed yet.
 
-#### Packages 
+#### Packages
 
-You may need to install below packages as follows;
+You may need to install packages as follows;
 ```
-sudo apt-get install autoconf libtool gperf flex bison autoconf2.13 
+sudo apt-get install autoconf libtool gperf flex bison autoconf2.13
 sudo apt-get install libncurses-dev
 sudo apt-get install libusb-1.0-0-dev
 sudo apt-get install libsgutils2-dev
@@ -55,17 +55,17 @@ sudo ldconfig
 
 #### USB Connection
 
-There are two USB Connection on the Target board. USB mini CN1 and USB micro CN5. Both USB ports need to be connected to your Host. CN1 is used for power and Flashing but will not appear as a device in Linux. CN5 is used for NSH and will appear as /dev/ttyACM0 when things are working ok.
+There are two USB Connections on the Target board. USB mini CN1 and USB micro CN5. Both USB ports need to be connected to your Host. CN1 is used for power and Flashing, but it will not appear as a device in Linux. CN5 is used for NSH and will appear as /dev/ttyACM0 when things work good.
 
 
 ### 1. Get the sources
 
-If you haven't read [Build for Linux](Build-for-Linux.md) page, it would be better to read it. Some explanations may be skipped in this document.
+If you haven't read the [Build for Linux](Build-for-Linux.md) page, it would be better to read it first. Some explanations may be skipped in this document.
 
 
 #### Directory structure
 
-Assume _harmony_ as a root folder so it may look like this;
+Assume _harmony_ as a root directory so it may look like this;
 * harmony
  * iotjs
  * nuttx
@@ -79,7 +79,7 @@ mkdir nuttx
 cd nuttx
 git init
 ```
-add `.gitignore` file with below contents. it's for the patch from old repository.
+Add `.gitignore` file with below contents. It's for the patch from old repository.
 ```
 .depend
 Make.dep
@@ -95,16 +95,16 @@ core
 cscope.out
 ```
 
-continue with nuttx repo preparation
+Continue with nuttx repo preparation
 ```
 git submodule add https://bitbucket.org/patacongo/nuttx nuttx
 git submodule add https://bitbucket.org/nuttx/apps/ apps
 ```
-do not `submodule init` with `--recursive`. checking out to old hash, below steps, will fail if `config` and `Documentation` folder exist.
+Do not `submodule init` with `--recursive`. checking out to old hash, below steps, will fail if `config` and `Documentation` directory exist.
 
 #### Apply patch to NuttX for IoT.js
 
-Download [iotjs-nuttx-20150708.tar.gz](https://github.com/Samsung/iotjs/blob/wikiattach/iotjs-nuttx-20150708.tar.gz?raw=true) file to harmony folder.
+Download [iotjs-nuttx-20150708.tar.gz](https://github.com/Samsung/iotjs/blob/wikiattach/iotjs-nuttx-20150708.tar.gz?raw=true) file to harmony directory.
 
 ```
 cd harmony
@@ -122,7 +122,7 @@ patch -p1 < ../iotjs-nuttx-20150708.diff
 
 ##### What is it about the _patch_ in above?
 
-This _patch_ includes settings for IoT.js on NuttX with STM32F4-discovery and BB. It's one of our reference target board that we are working on to make development easier. 
+This _patch_ includes settings for IoT.js on NuttX with STM32F4-discovery and BB. It's one of our reference target boards that we are working on to make development easier.
 Some of the settings are;
 * added libuv, libjerry, iotjs in configuration
 * enabled rcS file in /etc/init.d so that we can use micro SD
@@ -132,14 +132,14 @@ Some of the settings are;
 * Add 'gpio' device driver to make I/O pin control possible from ECMAScript
 * Add setjmp header and setjmp, longjmp to support JerryScript parser
 
-The patch include some fixes that occurred when working with current version of IoT.js, some of the fixes are;
+The patch includes some fixes that occurred when working with the current version of IoT.js, Those are;
 * fix nxflat that had some problem when reading micro SD card
 * fix net accept() error return
 * fix syscall CSV file for generating proxy source codes
 
 
 ### 2. Configure NuttX
- 
+
 ```
 # assume you are in nuttx root folder
 cd nuttx/tools
@@ -156,7 +156,7 @@ make menuconfig
 
 Select items as follows and change to your address
 * Application Configuration > NSH Library > Networking Configuration > IP Address Configuration
-* Application Configuration > NSH Library > Networking Configuration > Fixed MAC address 
+* Application Configuration > NSH Library > Networking Configuration > Fixed MAC address
 
 > How to set MAC address for development?
 > There are _locally administered addresses_ in MAC address.
@@ -165,16 +165,16 @@ Select items as follows and change to your address
 
 ### 3. Build IoT.js with libuv and JerryScript
 
-As noted in [Build for Linux](Build-for-Linux.md) page, you need to give additional options for NuttX.
+As noted in the [Build for Linux](Build-for-Linux.md) page, you need to give additional options for NuttX.
 
 ```
---target-arch=arm 
---target-os=nuttx 
+--target-arch=arm
+--target-os=nuttx
 --nuttx-home=(full path of nuttx home where .config file exist)
 --buildlib
 --no-check-test
 ```
-Have to disable 'checktest' as test with Nuttx binaries are not possible.
+You have to disable 'checktest'. Otherwise, Nuttx binaries are not generated, because
 `buildlib` for nuttx is turned on for default.
 
 To build IoT.js for nuttx, first, you need to build NuttX to create configuration file 'config.h'.
@@ -268,7 +268,7 @@ You may need to enable _Add Carriage Return_ option. Press Ctrl-A + Z + U for sh
 
 Press _Enter_ key several times to trigger NuttShell to start.
 
-If micro SD is enable, you can copy any script file to it and run with _nsh_, for example;
+If micro SD is enabled, you can copy any script file to it and run with _nsh_, for example;
 ```
 NuttShell (NSH)
 nsh> iotjs /mnt/sdcard/test.js
@@ -280,7 +280,6 @@ If you see
 |                             |                  
 |  Cannot open /dev/ttyACM0!  |                  
 |                             |                  
-+-----------------------------+ 
++-----------------------------+
 ```
 and it stays on the screen, something is wrong. Blue LED may blink if NuttX is in abnormal state. Press black(reset) button on the board and try again. If you still see this warning message, begin with original NuttX code and check your board, USB line and other softwares.
-

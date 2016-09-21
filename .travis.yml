@@ -5,6 +5,7 @@ dist: trusty
 sudo: required
 
 before_install:
+  - tools/check_signed_off.sh --travis
   - tools/apt-get-install-arm.sh
   - tools/apt-get-install-deps.sh
   - deps/jerry/tools/apt-get-install-deps.sh

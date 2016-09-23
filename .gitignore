@@ -4,6 +4,7 @@
 /build/*
 /src/iotjs_js.h
 /src/iotjs_js.cpp
+/src/iotjs_string_ext.inl.h
 /test/tmp/*
 
 # IDE related files

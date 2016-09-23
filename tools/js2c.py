@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# Copyright 2015 Samsung Electronics Co., Ltd.
+# Copyright 2015-2016 Samsung Electronics Co., Ltd.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,13 +14,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-#  This file converts src/js/iotjs.js to a C-array in include/iotjs_js.h file
+#  This file converts src/js/*.js to a C-array in src/iotjs_js.[h|cpp] file.
+# And this file also generates magic string list in src/iotjs_string_ext.inl.h
+# file to reduce JerryScript heap usage.
 
 import sys
 import glob
 import os
 import re
 import subprocess
+import struct
 
 from common.system.filesystem import FileSystem as fs
 
@@ -56,8 +59,33 @@ def removeComments(code):
 def removeWhitespaces(code):
     return re.sub('\n+', '\n', re.sub('\n +', '\n', code))
 
+def parseLiterals(code):
+    JERRY_SNAPSHOT_VERSION = 6
 
-LICENSE = '''/* Copyright 2015 Samsung Electronics Co., Ltd.
+    literals = set()
+
+    header = struct.unpack('IIII', code[0:16])
+    if header[0] != JERRY_SNAPSHOT_VERSION :
+        print ('Please check jerry snapshot version (Last confirmed: %d)'
+               % JERRY_SNAPSHOT_VERSION)
+        exit(1)
+
+    code_ptr = header[1] + 8
+    while code_ptr < len(code):
+        length = struct.unpack('H', code[code_ptr : code_ptr + 2])[0]
+        code_ptr = code_ptr + 2
+        if length == 0:
+            continue
+        if (length < 32):
+            item = struct.unpack('%ds' % length,
+                                 code[code_ptr : code_ptr + length])
+            literals.add(item[0])
+        code_ptr = code_ptr + length + (length % 2)
+
+    return literals
+
+
+LICENSE = '''/* Copyright 2015-2016 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the \"License\");
  * you may not use this file except in compliance with the License.
@@ -93,6 +121,14 @@ namespace iotjs {
 FOOTER2 = '''}
 '''
 
+HEADER3 = '''
+#define JERRY_MAGIC_STRING_ITEMS \\
+  \\
+'''
+
+FOOTER3 = '''
+'''
+
 SRC_PATH = '../src/'
 JS_PATH = SRC_PATH + 'js/'
 DUMPER = ""
@@ -107,12 +143,16 @@ if len(sys.argv) >= 2:
 
 fout_h = open(SRC_PATH + 'iotjs_js.h', 'w')
 fout_cpp = open(SRC_PATH + 'iotjs_js.cpp', 'w')
+fout_magic_str = open(SRC_PATH + 'iotjs_string_ext.inl.h', 'w')
 fout_h.write(LICENSE)
 fout_h.write(HEADER1)
 fout_cpp.write(LICENSE)
 fout_cpp.write(HEADER2)
+fout_magic_str.write(LICENSE)
+fout_magic_str.write(HEADER3)
 
 files = glob.glob(JS_PATH + '*.js')
+magic_string_set = { 'process' }
 for path in files:
     name = extractName(path)
     fout_cpp.write('const char ' + name + '_n[] = "' + name + '";\n')
@@ -183,6 +223,8 @@ for path in files:
         writeLine(fout_cpp,
                   'const int ' + name + '_l = sizeof(' + name + '_s);')
 
+        magic_string_set = magic_string_set | parseLiterals(code)
+
 
 
 NATIVE_STRUCT1 = '''
@@ -210,3 +252,9 @@ writeLine(fout_cpp, '};')
 
 fout_h.write(FOOTER1)
 fout_cpp.write(FOOTER2)
+
+for idx, magic_string in enumerate(sorted(magic_string_set)):
+    fout_magic_str.write('  MAGICSTR_EX_DEF(MAGIC_STR_%d, "%s") \\\n'
+                         % (idx, repr(magic_string)[1:-1]))
+
+fout_magic_str.write(FOOTER3)

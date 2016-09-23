@@ -33,7 +33,7 @@ count_err = 0
 
 interesting_exts = ['.c', '.cpp', '.cc', '.h', '.js', '.py', '.sh', '.cmake']
 skip_dirs = ['deps', 'build']
-skip_files = ['iotjs_js.h']
+skip_files = ['iotjs_js.h', 'check_signed_off.sh']
 
 
 def report_error_name_line(name, line, msg):
@@ -56,7 +56,7 @@ def check_tidy(src_dir):
     count_empty_lines = 0
 
     for (dirpath, dirnames, filenames) in os.walk(src_dir):
-        if any(d in dirpath for d in skip_dirs):
+        if any(d in os.path.relpath(dirpath, src_dir) for d in skip_dirs):
             continue
 
         files = [os.path.join(dirpath, name) for name in filenames

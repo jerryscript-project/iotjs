@@ -15,7 +15,7 @@
 include(CMakeForceCompiler)
 
 set(CMAKE_SYSTEM_NAME EXTERNAL)
-set(CMAKE_SYSTEM_PROCESSOR arm)
+set(CMAKE_SYSTEM_PROCESSOR armv7l)
 
 set(EXTERNAL_CMAKE_C_COMPILER arm-none-eabi-gcc)
 set(EXTERNAL_CMAKE_CXX_COMPILER arm-none-eabi-g++)

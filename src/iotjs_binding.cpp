@@ -21,7 +21,6 @@
 
 namespace iotjs {
 
-
 #define JVAL_IS_NULL(val_p) \
     jerry_value_is_null(*val_p)
 
@@ -49,6 +48,8 @@ namespace iotjs {
 #define JVAL_TO_NUMBER(val_p) \
     jerry_get_number_value(*val_p)
 
+JObject* JObject::_null = nullptr;
+JObject* JObject::_undefined = nullptr;
 
 JObject::JObject() {
   _obj_val = jerry_create_object();
@@ -114,15 +115,22 @@ JObject::~JObject() {
   }
 }
 
+void JObject::init() {
+  _null = new JObject(JVal::Null(), false);
+  _undefined = new JObject(JVal::Undefined(), false);
+}
+
+void JObject::cleanup() {
+  delete _null;
+  delete _undefined;
+}
 
 JObject& JObject::Null() {
-  static JObject null(JVal::Null(), false);
-  return null;
+  return *_null;
 }
 
 JObject& JObject::Undefined() {
-  static JObject undefined(JVal::Undefined(), false);
-  return undefined;
+  return *_undefined;
 }
 
 

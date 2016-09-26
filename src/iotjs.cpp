@@ -120,6 +120,8 @@ static bool RunIoTjs(JObject* process) {
 
 
 static bool StartIoTjs(Environment* env) {
+  // Initialize jerry null and undefined objects.
+  JObject::init();
   // Get jerry global object.
   JObject global = JObject::Global();
 
@@ -154,6 +156,9 @@ static bool StartIoTjs(Environment* env) {
 
   // Release bulitin modules.
   CleanupModules();
+
+  // Release jerry null and undefined objects.
+  JObject::cleanup();
 
   return true;
 }

@@ -17,7 +17,7 @@ Current supported platforms are **Linux and NuttX**
 * [Build for Nuttx (new)](Build-for-NuttX-(new).md): NuttX latest version
 * Raspberry Pi 2
     * [Setting Raspberry Pi 2](Setting-Raspberry-Pi-2.md)
-    * [Build for ARM Linux (RPi2)](Build-for-ARM-Linux-(RPi2).md)
+    * [Build for Raspberry Pi 2](Build-for-RPi2.md)
 * [Build for Intel Edison with mraa](Build-for-Edison-with-mraa.md)
 
 ##### Platforms to support

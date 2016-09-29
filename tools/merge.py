@@ -18,41 +18,19 @@
 import sys
 import subprocess
 import getpass
-from os import path
 
+from common.system.filesystem import FileSystem as fs
+from common.system.executor import Executor as ex
 
-SCRIPT_PATH = path.dirname(path.abspath(__file__))
+SCRIPT_PATH = fs.dirname(fs.abspath(__file__))
 
-BUILD_SCRIPT_DEBUG = path.join(SCRIPT_PATH,
+BUILD_SCRIPT_DEBUG = fs.join(SCRIPT_PATH,
     'build.py --clean --config=.build.default.config --buildtype=debug')
 
-BUILD_SCRIPT_RELEASE = path.join(SCRIPT_PATH,
+BUILD_SCRIPT_RELEASE = fs.join(SCRIPT_PATH,
     'build.py --clean --config=.build.default.config --buildtype=release')
 
 GIT_REPO_FORMAT = 'https://github.com/%s/iotjs.git'
-
-
-def print_cmdline(cmd):
-    print
-    print '\033[1;93m$ %s\033[0m' % cmd
-    print
-
-def run_cmd_output(cmd):
-    print_cmdline(cmd)
-    cmd_list = cmd.split()
-    return subprocess.check_output(cmd_list).strip()
-
-
-def run_cmd_code(cmd):
-    print_cmdline(cmd)
-    cmd_list = cmd.split()
-    return subprocess.call(cmd_list)
-
-
-def check_run_cmd(cmd):
-    retcode = run_cmd_code(cmd)
-    if retcode != 0:
-        error_and_exit("Failed - %d" % retcode)
 
 
 def get_repo_url(fork_name):
@@ -68,82 +46,75 @@ def get_merge_remote_name(fork_name, branch_name):
 
 
 def git_cache_credential():
-    return run_cmd_output('git config --global credential.helper cache')
+    return ex.run_cmd_output('git config --global credential.helper cache')
 
 
 def git_current_branch():
-    return run_cmd_output('git rev-parse --abbrev-ref HEAD')
+    return ex.run_cmd_output('git rev-parse --abbrev-ref HEAD')
 
 
 def git_fetch_origin():
-    return run_cmd_code('git fetch origin')
+    return ex.run_cmd('git fetch origin')
 
 
 def git_rebase_origin_master():
-    return run_cmd_code('git rebase origin/master')
+    return ex.run_cmd('git rebase origin/master')
 
 
 def git_check_master():
-    return not run_cmd_output('git diff master origin/master')
+    return not ex.run_cmd_output('git diff master origin/master')
 
 
 def git_add_remote(fork_name, branch_name):
     remote_name = get_merge_remote_name(fork_name, branch_name)
     remote_url = get_repo_url(fork_name)
-    return run_cmd_code('git remote add %s %s' % (remote_name, remote_url))
+    return ex.run_cmd('git remote add %s %s' % (remote_name, remote_url))
 
 
 def git_fetch_remote(fork_name, branch_name):
     remote_name = get_merge_remote_name(fork_name, branch_name)
-    return run_cmd_code('git fetch %s' % remote_name)
+    return ex.run_cmd('git fetch %s' % remote_name)
 
 
 def git_checkout_for_merge(fork_name, branch_name):
     merge_branch = get_merge_branch_name(fork_name, branch_name)
     remote_name = get_merge_remote_name(fork_name, branch_name)
-    return run_cmd_code('git checkout -b %s %s/%s'
-                        % (merge_branch, remote_name, branch_name))
+    return ex.run_cmd('git checkout -b %s %s/%s'
+                      % (merge_branch, remote_name, branch_name))
 
 
 def git_rebase_on_master():
-    return run_cmd_code('git rebase master')
+    return ex.run_cmd('git rebase master')
 
 
 def git_checkout_master():
-    return run_cmd_code('git checkout master')
+    return ex.run_cmd('git checkout master')
 
 
 def git_merge(merge_branch):
-    return run_cmd_code('git merge %s' % merge_branch)
+    return ex.run_cmd('git merge %s' % merge_branch)
 
 
 def git_remove_merge(merge_branch):
-    return run_cmd_code('git branch -D %s' % merge_branch)
+    return ex.run_cmd('git branch -D %s' % merge_branch)
 
 
 def git_remove_remote(fork_name, branch_name):
     remote_name = get_merge_remote_name(fork_name, branch_name)
-    return run_cmd_code('git remote remove %s' % remote_name)
+    return ex.run_cmd('git remote remove %s' % remote_name)
 
 
 def check_build():
-    return (run_cmd_code(BUILD_SCRIPT_DEBUG) or
-            run_cmd_code(BUILD_SCRIPT_RELEASE))
+    return (ex.run_cmd(BUILD_SCRIPT_DEBUG) or
+            ex.run_cmd(BUILD_SCRIPT_RELEASE))
 
 
 def git_push():
-    return run_cmd_code('git push origin master')
-
-
-def error_and_exit(msg):
-    print
-    print '* ' + msg
-    print
-    exit(1)
+    return ex.run_cmd('git push origin master')
 
 
 if len(sys.argv) < 3:
-    error_and_exit(
+    ex.fail(
         'usage: <merge.py> <fork_name> <branch_name> [<id>]')
 
 fork_name = sys.argv[1]
@@ -161,7 +132,7 @@ merge_branch = get_merge_branch_name(fork_name, branch_name)
 
 # check if current branch is master.
 if git_current_branch() != 'master':
-    error_and_exit('You should run merge script on master branch')
+    ex.fail('You should run merge script on master branch')
 
 
 git_cache_credential()
@@ -169,36 +140,36 @@ git_cache_credential()
 
 # rebase on top of origin/master
 if git_fetch_origin() != 0:
-    error_and_exit('Failed to fetch origin')
+    ex.fail('Failed to fetch origin')
 
 if git_rebase_origin_master() != 0:
-    error_and_exit('Failed to rebase origin/master')
+    ex.fail('Failed to rebase origin/master')
 
 if not git_check_master():
-    error_and_exit('master branch is different from origin/master')
+    ex.fail('master branch is different from origin/master')
 
 
 # checkout the branch we want to merge.
 git_add_remote(fork_name, branch_name)
 
 if git_fetch_remote(fork_name, branch_name) != 0:
-    error_and_exit('Failed to fetch remote')
+    ex.fail('Failed to fetch remote')
 
 if git_checkout_for_merge(fork_name, branch_name) != 0:
-    error_and_exit('Failed to checkout branch for merge')
+    ex.fail('Failed to checkout branch for merge')
 
 if git_rebase_on_master() != 0:
-    error_and_exit('Failed to rebase on top of master')
+    ex.fail('Failed to rebase on top of master')
 
 
 # checkout master
 if git_checkout_master() != 0:
-    error_and_exit('Failed to checkout master')
+    ex.fail('Failed to checkout master')
 
 
 # rebase
 if git_merge(merge_branch) != 0:
-    error_and_exit('Failed to rebase merge branch')
+    ex.fail('Failed to rebase merge branch')
 
 git_remove_merge(merge_branch)
 git_remove_remote(fork_name, branch_name)
@@ -206,7 +177,7 @@ git_remove_remote(fork_name, branch_name)
 
 # check build
 if check_build() != 0:
-    error_and_exit('Failed to build check')
+    ex.fail('Failed to build check')
 
 print 'Do you want push [y/N]? '
 
@@ -216,4 +187,4 @@ choise = raw_input().lower()
 
 if choise in yes:
     if git_push() != 0:
-        error_and_exit('Failed to push')
+        ex.fail('Failed to push')

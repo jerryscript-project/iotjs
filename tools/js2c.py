@@ -22,8 +22,12 @@ import os
 import re
 import subprocess
 
+from common.system.filesystem import FileSystem as fs
+
+
 def extractName(path):
-    return os.path.splitext(os.path.basename(path))[0]
+    return fs.splitext(os.path.basename(path))[0]
+
 
 def writeLine(fo, content, indent=0):
     buf = '  ' * indent
@@ -31,18 +35,23 @@ def writeLine(fo, content, indent=0):
     buf += '\n'
     fo.write(buf)
 
+
 def regroup(l, n):
-    return [ l[i:i+n] for i in range(0, len(l), n) ]
+    return [l[i:i+n] for i in range(0, len(l), n)]
+
 
 def removeComments(code):
     pattern = r'(\".*?\"|\'.*?\')|(/\*.*?\*/|//[^\r\n]*$)'
     regex = re.compile(pattern, re.MULTILINE | re.DOTALL)
+
     def _replacer(match):
         if match.group(2) is not None:
             return ""
         else:
             return match.group(1)
+
     return regex.sub(_replacer, code)
+
 
 def removeWhitespaces(code):
     return re.sub('\n+', '\n', re.sub('\n +', '\n', code))
@@ -98,10 +107,10 @@ if len(sys.argv) >= 2:
 
 fout_h = open(SRC_PATH + 'iotjs_js.h', 'w')
 fout_cpp = open(SRC_PATH + 'iotjs_js.cpp', 'w')
-fout_h.write(LICENSE);
-fout_h.write(HEADER1);
-fout_cpp.write(LICENSE);
-fout_cpp.write(HEADER2);
+fout_h.write(LICENSE)
+fout_h.write(HEADER1)
+fout_cpp.write(LICENSE)
+fout_cpp.write(HEADER2)
 
 files = glob.glob(JS_PATH + '*.js')
 for path in files:
@@ -109,7 +118,7 @@ for path in files:
     fout_cpp.write('const char ' + name + '_n[] = "' + name + '";\n')
     fout_h.write('extern const char ' + name + '_n[];\n')
     fout_h.write('extern const int ' + name + '_l;\n')
-    if no_snapshot == True:
+    if no_snapshot is True:
         fout_h.write('extern const char ' + name + '_s[];\n')
         fout_cpp.write('const char ' + name + '_s[] = {\n')
         code = open(path, 'r').read() + '\0'
@@ -140,15 +149,15 @@ for path in files:
         fmodule_wrapped = open(path + '.wrapped', 'w')
         # FIXME
         if name != 'iotjs':
-            #fmodule_wrapped.write ("(function (a, b, c) {\n")
-            fmodule_wrapped.write (
-                "(function(exports, require, module) {\n");
+            # fmodule_wrapped.write ("(function (a, b, c) {\n")
+            fmodule_wrapped.write(
+                "(function(exports, require, module) {\n")
 
-        fmodule_wrapped.write (module)
+        fmodule_wrapped.write(module)
 
         if name != 'iotjs':
-            fmodule_wrapped.write ("});\n");
-            #fmodule_wrapped.write ("wwwwrap(a, b, c); });\n")
+            fmodule_wrapped.write("});\n")
+            # fmodule_wrapped.write ("wwwwrap(a, b, c); });\n")
         fmodule_wrapped.close()
 
         # FIXME
@@ -163,8 +172,8 @@ for path in files:
 
         code = open(path + '.snapshot', 'r').read()
 
-        os.remove (path + '.wrapped')
-        os.remove (path + '.snapshot')
+        fs.remove(path + '.wrapped')
+        fs.remove(path + '.snapshot')
 
         for line in regroup(code, 8):
             buf = ', '.join(map(lambda ch: "0x{:02x}".format(ord(ch)), line))

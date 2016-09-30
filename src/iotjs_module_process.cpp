@@ -256,14 +256,26 @@ void SetNativeSources(JObject* native_sources) {
 
 
 static void SetProcessEnv(JObject* process){
-  const char *homedir;
+  const char *homedir, *nodepath;
   homedir = getenv("HOME");
   if (homedir == NULL) {
     homedir = "";
   }
   JObject home(homedir);
+  nodepath = getenv("NODE_PATH");
+  if (nodepath == NULL) {
+#if defined(__NUTTX__)
+    nodepath = "/mnt/sdcard";
+#else
+    nodepath = "";
+#endif
+  }
+  JObject node_path(nodepath);
+
   JObject env;
   env.SetProperty("HOME", home);
+  env.SetProperty("NODE_PATH", node_path);
+
   process->SetProperty("env", env);
 }
 

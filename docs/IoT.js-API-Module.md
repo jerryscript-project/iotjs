@@ -12,9 +12,10 @@ Loads the module named 'id'
 #### ``` require ``` search paths
 ``` require ``` function finds modules in the order of
 
-1. caller's directory of ``` require ``` function
-2. node_modules under the caller's directory
+1. current working directory
+2. node_modules directory under current working directory
 3. $HOME/node_modules
+4. $NODE_PATH/node_modules
 
 
 #### ``` require('id') ``` works as follows:

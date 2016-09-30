@@ -74,6 +74,13 @@ class JObject {
   // When the function is called, the handler will be triggered.
   explicit JObject(JHandlerType handler);
 
+  // Initializes statically null and undefined objects.
+  // This should be called once before javascript API calls
+  static void init();
+
+  // Releases null and undefined objects.
+  static void cleanup();
+
   // Create a javascript null object.
   static JObject& Null();
 
@@ -164,6 +171,9 @@ class JObject {
  private:
   // disable assignment.
   JObject& operator=(const JObject& rhs) = delete;
+
+  static JObject* _null;
+  static JObject* _undefined;
 };
 
 

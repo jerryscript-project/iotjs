@@ -65,39 +65,25 @@ def check_tidy(src_dir):
         if not files:
             continue
 
-        contents = ""
-        license_checked = False
+        for file in files:
+            if not check_license(open(file, "r").read()):
+                report_error_name_line(file, 1, 'incorrent license')
+            for line in fileinput.input(file):
+                if '\t' in line:
+                    report_error('TAB charactor')
+                if '\r' in line:
+                    report_error('CR charactor')
+                if line.endswith(' \n') or line.endswith('\t\n'):
+                    report_error('trailing whitespace')
+                if not line.endswith('\n'):
+                    report_error('line end without NEW LINE charactor')
 
-        for line in fileinput.input(files):
+                if len(line) -1 > column_limit:
+                    report_error('line exceeds %d charactors' % column_limit)
 
-            if '\t' in line:
-                report_error('TAB charactor')
-            if '\r' in line:
-                report_error('CR charactor')
-            if line.endswith(' \n') or line.endswith('\t\n'):
-                report_error('trailing whitespace')
-            if not line.endswith('\n'):
-                report_error('line end without NEW LINE charactor')
-
-            if len(line) -1 > column_limit:
-                report_error('line exceeds %d charactors' % column_limit)
-
-            if fileinput.isfirstline():
-                contents =""
-                license_checked = False
-
-            count_lines += 1
-            if not line.strip():
-                count_empty_lines += 1
-
-            if len(contents) < 700:
-                contents += line
-            elif not license_checked:
-                if not check_license(contents):
-                    report_error_name_line(fileinput.filename(),
-                                           1,
-                                           'incorrent license')
-                license_checked = True
+                count_lines += 1
+                if not line.strip():
+                    count_empty_lines += 1
 
     print "* total line of code: %d" % count_lines
     print ("* total non-black line of code: %d"

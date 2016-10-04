@@ -16,7 +16,8 @@ cmake_minimum_required(VERSION 2.8)
 
 set(JERRY_ROOT ${DEP_ROOT}/jerry)
 set(JERRY_CORE_ROOT ${JERRY_ROOT}/jerry-core)
-set(JERRY_INCDIR ${JERRY_CORE_ROOT})
+set(JERRY_PORT_ROOT ${JERRY_ROOT}/targets/default)
+set(JERRY_INCDIR ${JERRY_CORE_ROOT} ${JERRY_PORT_ROOT})
 set(JERRY_BIN ${BIN_ROOT}/deps/jerry)
 set(JERRY_LIB ${LIB_ROOT}/libjerrycore.a)
 

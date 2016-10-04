@@ -22,6 +22,7 @@
 
 #include "jerry-api.h"
 #include "jerry-port.h"
+#include "jerry-port-default.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -42,10 +43,12 @@ static bool InitJerry(Environment* env) {
 
   if (env->config()->memstat) {
     jerry_flag |= JERRY_INIT_MEM_STATS;
+    jerry_port_default_set_log_level(JERRY_LOG_LEVEL_DEBUG);
   }
 
   if (env->config()->show_opcode) {
     jerry_flag |= JERRY_INIT_SHOW_OPCODES;
+    jerry_port_default_set_log_level(JERRY_LOG_LEVEL_DEBUG);
   }
 
   // Initialize jerry.

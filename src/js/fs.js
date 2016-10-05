@@ -275,6 +275,38 @@ fs.readFileSync = function(path) {
 };
 
 
+fs.mkdir = function(path, mode, callback) {
+  if (typeof mode === 'function') callback = mode;
+
+  if (typeof callback !== 'function')
+    throw new TypeError('\"callback\" argument must be a function');
+
+  fsBuiltin.mkdir(checkArgString(path, 'path'),
+                  convertMode(mode, 511),
+                  callback);
+};
+
+
+fs.mkdirSync = function(path, mode) {
+  return fsBuiltin.mkdir(checkArgString(path, 'path'),
+                         convertMode(mode, 511));
+};
+
+
+fs.rmdir = function(path, callback) {
+  if (typeof callback !== 'function')
+    throw new TypeError('\"callback\" argument must be a function');
+
+  fsBuiltin.rmdir(checkArgString(path, 'path'),
+                  callback);
+};
+
+
+fs.rmdirSync = function(path) {
+  return fsBuiltin.rmdir(checkArgString(path, 'path'));
+};
+
+
 function convertFlags(flag) {
   if (util.isString(flag)) {
     switch (flag) {

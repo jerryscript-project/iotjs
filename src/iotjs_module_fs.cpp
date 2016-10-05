@@ -295,6 +295,43 @@ JHANDLER_FUNCTION(Stat) {
 }
 
 
+JHANDLER_FUNCTION(Mkdir) {
+  JHANDLER_CHECK(handler.GetThis()->IsObject());
+  JHANDLER_CHECK(handler.GetArgLength() >= 2);
+  JHANDLER_CHECK(handler.GetArg(0)->IsString());
+  JHANDLER_CHECK(handler.GetArg(1)->IsNumber());
+  Environment* env = Environment::GetEnv();
+
+  String path = handler.GetArg(0)->GetString();
+  int mode = handler.GetArg(1)->GetInt32();
+
+  if (handler.GetArgLength() > 2 && handler.GetArg(2)->IsFunction()) {
+    FS_ASYNC(env, mkdir, handler.GetArg(2), path.data(), mode);
+  } else {
+    JHANDLER_CHECK(handler.GetArg(1)->IsNumber());
+    FS_SYNC(env, mkdir, path.data(), mode);
+    handler.Return(JVal::Undefined());
+  }
+}
+
+
+JHANDLER_FUNCTION(Rmdir) {
+  JHANDLER_CHECK(handler.GetThis()->IsObject());
+  JHANDLER_CHECK(handler.GetArgLength() >= 1);
+  JHANDLER_CHECK(handler.GetArg(0)->IsString());
+  Environment* env = Environment::GetEnv();
+
+  String path = handler.GetArg(0)->GetString();
+
+  if (handler.GetArgLength() > 1 && handler.GetArg(1)->IsFunction()) {
+    FS_ASYNC(env, rmdir, handler.GetArg(1), path.data());
+  } else {
+    FS_SYNC(env, rmdir, path.data());
+    handler.Return(JVal::Undefined());
+  }
+}
+
+
 JObject* InitFs() {
   Module* module = GetBuiltinModule(MODULE_FS);
   JObject* fs = module->module;
@@ -306,6 +343,8 @@ JObject* InitFs() {
     fs->SetMethod("read", Read);
     fs->SetMethod("write", Write);
     fs->SetMethod("stat", Stat);
+    fs->SetMethod("mkdir", Mkdir);
+    fs->SetMethod("rmdir", Rmdir);
 
     module->module = fs;
   }

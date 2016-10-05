@@ -180,6 +180,7 @@ def set_global_vars(option):
     global host_build_root
     host_build_root = fs.join(path.PROJECT_ROOT,
                               option.builddir,
+                              'host',
                               host_tuple,
                               option.buildtype)
 
@@ -438,7 +439,6 @@ def build_libjerry(option):
             cmake_opt.append('-DEXTERNAL_CMAKE_SYSTEM_PROCESSOR=arm')
 
     if option.target_os == 'linux':
-        cmake_opt.append('-DCOMPILER_DEFAULT_LIBC=ON')
         cmake_opt.append('-DJERRY_LIBC=OFF')
 
     # --jerry-heaplimit

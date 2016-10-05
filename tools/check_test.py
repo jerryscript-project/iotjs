@@ -15,14 +15,13 @@
 # limitations under the License.
 
 import os
-import shutil
 import subprocess
 import sys
 import multiprocessing
-from os import path
-from functools import reduce
 from enum import Enum
 
+from common.system.filesystem import FileSystem as fs
+from common import path
 
 TERM_RED = "\033[1;31m"
 TERM_YELLOW = "\033[1;33m"
@@ -42,32 +41,8 @@ class TestResult(Enum):
     Notest = 4
 
 
-def join_path(pathes):
-    return path.abspath(reduce(lambda x, y: path.join(x, y), pathes))
-
-
-def check_path(path):
-    if not os.path.exists(path):
-        return False
-    return True
-
-# Path for this script file.
- # should be "<project_home>/tools".
-SCRIPT_PATH = path.dirname(path.abspath(__file__))
-
-# Home directory for the project.
-ROOT = join_path([SCRIPT_PATH, '../'])
-
-# Root directory for test.
-TEST_ROOT = join_path([ROOT, 'test'])
-
-RUN_PASS_DIR = join_path([TEST_ROOT, 'run_pass'])
-RUN_FAIL_DIR = join_path([TEST_ROOT, 'run_fail'])
-RESOURCE_DIR = join_path([TEST_ROOT, 'resources'])
-
-
 def is_javascript(name):
-    _, ext = os.path.splitext(name)
+    _, ext = fs.splitext(name)
     return ext == '.js'
 
 
@@ -94,7 +69,7 @@ def get_test_attribute(test):
             if meta_stdout.startswith('FILE['):
                 filename = meta_stdout[5:-1]
                 test_attr['stdout'] = read_file_contents(
-                        join_path([RESOURCE_DIR, filename]))
+                        fs.join(path.RESOURCE_DIR, filename))
             elif meta_stdout.startswith('COMMAND['):
                 command = meta_stdout[8:-1].split()
                 test_attr['stdout'] = subprocess.check_output(command)
@@ -119,7 +94,7 @@ def get_test_attribute(test):
 
 
 def get_expected_stdout(filename):
-    file_path = join_path([RESOURCE_DIR, filename])
+    file_path = fs.join(path.RESOURCE_DIR, filename)
     f = open(file_path, 'r')
     return f.read().encode()
 
@@ -127,20 +102,20 @@ def get_expected_stdout(filename):
 # Run a test case
 def run_test(arg):
     test_type, iotjs, test = arg
-    test_dir = path.dirname(test)
+    test_dir = fs.dirname(test)
 
     # fail test ?
     should_fail = True if test_type == 'run_fail' else False
 
     # working directory
-    os.chdir(test_dir)
+    fs.chdir(test_dir)
 
     # Check test attributes.
     test_attr = get_test_attribute(test)
 
     if test_attr['skip']:
         print('%s[ %s ] %s - SKIP%s' % (TERM_BLUE,
-                                        test_type, os.path.basename(test),
+                                        test_type, fs.basename(test),
                                         TERM_EMPTY))
         return (TestResult.Skip, test)
 
@@ -201,13 +176,13 @@ def run_test(arg):
     if test_failed:
         print('%s[ %s ] %s - %s%s' % (TERM_RED,
                                       test_type,
-                                      os.path.basename(test),
+                                      fs.basename(test),
                                       error_msg,
                                       TERM_EMPTY))
         print(test_output)
         return (TestResult.Fail, test)
 
-    print('[ %s ] %s' % (test_type, os.path.basename(test)))
+    print('[ %s ] %s' % (test_type, fs.basename(test)))
     return (TestResult.Pass, test)
 
 
@@ -217,10 +192,10 @@ def run_tests(testtype, testpath):
     skip_list = []
 
     for (dirpath, dirnames, filenames) in os.walk(testpath):
-        tests = [join_path([dirpath, name]) for name in filenames
+        tests = [fs.join(dirpath, name) for name in filenames
                  if is_javascript(name)]
 
-        pool = multiprocessing.Pool(processes = PROCESSES)
+        pool = multiprocessing.Pool(processes=PROCESSES)
         res = pool.map(run_test, ([testtype, iotjs, test] for test in tests))
 
         pass_list += list(map(lambda x: x[1],
@@ -234,7 +209,7 @@ def run_tests(testtype, testpath):
 
 
 def run_pass_test(iotjs):
-    passes, fails, skips = run_tests('run_pass', RUN_PASS_DIR)
+    passes, fails, skips = run_tests('run_pass', path.RUN_PASS_DIR)
     if len(fails) > 0:
         print()
         print('%s[ run_pass ] Test Failed%s' % (TERM_RED, TERM_EMPTY))
@@ -245,7 +220,7 @@ def run_pass_test(iotjs):
 
 
 def run_fail_test(iotjs):
-    passes, fails, skips = run_tests('run_fail', RUN_FAIL_DIR)
+    passes, fails, skips = run_tests('run_fail', path.RUN_FAIL_DIR)
     if len(fails) > 0:
         print()
         print('%s[ run_fail] Test Failed%s' % (TERM_RED, TERM_EMPTY))
@@ -256,12 +231,12 @@ def run_fail_test(iotjs):
 
 
 if len(sys.argv) < 2:
-    print('Usage: %s <path for iotjs>' % path.basename(sys.argv[0]))
+    print('Usage: %s <path for iotjs>' % fs.basename(sys.argv[0]))
     exit(1)
 
-iotjs = path.abspath(sys.argv[1])
+iotjs = fs.abspath(sys.argv[1])
 
-if not check_path(iotjs):
+if not fs.exists(iotjs):
     print('No iotjs executable: %s' % iotjs)
     exit(1)
 

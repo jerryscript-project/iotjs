@@ -14,11 +14,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import re;
+import re
 
-license = re.compile(
-u"""((#|//|\*) Copyright .*
-)+\s?\\2
+
+class CheckLicenser(object):
+    _license = re.compile(
+u"""((#|//|\*) Copyright .*)+
+\s?\\2
 \s?\\2 Licensed under the Apache License, Version 2.0 \(the "License"\);
 \s?\\2 you may not use this file except in compliance with the License.
 \s?\\2 You may obtain a copy of the License at
@@ -31,6 +33,8 @@ u"""((#|//|\*) Copyright .*
 \s?\\2 See the License for the specific language governing permissions and
 \s?\\2 limitations under the License.""")
 
-
-def check_license(contents):
-    return bool(license.search(contents))
+    @staticmethod
+    def check(filename):
+        with open(filename, 'r') as f:
+            contents = f.read()
+            return bool(CheckLicenser._license.search(contents))

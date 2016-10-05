@@ -17,8 +17,9 @@
 import sys
 import os
 import fileinput
-from check_license import check_license
 
+from check_license import CheckLicenser
+from common.system.filesystem import FileSystem as fs
 
 TERM_RED = "\033[1;31m"
 TERM_YELLOW = "\033[1;33m"
@@ -33,12 +34,15 @@ count_err = 0
 
 interesting_exts = ['.c', '.cpp', '.cc', '.h', '.js', '.py', '.sh', '.cmake']
 skip_dirs = ['deps', 'build']
-skip_files = ['iotjs_js.h', 'check_signed_off.sh']
+skip_files = ['iotjs_js.h', 'check_signed_off.sh', '__init__.py']
 
 
 def report_error_name_line(name, line, msg):
     global count_err
-    print("%s:%d: %s" % (name, line, msg))
+    if line is None:
+        print("%s: %s" % (name, msg))
+    else:
+        print("%s:%d: %s" % (name, line, msg))
     count_err += 1
 
 
@@ -47,7 +51,7 @@ def report_error(msg):
 
 
 def is_interesting(file):
-    _, ext = os.path.splitext(file)
+    _, ext = fs.splitext(file)
     return ext in interesting_exts and file not in skip_files
 
 
@@ -56,34 +60,36 @@ def check_tidy(src_dir):
     count_empty_lines = 0
 
     for (dirpath, dirnames, filenames) in os.walk(src_dir):
-        if any(d in os.path.relpath(dirpath, src_dir) for d in skip_dirs):
+        if any(d in fs.relpath(dirpath, src_dir) for d in skip_dirs):
             continue
 
-        files = [os.path.join(dirpath, name) for name in filenames
+        files = [fs.join(dirpath, name) for name in filenames
                  if is_interesting(name)]
 
         if not files:
             continue
 
-        for file in files:
-            if not check_license(open(file, "r").read()):
-                report_error_name_line(file, 1, 'incorrent license')
-            for line in fileinput.input(file):
-                if '\t' in line:
-                    report_error('TAB charactor')
-                if '\r' in line:
-                    report_error('CR charactor')
-                if line.endswith(' \n') or line.endswith('\t\n'):
-                    report_error('trailing whitespace')
-                if not line.endswith('\n'):
-                    report_error('line end without NEW LINE charactor')
+        for line in fileinput.input(files):
+            if '\t' in line:
+                report_error('TAB charactor')
+            if '\r' in line:
+                report_error('CR charactor')
+            if line.endswith(' \n') or line.endswith('\t\n'):
+                report_error('trailing whitespace')
+            if not line.endswith('\n'):
+                report_error('line end without NEW LINE charactor')
 
-                if len(line) -1 > column_limit:
-                    report_error('line exceeds %d charactors' % column_limit)
+            if len(line) - 1 > column_limit:
+                report_error('line exceeds %d charactors' % column_limit)
 
-                count_lines += 1
-                if not line.strip():
-                    count_empty_lines += 1
+            if fileinput.isfirstline():
+                if not CheckLicenser.check(fileinput.filename()):
+                    report_error_name_line(fileinput.filename(),
+                                           None,
+                                           'incorrent license')
+
+            if not line.strip():
+                count_empty_lines += 1
 
     print "* total line of code: %d" % count_lines
     print ("* total non-black line of code: %d"

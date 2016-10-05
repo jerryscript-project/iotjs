@@ -672,8 +672,8 @@ set_global_vars(option)
 # clean build directory.
 if option.clean:
     print_progress('Clear build directory')
-    fs.rmtree(build_root, True)
-    fs.rmtree(host_build_root, True)
+    fs.rmtree(build_root)
+    fs.rmtree(host_build_root)
 
 create_build_directories(option)
 

@@ -34,6 +34,8 @@
 #define GPIO_PIN_FORMAT_VALUE GPIO_PIN_FORMAT "value"
 
 #define GPIO_MAX_PINNO 63
+// #define GPIO_NUM_
+#define GPIO_MAX_PORTNO 8
 
 namespace iotjs {
 
@@ -52,6 +54,9 @@ class GpioLinuxGeneral : public Gpio {
   virtual int SetPin(GpioReqWrap* gpio_req);
   virtual int WritePin(GpioReqWrap* gpio_req);
   virtual int ReadPin(GpioReqWrap* gpio_req);
+  virtual int SetPort(GpioReqWrap* gpio_req);
+  virtual int WritePort(GpioReqWrap* gpio_req);
+  virtual int ReadPort(GpioReqWrap* gpio_req);
 
  public:
   bool _initialized;
@@ -350,9 +355,14 @@ void AfterWork(uv_work_t* work_req, int status) {
 
     case kGpioOpSetPort:
     case kGpioOpWritePort:
+    {
+      break;
+    }
     case kGpioOpReadPort:
     {
-      IOTJS_ASSERT(!"Not implemented");
+      if (req_data->result == kGpioErrOk) {
+        jargs.Add(JVal::Number(req_data->value));
+      }
       break;
     }
     default:
@@ -367,7 +377,6 @@ void AfterWork(uv_work_t* work_req, int status) {
   delete work_req;
   delete gpio_req;
 }
-
 
 
 void InitializeWorker(uv_work_t* work_req) {
@@ -483,6 +492,97 @@ void ReadPinWorker(uv_work_t* work_req) {
 }
 
 
+void SetPortWorker(uv_work_t* work_req) {
+  GpioLinuxGeneral* gpio = GpioLinuxGeneral::GetInstance();
+  IOTJS_ASSERT(gpio->_initialized == true);
+
+  GpioReqWrap* gpio_req = reinterpret_cast<GpioReqWrap*>(work_req->data);
+  GpioReqData* req_data = gpio_req->req();
+
+  DDDLOG("GPIO SetPortWorker() - port: %d, dir: %d, mode: %d",
+         req_data->pin, req_data->dir, req_data->mode);
+
+  int32_t pin = req_data->pin * 8;
+
+  if (req_data->dir == kGpioDirectionNone) {
+    for (int offset = 0; offset < 8; offset++) {
+      // Unexport GPIO pin.
+      if (!UnexportPin(pin + offset)) {
+        req_data->result = kGpioErrSys;
+        return;
+      }
+    }
+  } else {
+    for (int offset = 0; offset < 8; offset++) {
+      // Export GPIO pin.
+      if (!ExportPin(pin + offset)) {
+        req_data->result = kGpioErrSys;
+        return;
+      }
+      // Set direction.
+      if (!SetPinDirection(pin + offset, req_data->dir)) {
+        req_data->result = kGpioErrSys;
+        return;
+      }
+      // Set mode.
+      if (!SetPinMode(pin + offset, req_data->mode)) {
+        req_data->result = kGpioErrSys;
+        return;
+      }
+    }
+  }
+
+  req_data->result = kGpioErrOk;
+}
+
+
+void WritePortWorker(uv_work_t* work_req) {
+  GpioLinuxGeneral* gpio = GpioLinuxGeneral::GetInstance();
+  IOTJS_ASSERT(gpio->_initialized == true);
+
+  GpioReqWrap* gpio_req = reinterpret_cast<GpioReqWrap*>(work_req->data);
+  GpioReqData* req_data = gpio_req->req();
+
+  DDDLOG("GPIO WritePortWorker() - pin: %d, value: %d",
+         req_data->pin, req_data->value);
+
+  int32_t pin = req_data->pin * 8;
+
+  for (int offset = 0; offset < 8; offset++) {
+    if (!WritePin(pin + offset, req_data->value & (1 << offset))) {
+      req_data->result = kGpioErrSys;
+      return;
+    }
+  }
+
+  req_data->result = kGpioErrOk;
+}
+
+
+void ReadPortWorker(uv_work_t* work_req) {
+  GpioLinuxGeneral* gpio = GpioLinuxGeneral::GetInstance();
+  IOTJS_ASSERT(gpio->_initialized == true);
+
+  GpioReqWrap* gpio_req = reinterpret_cast<GpioReqWrap*>(work_req->data);
+  GpioReqData* req_data = gpio_req->req();
+
+  DDDLOG("GPIO ReadPortWorker() - port: %d" ,req_data->pin);
+
+  req_data->value = 0x00;
+  int32_t pin = req_data->pin * 8;
+  int32_t value = 0;
+
+  for (int offset = 0; offset < 8; offset++) {
+    if (!ReadPin(pin + offset, &value)) {
+      req_data->result = kGpioErrSys;
+      return;
+    }
+    if (value) req_data->value |= (1 << offset);
+  }
+  req_data->result = kGpioErrOk;
+}
+
+
 #define GPIO_LINUX_GENERAL_IMPL_TEMPLATE(op, initialized) \
   do { \
     GpioLinuxGeneral* gpio = GpioLinuxGeneral::GetInstance(); \
@@ -523,6 +623,23 @@ int GpioLinuxGeneral::ReadPin(GpioReqWrap* gpio_req) {
   return 0;
 }
 
+
+int GpioLinuxGeneral::SetPort(GpioReqWrap* gpio_req) {
+  GPIO_LINUX_GENERAL_IMPL_TEMPLATE(SetPort, true);
+  return 0;
+}
+
+
+int GpioLinuxGeneral::WritePort(GpioReqWrap* gpio_req) {
+  GPIO_LINUX_GENERAL_IMPL_TEMPLATE(WritePort, true);
+  return 0;
+}
+
+
+int GpioLinuxGeneral::ReadPort(GpioReqWrap* gpio_req) {
+  GPIO_LINUX_GENERAL_IMPL_TEMPLATE(ReadPort, true);
+  return 0;
+}
 
 } // namespace iotjs
 

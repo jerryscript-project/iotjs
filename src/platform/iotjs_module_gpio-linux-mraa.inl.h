@@ -44,6 +44,9 @@ class GpioLinuxMraa : public Gpio {
   virtual int SetPin(GpioReqWrap* gpio_req);
   virtual int WritePin(GpioReqWrap* gpio_req);
   virtual int ReadPin(GpioReqWrap* gpio_req);
+  virtual int SetPort(GpioReqWrap* gpio_req);
+  virtual int WritePort(GpioReqWrap* gpio_req);
+  virtual int ReadPort(GpioReqWrap* gpio_req);
 
  public:
   bool _ExportPin(int32_t pin);
@@ -377,6 +380,23 @@ int GpioLinuxMraa::ReadPin(GpioReqWrap* gpio_req) {
   return 0;
 }
 
+
+int GpioLinuxMraa::SetPort(GpioReqWrap* gpio_req) {
+  IOTJS_ASSERT(!"Not implemented");
+  return 0;
+}
+
+
+int GpioLinuxMraa::WritePort(GpioReqWrap* gpio_req) {
+  IOTJS_ASSERT(!"Not implemented");
+  return 0;
+}
+
+
+int GpioLinuxMraa::ReadPort(GpioReqWrap* gpio_req) {
+  IOTJS_ASSERT(!"Not implemented");
+  return 0;
+}
 
 } // namespace iotjs
 

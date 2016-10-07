@@ -34,6 +34,9 @@ class GpioArmNuttx : public Gpio {
   virtual int SetPin(GpioReqWrap* gpio_req);
   virtual int WritePin(GpioReqWrap* gpio_req);
   virtual int ReadPin(GpioReqWrap* gpio_req);
+  virtual int SetPort(GpioReqWrap* gpio_req);
+  virtual int WritePort(GpioReqWrap* gpio_req);
+  virtual int ReadPort(GpioReqWrap* gpio_req);
 };
 
 
@@ -80,6 +83,24 @@ int GpioArmNuttx::WritePin(GpioReqWrap* gpio_req) {
 
 
 int GpioArmNuttx::ReadPin(GpioReqWrap* gpio_req) {
+  IOTJS_ASSERT(!"Not implemented");
+  return 0;
+}
+
+
+int GpioArmNuttx::SetPort(GpioReqWrap* gpio_req) {
+  IOTJS_ASSERT(!"Not implemented");
+  return 0;
+}
+
+
+int GpioArmNuttx::WritePort(GpioReqWrap* gpio_req) {
+  IOTJS_ASSERT(!"Not implemented");
+  return 0;
+}
+
+
+int GpioArmNuttx::ReadPort(GpioReqWrap* gpio_req) {
   IOTJS_ASSERT(!"Not implemented");
   return 0;
 }

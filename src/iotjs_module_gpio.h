@@ -25,6 +25,10 @@
 
 namespace iotjs {
 
+enum GpioSettingType {
+  kGpioPin = 0,
+  kGpioPort,
+};
 
 enum GpioDirection {
   kGpioDirectionNone = 0,
@@ -86,12 +90,18 @@ class Gpio : public JObjectWrap {
   static Gpio* Create(JObject& jgpio);
   static Gpio* GetInstance();
   static JObject* GetJGpio();
+  static void SetGpio();
+  static void WriteGpio();
+  static void ReadGpio();
 
   virtual int Initialize(GpioReqWrap* gpio_req) = 0;
   virtual int Release(GpioReqWrap* gpio_req) = 0;
   virtual int SetPin(GpioReqWrap* gpio_req) = 0;
   virtual int WritePin(GpioReqWrap* gpio_req) = 0;
   virtual int ReadPin(GpioReqWrap* gpio_req) = 0;
+  virtual int SetPort(GpioReqWrap* gpio_req) = 0;
+  virtual int WritePort(GpioReqWrap* gpio_req) = 0;
+  virtual int ReadPort(GpioReqWrap* gpio_req) = 0;
 };
 
 

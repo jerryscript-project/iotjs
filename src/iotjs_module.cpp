@@ -26,6 +26,7 @@
 #include "iotjs_module_timer.h"
 #include "iotjs_module_gpio.h"
 #include "iotjs_module_httpparser.h"
+#include "iotjs_module_i2c.h"
 #include "iotjs_module_dns.h"
 
 

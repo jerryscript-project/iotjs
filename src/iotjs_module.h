@@ -34,6 +34,7 @@ typedef JObject* (*register_func)();
   F(FS, Fs, fs) \
   F(GPIO, Gpio, gpio) \
   F(HTTPPARSER, Httpparser, httpparser) \
+  F(I2C, I2c, i2c) \
   F(PROCESS, Process, process) \
   F(TCP, Tcp, tcp) \
   F(TIMER, Timer, timer)

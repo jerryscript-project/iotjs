@@ -27,7 +27,7 @@ void ProcessEmitExit(int code);
 
 bool ProcessNextTick();
 
-JObject MakeCallback(JObject& function, JObject& this_, JArgList& args);
+JObject InvokeCallback(JObject& function, JObject& this_, JArgList& args);
 
 void InitArgv(int argc, char** argv);
 

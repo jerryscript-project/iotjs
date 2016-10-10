@@ -175,7 +175,7 @@ public:
 
     argv.Add(info);
 
-    return (MakeCallback(func, jobj, argv).GetBoolean()? 1 : 0);
+    return (InvokeCallback(func, jobj, argv).GetBoolean()? 1 : 0);
 
   }
 
@@ -193,7 +193,7 @@ public:
     argv.Add(leng);
 
 
-    MakeCallback(func, jobj, argv);
+    InvokeCallback(func, jobj, argv);
 
     return 0;
   }
@@ -203,7 +203,7 @@ public:
     JObject func = jobj.GetProperty("OnMessageComplete");
     IOTJS_ASSERT(func.IsFunction());
 
-    MakeCallback(func, jobj, JArgList::Empty());
+    InvokeCallback(func, jobj, JArgList::Empty());
 
     return 0;
   }
@@ -222,7 +222,7 @@ public:
       argv.Add(jurl);
     }
 
-    MakeCallback(func, jobj, argv);
+    InvokeCallback(func, jobj, argv);
 
     url.MakeEmpty();
     flushed = true;

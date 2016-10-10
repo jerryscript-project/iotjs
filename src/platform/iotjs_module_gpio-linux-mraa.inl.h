@@ -223,7 +223,7 @@ void AfterWork(uv_work_t* work_req, int status) {
     }
   }
 
-  MakeCallback(gpio_req->jcallback(), *Gpio::GetJGpio(), jargs);
+  InvokeCallback(gpio_req->jcallback(), *Gpio::GetJGpio(), jargs);
 
   delete work_req;
   delete gpio_req;

@@ -58,8 +58,8 @@ static void AfterGetAddrInfo(uv_getaddrinfo_t* req, int status, addrinfo* res) {
 
   uv_freeaddrinfo(res);
 
-  // Make the callback into JavaScript
-  MakeCallback(req_wrap->jcallback(), JObject::Undefined(), args);
+  // Invoke the JavaScript callback
+  InvokeCallback(req_wrap->jcallback(), JObject::Undefined(), args);
 
   delete req_wrap;
 }

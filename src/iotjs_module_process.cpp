@@ -86,10 +86,10 @@ bool ProcessNextTick() {
 }
 
 
-// Make a callback for the given `function` with `this_` binding and `args`
+// Invoke a callback for the given `function` with `this_` binding and `args`
 // arguments. The next tick callbacks registered via `process.nextTick()`
 // will be called after the callback function `function` returns.
-JObject MakeCallback(JObject& function, JObject& this_, JArgList& args) {
+JObject InvokeCallback(JObject& function, JObject& this_, JArgList& args) {
   // Calls back the function.
   JResult jres = function.Call(this_, args);
   if (jres.IsException()) {

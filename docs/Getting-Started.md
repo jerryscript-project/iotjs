@@ -35,15 +35,12 @@ Current supported platforms are **Linux and NuttX**
     * Intel Edison
     * (and your contributions including above plans)
 
+We will support the correct behavior of APIs for above environments. However, since IoT.js is targeting various kind IoT devices and platforms, single implementation cannot be the best practice for every environments. Therefore embedders should be in charge of optimization for their own environments. For more details on optimization, see the [Optimization Tips](Optimization-Tips.md) page.
 
-### Supporting direct H/W control
-We may need to control `things` directly from ECMAScript code. How can we make it possible? Let's first describe it at [GPIO API](IoT.js-API-GPIO.md) page.
+### Advanced Topics
+You can refer to [Writing new IoT.js builtin module](Writing-New-Builtin-Module.md) and [Optimization Tips](Optimization-Tips.md) pages for detailed information.
 
-### IoT.js Package
-IoT.js also uses NPM tool, node package manager, as for package development and sharing. Visit the [IoT.js package](IoT.js-package.md) page for more information.
-
-#### When something goes wrong
+### When something goes wrong
 Please read the [Logging IoT.js execution](Logging-IoT.js-execution.md) page how to display and add log messages while developing.
 
-
-### [IoT.js API Reference](IoT.js-API-Reference.md)
+### [IoT.js API Reference](IoT.js-API-reference.md)

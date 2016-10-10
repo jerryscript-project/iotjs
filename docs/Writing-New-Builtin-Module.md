@@ -5,20 +5,21 @@ This document provides a guide on how to write a builtin module for IoT.js.
 
 Contents:
 
-* Step-by-Step Guide
-  - Writing Builtin JavaScript Module
-  - Writing Native Module Builtin
+* Writing Builtin JavaScript Module
+* Writing Native Module Builtin
+  - Using native module in JavaScript module
+  - Registering native module
+  - Native handler
+    * Arguments and Return
+    * Wrapping native object with JS object
+    * Callback
 
-* And More Informations
-  - Implementation Details
-  - Optimization Tips
+You can see more information on the [Optimization Tips](Optimization-Tips.md) page.
 
 It will be easier to write a new IoT.js module if you have background on:
 
 - [Node.js module](https://nodejs.org/api/modules.html) (for writing IoT.js JavaScript module)
 - [Node.js native addon](https://nodejs.org/api/addons.html) (for writing IoT.js native module builtin)
-
-# Step-by-Step Guide
 
 ## Writing Builtin JavaScript Module
 
@@ -49,7 +50,7 @@ OK
 
 ## Writing Native Module Builtin
 
-You can implement some part of the builtin module in C++, to enhance performance and to fully exploit the H/W functionality, etc. It has same concept with [Node.js native addon](https://nodejs.org/api/addons.html), but we have different set of APIs. Node.js uses its own binding layer with v8 API, but we use [our own binding layer](https://github.com/Samsung/iotjs/blob/master/src/iotjs_binding.h) which wraps [JerryScript API](https://github.com/Samsung/JerryScript/blob/master/jerry-core/jerry-api.h).
+You can implement some part of the builtin module in C++, to enhance performance and to fully exploit the H/W functionality, etc. It has same concept with [Node.js native addon](https://nodejs.org/api/addons.html), but we have different set of APIs. Node.js uses its own binding layer with v8 API, but we use [our own binding layer](https://github.com/Samsung/iotjs/blob/master/src/iotjs_binding.h) which wraps [JerryScript API](https://github.com/Samsung/JerryScript/blob/master/jerry-core/jerry-api.h). You can see `src/iotjs_binding.*` files to find more APIs to communicate with JS-side values from native-side.
 
 For simple explanation, `console` module will be used as an example.
 
@@ -91,13 +92,18 @@ JObject* InitConsole() {
   return console;
 }
 ```
-The return value of initializer function (in this case, `JObject* console`,) will be passed to JavaScript side, as a return value of calling `process.binding(process.binding.modulename)`. Simply calling `new JObject()` will create a JavaScript object in c++ code.
+The return value of initializer function (in this case, `JObject* console`,) will be passed to JS-side, as a return value of calling `process.binding(process.binding.modulename)`. Simply calling `new JObject()` will create a JavaScript object in c++ code.
 
 And you might want to define some functions and properties to the newly created object. `JObject::SetMethod()` will register a native handler as a JavaScript function property. (That's how we called `consoleBuiltin.stdout()` in JavaScript.) And `JObject::SetProperty()` will define a non-function property into object. You can find the example of registering a constant value as a JavaScript property in `src/iotjs_module_constants.cpp`.
 
 ### Native handler
 
-Native handler reads arguments from JavaScript, executes native operations(, and returns the final value to JavaScript if necessary). Let's see an example in `src/iotjs_module_console.cpp`:
+Native handler reads arguments from JavaScript, executes native operations, and returns the final value to JavaScript.
+
+#### Arguments and Return
+
+Let's see an example in `src/iotjs_module_console.cpp`:
+
 ```c++
 JHANDLER_FUNCTION(Stdout) {
   JHANDLER_CHECK(handler.GetArgLength() == 1);
@@ -112,55 +118,50 @@ Calling `JObject* JHandlerInfo::GetArg()` method inside `JHANDLER_FUNCTION()` wi
 
 Calling `void JHandlerInfo::Return()` method inside `JHANDLER_FUNCTION()` will return value into JS-side. (`undefined` will be returned if `Return` was not called.) You should wrap c++ values into `JObject` or `JVal` type. Console methods doesn't have to return values, but you can easily find more examples from other modules.
 
-See `src/iotjs_binding.*` files to find more APIs to validate and convert the type of JavaScript values.
+#### Wrapping native object with JS object
 
+`console` module is *state-free* module, i.e., console module implementation doesn't have to hold any values with it. It just passes value and that's all it does.
 
-# More Informations
+However, there are many cases that module should maintain its state. Maintaining the state in JS-side would be simple. But maintaining values in native-side is not an easy problem, because native-side values should follow the lifecycle of JS-side values. Let's take `Buffer` module as an example. `Buffer` should maintain the native buffer content and its length. And the native buffer content should be deallocated when JS-side buffer variable becomes unreachable.
 
-## Implementation Details
+There's `JObjectWrap` class for that purpose. if you create a new `JObjectWrap` instance with JavaScript object as its argument, its destructor will be automatically called when its corresponding JavaScript object becomes unreachable. `Buffer` module also exploits this feature.
 
-### GC-referencing JavaScript object in c++
+```
+// This wrapper refer javascript object but never increase reference count
+// If the object is freed by GC, then this wrapper instance will be also freed.
+class JObjectWrap {
+ public:
+  explicit JObjectWrap(JObject& jobject);
+  virtual ~JObjectWrap();
+  ...
+};
 
-JerryScript uses automatic memory management and IoT.js uses manual memory management. You can use `JObjectWrap` between two layers.
-
-(Work in progress)
-
-### Module design: singleton vs non-singleton
-
-You can refer to Node.js module design patterns.
-
-(Work in progress)
-
-## Optimization Tips
-
-### Tracing JerryScript heap usage
-
-Adding below arguments when building and running IoT.js will show you the JerryScript memory status.
-
-```text
-$ ./tools/build.py --jerry-memstat
-$ ./build/bin/iotjs test.js --memstat
-Heap stats:
-  Heap size = 262136 bytes
-  Allocated = 0 bytes
-  Waste = 0 bytes
-  Peak allocated = 24288 bytes
-  Peak waste = 261 bytes
-  Skip-ahead ratio = 2.6059
-  Average alloc iteration = 1.1284
-  Average free iteration = 19.3718
-
-Pools stats:
-  Pool chunks: 0
-  Peak pool chunks: 735
-  Free chunks: 0
-  Pool reuse ratio: 0.3459
+class BufferWrap : public JObjectWrap {
+ public:
+  BufferWrap(JObject& jbuiltin, size_t length);
+  virtual ~BufferWrap(); // destructor will deallocate native buffer
+  ...
+ protected:
+  char* _buffer;
+  size_t _length;
+};
 ```
 
-Note that currently only JerryScript heap usage can be shown, not IoT.js heap usage.
+You can use this class like below:
 
-### JerryScript 'external magic string' feature
+```
+JObject* jbuiltin = /*...*/;
+BufferWrap* buffer_wrap = new BufferWrap(*jbuiltin, length);
+// Now `jbuiltin` object can be used in JS-side,
+// and when it becomes unreachable, destructor of `buffer_wrap` will be called.
+```
 
-When parsing and executing JavaScript module, JavaScript strings occupy a huge amount of space in JerryScript heap. To optimize this kind of heap usage, JerryScript has 'external magic string' feature. If you enable snapshot when building, build script will automatically generate `src/iotjs_string_ext.inl.h` file, which includes all of the JavaScript strings used in builtin modules. This file is used by JerryScript to reduce heap usage.
+#### Callback
 
-Since same strings will be included only once, you can use this information to get some hints on binary size reduction. Note that only strings with length<32 will be included in this list.
+Sometimes native handler should call JavaScript function directly. For general function calls (inside current tick), you can use `iotjs::JObject::Call(JObject& this_, JArgList& arg)` function to call JavaScript function from native-side.
+
+And for asyncronous callbacks, after `libtuv` calls your native function, if you want to call JS-side callback you should use `iotjs::MakeCallback(JObject& function, JObject& this_, JArgList& args)`. It will not only call the callback function, but also handle the exception, and process the next tick(i.e. it will call `ProcessNextTick()`).
+
+For asyncronous callbacks, you must consider the lifetime of JS-side callback objects. The lifetime of JS-side callback object should be extended until the native-side callback is really called. You can use `ReqWrap` and `HandleWrap` to achieve this.
+
+(Work In Progress)

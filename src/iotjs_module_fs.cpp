@@ -73,7 +73,7 @@ static void After(uv_fs_t* req) {
     }
   }
 
-  JObject res = MakeCallback(cb, JObject::Undefined(), jarg);
+  JObject res = InvokeCallback(cb, JObject::Undefined(), jarg);
 
   delete req_wrap;
 }

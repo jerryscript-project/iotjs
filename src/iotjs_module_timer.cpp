@@ -73,7 +73,7 @@ void TimerWrap::OnTimeout() {
   IOTJS_ASSERT(_jcallback->IsFunction());
 
   // Call javascirpt timeout callback function.
-  MakeCallback(*_jcallback, jobject(), JArgList::Empty());
+  InvokeCallback(*_jcallback, jobject(), JArgList::Empty());
 }
 
 

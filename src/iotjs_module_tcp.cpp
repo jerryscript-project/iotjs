@@ -82,7 +82,7 @@ static void AfterClose(uv_handle_t* handle) {
   // callback function.
   JObject jcallback = jtcp.GetProperty("onclose");
   if (jcallback.IsFunction()) {
-    MakeCallback(jcallback, JObject::Undefined(), JArgList::Empty());
+    InvokeCallback(jcallback, JObject::Undefined(), JArgList::Empty());
   }
 }
 
@@ -142,8 +142,8 @@ static void AfterConnect(uv_connect_t* req, int status) {
   JArgList args(1);
   args.Add(JVal::Number(status));
 
-  // Make callback.
-  MakeCallback(jcallback, JObject::Undefined(), args);
+  // Invoke callback.
+  InvokeCallback(jcallback, JObject::Undefined(), args);
 
   // Release request wrapper.
   delete req_wrap;
@@ -237,7 +237,7 @@ static void OnConnection(uv_stream_t* handle, int status) {
     args.Add(jclient_tcp);
   }
 
-  MakeCallback(jonconnection, jtcp, args);
+  InvokeCallback(jonconnection, jtcp, args);
 }
 
 
@@ -271,8 +271,8 @@ void AfterWrite(uv_write_t* req, int status) {
   JArgList args(1);
   args.Add(JVal::Number(status));
 
-  // Make callback.
-  MakeCallback(jcallback, JObject::Undefined(), args);
+  // Invoke callback.
+  InvokeCallback(jcallback, JObject::Undefined(), args);
 
   // Release request wrapper.
   delete req_wrap;
@@ -354,7 +354,7 @@ void OnRead(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
         jargs.Set(2, JVal::Bool(true));
       }
 
-      MakeCallback(jonread, JObject::Undefined(), jargs);
+      InvokeCallback(jonread, JObject::Undefined(), jargs);
     }
     return;
   }
@@ -365,7 +365,7 @@ void OnRead(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
   buffer_wrap->Copy(buf->base, nread);
 
   jargs.Add(jbuffer);
-  MakeCallback(jonread, JObject::Undefined(), jargs);
+  InvokeCallback(jonread, JObject::Undefined(), jargs);
 
   ReleaseBuffer(buf->base);
 }
@@ -399,7 +399,7 @@ static void AfterShutdown(uv_shutdown_t* req, int status) {
   JArgList args(1);
   args.Add(JVal::Number(status));
 
-  MakeCallback(jonshutdown, JObject::Undefined(), args);
+  InvokeCallback(jonshutdown, JObject::Undefined(), args);
 
   delete req_wrap;
 }

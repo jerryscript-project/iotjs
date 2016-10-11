@@ -221,8 +221,8 @@ fs.readFile = function(path, callback) {
 
   var read = function() {
     // Read segment of data.
-    var buffer = new Buffer(1024);
-    fs.read(fd, buffer, 0, 1024, -1, afterRead);
+    var buffer = new Buffer(1023);
+    fs.read(fd, buffer, 0, 1023, -1, afterRead);
   };
 
   var afterRead = function(err, bytesRead, buffer) {
@@ -258,8 +258,8 @@ fs.readFileSync = function(path) {
 
   while (true) {
     try {
-      var buffer = new Buffer(1024);
-      var bytesRead = fs.readSync(fd, buffer, 0, 1024);
+      var buffer = new Buffer(1023);
+      var bytesRead = fs.readSync(fd, buffer, 0, 1023);
       if (bytesRead) {
         buffers.push(buffer.slice(0, bytesRead));
       } else {

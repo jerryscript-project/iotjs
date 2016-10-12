@@ -1,0 +1,26 @@
+#
+# For a description of the syntax of this configuration file,
+# see the file kconfig-language.txt in the NuttX tools repository.
+#
+
+config IOTJS
+  bool "IoT.js"
+  default n
+  ---help---
+    Enable IoT.js platform
+
+if IOTJS
+
+config IOTJS_PRIORITY
+  int "IoT.js task priority"
+  default 100
+
+config IOTJS_STACKSIZE
+  int "IoT.js stack size"
+  default 16384
+
+config IOTJS_HEAPSIZE
+  int "IoT.js heap size"
+  default 107520
+
+endif

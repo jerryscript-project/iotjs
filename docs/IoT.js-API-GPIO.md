@@ -3,7 +3,6 @@
 ### `pins` and `ports`
 
 * pin number is logical number starts from 1. Thus logical pin number *k* is not necessarily bound to physical pin number *k* in your board.
-* port is not supported(Nov. 03, 2015)
 * port number is logical number starts from 1. Thus logical port number *k* is not necessarily bound to physical port number *k* in your board.
 * 8 logical pin will be bound to a logical port. For example, pin number 1~8 will bound to port 1, pin number 9~16 bound to port 2, and so forth.
 * If you write a byte value to a port, the result is the same as writing each bit to corresponding pin. For example, let's say you write (10101011)2 to port 1. the operation will write up bit to pin 1, up bit to pin 2, down bit to pin 3, ... , up bit to pin 8.
@@ -83,9 +82,9 @@ All pins bound to this port will have the given configuration.
 
 `callback` will be called after GPIO port is set.
 
-'setport' event will be emitted after port is set.
+'setPort' event will be emitted after port is set.
 
-'setpin' event will be emitted for pins that are bound to the port after port is set.
+'setPin' event will be emitted for pins that are bound to the port after port is set.
 
 
 #### gpio.writePort(portNumber, value[, callback])
@@ -97,6 +96,8 @@ Writes out the given value to a GPIO port.
 
 `callback` will be called after the value flushed.
 
+'writePort' event will be emitted after I/O finishes.
+
 
 #### gpio.readPort(portNumber, callback)
 * `portNumber: Number` - port number to read.
@@ -105,6 +106,8 @@ Writes out the given value to a GPIO port.
 Reads value from a GPIO port.
 
 `callback` will be called with the value.
+
+'readPort' event will be emitted after I/O finishes.
 
 
 #### gpio.query(queryOption, callback)
@@ -122,7 +125,7 @@ Emitted after GPIO device is successfully initialized.
 
 Emitted after GPIO device is successfully released.
 
-#### `'setPin(pin: Number, direction: String, mode:String'`
+#### `'setPin(pin: Number, direction: String, mode:String)'`
 
 Emitted after GPIO pin is set.
 
@@ -133,6 +136,18 @@ Emitted after GPIO write pin is finished.
 #### `'readPin(pin: Number, value: Boolean)'`
 
 Emitted after GPIO read pin is finished.
+
+#### `'setPort(port: Number, direction: String, mode:String)'`
+
+Emitted after GPIO port is set.
+
+#### `'writePort(port: Number, value: Number)'`
+
+Emitted after GPIO write port is finished.
+
+#### `'readPort(port: Number, value: Number)'`
+
+Emitted after GPIO read port is finished.
 
 #### `'error(error: GpioError)'`
 

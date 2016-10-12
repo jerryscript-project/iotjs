@@ -34,7 +34,7 @@ count_err = 0
 
 interesting_exts = ['.c', '.cpp', '.cc', '.h', '.js', '.py', '.sh', '.cmake']
 skip_dirs = ['deps', 'build']
-skip_files = ['iotjs_js.h', 'check_signed_off.sh', '__init__.py']
+skip_files = ['check_signed_off.sh', '__init__.py']
 
 
 def report_error_name_line(name, line, msg):

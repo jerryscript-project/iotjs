@@ -27,4 +27,7 @@ class Platform(object):
 
     def arch(self):
         """ Retrieve host arch name. """
-        return self._arch.lower()
+        arch = self._arch.lower()
+        if arch in ["armv7l"]:
+            arch = "arm"
+        return arch

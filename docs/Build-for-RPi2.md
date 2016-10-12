@@ -57,4 +57,8 @@ ssh pi@(your RPi2 IP)
 
 ### Building in Raspberry Pi 2 ?
 
-Not yet. Maybe someone out there?
+Just executing below command will build IoT.js and run our testsuite.
+
+``` bash
+./tools/build.py --target-board rpi2
+```

@@ -216,6 +216,18 @@ JHANDLER_FUNCTION(Cwd){
   handler.Return(ret);
 }
 
+JHANDLER_FUNCTION(Chdir){
+  JHANDLER_CHECK(handler.GetArgLength() == 1);
+  JHANDLER_CHECK(handler.GetArg(0)->IsString());
+
+  String path = handler.GetArg(0)->GetString();
+  int err = uv_cd(path.data());
+
+  if (err) {
+    JHANDLER_THROW_RETURN(Error, "chdir error");
+  }
+}
+
 
 JHANDLER_FUNCTION(DoExit) {
   JHANDLER_CHECK(handler.GetArgLength() == 1);
@@ -301,6 +313,7 @@ JObject* InitProcess() {
     process->SetMethod("compileNativePtr", CompileNativePtr);
     process->SetMethod("readSource", ReadSource);
     process->SetMethod("cwd", Cwd);
+    process->SetMethod("chdir", Chdir);
     process->SetMethod("doExit", DoExit);
     process->SetMethod("_initArgv", InitArgv);
     SetProcessEnv(process);

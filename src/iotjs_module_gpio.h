@@ -22,6 +22,9 @@
 #include "iotjs_objectwrap.h"
 #include "iotjs_reqwrap.h"
 
+#define GPIO_MAX_PINNO 63
+#define GPIO_MAX_PORTNO 8
+#define GPIO_PINCNT_IN_IOTJS 8
 
 namespace iotjs {
 

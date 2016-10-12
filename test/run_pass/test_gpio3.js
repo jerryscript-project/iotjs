@@ -29,7 +29,7 @@ var INPUT_PIN_NUMBER = 20,
     OUTPUT_PORT_NUMBER = 0,
     OUTPUT_PORT_MODE = "pulldn";
 
-var SWITCH_ON = (INPUT_PIN_NUMBER === "pulldn" ? true : false),
+var SWITCH_ON = (INPUT_PIN_MODE === "pulldn" ? true : false),
     SWITCH_OFF = !SWITCH_ON,
     LED_ON = (OUTPUT_PORT_MODE === "pulldn" ? 0xFF : 0x00),
     LED_OFF = ~LED_ON;

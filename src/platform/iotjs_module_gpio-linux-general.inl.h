@@ -33,9 +33,6 @@
 #define GPIO_PIN_FORMAT_EDGE GPIO_PIN_FORMAT "edge"
 #define GPIO_PIN_FORMAT_VALUE GPIO_PIN_FORMAT "value"
 
-#define GPIO_MAX_PINNO 63
-// #define GPIO_NUM_
-#define GPIO_MAX_PORTNO 8
 
 namespace iotjs {
 

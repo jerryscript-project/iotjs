@@ -1,4 +1,4 @@
-/* Copyright 2015 Samsung Electronics Co., Ltd.
+/* Copyright 2015-2016 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,23 +17,19 @@
 #include "iotjs_def.h"
 #include "iotjs_module.h"
 
-#include "iotjs_module_buffer.h"
-#include "iotjs_module_console.h"
-#include "iotjs_module_constants.h"
-#include "iotjs_module_fs.h"
-#include "iotjs_module_process.h"
-#include "iotjs_module_tcp.h"
-#include "iotjs_module_timer.h"
-#include "iotjs_module_gpio.h"
-#include "iotjs_module_httpparser.h"
-#include "iotjs_module_i2c.h"
-#include "iotjs_module_dns.h"
-
 
 namespace iotjs {
 
 
 static Module _modules[MODULE_COUNT];
+
+
+#define DECLARE_MODULE_INITIALIZER(upper, Camel, lower) \
+JObject* Init ## Camel();
+
+MAP_MODULE_LIST(DECLARE_MODULE_INITIALIZER)
+
+#undef DECLARE_MODULE_INITIALIZER
 
 
 #define INIT_MODULE_LIST(upper, Camel, lower) \

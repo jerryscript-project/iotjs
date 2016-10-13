@@ -1,4 +1,4 @@
-/* Copyright 2015 Samsung Electronics Co., Ltd.
+/* Copyright 2015-2016 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,10 +75,10 @@
 
 // commonly used header files
 #include "iotjs_binding.h"
+#include "iotjs_binding_helper.h"
 #include "iotjs_env.h"
 #include "iotjs_debuglog.h"
 #include "iotjs_module.h"
-#include "iotjs_module_process.h"
 #include "iotjs_util.h"
 
 #include <uv.h>

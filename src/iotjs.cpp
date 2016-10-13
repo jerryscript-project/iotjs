@@ -86,7 +86,7 @@ static void ReleaseJerry() {
 
 static JObject* InitModules() {
   InitModuleList();
-  return InitProcess();
+  return InitProcessModule();
 }
 
 

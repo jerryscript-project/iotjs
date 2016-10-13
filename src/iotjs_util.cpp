@@ -35,7 +35,18 @@ String ReadFile(const char* path) {
 
   String contents(NULL, len);
 
+#if defined(__NUTTX__)
+  char* ptr = contents.data();
+  ssize_t nread = 0;
+  size_t read = 0;
+
+  while ((nread = fread(ptr, 1, IOTJS_MAX_READ_BUFFER_SIZE, file)) > 0) {
+    read += nread;
+    ptr = contents.data() + read;
+  }
+#else
   size_t read = fread(contents.data(), 1, len, file);
+#endif
   IOTJS_ASSERT(read == len);
 
   *(contents.data() + len) = 0;

@@ -89,6 +89,9 @@ function I2C(address, options) {
       if(!err) {
         return _this.setAddress(_this.address);
       }
+      else {
+        throw err;
+      }
     };
   })(this));
 }
@@ -179,7 +182,7 @@ I2C.prototype.readByte = function(callback) {
 
 I2C.prototype.readBytes = function(cmd, len, callback) {
   this.setAddress(this.address);
-  return i2c.readBlock(cmd, len, null, function(err, actualBuffer) {
+  return i2c.readBlock(cmd, len, 0, function(err, actualBuffer) {
     return process.nextTick(function() {
       return callback(err, actualBuffer);
     });

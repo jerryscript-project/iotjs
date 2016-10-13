@@ -24,7 +24,36 @@
 
 namespace iotjs {
 
+enum I2cOp {
+  kI2cOpSetAddress,
+  kI2cOpScan,
+  kI2cOpOpen,
+  kI2cOpClose,
+  kI2cOpWrite,
+  kI2cOpWriteByte,
+  kI2cOpWriteBlock,
+  kI2cOpRead,
+  kI2cOpReadByte,
+  kI2cOpReadBlock,
+};
+
+enum I2cError {
+  kI2cErrOk = 0,
+  kI2cErrOpen = -1,
+  kI2cErrReadBlock = -2,
+};
+
 struct I2cReqData {
+  String device;
+  char* buf_data;
+  int buf_len;
+  int8_t byte;
+  int8_t cmd;
+  int32_t delay;
+
+  I2cOp op;
+  I2cError error;
+
   void* data; // pointer to I2cReqWrap
 };
 
@@ -41,16 +70,16 @@ class I2c : public JObjectWrap {
   static I2c* GetInstance();
   static JObject* GetJI2c();
 
-  virtual int SetAddress(I2cReqWrap* i2c_req) = 0;
+  virtual int SetAddress(int8_t address) = 0;
   virtual int Scan(I2cReqWrap* i2c_req) = 0;
   virtual int Open(I2cReqWrap* i2c_req) = 0;
-  virtual int Close(I2cReqWrap* i2c_req) = 0;
-  virtual int Write(I2cReqWrap* i2c_rea) = 0;
-  virtual int WriteByte(I2cReqWrap* i2c_rea) = 0;
-  virtual int WriteBlock(I2cReqWrap* i2c_rea) = 0;
-  virtual int Read(I2cReqWrap* i2c_rea) = 0;
-  virtual int ReadByte(I2cReqWrap* i2c_rea) = 0;
-  virtual int ReadBlock(I2cReqWrap* i2c_rea) = 0;
+  virtual int Close() = 0;
+  virtual int Write(I2cReqWrap* i2c_req) = 0;
+  virtual int WriteByte(I2cReqWrap* i2c_req) = 0;
+  virtual int WriteBlock(I2cReqWrap* i2c_req) = 0;
+  virtual int Read(I2cReqWrap* i2c_req) = 0;
+  virtual int ReadByte(I2cReqWrap* i2c_req) = 0;
+  virtual int ReadBlock(I2cReqWrap* i2c_req) = 0;
 };
 
 

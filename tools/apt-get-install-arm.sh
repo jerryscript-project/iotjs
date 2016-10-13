@@ -16,4 +16,6 @@
 
 sudo apt-get update -q
 sudo apt-get install -q -y \
-    g++-arm-linux-gnueabihf libc6-dev-armhf-cross
+    g++-arm-linux-gnueabihf libc6-dev-armhf-cross libi2c-dev
+sudo mv /usr/arm-linux-gnueabihf/include/linux/i2c-dev.h \
+    /usr/arm-linux-gnueabihf/include/linux/i2c-dev.h.kernel

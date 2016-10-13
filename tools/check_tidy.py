@@ -71,16 +71,16 @@ def check_tidy(src_dir):
 
         for line in fileinput.input(files):
             if '\t' in line:
-                report_error('TAB charactor')
+                report_error('TAB character')
             if '\r' in line:
-                report_error('CR charactor')
+                report_error('CR character')
             if line.endswith(' \n') or line.endswith('\t\n'):
                 report_error('trailing whitespace')
             if not line.endswith('\n'):
-                report_error('line end without NEW LINE charactor')
+                report_error('line ends without NEW LINE character')
 
             if len(line) - 1 > column_limit:
-                report_error('line exceeds %d charactors' % column_limit)
+                report_error('line exceeds %d characters' % column_limit)
 
             if fileinput.isfirstline():
                 if not CheckLicenser.check(fileinput.filename()):
@@ -88,11 +88,12 @@ def check_tidy(src_dir):
                                            None,
                                            'incorrent license')
 
+            count_lines += 1
             if not line.strip():
                 count_empty_lines += 1
 
-    print "* total line of code: %d" % count_lines
-    print ("* total non-black line of code: %d"
+    print "* total lines of code: %d" % count_lines
+    print ("* total non-blank lines of code: %d"
            % (count_lines - count_empty_lines))
     print "%s* total errors: %d%s" % (TERM_RED if count_err > 0 else TERM_GREEN,
                                       count_err,

@@ -13,8 +13,7 @@ There is a script to help you build IoT.js called "[build.py](../tools/build.py)
 Current supported platforms are **Linux and NuttX**
 
 * [Build for Linux](Build-for-Linux.md): Ubuntu 14.04 is used as a base platform.
-* [Build for NuttX](Build-for-NuttX.md): NuttX 7.9 (Feb 15, 2015)
-* [Build for Nuttx (new)](Build-for-NuttX-(new).md): NuttX latest version
+* [Build for NuttX](Build-for-NuttX.md)
 * Raspberry Pi 2
     * [Setting Raspberry Pi 2](Setting-Raspberry-Pi-2.md)
     * [Build for Raspberry Pi 2](Build-for-RPi2.md)

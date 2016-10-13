@@ -23,13 +23,18 @@ It will be easier to write a new IoT.js module if you have background on:
 
 ## Writing Builtin JavaScript Module
 
-Builtin JavaScript module can be written in the same way as writing [Node.js module](https://nodejs.org/api/modules.html). JavaScript file should be located in `src/js/` directory, then our build script will automatically include your module into the final binary.
+Builtin JavaScript module can be written in the same way as writing [Node.js module](https://nodejs.org/api/modules.html). JavaScript file should be located in `src/js/` directory, and you should notify to our build script that your module should be included in one of following ways:
+
+* Use `./tools/build.py --iotjs-include-module mymodule` when building
+* Add your module in `.build.default.config` or `build.config` file
+
+Your new module will look like below:
 
 src/js/mymodule.js:
 ```javascript
 module.exports = {
-    foo: function() { console.log("OK"); }
-    bar: 123;
+    foo: function() { console.log("OK"); },
+    bar: 123
 }
 ```
 

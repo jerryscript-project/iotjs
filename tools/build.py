@@ -18,8 +18,10 @@
 import argparse
 import json
 import sys
+import re
 
 from check_tidy import check_tidy
+from js2c import js2c
 from common import path
 from common.system.filesystem import FileSystem as fs
 from common.system.executor import Executor as ex
@@ -99,6 +101,10 @@ def init_option():
 
     parser.add_argument('--external-shared-lib', action='append')
 
+    parser.add_argument('--iotjs-include-module', action='append')
+
+    parser.add_argument('--iotjs-exclude-module', action='append')
+
     parser.add_argument('--jerry-cmake-param', action='append')
 
     parser.add_argument('--jerry-compile-flag', action='append')
@@ -157,6 +163,10 @@ def adjust_option(option):
         option.external_static_lib = []
     if option.external_shared_lib is None:
         option.external_shared_lib = []
+    if option.iotjs_include_module is None:
+        option.iotjs_include_module = []
+    if option.iotjs_exclude_module is None:
+        option.iotjs_exclude_module = []
     if option.jerry_cmake_param is None:
         option.jerry_cmake_param = []
     if option.jerry_compile_flag is None:
@@ -552,14 +562,80 @@ def build_libhttpparser(option):
 
     return True
 
+def analyze_module_dependency(option):
+
+    def print_warn(fmt, arg):
+        print fmt % arg
+        ex.fail('Failed to analyze module dependency')
+
+    for name in option.config['module']['always']:
+        if name in option.iotjs_include_module:
+            print_warn('Module \"%s\" is already included', name)
+        else:
+            option.iotjs_include_module.append(name)
+
+    for name in option.config['module']['optional']:
+        if name in option.iotjs_include_module:
+            print_warn('Module \"%s\" is already included', name)
+        else:
+            option.iotjs_include_module.append(name)
+
+    for name in option.config['module']['exclude']:
+        if name in option.iotjs_exclude_module:
+            print_warn('Module \"%s\" is already excluded', name)
+        else:
+            option.iotjs_exclude_module.append(name)
+
+    analyze_queue = set()
+    for name in option.iotjs_include_module:
+        analyze_queue.add(name)
+    for name in option.iotjs_exclude_module:
+        if name in option.config['module']['always']:
+            print_warn('Cannot exclude mandatory module \"%s\"', name)
+        else:
+            if name in analyze_queue:
+                analyze_queue.remove(name)
+            else:
+                print_warn('Cannot find module \"%s\" to exclude', name)
+
+    js_modules = { 'iotjs', 'native' }
+    native_modules = { 'process' }
+    while len(analyze_queue) != 0:
+        item = analyze_queue.pop()
+        js_modules.add(item)
+
+        content = open(fs.join(path.PROJECT_ROOT,
+                               'src', 'js', item + '.js')).read()
+
+        re_js_module = 'require\([\'\"](.*)[\'\"]\)'
+        for js_module in re.findall(re_js_module, content):
+            if js_module in option.iotjs_exclude_module:
+                print_warn('Cannot exclude \"%s\" since \"%s\" requires it',
+                           (js_module, item))
+            if js_module not in js_modules:
+                analyze_queue.add(js_module)
+
+        re_native_module = 'process.binding\(process.binding.(.*)\)'
+        for native_module in re.findall(re_native_module, content):
+            native_modules.add(native_module)
+
+    js_modules.remove('native')
+
+    option.js_modules = js_modules
+    option.native_modules = native_modules
+
+    print 'Building js modules: %s\nBuilding native modules: %s' \
+          % (', '.join(js_modules), ', '.join(native_modules))
+    print
+
+    return True
+
 
 def build_iotjs(option):
     # Run js2c
     fs.chdir(path.TOOLS_ROOT)
-    ex.check_run_cmd('python', ['js2c.py', option.buildtype,
-                             ('no_snapshot'
-                              if option.no_snapshot else 'snapshot'),
-                             jerry_output_path])
+    js2c(option.buildtype, option.no_snapshot, option.js_modules,
+         jerry_output_path)
 
     # Move working directory to IoT.js build directory.
     build_home = fs.join(build_root, 'iotjs')
@@ -572,6 +648,9 @@ def build_iotjs(option):
     cmake_opt.append('-DCMAKE_BUILD_TYPE=' + option.buildtype.capitalize())
     cmake_opt.append('-DTARGET_OS=' + option.target_os)
     cmake_opt.append('-DPLATFORM_DESCRIPT=' + platform_descriptor)
+
+    # IoT.js module list
+    cmake_opt.append('-DIOTJS_MODULES=' + (' ').join(option.native_modules))
 
     if not option.no_snapshot:
         option.compile_flag.append('-DENABLE_SNAPSHOT')
@@ -651,6 +730,11 @@ print_progress('Tidy checking')
 if not option.no_check_tidy:
     if not check_tidy(path.PROJECT_ROOT):
         ex.fail("Failed check_tidy")
+
+# Anazlye module dependency
+print_progress('Analyze module dependency')
+if not analyze_module_dependency(option):
+    ex.fail('Failed to analyze module dependency')
 
 # Perform init-submodule.
 print_progress('Initialize submodules')

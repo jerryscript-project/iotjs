@@ -5,17 +5,17 @@ This directory contains files to run IoT.js on
 
 ### How to build
 
-#### 1. Setting up the build environment for STM32F4-Discovery board
+#### 1. Set up the build environment for STM32F4-Discovery board
 
 Clone IoT.js and NuttX into iotjs-nuttx directory
 
 ```bash
-mkdir iotjs-nuttx
-cd iotjs-nuttx
-git clone https://github.com/Samsung/iotjs.git
-git clone https://bitbucket.org/nuttx/nuttx.git
-git clone https://bitbucket.org/nuttx/apps.git
-git clone https://github.com/texane/stlink.git
+$ mkdir iotjs-nuttx
+$ cd iotjs-nuttx
+$ git clone https://github.com/Samsung/iotjs.git
+$ git clone https://bitbucket.org/nuttx/nuttx.git
+$ git clone https://bitbucket.org/nuttx/apps.git
+$ git clone https://github.com/texane/stlink.git
 ```
 
 The following directory structure is created after these commands
@@ -30,26 +30,26 @@ iotjs-nuttx
   + stlink
 ```
 
-#### 2. Adding IoT.js as an interpreter for NuttX
+#### 2. Add IoT.js as a builtin application for NuttX
 
 ```bash
-cd apps/system
-mkdir iotjs
-cp ../../iotjs/targets/nuttx-stm32f4/* ./iotjs/
+$ cd apps/system
+$ mkdir iotjs
+$ cp ../../iotjs/targets/nuttx-stm32f4/* ./iotjs/
 ```
 
 #### 3. Configure NuttX
 
 ```bash
 # assuming you are in iotjs-nuttx folder
-cd nuttx/tools
+$ cd nuttx/tools
 
 # configure NuttX USB console shell
-./configure.sh stm32f4discovery/usbnsh
+$ ./configure.sh stm32f4discovery/usbnsh
 
-cd ..
+$ cd ..
 # might require to run "make menuconfig" twice
-make menuconfig
+$ make menuconfig
 ```
 
 We must set the following options:
@@ -60,7 +60,7 @@ We must set the following options:
 * Enable `RTOS Features -> Pthread Options -> Enable mutex types`
 * Enable `RTOS Features -> Files and I/O -> Enable /dev/console`
 * Enable `RTOS Features -> Work queue support -> High priority (kernel) worker thread`
-* Enable `Device Drivers -> Disable driver poll interfaces`
+* Disable `Device Drivers -> Disable driver poll interfaces`
 * Enable `Device Drivers -> MMC/SD Driver Suport`
 * Enable `Device Drivers -> MMC/SD Driver Suport -> MMC/SD SDIO transfer support`
 * Enable `Networking Support -> Networking Support`
@@ -79,14 +79,19 @@ We must set the following options:
 
 #### 4. Build IoT.js for NuttX
 
+##### Follow the instruction
+* [Build-for-NuttX](../../docs/Build-for-NuttX.md)
+
+#### 5. Build NuttX
+
 ```bash
 # assuming you are in iotjs-nuttx folder
-cd nuttx/
-make
+$ cd nuttx/
+$ make
 ```
 For release version, you can type R=1 make on the command shell.
 
-#### 5. Flashing
+#### 6. Flashing
 
 Connect Mini-USB for power supply and connect Micro-USB for `NSH` console.
 
@@ -95,5 +100,5 @@ To configure `stlink` utility for flashing, follow the instructions [here](https
 To flash,
 ```bash
 # assuming you are in nuttx folder
-sudo ../stlink/build/st-flash write nuttx.bin 0x8000000
+$ sudo ../stlink/build/st-flash write nuttx.bin 0x8000000
 ```

@@ -55,7 +55,6 @@ include $(APPDIR)/Make.defs
 
 CONFIG_IOTJS_PRIORITY ?= SCHED_PRIORITY_DEFAULT
 CONFIG_IOTJS_STACKSIZE ?= 16384
-CONFIG_IOTJS_HEAPSIZE ?= 107520
 # NSH sysinfo command
 
 APPNAME = iotjs
@@ -65,7 +64,7 @@ STACKSIZE = $(CONFIG_IOTJS_STACKSIZE)
 HEAPSIZE = $(CONFIG_IOTJS_HEAPSIZE)
 
 ASRCS =
-CSRCS = 
+CSRCS =
 CXXSRCS =
 MAINSRC = iotjs_main.cxx
 LIBS = libhttpparser.a libiotjs.a libjerrycore.a libtuv.a libjerry-libm.a libjerry-libc.a
@@ -138,7 +137,7 @@ $(COBJS): %$(OBJEXT): %.c
 $(CXXOBJS) $(MAINOBJ): %$(OBJEXT): %.cxx
 	$(call COMPILEXX, $<, $@)
 
-$(LIBS) : preconfig 
+$(LIBS) : preconfig
 	$(firstword $(AR)) x $@
 
 .built: chkcxx $(LIBS) $(OBJS)
@@ -196,4 +195,3 @@ preconfig:
 	make -C $(ROOT_DIR)/iotjs/build/arm-nuttx/$(BUILD_TYPE)/deps/jerry jerry-libc
 	cp $(ROOT_DIR)/iotjs/build/arm-nuttx/$(BUILD_TYPE)/deps/jerry/lib/libjerry-libc.a .
 	cp $(ROOT_DIR)/iotjs/build/arm-nuttx/$(BUILD_TYPE)/deps/jerry/lib/libjerry-libm.a .
-	

@@ -42,6 +42,8 @@ After this function any other GPIO function call except `initialize()` will be f
 
 Sets GPIO pin configuration.
 
+The mode option is not supported in Raspberry PI.
+
 `callback` will be called after GPIO pin is set.
 
 'setPin' event will be emitted after pin is set.
@@ -80,6 +82,8 @@ Sets GPIO port configuration.
 
 All pins bound to this port will have the given configuration.
 
+The mode option is not supported in Raspberry PI.
+
 `callback` will be called after GPIO port is set.
 
 'setPort' event will be emitted after port is set.
@@ -109,11 +113,6 @@ Reads value from a GPIO port.
 
 'readPort' event will be emitted after I/O finishes.
 
-
-#### gpio.query(queryOption, callback)
-* `queryOption: Object`.
-* `callback: Function(err: Error | null, result: Object)`.
-* _Need mode discussion for this_
 
 ### Events
 

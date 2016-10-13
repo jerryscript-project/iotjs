@@ -629,37 +629,6 @@ def run_checktest():
     return ex.run_cmd(path.CHECKTEST_PATH, [iotjs]) == 0
 
 
-def make_jerry_libraries_for_nuttx():
-    # Run make
-    make_opt = []
-    make_opt.append('-C')
-    make_opt.append(build_jerry_deps)
-    make_opt.append('jerry-libc')
-
-    ex.check_run_cmd('make', make_opt)
-
-    make_opt.pop()
-
-    make_opt.append('jerry-libm')
-    ex.check_run_cmd('make', make_opt)
-
-    return True
-
-
-def copy_libraries_for_nuttx(option):
-    nuttx_lib_path = fs.join(option.nuttx_home, 'lib')
-
-    fs.copy(libhttpparser_output_path, nuttx_lib_path)
-    fs.copy(libtuv_output_path, nuttx_lib_path)
-    fs.copy(libjerry_output_path, nuttx_lib_path)
-    fs.copy(libiotjs_output_path, nuttx_lib_path)
-    nuttx_libm_path = fs.join(nuttx_lib_path, 'libfdlibm.a')
-    fs.copy(libjerry_libc_output_path, nuttx_lib_path)
-    fs.copyfile(libjerry_libm_output_path, nuttx_libm_path)
-
-    return True
-
-
 # Initialize build option object.
 option = init_option()
 
@@ -728,15 +697,6 @@ if not option.no_check_test:
     else:
         if not run_checktest():
             ex.fail('Failed to pass unit tests')
-
-# copy output libraries to nuttx lib directory.
-if option.target_os == 'nuttx':
-    print_progress('Copy libraries')
-    if not make_jerry_libraries_for_nuttx():
-        ex.fail("Failed to make jerry libraries")
-
-    if not copy_libraries_for_nuttx(option):
-        ex.fail("Failed to copy libraries")
 
 
 print

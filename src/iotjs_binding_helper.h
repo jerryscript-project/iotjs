@@ -1,4 +1,4 @@
-/* Copyright 2015 Samsung Electronics Co., Ltd.
+/* Copyright 2015-2016 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,15 @@
  * limitations under the License.
  */
 
-#ifndef IOTJS_MODULE_PROCESS_H
-#define IOTJS_MODULE_PROCESS_H
+#ifndef IOTJS_HELPER_H
+#define IOTJS_HELPER_H
+
 
 #include "iotjs_binding.h"
 
 
 namespace iotjs {
+
 
 void UncaughtException(JObject& jexception);
 
@@ -29,10 +31,10 @@ bool ProcessNextTick();
 
 JObject MakeCallback(JObject& function, JObject& this_, JArgList& args);
 
-void InitArgv(int argc, char** argv);
+JObject* InitProcessModule();
 
-JObject* InitProcess();
 
 } // namespace iotjs
 
-#endif /* IOTJS_MODULE_PROCESS_H */
+
+#endif /* IOTJS_HELPER_H */

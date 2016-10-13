@@ -22,7 +22,7 @@
 #include <stdio.h>
 #include <unistd.h>
 
-#include "iotjs_module_gpio.h"
+#include "module/iotjs_module_gpio.h"
 #include "mraa.h"
 
 #define GPIO_MAX_PINNO 63

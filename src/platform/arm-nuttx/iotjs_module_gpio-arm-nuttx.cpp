@@ -17,7 +17,7 @@
 
 #include <nuttx/gpio.h>
 
-#include "iotjs_module_gpio.h"
+#include "module/iotjs_module_gpio.h"
 
 #define GPIO_PINCNT_IN_NUTTXPORT 16
 #define GPIO_PORTCNT_IN_NUTTXPORT 2

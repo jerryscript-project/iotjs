@@ -65,6 +65,9 @@ class JObject {
   explicit JObject(const char* v);
   explicit JObject(const String& v);
 
+  // Creates a javascirpt array object from char array
+  explicit JObject(uint32_t len, const char* data);
+
   // Creates a object from `JRawValueType*`.
   // If second argument set true, then ref count for the object will be
   // decreased when this wrapper is being destroyed.
@@ -123,6 +126,7 @@ class JObject {
   bool IsString();
   bool IsObject();
   bool IsFunction();
+  bool IsArray();
 
   // Sets native handler method for the javascript object.
   void SetMethod(const char* name, JHandlerType handler);

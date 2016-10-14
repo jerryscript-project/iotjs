@@ -27,6 +27,12 @@ namespace iotjs {
 #define JVAL_IS_UNDEFINED(val_p) \
     jerry_value_is_undefined(*val_p)
 
+#define JVAL_IS_BOOLEAN(val_p) \
+    jerry_value_is_boolean(*val_p)
+
+#define JVAL_IS_NUMBER(val_p) \
+    jerry_value_is_number(*val_p)
+
 #define JVAL_IS_STRING(val_p) \
     jerry_value_is_string(*val_p)
 
@@ -36,11 +42,8 @@ namespace iotjs {
 #define JVAL_IS_FUNCTION(val_p) \
     jerry_value_is_function(*val_p)
 
-#define JVAL_IS_BOOLEAN(val_p) \
-    jerry_value_is_boolean(*val_p)
-
-#define JVAL_IS_NUMBER(val_p) \
-    jerry_value_is_number(*val_p)
+#define JVAL_IS_ARRAY(val_p) \
+    jerry_value_is_array(*val_p)
 
 #define JVAL_TO_BOOLEAN(val_p) \
     jerry_get_boolean_value(*val_p)
@@ -48,8 +51,10 @@ namespace iotjs {
 #define JVAL_TO_NUMBER(val_p) \
     jerry_get_number_value(*val_p)
 
+
 JObject* JObject::_null = nullptr;
 JObject* JObject::_undefined = nullptr;
+
 
 JObject::JObject() {
   _obj_val = jerry_create_object();
@@ -96,6 +101,21 @@ JObject::JObject(const String& v) {
 }
 
 
+JObject::JObject(uint32_t len, const char* data) {
+  _obj_val = jerry_create_array(len);
+
+  if (data != NULL) {
+    for (uint32_t i = 0; i < len; i++) {
+      jerry_value_t val = jerry_create_number((double)data[i]);
+      jerry_set_property_by_index(_obj_val, i, val);
+      jerry_release_value(val);
+    }
+  }
+
+  _unref_at_close = true;
+}
+
+
 JObject::JObject(const JRawValueType val, bool need_unref) {
   _obj_val = val;
   _unref_at_close = need_unref;
@@ -115,19 +135,23 @@ JObject::~JObject() {
   }
 }
 
+
 void JObject::init() {
   _null = new JObject(JVal::Null(), false);
   _undefined = new JObject(JVal::Undefined(), false);
 }
+
 
 void JObject::cleanup() {
   delete _null;
   delete _undefined;
 }
 
+
 JObject& JObject::Null() {
   return *_null;
 }
+
 
 JObject& JObject::Undefined() {
   return *_undefined;
@@ -284,6 +308,11 @@ bool JObject::IsObject() {
 
 bool JObject::IsFunction() {
   return JVAL_IS_FUNCTION(&_obj_val);
+}
+
+
+bool JObject::IsArray() {
+  return JVAL_IS_ARRAY(&_obj_val);
 }
 
 

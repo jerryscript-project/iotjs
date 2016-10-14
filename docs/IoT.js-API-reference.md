@@ -20,7 +20,7 @@
 * REPL
 * UDP/Datagram
 * URL
-* (I2C)
+* [(I2C)](IoT.js-API-I2C.md)
 * (SPI)
 
 *() not supported by node.js

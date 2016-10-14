@@ -137,7 +137,14 @@ $(COBJS): %$(OBJEXT): %.c
 $(CXXOBJS) $(MAINOBJ): %$(OBJEXT): %.cxx
 	$(call COMPILEXX, $<, $@)
 
-$(LIBS) : preconfig
+copylibs :
+	cp $(ROOT_DIR)/iotjs/build/arm-nuttx/$(BUILD_TYPE)/lib/lib* .
+	make -C $(ROOT_DIR)/iotjs/build/arm-nuttx/$(BUILD_TYPE)/deps/jerry jerry-libm
+	make -C $(ROOT_DIR)/iotjs/build/arm-nuttx/$(BUILD_TYPE)/deps/jerry jerry-libc
+	cp $(ROOT_DIR)/iotjs/build/arm-nuttx/$(BUILD_TYPE)/deps/jerry/lib/libjerry-libc.a .
+	cp $(ROOT_DIR)/iotjs/build/arm-nuttx/$(BUILD_TYPE)/deps/jerry/lib/libjerry-libm.a .
+
+$(LIBS) : copylibs
 	$(firstword $(AR)) x $@
 
 .built: chkcxx $(LIBS) $(OBJS)
@@ -190,8 +197,3 @@ distclean: clean
 -include Make.dep
 .PHONY: preconfig
 preconfig:
-	cp $(ROOT_DIR)/iotjs/build/arm-nuttx/$(BUILD_TYPE)/lib/lib* .
-	make -C $(ROOT_DIR)/iotjs/build/arm-nuttx/$(BUILD_TYPE)/deps/jerry jerry-libm
-	make -C $(ROOT_DIR)/iotjs/build/arm-nuttx/$(BUILD_TYPE)/deps/jerry jerry-libc
-	cp $(ROOT_DIR)/iotjs/build/arm-nuttx/$(BUILD_TYPE)/deps/jerry/lib/libjerry-libc.a .
-	cp $(ROOT_DIR)/iotjs/build/arm-nuttx/$(BUILD_TYPE)/deps/jerry/lib/libjerry-libm.a .

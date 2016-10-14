@@ -54,7 +54,7 @@ $ make menuconfig
 
 We must set the following options:
 
-* Change `Build Setup -> Build Host Platform` from _Windows_ to _Linux_
+* Change `Build Setup -> Build Host Platform` from _Windows_ to [_Linux_|_OSX_]
 * Enable `System Type -> FPU support`
 * Enable `System Type -> STM32 Peripheral Support -> SDIO`
 * Enable `RTOS Features -> Pthread Options -> Enable mutex types`

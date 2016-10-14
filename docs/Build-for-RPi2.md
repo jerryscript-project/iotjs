@@ -3,10 +3,11 @@
 ### Prerequisite
 #### Linux
 
-Install arm linux cross compiler.
+Install arm linux cross compiler and i2c library.
 
 ``` bash
-sudo apt-get install gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf
+sudo apt-get install gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf libi2c-dev
+sudo mv /usr/arm-linux-gnueabihf/include/linux/i2c-dev.h /usr/arm-linux-gnueabihf/include/linux/i2c-dev.h.kernel
 ```
 
 #### macOS

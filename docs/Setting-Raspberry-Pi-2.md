@@ -57,6 +57,21 @@ append your nameservers
    * proxy environment
    * apt-get proxy
 
+### Enable the I2C interface
+From the command line type:
+```bash
+sudo raspi-config
+```
+This will launch raspi-config utility.
+   * Select "9 Advanced Options"
+   * Select "A6 I2C"
+
+The screen will ask you to enable I2C interface.
+   * Select "Yes"
+   * Select "Ok"
+   * Select "Finish" to return to the command line.
+
+Reboot your Raspberry Pi.
 
 ### Reference
 * https://www.raspberrypi.org/documentation/installation/installing-images/linux.md

@@ -17,7 +17,6 @@
 var net = require('net');
 var assert = require('assert');
 var timers = require('timers');
-var stream = require('stream');
 
 var port = 22707;
 

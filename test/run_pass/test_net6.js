@@ -16,7 +16,6 @@
 var net = require('net');
 var assert = require('assert');
 var timers = require('timers');
-var stream = require('stream');
 
 
 var server = net.createServer();
@@ -64,6 +63,5 @@ socket.on('end', function() {
 
 process.on('exit', function(code) {
   assert.equal(code, 0);
-  console.log(msg);
   assert.equal(msg, "21");
 });

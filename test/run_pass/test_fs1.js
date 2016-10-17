@@ -13,9 +13,6 @@
  * limitations under the License.
  */
 
- /*
-   @STDOUT=FILE[../resources/test1.txt]
- */
 
 
 var fs = require('fs');
@@ -43,7 +40,9 @@ try {
 
   assert.equal(bytes1, bytes3);
 
-  console.log(buffer.toString());
+  var result = 'TEST File Read & Write\n';
+
+  assert.equal(buffer.toString(), result);
 } catch (err) {
   throw err;
 }

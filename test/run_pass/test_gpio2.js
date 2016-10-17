@@ -13,12 +13,6 @@
  * limitations under the License.
  */
 
-/*
-  @TIMEOUT=10
-  @SKIP
-    skip this test for there is no way to automatically confirm
-    correctness of gpio behavior on host machine.
-*/
 
 var assert = require('assert');
 var gpio = require("gpio");

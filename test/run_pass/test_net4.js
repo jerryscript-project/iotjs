@@ -13,9 +13,6 @@
  * limitations under the License.
  */
 
-/*
-  @STDOUT=server timeout
-*/
 
 var net = require('net');
 var assert = require('assert');
@@ -31,11 +28,9 @@ server.listen(port, 5);
 
 server.on('connection', function(socket) {
   socket.setTimeout(timeout, function() {
-    console.log('server timeout');
     socket.end();
   });
   socket.on('data', function(data) {
-    console.log(data);
     socket.end();
   });
   socket.on('close', function() {

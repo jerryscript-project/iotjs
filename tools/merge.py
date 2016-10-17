@@ -19,8 +19,8 @@ import sys
 import subprocess
 import getpass
 
-from common.system.filesystem import FileSystem as fs
-from common.system.executor import Executor as ex
+from common_py.system.filesystem import FileSystem as fs
+from common_py.system.executor import Executor as ex
 
 SCRIPT_PATH = fs.dirname(fs.abspath(__file__))
 

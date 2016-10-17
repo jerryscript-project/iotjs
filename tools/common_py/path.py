@@ -14,7 +14,7 @@
 
 """ common path for scripts """
 
-from common.system.filesystem import FileSystem as fs
+from common_py.system.filesystem import FileSystem as fs
 
 # Root directory for the project.
 PROJECT_ROOT = fs.abspath(fs.join(fs.dirname(__file__), fs.pardir, fs.pardir))
@@ -47,7 +47,7 @@ TUV_ROOT = fs.join(DEPS_ROOT, 'libtuv')
 HTTPPARSER_ROOT = fs.join(DEPS_ROOT, 'http-parser')
 
 # checktest
-CHECKTEST_PATH = fs.join(TOOLS_ROOT, 'check_test.py')
+CHECKTEST_PATH = fs.join(TOOLS_ROOT, 'check_test.js')
 
 # Default build configuration file path.
 DEFAULT_CONFIG_PATH = fs.join(PROJECT_ROOT, '.build.default.config')

@@ -31,4 +31,3 @@ assert.throws(
   },
   Error
 );
-

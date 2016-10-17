@@ -13,11 +13,9 @@
  * limitations under the License.
  */
 
-/*
-  @STDOUT=Hello IoT.js
-*/
 
 var net = require('net');
+var assert = require('assert');
 
 var port = 22702;
 
@@ -51,5 +49,5 @@ socket.on('data', function(data) {
 });
 
 socket.on('end', function() {
-  console.log(echo_msg);
+  assert.equal(echo_msg, "Hello IoT.js");
 });

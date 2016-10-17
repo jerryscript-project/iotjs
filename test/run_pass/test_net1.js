@@ -47,6 +47,5 @@ socket.on('end', function() {
 });
 
 process.on('exit', function(code) {
-  assert.equal(code, 0);
   assert.equal(msg, "Hello IoT.js");
 });

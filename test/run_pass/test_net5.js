@@ -13,9 +13,6 @@
  * limitations under the License.
  */
 
-/*
-  @STDOUT=server timeout / data received : Hello IoT.js
-*/
 
 var net = require('net');
 var assert = require('assert');
@@ -32,7 +29,7 @@ server.listen(port, 5);
 
 server.on('connection', function(socket) {
   socket.setTimeout(timeout, function() {
-    console.log('server timeout / data received : ' + msg);
+    assert.equal(msg, 'Hello IoT.js');
     socket.end();
   });
   socket.on('data', function(data) {

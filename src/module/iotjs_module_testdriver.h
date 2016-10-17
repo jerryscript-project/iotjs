@@ -1,4 +1,4 @@
-/* Copyright 2015 Samsung Electronics Co., Ltd.
+/* Copyright 2016 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,19 @@
  */
 
 
-var assert = require('assert');
+#ifndef IOTJS_MODULE_TESTDRIVER_H
+#define IOTJS_MODULE_TESTDRIVER_H
 
-process.on('exit', function() {
-  assert.fail();
-});
+#include "iotjs_binding.h"
 
-process.exit();
+
+namespace iotjs {
+
+
+JObject* InitTestdriver();
+
+
+} // namespace iotjs
+
+
+#endif /* IOTJS_MODULE_TESTDRIVER_H */

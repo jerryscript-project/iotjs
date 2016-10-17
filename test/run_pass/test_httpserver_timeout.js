@@ -13,9 +13,6 @@
  * limitations under the License.
  */
 
-/*
-  @TIMEOUT=10
-*/
 
 
 var assert = require('assert');
@@ -46,6 +43,6 @@ var getReq = http.request(options);
 getReq.on('error', function() {});
 
 process.on('exit', function(code) {
-  assert.equal(code, 0);
   assert.equal(timeouted, true);
+  assert.equal(code, 0);
 });

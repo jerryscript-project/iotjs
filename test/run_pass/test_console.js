@@ -13,9 +13,6 @@
  * limitations under the License.
  */
 
-/*
-  @STDOUT=FILE[test_console_stdout.txt]
-*/
 
 console.log("Hello IoT.js!!");
 console.log(1);

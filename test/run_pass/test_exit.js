@@ -13,8 +13,5 @@
  * limitations under the License.
  */
 
-/*
-  @EXITCODE=0
-*/
 
 process.exit(0);

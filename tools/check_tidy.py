@@ -19,7 +19,7 @@ import os
 import fileinput
 
 from check_license import CheckLicenser
-from common.system.filesystem import FileSystem as fs
+from common_py.system.filesystem import FileSystem as fs
 
 TERM_RED = "\033[1;31m"
 TERM_YELLOW = "\033[1;33m"

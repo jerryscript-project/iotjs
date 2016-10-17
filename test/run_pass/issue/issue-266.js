@@ -26,7 +26,6 @@ server.listen(port);
 
 server.on('connection', function(socket) {
   socket.on('data', function(data) {
-    console.log('data', data);
   });
   socket.on('finish', function() {
     socket.destroy();
@@ -45,8 +44,6 @@ var socket = new net.Socket();
 socket.connect(port, "127.0.0.1");
 socket.end('test');
 
-
 process.on('exit', function() {
-    console.log(server._socketCount);
-    assert.equal(server._socketCount, 0);
+  assert.equal(server._socketCount, 0);
 });

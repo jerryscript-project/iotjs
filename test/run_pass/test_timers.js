@@ -13,9 +13,6 @@
  * limitations under the License.
  */
 
-/*
-  @TIMEOUT=10
-*/
 
 var assert = require('assert');
 

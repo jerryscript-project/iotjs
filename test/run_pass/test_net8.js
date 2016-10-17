@@ -71,4 +71,3 @@ timers.setTimeout(function() {
 process.on('exit', function(code) {
   assert.equal(code, 0);
 });
-

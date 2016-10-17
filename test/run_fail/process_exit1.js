@@ -17,5 +17,5 @@
 var assert = require('assert');
 
 process.on('exit', function() {
-    assert.fail();
+  assert.fail();
 });

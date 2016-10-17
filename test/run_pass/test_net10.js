@@ -34,7 +34,6 @@ socket1.on('error', function() {
 });
 
 socket1.on('connect', function() {
-  console.error('connect');
   connected = true;
   socket1.destroy();
 });

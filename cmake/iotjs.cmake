@@ -14,8 +14,29 @@
 
 cmake_minimum_required(VERSION 2.8)
 
+# Module Configuration - listup all possible modules
+file(GLOB IOTJS_MODULES_ALL ${CMAKE_SOURCE_DIR}/src/module/*.cpp)
+separate_arguments(IOTJS_MODULES_ALL)
+foreach(module ${IOTJS_MODULES_ALL})
+    get_filename_component(IOTJS_MODULENAME ${module} NAME_WE)
+    string(SUBSTRING ${IOTJS_MODULENAME} 13 -1 IOTJS_MODULENAME)
+    string(TOUPPER ${IOTJS_MODULENAME} IOTJS_MODULENAME)
+    set(IOTJS_CFLAGS "${IOTJS_CFLAGS} -DENABLE_MODULE_${IOTJS_MODULENAME}=0")
+endforeach()
+
+# Module Configuration - enable only selected modules
+set(IOTJS_MODULE_SRC "")
+separate_arguments(IOTJS_MODULES)
+foreach(module ${IOTJS_MODULES})
+    list(APPEND IOTJS_MODULE_SRC ${SRC_ROOT}/module/iotjs_module_${module}.cpp)
+    string(TOUPPER ${module} module)
+    set(IOTJS_CFLAGS "${IOTJS_CFLAGS} -UENABLE_MODULE_${module}")
+    set(IOTJS_CFLAGS "${IOTJS_CFLAGS} -DENABLE_MODULE_${module}=1")
+endforeach()
+
+
 file(GLOB LIB_IOTJS_SRC ${SRC_ROOT}/*.cpp
-                        ${SRC_ROOT}/module/*.cpp
+                        ${IOTJS_MODULE_SRC}
                         ${SRC_ROOT}/platform/${PLATFORM_DESCRIPT}/*.cpp)
 
 string(REPLACE ";" " " IOTJS_CFLAGS_STR "${IOTJS_CFLAGS}")

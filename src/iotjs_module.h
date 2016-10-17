@@ -25,19 +25,29 @@ namespace iotjs {
 typedef JObject* (*register_func)();
 
 
+#define CONCATENATE(x, ...) x ## __VA_ARGS__
+
+#define IF(c) CONCATENATE(IF_, c)
+#define IF_1(expr) expr
+#define IF_0(expr)
+
+// Check if specific module is enabled
+#define E(F, UPPER, Camel, lower) \
+  IF(ENABLE_MODULE_ ## UPPER)(F(UPPER, Camel, lower))
+
 // List of builtin modules
 #define MAP_MODULE_LIST(F) \
-  F(BUFFER, Buffer, buffer) \
-  F(CONSOLE, Console, console) \
-  F(CONSTANTS, Constants, constants) \
-  F(DNS, Dns, dns) \
-  F(FS, Fs, fs) \
-  F(GPIO, Gpio, gpio) \
-  F(HTTPPARSER, Httpparser, httpparser) \
-  F(I2C, I2c, i2c) \
-  F(PROCESS, Process, process) \
-  F(TCP, Tcp, tcp) \
-  F(TIMER, Timer, timer)
+  E(F, BUFFER, Buffer, buffer) \
+  E(F, CONSOLE, Console, console) \
+  E(F, CONSTANTS, Constants, constants) \
+  E(F, DNS, Dns, dns) \
+  E(F, FS, Fs, fs) \
+  E(F, GPIO, Gpio, gpio) \
+  E(F, HTTPPARSER, Httpparser, httpparser) \
+  E(F, I2C, I2c, i2c) \
+  E(F, PROCESS, Process, process) \
+  E(F, TCP, Tcp, tcp) \
+  E(F, TIMER, Timer, timer)
 
 #define ENUMDEF_MODULE_LIST(upper, Camel, lower) \
   MODULE_ ## upper,

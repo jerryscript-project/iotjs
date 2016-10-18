@@ -129,12 +129,9 @@ I2C.prototype.close = function() {
   return i2c.close();
 };
 
-I2C.prototype.write = function(buf, callback) {
+I2C.prototype.write = function(array, callback) {
   this.setAddress(this.address);
-  if (!Buffer.isBuffer(buf)) {
-    buf = new Buffer(buf);
-  }
-  return i2c.write(buf, function(err) {
+  return i2c.write(array, function(err) {
     return process.nextTick(function() {
       return callback(err);
     });
@@ -150,12 +147,9 @@ I2C.prototype.writeByte = function(byte, callback) {
   });
 };
 
-I2C.prototype.writeBytes = function(cmd, buf, callback) {
+I2C.prototype.writeBytes = function(cmd, array, callback) {
   this.setAddress(this.address);
-  if (!Buffer.isBuffer(buf)) {
-    buf = new Buffer(buf);
-  }
-  return i2c.writeBlock(cmd, buf, function(err) {
+  return i2c.writeBlock(cmd, array, function(err) {
     return process.nextTick(function() {
       return callback(err);
     });
@@ -182,9 +176,9 @@ I2C.prototype.readByte = function(callback) {
 
 I2C.prototype.readBytes = function(cmd, len, callback) {
   this.setAddress(this.address);
-  return i2c.readBlock(cmd, len, 0, function(err, actualBuffer) {
+  return i2c.readBlock(cmd, len, 0, function(err, resArray) {
     return process.nextTick(function() {
-      return callback(err, actualBuffer);
+      return callback(err, resArray);
     });
   });
 };
@@ -194,18 +188,19 @@ I2C.prototype.stream = function(cmd, len, delay) {
     delay = 100;
   }
   this.setAddress(this.address);
-  return i2c.readBlock(cmd, len, delay, (function(_this) {
+  i2c.readBlock(cmd, len, delay, (function(_this) {
     return function(err, data) {
       if (err) {
-        return _this.emit('error', err);
+        _this.emit('error', err);
       } else {
-        return _this.emit('data', {
+        _this.emit('data', {
           address: _this.address,
           data: data,
           cmd: cmd,
           length: len,
           timestamp: Date.now()
         });
+        _this.stream(cmd, len, delay);
       }
     };
   })(this));

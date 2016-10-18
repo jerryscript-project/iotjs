@@ -41,15 +41,16 @@ enum I2cError {
   kI2cErrOk = 0,
   kI2cErrOpen = -1,
   kI2cErrRead = -2,
-  kI2cErrWrite = -3,
+  kI2cErrReadBlock = -3,
+  kI2cErrWrite = -4,
 };
 
 struct I2cReqData {
   String device;
   char* buf_data;
-  int buf_len;
-  int8_t byte;
-  int8_t cmd;
+  uint8_t buf_len;
+  uint8_t byte;
+  uint8_t cmd;
   int32_t delay;
 
   I2cOp op;
@@ -71,7 +72,7 @@ class I2c : public JObjectWrap {
   static I2c* GetInstance();
   static JObject* GetJI2c();
 
-  virtual int SetAddress(int8_t address) = 0;
+  virtual int SetAddress(uint8_t address) = 0;
   virtual int Scan(I2cReqWrap* i2c_req) = 0;
   virtual int Open(I2cReqWrap* i2c_req) = 0;
   virtual int Close() = 0;

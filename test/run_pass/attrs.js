@@ -88,6 +88,10 @@
       skip: ['all'],
       reason: "not implemented"
     },
+    'test_i2c.js': {
+      skip: ['all'],
+      reason: "need to setup test environment",
+    },
     'test_http_get.js': {
       timeout: {
         all: 20

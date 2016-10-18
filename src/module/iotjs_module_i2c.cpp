@@ -17,7 +17,6 @@
 #include "iotjs_def.h"
 #include "iotjs_objectwrap.h"
 #include "iotjs_module_i2c.h"
-#include "iotjs_module_buffer.h"
 
 
 namespace iotjs {
@@ -46,6 +45,21 @@ I2c* I2c::GetInstance() {
   IOTJS_ASSERT(i2c != NULL);
 
   return i2c;
+}
+
+
+void GetI2cArray(JObject* jarray, I2cReqData* req_data) {
+  // FIXME: Need to implement a function to get array info from JObject Array.
+  IOTJS_ASSERT(!(jarray->GetProperty("length").IsUndefined()));
+
+  req_data->buf_len = jarray->GetProperty("length").GetNumber();
+  req_data->buf_data = AllocBuffer(req_data->buf_len);
+
+  char index_str[3];
+  for (int i = 0; i < req_data->buf_len; i++) {
+    sprintf(index_str, "%d", i);
+    req_data->buf_data[i] = jarray->GetProperty(index_str).GetNumber();
+  }
 }
 
 
@@ -85,7 +99,6 @@ JHANDLER_FUNCTION(Open) {
   I2cReqData* req_data = req_wrap->req();
 
   req_data->op = kI2cOpOpen;
-
   String device = handler.GetArg(0)->GetString();
   req_data->device.Append(device.data(), device.size());
 
@@ -108,23 +121,14 @@ JHANDLER_FUNCTION(Close) {
 
 JHANDLER_FUNCTION(Write) {
   JHANDLER_CHECK(handler.GetArgLength() == 2);
-  JHANDLER_CHECK(handler.GetArg(0)->IsObject());
+  JHANDLER_CHECK(handler.GetArg(0)->IsArray());
   JHANDLER_CHECK(handler.GetArg(1)->IsFunction());
-
-  JObject* jbuffer = handler.GetArg(0);
-  BufferWrap* buffer = BufferWrap::FromJBuffer(*jbuffer);
-  char* buf_data = buffer->buffer();
-  int buf_len = buffer->length();
-  JHANDLER_CHECK(buf_data != NULL);
-  JHANDLER_CHECK(buf_len >= 0);
 
   I2cReqWrap* req_wrap = new I2cReqWrap(*handler.GetArg(1));
   I2cReqData* req_data = req_wrap->req();
 
   req_data->op = kI2cOpWrite;
-
-  req_data->buf_data = buf_data;
-  req_data->buf_len = buf_len;
+  GetI2cArray(handler.GetArg(0), req_data);
 
   I2c* i2c = I2c::GetInstance();
   i2c->Write(req_wrap);
@@ -138,13 +142,12 @@ JHANDLER_FUNCTION(WriteByte) {
   JHANDLER_CHECK(handler.GetArg(0)->IsNumber());
   JHANDLER_CHECK(handler.GetArg(1)->IsFunction());
 
-  int8_t byte = handler.GetArg(0)->GetNumber();
+  uint8_t byte = handler.GetArg(0)->GetNumber();
 
   I2cReqWrap* req_wrap = new I2cReqWrap(*handler.GetArg(1));
   I2cReqData* req_data = req_wrap->req();
 
   req_data->op = kI2cOpWriteByte;
-
   req_data->byte = byte;
 
   I2c* i2c = I2c::GetInstance();
@@ -157,26 +160,15 @@ JHANDLER_FUNCTION(WriteByte) {
 JHANDLER_FUNCTION(WriteBlock) {
   JHANDLER_CHECK(handler.GetArgLength() == 3);
   JHANDLER_CHECK(handler.GetArg(0)->IsNumber());
-  JHANDLER_CHECK(handler.GetArg(1)->IsObject());
+  JHANDLER_CHECK(handler.GetArg(1)->IsArray());
   JHANDLER_CHECK(handler.GetArg(2)->IsFunction());
-
-  int8_t cmd = handler.GetArg(0)->GetNumber();
-
-  JObject* jbuffer = handler.GetArg(1);
-  BufferWrap* buffer = BufferWrap::FromJBuffer(*jbuffer);
-  char* buf_data = buffer->buffer();
-  int buf_len = buffer->length();
-  JHANDLER_CHECK(buf_data != NULL);
-  JHANDLER_CHECK(buf_len >= 0);
 
   I2cReqWrap* req_wrap = new I2cReqWrap(*handler.GetArg(2));
   I2cReqData* req_data = req_wrap->req();
 
   req_data->op = kI2cOpWriteBlock;
-
-  req_data->cmd = cmd;
-  req_data->buf_data = buf_data;
-  req_data->buf_len = buf_len;
+  req_data->cmd = handler.GetArg(0)->GetNumber();
+  GetI2cArray(handler.GetArg(1), req_data);
 
   I2c* i2c = I2c::GetInstance();
   i2c->WriteBlock(req_wrap);
@@ -190,14 +182,12 @@ JHANDLER_FUNCTION(Read) {
   JHANDLER_CHECK(handler.GetArg(0)->IsNumber());
   JHANDLER_CHECK(handler.GetArg(1)->IsFunction());
 
-  int8_t buf_len = handler.GetArg(0)->GetNumber();
-
   I2cReqWrap* req_wrap = new I2cReqWrap(*handler.GetArg(1));
   I2cReqData* req_data = req_wrap->req();
 
   req_data->op = kI2cOpRead;
-
-  req_data->buf_len = buf_len;
+  req_data->buf_len = handler.GetArg(0)->GetNumber();
+  req_data->delay = 0;
 
   I2c* i2c = I2c::GetInstance();
   i2c->Read(req_wrap);
@@ -229,18 +219,13 @@ JHANDLER_FUNCTION(ReadBlock) {
   JHANDLER_CHECK(handler.GetArg(2)->IsNumber());
   JHANDLER_CHECK(handler.GetArg(3)->IsFunction());
 
-  uint8_t cmd = handler.GetArg(0)->GetNumber();
-  uint8_t buf_len = handler.GetArg(1)->GetNumber();
-  uint8_t delay = handler.GetArg(2)->GetNumber();
-
   I2cReqWrap* req_wrap = new I2cReqWrap(*handler.GetArg(3));
   I2cReqData* req_data = req_wrap->req();
 
   req_data->op = kI2cOpReadBlock;
-
-  req_data->cmd = cmd;
-  req_data->buf_len = buf_len;
-  req_data->delay = delay;
+  req_data->cmd = handler.GetArg(0)->GetNumber();
+  req_data->buf_len = handler.GetArg(1)->GetNumber();
+  req_data->delay = handler.GetArg(2)->GetNumber();
 
   I2c* i2c = I2c::GetInstance();
   i2c->ReadBlock(req_wrap);

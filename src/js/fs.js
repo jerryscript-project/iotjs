@@ -1,4 +1,4 @@
-/* Copyright 2015 Samsung Electronics Co., Ltd.
+/* Copyright 2015-2016 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -275,15 +275,81 @@ fs.readFileSync = function(path) {
 };
 
 
+fs.writeFile = function(path, data, callback) {
+  checkArgString(path);
+  checkArgBuffer(data);
+  checkArgFunction(callback);
+
+  var fd;
+  var len;
+  var bytesWritten;
+
+  fs.open(path, 'w', function(err, _fd) {
+    if (err) {
+      return callback(err);
+    }
+
+    fd = _fd;
+    len = data.length;
+    bytesWritten = 0;
+
+    write();
+  });
+
+  var write = function() {
+    fs.write(fd, data, bytesWritten, len - bytesWritten, 0, afterWrite);
+  };
+
+  var afterWrite = function(err, n) {
+    if (err) {
+      fs.close(fd, function(err) {
+        return callback(err);
+      });
+    }
+
+    if (n <= 0 || bytesWritten + n == len) {
+      // End of data
+      fs.close(fd, function(err) {
+        callback(err);
+      });
+    } else {
+      // continue writing
+      bytesWritten += n;
+      write();
+    }
+  };
+};
+
+
+fs.writeFileSync = function(path, data) {
+  checkArgString(path);
+  checkArgBuffer(data);
+
+  var fd = fs.openSync(path, 'w');
+  var len = data.length;
+  var bytesWritten = 0;
+
+  while (true) {
+    try {
+      var n = fs.writeSync(fd, data, bytesWritten, len - bytesWritten, 0);
+      bytesWritten += n;
+      if (bytesWritten == len) {
+        break;
+      }
+    } catch (e) {
+      break;
+    }
+  }
+  fs.closeSync(fd);
+  return bytesWritten;
+};
+
+
 fs.mkdir = function(path, mode, callback) {
-  if (typeof mode === 'function') callback = mode;
-
-  if (typeof callback !== 'function')
-    throw new TypeError('\"callback\" argument must be a function');
-
-  fsBuiltin.mkdir(checkArgString(path, 'path'),
-                  convertMode(mode, 511),
-                  callback);
+  if (util.isFunction(mode)) callback = mode;
+  checkArgString(path, 'path');
+  checkArgFunction(callback, 'callback');
+  fsBuiltin.mkdir(path, convertMode(mode, 511), callback);
 };
 
 
@@ -294,16 +360,26 @@ fs.mkdirSync = function(path, mode) {
 
 
 fs.rmdir = function(path, callback) {
-  if (typeof callback !== 'function')
-    throw new TypeError('\"callback\" argument must be a function');
-
-  fsBuiltin.rmdir(checkArgString(path, 'path'),
-                  callback);
+  checkArgString(path, 'path');
+  checkArgFunction(callback, 'callback');
+  fsBuiltin.rmdir(path, callback);
 };
 
 
 fs.rmdirSync = function(path) {
   return fsBuiltin.rmdir(checkArgString(path, 'path'));
+};
+
+
+fs.unlink = function(path, callback) {
+  checkArgString(path);
+  checkArgFunction(callback);
+  fsBuiltin.unlink(path, callback);
+};
+
+
+fs.unlinkSync = function(path) {
+  return fsBuiltin.unlink(checkArgString(path, 'path'));
 };
 
 

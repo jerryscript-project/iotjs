@@ -1,4 +1,4 @@
-/* Copyright 2015 Samsung Electronics Co., Ltd.
+/* Copyright 2015-2016 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -332,6 +332,23 @@ JHANDLER_FUNCTION(Rmdir) {
 }
 
 
+JHANDLER_FUNCTION(Unlink) {
+  JHANDLER_CHECK(handler.GetThis()->IsObject());
+  JHANDLER_CHECK(handler.GetArgLength() >= 1);
+  JHANDLER_CHECK(handler.GetArg(0)->IsString());
+  Environment* env = Environment::GetEnv();
+
+  String path = handler.GetArg(0)->GetString();
+
+  if (handler.GetArgLength() > 1 && handler.GetArg(1)->IsFunction()) {
+    FS_ASYNC(env, unlink, handler.GetArg(1), path.data());
+  } else {
+    FS_SYNC(env, unlink, path.data());
+    handler.Return(JVal::Undefined());
+  }
+}
+
+
 JObject* InitFs() {
   Module* module = GetBuiltinModule(MODULE_FS);
   JObject* fs = module->module;
@@ -345,6 +362,7 @@ JObject* InitFs() {
     fs->SetMethod("stat", Stat);
     fs->SetMethod("mkdir", Mkdir);
     fs->SetMethod("rmdir", Rmdir);
+    fs->SetMethod("unlink", Unlink);
 
     module->module = fs;
   }

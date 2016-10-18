@@ -16,7 +16,7 @@
 #if defined(__NUTTX__)
 
 
-#include "iotjs_module_i2c.h"
+#include "module/iotjs_module_i2c.h"
 
 
 namespace iotjs {

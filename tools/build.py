@@ -312,6 +312,8 @@ def inflate_cmake_option(cmake_opt, option, for_jerry=False):
     if option.target_os == 'nuttx' and option.nuttx_home:
         include_dirs.append('%s/include' % option.nuttx_home)
         include_dirs.append('%s/include/cxx' % option.nuttx_home)
+        if option.target_board == 'stm32f4dis':
+            include_dirs.append('%s/arch/arm/src/stm32' % option.nuttx_home)
     include_dirs.extend(option.external_include_dir)
     cmake_opt.append('-DEXTERNAL_INCLUDE_DIR=' + ' '.join(include_dirs))
 

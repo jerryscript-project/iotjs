@@ -67,7 +67,10 @@
 #define I2C_SMBUS_BLOCK_MAX 32
 #define I2C_SMBUS_READ 1
 #define I2C_SMBUS_WRITE 0
+#define I2C_NOCMD 0
+#define I2C_SMBUS_BYTE 1
 #define I2C_SMBUS_I2C_BLOCK_DATA 8
+#define I2C_MAX_ADDRESS 128
 
 
 namespace iotjs {
@@ -134,6 +137,17 @@ int I2cSmbusAccess(int fd, uint8_t read_write, uint8_t command, int size,
 }
 
 
+int I2cSmbusReadByte(int fd) {
+  I2cSmbusData data;
+  int result;
+
+  result = I2cSmbusAccess(fd, I2C_SMBUS_READ, I2C_NOCMD, I2C_SMBUS_BYTE, &data);
+
+  // Mask one byte from result (data.byte).
+  return result >= 0 ? 0xFF & data.byte : -1;
+}
+
+
 int I2cSmbusReadI2cBlockData(int fd, uint8_t command, uint8_t* values,
                              uint8_t length) {
   I2cSmbusData data;
@@ -172,9 +186,46 @@ void AfterI2cWork(uv_work_t* work_req, int status) {
       }
       break;
     }
+    case kI2cOpScan:
+    {
+      jargs.Add(JVal::Null());
+
+      JObject result = JObject(req_data->buf_len, req_data->buf_data);
+      jargs.Add(result);
+
+      ReleaseBuffer(req_data->buf_data);
+
+      break;
+    }
+    case kI2cOpRead:
+    {
+      if (req_data->error == kI2cErrRead) {
+        JObject error = JObject::Error("Cannot read from device.");
+        jargs.Add(error);
+      } else {
+        jargs.Add(JVal::Null());
+
+        JObject result = JObject(req_data->buf_len, req_data->buf_data);
+        jargs.Add(result);
+
+        ReleaseBuffer(req_data->buf_data);
+      }
+      break;
+    }
+    case kI2cOpReadByte:
+    {
+      if (req_data->error == kI2cErrRead) {
+        JObject error = JObject::Error("Cannot read from device.");
+        jargs.Add(error);
+      } else {
+        jargs.Add(JVal::Null());
+        jargs.Add(JVal::Number(req_data->byte));
+      }
+      break;
+    }
     case kI2cOpReadBlock:
     {
-      if (req_data->error == kI2cErrReadBlock) {
+      if (req_data->error == kI2cErrRead) {
         JObject error = JObject::Error("Error reading length of bytes.");
         jargs.Add(error);
       } else {
@@ -197,8 +248,6 @@ void AfterI2cWork(uv_work_t* work_req, int status) {
 
 
 void OpenWorker(uv_work_t* work_req) {
-  I2cLinuxGeneral* i2c = I2cLinuxGeneral::GetInstance();
-
   I2cReqWrap* i2c_req = reinterpret_cast<I2cReqWrap*>(work_req->data);
   I2cReqData* req_data = i2c_req->req();
 
@@ -212,6 +261,69 @@ void OpenWorker(uv_work_t* work_req) {
 }
 
 
+void ScanWorker(uv_work_t* work_req) {
+  I2cReqWrap* i2c_req = reinterpret_cast<I2cReqWrap*>(work_req->data);
+  I2cReqData* req_data = i2c_req->req();
+
+  int result;
+  req_data->buf_data = AllocBuffer(I2C_MAX_ADDRESS);
+  req_data->buf_len = I2C_MAX_ADDRESS;
+
+  for (int i = 0; i < I2C_MAX_ADDRESS; i++) {
+    ioctl(fd, I2C_SLAVE_FORCE, i);
+
+    /* Test address responsiveness
+       The default probe method is a quick write, but it is known
+       to corrupt the 24RF08 EEPROMs due to a state machine bug,
+       and could also irreversibly write-protect some EEPROMs, so
+       for address ranges 0x30-0x37 and 0x50-0x5F, we use a byte
+       read instead. Also, some bus drivers don't implement
+       quick write, so we fallback to a byte read it that case
+       too. */
+    if ((i >= 0x30 && i <= 0x37) || (i >= 0x50 && i <= 0x5F)) {
+      result = I2cSmbusReadByte(fd);
+    } else {
+      result = I2cSmbusAccess(fd, I2C_SMBUS_WRITE, I2C_NOCMD, 0, NULL);
+    }
+
+    if (result >= 0) {
+      result = 1;
+    }
+
+    req_data->buf_data[i] = result;
+  }
+
+  ioctl(fd, I2C_SLAVE_FORCE, addr);
+}
+
+
+void ReadWorker(uv_work_t* work_req) {
+  I2cReqWrap* i2c_req = reinterpret_cast<I2cReqWrap*>(work_req->data);
+  I2cReqData* req_data = i2c_req->req();
+
+  uint8_t len = req_data->buf_len;
+  req_data->buf_data = AllocBuffer(len);
+
+  if (read(fd, req_data->buf_data, len) != len) {
+    req_data->error = kI2cErrRead;
+  }
+}
+
+
+void ReadByteWorker(uv_work_t* work_req) {
+  I2cReqWrap* i2c_req = reinterpret_cast<I2cReqWrap*>(work_req->data);
+  I2cReqData* req_data = i2c_req->req();
+
+  int result = I2cSmbusReadByte(fd);
+
+  if (result == -1) {
+    req_data->error = kI2cErrRead;
+  } else {
+    req_data->byte = result;
+  }
+}
+
+
 void ReadBlockWorker(uv_work_t* work_req) {
   I2cReqWrap* i2c_req = reinterpret_cast<I2cReqWrap*>(work_req->data);
   I2cReqData* req_data = i2c_req->req();
@@ -221,7 +333,7 @@ void ReadBlockWorker(uv_work_t* work_req) {
   uint8_t data[I2C_SMBUS_BLOCK_MAX + 2];
 
   if (I2cSmbusReadI2cBlockData(fd, cmd, data, len) != len) {
-    req_data->error = kI2cErrReadBlock;
+    req_data->error = kI2cErrRead;
   }
 
   req_data->buf_data = AllocBuffer(len);
@@ -250,7 +362,7 @@ int I2cLinuxGeneral::SetAddress(int8_t address) {
 
 
 int I2cLinuxGeneral::Scan(I2cReqWrap* i2c_req) {
-  IOTJS_ASSERT(!"Not implemented");
+  I2C_LINUX_GENERAL_IMPL_TEMPLATE(Scan);
   return 0;
 }
 
@@ -288,13 +400,13 @@ int I2cLinuxGeneral::WriteBlock(I2cReqWrap* i2c_req) {
 
 
 int I2cLinuxGeneral::Read(I2cReqWrap* i2c_req) {
-  IOTJS_ASSERT(!"Not implemented");
+  I2C_LINUX_GENERAL_IMPL_TEMPLATE(Read);
   return 0;
 }
 
 
 int I2cLinuxGeneral::ReadByte(I2cReqWrap* i2c_req) {
-  IOTJS_ASSERT(!"Not implemented");
+  I2C_LINUX_GENERAL_IMPL_TEMPLATE(ReadByte);
   return 0;
 }
 

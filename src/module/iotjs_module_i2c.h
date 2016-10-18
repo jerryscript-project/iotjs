@@ -40,7 +40,8 @@ enum I2cOp {
 enum I2cError {
   kI2cErrOk = 0,
   kI2cErrOpen = -1,
-  kI2cErrReadBlock = -2,
+  kI2cErrRead = -2,
+  kI2cErrWrite = -3,
 };
 
 struct I2cReqData {

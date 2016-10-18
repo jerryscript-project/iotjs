@@ -105,7 +105,7 @@ I2C.prototype.scan = function(callback) {
     return process.nextTick(function() {
       var result = [];
       for(var i = 0; i < data.length; i++) {
-        if(data[i] >= 0) result.push(data[i]);
+        if(data[i] == 1) result.push(i);
       }
       return callback(err, result);
     });

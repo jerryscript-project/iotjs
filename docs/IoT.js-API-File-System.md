@@ -30,14 +30,13 @@
  * `bytesRead: Number`
  * `buffer: Buffer`
 
-#### fs.readSync(fd, buffer, offset, length, position, callback)
+#### fs.readSync(fd, buffer, offset, length, position)
 
 * `fd: Int` - file descriptor.
 * `buffer: Buffer` - buffer that the data will be written to.
 * `offset: Number` - offset of the buffer where to start writing.
 * `length: Number` - number of bytes to read.
 * `position: Number` - specifying where to start read data from the file, if `null`, read from current position.
-
 
 #### fs.readFile(path[, options], callback)
 
@@ -51,7 +50,7 @@
 
 Reads entire file asynchronously.
 
-#### fs.readFileSync(path[, options], callback)
+#### fs.readFileSync(path[, options])
 
 * `path: String` - file path to be opened.
 * `options: Object` - options for the operation.
@@ -79,9 +78,29 @@ Reads entire file synchronously.
 * `length: Number` - number of bytes to write.
 * `position: Number` - specifying where to start write data to the file, if `null`, read from current position.
 
+#### fs.writeFile(path, data, [, options], callback)
+
+* `path: String` - file path that the `data` will be written
+* `data: Buffer` - buffer that contains data
+* `options: Object` - options for the operation
+* `callback: Function(err)` - callback function
+ * `err: Error`
+
+Writes entire `data` to the file specified by `path` asynchronously.
+
+#### fs.writeFileSync(path, data, [, options])
+
+* `path: String` - file path that the `data` will be written
+* `data: Buffer` - buffer that contains data
+* `options: Object` - options for the operation
+
+Writes entire `data` to the file specified by `path` synchronously.
+
 #### fs.close(fd, callback)
 
 * `fd: Int` - file descriptor.
+* `callback: Function(err) `
+ * `err: Error`
 
 Closes the file of fd asynchronously.
 
@@ -90,6 +109,20 @@ Closes the file of fd asynchronously.
 * `fd: Int` - file descriptor.
 
 Closes the file of fd synchronously.
+
+#### fs.unlink(path, callback)
+
+* `path: String` - file path to be removed
+* `callback: Function(err) `
+ * `err: Error`
+
+Removes the file specified by `path` asynchronously.
+
+#### fs.unlinkSync(path)
+
+* `path: String` - file path to be removed
+
+Removes the file specified by `path` synchronously.
 
 #### fs.stat(path, callback)
 

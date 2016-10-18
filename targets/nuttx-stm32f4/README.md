@@ -57,6 +57,7 @@ We must set the following options:
 * Change `Build Setup -> Build Host Platform` from _Windows_ to [_Linux_|_OSX_]
 * Enable `System Type -> FPU support`
 * Enable `System Type -> STM32 Peripheral Support -> SDIO`
+* Enable `RTOS Features -> Clocks and Timers -> Support CLOCK_MONOTONIC`
 * Enable `RTOS Features -> Pthread Options -> Enable mutex types`
 * Enable `RTOS Features -> Files and I/O -> Enable /dev/console`
 * Enable `RTOS Features -> Work queue support -> High priority (kernel) worker thread`

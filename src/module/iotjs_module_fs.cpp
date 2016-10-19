@@ -336,14 +336,33 @@ JHANDLER_FUNCTION(Unlink) {
   JHANDLER_CHECK(handler.GetThis()->IsObject());
   JHANDLER_CHECK(handler.GetArgLength() >= 1);
   JHANDLER_CHECK(handler.GetArg(0)->IsString());
-  Environment* env = Environment::GetEnv();
 
+  Environment* env = Environment::GetEnv();
   String path = handler.GetArg(0)->GetString();
 
   if (handler.GetArgLength() > 1 && handler.GetArg(1)->IsFunction()) {
     FS_ASYNC(env, unlink, handler.GetArg(1), path.data());
   } else {
     FS_SYNC(env, unlink, path.data());
+    handler.Return(JVal::Undefined());
+  }
+}
+
+
+JHANDLER_FUNCTION(Rename) {
+  JHANDLER_CHECK(handler.GetThis()->IsObject());
+  JHANDLER_CHECK(handler.GetArgLength() >= 2);
+  JHANDLER_CHECK(handler.GetArg(0)->IsString());
+  JHANDLER_CHECK(handler.GetArg(1)->IsString());
+
+  Environment* env = Environment::GetEnv();
+  String oldPath = handler.GetArg(0)->GetString();
+  String newPath = handler.GetArg(1)->GetString();
+
+  if (handler.GetArgLength() > 2 && handler.GetArg(2)->IsFunction()) {
+    FS_ASYNC(env, rename, handler.GetArg(2), oldPath.data(), newPath.data());
+  } else {
+    FS_SYNC(env, rename, oldPath.data(), newPath.data());
     handler.Return(JVal::Undefined());
   }
 }
@@ -363,6 +382,7 @@ JObject* InitFs() {
     fs->SetMethod("mkdir", Mkdir);
     fs->SetMethod("rmdir", Rmdir);
     fs->SetMethod("unlink", Unlink);
+    fs->SetMethod("rename", Rename);
 
     module->module = fs;
   }

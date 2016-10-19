@@ -383,6 +383,21 @@ fs.unlinkSync = function(path) {
 };
 
 
+fs.rename = function(oldPath, newPath, callback) {
+  checkArgString(oldPath);
+  checkArgString(newPath);
+  checkArgFunction(callback);
+  fsBuiltin.rename(oldPath, newPath, callback);
+};
+
+
+fs.renameSync = function(oldPath, newPath) {
+  checkArgString(oldPath);
+  checkArgString(newPath);
+  fsBuiltin.rename(oldPath, newPath);
+};
+
+
 function convertFlags(flag) {
   if (util.isString(flag)) {
     switch (flag) {

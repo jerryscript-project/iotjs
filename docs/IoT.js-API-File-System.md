@@ -3,6 +3,20 @@
 
 ### Methods
 
+#### fs.close(fd, callback)
+
+* `fd: Int` - file descriptor.
+* `callback: Function(err) `
+ * `err: Error`
+
+Closes the file of fd asynchronously.
+
+#### fs.closeSync(fd)
+
+* `fd: Int` - file descriptor.
+
+Closes the file of fd synchronously.
+
 #### fs.open(path, flags[, mode], callback)
 
 * `path: String` - file path to be opened.
@@ -59,6 +73,58 @@ Reads entire file asynchronously.
 
 Reads entire file synchronously.
 
+#### fs.rename(oldPath, newPath, callback)
+
+* `oldPath: String` - old file path
+* `newPath: String` - new file path
+* `callback: Function(err)` - callback function.
+ * `err: Error`
+
+Renames `oldPath` to `newPath` asynchronously.
+
+#### fs.renameSync(oldPath, newPath)
+
+* `oldPath: String` - old file path
+* `newPath: String` - new file path
+
+Renames `oldPath` to `newPath` synchronously.
+
+#### fs.stat(path, callback)
+
+* `path: String` - file path to be stated
+* callback: Function(err, stat)` - callback function.
+ * `err: Error`
+ * `stat: Object`
+
+#### fs.statSync(path)
+
+* `path: String` - file path to be stated
+
+#### fs.fstat(fd, callback)
+
+* `fd: Number` - file descriptor to be stated
+* callback: Function(err, stat)` - callback function.
+ * `err: Error`
+ * `stat: Object`
+
+#### fs.fstatSync(fd)
+
+* `fd: Number` - file descriptor to be stated
+
+ ### Class: fs.Stats
+
+ fs.Stats class is a object returned from ```fs.stats()```,```fs.fstats()``` and their synchronous counterparts.
+
+ ### Methods
+
+ #### stats.isDirectory()
+
+ Returns true if stated file is a directory
+
+ #### stats.isFile()
+
+ Returns true if stated file is a file
+
 #### fs.write(fd, buffer, offset, length, position, callback)
 
 * `fd: Int` - file descriptor.
@@ -96,20 +162,6 @@ Writes entire `data` to the file specified by `path` asynchronously.
 
 Writes entire `data` to the file specified by `path` synchronously.
 
-#### fs.close(fd, callback)
-
-* `fd: Int` - file descriptor.
-* `callback: Function(err) `
- * `err: Error`
-
-Closes the file of fd asynchronously.
-
-#### fs.closeSync(fd)
-
-* `fd: Int` - file descriptor.
-
-Closes the file of fd synchronously.
-
 #### fs.unlink(path, callback)
 
 * `path: String` - file path to be removed
@@ -123,39 +175,3 @@ Removes the file specified by `path` asynchronously.
 * `path: String` - file path to be removed
 
 Removes the file specified by `path` synchronously.
-
-#### fs.stat(path, callback)
-
-* `path: String` - file path to be stated
-* callback: Function(err, stat)` - callback function.
- * `err: Error`
- * `stat: Object`
-
-#### fs.statSync(path)
-
-* `path: String` - file path to be stated
-
-#### fs.fstat(fd, callback)
-
-* `fd: Number` - file descriptor to be stated
-* callback: Function(err, stat)` - callback function.
- * `err: Error`
- * `stat: Object`
-
-#### fs.fstatSync(fd)
-
-* `fd: Number` - file descriptor to be stated
-
-## Class: fs.Stats
-
-fs.Stats class is a object returned from ```fs.stats()```,```fs.fstats()``` and their synchronous counterparts.
-
-### Methods
-
-#### stats.isDirectory()
-
-Returns true if stated file is a directory
-
-#### stats.isFile()
-
-Returns true if stated file is a file

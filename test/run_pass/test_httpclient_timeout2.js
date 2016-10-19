@@ -13,9 +13,6 @@
  * limitations under the License.
  */
 
-/*
-  @TIMEOUT=15
-*/
 
 
 var assert = require('assert');
@@ -62,6 +59,5 @@ server.listen(options.port, function() {
 
 
 process.on('exit', function(code) {
-  assert.equal(code,0);
   assert.equal(timeouted, true);
 });

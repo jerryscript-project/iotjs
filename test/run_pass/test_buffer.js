@@ -13,9 +13,6 @@
  * limitations under the License.
  */
 
-/*
-  @STDOUT=testabcdefgh
-*/
 
 
 var assert = require('assert');
@@ -97,4 +94,4 @@ assert.equal(Buffer.isBuffer([buff1]), false);
 assert.equal(Buffer.isBuffer({obj:buff1}), false);
 
 
-console.log(buff3.toString());
+assert.equal(buff3.toString(), 'testabcdefgh');

@@ -13,9 +13,6 @@
  * limitations under the License.
  */
 
-/*
-  @STDOUT=test ok
-*/
 
 
 var fs = require('fs');
@@ -97,5 +94,4 @@ process.on('exit', function() {
   assert.equal(fs_async_normal_ok, true);
   assert.equal(fs_async_open_not_exist_ok, true);
   assert.equal(fs_async_close_bad_fd_ok, true);
-  console.log('test ok');
 });

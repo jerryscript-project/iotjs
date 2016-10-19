@@ -46,6 +46,7 @@ typedef JObject* (*register_func)();
   E(F, HTTPPARSER, Httpparser, httpparser) \
   E(F, I2C, I2c, i2c) \
   E(F, PROCESS, Process, process) \
+  F(TESTDRIVER, Testdriver, testdriver) \
   E(F, TCP, Tcp, tcp) \
   E(F, TIMER, Timer, timer)
 

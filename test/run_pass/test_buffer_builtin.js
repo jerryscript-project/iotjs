@@ -13,9 +13,6 @@
  * limitations under the License.
  */
 
-/*
-  @STDOUT=testabcdefgh
-*/
 
 
 var assert = require('assert');
@@ -104,4 +101,4 @@ assert.equal(buff9._builtin.slice(-3, -2).toString(), 'b');
 assert.equal(buff9._builtin.slice(0, -2).toString(), 'abcabcab');
 
 
-console.log(buff3.toString());
+assert.equal(buff3.toString(), 'testabcdefgh');

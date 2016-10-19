@@ -26,10 +26,10 @@ process.on('uncaughtException', function(err) {
 });
 
 process.on('exit', function(code) {
+  process.removeAllListeners('uncaughtException');
   assert.equal(code, 0);
   assert(uncaught_error);
 });
 
 var ee = new EventEmitter();
 ee.emit('error');
-

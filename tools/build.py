@@ -22,10 +22,10 @@ import re
 
 from check_tidy import check_tidy
 from js2c import js2c
-from common import path
-from common.system.filesystem import FileSystem as fs
-from common.system.executor import Executor as ex
-from common.system.platform import Platform
+from common_py import path
+from common_py.system.filesystem import FileSystem as fs
+from common_py.system.executor import Executor as ex
+from common_py.system.platform import Platform
 
 platform = Platform()
 
@@ -705,7 +705,8 @@ def build_iotjs(option):
 def run_checktest():
     # iot.js executable
     iotjs = fs.join(build_root, 'iotjs', 'iotjs')
-    return ex.run_cmd(path.CHECKTEST_PATH, [iotjs]) == 0
+    fs.chdir(path.PROJECT_ROOT)
+    return ex.run_cmd(iotjs, [path.CHECKTEST_PATH]) == 0
 
 
 # Initialize build option object.

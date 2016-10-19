@@ -13,9 +13,12 @@
  * limitations under the License.
  */
 
-/*
-  @EXITCODE=1
-*/
 
+var assert = require('assert');
+
+process.on('exit', function(code) {
+  assert.equal(1, code);
+  assert.fail();
+});
 
 process.exit(1);

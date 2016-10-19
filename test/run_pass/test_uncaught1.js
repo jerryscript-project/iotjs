@@ -13,12 +13,9 @@
  * limitations under the License.
  */
 
-/*
-  @STDOUT=ABABC
-*/
+
 
 var assert = require('assert');
-
 
 var trace = '';
 
@@ -32,8 +29,8 @@ process.on('uncaughtException', function (err) {
 
 process.on('exit', function() {
   trace += 'C';
+  process.removeAllListeners('uncaughtException');
   assert.equal(trace, 'ABABC');
-  console.log(trace);
 });
 
 

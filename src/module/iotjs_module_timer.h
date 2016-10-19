@@ -17,11 +17,45 @@
 #define IOTJS_MODULE_TIMER_H
 
 #include "iotjs_binding.h"
-
+#include "iotjs_handlewrap.h"
 
 namespace iotjs {
 
 JObject* InitTimer();
+
+class TimerWrap : public HandleWrap {
+ public:
+  explicit TimerWrap(Environment* env, JObject& jtimer)
+      : HandleWrap(jtimer, reinterpret_cast<uv_handle_t*>(&_handle))
+      , _jcallback(NULL) {
+    // Initialze timer handler.
+    uv_timer_init(env->loop(), &_handle);
+  }
+
+  // Timer timeout callback handler.
+  void OnTimeout();
+
+  // Timer close callback handler.
+  void OnClose();
+
+  // Start timer.
+  int Start(int64_t timeout, int64_t repeat, JObject& jcallback);
+
+  // Stop & close timer.
+  int Stop();
+
+  // Retrieve javascript callback function.
+  JObject* jcallback() { return _jcallback; }
+
+  uv_timer_t handle() { return _handle; }
+
+ protected:
+  // timer handle.
+  uv_timer_t _handle;
+
+  // Javascript callback function.
+  JObject* _jcallback;
+};
 
 } // namespace iotjs
 

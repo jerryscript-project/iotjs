@@ -20,4 +20,3 @@ module_cache.i = 100;
 module_cache = require('require1/module_cache.js');
 
 assert.equal(module_cache.i, 100);
-

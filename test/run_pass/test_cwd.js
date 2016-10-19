@@ -13,8 +13,5 @@
  * limitations under the License.
  */
 
-/*
-  @STDOUT=COMMAND[pwd]
-*/
 
 console.log(process.cwd());

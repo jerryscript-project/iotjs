@@ -13,9 +13,6 @@
  * limitations under the License.
  */
 
-/*
-  @STDOUT=server closed
-*/
 
 var net = require('net');
 var assert = require('assert');
@@ -27,7 +24,6 @@ var port = 22709;
 server.listen(port, 5);
 
 server.on('close', function() {
-  console.log('server closed');
 });
 
 server.on('connection', function(socket) {

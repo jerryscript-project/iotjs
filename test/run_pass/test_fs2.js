@@ -13,9 +13,6 @@
  * limitations under the License.
  */
 
- /*
-   @STDOUT=FILE[../resources/test1.txt]
- */
 
 
 var fs = require('fs');
@@ -34,7 +31,10 @@ function onWrite(err, written, buffer) {
     var fd = fs.openSync(dstFilePath, 'r');
     var buffer = new Buffer(128);
     fs.readSync(fd, buffer, 0, buffer.length, 0);
-    console.log(buffer.toString());
+
+    var result = 'TEST File Read & Write\n';
+
+    assert.equal(buffer.toString(), result);
   }
 }
 

@@ -1,4 +1,4 @@
-/* Copyright 2015 Samsung Electronics Co., Ltd.
+/* Copyright 2016 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,12 @@
  * limitations under the License.
  */
 
+(function() {
+  var attrs = {
+    'process_exit1.js': {
+      exit: true
+    },
+  };
 
-var assert = require('assert');
-
-process.on('exit', function() {
-  assert.fail();
-});
-
-process.exit();
+  return attrs;
+})();

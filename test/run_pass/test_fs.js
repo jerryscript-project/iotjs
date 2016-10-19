@@ -13,9 +13,6 @@
  * limitations under the License.
  */
 
- /*
-   @STDOUT=Hello IoT.js!!
- */
 
 
 var fs = require('fs');
@@ -50,7 +47,6 @@ fs.open(fileName, flags, mode, function(err, fd) {
         throw err;
       } else {
         assert.equal(buffer.toString(), expectedContents);
-        console.log(buffer.toString());
       }
     });
   }

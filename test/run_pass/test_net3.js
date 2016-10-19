@@ -13,9 +13,6 @@
  * limitations under the License.
  */
 
-/*
-  @TIMEOUT=20
-*/
 
 var net = require('net');
 var assert = require('assert');

@@ -68,3 +68,39 @@ Read one byte from I2C device. `res` contains result as a number.
 
 Read bytes from I2C device with command.
 `length` is the number of bytes. `res` contains an array of bytes.
+
+#### i2c.stream(command, length, delay)
+* `command: Number`
+* `length: Number`
+* `delay: Number`
+
+Read bytes from I2C device with command, continuosly. It emits `data` event.
+`length` is the number of bytes. It will pause for the amount of time(`delay` in ms).
+
+### Events
+
+#### `'data'`
+* `data: Object`
+
+`data` is an object specifying following information:
+* `address: Number`
+* `data: Array (an array of bytes)`
+* `cmd: Number`
+* `length: Number`
+* `timestamp: Number`
+
+Emitted when `stream` method is called.
+
+For example,
+```javascript
+...
+wire.on('data', function(data) {
+  console.log('data.timestamp: ' + data.timestamp);
+  console.log('data.address: ' + data.address);
+  console.log('data.cmd: ' + data.cmd);
+  console.log('data.length: ' + data.length);
+  console.log('data.data: ' + data.data);
+});
+
+wire.stream(0x20, 2, 1000);
+```

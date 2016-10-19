@@ -84,6 +84,7 @@ function testset(idx) {
       'test_uncaught2.js',
       'test_uncaught_error1.js',
       'test_uncaught_error2.js',
+      'test_i2c.js',
     ]
   });
 

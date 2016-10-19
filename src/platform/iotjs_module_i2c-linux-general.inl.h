@@ -69,7 +69,9 @@
 #define I2C_SMBUS_WRITE 0
 #define I2C_NOCMD 0
 #define I2C_SMBUS_BYTE 1
+#define I2C_SMBUS_BLOCK_DATA 5
 #define I2C_SMBUS_I2C_BLOCK_DATA 8
+#define I2C_SMBUS_BLOCK_MAX 32
 #define I2C_MAX_ADDRESS 128
 
 
@@ -93,7 +95,7 @@ typedef struct I2cSmbusIoctlDataStruct
 
 
 int fd;
-int8_t addr;
+uint8_t addr;
 
 
 class I2cLinuxGeneral : public I2c {
@@ -102,16 +104,16 @@ class I2cLinuxGeneral : public I2c {
 
   static I2cLinuxGeneral* GetInstance();
 
-  virtual int SetAddress(int8_t address);
+  virtual int SetAddress(uint8_t address);
   virtual int Scan(I2cReqWrap* i2c_req);
   virtual int Open(I2cReqWrap* i2c_req);
   virtual int Close();
-  virtual int Write(I2cReqWrap* i2c_rea);
-  virtual int WriteByte(I2cReqWrap* i2c_rea);
-  virtual int WriteBlock(I2cReqWrap* i2c_rea);
-  virtual int Read(I2cReqWrap* i2c_rea);
-  virtual int ReadByte(I2cReqWrap* i2c_rea);
-  virtual int ReadBlock(I2cReqWrap* i2c_rea);
+  virtual int Write(I2cReqWrap* i2c_req);
+  virtual int WriteByte(I2cReqWrap* i2c_req);
+  virtual int WriteBlock(I2cReqWrap* i2c_req);
+  virtual int Read(I2cReqWrap* i2c_req);
+  virtual int ReadByte(I2cReqWrap* i2c_req);
+  virtual int ReadBlock(I2cReqWrap* i2c_req);
 };
 
 
@@ -137,11 +139,34 @@ int I2cSmbusAccess(int fd, uint8_t read_write, uint8_t command, int size,
 }
 
 
+int I2cSmbusWriteByte(int fd, uint8_t byte) {
+  return I2cSmbusAccess(fd, I2C_SMBUS_WRITE, byte, I2C_SMBUS_BYTE, NULL);
+}
+
+
+int I2cSmbusWriteI2cBlockData(int fd, uint8_t command, uint8_t* values,
+                              uint8_t length) {
+  I2cSmbusData data;
+
+  if (length > I2C_SMBUS_BLOCK_MAX) {
+    length = I2C_SMBUS_BLOCK_MAX;
+  }
+
+  for (int i = 1; i <= length; i++) {
+    data.block[i] = values[i - 1];
+  }
+  data.block[0] = length;
+
+  return I2cSmbusAccess(fd, I2C_SMBUS_WRITE, command, I2C_SMBUS_BLOCK_DATA,
+                        &data);
+}
+
+
 int I2cSmbusReadByte(int fd) {
   I2cSmbusData data;
-  int result;
 
-  result = I2cSmbusAccess(fd, I2C_SMBUS_READ, I2C_NOCMD, I2C_SMBUS_BYTE, &data);
+  int result = I2cSmbusAccess(fd, I2C_SMBUS_READ, I2C_NOCMD, I2C_SMBUS_BYTE,
+                              &data);
 
   // Mask one byte from result (data.byte).
   return result >= 0 ? 0xFF & data.byte : -1;
@@ -151,13 +176,16 @@ int I2cSmbusReadByte(int fd) {
 int I2cSmbusReadI2cBlockData(int fd, uint8_t command, uint8_t* values,
                              uint8_t length) {
   I2cSmbusData data;
-  int i, result;
 
+  if (length > I2C_SMBUS_BLOCK_MAX) {
+    length = I2C_SMBUS_BLOCK_MAX;
+  }
   data.block[0] = length;
-  result = I2cSmbusAccess(fd, I2C_SMBUS_READ, command, I2C_SMBUS_I2C_BLOCK_DATA,
-                          &data);
+
+  int result = I2cSmbusAccess(fd, I2C_SMBUS_READ, command,
+                              I2C_SMBUS_I2C_BLOCK_DATA, &data);
   if (result >= 0) {
-    for(i = 1; i <= data.block[0]; i++) {
+    for(int i = 1; i <= data.block[0]; i++) {
       values[i - 1] = data.block[i];
     }
     result = data.block[0];
@@ -175,68 +203,87 @@ void AfterI2cWork(uv_work_t* work_req, int status) {
 
   JArgList jargs(2);
 
-  switch (req_data->op) {
-    case kI2cOpOpen:
-    {
-      if (req_data->error == kI2cErrOpen) {
-        JObject error = JObject::Error("Failed to open I2C device.");
-        jargs.Add(error);
-      } else {
-        jargs.Add(JVal::Null());
+  if (status) {
+    JObject error = JObject::Error("System error");
+    jargs.Add(error);
+  } else {
+    switch (req_data->op) {
+      case kI2cOpOpen:
+      {
+        if (req_data->error == kI2cErrOpen) {
+          JObject error = JObject::Error("Failed to open I2C device");
+          jargs.Add(error);
+        } else {
+          jargs.Add(JVal::Null());
+        }
+        break;
       }
-      break;
-    }
-    case kI2cOpScan:
-    {
-      jargs.Add(JVal::Null());
-
-      JObject result = JObject(req_data->buf_len, req_data->buf_data);
-      jargs.Add(result);
-
-      ReleaseBuffer(req_data->buf_data);
-
-      break;
-    }
-    case kI2cOpRead:
-    {
-      if (req_data->error == kI2cErrRead) {
-        JObject error = JObject::Error("Cannot read from device.");
-        jargs.Add(error);
-      } else {
+      case kI2cOpScan:
+      {
         jargs.Add(JVal::Null());
-
         JObject result = JObject(req_data->buf_len, req_data->buf_data);
         jargs.Add(result);
 
-        ReleaseBuffer(req_data->buf_data);
+        if (req_data->buf_data != NULL) {
+          ReleaseBuffer(req_data->buf_data);
+        }
+        break;
       }
-      break;
-    }
-    case kI2cOpReadByte:
-    {
-      if (req_data->error == kI2cErrRead) {
-        JObject error = JObject::Error("Cannot read from device.");
-        jargs.Add(error);
-      } else {
-        jargs.Add(JVal::Null());
-        jargs.Add(JVal::Number(req_data->byte));
+      case kI2cOpWrite:
+      case kI2cOpWriteByte:
+      case kI2cOpWriteBlock:
+      {
+        if (req_data->error == kI2cErrWrite) {
+          JObject error = JObject::Error("Cannot write to device");
+          jargs.Add(error);
+        } else {
+          jargs.Add(JVal::Null());
+        }
+        break;
       }
-      break;
-    }
-    case kI2cOpReadBlock:
-    {
-      if (req_data->error == kI2cErrRead) {
-        JObject error = JObject::Error("Error reading length of bytes.");
-        jargs.Add(error);
-      } else {
-        jargs.Add(JVal::Null());
+      case kI2cOpRead:
+      case kI2cOpReadBlock:
+      {
+        if (req_data->error == kI2cErrRead) {
+          JObject error = JObject::Error("Cannot read from device");
+          jargs.Add(error);
+          jargs.Add(JVal::Null());
+        } else if (req_data->error == kI2cErrReadBlock) {
+          JObject error = JObject::Error("Error reading length of bytes");
+          jargs.Add(error);
+          jargs.Add(JVal::Null());
+        } else {
+          jargs.Add(JVal::Null());
+          JObject result = JObject(req_data->buf_len, req_data->buf_data);
+          jargs.Add(result);
 
-        JObject result = JObject(req_data->buf_len, req_data->buf_data);
-        jargs.Add(result);
+          if (req_data->delay > 0) {
+            usleep(req_data->delay * 1000);
+          }
 
-        ReleaseBuffer(req_data->buf_data);
+          if (req_data->buf_data != NULL) {
+            ReleaseBuffer(req_data->buf_data);
+          }
+        }
+        break;
       }
-      break;
+      case kI2cOpReadByte:
+      {
+        if (req_data->error == kI2cErrRead) {
+          JObject error = JObject::Error("Cannot read from device");
+          jargs.Add(error);
+          jargs.Add(JVal::Null());
+        } else {
+          jargs.Add(JVal::Null());
+          jargs.Add(JVal::Number(req_data->byte));
+        }
+        break;
+      }
+      default:
+      {
+        IOTJS_ASSERT(!"Unreachable");
+        break;
+      }
     }
   }
 
@@ -297,6 +344,51 @@ void ScanWorker(uv_work_t* work_req) {
 }
 
 
+void WriteWorker(uv_work_t* work_req) {
+  I2cReqWrap* i2c_req = reinterpret_cast<I2cReqWrap*>(work_req->data);
+  I2cReqData* req_data = i2c_req->req();
+
+  uint8_t len = req_data->buf_len;
+  char* data = req_data->buf_data;
+
+  if (write(fd, data, len) != len) {
+    req_data->error = kI2cErrWrite;
+  }
+
+  if (req_data->buf_data != NULL) {
+    ReleaseBuffer(req_data->buf_data);
+  }
+}
+
+
+void WriteByteWorker(uv_work_t* work_req) {
+  I2cReqWrap* i2c_req = reinterpret_cast<I2cReqWrap*>(work_req->data);
+  I2cReqData* req_data = i2c_req->req();
+
+  if (I2cSmbusWriteByte(fd, req_data->byte) == -1) {
+    req_data->error = kI2cErrWrite;
+  }
+}
+
+
+void WriteBlockWorker(uv_work_t* work_req) {
+  I2cReqWrap* i2c_req = reinterpret_cast<I2cReqWrap*>(work_req->data);
+  I2cReqData* req_data = i2c_req->req();
+
+  uint8_t cmd = req_data->cmd;
+  uint8_t len = req_data->buf_len;
+  uint8_t* data = reinterpret_cast<uint8_t*>(req_data->buf_data);
+
+  if (I2cSmbusWriteI2cBlockData(fd, cmd, data, len) == -1) {
+    req_data->error = kI2cErrWrite;
+  }
+
+  if (req_data->buf_data != NULL) {
+    ReleaseBuffer(req_data->buf_data);
+  }
+}
+
+
 void ReadWorker(uv_work_t* work_req) {
   I2cReqWrap* i2c_req = reinterpret_cast<I2cReqWrap*>(work_req->data);
   I2cReqData* req_data = i2c_req->req();
@@ -315,7 +407,6 @@ void ReadByteWorker(uv_work_t* work_req) {
   I2cReqData* req_data = i2c_req->req();
 
   int result = I2cSmbusReadByte(fd);
-
   if (result == -1) {
     req_data->error = kI2cErrRead;
   } else {
@@ -333,14 +424,11 @@ void ReadBlockWorker(uv_work_t* work_req) {
   uint8_t data[I2C_SMBUS_BLOCK_MAX + 2];
 
   if (I2cSmbusReadI2cBlockData(fd, cmd, data, len) != len) {
-    req_data->error = kI2cErrRead;
+    req_data->error = kI2cErrReadBlock;
   }
 
   req_data->buf_data = AllocBuffer(len);
   memcpy(req_data->buf_data, data, len);
-
-  if (req_data->delay != 0) {
-  }
 }
 
 
@@ -354,7 +442,7 @@ void ReadBlockWorker(uv_work_t* work_req) {
   } while (0)
 
 
-int I2cLinuxGeneral::SetAddress(int8_t address) {
+int I2cLinuxGeneral::SetAddress(uint8_t address) {
   addr = address;
   ioctl(fd, I2C_SLAVE_FORCE, addr);
   return 0;
@@ -382,19 +470,19 @@ int I2cLinuxGeneral::Close() {
 
 
 int I2cLinuxGeneral::Write(I2cReqWrap* i2c_req) {
-  IOTJS_ASSERT(!"Not implemented");
+  I2C_LINUX_GENERAL_IMPL_TEMPLATE(Write);
   return 0;
 }
 
 
 int I2cLinuxGeneral::WriteByte(I2cReqWrap* i2c_req) {
-  IOTJS_ASSERT(!"Not implemented");
+  I2C_LINUX_GENERAL_IMPL_TEMPLATE(WriteByte);
   return 0;
 }
 
 
 int I2cLinuxGeneral::WriteBlock(I2cReqWrap* i2c_req) {
-  IOTJS_ASSERT(!"Not implemented");
+  I2C_LINUX_GENERAL_IMPL_TEMPLATE(WriteBlock);
   return 0;
 }
 

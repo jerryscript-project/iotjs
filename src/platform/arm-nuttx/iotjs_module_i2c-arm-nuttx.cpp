@@ -16,7 +16,7 @@
 #if defined(__NUTTX__)
 
 
-#include "iotjs_module_i2c.h"
+#include "module/iotjs_module_i2c.h"
 
 
 namespace iotjs {
@@ -29,7 +29,7 @@ class I2cArmNuttx : public I2c {
 
   static I2cArmNuttx* GetInstance();
 
-  virtual int SetAddress(int8_t address);
+  virtual int SetAddress(uint8_t address);
   virtual int Scan(I2cReqWrap* i2c_req);
   virtual int Open(I2cReqWrap* i2c_req);
   virtual int Close();
@@ -58,7 +58,7 @@ I2cArmNuttx* I2cArmNuttx::GetInstance()
 }
 
 
-int I2cArmNuttx::SetAddress(int8_t address) {
+int I2cArmNuttx::SetAddress(uint8_t address) {
   IOTJS_ASSERT(!"Not implemented");
   return 0;
 }

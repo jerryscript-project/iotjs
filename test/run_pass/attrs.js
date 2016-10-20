@@ -22,7 +22,6 @@
       "temoporalily."
     },
     'test_dns.js': {
-      exit: true,
       skip: ['nuttx'],
       reason: "not implemented for nuttx"
     },
@@ -48,7 +47,6 @@
       reason: "not implemented for nuttx"
     },
     'test_fs_open_close.js': {
-      exit: true,
       skip: ['nuttx'],
       reason: "not implemented for nuttx"
     },
@@ -100,12 +98,10 @@
       reason: "not implemented for nuttx"
     },
     'test_http_header.js': {
-      exit: true,
       skip: ['nuttx'],
       reason: "not implemented for nuttx"
     },
     'test_httpclient_timeout.js': {
-      exit: true,
       timeout: {
         all: 10
       },
@@ -113,7 +109,6 @@
       reason: "not implemented for nuttx"
     },
     'test_httpclient_timeout2.js': {
-      exit: true,
       timeout: {
         all: 15
       },
@@ -121,7 +116,6 @@
       reason: "not implemented for nuttx"
     },
     'test_httpserver_timeout.js': {
-      exit: true,
       timeout: {
         all: 10
       },
@@ -129,7 +123,6 @@
       reason: "not implemented for nuttx"
     },
     'test_httpserver.js': {
-      exit: true,
       timeout: {
         all: 20
       },
@@ -141,7 +134,6 @@
       reason: "not implemented for nuttx"
     },
     'test_net1.js': {
-      exit: true,
       skip: ['nuttx'],
       reason: "not implemented for nuttx"
     },
@@ -150,7 +142,6 @@
       reason: "not implemented for nuttx"
     },
     'test_net3.js': {
-      exit: true,
       timeout: {
         all: 20
       },
@@ -158,37 +149,30 @@
       reason: "not implemented for nuttx"
     },
     'test_net4.js': {
-      exit: true,
       skip: ['nuttx'],
       reason: "not implemented for nuttx"
     },
     'test_net5.js': {
-      exit: true,
       skip: ['nuttx'],
       reason: "not implemented for nuttx"
     },
     'test_net6.js': {
-      exit: true,
       skip: ['nuttx'],
       reason: "not implemented for nuttx"
     },
     'test_net7.js': {
-      exit: true,
       skip: ['nuttx'],
       reason: "not implemented for nuttx"
     },
     'test_net8.js': {
-      exit: true,
       skip: ['nuttx'],
       reason: "not implemented for nuttx"
     },
     'test_net9.js': {
-      exit: true,
       skip: ['nuttx'],
       reason: "not implemented for nuttx"
     },
     'test_net10.js': {
-      exit: true,
       skip: ['nuttx'],
       reason: "not implemented for nuttx"
     },
@@ -198,29 +182,21 @@
         "driver can not run with test which checks out process.nextTick events"
     },
     'test_timers.js': {
-      exit: true,
       timeout: {
         all: 10
       },
     },
-    'test_timers2.js': {
-      exit: true
-    },
     'test_uncaught1.js': {
       uncaught: true,
-      exit: true
     },
     'test_uncaught2.js': {
       uncaught: true,
-      exit: true
     },
     'test_uncaught_errpr1.js': {
       uncaught: true,
-      exit: true
     },
     'test_uncaught_error2.js': {
       uncaught: true,
-      exit: true
     },
   };
 

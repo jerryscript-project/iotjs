@@ -13,23 +13,17 @@
  * limitations under the License.
  */
 
-function testset(idx) {
-  var tests = [];
-  tests.push({
-    run_pass: [
-       'test_assert.js',
-       'test_buffer_builtin.js',
-       'test_buffer.js',
-       'test_console.js',
-       'test_cwd.js',
-       'test_dns.js',
-       'test_events.js',
-       'test_exit.js',
-     ],
-  });
-
-  tests.push({
-    run_pass: [
+function testsets() {
+  var tests = {
+    'run_pass': [
+      'test_assert.js',
+      'test_buffer_builtin.js',
+      'test_buffer.js',
+      'test_console.js',
+      'test_cwd.js',
+      'test_dns.js',
+      'test_events.js',
+      'test_exit.js',
       'test_fs_exists.js',
       'test_fs_existssync.js',
       'test_fs_mkdir_rmdir.js',
@@ -40,11 +34,6 @@ function testset(idx) {
       'test_fs.js',
       'test_fs1.js',
       'test_fs2.js',
-     ],
-  });
-
-  tests.push({
-    run_pass: [
       'test_gpio1.js',
       'test_gpio2.js',
       'test_gpio3.js',
@@ -54,12 +43,8 @@ function testset(idx) {
       'test_httpclient_timeout2.js',
       'test_httpserver_timeout.js',
       'test_httpserver.js',
+      'test_i2c.js',
       'test_module_cache.js',
-    ]
-  });
-
-  tests.push({
-    run_pass: [
       'test_net1.js',
       'test_net2.js',
       'test_net3.js',
@@ -70,11 +55,6 @@ function testset(idx) {
       'test_net8.js',
       'test_net9.js',
       'test_net10.js',
-    ]
-  });
-
-  tests.push({
-    run_pass: [
       'test_next_tick.js',
       'test_process.js',
       'test_stream.js',
@@ -84,23 +64,16 @@ function testset(idx) {
       'test_uncaught2.js',
       'test_uncaught_error1.js',
       'test_uncaught_error2.js',
-      'test_i2c.js',
-    ]
-  });
-
-  tests.push({
-    'run_pass/issue': [
+      ],
+      'run_pass/issue': [
         'issue-133.js',
         'issue-137.js',
         'issue-198.js',
         'issue-223.js',
         'issue-266.js',
         'issue-323.js',
-      ]
-  });
-
-  tests.push({
-    'run_fail': [
+      ],
+      'run_fail': [
         'assert_fail1.js',
         'assert_fail2.js',
         'assert_fail3.js',
@@ -113,9 +86,9 @@ function testset(idx) {
         'syntax_fail1.js',
         'uncaught_error_event.js',
       ]
-  });
+  };
 
-  return tests[idx];
+  return tests;
 }
 
-module.exports = testset;
+module.exports = testsets;

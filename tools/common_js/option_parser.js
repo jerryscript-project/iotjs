@@ -13,11 +13,18 @@
  * limitations under the License.
  */
 
-function Option(arg, help) {
+function Option(arg, value, default_value, help) {
   this.arg = arg;
+  this.value = value;
+  this.default_value = default_value;
   this.help = help;
 
   return this;
+}
+
+Option.prototype.printHelp = function() {
+  console.log("\t" + this.arg + "=[" + this.value + "](default: " +
+              this.default_value + ") : " + this.help);
 }
 
 function OptionParser() {
@@ -25,41 +32,55 @@ function OptionParser() {
   return this;
 }
 
-OptionParser.prototype.addOption = function(arg, help) {
-  var option  = new Option(arg, help);
+OptionParser.prototype.addOption = function(arg, value, default_value, help) {
+  var option  = new Option(arg, value, default_value, help);
   this.options.push(option);
 }
 
 OptionParser.prototype.parse = function() {
   var options = {};
+
+  for (var idx in this.options) {
+    var option = this.options[idx];
+    var default_value = option.default_value;
+    if (default_value !== "") {
+      options[option.arg] = default_value;
+    }
+  }
+
   for (var aIdx = 2; aIdx < process.argv.length; aIdx++) {
     var option = process.argv[aIdx];
     var arg_val = option.split("=");
 
-    if (arg_val.length != 2) {
-      continue;
+    if (arg_val.length != 2 || !arg_val[0] || !arg_val[1]) {
+      return null;
     }
 
     var arg = arg_val[0];
     var val = arg_val[1];
+    var found = false;
 
     for (var oIdx in this.options) {
       if (arg == this.options[oIdx].arg) {
         options[arg] = val;
+        found = true;
         break;
       }
     }
+
+    if (!found)
+      return null;
   }
 
   return options;
 }
 
 OptionParser.prototype.printHelp = function() {
-  console.log("****** How to use *****");
+  console.log(process.argv[1]);
+  console.log("\noptional arguments");
   for (var idx in this.options) {
-    console.log(this.options[idx].arg + " : " + this.options[idx].help);
+    this.options[idx].printHelp();
   }
-  console.log("***********************");
 }
 
 

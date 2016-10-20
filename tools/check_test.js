@@ -18,6 +18,8 @@ var Runner = require('test_runner').Runner;
 var Logger = require('common_js/logger').Logger;
 var OptionParser = require('common_js/option_parser').OptionParser;
 var util = require('common_js/util');
+// FIXME: After fs.readDirSync is implemented, this should be replaced.
+var testsets = require('test/testsets');
 
 var EventEmitter = require('events').EventEmitter;
 
@@ -67,17 +69,14 @@ function Driver() {
 }
 
 Driver.prototype.config = function() {
-  // FIXME: After fs.readDirSync is implemented, this should be replaced.
-  var testsets = require('testsets');
-
   var parser = new OptionParser();
 
-  parser.addOption('start-from', "", "none",
+  parser.addOption('start-from', "", "",
     "a test case file name where the driver starts.");
   parser.addOption('quiet', "yes|no", "yes",
     "a flag that indicates if the driver suppresses " +
     "console outputs of test case");
-  parser.addOption('output-file', "", "none",
+  parser.addOption('output-file', "", "",
     "a file name where the driver leaves output");
 
   var options = parser.parse();
@@ -89,10 +88,15 @@ Driver.prototype.config = function() {
 
   var output = options['output-file'];
   if (output) {
-    var path = util.join(this.root, '..', output);
+    if (this.os == 'nuttx') {
+      var path = util.join('/mnt/sdcard', output);
+    } else {
+      var path = util.join(this.root, '..', output);
+    }
     fs.writeFileSync(path, new Buffer(''));
-    this.logger = new Logger(path);
   }
+
+  this.logger = new Logger(path);
 
   this.options = options;
 

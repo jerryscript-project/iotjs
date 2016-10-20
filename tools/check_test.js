@@ -17,82 +17,98 @@ var fs = require('fs');
 var Runner = require('test_runner').Runner;
 var Logger = require('common_js/logger').Logger;
 var OptionParser = require('common_js/option_parser').OptionParser;
+var util = require('common_js/util');
 
 var EventEmitter = require('events').EventEmitter;
 
 var root = 'test';
 var parent = '..';
 
-function absolutePath(path) {
-  // FIXME: On NuutX side, when dealing with file, path should be absolute.
-  // So workaround this problem, test driver converts relative path
-  // to absolute one.
-  return process.cwd() + '/' + path;
-}
-
 function Driver() {
+  this.results = {
+    pass: 0,
+    fail: 0,
+    skip: 0,
+    timeout: 0,
+  };
+
   this.emitter = new EventEmitter();
   this.emitter.addListener('nextTest', function(driver, status, attr) {
     if (driver.runner) {
       driver.runner.cleanup();
     }
     var filename = driver.filename();
+
     if (status == 'pass') {
+      driver.results.pass++;
       driver.logger.message('PASS : ' + filename, status);
     } else if (status == 'fail') {
+      driver.results.fail++;
       driver.logger.message('FAIL : ' + filename, status);
     } else if (status == 'skip') {
+      driver.results.skip++;
       driver.logger.message('SKIP : ' + filename +
                    '   (reason : ' + attr.reason + ")", status);
     } else if (status == 'timeout') {
+      driver.results.timeout++;
       driver.logger.message('TIMEOUT : ' + filename, status);
     }
     driver.fIdx++;
     driver.runNextTest();
   });
 
-  this.logger = new Logger();
-
   this.os = process.platform;
   this.board = process.iotjs.board;
 
-  this.root = absolutePath(root);
+  this.root = util.absolutePath(root);
   process.chdir(this.root);
 
   return this;
 }
 
 Driver.prototype.config = function() {
-  if (this.os == 'linux') {
-    var config = 'test/config-largemem'
-  } else {
-    var config = 'test/config-smallmem'
+  // FIXME: After fs.readDirSync is implemented, this should be replaced.
+  var testsets = require('testsets');
+
+  var parser = new OptionParser();
+
+  parser.addOption('start-from', "", "none",
+    "a test case file name where the driver starts.");
+  parser.addOption('quiet', "yes|no", "yes",
+    "a flag that indicates if the driver suppresses " +
+    "console outputs of test case");
+  parser.addOption('output-file', "", "none",
+    "a file name where the driver leaves output");
+
+  var options = parser.parse();
+
+  if (options == null) {
+    parser.printHelp();
+    return false;
   }
 
-  var testset = require(config);
-  if (config == 'test/config-smallmem') {
-    var parser = new OptionParser();
-
-    parser.addOption('index', "an index to test, refer to *config-smallmem*");
-    var options = parser.parse();
-    if (options.index) {
-      var idx = options.index;
-    } else {
-      parser.printHelp();
-      return false;
-    }
+  var output = options['output-file'];
+  if (output) {
+    var path = util.join(this.root, '..', output);
+    fs.writeFileSync(path, new Buffer(''));
+    this.logger = new Logger(path);
   }
-  this.tests = testset(idx);
+
+  this.options = options;
+
+  this.tests = testsets();
 
   this.dIdx = 0;
   this.dLength = Object.keys(this.tests).length;
 
-  this.nextTestSet();
+  var skipped = this.skipTestSet(options['start-from']);
+
+  this.nextTestSet(skipped);
   return true;
 }
 
 Driver.prototype.getAttrs = function() {
-  var content = fs.readFileSync(absolutePath('attrs.js')).toString();
+  var content = fs.readFileSync(util.absolutePath('attrs.js')).toString();
   var attrs = eval(content);
 
   var dirname = this.dirname();
@@ -130,11 +146,35 @@ Driver.prototype.runNextTest = function() {
   }
 };
 
-Driver.prototype.nextTestSet = function() {
-  this.fIdx = 0;
+Driver.prototype.skipTestSet = function(filename) {
+  if (!filename)
+    return false;
+
+  var dLength = this.dLength;
+  for (var dIdx = 0; dIdx < dLength; dIdx++) {
+    var dirname = Object.keys(this.tests)[dIdx];
+    var dir = this.tests[dirname];
+    var fLength = dir.length;
+    for (var fIdx = 0; fIdx < fLength; fIdx++) {
+      if (dir[fIdx] == filename) {
+        this.fIdx = fIdx;
+        this.dIdx = dIdx;
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+Driver.prototype.nextTestSet = function(skipped) {
+  if (!skipped) {
+    this.fIdx = 0;
+  }
+
   var dirname = this.dirname();
   this.fLength = this.tests[dirname].length;
-  process.chdir(absolutePath(dirname));
+  process.chdir(util.absolutePath(dirname));
   this.attrs = this.getAttrs();
   this.logger.message("\n");
   this.logger.message(">>>> " + dirname, "summary");
@@ -152,25 +192,31 @@ Driver.prototype.filename = function() {
 
 Driver.prototype.test = function() {
   var filename = this.filename();
-  var content =  fs.readFileSync(absolutePath(filename)).toString();
+  var content =  fs.readFileSync(util.absolutePath(filename)).toString();
   return content;
 };
 
 Driver.prototype.finish = function() {
-  this.logger.message('finish all tests', this.logger.summary);
+  this.logger.message('\n\nfinish all tests', this.logger.status.summary);
+
+  this.logger.message('PASS : ' + this.results.pass, this.logger.status.pass);
+  this.logger.message('FAIL : ' + this.results.fail, this.logger.status.fail);
+  this.logger.message('TIMEOUT : ' +
+    this.results.timeout, this.logger.status.timeout);
+  this.logger.message('SKIP : ' + this.results.skip, this.logger.status.skip);
 }
 
 var driver = new Driver();
 
 process.exit = function(code) {
   // this function is called when the following happens.
-  // 1. the test case calls explicitly process.exit .
-  // 2. when the test case has attribute 'exit', so the runner calls.
-  // 3. assertion is failed.
+  // 1. the test case is finished normally.
+  // 2. assertion inside the callback function is failed.
   try {
     process.emitExit(code);
   } catch(e) {
-    // run_fail/tests with exit attribute should be reached here.
+    // when assertion inside the process.on('exit', function { ... }) is failed,
+    // this procedure is executed.
     process.removeAllListeners('exit');
 
     if (driver.runner.attr.fail) {

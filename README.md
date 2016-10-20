@@ -8,7 +8,7 @@ You can find project details on our [project page](http://samsung.github.io/iotj
 ## Quick Start
 ### Getting the sources
 
-```
+```bash
 git clone https://github.com/Samsung/iotjs.git
 cd iotjs
 ```
@@ -18,6 +18,13 @@ cd iotjs
 ```bash
 tools/build.py
 ```
+
+### How to Test
+
+```bash
+build/x86_64-linux/debug/bin/iotjs tools/check_test.js
+```
+
 
 For Additional information see [Getting Started](docs/Getting-Started.md).
 
@@ -52,5 +59,5 @@ IoT.js is Open Source software under the [Apache 2.0 license](https://www.apache
  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  IN THE SOFTWARE.
 
-> This license applies to parts of '*.js' files in '/src/js', implementing node.js 
+> This license applies to parts of '*.js' files in '/src/js', implementing node.js
  compatible API, originating from the https://github.com/node/node repository:

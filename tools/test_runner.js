@@ -14,6 +14,7 @@
  */
 
 var testdriver = require('testdriver');
+var console_wrapper = require('common_js/module/console');
 
 function Runner(driver) {
   process._exiting = false;
@@ -23,10 +24,19 @@ function Runner(driver) {
   this.attr = driver.attrs[filename] || {};
   this.finished = false;
 
+  if (driver.options.quiet == 'yes') {
+    this.console = console;
+    console = console_wrapper;
+  }
+
   return this;
 };
 
 Runner.prototype.cleanup = function() {
+  if (this.driver.options.quiet == 'yes') {
+    console = this.console;
+  }
+
   this.driver = null;
   this.attr = null;
   if (this.timer != null) {
@@ -40,13 +50,7 @@ Runner.prototype.spin = function() {
   process.nextTick(function() {
       var timerOnlyAlive = !testdriver.isAliveExceptFor(that.timer);
       if (timerOnlyAlive) {
-        if (that.attr.exit) {
-          process.exit(0);
-        } else if (that.attr.fail) {
-          that.finish('fail');
-        } else {
-          that.finish('pass');
-        }
+        process.exit(0);
       } else {
         if (!that.finished) {
           that.spin();

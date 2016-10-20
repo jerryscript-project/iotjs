@@ -13,9 +13,17 @@
  * limitations under the License.
  */
 
-(function() {
-  var attrs = {
-  };
+var fs = require('fs');
 
-  return attrs;
-})();
+function Console() {
+  return this;
+}
+
+Console.prototype.log =
+Console.prototype.info =
+Console.prototype.warn =
+Console.prototype.error = function() {
+  /* Do Nothing */
+};
+
+module.exports = new Console();

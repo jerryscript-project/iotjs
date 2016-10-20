@@ -13,7 +13,9 @@
  * limitations under the License.
  */
 
-function Logger() {
+var fs = require('fs');
+
+function Logger(path) {
   this.text_colors = {
     red: "\033[1;31m",
     yellow: "\033[1;33m",
@@ -28,11 +30,18 @@ function Logger() {
     timeout: "timeout",
     summary: "summary"
   }
+  this.path = path;
 
   return this;
 }
 
 Logger.prototype.message = function (msg, status) {
+  if (this.path) {
+    // FIXME : After fs.appendFile is implemented, it should be replaced.
+    var data = fs.readFileSync(this.path);
+    var newData = data + msg + "\n";
+    fs.writeFileSync(this.path, new Buffer(newData));
+  }
   if (status == this.status.pass) {
     console.log(this.text_colors.green + msg + this.text_colors.empty);
   } else if (status == this.status.skip) {

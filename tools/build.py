@@ -123,6 +123,8 @@ def init_option():
 
     parser.add_argument('--no-check-tidy', action='store_true')
 
+    parser.add_argument('--no-check-valgrind', action='store_true')
+
     parser.add_argument('--no-check-test', action='store_true')
 
     parser.add_argument('--no-parallel-build', action='store_true')
@@ -704,11 +706,23 @@ def build_iotjs(option):
     return True
 
 
-def run_checktest():
+def run_checktest(option):
     # iot.js executable
     iotjs = fs.join(build_root, 'iotjs', 'iotjs')
     fs.chdir(path.PROJECT_ROOT)
-    return ex.run_cmd(iotjs, [path.CHECKTEST_PATH]) == 0
+    code = ex.run_cmd(iotjs, [path.CHECKTEST_PATH])
+    if code != 0:
+        ex.fail('Failed to pass unit tests')
+    if not option.no_check_valgrind:
+        code = ex.run_cmd('valgrind', ['--leak-check=full',
+                                       '--error-exitcode=5',
+                                       '--undef-value-errors=no',
+                                       iotjs, path.CHECKTEST_PATH])
+        if code == 5:
+            ex.fail('Failed to pass valgrind test')
+        if code != 0:
+            ex.fail('Failed to pass unit tests in valgrind environment')
+    return True
 
 
 # Initialize build option object.
@@ -782,7 +796,7 @@ if not option.no_check_test:
         print "Skip unit tests - build target is library"
         print
     else:
-        if not run_checktest():
+        if not run_checktest(option):
             ex.fail('Failed to pass unit tests')
 
 

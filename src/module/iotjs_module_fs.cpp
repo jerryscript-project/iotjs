@@ -102,7 +102,6 @@ static void After(uv_fs_t* req) {
   if (err < 0) { \
     JObject jerror(CreateUVException(err, #syscall)); \
     handler.Throw(jerror); \
-    return; \
   }
 
 
@@ -139,8 +138,16 @@ JHANDLER_FUNCTION(Open) {
   if (handler.GetArgLength() > 3 && handler.GetArg(3)->IsFunction()) {
     FS_ASYNC(env, open, handler.GetArg(3), path.data(), flags, mode);
   } else {
+    /* FIXME it is workaround of valgrind error on NULL value as 'stat' input */
+    /* Empty string should point some valid empty string */
+    char tmp[1] = { '0' };
+    if (!path.data())
+      path.Append(tmp, 1);
     FS_SYNC(env, open, path.data(), flags, mode);
-    handler.Return(JVal::Number(err));
+    if (*path.data() == '0')
+      path.MakeEmpty();
+    if (err >= 0)
+      handler.Return(JVal::Number(err));
   }
 }
 
@@ -182,7 +189,8 @@ JHANDLER_FUNCTION(Read) {
     FS_ASYNC(env, read, handler.GetArg(5), fd, &uvbuf, 1, position);
   } else {
     FS_SYNC(env, read, fd, &uvbuf, 1, position);
-    handler.Return(JVal::Number(err));
+    if (err >= 0)
+      handler.Return(JVal::Number(err));
   }
 }
 
@@ -224,7 +232,8 @@ JHANDLER_FUNCTION(Write) {
     FS_ASYNC(env, write, handler.GetArg(5), fd, &uvbuf, 1, position);
   } else {
     FS_SYNC(env, write, fd, &uvbuf, 1, position);
-    handler.Return(JVal::Number(err));
+    if (err >= 0)
+      handler.Return(JVal::Number(err));
   }
 }
 
@@ -287,10 +296,19 @@ JHANDLER_FUNCTION(Stat) {
   if (handler.GetArgLength() > 1 && handler.GetArg(1)->IsFunction()) {
     FS_ASYNC(env, stat, handler.GetArg(1), path.data());
   } else {
+    /* FIXME it is workaround of valgrind error on NULL value as 'stat' input */
+    /* Empty string should point some valid empty string */
+    char tmp[1] = { '0' };
+    if (!path.data())
+      path.Append(tmp, 1);
     FS_SYNC(env, stat, path.data());
-    uv_stat_t* s = &(req_wrap.req()->statbuf);
-    JObject ret(MakeStatObject(s));
-    handler.Return(ret);
+    if (*path.data() == '0')
+      path.MakeEmpty();
+    if (err >= 0) {
+      uv_stat_t* s = &(req_wrap.req()->statbuf);
+      JObject ret(MakeStatObject(s));
+      handler.Return(ret);
+    }
   }
 }
 
@@ -310,7 +328,8 @@ JHANDLER_FUNCTION(Mkdir) {
   } else {
     JHANDLER_CHECK(handler.GetArg(1)->IsNumber());
     FS_SYNC(env, mkdir, path.data(), mode);
-    handler.Return(JVal::Undefined());
+    if (err >= 0)
+      handler.Return(JVal::Undefined());
   }
 }
 
@@ -327,7 +346,8 @@ JHANDLER_FUNCTION(Rmdir) {
     FS_ASYNC(env, rmdir, handler.GetArg(1), path.data());
   } else {
     FS_SYNC(env, rmdir, path.data());
-    handler.Return(JVal::Undefined());
+    if (err >= 0)
+      handler.Return(JVal::Undefined());
   }
 }
 
@@ -344,7 +364,8 @@ JHANDLER_FUNCTION(Unlink) {
     FS_ASYNC(env, unlink, handler.GetArg(1), path.data());
   } else {
     FS_SYNC(env, unlink, path.data());
-    handler.Return(JVal::Undefined());
+    if (err >= 0)
+      handler.Return(JVal::Undefined());
   }
 }
 
@@ -363,7 +384,8 @@ JHANDLER_FUNCTION(Rename) {
     FS_ASYNC(env, rename, handler.GetArg(2), oldPath.data(), newPath.data());
   } else {
     FS_SYNC(env, rename, oldPath.data(), newPath.data());
-    handler.Return(JVal::Undefined());
+    if (err >= 0)
+      handler.Return(JVal::Undefined());
   }
 }
 

@@ -35,7 +35,7 @@ iotjs-nuttx
 ```bash
 $ cd apps/system
 $ mkdir iotjs
-$ cp ../../iotjs/targets/nuttx-stm32f4/* ./iotjs/
+$ cp ../../iotjs/targets/nuttx-stm32f4/app/* ./iotjs/
 ```
 
 #### 3. Configure NuttX
@@ -46,13 +46,22 @@ $ cd nuttx/tools
 
 # configure NuttX USB console shell
 $ ./configure.sh stm32f4discovery/usbnsh
+```
 
+Now you can configure nuttx like either of below. For convenience, we provide built-in configure file for you.
+```bash
+$ cd ..
+$ cp ../iotjs/targets/nuttx-stm32f4/nuttx/.config.default .config
+```
+
+Or if you want to configure yourself, you can follow guide below.
+```bash
 $ cd ..
 # might require to run "make menuconfig" twice
 $ make menuconfig
 ```
 
-We must set the following options:
+Followings are the options to set:
 
 * Change `Build Setup -> Build Host Platform` from _Windows_ to [_Linux_|_OSX_]
 * Enable `System Type -> FPU support`

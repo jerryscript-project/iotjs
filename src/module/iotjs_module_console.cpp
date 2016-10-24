@@ -26,8 +26,9 @@ static void Print(JHandlerInfo& handler, FILE* out_fd) {
   JHANDLER_CHECK(handler.GetArgLength() == 1);
   JHANDLER_CHECK(handler.GetArg(0)->IsString());
 
-  String msg = handler.GetArg(0)->GetString();
-  fprintf(out_fd, "%s", msg.data());
+  iotjs_string_t msg = handler.GetArg(0)->GetString();
+  fprintf(out_fd, "%s", iotjs_string_data(&msg));
+  iotjs_string_destroy(&msg);
 }
 
 

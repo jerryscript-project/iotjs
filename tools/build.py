@@ -35,10 +35,7 @@ def init_option():
     # Check config option.
     arg_config = filter(lambda x: x.startswith('--config='), sys.argv)
 
-    if not fs.exists(path.WORKING_CONFIG_PATH):
-        fs.copy(path.DEFAULT_CONFIG_PATH, path.WORKING_CONFIG_PATH)
-
-    config_path = path.WORKING_CONFIG_PATH
+    config_path = path.BUILD_CONFIG_PATH
 
     if len(arg_config) != 0:
         config_path = arg_config[-1].split('=', 1)[1]

@@ -225,7 +225,7 @@ void AfterI2cWork(uv_work_t* work_req, int status) {
         jargs.Add(result);
 
         if (req_data->buf_data != NULL) {
-          ReleaseBuffer(req_data->buf_data);
+          iotjs_buffer_release(req_data->buf_data);
         }
         break;
       }
@@ -262,7 +262,7 @@ void AfterI2cWork(uv_work_t* work_req, int status) {
           }
 
           if (req_data->buf_data != NULL) {
-            ReleaseBuffer(req_data->buf_data);
+            iotjs_buffer_release(req_data->buf_data);
           }
         }
         break;
@@ -298,7 +298,7 @@ void OpenWorker(uv_work_t* work_req) {
   I2cReqWrap* i2c_req = reinterpret_cast<I2cReqWrap*>(work_req->data);
   I2cReqData* req_data = i2c_req->req();
 
-  fd = open((req_data->device).data(), O_RDWR);
+  fd = open(iotjs_string_data(&req_data->device), O_RDWR);
 
   if (fd == -1) {
     req_data->error = kI2cErrOpen;
@@ -313,7 +313,7 @@ void ScanWorker(uv_work_t* work_req) {
   I2cReqData* req_data = i2c_req->req();
 
   int result;
-  req_data->buf_data = AllocBuffer(I2C_MAX_ADDRESS);
+  req_data->buf_data = iotjs_buffer_allocate(I2C_MAX_ADDRESS);
   req_data->buf_len = I2C_MAX_ADDRESS;
 
   for (int i = 0; i < I2C_MAX_ADDRESS; i++) {
@@ -356,7 +356,7 @@ void WriteWorker(uv_work_t* work_req) {
   }
 
   if (req_data->buf_data != NULL) {
-    ReleaseBuffer(req_data->buf_data);
+    iotjs_buffer_release(req_data->buf_data);
   }
 }
 
@@ -384,7 +384,7 @@ void WriteBlockWorker(uv_work_t* work_req) {
   }
 
   if (req_data->buf_data != NULL) {
-    ReleaseBuffer(req_data->buf_data);
+    iotjs_buffer_release(req_data->buf_data);
   }
 }
 
@@ -394,7 +394,7 @@ void ReadWorker(uv_work_t* work_req) {
   I2cReqData* req_data = i2c_req->req();
 
   uint8_t len = req_data->buf_len;
-  req_data->buf_data = AllocBuffer(len);
+  req_data->buf_data = iotjs_buffer_allocate(len);
 
   if (read(fd, req_data->buf_data, len) != len) {
     req_data->error = kI2cErrRead;
@@ -427,7 +427,7 @@ void ReadBlockWorker(uv_work_t* work_req) {
     req_data->error = kI2cErrReadBlock;
   }
 
-  req_data->buf_data = AllocBuffer(len);
+  req_data->buf_data = iotjs_buffer_allocate(len);
   memcpy(req_data->buf_data, data, len);
 }
 

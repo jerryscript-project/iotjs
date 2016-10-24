@@ -109,11 +109,11 @@ JHANDLER_FUNCTION(Bind) {
   JHANDLER_CHECK(handler.GetArg(0)->IsString());
   JHANDLER_CHECK(handler.GetArg(1)->IsNumber());
 
-  String address = handler.GetArg(0)->GetString();
+  iotjs_string_t address = handler.GetArg(0)->GetString();
   int port = handler.GetArg(1)->GetInt32();
 
   sockaddr_in addr;
-  int err = uv_ip4_addr(address.data(), port, &addr);
+  int err = uv_ip4_addr(iotjs_string_data(&address), port, &addr);
 
   if (err == 0) {
     TcpWrap* wrap = TcpWrap::FromJObject(handler.GetThis());
@@ -123,6 +123,8 @@ JHANDLER_FUNCTION(Bind) {
   }
 
   handler.Return(JVal::Number(err));
+
+  iotjs_string_destroy(&address);
 }
 
 
@@ -161,12 +163,12 @@ JHANDLER_FUNCTION(Connect) {
   JHANDLER_CHECK(handler.GetArg(1)->IsNumber());
   JHANDLER_CHECK(handler.GetArg(2)->IsFunction());
 
-  String address = handler.GetArg(0)->GetString();
+  iotjs_string_t address = handler.GetArg(0)->GetString();
   int port = handler.GetArg(1)->GetInt32();
   JObject jcallback = *handler.GetArg(2);
 
   sockaddr_in addr;
-  int err = uv_ip4_addr(address.data(), port, &addr);
+  int err = uv_ip4_addr(iotjs_string_data(&address), port, &addr);
 
   if (err == 0) {
     // Get tcp wrapper from javascript socket object.
@@ -188,6 +190,8 @@ JHANDLER_FUNCTION(Connect) {
 
   JObject ret(err);
   handler.Return(ret);
+
+  iotjs_string_destroy(&address);
 }
 
 
@@ -319,7 +323,7 @@ void OnAlloc(uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf) {
     suggested_size = IOTJS_MAX_READ_BUFFER_SIZE;
   }
 
-  buf->base = AllocBuffer(suggested_size);
+  buf->base = iotjs_buffer_allocate(suggested_size);
   buf->len = suggested_size;
 }
 
@@ -347,7 +351,7 @@ void OnRead(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
 
   if (nread <= 0) {
     if (buf->base != NULL) {
-      ReleaseBuffer(buf->base);
+      iotjs_buffer_release(buf->base);
     }
     if (nread < 0) {
       if (nread == UV__EOF) {
@@ -367,7 +371,7 @@ void OnRead(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
   jargs.Add(jbuffer);
   MakeCallback(jonread, JObject::Undefined(), jargs);
 
-  ReleaseBuffer(buf->base);
+  iotjs_buffer_release(buf->base);
 }
 
 

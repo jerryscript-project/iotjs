@@ -73,12 +73,72 @@
 #endif
 
 
+#ifndef __cplusplus
+typedef enum { false, true } bool;
+#endif
+
+
+#define IOTJS_VALID_MAGIC_SEQUENCE 0xfee1c001 /* feel cool */
+#define IOTJS_INVALID_MAGIC_SEQUENCE 0xfee1badd /* feel bad */
+
+#define IOTJS_DECLARE_THIS(iotjs_classname_t, x) \
+  iotjs_classname_t##_impl_t* _this = &(x)->unsafe;
+
+
+#ifdef NDEBUG
+
+#define IOTJS_VALIDATED_STRUCT(iotjs_classname_t) \
+iotjs_classname_t##_impl_t; \
+typedef struct { \
+  iotjs_classname_t##_impl_t unsafe; \
+} iotjs_classname_t;
+
+#define IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_classname_t, x) \
+  IOTJS_DECLARE_THIS(iotjs_classname_t, x);
+#define IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_classname_t, x) \
+  IOTJS_DECLARE_THIS(iotjs_classname_t, x);
+#define IOTJS_VALIDATED_STRUCT_METHOD(iotjs_classname_t, x) \
+  IOTJS_DECLARE_THIS(iotjs_classname_t, x);
+
+#else
+
+#define IOTJS_VALIDATED_STRUCT(iotjs_classname_t) \
+iotjs_classname_t##_impl_t; \
+typedef struct { \
+  unsigned flag_create; \
+  iotjs_classname_t##_impl_t unsafe; \
+} iotjs_classname_t;
+
+#define IOTJS_VALIDATE_FLAG(iotjs_classname_t, x) \
+  if ((x)->flag_create != IOTJS_VALID_MAGIC_SEQUENCE) { \
+    DLOG("`%s %s` is not initialized properly.", #iotjs_classname_t, #x); \
+    IOTJS_ASSERT(false); \
+  }
+
+#define IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_classname_t, x) \
+  IOTJS_DECLARE_THIS(iotjs_classname_t, x); \
+  /* IOTJS_ASSERT((x)->flag_create != IOTJS_VALID_MAGIC_SEQUENCE); */ \
+  (x)->flag_create = IOTJS_VALID_MAGIC_SEQUENCE;
+
+#define IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_classname_t, x) \
+  IOTJS_DECLARE_THIS(iotjs_classname_t, x); \
+  IOTJS_VALIDATE_FLAG(iotjs_classname_t, x); \
+  (x)->flag_create = IOTJS_INVALID_MAGIC_SEQUENCE;
+
+#define IOTJS_VALIDATED_STRUCT_METHOD(iotjs_classname_t, x) \
+  IOTJS_DECLARE_THIS(iotjs_classname_t, x); \
+  IOTJS_VALIDATE_FLAG(iotjs_classname_t, x); \
+
+#endif
+
+
 // commonly used header files
 #include "iotjs_binding.h"
 #include "iotjs_binding_helper.h"
-#include "iotjs_env.h"
 #include "iotjs_debuglog.h"
+#include "iotjs_env.h"
 #include "iotjs_module.h"
+#include "iotjs_string.h"
 #include "iotjs_util.h"
 
 #include <uv.h>

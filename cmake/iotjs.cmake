@@ -40,7 +40,8 @@ foreach(module ${IOTJS_MODULES})
 endforeach()
 
 
-file(GLOB LIB_IOTJS_SRC ${SRC_ROOT}/*.cpp
+file(GLOB LIB_IOTJS_SRC ${SRC_ROOT}/*.c
+                        ${SRC_ROOT}/*.cpp
                         ${IOTJS_MODULE_SRC})
 
 string(REPLACE ";" " " IOTJS_CFLAGS_STR "${IOTJS_CFLAGS}")

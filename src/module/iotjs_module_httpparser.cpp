@@ -49,29 +49,42 @@ class HTTPParserWrap : public JObjectWrap {
 public:
   explicit HTTPParserWrap(JObject& parser_, http_parser_type type)
     : JObjectWrap(parser_) {
+    url = iotjs_string_create("");
+    status_msg = iotjs_string_create("");
+    for (unsigned i = 0; i < HEADER_MAX; i++) {
+      fields[i] = iotjs_string_create("");
+      values[i] = iotjs_string_create("");
+    }
+
     Initialize(type);
     parser.data = this;
   }
 
   ~HTTPParserWrap() {
+    iotjs_string_destroy(&url);
+    iotjs_string_destroy(&status_msg);
+    for (unsigned i = 0; i < HEADER_MAX; i++) {
+      iotjs_string_destroy(&fields[i]);
+      iotjs_string_destroy(&values[i]);
+    }
   }
 
   void Initialize(http_parser_type type);
 
   // http-parser callbacks
   int OnMessageBegin() {
-    url.MakeEmpty();
-    status_msg.MakeEmpty();
+    iotjs_string_make_empty(&url);
+    iotjs_string_make_empty(&status_msg);
     return 0;
   }
 
   int OnUrl(const char* at, size_t length) {
-    url.Append(at, length);
+    iotjs_string_append(&url, at, length);
     return 0;
   }
 
   int OnStatus(const char* at, size_t length) {
-    status_msg.Append(at, length);
+    iotjs_string_append(&status_msg, at, length);
     return 0;
   }
 
@@ -86,10 +99,10 @@ public:
         n_fields = 1;
         n_values = 0;
       }
-      fields[n_fields-1].MakeEmpty();
+      iotjs_string_make_empty(&fields[n_fields-1]);
     }
     IOTJS_ASSERT(n_fields == n_values + 1);
-    fields[n_fields-1].Append(at, length);
+    iotjs_string_append(&fields[n_fields-1], at, length);
 
     return 0;
   }
@@ -97,12 +110,12 @@ public:
   int OnHeaderValue(const char* at, size_t length) {
     if (n_fields != n_values) {
       n_values++;
-      values[n_values-1].MakeEmpty();
+      iotjs_string_make_empty(&values[n_values-1]);
     }
 
     IOTJS_ASSERT(n_fields == n_values);
 
-    values[n_values-1].Append(at, length);
+    iotjs_string_append(&values[n_values-1], at, length);
 
     return 0;
   }
@@ -146,7 +159,7 @@ public:
       // We need to make a new header object with all header fields
       JSETPROPERTY(info, "headers", makeHeader());
       if ( parser.type == HTTP_REQUEST) {
-        IOTJS_ASSERT(!url.IsEmpty());
+        IOTJS_ASSERT(!iotjs_string_is_empty(&url));
         JSETPROPERTY(info, "url", url);
       }
     }
@@ -217,22 +230,22 @@ public:
     JArgList argv(2);
     JObject jheader(makeHeader());
     argv.Add(jheader);
-    if (parser.type == HTTP_REQUEST && !url.IsEmpty()) {
+    if (parser.type == HTTP_REQUEST && !iotjs_string_is_empty(&url)) {
       JObject jurl(url);
       argv.Add(jurl);
     }
 
     MakeCallback(func, jobj, argv);
 
-    url.MakeEmpty();
+    iotjs_string_make_empty(&url);
     flushed = true;
   }
 
   http_parser parser;
-  String url;
-  String status_msg;
-  String fields[HEADER_MAX];
-  String values[HEADER_MAX];
+  iotjs_string_t url;
+  iotjs_string_t status_msg;
+  iotjs_string_t fields[HEADER_MAX];
+  iotjs_string_t values[HEADER_MAX];
   int n_fields;
   int n_values;
   JObject* cur_jbuf;
@@ -282,8 +295,8 @@ const struct http_parser_settings settings = {
 
 void HTTPParserWrap::Initialize(http_parser_type type) {
   http_parser_init(&parser, type);
-  url.MakeEmpty();
-  status_msg.MakeEmpty();
+  iotjs_string_make_empty(&url);
+  iotjs_string_make_empty(&status_msg);
   n_fields = 0;
   n_values = 0;
   flushed = false;

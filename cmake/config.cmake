@@ -19,18 +19,20 @@ set(CXX ${CMAKE_CXX_COMPILER})
 
 
 # common compile flags
-set(CFLAGS_COMMON "${CFLAGS_COMMON} -fpermissive")
-set(CFLAGS_COMMON "${CFLAGS_COMMON} -fno-rtti")
 set(CFLAGS_COMMON "${CFLAGS_COMMON} -s")
 set(CFLAGS_COMMON "${CFLAGS_COMMON} -Wl,-Map=iotjstuv.map")
-set(CFLAGS_COMMON "${CFLAGS_COMMON} -Werror")
+set(CFLAGS_COMMON "${CFLAGS_COMMON} -Wall -Wextra -Werror")
+set(CFLAGS_COMMON "${CFLAGS_COMMON} -Wno-unused-parameter")
+set(CFLAGS_COMMON "${CFLAGS_COMMON} -Wno-unused-variable")
+set(CFLAGS_COMMON "${CFLAGS_COMMON} -Wno-missing-field-initializers")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DCONFIG_WCHAR_BUILTIN")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-exceptions")
 
 
 set(IOTJS_CFLAGS "${IOTJS_CFLAGS} ${CFLAGS_COMMON}")
-set(IOTJS_CFLAGS "${IOTJS_CFLAGS} ${CMAKE_CXX_FLAGS}")
 set(IOTJS_LINK_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
 
 

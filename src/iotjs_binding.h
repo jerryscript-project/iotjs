@@ -63,7 +63,7 @@ class JObject {
 
   // Creates a javascirpt string object.
   explicit JObject(const char* v);
-  explicit JObject(const String& v);
+  explicit JObject(const iotjs_string_t& v);
 
   // Creates a javascirpt array object from char array
   explicit JObject(uint32_t len, const char* data);
@@ -103,7 +103,7 @@ class JObject {
   static JObject URIError(const char* message);
 
   // Evaluate javascript source file.
-  static JResult Eval(const String& source,
+  static JResult Eval(const iotjs_string_t& source,
                       bool strict_mode = false);
 
 
@@ -154,7 +154,7 @@ class JObject {
   double GetNumber();
 
   // Returns value for string contents of string object.
-  String GetString();
+  iotjs_string_t GetString();
 
 #ifdef ENABLE_SNAPSHOT
   // Evaluate javascript snapshot.

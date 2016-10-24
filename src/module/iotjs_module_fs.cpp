@@ -131,24 +131,20 @@ JHANDLER_FUNCTION(Open) {
 
   Environment* env = Environment::GetEnv();
 
-  String path = handler.GetArg(0)->GetString();
+  iotjs_string_t path = handler.GetArg(0)->GetString();
   int flags = handler.GetArg(1)->GetInt32();
   int mode = handler.GetArg(2)->GetInt32();
 
   if (handler.GetArgLength() > 3 && handler.GetArg(3)->IsFunction()) {
-    FS_ASYNC(env, open, handler.GetArg(3), path.data(), flags, mode);
+    FS_ASYNC(env, open, handler.GetArg(3), iotjs_string_data(&path),
+             flags, mode);
   } else {
-    /* FIXME it is workaround of valgrind error on NULL value as 'stat' input */
-    /* Empty string should point some valid empty string */
-    char tmp[1] = { '0' };
-    if (!path.data())
-      path.Append(tmp, 1);
-    FS_SYNC(env, open, path.data(), flags, mode);
-    if (*path.data() == '0')
-      path.MakeEmpty();
+    FS_SYNC(env, open, iotjs_string_data(&path), flags, mode);
     if (err >= 0)
       handler.Return(JVal::Number(err));
   }
+
+  iotjs_string_destroy(&path);
 }
 
 
@@ -291,25 +287,20 @@ JHANDLER_FUNCTION(Stat) {
 
   Environment* env = Environment::GetEnv();
 
-  String path = handler.GetArg(0)->GetString();
+  iotjs_string_t path = handler.GetArg(0)->GetString();
 
   if (handler.GetArgLength() > 1 && handler.GetArg(1)->IsFunction()) {
-    FS_ASYNC(env, stat, handler.GetArg(1), path.data());
+    FS_ASYNC(env, stat, handler.GetArg(1), iotjs_string_data(&path));
   } else {
-    /* FIXME it is workaround of valgrind error on NULL value as 'stat' input */
-    /* Empty string should point some valid empty string */
-    char tmp[1] = { '0' };
-    if (!path.data())
-      path.Append(tmp, 1);
-    FS_SYNC(env, stat, path.data());
-    if (*path.data() == '0')
-      path.MakeEmpty();
+    FS_SYNC(env, stat, iotjs_string_data(&path));
     if (err >= 0) {
       uv_stat_t* s = &(req_wrap.req()->statbuf);
       JObject ret(MakeStatObject(s));
       handler.Return(ret);
     }
   }
+
+  iotjs_string_destroy(&path);
 }
 
 
@@ -320,17 +311,19 @@ JHANDLER_FUNCTION(Mkdir) {
   JHANDLER_CHECK(handler.GetArg(1)->IsNumber());
   Environment* env = Environment::GetEnv();
 
-  String path = handler.GetArg(0)->GetString();
+  iotjs_string_t path = handler.GetArg(0)->GetString();
   int mode = handler.GetArg(1)->GetInt32();
 
   if (handler.GetArgLength() > 2 && handler.GetArg(2)->IsFunction()) {
-    FS_ASYNC(env, mkdir, handler.GetArg(2), path.data(), mode);
+    FS_ASYNC(env, mkdir, handler.GetArg(2), iotjs_string_data(&path), mode);
   } else {
     JHANDLER_CHECK(handler.GetArg(1)->IsNumber());
-    FS_SYNC(env, mkdir, path.data(), mode);
+    FS_SYNC(env, mkdir, iotjs_string_data(&path), mode);
     if (err >= 0)
       handler.Return(JVal::Undefined());
   }
+
+  iotjs_string_destroy(&path);
 }
 
 
@@ -340,15 +333,17 @@ JHANDLER_FUNCTION(Rmdir) {
   JHANDLER_CHECK(handler.GetArg(0)->IsString());
   Environment* env = Environment::GetEnv();
 
-  String path = handler.GetArg(0)->GetString();
+  iotjs_string_t path = handler.GetArg(0)->GetString();
 
   if (handler.GetArgLength() > 1 && handler.GetArg(1)->IsFunction()) {
-    FS_ASYNC(env, rmdir, handler.GetArg(1), path.data());
+    FS_ASYNC(env, rmdir, handler.GetArg(1), iotjs_string_data(&path));
   } else {
-    FS_SYNC(env, rmdir, path.data());
+    FS_SYNC(env, rmdir, iotjs_string_data(&path));
     if (err >= 0)
       handler.Return(JVal::Undefined());
   }
+
+  iotjs_string_destroy(&path);
 }
 
 
@@ -358,15 +353,17 @@ JHANDLER_FUNCTION(Unlink) {
   JHANDLER_CHECK(handler.GetArg(0)->IsString());
 
   Environment* env = Environment::GetEnv();
-  String path = handler.GetArg(0)->GetString();
+  iotjs_string_t path = handler.GetArg(0)->GetString();
 
   if (handler.GetArgLength() > 1 && handler.GetArg(1)->IsFunction()) {
-    FS_ASYNC(env, unlink, handler.GetArg(1), path.data());
+    FS_ASYNC(env, unlink, handler.GetArg(1), iotjs_string_data(&path));
   } else {
-    FS_SYNC(env, unlink, path.data());
+    FS_SYNC(env, unlink, iotjs_string_data(&path));
     if (err >= 0)
       handler.Return(JVal::Undefined());
   }
+
+  iotjs_string_destroy(&path);
 }
 
 
@@ -377,16 +374,21 @@ JHANDLER_FUNCTION(Rename) {
   JHANDLER_CHECK(handler.GetArg(1)->IsString());
 
   Environment* env = Environment::GetEnv();
-  String oldPath = handler.GetArg(0)->GetString();
-  String newPath = handler.GetArg(1)->GetString();
+  iotjs_string_t oldPath = handler.GetArg(0)->GetString();
+  iotjs_string_t newPath = handler.GetArg(1)->GetString();
 
   if (handler.GetArgLength() > 2 && handler.GetArg(2)->IsFunction()) {
-    FS_ASYNC(env, rename, handler.GetArg(2), oldPath.data(), newPath.data());
+    FS_ASYNC(env, rename, handler.GetArg(2), iotjs_string_data(&oldPath),
+             iotjs_string_data(&newPath));
   } else {
-    FS_SYNC(env, rename, oldPath.data(), newPath.data());
+    FS_SYNC(env, rename, iotjs_string_data(&oldPath),
+            iotjs_string_data(&newPath));
     if (err >= 0)
       handler.Return(JVal::Undefined());
   }
+
+  iotjs_string_destroy(&oldPath);
+  iotjs_string_destroy(&newPath);
 }
 
 

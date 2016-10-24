@@ -46,7 +46,7 @@ enum I2cError {
 };
 
 struct I2cReqData {
-  String device;
+  iotjs_string_t device;
   char* buf_data;
   uint8_t buf_len;
   uint8_t byte;

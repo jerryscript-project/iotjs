@@ -19,8 +19,4 @@ config IOTJS_STACKSIZE
   int "IoT.js stack size"
   default 16384
 
-config IOTJS_HEAPSIZE
-  int "IoT.js heap size"
-  default 107520
-
 endif

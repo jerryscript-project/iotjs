@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-#  This file converts src/js/*.js to a C-array in src/iotjs_js.[h|cpp] file.
+#  This file converts src/js/*.js to a C-array in src/iotjs_js.[h|c] file.
 # And this file also generates magic string list in src/iotjs_string_ext.inl.h
 # file to reduce JerryScript heap usage.
 
@@ -26,10 +26,7 @@ import subprocess
 import struct
 
 from common_py.system.filesystem import FileSystem as fs
-
-
-def extractName(path):
-    return fs.splitext(os.path.basename(path))[0]
+from common_py import path
 
 
 def writeLine(fo, content, indent=0):
@@ -58,6 +55,7 @@ def removeComments(code):
 
 def removeWhitespaces(code):
     return re.sub('\n+', '\n', re.sub('\n +', '\n', code))
+
 
 def parseLiterals(code):
     JERRY_SNAPSHOT_VERSION = 6
@@ -106,19 +104,25 @@ LICENSE = '''/* Copyright 2015-2016 Samsung Electronics Co., Ltd.
 
 HEADER1 = '''#ifndef IOTJS_JS_H
 #define IOTJS_JS_H
-namespace iotjs {
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 '''
 
-FOOTER1 = '''}
+FOOTER1 = '''
+#ifdef __cplusplus
+}
+#endif
+
 #endif
 '''
 
 HEADER2 = '''#include <stdio.h>
 #include "iotjs_js.h"
-namespace iotjs {
 '''
 
-FOOTER2 = '''}
+FOOTER2 = '''
 '''
 
 HEADER3 = '''
@@ -129,127 +133,138 @@ HEADER3 = '''
 FOOTER3 = '''
 '''
 
-def js2c(buildtype, no_snapshot, js_modules, DUMPER):
+NATIVE_STRUCT1 = '''
+typedef struct {
+  const char* name;
+  const void* code;
+  const int length;
+} iotjs_js_module;
 
-    SRC_PATH = '../src/'
-    JS_PATH = SRC_PATH + 'js/'
+extern const iotjs_js_module natives[];
+'''
 
-    fout_h = open(SRC_PATH + 'iotjs_js.h', 'w')
-    fout_cpp = open(SRC_PATH + 'iotjs_js.cpp', 'w')
-    fout_magic_str = open(SRC_PATH + 'iotjs_string_ext.inl.h', 'w')
+NATIVE_STRUCT2 = '''
+const iotjs_js_module natives[] = {
+'''
+
+DUMPER = ''
+NO_SNAPSHOT = True
+BUILDTYPE = 'debug'
+
+def printJSContents(fout_c, name, magic_string_set, indent = 0):
+
+    global DUMPER
+    global NO_SNAPSHOT
+    global BUILDTYPE
+
+    js_path = fs.join(path.SRC_ROOT, 'js', name + '.js')
+
+    if NO_SNAPSHOT is True:
+        code = open(js_path, 'r').read() + '\0'
+
+        # minimize code when release mode
+        if BUILDTYPE != 'debug':
+            code = removeComments(code)
+            code = removeWhitespaces(code)
+
+        for line in regroup(code, 10):
+            buf = ', '.join(map(lambda ch: str(ord(ch)), line))
+            if line[-1] != '\0':
+                buf += ','
+            writeLine(fout_c, buf, indent)
+
+        length = len(code) - 1
+
+    else:
+        fmodule = open(js_path, 'r')
+        module = fmodule.read()
+        fmodule.close()
+
+        fmodule_wrapped = open(js_path + '.wrapped', 'w')
+        if name != 'iotjs':
+            # fmodule_wrapped.write ("(function (a, b, c) {\n")
+            fmodule_wrapped.write(
+                "(function(exports, require, module) {\n")
+
+        fmodule_wrapped.write(module)
+
+        if name != 'iotjs':
+            fmodule_wrapped.write("});\n")
+            # fmodule_wrapped.write ("wwwwrap(a, b, c); });\n")
+        fmodule_wrapped.close()
+
+        ret = subprocess.call([DUMPER,
+                               '--save-snapshot-for-eval',
+                               js_path + '.snapshot',
+                               js_path + '.wrapped'])
+        if ret != 0:
+            msg = 'Failed to dump ' + js_path + (": - %d]" % (ret))
+            print "%s%s%s" % ("\033[1;31m", msg, "\033[0m")
+            exit(1)
+
+        code = open(js_path + '.snapshot', 'r').read()
+
+        fs.remove(js_path + '.wrapped')
+        fs.remove(js_path + '.snapshot')
+
+        for line in regroup(code, 8):
+            buf = ', '.join(map(lambda ch: "0x{:02x}".format(ord(ch)),
+                                line))
+            buf += ','
+            writeLine(fout_c, buf, indent)
+
+        length = len(code)
+
+        magic_string_set = magic_string_set | parseLiterals(code)
+
+    return length
+
+
+def js2c(buildtype, no_snapshot, js_modules, js_dumper):
+    global DUMPER
+    DUMPER = js_dumper
+
+    global NO_SNAPSHOT
+    NO_SNAPSHOT = no_snapshot
+
+    global BUILDTYPE
+    BUILDTYPE = buildtype
+
+    fout_h = open(fs.join(path.SRC_ROOT, 'iotjs_js.h'), 'w')
+    fout_c = open(fs.join(path.SRC_ROOT, 'iotjs_js.c'), 'w')
+    fout_magic_str = open(fs.join(path.SRC_ROOT, 'iotjs_string_ext.inl.h'), 'w')
+
     fout_h.write(LICENSE)
     fout_h.write(HEADER1)
-    fout_cpp.write(LICENSE)
-    fout_cpp.write(HEADER2)
+    fout_c.write(LICENSE)
+    fout_c.write(HEADER2)
     fout_magic_str.write(LICENSE)
     fout_magic_str.write(HEADER3)
 
-    files = glob.glob(JS_PATH + '*.js')
     magic_string_set = { 'process' }
-    for path in files:
-        name = extractName(path)
-        if name not in js_modules:
-            continue
-        fout_cpp.write('const char ' + name + '_n[] = "' + name + '";\n')
-        fout_h.write('extern const char ' + name + '_n[];\n')
-        fout_h.write('extern const int ' + name + '_l;\n')
-        if no_snapshot is True:
-            fout_h.write('extern const char ' + name + '_s[];\n')
-            fout_cpp.write('const char ' + name + '_s[] = {\n')
-            code = open(path, 'r').read() + '\0'
+    for name in sorted(js_modules):
+        writeLine(fout_h, 'extern const char ' + name + '_n[];')
+        writeLine(fout_h, 'extern const char ' + name + '_s[];')
+        writeLine(fout_h, 'extern const int ' + name + '_l;')
 
-            # minimize code when release mode
-            if buildtype != 'debug':
-                code = removeComments(code)
-                code = removeWhitespaces(code)
-
-            for line in regroup(code, 10):
-                buf = ', '.join(map(lambda ch: str(ord(ch)), line))
-                if line[-1] != '\0':
-                    buf += ','
-                writeLine(fout_cpp, buf, 1)
-
-            writeLine(fout_cpp, '};')
-            writeLine(fout_cpp,
-                      'const int ' + name + '_l = ' + str(len(code)-1) + ';')
-
-        else:
-            fout_h.write('extern const unsigned char ' + name + '_s[];\n')
-            fout_cpp.write('const unsigned char ' + name + '_s[] = {\n')
-
-            fmodule = open(path, 'r')
-            module = fmodule.read()
-            fmodule.close()
-
-            fmodule_wrapped = open(path + '.wrapped', 'w')
-            # FIXME
-            if name != 'iotjs':
-                # fmodule_wrapped.write ("(function (a, b, c) {\n")
-                fmodule_wrapped.write(
-                    "(function(exports, require, module) {\n")
-
-            fmodule_wrapped.write(module)
-
-            if name != 'iotjs':
-                fmodule_wrapped.write("});\n")
-                # fmodule_wrapped.write ("wwwwrap(a, b, c); });\n")
-            fmodule_wrapped.close()
-
-            # FIXME
-            ret = subprocess.call([DUMPER,
-                                   '--save-snapshot-for-eval',
-                                   path + '.snapshot',
-                                   path + '.wrapped'])
-            if ret != 0:
-                msg = 'Failed to dump ' + path + (": - %d]" % (ret))
-                print "%s%s%s" % ("\033[1;31m", msg, "\033[0m")
-                exit(1)
-
-            code = open(path + '.snapshot', 'r').read()
-
-            fs.remove(path + '.wrapped')
-            fs.remove(path + '.snapshot')
-
-            for line in regroup(code, 8):
-                buf = ', '.join(map(lambda ch: "0x{:02x}".format(ord(ch)),
-                                    line))
-                buf += ','
-                writeLine(fout_cpp, buf, 1)
-            writeLine(fout_cpp, '};')
-            writeLine(fout_cpp,
-                      'const int ' + name + '_l = sizeof(' + name + '_s);')
-
-            magic_string_set = magic_string_set | parseLiterals(code)
-
-
-
-    NATIVE_STRUCT1 = '''
-struct native_mod {
-const char* name;
-const void* code;
-const size_t length;
-};
-
-extern const struct native_mod natives[];
-'''
-
-    NATIVE_STRUCT2 = '''
-__attribute__ ((used)) const struct native_mod natives[] = {
-'''
+        writeLine(fout_c, 'const char ' + name + '_n[] = "' + name + '";')
+        writeLine(fout_c, 'const char ' + name + '_s[] = {')
+        length = printJSContents(fout_c, name, magic_string_set, 1)
+        writeLine(fout_c, '};');
+        writeLine(fout_c, '#define SIZE_%s %d' % (name.upper(), length))
+        writeLine(fout_c, 'const int %s_l = SIZE_%s;' % (name, name.upper()))
 
     fout_h.write(NATIVE_STRUCT1)
-    fout_cpp.write(NATIVE_STRUCT2)
-    filenames = map(extractName, files)
-    for name in filenames:
-        if name not in js_modules:
-            continue
-        writeLine(fout_cpp,
-                  '{ ' + name + '_n, ' + name + '_s, ' + name + '_l },', 1)
-    writeLine(fout_cpp, '{ NULL, NULL, 0 }', 1)
-    writeLine(fout_cpp, '};')
+    fout_c.write(NATIVE_STRUCT2)
+
+    for name in sorted(js_modules):
+        writeLine(fout_c,
+                  '{ %s_n, %s_s, SIZE_%s },' % (name, name, name.upper()), 1)
+    writeLine(fout_c, '{ NULL, NULL, 0 }', 1)
+    writeLine(fout_c, '};')
 
     fout_h.write(FOOTER1)
-    fout_cpp.write(FOOTER2)
+    fout_c.write(FOOTER2)
 
     for idx, magic_string in enumerate(sorted(magic_string_set)):
         fout_magic_str.write('  MAGICSTR_EX_DEF(MAGIC_STR_%d, "%s") \\\n'

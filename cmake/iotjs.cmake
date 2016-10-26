@@ -72,7 +72,7 @@ endfunction()
 BuildLibIoTjs()
 
 
-set(SRC_MAIN ${ROOT}/iotjs_linux.cpp)
+set(SRC_MAIN ${ROOT}/iotjs_linux.c)
 
 set(BIN_IOTJS_CFLAGS ${IOTJS_CFLAGS_STR})
 set(BIN_IOTJS_LINK_FLAGS ${IOTJS_LINK_FLAGS_STR})

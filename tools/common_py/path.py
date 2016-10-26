@@ -19,6 +19,9 @@ from common_py.system.filesystem import FileSystem as fs
 # Root directory for the project.
 PROJECT_ROOT = fs.abspath(fs.join(fs.dirname(__file__), fs.pardir, fs.pardir))
 
+# Source code directory.
+SRC_ROOT = fs.join(PROJECT_ROOT, 'src')
+
 # Root Build directory.
 BUILD_ROOT = fs.join(PROJECT_ROOT, 'build')
 

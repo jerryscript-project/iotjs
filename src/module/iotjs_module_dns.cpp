@@ -73,7 +73,7 @@ JHANDLER_FUNCTION(GetAddrInfo) {
   JHANDLER_CHECK(handler.GetArg(2)->IsNumber());
   JHANDLER_CHECK(handler.GetArg(3)->IsFunction());
 
-  String hostname = handler.GetArg(0)->GetString();
+  iotjs_string_t hostname = handler.GetArg(0)->GetString();
   int option = handler.GetArg(1)->GetInt32();
   int flags = handler.GetArg(2)->GetInt32();
   JObject* jcallback = handler.GetArg(3);
@@ -99,7 +99,7 @@ JHANDLER_FUNCTION(GetAddrInfo) {
   int err = uv_getaddrinfo(Environment::GetEnv()->loop(),
                            req_wrap->req(),
                            AfterGetAddrInfo,
-                           hostname.data(),
+                           iotjs_string_data(&hostname),
                            NULL,
                            &hints);
 
@@ -108,6 +108,8 @@ JHANDLER_FUNCTION(GetAddrInfo) {
   }
 
   handler.Return(JVal::Number(err));
+
+  iotjs_string_destroy(&hostname);
 }
 
 

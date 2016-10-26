@@ -20,7 +20,6 @@
 #include "uv.h"
 
 #include "iotjs_binding.h"
-#include "iotjs.h"
 
 namespace iotjs {
 

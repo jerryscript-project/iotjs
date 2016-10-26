@@ -20,13 +20,12 @@
 
 #ifdef ENABLE_DEBUG_LOG
 int iotjs_debug_level = DBGLEV_ERR;
-FILE *iotjs_log_stream = stderr;
+FILE *iotjs_log_stream;
 const char* iotjs_debug_prefix[4] = { "", "ERR", "WRN", "INF" };
 #endif // ENABLE_DEBUG_LOG
 
-namespace iotjs {
 
-void InitDebugSettings() {
+void init_debug_settings() {
 #ifdef ENABLE_DEBUG_LOG
   const char* dbglevel = NULL;
   const char* dbglogfile = NULL;
@@ -40,6 +39,7 @@ void InitDebugSettings() {
     if (iotjs_debug_level < 0) iotjs_debug_level = 0;
     if (iotjs_debug_level > DBGLEV_INFO) iotjs_debug_level = DBGLEV_INFO;
   }
+  iotjs_log_stream = stderr;
   if (dbglogfile) {
     FILE* logstream;
     logstream  = fopen(dbglogfile, "w+");
@@ -52,7 +52,7 @@ void InitDebugSettings() {
 }
 
 
-void ReleaseDebugSettings() {
+void release_debug_settings() {
 #ifdef ENABLE_DEBUG_LOG
   if (iotjs_log_stream != stderr || iotjs_log_stream != stdout) {
     fclose(iotjs_log_stream);
@@ -62,5 +62,3 @@ void ReleaseDebugSettings() {
   iotjs_debug_level = DBGLEV_ERR;
 #endif // ENABLE_DEBUG_LOG
 }
-
-} // namespace iotjs

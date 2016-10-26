@@ -29,7 +29,7 @@ BufferWrap::BufferWrap(JObject& jbuiltin,
     , _buffer(NULL)
     , _length(length) {
   if (length > 0) {
-    _buffer = AllocBuffer(length);
+    _buffer = iotjs_buffer_allocate(length);
     IOTJS_ASSERT(_buffer != NULL);
   }
 }
@@ -37,7 +37,7 @@ BufferWrap::BufferWrap(JObject& jbuiltin,
 
 BufferWrap::~BufferWrap() {
   if (_buffer != NULL) {
-    ReleaseBuffer(_buffer);
+    iotjs_buffer_release(_buffer);
   }
 }
 
@@ -114,12 +114,12 @@ int BufferWrap::Compare(const BufferWrap& other) const {
 }
 
 
-size_t BufferWrap::Copy(char* src, size_t len) {
+size_t BufferWrap::Copy(const char* src, size_t len) {
   return Copy(src, 0, len, 0);
 }
 
 
-size_t BufferWrap::Copy(char* src,
+size_t BufferWrap::Copy(const char* src,
                         size_t src_from,
                         size_t src_to,
                         size_t dst_from) {
@@ -227,7 +227,7 @@ JHANDLER_FUNCTION(Write) {
   JHANDLER_CHECK(handler.GetArg(1)->IsNumber());
   JHANDLER_CHECK(handler.GetArg(2)->IsNumber());
 
-  String src = handler.GetArg(0)->GetString();
+  iotjs_string_t src = handler.GetArg(0)->GetString();
   int offset = handler.GetArg(1)->GetInt32();
   int length = handler.GetArg(2)->GetInt32();
 
@@ -237,11 +237,13 @@ JHANDLER_FUNCTION(Write) {
 
   offset = BoundRange(offset, 0, buffer_wrap->length());
   length = BoundRange(length, 0, buffer_wrap->length() - offset);
-  length = BoundRange(length, 0, src.size());
+  length = BoundRange(length, 0, iotjs_string_size(&src));
 
-  size_t copied = buffer_wrap->Copy(src.data(), 0, length, offset);
+  size_t copied = buffer_wrap->Copy(iotjs_string_data(&src), 0, length, offset);
 
   handler.Return(JVal::Number((int)copied));
+
+  iotjs_string_destroy(&src);
 }
 
 
@@ -303,12 +305,14 @@ JHANDLER_FUNCTION(ToString) {
   int length = end - start;
   IOTJS_ASSERT(length >= 0);
 
-  length = strnlen(buffer_wrap->buffer() + start, length);
-
-  String str(buffer_wrap->buffer() + start, length);
+  const char* data = buffer_wrap->buffer() + start;
+  length = strnlen(data, length);
+  iotjs_string_t str = iotjs_string_create_with_size(data, length);
 
   JObject ret(str);
   handler.Return(ret);
+
+  iotjs_string_destroy(&str);
 }
 
 

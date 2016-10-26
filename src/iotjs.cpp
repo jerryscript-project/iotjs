@@ -98,7 +98,9 @@ static void CleanupModules() {
 static bool RunIoTjs(JObject* process) {
   // Evaluating 'iotjs.js' returns a function.
 #ifndef ENABLE_SNAPSHOT
-  JResult jmain = JObject::Eval(String(iotjs_s, iotjs_l), false);
+  iotjs_string_t code = iotjs_string_create_with_buffer((char*)iotjs_s,
+                                                        iotjs_l);
+  JResult jmain = JObject::Eval(code, false);
 #else
   JResult jmain = JObject::ExecSnapshot(iotjs_s, iotjs_l);
 #endif
@@ -177,7 +179,7 @@ static void UvWalkToCloseCallback(uv_handle_t* handle, void* arg) {
 
 int Start(int argc, char** argv) {
   // Initialize debug print.
-  InitDebugSettings();
+  init_debug_settings();
 
   // Create environtment.
   Environment* env = Environment::GetEnv();
@@ -218,7 +220,7 @@ int Start(int argc, char** argv) {
   Environment::Release();
 
   // Release debug print setting.
-  ReleaseDebugSettings();
+  release_debug_settings();
 
   return 0;
 }

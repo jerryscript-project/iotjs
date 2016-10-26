@@ -94,9 +94,10 @@ JObject::JObject(const char* v) {
 }
 
 
-JObject::JObject(const String& v) {
+JObject::JObject(const iotjs_string_t& v) {
   _obj_val = jerry_create_string_sz(
-      reinterpret_cast<const jerry_char_t*>(v.data()), v.size());
+      reinterpret_cast<const jerry_char_t*>(iotjs_string_data(&v)),
+                                            iotjs_string_size(&v));
   _unref_at_close = true;
 }
 
@@ -206,11 +207,11 @@ JObject JObject::URIError(const char* message) {
 }
 
 
-JResult JObject::Eval(const String& source,
+JResult JObject::Eval(const iotjs_string_t& source,
                       bool strict_mode) {
   JRawValueType res = jerry_eval(
-      reinterpret_cast<const jerry_char_t*>(source.data()),
-      source.size(),
+      reinterpret_cast<const jerry_char_t*>(iotjs_string_data(&source)),
+      iotjs_string_size(&source),
       strict_mode);
 
   JResultType type = jerry_value_has_error_flag(res)
@@ -390,18 +391,23 @@ double JObject::GetNumber() {
 }
 
 
-String JObject::GetString() {
+iotjs_string_t JObject::GetString() {
   IOTJS_ASSERT(IsString());
 
   jerry_size_t size = jerry_get_string_size(_obj_val);
 
-  String res(NULL, size);
+  if (size == 0)
+    return iotjs_string_create("");
 
-  jerry_char_t* buffer = reinterpret_cast<jerry_char_t*>(res.data());
+  char* buffer = iotjs_buffer_allocate(size + 1);
+  jerry_char_t* jerry_buffer = reinterpret_cast<jerry_char_t*>(buffer);
 
-  size_t check = jerry_string_to_char_buffer(_obj_val, buffer, size);
+  size_t check = jerry_string_to_char_buffer(_obj_val, jerry_buffer, size);
 
   IOTJS_ASSERT(check == size);
+  buffer[size] = '\0';
+
+  iotjs_string_t res = iotjs_string_create_with_buffer(buffer, size);
 
   return res;
 }

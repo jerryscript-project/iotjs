@@ -49,6 +49,5 @@ HTTPPARSER_ROOT = fs.join(DEPS_ROOT, 'http-parser')
 # checktest
 CHECKTEST_PATH = fs.join(TOOLS_ROOT, 'check_test.js')
 
-# Default build configuration file path.
-DEFAULT_CONFIG_PATH = fs.join(PROJECT_ROOT, '.build.default.config')
-WORKING_CONFIG_PATH = fs.join(PROJECT_ROOT, 'build.config')
+# Build configuration file path.
+BUILD_CONFIG_PATH = fs.join(PROJECT_ROOT, 'build.config')

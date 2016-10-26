@@ -17,76 +17,24 @@
 #define IOTJS_UTIL_H
 
 
-#include <assert.h>
+#include "iotjs_string.h"
 
 
-namespace iotjs {
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+// Return value should be released with iotjs_string_destroy()
+iotjs_string_t iotjs_file_read(const char* path);
+
+char* iotjs_buffer_allocate(unsigned size);
+char* iotjs_buffer_reallocate(char* buffer, unsigned size);
+void iotjs_buffer_release(char* buff);
 
 
-class String;
-class JObject;
-
-
-String ReadFile(const char* path);
-
-char* AllocBuffer(size_t size);
-char* ReallocBuffer(char* buffer, size_t size);
-void ReleaseBuffer(char* buff);
-
-
-void PrintBacktrace();
-
-
-class String {
- public:
-  // Create emtpy string
-  String();
-
-  // Create string object from either ascii or utf8 encoded string data.
-  // This constuctor will allocate new buffer to hold given string data.
-  // If the second parameter `size` was given as `-1` the function calls
-  // `strlen` to determin buffer size.
-  // Third parameter determines initial capacity. If given as `-1` set the value
-  // equal to `size`.
-  explicit String(const char* data, int size = -1, int cap = -1);
-
-  // Create string object from other string object.
-  // (Actually unimplemented. Declaration of copy constructor is needed for
-  // return value optimization to work. However, linker error will be emitted
-  // if copy construction is used in any other situation.)
-  String(const String& other);
-
-  // Destructor
-  // Release allocated buffer.
-  ~String();
-
-  bool IsEmpty() const;
-
-  // Make empty string
-  void MakeEmpty();
-
-  // Append `data` to tail of the String.
-  void Append(const char* data, int size = -1);
-
-  // Returns pointer to the bytes or NULL for empty string.
-  char* data() const;
-
-  int size() const;
-
- protected:
-  // Buffer for containing the string data.
-  char* _data;
-
-  int _size;
-  int _cap;
-
- private:
-  // Prevent reassignments.
-  String& operator=(const String& a) = delete;
-};
-
-
-} // namespace iotjs
+#ifdef __cplusplus
+} // extern "C"
+#endif
 
 
 #endif /* IOTJS_UTIL_H */

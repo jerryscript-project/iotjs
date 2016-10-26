@@ -57,11 +57,16 @@ extern const char* iotjs_debug_prefix[4];
 
 #endif /* ENABLE_DEBUG_LOG */
 
-namespace iotjs {
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-void InitDebugSettings();
-void ReleaseDebugSettings();
+void init_debug_settings();
+void release_debug_settings();
 
-}
+#ifdef __cplusplus
+} // extern "C"
+#endif
+
 
 #endif /* IOTJS_DEBUGLOG_H */

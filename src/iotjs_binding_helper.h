@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef IOTJS_HELPER_H
-#define IOTJS_HELPER_H
+#ifndef IOTJS_BINDING_HELPER_H
+#define IOTJS_BINDING_HELPER_H
 
 
 #include "iotjs_binding.h"
@@ -37,4 +37,4 @@ JObject* InitProcessModule();
 } // namespace iotjs
 
 
-#endif /* IOTJS_HELPER_H */
+#endif /* IOTJS_BINDING_HELPER_H */

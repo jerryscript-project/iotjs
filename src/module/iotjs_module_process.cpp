@@ -64,12 +64,17 @@ static JResult WrapEval(const char* source, size_t length) {
   int len0 = strlen(wrapper[0]);
   int len1 = strlen(wrapper[1]);
 
-  String code(NULL, len0 + length + len1);
-  strcpy(code.data(), wrapper[0]);
-  strcpy(code.data() + len0, source);
-  strcpy(code.data() + len0 + length, wrapper[1]);
+  iotjs_string_t code = iotjs_string_create("");
+  iotjs_string_reserve(&code, len0 + length + len1);
+  iotjs_string_append(&code, wrapper[0], len0);
+  iotjs_string_append(&code, source, length);
+  iotjs_string_append(&code, wrapper[1], len1);
 
-  return JObject::Eval(code);
+  JResult res = JObject::Eval(code);
+
+  iotjs_string_destroy(&code);
+
+  return res;
 }
 
 
@@ -77,15 +82,18 @@ JHANDLER_FUNCTION(Compile){
   JHANDLER_CHECK(handler.GetArgLength() == 1);
   JHANDLER_CHECK(handler.GetArg(0)->IsString());
 
-  String source = handler.GetArg(0)->GetString();
+  iotjs_string_t source = handler.GetArg(0)->GetString();
 
-  JResult jres = WrapEval(source.data(), source.size());
+  JResult jres = WrapEval(iotjs_string_data(&source),
+                          iotjs_string_size(&source));
 
   if (jres.IsOk()) {
     handler.Return(jres.value());
   } else {
     handler.Throw(jres.value());
   }
+
+  iotjs_string_destroy(&source);
 }
 
 
@@ -93,16 +101,18 @@ JHANDLER_FUNCTION(CompileNativePtr){
   JHANDLER_CHECK(handler.GetArgLength() == 1);
   JHANDLER_CHECK(handler.GetArg(0)->IsString());
 
-  String id = handler.GetArg(0)->GetString();
+  iotjs_string_t id = handler.GetArg(0)->GetString();
 
   int i=0;
   while (natives[i].name != NULL) {
-    if (!strcmp(natives[i].name, id.data())) {
+    if (!strcmp(natives[i].name, iotjs_string_data(&id))) {
       break;
     }
 
     i++;
   }
+
+  iotjs_string_destroy(&id);
 
   if (natives[i].name != NULL) {
 #ifdef ENABLE_SNAPSHOT
@@ -128,11 +138,14 @@ JHANDLER_FUNCTION(ReadSource){
   JHANDLER_CHECK(handler.GetArgLength() == 1);
   JHANDLER_CHECK(handler.GetArg(0)->IsString());
 
-  String path = handler.GetArg(0)->GetString();
-  String code = ReadFile(path.data());
+  iotjs_string_t path = handler.GetArg(0)->GetString();
+  iotjs_string_t code = iotjs_file_read(iotjs_string_data(&path));
 
   JObject ret(code);
   handler.Return(ret);
+
+  iotjs_string_destroy(&path);
+  iotjs_string_destroy(&code);
 }
 
 
@@ -153,12 +166,15 @@ JHANDLER_FUNCTION(Chdir){
   JHANDLER_CHECK(handler.GetArgLength() == 1);
   JHANDLER_CHECK(handler.GetArg(0)->IsString());
 
-  String path = handler.GetArg(0)->GetString();
-  int err = uv_cd(path.data());
+  iotjs_string_t path = handler.GetArg(0)->GetString();
+  int err = uv_cd(iotjs_string_data(&path));
 
   if (err) {
+    iotjs_string_destroy(&path);
     JHANDLER_THROW_RETURN(Error, "chdir error");
   }
+
+  iotjs_string_destroy(&path);
 }
 
 

@@ -53,7 +53,7 @@ void GetI2cArray(JObject* jarray, I2cReqData* req_data) {
   IOTJS_ASSERT(!(jarray->GetProperty("length").IsUndefined()));
 
   req_data->buf_len = jarray->GetProperty("length").GetNumber();
-  req_data->buf_data = AllocBuffer(req_data->buf_len);
+  req_data->buf_data = iotjs_buffer_allocate(req_data->buf_len);
 
   char index_str[3];
   for (int i = 0; i < req_data->buf_len; i++) {
@@ -99,8 +99,10 @@ JHANDLER_FUNCTION(Open) {
   I2cReqData* req_data = req_wrap->req();
 
   req_data->op = kI2cOpOpen;
-  String device = handler.GetArg(0)->GetString();
-  req_data->device.Append(device.data(), device.size());
+
+  iotjs_string_t device = handler.GetArg(0)->GetString();
+  iotjs_string_append(&req_data->device, iotjs_string_data(&device),
+                      iotjs_string_size(&device));
 
   I2c* i2c = I2c::GetInstance();
   i2c->Open(req_wrap);

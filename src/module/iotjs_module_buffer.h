@@ -47,8 +47,8 @@ class BufferWrap : public JObjectWrap {
 
   int Compare(const BufferWrap& other) const;
 
-  size_t Copy(char* src, size_t len);
-  size_t Copy(char* src, size_t src_from, size_t src_to, size_t dst_from);
+  size_t Copy(const char* src, size_t len);
+  size_t Copy(const char* src, size_t src_from, size_t src_to, size_t dst_from);
 
  protected:
   char* _buffer;

@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include "iotjs_def.h"
 #include "iotjs_exception.h"
 
 #include <stdio.h>

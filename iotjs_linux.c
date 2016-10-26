@@ -15,10 +15,10 @@
 
 #include <stdio.h>
 
-extern "C" int iotjs_entry(int argc, char** argv);
+int iotjs_entry(int argc, char** argv);
 
 int main(int argc, char** argv) {
 
-  return iotjs_entry(argc,argv);
+  return iotjs_entry(argc, argv);
 
 }

@@ -38,7 +38,7 @@ void TimerWrap::OnTimeout() {
   IOTJS_ASSERT(_jcallback->IsFunction());
 
   // Call javascirpt timeout callback function.
-  MakeCallback(*_jcallback, jobject(), JArgList::Empty());
+  MakeCallback(*_jcallback, jobject(), iotjs_jargs_empty);
 }
 
 
@@ -91,13 +91,13 @@ int TimerWrap::Stop() {
 
 JHANDLER_FUNCTION(Start) {
   // Check parameters.
-  JHANDLER_CHECK(handler.GetThis()->IsObject());
-  JHANDLER_CHECK(handler.GetArgLength() >= 3);
-  JHANDLER_CHECK(handler.GetArg(0)->IsNumber());
-  JHANDLER_CHECK(handler.GetArg(1)->IsNumber());
-  JHANDLER_CHECK(handler.GetArg(2)->IsFunction());
+  JHANDLER_CHECK(iotjs_jhandler_get_this(jhandler)->IsObject());
+  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) >= 3);
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 0)->IsNumber());
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 1)->IsNumber());
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 2)->IsFunction());
 
-  JObject* jtimer = handler.GetThis();
+  JObject* jtimer = iotjs_jhandler_get_this(jhandler);
 
   // Take timer wrap.
   TimerWrap* timer_wrap = reinterpret_cast<TimerWrap*>(jtimer->GetNative());
@@ -105,9 +105,9 @@ JHANDLER_FUNCTION(Start) {
   IOTJS_ASSERT(timer_wrap->jobject().IsObject());
 
   // parameters.
-  int64_t timeout = handler.GetArg(0)->GetInt64();
-  int64_t repeat = handler.GetArg(1)->GetInt64();
-  JObject* jcallback = handler.GetArg(2);
+  int64_t timeout = iotjs_jhandler_get_arg(jhandler, 0)->GetInt64();
+  int64_t repeat = iotjs_jhandler_get_arg(jhandler, 1)->GetInt64();
+  JObject* jcallback = iotjs_jhandler_get_arg(jhandler, 2);
 
   // We do not permit double start.
   JHANDLER_CHECK(timer_wrap->jcallback() == NULL);
@@ -116,14 +116,14 @@ JHANDLER_FUNCTION(Start) {
   int res = timer_wrap->Start(timeout, repeat, *jcallback);
 
   JObject ret(res);
-  handler.Return(ret);
+  iotjs_jhandler_return_obj(jhandler, &ret);
 }
 
 
 JHANDLER_FUNCTION(Stop) {
-  JHANDLER_CHECK(handler.GetThis()->IsObject());
+  JHANDLER_CHECK(iotjs_jhandler_get_this(jhandler)->IsObject());
 
-  JObject* jtimer = handler.GetThis();
+  JObject* jtimer = iotjs_jhandler_get_this(jhandler);
 
   TimerWrap* timer_wrap = reinterpret_cast<TimerWrap*>(jtimer->GetNative());
   IOTJS_ASSERT(timer_wrap != NULL);
@@ -133,15 +133,15 @@ JHANDLER_FUNCTION(Stop) {
   int res = timer_wrap->Stop();
 
   JObject ret(res);
-  handler.Return(ret);
+  iotjs_jhandler_return_obj(jhandler, &ret);
 }
 
 
 JHANDLER_FUNCTION(Timer) {
-  JHANDLER_CHECK(handler.GetThis()->IsObject());
+  JHANDLER_CHECK(iotjs_jhandler_get_this(jhandler)->IsObject());
 
   Environment* env = Environment::GetEnv();
-  JObject* jtimer = handler.GetThis();
+  JObject* jtimer = iotjs_jhandler_get_this(jhandler);
 
   TimerWrap* timer_wrap = new TimerWrap(env, *jtimer);
   IOTJS_ASSERT(timer_wrap->jobject().IsObject());

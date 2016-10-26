@@ -89,9 +89,11 @@ typedef enum { false, true } bool;
 
 #define IOTJS_VALIDATED_STRUCT(iotjs_classname_t) \
 iotjs_classname_t##_impl_t; \
-typedef struct { \
+typedef struct iotjs_classname_t { \
   iotjs_classname_t##_impl_t unsafe; \
 } iotjs_classname_t;
+
+#define IOTJS_VALIDATED_STRUCT_STATIC_INITIALIZER(...) __VA_ARGS__
 
 #define IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_classname_t, x) \
   IOTJS_DECLARE_THIS(iotjs_classname_t, x);
@@ -104,10 +106,13 @@ typedef struct { \
 
 #define IOTJS_VALIDATED_STRUCT(iotjs_classname_t) \
 iotjs_classname_t##_impl_t; \
-typedef struct { \
+typedef struct iotjs_classname_t { \
   unsigned flag_create; \
   iotjs_classname_t##_impl_t unsafe; \
 } iotjs_classname_t;
+
+#define IOTJS_VALIDATED_STRUCT_STATIC_INITIALIZER(...) \
+  { IOTJS_VALID_MAGIC_SEQUENCE, __VA_ARGS__ }
 
 #define IOTJS_VALIDATE_FLAG(iotjs_classname_t, x) \
   if ((x)->flag_create != IOTJS_VALID_MAGIC_SEQUENCE) { \

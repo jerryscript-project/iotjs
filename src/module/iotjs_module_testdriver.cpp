@@ -22,17 +22,19 @@ namespace iotjs {
 
 // Only for test driver
 JHANDLER_FUNCTION(IsAliveExceptFor) {
-  JHANDLER_CHECK(handler.GetArgLength() == 1);
+  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) == 1);
   Environment* env = Environment::GetEnv();
 
-  if (handler.GetArg(0)->IsNull()) {
+  JObject* arg0 = iotjs_jhandler_get_arg(jhandler, 0);
+
+  if (arg0->IsNull()) {
     int alive = uv_loop_alive(env->loop());
 
-    handler.Return(JVal::Bool(alive));
+    iotjs_jhandler_return_bool(jhandler, alive);
   } else {
-    JHANDLER_CHECK(handler.GetArg(0)->IsObject());
+    JHANDLER_CHECK(arg0->IsObject());
 
-    JObject jtimer = handler.GetArg(0)->GetProperty("handler");
+    JObject jtimer = arg0->GetProperty("handler");
 
     TimerWrap* timer_wrap = reinterpret_cast<TimerWrap*>(jtimer.GetNative());
     IOTJS_ASSERT(timer_wrap != NULL);
@@ -41,6 +43,7 @@ JHANDLER_FUNCTION(IsAliveExceptFor) {
     bool has_active_reqs = uv__has_active_reqs(env->loop());
     bool has_closing_handler = env->loop()->closing_handles != NULL;
 
+    bool ret = true;
     bool alive = !has_active_reqs && !has_closing_handler;
     if (alive) {
 
@@ -53,13 +56,12 @@ JHANDLER_FUNCTION(IsAliveExceptFor) {
         if (timer_alive) {
           // If the timer handler we set for test driver is alive,
           // then it can be safely terminated.
-          handler.Return(JVal::Bool(false));
-          return;
+          ret = false;
         }
       }
     }
 
-    handler.Return(JVal::Bool(true));
+    iotjs_jhandler_return_bool(jhandler, ret);
   }
 }
 

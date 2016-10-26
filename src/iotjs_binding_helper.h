@@ -29,7 +29,7 @@ void ProcessEmitExit(int code);
 
 bool ProcessNextTick();
 
-JObject MakeCallback(JObject& function, JObject& this_, JArgList& args);
+JObject MakeCallback(JObject& function, JObject& this_, iotjs_jargs_t& args);
 
 JObject* InitProcessModule();
 

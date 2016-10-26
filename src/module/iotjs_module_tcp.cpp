@@ -54,11 +54,11 @@ typedef ReqWrap<uv_shutdown_t> ShutdownReqWrap;
 
 
 JHANDLER_FUNCTION(TCP) {
-  JHANDLER_CHECK(handler.GetThis()->IsObject());
-  JHANDLER_CHECK(handler.GetArgLength() == 0);
+  JHANDLER_CHECK(iotjs_jhandler_get_this(jhandler)->IsObject());
+  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) == 0);
 
   Environment* env = Environment::GetEnv();
-  JObject* jtcp = handler.GetThis();
+  JObject* jtcp = iotjs_jhandler_get_this(jhandler);
 
   TcpWrap* tcp_wrap = new TcpWrap(env, *jtcp);
   IOTJS_ASSERT(tcp_wrap->jobject().IsObject());
@@ -82,16 +82,16 @@ static void AfterClose(uv_handle_t* handle) {
   // callback function.
   JObject jcallback = jtcp.GetProperty("onclose");
   if (jcallback.IsFunction()) {
-    MakeCallback(jcallback, JObject::Undefined(), JArgList::Empty());
+    MakeCallback(jcallback, JObject::Undefined(), iotjs_jargs_empty);
   }
 }
 
 
 // Close socket
 JHANDLER_FUNCTION(Close) {
-  JHANDLER_CHECK(handler.GetThis()->IsObject());
+  JHANDLER_CHECK(iotjs_jhandler_get_this(jhandler)->IsObject());
 
-  JObject* jtcp = handler.GetThis();
+  JObject* jtcp = iotjs_jhandler_get_this(jhandler);
   HandleWrap* wrap = reinterpret_cast<HandleWrap*>(jtcp->GetNative());
 
   // close uv handle, `AfterClose` will be called after socket closed.
@@ -104,25 +104,25 @@ JHANDLER_FUNCTION(Close) {
 // [0] address
 // [1] port
 JHANDLER_FUNCTION(Bind) {
-  JHANDLER_CHECK(handler.GetThis()->IsObject());
-  JHANDLER_CHECK(handler.GetArgLength() == 2);
-  JHANDLER_CHECK(handler.GetArg(0)->IsString());
-  JHANDLER_CHECK(handler.GetArg(1)->IsNumber());
+  JHANDLER_CHECK(iotjs_jhandler_get_this(jhandler)->IsObject());
+  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) == 2);
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 0)->IsString());
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 1)->IsNumber());
 
-  iotjs_string_t address = handler.GetArg(0)->GetString();
-  int port = handler.GetArg(1)->GetInt32();
+  iotjs_string_t address = iotjs_jhandler_get_arg(jhandler, 0)->GetString();
+  int port = iotjs_jhandler_get_arg(jhandler, 1)->GetInt32();
 
   sockaddr_in addr;
   int err = uv_ip4_addr(iotjs_string_data(&address), port, &addr);
 
   if (err == 0) {
-    TcpWrap* wrap = TcpWrap::FromJObject(handler.GetThis());
+    TcpWrap* wrap = TcpWrap::FromJObject(iotjs_jhandler_get_this(jhandler));
     err = uv_tcp_bind(wrap->tcp_handle(),
                       reinterpret_cast<const sockaddr*>(&addr),
                       0);
   }
 
-  handler.Return(JVal::Number(err));
+  iotjs_jhandler_return_number(jhandler, err);
 
   iotjs_string_destroy(&address);
 }
@@ -141,11 +141,14 @@ static void AfterConnect(uv_connect_t* req, int status) {
   IOTJS_ASSERT(jcallback.IsFunction());
 
   // Only parameter is status code.
-  JArgList args(1);
-  args.Add(JVal::Number(status));
+  iotjs_jargs_t args = iotjs_jargs_create(1);
+  iotjs_jargs_append_number(&args, status);
 
   // Make callback.
   MakeCallback(jcallback, JObject::Undefined(), args);
+
+  // Destroy args
+  iotjs_jargs_destroy(&args);
 
   // Release request wrapper.
   delete req_wrap;
@@ -157,22 +160,22 @@ static void AfterConnect(uv_connect_t* req, int status) {
 // [1] port
 // [2] callback
 JHANDLER_FUNCTION(Connect) {
-  JHANDLER_CHECK(handler.GetThis()->IsObject());
-  JHANDLER_CHECK(handler.GetArgLength() == 3);
-  JHANDLER_CHECK(handler.GetArg(0)->IsString());
-  JHANDLER_CHECK(handler.GetArg(1)->IsNumber());
-  JHANDLER_CHECK(handler.GetArg(2)->IsFunction());
+  JHANDLER_CHECK(iotjs_jhandler_get_this(jhandler)->IsObject());
+  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) == 3);
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 0)->IsString());
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 1)->IsNumber());
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 2)->IsFunction());
 
-  iotjs_string_t address = handler.GetArg(0)->GetString();
-  int port = handler.GetArg(1)->GetInt32();
-  JObject jcallback = *handler.GetArg(2);
+  iotjs_string_t address = iotjs_jhandler_get_arg(jhandler, 0)->GetString();
+  int port = iotjs_jhandler_get_arg(jhandler, 1)->GetInt32();
+  JObject jcallback = *iotjs_jhandler_get_arg(jhandler, 2);
 
   sockaddr_in addr;
   int err = uv_ip4_addr(iotjs_string_data(&address), port, &addr);
 
   if (err == 0) {
     // Get tcp wrapper from javascript socket object.
-    TcpWrap* tcp_wrap = TcpWrap::FromJObject(handler.GetThis());
+    TcpWrap* tcp_wrap = TcpWrap::FromJObject(iotjs_jhandler_get_this(jhandler));
 
     // Create connection request wrapper.
     ConnectReqWrap* req_wrap = new ConnectReqWrap(jcallback);
@@ -188,8 +191,7 @@ JHANDLER_FUNCTION(Connect) {
     }
   }
 
-  JObject ret(err);
-  handler.Return(ret);
+  iotjs_jhandler_return_number(jhandler, err);
 
   iotjs_string_destroy(&address);
 }
@@ -215,17 +217,16 @@ static void OnConnection(uv_stream_t* handle, int status) {
   // The callback takes two parameter
   // [0] status
   // [1] client tcp object
-  JArgList args(2);
-  args.Add(JVal::Number(status));
+  iotjs_jargs_t args = iotjs_jargs_create(2);
+  iotjs_jargs_append_number(&args, status);
 
   if (status == 0) {
     // Create client socket handle wrapper.
     JObject jcreate_tcp = jtcp.GetProperty("createTCP");
     IOTJS_ASSERT(jcreate_tcp.IsFunction());
 
-    JObject jclient_tcp = jcreate_tcp.CallOk(
-        JObject::Undefined(),
-        JArgList::Empty());
+    JObject jclient_tcp = jcreate_tcp.CallOk(JObject::Undefined(),
+                                             iotjs_jargs_empty);
     IOTJS_ASSERT(jclient_tcp.IsObject());
 
     TcpWrap* tcp_wrap = reinterpret_cast<TcpWrap*>(jclient_tcp.GetNative());
@@ -238,27 +239,29 @@ static void OnConnection(uv_stream_t* handle, int status) {
       return;
     }
 
-    args.Add(jclient_tcp);
+    iotjs_jargs_append_obj(&args, &jclient_tcp);
   }
 
   MakeCallback(jonconnection, jtcp, args);
+
+  iotjs_jargs_destroy(&args);
 }
 
 
 JHANDLER_FUNCTION(Listen) {
-  JHANDLER_CHECK(handler.GetThis()->IsObject());
-  JHANDLER_CHECK(handler.GetArgLength() == 1);
-  JHANDLER_CHECK(handler.GetArg(0)->IsNumber());
+  JHANDLER_CHECK(iotjs_jhandler_get_this(jhandler)->IsObject());
+  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) == 1);
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 0)->IsNumber());
 
-  TcpWrap* tcp_wrap = TcpWrap::FromJObject(handler.GetThis());
+  TcpWrap* tcp_wrap = TcpWrap::FromJObject(iotjs_jhandler_get_this(jhandler));
 
-  int backlog = handler.GetArg(0)->GetInt32();
+  int backlog = iotjs_jhandler_get_arg(jhandler, 0)->GetInt32();
 
   int err = uv_listen(reinterpret_cast<uv_stream_t*>(tcp_wrap->tcp_handle()),
                       backlog,
                       OnConnection);
 
-  handler.Return(JVal::Number(err));
+  iotjs_jhandler_return_number(jhandler, err);
 }
 
 
@@ -272,11 +275,14 @@ void AfterWrite(uv_write_t* req, int status) {
   JObject jcallback = req_wrap->jcallback();
 
   // Only parameter is status code.
-  JArgList args(1);
-  args.Add(JVal::Number(status));
+  iotjs_jargs_t args = iotjs_jargs_create(1);
+  iotjs_jargs_append_number(&args, status);
 
   // Make callback.
   MakeCallback(jcallback, JObject::Undefined(), args);
+
+  // Destroy args
+  iotjs_jargs_destroy(&args);
 
   // Release request wrapper.
   delete req_wrap;
@@ -284,15 +290,15 @@ void AfterWrite(uv_write_t* req, int status) {
 
 
 JHANDLER_FUNCTION(Write) {
-  JHANDLER_CHECK(handler.GetThis()->IsObject());
-  JHANDLER_CHECK(handler.GetArgLength() == 2);
-  JHANDLER_CHECK(handler.GetArg(0)->IsObject());
-  JHANDLER_CHECK(handler.GetArg(1)->IsFunction());
+  JHANDLER_CHECK(iotjs_jhandler_get_this(jhandler)->IsObject());
+  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) == 2);
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 0)->IsObject());
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 1)->IsFunction());
 
-  TcpWrap* tcp_wrap = TcpWrap::FromJObject(handler.GetThis());
+  TcpWrap* tcp_wrap = TcpWrap::FromJObject(iotjs_jhandler_get_this(jhandler));
   IOTJS_ASSERT(tcp_wrap != NULL);
 
-  JObject* jbuffer = handler.GetArg(0);
+  JObject* jbuffer = iotjs_jhandler_get_arg(jhandler, 0);
   BufferWrap* buffer_wrap = BufferWrap::FromJBuffer(*jbuffer);
   char* buffer = buffer_wrap->buffer();
   int len = buffer_wrap->length();
@@ -301,7 +307,8 @@ JHANDLER_FUNCTION(Write) {
   buf.base = buffer;
   buf.len = len;
 
-  WriteReqWrap* req_wrap = new WriteReqWrap(*handler.GetArg(1));
+  JObject* arg1 = iotjs_jhandler_get_arg(jhandler, 1);
+  WriteReqWrap* req_wrap = new WriteReqWrap(*arg1);
 
   int err = uv_write(req_wrap->req(),
                      reinterpret_cast<uv_stream_t*>(tcp_wrap->tcp_handle()),
@@ -314,7 +321,7 @@ JHANDLER_FUNCTION(Write) {
     delete req_wrap;
   }
 
-  handler.Return(JVal::Number(err));
+  iotjs_jhandler_return_number(jhandler, err);
 }
 
 
@@ -344,10 +351,10 @@ void OnRead(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
   JObject jonread = jtcp.GetProperty("onread");
   IOTJS_ASSERT(jonread.IsFunction());
 
-  JArgList jargs(4);
-  jargs.Add(jsocket);
-  jargs.Add(JVal::Number((int)nread));
-  jargs.Add(JVal::Bool(false));
+  iotjs_jargs_t jargs = iotjs_jargs_create(4);
+  iotjs_jargs_append_obj(&jargs, &jsocket);
+  iotjs_jargs_append_number(&jargs, nread);
+  iotjs_jargs_append_bool(&jargs, false);
 
   if (nread <= 0) {
     if (buf->base != NULL) {
@@ -355,11 +362,13 @@ void OnRead(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
     }
     if (nread < 0) {
       if (nread == UV__EOF) {
-        jargs.Set(2, JVal::Bool(true));
+        JObject arg(true);
+        iotjs_jargs_replace(&jargs, 2, &arg);
       }
 
       MakeCallback(jonread, JObject::Undefined(), jargs);
     }
+    iotjs_jargs_destroy(&jargs);
     return;
   }
 
@@ -368,17 +377,18 @@ void OnRead(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
 
   buffer_wrap->Copy(buf->base, nread);
 
-  jargs.Add(jbuffer);
+  iotjs_jargs_append_obj(&jargs, &jbuffer);
   MakeCallback(jonread, JObject::Undefined(), jargs);
 
   iotjs_buffer_release(buf->base);
+  iotjs_jargs_destroy(&jargs);
 }
 
 
 JHANDLER_FUNCTION(ReadStart) {
-  JHANDLER_CHECK(handler.GetThis()->IsObject());
+  JHANDLER_CHECK(iotjs_jhandler_get_this(jhandler)->IsObject());
 
-  TcpWrap* tcp_wrap = TcpWrap::FromJObject(handler.GetThis());
+  TcpWrap* tcp_wrap = TcpWrap::FromJObject(iotjs_jhandler_get_this(jhandler));
   IOTJS_ASSERT(tcp_wrap != NULL);
 
   int err = uv_read_start(
@@ -386,7 +396,7 @@ JHANDLER_FUNCTION(ReadStart) {
       OnAlloc,
       OnRead);
 
-  handler.Return(JVal::Number(err));
+  iotjs_jhandler_return_number(jhandler, err);
 }
 
 
@@ -400,24 +410,27 @@ static void AfterShutdown(uv_shutdown_t* req, int status) {
   JObject jonshutdown(req_wrap->jcallback());
   IOTJS_ASSERT(jonshutdown.IsFunction());
 
-  JArgList args(1);
-  args.Add(JVal::Number(status));
+  iotjs_jargs_t args = iotjs_jargs_create(1);
+  iotjs_jargs_append_number(&args, status);
 
   MakeCallback(jonshutdown, JObject::Undefined(), args);
+
+  iotjs_jargs_destroy(&args);
 
   delete req_wrap;
 }
 
 
 JHANDLER_FUNCTION(Shutdown) {
-  JHANDLER_CHECK(handler.GetThis()->IsObject());
-  JHANDLER_CHECK(handler.GetArgLength() == 1);
-  JHANDLER_CHECK(handler.GetArg(0)->IsFunction());
+  JHANDLER_CHECK(iotjs_jhandler_get_this(jhandler)->IsObject());
+  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) == 1);
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 0)->IsFunction());
 
-  TcpWrap* tcp_wrap = TcpWrap::FromJObject(handler.GetThis());
+  TcpWrap* tcp_wrap = TcpWrap::FromJObject(iotjs_jhandler_get_this(jhandler));
   IOTJS_ASSERT(tcp_wrap != NULL);
 
-  ShutdownReqWrap* req_wrap = new ShutdownReqWrap(*handler.GetArg(0));
+  JObject* arg0 = iotjs_jhandler_get_arg(jhandler, 0);
+  ShutdownReqWrap* req_wrap = new ShutdownReqWrap(*arg0);
 
   int err = uv_shutdown(req_wrap->req(),
                         reinterpret_cast<uv_stream_t*>(tcp_wrap->tcp_handle()),
@@ -427,7 +440,7 @@ JHANDLER_FUNCTION(Shutdown) {
     delete req_wrap;
   }
 
-  handler.Return(JVal::Number(err));
+  iotjs_jhandler_return_number(jhandler, err);
 }
 
 
@@ -435,18 +448,18 @@ JHANDLER_FUNCTION(Shutdown) {
 // [0] enable
 // [1] delay
 JHANDLER_FUNCTION(SetKeepAlive) {
-  JHANDLER_CHECK(handler.GetThis()->IsObject());
-  JHANDLER_CHECK(handler.GetArgLength() == 2);
-  JHANDLER_CHECK(handler.GetArg(0)->IsNumber());
-  JHANDLER_CHECK(handler.GetArg(1)->IsNumber());
+  JHANDLER_CHECK(iotjs_jhandler_get_this(jhandler)->IsObject());
+  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) == 2);
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 0)->IsNumber());
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 1)->IsNumber());
 
-  int enable = handler.GetArg(0)->GetInt32();
-  unsigned int delay = (unsigned int) handler.GetArg(1)->GetInt32();
+  int enable = iotjs_jhandler_get_arg(jhandler, 0)->GetInt32();
+  unsigned delay = (unsigned) iotjs_jhandler_get_arg(jhandler, 1)->GetInt32();
 
-  TcpWrap* wrap = TcpWrap::FromJObject(handler.GetThis());
+  TcpWrap* wrap = TcpWrap::FromJObject(iotjs_jhandler_get_this(jhandler));
   int err = uv_tcp_keepalive(wrap->tcp_handle(), enable, delay);
 
-  handler.Return(JVal::Number(err));
+  iotjs_jhandler_return_number(jhandler, err);
 }
 
 

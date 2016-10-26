@@ -142,11 +142,12 @@ JObject CreateBuffer(size_t len) {
   JObject jBuffer(jglobal.GetProperty("Buffer"));
   IOTJS_ASSERT(jBuffer.IsFunction());
 
-  JArgList jargs(1);
-  jargs.Add(JVal::Number((int)len));
+  iotjs_jargs_t jargs = iotjs_jargs_create(1);
+  iotjs_jargs_append_number(&jargs, len);
   JResult jres(jBuffer.Call(JObject::Undefined(), jargs));
   IOTJS_ASSERT(jres.IsOk());
   IOTJS_ASSERT(jres.value().IsObject());
+  iotjs_jargs_destroy(&jargs);
 
   return jres.value();
 }
@@ -154,14 +155,14 @@ JObject CreateBuffer(size_t len) {
 
 
 JHANDLER_FUNCTION(Buffer) {
-  JHANDLER_CHECK(handler.GetThis()->IsObject());
-  JHANDLER_CHECK(handler.GetArgLength() == 2);
-  JHANDLER_CHECK(handler.GetArg(0)->IsObject());
-  JHANDLER_CHECK(handler.GetArg(1)->IsNumber());
+  JHANDLER_CHECK(iotjs_jhandler_get_this(jhandler)->IsObject());
+  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) == 2);
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 0)->IsObject());
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 1)->IsNumber());
 
-  int length = handler.GetArg(1)->GetInt32();
-  JObject* jbuffer = handler.GetArg(0);
-  JObject* jbuiltin = handler.GetThis();
+  int length = iotjs_jhandler_get_arg(jhandler, 1)->GetInt32();
+  JObject* jbuffer = iotjs_jhandler_get_arg(jhandler, 0);
+  JObject* jbuiltin = iotjs_jhandler_get_this(jhandler);
 
   jbuiltin->SetProperty("_buffer", *jbuffer);
 
@@ -172,37 +173,38 @@ JHANDLER_FUNCTION(Buffer) {
 
 
 JHANDLER_FUNCTION(Compare) {
-  JHANDLER_CHECK(handler.GetThis()->IsObject());
-  JHANDLER_CHECK(handler.GetArgLength() == 1);
-  JHANDLER_CHECK(handler.GetArg(0)->IsObject());
+  JHANDLER_CHECK(iotjs_jhandler_get_this(jhandler)->IsObject());
+  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) == 1);
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 0)->IsObject());
 
-  JObject* jsrc_builtin = handler.GetThis();
+  JObject* jsrc_builtin = iotjs_jhandler_get_this(jhandler);
   BufferWrap* src_buffer_wrap = BufferWrap::FromJBufferBuiltin(*jsrc_builtin);
 
-  JObject* jdst_buffer = handler.GetArg(0);
+  JObject* jdst_buffer = iotjs_jhandler_get_arg(jhandler, 0);
   BufferWrap* dst_buffer_wrap = BufferWrap::FromJBuffer(*jdst_buffer);
 
-  handler.Return(JVal::Number(src_buffer_wrap->Compare(*dst_buffer_wrap)));
+  int compare = src_buffer_wrap->Compare(*dst_buffer_wrap);
+  iotjs_jhandler_return_number(jhandler, compare);
 }
 
 
 JHANDLER_FUNCTION(Copy) {
-  JHANDLER_CHECK(handler.GetThis()->IsObject());
-  JHANDLER_CHECK(handler.GetArgLength() == 4);
-  JHANDLER_CHECK(handler.GetArg(0)->IsObject());
-  JHANDLER_CHECK(handler.GetArg(1)->IsNumber());
-  JHANDLER_CHECK(handler.GetArg(2)->IsNumber());
-  JHANDLER_CHECK(handler.GetArg(3)->IsNumber());
+  JHANDLER_CHECK(iotjs_jhandler_get_this(jhandler)->IsObject());
+  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) == 4);
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 0)->IsObject());
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 1)->IsNumber());
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 2)->IsNumber());
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 3)->IsNumber());
 
-  JObject* jsrc_builtin = handler.GetThis();
+  JObject* jsrc_builtin = iotjs_jhandler_get_this(jhandler);
   BufferWrap* src_buffer_wrap = BufferWrap::FromJBufferBuiltin(*jsrc_builtin);
 
-  JObject* jdst_buffer = handler.GetArg(0);
+  JObject* jdst_buffer = iotjs_jhandler_get_arg(jhandler, 0);
   BufferWrap* dst_buffer_wrap = BufferWrap::FromJBuffer(*jdst_buffer);
 
-  int dst_start = handler.GetArg(1)->GetInt32();
-  int src_start = handler.GetArg(2)->GetInt32();
-  int src_end = handler.GetArg(3)->GetInt32();
+  int dst_start = iotjs_jhandler_get_arg(jhandler, 1)->GetInt32();
+  int src_start = iotjs_jhandler_get_arg(jhandler, 2)->GetInt32();
+  int src_end = iotjs_jhandler_get_arg(jhandler, 3)->GetInt32();
 
   dst_start = BoundRange(dst_start, 0, dst_buffer_wrap->length());
   src_start = BoundRange(src_start, 0, src_buffer_wrap->length());
@@ -217,21 +219,21 @@ JHANDLER_FUNCTION(Copy) {
                                      src_end,
                                      dst_start);
 
-  handler.Return(JVal::Number(copied));
+  iotjs_jhandler_return_number(jhandler, copied);
 }
 
 
 JHANDLER_FUNCTION(Write) {
-  JHANDLER_CHECK(handler.GetArgLength() == 3);
-  JHANDLER_CHECK(handler.GetArg(0)->IsString());
-  JHANDLER_CHECK(handler.GetArg(1)->IsNumber());
-  JHANDLER_CHECK(handler.GetArg(2)->IsNumber());
+  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) == 3);
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 0)->IsString());
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 1)->IsNumber());
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 2)->IsNumber());
 
-  iotjs_string_t src = handler.GetArg(0)->GetString();
-  int offset = handler.GetArg(1)->GetInt32();
-  int length = handler.GetArg(2)->GetInt32();
+  iotjs_string_t src = iotjs_jhandler_get_arg(jhandler, 0)->GetString();
+  int offset = iotjs_jhandler_get_arg(jhandler, 1)->GetInt32();
+  int length = iotjs_jhandler_get_arg(jhandler, 2)->GetInt32();
 
-  JObject* jbuiltin = handler.GetThis();
+  JObject* jbuiltin = iotjs_jhandler_get_this(jhandler);
 
   BufferWrap* buffer_wrap = BufferWrap::FromJBufferBuiltin(*jbuiltin);
 
@@ -241,22 +243,22 @@ JHANDLER_FUNCTION(Write) {
 
   size_t copied = buffer_wrap->Copy(iotjs_string_data(&src), 0, length, offset);
 
-  handler.Return(JVal::Number((int)copied));
+  iotjs_jhandler_return_number(jhandler, copied);
 
   iotjs_string_destroy(&src);
 }
 
 
 JHANDLER_FUNCTION(Slice) {
-  JHANDLER_CHECK(handler.GetArgLength() == 2);
-  JHANDLER_CHECK(handler.GetArg(0)->IsNumber());
-  JHANDLER_CHECK(handler.GetArg(1)->IsNumber());
+  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) == 2);
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 0)->IsNumber());
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 1)->IsNumber());
 
-  JObject* jbuiltin = handler.GetThis();
+  JObject* jbuiltin = iotjs_jhandler_get_this(jhandler);
   BufferWrap* buffer_wrap = BufferWrap::FromJBufferBuiltin(*jbuiltin);
 
-  int start = handler.GetArg(0)->GetInt32();
-  int end = handler.GetArg(1)->GetInt32();
+  int start = iotjs_jhandler_get_arg(jhandler, 0)->GetInt32();
+  int end = iotjs_jhandler_get_arg(jhandler, 1)->GetInt32();
 
   if (start < 0) {
     start += buffer_wrap->length();
@@ -279,21 +281,21 @@ JHANDLER_FUNCTION(Slice) {
   BufferWrap* new_buffer_wrap = BufferWrap::FromJBuffer(jnew_buffer);
   new_buffer_wrap->Copy(buffer_wrap->buffer(), start, end, 0);
 
-  handler.Return(jnew_buffer);
+  iotjs_jhandler_return_obj(jhandler, &jnew_buffer);
 }
 
 
 JHANDLER_FUNCTION(ToString) {
-  JHANDLER_CHECK(handler.GetThis()->IsObject());
-  JHANDLER_CHECK(handler.GetArgLength() == 2);
-  JHANDLER_CHECK(handler.GetArg(0)->IsNumber());
-  JHANDLER_CHECK(handler.GetArg(1)->IsNumber());
+  JHANDLER_CHECK(iotjs_jhandler_get_this(jhandler)->IsObject());
+  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) == 2);
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 0)->IsNumber());
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 1)->IsNumber());
 
-  JObject* jbuiltin = handler.GetThis();
+  JObject* jbuiltin = iotjs_jhandler_get_this(jhandler);
   BufferWrap* buffer_wrap = BufferWrap::FromJBufferBuiltin(*jbuiltin);
 
-  int start = handler.GetArg(0)->GetInt32();
-  int end = handler.GetArg(1)->GetInt32();
+  int start = iotjs_jhandler_get_arg(jhandler, 0)->GetInt32();
+  int end = iotjs_jhandler_get_arg(jhandler, 1)->GetInt32();
 
   start = BoundRange(start, 0, buffer_wrap->length());
   end = BoundRange(end, 0, buffer_wrap->length());
@@ -309,8 +311,7 @@ JHANDLER_FUNCTION(ToString) {
   length = strnlen(data, length);
   iotjs_string_t str = iotjs_string_create_with_size(data, length);
 
-  JObject ret(str);
-  handler.Return(ret);
+  iotjs_jhandler_return_string(jhandler, &str);
 
   iotjs_string_destroy(&str);
 }

@@ -201,28 +201,28 @@ void AfterI2cWork(uv_work_t* work_req, int status) {
   I2cReqWrap* i2c_req = reinterpret_cast<I2cReqWrap*>(work_req->data);
   I2cReqData* req_data = i2c_req->req();
 
-  JArgList jargs(2);
+  iotjs_jargs_t jargs = iotjs_jargs_create(2);
 
   if (status) {
     JObject error = JObject::Error("System error");
-    jargs.Add(error);
+    iotjs_jargs_append_obj(&jargs, &error);
   } else {
     switch (req_data->op) {
       case kI2cOpOpen:
       {
         if (req_data->error == kI2cErrOpen) {
           JObject error = JObject::Error("Failed to open I2C device");
-          jargs.Add(error);
+          iotjs_jargs_append_obj(&jargs, &error);
         } else {
-          jargs.Add(JVal::Null());
+          iotjs_jargs_append_null(&jargs);
         }
         break;
       }
       case kI2cOpScan:
       {
-        jargs.Add(JVal::Null());
+        iotjs_jargs_append_null(&jargs);
         JObject result = JObject(req_data->buf_len, req_data->buf_data);
-        jargs.Add(result);
+        iotjs_jargs_append_obj(&jargs, &result);
 
         if (req_data->buf_data != NULL) {
           iotjs_buffer_release(req_data->buf_data);
@@ -235,9 +235,9 @@ void AfterI2cWork(uv_work_t* work_req, int status) {
       {
         if (req_data->error == kI2cErrWrite) {
           JObject error = JObject::Error("Cannot write to device");
-          jargs.Add(error);
+          iotjs_jargs_append_obj(&jargs, &error);
         } else {
-          jargs.Add(JVal::Null());
+          iotjs_jargs_append_null(&jargs);
         }
         break;
       }
@@ -246,16 +246,16 @@ void AfterI2cWork(uv_work_t* work_req, int status) {
       {
         if (req_data->error == kI2cErrRead) {
           JObject error = JObject::Error("Cannot read from device");
-          jargs.Add(error);
-          jargs.Add(JVal::Null());
+          iotjs_jargs_append_obj(&jargs, &error);
+          iotjs_jargs_append_null(&jargs);
         } else if (req_data->error == kI2cErrReadBlock) {
           JObject error = JObject::Error("Error reading length of bytes");
-          jargs.Add(error);
-          jargs.Add(JVal::Null());
+          iotjs_jargs_append_obj(&jargs, &error);
+          iotjs_jargs_append_null(&jargs);
         } else {
-          jargs.Add(JVal::Null());
+          iotjs_jargs_append_null(&jargs);
           JObject result = JObject(req_data->buf_len, req_data->buf_data);
-          jargs.Add(result);
+          iotjs_jargs_append_obj(&jargs, &result);
 
           if (req_data->delay > 0) {
             usleep(req_data->delay * 1000);
@@ -271,11 +271,11 @@ void AfterI2cWork(uv_work_t* work_req, int status) {
       {
         if (req_data->error == kI2cErrRead) {
           JObject error = JObject::Error("Cannot read from device");
-          jargs.Add(error);
-          jargs.Add(JVal::Null());
+          iotjs_jargs_append_obj(&jargs, &error);
+          iotjs_jargs_append_null(&jargs);
         } else {
-          jargs.Add(JVal::Null());
-          jargs.Add(JVal::Number(req_data->byte));
+          iotjs_jargs_append_null(&jargs);
+          iotjs_jargs_append_number(&jargs, req_data->byte);
         }
         break;
       }
@@ -291,6 +291,7 @@ void AfterI2cWork(uv_work_t* work_req, int status) {
 
   delete work_req;
   delete i2c_req;
+  iotjs_jargs_destroy(&jargs);
 }
 
 

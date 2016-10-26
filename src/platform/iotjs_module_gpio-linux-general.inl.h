@@ -319,8 +319,8 @@ void AfterWork(uv_work_t* work_req, int status) {
     req_data->result = kGpioErrSys;
   }
 
-  JArgList jargs(2);
-  jargs.Add(JVal::Number(req_data->result));
+  iotjs_jargs_t jargs = iotjs_jargs_create(2);
+  iotjs_jargs_append_number(&jargs, req_data->result);
 
   switch (req_data->op) {
     case kGpioOpInitize:
@@ -345,7 +345,7 @@ void AfterWork(uv_work_t* work_req, int status) {
     case kGpioOpReadPin:
     {
       if (req_data->result == kGpioErrOk) {
-        jargs.Add(JVal::Bool(req_data->value));
+        iotjs_jargs_append_bool(&jargs, req_data->value);
       }
       break;
     }
@@ -358,7 +358,7 @@ void AfterWork(uv_work_t* work_req, int status) {
     case kGpioOpReadPort:
     {
       if (req_data->result == kGpioErrOk) {
-        jargs.Add(JVal::Number(req_data->value));
+        iotjs_jargs_append_number(&jargs, req_data->value);
       }
       break;
     }
@@ -370,6 +370,8 @@ void AfterWork(uv_work_t* work_req, int status) {
   }
 
   MakeCallback(gpio_req->jcallback(), *Gpio::GetJGpio(), jargs);
+
+  iotjs_jargs_destroy(&jargs);
 
   delete work_req;
   delete gpio_req;

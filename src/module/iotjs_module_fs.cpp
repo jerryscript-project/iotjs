@@ -43,12 +43,12 @@ static void After(uv_fs_t* req) {
   JObject cb = req_wrap->jcallback();
   IOTJS_ASSERT(cb.IsFunction());
 
-  JArgList jarg(2);
+  iotjs_jargs_t jarg = iotjs_jargs_create(2);
   if (req->result < 0) {
     JObject jerror(CreateUVException(req->result, "open"));
-    jarg.Add(jerror);
+    iotjs_jargs_append_obj(&jarg, &jerror);
   } else {
-    jarg.Add(JVal::Null());
+    iotjs_jargs_append_null(&jarg);
     switch (req->fs_type) {
       case UV_FS_CLOSE:
       {
@@ -58,23 +58,23 @@ static void After(uv_fs_t* req) {
       case UV_FS_READ:
       case UV_FS_WRITE:
       {
-        JObject arg1(static_cast<int>(req->result));
-        jarg.Add(arg1);
+        iotjs_jargs_append_number(&jarg, req->result);
         break;
       }
       case UV_FS_STAT: {
         uv_stat_t s = (req->statbuf);
         JObject ret(MakeStatObject(&s));
-        jarg.Add(ret);
+        iotjs_jargs_append_obj(&jarg, &ret);
         break;
       }
       default:
-        jarg.Add(JVal::Null());
+        iotjs_jargs_append_null(&jarg);
     }
   }
 
   JObject res = MakeCallback(cb, JObject::Undefined(), jarg);
 
+  iotjs_jargs_destroy(&jarg);
   delete req_wrap;
 }
 
@@ -90,7 +90,7 @@ static void After(uv_fs_t* req) {
     fs_req->result = err; \
     After(fs_req); \
   } \
-  handler.Return(JVal::Null());
+  iotjs_jhandler_return_null(jhandler);
 
 
 #define FS_SYNC(env, syscall, ...) \
@@ -101,21 +101,22 @@ static void After(uv_fs_t* req) {
                               NULL); \
   if (err < 0) { \
     JObject jerror(CreateUVException(err, #syscall)); \
-    handler.Throw(jerror); \
+    iotjs_jhandler_throw_obj(jhandler, &jerror); \
   }
 
 
 JHANDLER_FUNCTION(Close) {
-  JHANDLER_CHECK(handler.GetThis()->IsObject());
-  JHANDLER_CHECK(handler.GetArgLength() >= 1);
-  JHANDLER_CHECK(handler.GetArg(0)->IsNumber());
+  JHANDLER_CHECK(iotjs_jhandler_get_this(jhandler)->IsObject());
+  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) >= 1);
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 0)->IsNumber());
 
   Environment* env = Environment::GetEnv();
 
-  int fd = handler.GetArg(0)->GetInt32();
+  int fd = iotjs_jhandler_get_arg(jhandler, 0)->GetInt32();
 
-  if (handler.GetArgLength() > 1 && handler.GetArg(1)->IsFunction()) {
-    FS_ASYNC(env, close, handler.GetArg(1), fd);
+  if (iotjs_jhandler_get_arg_length(jhandler) > 1 &&
+      iotjs_jhandler_get_arg(jhandler, 1)->IsFunction()) {
+    FS_ASYNC(env, close, iotjs_jhandler_get_arg(jhandler, 1), fd);
   } else {
     FS_SYNC(env, close, fd);
   }
@@ -123,25 +124,26 @@ JHANDLER_FUNCTION(Close) {
 
 
 JHANDLER_FUNCTION(Open) {
-  JHANDLER_CHECK(handler.GetThis()->IsObject());
-  JHANDLER_CHECK(handler.GetArgLength() >= 3);
-  JHANDLER_CHECK(handler.GetArg(0)->IsString());
-  JHANDLER_CHECK(handler.GetArg(1)->IsNumber());
-  JHANDLER_CHECK(handler.GetArg(2)->IsNumber());
+  JHANDLER_CHECK(iotjs_jhandler_get_this(jhandler)->IsObject());
+  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) >= 3);
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 0)->IsString());
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 1)->IsNumber());
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 2)->IsNumber());
 
   Environment* env = Environment::GetEnv();
 
-  iotjs_string_t path = handler.GetArg(0)->GetString();
-  int flags = handler.GetArg(1)->GetInt32();
-  int mode = handler.GetArg(2)->GetInt32();
+  iotjs_string_t path = iotjs_jhandler_get_arg(jhandler, 0)->GetString();
+  int flags = iotjs_jhandler_get_arg(jhandler, 1)->GetInt32();
+  int mode = iotjs_jhandler_get_arg(jhandler, 2)->GetInt32();
 
-  if (handler.GetArgLength() > 3 && handler.GetArg(3)->IsFunction()) {
-    FS_ASYNC(env, open, handler.GetArg(3), iotjs_string_data(&path),
-             flags, mode);
+  if (iotjs_jhandler_get_arg_length(jhandler) > 3 &&
+      iotjs_jhandler_get_arg(jhandler, 3)->IsFunction()) {
+    FS_ASYNC(env, open, iotjs_jhandler_get_arg(jhandler, 3),
+             iotjs_string_data(&path), flags, mode);
   } else {
     FS_SYNC(env, open, iotjs_string_data(&path), flags, mode);
     if (err >= 0)
-      handler.Return(JVal::Number(err));
+      iotjs_jhandler_return_number(jhandler, err);
   }
 
   iotjs_string_destroy(&path);
@@ -149,22 +151,22 @@ JHANDLER_FUNCTION(Open) {
 
 
 JHANDLER_FUNCTION(Read) {
-  JHANDLER_CHECK(handler.GetThis()->IsObject());
-  JHANDLER_CHECK(handler.GetArgLength() >= 5);
-  JHANDLER_CHECK(handler.GetArg(0)->IsNumber());
-  JHANDLER_CHECK(handler.GetArg(1)->IsObject());
-  JHANDLER_CHECK(handler.GetArg(2)->IsNumber());
-  JHANDLER_CHECK(handler.GetArg(3)->IsNumber());
-  JHANDLER_CHECK(handler.GetArg(4)->IsNumber());
+  JHANDLER_CHECK(iotjs_jhandler_get_this(jhandler)->IsObject());
+  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) >= 5);
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 0)->IsNumber());
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 1)->IsObject());
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 2)->IsNumber());
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 3)->IsNumber());
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 4)->IsNumber());
 
   Environment* env = Environment::GetEnv();
 
-  int fd = handler.GetArg(0)->GetInt32();
-  int offset = handler.GetArg(2)->GetInt32();
-  int length = handler.GetArg(3)->GetInt32();
-  int position = handler.GetArg(4)->GetInt32();
+  int fd = iotjs_jhandler_get_arg(jhandler, 0)->GetInt32();
+  int offset = iotjs_jhandler_get_arg(jhandler, 2)->GetInt32();
+  int length = iotjs_jhandler_get_arg(jhandler, 3)->GetInt32();
+  int position = iotjs_jhandler_get_arg(jhandler, 4)->GetInt32();
 
-  JObject* jbuffer = handler.GetArg(1);
+  JObject* jbuffer = iotjs_jhandler_get_arg(jhandler, 1);
   BufferWrap* buffer_wrap = BufferWrap::FromJBuffer(*jbuffer);
   char* data = buffer_wrap->buffer();
   int data_length = buffer_wrap->length();
@@ -181,33 +183,35 @@ JHANDLER_FUNCTION(Read) {
   uv_buf_t uvbuf = uv_buf_init(reinterpret_cast<char*>(data + offset),
                                length);
 
-  if (handler.GetArgLength() > 5 && handler.GetArg(5)->IsFunction()) {
-    FS_ASYNC(env, read, handler.GetArg(5), fd, &uvbuf, 1, position);
+  if (iotjs_jhandler_get_arg_length(jhandler) > 5 &&
+      iotjs_jhandler_get_arg(jhandler, 5)->IsFunction()) {
+    FS_ASYNC(env, read, iotjs_jhandler_get_arg(jhandler, 5), fd, &uvbuf, 1,
+             position);
   } else {
     FS_SYNC(env, read, fd, &uvbuf, 1, position);
     if (err >= 0)
-      handler.Return(JVal::Number(err));
+      iotjs_jhandler_return_number(jhandler, err);
   }
 }
 
 
 JHANDLER_FUNCTION(Write) {
-  JHANDLER_CHECK(handler.GetThis()->IsObject());
-  JHANDLER_CHECK(handler.GetArgLength() >= 5);
-  JHANDLER_CHECK(handler.GetArg(0)->IsNumber());
-  JHANDLER_CHECK(handler.GetArg(1)->IsObject());
-  JHANDLER_CHECK(handler.GetArg(2)->IsNumber());
-  JHANDLER_CHECK(handler.GetArg(3)->IsNumber());
-  JHANDLER_CHECK(handler.GetArg(4)->IsNumber());
+  JHANDLER_CHECK(iotjs_jhandler_get_this(jhandler)->IsObject());
+  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) >= 5);
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 0)->IsNumber());
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 1)->IsObject());
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 2)->IsNumber());
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 3)->IsNumber());
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 4)->IsNumber());
 
   Environment* env = Environment::GetEnv();
 
-  int fd = handler.GetArg(0)->GetInt32();
-  int offset = handler.GetArg(2)->GetInt32();
-  int length = handler.GetArg(3)->GetInt32();
-  int position = handler.GetArg(4)->GetInt32();
+  int fd = iotjs_jhandler_get_arg(jhandler, 0)->GetInt32();
+  int offset = iotjs_jhandler_get_arg(jhandler, 2)->GetInt32();
+  int length = iotjs_jhandler_get_arg(jhandler, 3)->GetInt32();
+  int position = iotjs_jhandler_get_arg(jhandler, 4)->GetInt32();
 
-  JObject* jbuffer = handler.GetArg(1);
+  JObject* jbuffer = iotjs_jhandler_get_arg(jhandler, 1);
   BufferWrap* buffer_wrap = BufferWrap::FromJBuffer(*jbuffer);
   char* data = buffer_wrap->buffer();
   int data_length = buffer_wrap->length();
@@ -224,12 +228,14 @@ JHANDLER_FUNCTION(Write) {
   uv_buf_t uvbuf = uv_buf_init(reinterpret_cast<char*>(data + offset),
                                length);
 
-  if (handler.GetArgLength() > 5 && handler.GetArg(5)->IsFunction()) {
-    FS_ASYNC(env, write, handler.GetArg(5), fd, &uvbuf, 1, position);
+  if (iotjs_jhandler_get_arg_length(jhandler) > 5 &&
+      iotjs_jhandler_get_arg(jhandler, 5)->IsFunction()) {
+    FS_ASYNC(env, write, iotjs_jhandler_get_arg(jhandler, 5), fd, &uvbuf, 1,
+             position);
   } else {
     FS_SYNC(env, write, fd, &uvbuf, 1, position);
     if (err >= 0)
-      handler.Return(JVal::Number(err));
+      iotjs_jhandler_return_number(jhandler, err);
   }
 }
 
@@ -270,33 +276,37 @@ JObject MakeStatObject(uv_stat_t* statbuf) {
 
 #undef X
 
-  JArgList jargs(1);
-  jargs.Add(jstat);
+  iotjs_jargs_t jargs = iotjs_jargs_create(1);
+  iotjs_jargs_append_obj(&jargs, &jstat);
 
   JResult jstat_res(createStat.Call(JObject::Undefined(), jargs));
   IOTJS_ASSERT(jstat_res.IsOk());
+
+  iotjs_jargs_destroy(&jargs);
 
   return jstat_res.value();
 }
 
 
 JHANDLER_FUNCTION(Stat) {
-  JHANDLER_CHECK(handler.GetThis()->IsObject());
-  JHANDLER_CHECK(handler.GetArgLength() >= 1);
-  JHANDLER_CHECK(handler.GetArg(0)->IsString());
+  JHANDLER_CHECK(iotjs_jhandler_get_this(jhandler)->IsObject());
+  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) >= 1);
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 0)->IsString());
 
   Environment* env = Environment::GetEnv();
 
-  iotjs_string_t path = handler.GetArg(0)->GetString();
+  iotjs_string_t path = iotjs_jhandler_get_arg(jhandler, 0)->GetString();
 
-  if (handler.GetArgLength() > 1 && handler.GetArg(1)->IsFunction()) {
-    FS_ASYNC(env, stat, handler.GetArg(1), iotjs_string_data(&path));
+  if (iotjs_jhandler_get_arg_length(jhandler) > 1 &&
+      iotjs_jhandler_get_arg(jhandler, 1)->IsFunction()) {
+    FS_ASYNC(env, stat, iotjs_jhandler_get_arg(jhandler, 1),
+             iotjs_string_data(&path));
   } else {
     FS_SYNC(env, stat, iotjs_string_data(&path));
     if (err >= 0) {
       uv_stat_t* s = &(req_wrap.req()->statbuf);
       JObject ret(MakeStatObject(s));
-      handler.Return(ret);
+      iotjs_jhandler_return_obj(jhandler, &ret);
     }
   }
 
@@ -305,22 +315,24 @@ JHANDLER_FUNCTION(Stat) {
 
 
 JHANDLER_FUNCTION(Mkdir) {
-  JHANDLER_CHECK(handler.GetThis()->IsObject());
-  JHANDLER_CHECK(handler.GetArgLength() >= 2);
-  JHANDLER_CHECK(handler.GetArg(0)->IsString());
-  JHANDLER_CHECK(handler.GetArg(1)->IsNumber());
+  JHANDLER_CHECK(iotjs_jhandler_get_this(jhandler)->IsObject());
+  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) >= 2);
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 0)->IsString());
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 1)->IsNumber());
   Environment* env = Environment::GetEnv();
 
-  iotjs_string_t path = handler.GetArg(0)->GetString();
-  int mode = handler.GetArg(1)->GetInt32();
+  iotjs_string_t path = iotjs_jhandler_get_arg(jhandler, 0)->GetString();
+  int mode = iotjs_jhandler_get_arg(jhandler, 1)->GetInt32();
 
-  if (handler.GetArgLength() > 2 && handler.GetArg(2)->IsFunction()) {
-    FS_ASYNC(env, mkdir, handler.GetArg(2), iotjs_string_data(&path), mode);
+  if (iotjs_jhandler_get_arg_length(jhandler) > 2 &&
+      iotjs_jhandler_get_arg(jhandler, 2)->IsFunction()) {
+    FS_ASYNC(env, mkdir, iotjs_jhandler_get_arg(jhandler, 2),
+             iotjs_string_data(&path), mode);
   } else {
-    JHANDLER_CHECK(handler.GetArg(1)->IsNumber());
+    JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 1)->IsNumber());
     FS_SYNC(env, mkdir, iotjs_string_data(&path), mode);
     if (err >= 0)
-      handler.Return(JVal::Undefined());
+      iotjs_jhandler_return_undefined(jhandler);
   }
 
   iotjs_string_destroy(&path);
@@ -328,19 +340,21 @@ JHANDLER_FUNCTION(Mkdir) {
 
 
 JHANDLER_FUNCTION(Rmdir) {
-  JHANDLER_CHECK(handler.GetThis()->IsObject());
-  JHANDLER_CHECK(handler.GetArgLength() >= 1);
-  JHANDLER_CHECK(handler.GetArg(0)->IsString());
+  JHANDLER_CHECK(iotjs_jhandler_get_this(jhandler)->IsObject());
+  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) >= 1);
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 0)->IsString());
   Environment* env = Environment::GetEnv();
 
-  iotjs_string_t path = handler.GetArg(0)->GetString();
+  iotjs_string_t path = iotjs_jhandler_get_arg(jhandler, 0)->GetString();
 
-  if (handler.GetArgLength() > 1 && handler.GetArg(1)->IsFunction()) {
-    FS_ASYNC(env, rmdir, handler.GetArg(1), iotjs_string_data(&path));
+  if (iotjs_jhandler_get_arg_length(jhandler) > 1 &&
+      iotjs_jhandler_get_arg(jhandler, 1)->IsFunction()) {
+    FS_ASYNC(env, rmdir, iotjs_jhandler_get_arg(jhandler, 1),
+             iotjs_string_data(&path));
   } else {
     FS_SYNC(env, rmdir, iotjs_string_data(&path));
     if (err >= 0)
-      handler.Return(JVal::Undefined());
+      iotjs_jhandler_return_undefined(jhandler);
   }
 
   iotjs_string_destroy(&path);
@@ -348,19 +362,21 @@ JHANDLER_FUNCTION(Rmdir) {
 
 
 JHANDLER_FUNCTION(Unlink) {
-  JHANDLER_CHECK(handler.GetThis()->IsObject());
-  JHANDLER_CHECK(handler.GetArgLength() >= 1);
-  JHANDLER_CHECK(handler.GetArg(0)->IsString());
+  JHANDLER_CHECK(iotjs_jhandler_get_this(jhandler)->IsObject());
+  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) >= 1);
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 0)->IsString());
 
   Environment* env = Environment::GetEnv();
-  iotjs_string_t path = handler.GetArg(0)->GetString();
+  iotjs_string_t path = iotjs_jhandler_get_arg(jhandler, 0)->GetString();
 
-  if (handler.GetArgLength() > 1 && handler.GetArg(1)->IsFunction()) {
-    FS_ASYNC(env, unlink, handler.GetArg(1), iotjs_string_data(&path));
+  if (iotjs_jhandler_get_arg_length(jhandler) > 1 &&
+      iotjs_jhandler_get_arg(jhandler, 1)->IsFunction()) {
+    FS_ASYNC(env, unlink, iotjs_jhandler_get_arg(jhandler, 1),
+             iotjs_string_data(&path));
   } else {
     FS_SYNC(env, unlink, iotjs_string_data(&path));
     if (err >= 0)
-      handler.Return(JVal::Undefined());
+      iotjs_jhandler_return_undefined(jhandler);
   }
 
   iotjs_string_destroy(&path);
@@ -368,23 +384,24 @@ JHANDLER_FUNCTION(Unlink) {
 
 
 JHANDLER_FUNCTION(Rename) {
-  JHANDLER_CHECK(handler.GetThis()->IsObject());
-  JHANDLER_CHECK(handler.GetArgLength() >= 2);
-  JHANDLER_CHECK(handler.GetArg(0)->IsString());
-  JHANDLER_CHECK(handler.GetArg(1)->IsString());
+  JHANDLER_CHECK(iotjs_jhandler_get_this(jhandler)->IsObject());
+  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) >= 2);
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 0)->IsString());
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 1)->IsString());
 
   Environment* env = Environment::GetEnv();
-  iotjs_string_t oldPath = handler.GetArg(0)->GetString();
-  iotjs_string_t newPath = handler.GetArg(1)->GetString();
+  iotjs_string_t oldPath = iotjs_jhandler_get_arg(jhandler, 0)->GetString();
+  iotjs_string_t newPath = iotjs_jhandler_get_arg(jhandler, 1)->GetString();
 
-  if (handler.GetArgLength() > 2 && handler.GetArg(2)->IsFunction()) {
-    FS_ASYNC(env, rename, handler.GetArg(2), iotjs_string_data(&oldPath),
-             iotjs_string_data(&newPath));
+  if (iotjs_jhandler_get_arg_length(jhandler) > 2 &&
+      iotjs_jhandler_get_arg(jhandler, 2)->IsFunction()) {
+    FS_ASYNC(env, rename, iotjs_jhandler_get_arg(jhandler, 2),
+             iotjs_string_data(&oldPath), iotjs_string_data(&newPath));
   } else {
     FS_SYNC(env, rename, iotjs_string_data(&oldPath),
             iotjs_string_data(&newPath));
     if (err >= 0)
-      handler.Return(JVal::Undefined());
+      iotjs_jhandler_return_undefined(jhandler);
   }
 
   iotjs_string_destroy(&oldPath);

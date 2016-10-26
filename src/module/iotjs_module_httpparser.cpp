@@ -145,7 +145,7 @@ public:
     IOTJS_ASSERT(func.IsFunction());
 
     // URL
-    JArgList argv(1);
+    iotjs_jargs_t argv = iotjs_jargs_create(1);
     JObject info;
 
     if (flushed) {
@@ -186,10 +186,13 @@ public:
                  http_should_keep_alive(&parser) ? true : false);
 
 
-    argv.Add(info);
+    iotjs_jargs_append_obj(&argv, &info);
 
-    return (MakeCallback(func, jobj, argv).GetBoolean()? 1 : 0);
+    int ret = MakeCallback(func, jobj, argv).GetBoolean() ? 1 : 0;
 
+    iotjs_jargs_destroy(&argv);
+
+    return ret;
   }
 
   int OnBody(const char* at, size_t length) {
@@ -197,16 +200,15 @@ public:
     JObject func = jobj.GetProperty("OnBody");
     IOTJS_ASSERT(func.IsFunction());
 
-    JArgList argv(3);
-    argv.Add(*cur_jbuf);
-    int offset = (int)(at-cur_buf);
-    JObject start(offset);
-    argv.Add(start);
-    JObject leng((int)length);
-    argv.Add(leng);
+    iotjs_jargs_t argv = iotjs_jargs_create(3);
+    iotjs_jargs_append_obj(&argv, cur_jbuf);
+    iotjs_jargs_append_number(&argv, at-cur_buf);
+    iotjs_jargs_append_number(&argv, length);
 
 
     MakeCallback(func, jobj, argv);
+
+    iotjs_jargs_destroy(&argv);
 
     return 0;
   }
@@ -216,7 +218,7 @@ public:
     JObject func = jobj.GetProperty("OnMessageComplete");
     IOTJS_ASSERT(func.IsFunction());
 
-    MakeCallback(func, jobj, JArgList::Empty());
+    MakeCallback(func, jobj, iotjs_jargs_empty);
 
     return 0;
   }
@@ -227,17 +229,17 @@ public:
     IOTJS_ASSERT(func.IsFunction());
 
 
-    JArgList argv(2);
+    iotjs_jargs_t argv = iotjs_jargs_create(2);
     JObject jheader(makeHeader());
-    argv.Add(jheader);
+    iotjs_jargs_append_obj(&argv, &jheader);
     if (parser.type == HTTP_REQUEST && !iotjs_string_is_empty(&url)) {
-      JObject jurl(url);
-      argv.Add(jurl);
+      iotjs_jargs_append_string(&argv, &url);
     }
 
     MakeCallback(func, jobj, argv);
 
     iotjs_string_make_empty(&url);
+    iotjs_jargs_destroy(&argv);
     flushed = true;
   }
 
@@ -307,14 +309,15 @@ void HTTPParserWrap::Initialize(http_parser_type type) {
 
 
 JHANDLER_FUNCTION(Reinitialize) {
-  JHANDLER_CHECK(handler.GetThis()->IsObject());
-  JHANDLER_CHECK(handler.GetArgLength() == 1);
-  JHANDLER_CHECK(handler.GetArg(0)->IsNumber());
+  JHANDLER_CHECK(iotjs_jhandler_get_this(jhandler)->IsObject());
+  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) == 1);
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 0)->IsNumber());
 
-  JObject* jparser = handler.GetThis();
+  JObject* jparser = iotjs_jhandler_get_this(jhandler);
 
+  JObject* arg0 = iotjs_jhandler_get_arg(jhandler, 0);
   http_parser_type httpparser_type =
-    static_cast<http_parser_type>(handler.GetArg(0)->GetInt32());
+    static_cast<http_parser_type>(arg0->GetInt32());
   IOTJS_ASSERT(httpparser_type == HTTP_REQUEST ||
                httpparser_type == HTTP_RESPONSE);
 
@@ -325,10 +328,10 @@ JHANDLER_FUNCTION(Reinitialize) {
 
 
 JHANDLER_FUNCTION(Finish) {
-  JHANDLER_CHECK(handler.GetThis()->IsObject());
-  JHANDLER_CHECK(handler.GetArgLength() == 0);
+  JHANDLER_CHECK(iotjs_jhandler_get_this(jhandler)->IsObject());
+  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) == 0);
 
-  JObject* jparser = handler.GetThis();
+  JObject* jparser = iotjs_jhandler_get_this(jhandler);
   HTTPParserWrap* parser =
     reinterpret_cast<HTTPParserWrap*>(jparser->GetNative());
 
@@ -340,22 +343,22 @@ JHANDLER_FUNCTION(Finish) {
     JObject eobj(JObject::Error("Parse Error"));
     JSETPROPERTY(eobj, "byteParsed", 0);
     JSETPROPERTY(eobj, "code", http_errno_name(err));
-    handler.Return(eobj);
+    iotjs_jhandler_return_obj(jhandler, &eobj);
   }
 }
 
 
 JHANDLER_FUNCTION(Execute) {
-  JHANDLER_CHECK(handler.GetThis()->IsObject());
-  JHANDLER_CHECK(handler.GetArgLength() == 1);
-  JHANDLER_CHECK(handler.GetArg(0)->IsObject());
+  JHANDLER_CHECK(iotjs_jhandler_get_this(jhandler)->IsObject());
+  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) == 1);
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 0)->IsObject());
 
-  JObject* jparser = handler.GetThis();
+  JObject* jparser = iotjs_jhandler_get_this(jhandler);
   HTTPParserWrap* parser =
     reinterpret_cast<HTTPParserWrap*>(jparser->GetNative());
 
 
-  JObject* jbuffer = handler.GetArg(0);
+  JObject* jbuffer = iotjs_jhandler_get_arg(jhandler, 0);
   BufferWrap* buffer = BufferWrap::FromJBuffer(*jbuffer);
   char* buf_data = buffer->buffer();
   int buf_len = buffer->length();
@@ -380,19 +383,19 @@ JHANDLER_FUNCTION(Execute) {
     JObject eobj(JObject::Error("Parse Error"));
     JSETPROPERTY(eobj, "byteParsed", 0);
     JSETPROPERTY(eobj, "code", http_errno_name(err));
-    handler.Return(eobj);
+    iotjs_jhandler_return_obj(jhandler, &eobj);
   }
   else{
     JObject ret(nparsed);
-    handler.Return(ret);
+    iotjs_jhandler_return_obj(jhandler, &ret);
   }
 }
 
 
 JHANDLER_FUNCTION(Pause) {
-  JHANDLER_CHECK(handler.GetArgLength() == 0);
-  JHANDLER_CHECK(handler.GetThis()->IsObject());
-  JObject* jparser = handler.GetThis();
+  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) == 0);
+  JHANDLER_CHECK(iotjs_jhandler_get_this(jhandler)->IsObject());
+  JObject* jparser = iotjs_jhandler_get_this(jhandler);
   HTTPParserWrap* parser =
     reinterpret_cast<HTTPParserWrap*>(jparser->GetNative());
   http_parser_pause(&parser->parser, 1);
@@ -400,9 +403,9 @@ JHANDLER_FUNCTION(Pause) {
 
 
 JHANDLER_FUNCTION(Resume) {
-  JHANDLER_CHECK(handler.GetArgLength() == 0);
-  JHANDLER_CHECK(handler.GetThis()->IsObject());
-  JObject* jparser = handler.GetThis();
+  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) == 0);
+  JHANDLER_CHECK(iotjs_jhandler_get_this(jhandler)->IsObject());
+  JObject* jparser = iotjs_jhandler_get_this(jhandler);
   HTTPParserWrap* parser =
     reinterpret_cast<HTTPParserWrap*>(jparser->GetNative());
   http_parser_pause(&parser->parser, 0);
@@ -410,14 +413,15 @@ JHANDLER_FUNCTION(Resume) {
 
 
 JHANDLER_FUNCTION(HTTPParserCons) {
-  JHANDLER_CHECK(handler.GetThis()->IsObject());
-  JHANDLER_CHECK(handler.GetArgLength() == 1);
-  JHANDLER_CHECK(handler.GetArg(0)->IsNumber());
+  JHANDLER_CHECK(iotjs_jhandler_get_this(jhandler)->IsObject());
+  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) == 1);
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 0)->IsNumber());
 
-  JObject* jparser = handler.GetThis();
+  JObject* jparser = iotjs_jhandler_get_this(jhandler);
 
+  JObject* arg0 = iotjs_jhandler_get_arg(jhandler, 0);
   http_parser_type httpparser_type =
-    static_cast<http_parser_type>(handler.GetArg(0)->GetInt32());
+    static_cast<http_parser_type>(arg0->GetInt32());
   IOTJS_ASSERT(httpparser_type == HTTP_REQUEST ||
                httpparser_type == HTTP_RESPONSE);
   HTTPParserWrap* httpparser_wrap = new HTTPParserWrap(*jparser,

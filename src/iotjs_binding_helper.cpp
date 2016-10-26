@@ -34,11 +34,13 @@ void UncaughtException(JObject& jexception) {
   jerry_value_clear_error_flag(&jexception_val);
   JObject jexception_obj(jexception_val);
 
-  JArgList args(1);
-  args.Add(jexception_obj);
+  iotjs_jargs_t args = iotjs_jargs_create(1);
+  iotjs_jargs_append_obj(&args, &jexception_obj);
 
   JResult jres = jonuncaughtexception.Call(*process, args);
   IOTJS_ASSERT(jres.IsOk());
+
+  iotjs_jargs_destroy(&args);
 }
 
 
@@ -48,10 +50,13 @@ void ProcessEmitExit(int code) {
   JObject jexit(process->GetProperty("emitExit"));
   IOTJS_ASSERT(jexit.IsFunction());
 
-  JArgList args(1);
-  args.Add(JVal::Number(code));
+  iotjs_jargs_t args = iotjs_jargs_create(1);
+  iotjs_jargs_append_number(&args, code);
 
   JResult jres = jexit.Call(JObject::Undefined(), args);
+
+  iotjs_jargs_destroy(&args);
+
   if (!jres.IsOk()) {
     exit(2);
   }
@@ -65,7 +70,7 @@ bool ProcessNextTick() {
   JObject jon_next_tick(process->GetProperty("_onNextTick"));
   IOTJS_ASSERT(jon_next_tick.IsFunction());
 
-  JResult jres = jon_next_tick.Call(JObject::Undefined(), JArgList::Empty());
+  JResult jres = jon_next_tick.Call(JObject::Undefined(), iotjs_jargs_empty);
   IOTJS_ASSERT(jres.IsOk());
   IOTJS_ASSERT(jres.value().IsBoolean());
 
@@ -76,7 +81,7 @@ bool ProcessNextTick() {
 // Make a callback for the given `function` with `this_` binding and `args`
 // arguments. The next tick callbacks registered via `process.nextTick()`
 // will be called after the callback function `function` returns.
-JObject MakeCallback(JObject& function, JObject& this_, JArgList& args) {
+JObject MakeCallback(JObject& function, JObject& this_, iotjs_jargs_t& args) {
   // Calls back the function.
   JResult jres = function.Call(this_, args);
   if (jres.IsException()) {

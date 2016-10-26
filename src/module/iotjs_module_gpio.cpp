@@ -49,14 +49,18 @@ Gpio* Gpio::GetInstance() {
 
 
 #define SET_GPIO(setType) \
-  JHANDLER_CHECK(handler.GetArgLength() == 4); \
-  JHANDLER_CHECK(handler.GetArg(0)->IsNumber()); \
-  JHANDLER_CHECK(handler.GetArg(1)->IsNumber()); \
-  JHANDLER_CHECK(handler.GetArg(2)->IsNumber()); \
-  JHANDLER_CHECK(handler.GetArg(3)->IsFunction()); \
+  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) == 4); \
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 0)->IsNumber()); \
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 1)->IsNumber()); \
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 2)->IsNumber()); \
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 3)->IsFunction()); \
   \
-  GpioDirection dir = (GpioDirection)handler.GetArg(1)->GetInt32(); \
-  GpioMode mode = (GpioMode)handler.GetArg(2)->GetInt32(); \
+  JObject* arg1 = iotjs_jhandler_get_arg(jhandler, 1); \
+  JObject* arg2 = iotjs_jhandler_get_arg(jhandler, 2); \
+  JObject* arg3 = iotjs_jhandler_get_arg(jhandler, 3); \
+  \
+  GpioDirection dir = (GpioDirection)arg1->GetInt32(); \
+  GpioMode mode = (GpioMode)arg2->GetInt32(); \
   \
   if (dir < kGpioDirectionNone || \
       dir > kGpioDirectionOut) { \
@@ -67,10 +71,10 @@ Gpio* Gpio::GetInstance() {
     JHANDLER_THROW_RETURN(TypeError, "Invalid GPIO mode"); \
   } \
   \
-  GpioReqWrap* req_wrap = new GpioReqWrap(*handler.GetArg(3)); \
+  GpioReqWrap* req_wrap = new GpioReqWrap(*arg3); \
   GpioReqData* req_data = req_wrap->req(); \
   \
-  req_data->pin = handler.GetArg(0)->GetInt32(); \
+  req_data->pin = iotjs_jhandler_get_arg(jhandler, 0)->GetInt32(); \
   req_data->dir = dir; \
   req_data->mode = mode; \
   req_data->op = kGpioOpSet ## setType; \
@@ -80,23 +84,25 @@ Gpio* Gpio::GetInstance() {
 
 
 #define WRITE_GPIO(writeType, writeTypeEnum) \
-  JHANDLER_CHECK(handler.GetArgLength() == 3); \
-  JHANDLER_CHECK(handler.GetArg(0)->IsNumber()); \
+  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) == 3); \
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 0)->IsNumber()); \
   if (writeTypeEnum == GpioSettingType::kGpioPin) { \
-    JHANDLER_CHECK(handler.GetArg(1)->IsBoolean()); \
+    JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 1)->IsBoolean()); \
   } else { \
-    JHANDLER_CHECK(handler.GetArg(1)->IsNumber()); \
+    JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 1)->IsNumber()); \
   } \
-  JHANDLER_CHECK(handler.GetArg(2)->IsFunction()); \
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 2)->IsFunction()); \
   \
-  GpioReqWrap* req_wrap = new GpioReqWrap(*handler.GetArg(2)); \
+  JObject* arg2 = iotjs_jhandler_get_arg(jhandler, 2); \
+  GpioReqWrap* req_wrap = new GpioReqWrap(*arg2); \
   GpioReqData* req_data = req_wrap->req(); \
   \
-  req_data->pin = handler.GetArg(0)->GetInt32(); \
+  req_data->pin = iotjs_jhandler_get_arg(jhandler, 0)->GetInt32(); \
+  JObject* arg1 = iotjs_jhandler_get_arg(jhandler, 1); \
   if (writeTypeEnum == GpioSettingType::kGpioPin) { \
-    req_data->value = (handler.GetArg(1)->GetBoolean()) ? 1 : 0; \
+    req_data->value = (arg1->GetBoolean()) ? 1 : 0; \
   } else { \
-    req_data->value = handler.GetArg(1)->GetInt32(); \
+    req_data->value = arg1->GetInt32(); \
   } \
   req_data->op = kGpioOpWrite ## writeType; \
   \
@@ -105,14 +111,15 @@ Gpio* Gpio::GetInstance() {
 
 
 #define READ_GPIO(readType) \
-  JHANDLER_CHECK(handler.GetArgLength() == 2); \
-  JHANDLER_CHECK(handler.GetArg(0)->IsNumber()); \
-  JHANDLER_CHECK(handler.GetArg(1)->IsFunction()); \
+  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) == 2); \
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 0)->IsNumber()); \
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 1)->IsFunction()); \
   \
-  GpioReqWrap* req_wrap = new GpioReqWrap(*handler.GetArg(1)); \
+  JObject* arg1 = iotjs_jhandler_get_arg(jhandler, 1); \
+  GpioReqWrap* req_wrap = new GpioReqWrap(*arg1); \
   GpioReqData* req_data = req_wrap->req(); \
   \
-  req_data->pin = handler.GetArg(0)->GetInt32(); \
+  req_data->pin = iotjs_jhandler_get_arg(jhandler, 0)->GetInt32(); \
   req_data->op = kGpioOpRead ## readType; \
   \
   Gpio* gpio = Gpio::GetInstance(); \
@@ -121,31 +128,31 @@ Gpio* Gpio::GetInstance() {
 
 // initialize(afterInitialize)
 JHANDLER_FUNCTION(Initialize) {
-  JHANDLER_CHECK(handler.GetArgLength() == 1);
-  JHANDLER_CHECK(handler.GetArg(0)->IsFunction());
+  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) == 1);
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 0)->IsFunction());
 
-  GpioReqWrap* req_wrap = new GpioReqWrap(*handler.GetArg(0));
+  GpioReqWrap* req_wrap = new GpioReqWrap(*iotjs_jhandler_get_arg(jhandler, 0));
   req_wrap->req()->op = kGpioOpInitize;
 
   Gpio* gpio = Gpio::GetInstance();
   gpio->Initialize(req_wrap);
 
-  handler.Return(JVal::Null());
+  iotjs_jhandler_return_null(jhandler);
 }
 
 
 // release(afterInitialize)
 JHANDLER_FUNCTION(Release) {
-  JHANDLER_CHECK(handler.GetArgLength() == 1);
-  JHANDLER_CHECK(handler.GetArg(0)->IsFunction());
+  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) == 1);
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 0)->IsFunction());
 
-  GpioReqWrap* req_wrap = new GpioReqWrap(*handler.GetArg(0));
+  GpioReqWrap* req_wrap = new GpioReqWrap(*iotjs_jhandler_get_arg(jhandler, 0));
   req_wrap->req()->op = kGpioOpRelease;
 
   Gpio* gpio = Gpio::GetInstance();
   gpio->Release(req_wrap);
 
-  handler.Return(JVal::Null());
+  iotjs_jhandler_return_null(jhandler);
 }
 
 
@@ -153,7 +160,7 @@ JHANDLER_FUNCTION(Release) {
 JHANDLER_FUNCTION(SetPin) {
   SET_GPIO(Pin);
 
-  handler.Return(JVal::Null());
+  iotjs_jhandler_return_null(jhandler);
 }
 
 
@@ -161,7 +168,7 @@ JHANDLER_FUNCTION(SetPin) {
 JHANDLER_FUNCTION(WritePin) {
   WRITE_GPIO(Pin, GpioSettingType::kGpioPin);
 
-  handler.Return(JVal::Null());
+  iotjs_jhandler_return_null(jhandler);
 }
 
 
@@ -169,7 +176,7 @@ JHANDLER_FUNCTION(WritePin) {
 JHANDLER_FUNCTION(ReadPin) {
   READ_GPIO(Pin);
 
-  handler.Return(JVal::Null());
+  iotjs_jhandler_return_null(jhandler);
 }
 
 
@@ -177,7 +184,7 @@ JHANDLER_FUNCTION(ReadPin) {
 JHANDLER_FUNCTION(SetPort) {
   SET_GPIO(Port);
 
-  handler.Return(JVal::Null());
+  iotjs_jhandler_return_null(jhandler);
 }
 
 
@@ -185,7 +192,7 @@ JHANDLER_FUNCTION(SetPort) {
 JHANDLER_FUNCTION(WritePort) {
   WRITE_GPIO(Port, GpioSettingType::kGpioPort);
 
-  handler.Return(JVal::Null());
+  iotjs_jhandler_return_null(jhandler);
 }
 
 
@@ -193,14 +200,14 @@ JHANDLER_FUNCTION(WritePort) {
 JHANDLER_FUNCTION(ReadPort) {
   READ_GPIO(Port);
 
-  handler.Return(JVal::Null());
+  iotjs_jhandler_return_null(jhandler);
 }
 
 
 JHANDLER_FUNCTION(Query) {
   IOTJS_ASSERT(!"Not implemented");
 
-  handler.Return(JVal::Null());
+  iotjs_jhandler_return_null(jhandler);
 }
 
 

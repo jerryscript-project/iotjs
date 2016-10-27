@@ -150,12 +150,14 @@ const iotjs_js_module natives[] = {
 DUMPER = ''
 NO_SNAPSHOT = True
 BUILDTYPE = 'debug'
+MAGIC_STRING_SET = { 'process' }
 
-def printJSContents(fout_c, name, magic_string_set, indent = 0):
+def printJSContents(fout_c, name, indent = 0):
 
     global DUMPER
     global NO_SNAPSHOT
     global BUILDTYPE
+    global MAGIC_STRING_SET
 
     js_path = fs.join(path.SRC_ROOT, 'js', name + '.js')
 
@@ -215,7 +217,7 @@ def printJSContents(fout_c, name, magic_string_set, indent = 0):
 
         length = len(code)
 
-        magic_string_set = magic_string_set | parseLiterals(code)
+        MAGIC_STRING_SET = MAGIC_STRING_SET | parseLiterals(code)
 
     return length
 
@@ -241,7 +243,6 @@ def js2c(buildtype, no_snapshot, js_modules, js_dumper):
     fout_magic_str.write(LICENSE)
     fout_magic_str.write(HEADER3)
 
-    magic_string_set = { 'process' }
     for name in sorted(js_modules):
         writeLine(fout_h, 'extern const char ' + name + '_n[];')
         writeLine(fout_h, 'extern const char ' + name + '_s[];')
@@ -249,7 +250,7 @@ def js2c(buildtype, no_snapshot, js_modules, js_dumper):
 
         writeLine(fout_c, 'const char ' + name + '_n[] = "' + name + '";')
         writeLine(fout_c, 'const char ' + name + '_s[] = {')
-        length = printJSContents(fout_c, name, magic_string_set, 1)
+        length = printJSContents(fout_c, name, 1)
         writeLine(fout_c, '};');
         writeLine(fout_c, '#define SIZE_%s %d' % (name.upper(), length))
         writeLine(fout_c, 'const int %s_l = SIZE_%s;' % (name, name.upper()))
@@ -266,7 +267,8 @@ def js2c(buildtype, no_snapshot, js_modules, js_dumper):
     fout_h.write(FOOTER1)
     fout_c.write(FOOTER2)
 
-    for idx, magic_string in enumerate(sorted(magic_string_set)):
+    global MAGIC_STRING_SET
+    for idx, magic_string in enumerate(sorted(MAGIC_STRING_SET)):
         fout_magic_str.write('  MAGICSTR_EX_DEF(MAGIC_STR_%d, "%s") \\\n'
                              % (idx, repr(magic_string)[1:-1]))
 

@@ -61,6 +61,20 @@ static void After(uv_fs_t* req) {
         iotjs_jargs_append_number(&jarg, req->result);
         break;
       }
+      case UV_FS_SCANDIR:
+      {
+        int r;
+        uv_dirent_t ent;
+        uint32_t idx = 0;
+        /* make an empty javascript object */
+        JObject ret(0, (const char*)NULL);
+        while ((r = uv_fs_scandir_next(req, &ent)) != UV_EOF) {
+          ret.SetPropertyByIdx(idx, JObject(ent.name));
+          idx++;
+        }
+        iotjs_jargs_append_obj(&jarg, &ret);
+        break;
+      }
       case UV_FS_STAT: {
         uv_stat_t s = (req->statbuf);
         JObject ret(MakeStatObject(&s));
@@ -314,7 +328,7 @@ JHANDLER_FUNCTION(Stat) {
 }
 
 
-JHANDLER_FUNCTION(Mkdir) {
+JHANDLER_FUNCTION(MkDir) {
   JHANDLER_CHECK(iotjs_jhandler_get_this(jhandler)->IsObject());
   JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) >= 2);
   JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 0)->IsString());
@@ -339,7 +353,7 @@ JHANDLER_FUNCTION(Mkdir) {
 }
 
 
-JHANDLER_FUNCTION(Rmdir) {
+JHANDLER_FUNCTION(RmDir) {
   JHANDLER_CHECK(iotjs_jhandler_get_this(jhandler)->IsObject());
   JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) >= 1);
   JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 0)->IsString());
@@ -409,6 +423,37 @@ JHANDLER_FUNCTION(Rename) {
 }
 
 
+JHANDLER_FUNCTION(ReadDir) {
+  JHANDLER_CHECK(iotjs_jhandler_get_this(jhandler)->IsObject());
+  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) >= 1);
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 0)->IsString());
+
+  Environment* env = Environment::GetEnv();
+  iotjs_string_t path = iotjs_jhandler_get_arg(jhandler, 0)->GetString();
+
+  if (iotjs_jhandler_get_arg_length(jhandler) > 1 &&
+      iotjs_jhandler_get_arg(jhandler, 1)->IsFunction()) {
+    FS_ASYNC(env, scandir, iotjs_jhandler_get_arg(jhandler, 1),
+             iotjs_string_data(&path), 0);
+  } else {
+    FS_SYNC(env, scandir, iotjs_string_data(&path), 0);
+    if (err >= 0) {
+      int r;
+      uv_dirent_t ent;
+      uint32_t idx = 0;
+      /* make an empty javascript object */
+      JObject ret(0, (const char*)NULL);
+      while ((r = uv_fs_scandir_next(req_wrap.req(), &ent)) != UV_EOF) {
+        ret.SetPropertyByIdx(idx, JObject(ent.name));
+        idx++;
+      }
+      iotjs_jhandler_return_obj(jhandler, &ret);
+    }
+  }
+  iotjs_string_destroy(&path);
+}
+
+
 JObject* InitFs() {
   Module* module = GetBuiltinModule(MODULE_FS);
   JObject* fs = module->module;
@@ -420,10 +465,11 @@ JObject* InitFs() {
     fs->SetMethod("read", Read);
     fs->SetMethod("write", Write);
     fs->SetMethod("stat", Stat);
-    fs->SetMethod("mkdir", Mkdir);
-    fs->SetMethod("rmdir", Rmdir);
+    fs->SetMethod("mkdir", MkDir);
+    fs->SetMethod("rmdir", RmDir);
     fs->SetMethod("unlink", Unlink);
     fs->SetMethod("rename", Rename);
+    fs->SetMethod("readdir", ReadDir);
 
     module->module = fs;
   }

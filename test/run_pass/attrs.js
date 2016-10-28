@@ -54,6 +54,10 @@
       skip: ['nuttx'],
       reason: "not implemented for nuttx"
     },
+    'test_fs_readdir.js': {
+      skip: ['nuttx'],
+      reason: "not implemented for nuttx"
+    },
     'test_fs_readfilesync.js': {
       skip: ['nuttx'],
       reason: "not implemented for nuttx"

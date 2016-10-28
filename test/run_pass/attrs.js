@@ -133,48 +133,16 @@
       skip: ['nuttx'],
       reason: "not implemented for nuttx"
     },
-    'test_net1.js': {
-      skip: ['nuttx'],
-      reason: "not implemented for nuttx"
-    },
-    'test_net2.js': {
-      skip: ['nuttx'],
-      reason: "not implemented for nuttx"
-    },
     'test_net3.js': {
       timeout: {
         all: 20
       },
       skip: ['nuttx'],
-      reason: "not implemented for nuttx"
-    },
-    'test_net4.js': {
-      skip: ['nuttx'],
-      reason: "not implemented for nuttx"
-    },
-    'test_net5.js': {
-      skip: ['nuttx'],
-      reason: "not implemented for nuttx"
-    },
-    'test_net6.js': {
-      skip: ['nuttx'],
-      reason: "not implemented for nuttx"
+      reason: "too many socket descriptors, too long buffers are in need"
     },
     'test_net7.js': {
       skip: ['nuttx'],
-      reason: "not implemented for nuttx"
-    },
-    'test_net8.js': {
-      skip: ['nuttx'],
-      reason: "not implemented for nuttx"
-    },
-    'test_net9.js': {
-      skip: ['nuttx'],
-      reason: "not implemented for nuttx"
-    },
-    'test_net10.js': {
-      skip: ['nuttx'],
-      reason: "not implemented for nuttx"
+      reason: "too many socket descriptors are in need"
     },
     'test_next_tick.js': {
       skip: ['all'],

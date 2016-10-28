@@ -24,7 +24,7 @@ namespace iotjs {
 
 typedef ReqWrap<uv_getaddrinfo_t> GetAddrInfoReqWrap;
 
-
+#if !defined(__NUTTX__)
 static void AfterGetAddrInfo(uv_getaddrinfo_t* req, int status, addrinfo* res) {
   GetAddrInfoReqWrap* req_wrap = reinterpret_cast<GetAddrInfoReqWrap*>(
       req->data);
@@ -63,6 +63,7 @@ static void AfterGetAddrInfo(uv_getaddrinfo_t* req, int status, addrinfo* res) {
 
   delete req_wrap;
 }
+#endif
 
 
 JHANDLER_FUNCTION(GetAddrInfo) {
@@ -89,6 +90,32 @@ JHANDLER_FUNCTION(GetAddrInfo) {
     JHANDLER_THROW_RETURN(TypeError, "bad address family");
   }
 
+#if defined(__NUTTX__)
+  JArgList args(3);
+  int err = 0;
+  char ip[INET6_ADDRSTRLEN];
+  const char* hostname_data = iotjs_string_data(&hostname);
+
+  if (strcmp(hostname_data, "localhost") == 0) {
+    strcpy(ip, "127.0.0.1");
+  } else {
+    sockaddr_in addr;
+    int result = inet_pton(AF_INET, hostname_data, &(addr.sin_addr));
+
+    if (result != 1) {
+      err = errno;
+    } else {
+      inet_ntop(AF_INET, &(addr.sin_addr), ip, INET6_ADDRSTRLEN);
+    }
+  }
+
+  args.Add(JVal::Number(err));
+  JObject ipobj(ip);
+  args.Add(ipobj);
+  args.Add(JVal::Number(family));
+
+  MakeCallback(*jcallback, JObject::Undefined(), args);
+#else
   GetAddrInfoReqWrap* req_wrap = new GetAddrInfoReqWrap(*jcallback);
 
   struct addrinfo hints = {0};
@@ -106,6 +133,7 @@ JHANDLER_FUNCTION(GetAddrInfo) {
   if (err) {
     delete req_wrap;
   }
+#endif
 
   handler.Return(JVal::Number(err));
 

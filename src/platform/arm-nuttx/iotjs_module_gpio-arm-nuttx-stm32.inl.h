@@ -100,7 +100,7 @@ namespace iotjs {
 // GPIO implementation for arm-nuttx target.
 class GpioArmNuttxStm32 : public Gpio {
  public:
-  explicit GpioArmNuttxStm32(JObject& jgpio);
+  explicit GpioArmNuttxStm32(const iotjs_jval_t* jgpio);
 
   static GpioArmNuttxStm32* GetInstance();
 
@@ -117,7 +117,7 @@ class GpioArmNuttxStm32 : public Gpio {
 };
 
 
-GpioArmNuttxStm32::GpioArmNuttxStm32(JObject& jgpio)
+GpioArmNuttxStm32::GpioArmNuttxStm32(const iotjs_jval_t* jgpio)
     : Gpio(jgpio)
     , _initialized(false) {
 }
@@ -195,10 +195,11 @@ void AfterGPIOWork(uv_work_t* work_req, int status) {
     }
   }
 
-  MakeCallback(gpio_req->jcallback(), *Gpio::GetJGpio(), jargs);
+  MakeCallback(gpio_req->jcallback(), Gpio::GetJGpio(), &jargs);
 
   delete work_req;
   delete gpio_req;
+  iotjs_jargs_destroy(&jargs);
 }
 
 

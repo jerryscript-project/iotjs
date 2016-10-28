@@ -87,12 +87,12 @@ typedef ReqWrap<GpioReqData> GpioReqWrap;
 // This Gpio class provides interfaces for GPIO operation.
 class Gpio : public JObjectWrap {
  public:
-  explicit Gpio(JObject& jgpio);
+  explicit Gpio(const iotjs_jval_t* jgpio);
   virtual ~Gpio();
 
-  static Gpio* Create(JObject& jgpio);
+  static Gpio* Create(const iotjs_jval_t* jgpio);
   static Gpio* GetInstance();
-  static JObject* GetJGpio();
+  static const iotjs_jval_t* GetJGpio();
   static void SetGpio();
   static void WriteGpio();
   static void ReadGpio();
@@ -108,7 +108,7 @@ class Gpio : public JObjectWrap {
 };
 
 
-JObject* InitGpio();
+iotjs_jval_t InitGpio();
 
 
 } // namespace iotjs

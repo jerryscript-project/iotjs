@@ -23,24 +23,24 @@
 namespace iotjs {
 
 
-JObject* InitBuffer();
+iotjs_jval_t InitBuffer();
 
 
-// Crate buffer object.
-JObject CreateBuffer(size_t len);
+// Create buffer object.
+iotjs_jval_t CreateBuffer(size_t len);
 
 
 class BufferWrap : public JObjectWrap {
  public:
-  BufferWrap(JObject& jbuiltin, size_t length);
+  BufferWrap(const iotjs_jval_t* jbuiltin, size_t length);
 
   virtual ~BufferWrap();
 
-  static BufferWrap* FromJBufferBuiltin(JObject& jbuiltin);
-  static BufferWrap* FromJBuffer(JObject& jbuffer);
+  static BufferWrap* FromJBufferBuiltin(const iotjs_jval_t* jbuiltin);
+  static BufferWrap* FromJBuffer(const iotjs_jval_t* jbuffer);
 
-  JObject jbuiltin();
-  JObject jbuffer();
+  iotjs_jval_t* jbuiltin();
+  iotjs_jval_t jbuffer();
 
   char* buffer();
   size_t length();

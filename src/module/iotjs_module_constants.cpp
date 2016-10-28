@@ -18,7 +18,6 @@
 #include "uv.h"
 
 #include "iotjs_module.h"
-#include "iotjs_module_constants.h"
 
 
 namespace iotjs {
@@ -26,32 +25,25 @@ namespace iotjs {
 
 #define SET_CONSTANT(object, constant) \
   do { \
-    JObject value(constant); \
-    object->SetProperty(#constant, value); \
+    iotjs_jval_set_property_number(object, #constant, constant); \
   } while (0)
 
 
-JObject* InitConstants() {
-  Module* module = GetBuiltinModule(MODULE_CONSTANTS);
-  JObject* constants = module->module;
+iotjs_jval_t InitConstants() {
 
-  if (constants == NULL) {
-    constants = new JObject();
+  iotjs_jval_t constants = iotjs_jval_create_object();
 
-    SET_CONSTANT(constants, O_APPEND);
-    SET_CONSTANT(constants, O_CREAT);
-    SET_CONSTANT(constants, O_EXCL);
-    SET_CONSTANT(constants, O_RDONLY);
-    SET_CONSTANT(constants, O_RDWR);
-    SET_CONSTANT(constants, O_SYNC);
-    SET_CONSTANT(constants, O_TRUNC);
-    SET_CONSTANT(constants, O_WRONLY);
-    SET_CONSTANT(constants, S_IFMT);
-    SET_CONSTANT(constants, S_IFDIR);
-    SET_CONSTANT(constants, S_IFREG);
-
-    module->module = constants;
-  }
+  SET_CONSTANT(&constants, O_APPEND);
+  SET_CONSTANT(&constants, O_CREAT);
+  SET_CONSTANT(&constants, O_EXCL);
+  SET_CONSTANT(&constants, O_RDONLY);
+  SET_CONSTANT(&constants, O_RDWR);
+  SET_CONSTANT(&constants, O_SYNC);
+  SET_CONSTANT(&constants, O_TRUNC);
+  SET_CONSTANT(&constants, O_WRONLY);
+  SET_CONSTANT(&constants, S_IFMT);
+  SET_CONSTANT(&constants, S_IFDIR);
+  SET_CONSTANT(&constants, S_IFREG);
 
   return constants;
 }

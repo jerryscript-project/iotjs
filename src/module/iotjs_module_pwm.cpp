@@ -21,7 +21,7 @@
 namespace iotjs {
 
 
-Pwm::Pwm(JObject& jpwm)
+Pwm::Pwm(const iotjs_jval_t* jpwm)
     : JObjectWrap(jpwm) {
 }
 
@@ -30,9 +30,9 @@ Pwm::~Pwm() {
 }
 
 
-JObject* Pwm::GetJPwm() {
+const iotjs_jval_t* Pwm::GetJPwm() {
   Module* module = GetBuiltinModule(MODULE_PWM);
-  JObject* jpwm = module->module;
+  const iotjs_jval_t* jpwm = &module->module;
   IOTJS_ASSERT(jpwm != NULL);
 
   return jpwm;
@@ -40,7 +40,8 @@ JObject* Pwm::GetJPwm() {
 
 
 Pwm* Pwm::GetInstance() {
-  Pwm* pwm = reinterpret_cast<Pwm*>(Pwm::GetJPwm()->GetNative());
+  Pwm* pwm = reinterpret_cast<Pwm*>(
+          iotjs_jval_get_object_native_handle(Pwm::GetJPwm()));
   IOTJS_ASSERT(pwm != NULL);
 
   return pwm;
@@ -82,25 +83,19 @@ JHANDLER_FUNCTION(Unexport) {
 }
 
 
-JObject* InitPwm() {
-  Module* module = GetBuiltinModule(MODULE_PWM);
-  JObject* jpwm = module->module;
+iotjs_jval_t InitPwm() {
 
-  if (jpwm == NULL) {
-    jpwm = new JObject();
+  iotjs_jval_t jpwm = iotjs_jval_create_object();
 
-    jpwm->SetMethod("export", Export);
-    jpwm->SetMethod("setDutyCycle", SetDutyCycle);
-    jpwm->SetMethod("setPeriod", SetPeriod);
-    jpwm->SetMethod("enable", Enable);
-    jpwm->SetMethod("unexport", Unexport);
+  iotjs_jval_set_method(&jpwm, "export", Export);
+  iotjs_jval_set_method(&jpwm, "setDutyCycle", SetDutyCycle);
+  iotjs_jval_set_method(&jpwm, "setPeriod", SetPeriod);
+  iotjs_jval_set_method(&jpwm, "enable", Enable);
+  iotjs_jval_set_method(&jpwm, "unexport", Unexport);
 
-    // TODO: Need to implement Create for each platform.
-    // Pwm* pwm = Pwm::Create(*jpwm);
-    // IOTJS_ASSERT(pwm == reinterpret_cast<Pwm*>(jpwm->GetNative()));
-
-    module->module = jpwm;
-  }
+  // TODO: Need to implement Create for each platform.
+  // Pwm* pwm = Pwm::Create(*jpwm);
+  // IOTJS_ASSERT(pwm == reinterpret_cast<Pwm*>(jpwm->GetNative()));
 
   return jpwm;
 }

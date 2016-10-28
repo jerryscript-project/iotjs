@@ -14,7 +14,6 @@
  */
 
 #include "iotjs_def.h"
-#include "iotjs_module_testdriver.h"
 #include "iotjs_module_timer.h"
 
 
@@ -25,20 +24,22 @@ JHANDLER_FUNCTION(IsAliveExceptFor) {
   JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) == 1);
   Environment* env = Environment::GetEnv();
 
-  JObject* arg0 = iotjs_jhandler_get_arg(jhandler, 0);
+  const iotjs_jval_t* arg0 = iotjs_jhandler_get_arg(jhandler, 0);
 
-  if (arg0->IsNull()) {
+  if (iotjs_jval_is_null(arg0)) {
     int alive = uv_loop_alive(env->loop());
 
-    iotjs_jhandler_return_bool(jhandler, alive);
+    iotjs_jhandler_return_boolean(jhandler, alive);
   } else {
-    JHANDLER_CHECK(arg0->IsObject());
+    JHANDLER_CHECK(iotjs_jval_is_object(arg0));
 
-    JObject jtimer = arg0->GetProperty("handler");
+    iotjs_jval_t jtimer = iotjs_jval_get_property(arg0, "handler");
 
-    TimerWrap* timer_wrap = reinterpret_cast<TimerWrap*>(jtimer.GetNative());
+    TimerWrap* timer_wrap = reinterpret_cast<TimerWrap*>(
+            iotjs_jval_get_object_native_handle(&jtimer));
     IOTJS_ASSERT(timer_wrap != NULL);
-    IOTJS_ASSERT(timer_wrap->jobject().IsObject());
+    IOTJS_ASSERT(iotjs_jval_is_object(timer_wrap->jobject()));
+    iotjs_jval_destroy(&jtimer);
 
     bool has_active_reqs = uv__has_active_reqs(env->loop());
     bool has_closing_handler = env->loop()->closing_handles != NULL;
@@ -61,21 +62,15 @@ JHANDLER_FUNCTION(IsAliveExceptFor) {
       }
     }
 
-    iotjs_jhandler_return_bool(jhandler, ret);
+    iotjs_jhandler_return_boolean(jhandler, ret);
   }
 }
 
 
-JObject* InitTestdriver() {
-  Module* module = GetBuiltinModule(MODULE_TESTDRIVER);
-  JObject* testdriver = module->module;
+iotjs_jval_t InitTestdriver() {
 
-  if (testdriver == NULL) {
-    testdriver = new JObject();
-    testdriver->SetMethod("isAliveExceptFor", IsAliveExceptFor);
-
-    module->module = testdriver;
-  }
+  iotjs_jval_t testdriver = iotjs_jval_create_object();
+  iotjs_jval_set_method(&testdriver, "isAliveExceptFor", IsAliveExceptFor);
 
   return testdriver;
 }

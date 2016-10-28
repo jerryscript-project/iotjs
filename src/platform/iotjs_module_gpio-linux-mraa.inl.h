@@ -35,7 +35,7 @@ namespace iotjs {
 //  http://iotdk.intel.com/docs/master/mraa/
 class GpioLinuxMraa : public Gpio {
  public:
-  explicit GpioLinuxMraa(JObject& jgpio);
+  explicit GpioLinuxMraa(iotjs_jval_t* jgpio);
 
   static GpioLinuxMraa* GetInstance();
 
@@ -60,7 +60,7 @@ class GpioLinuxMraa : public Gpio {
 };
 
 
-GpioLinuxMraa::GpioLinuxMraa(JObject& jgpio)
+GpioLinuxMraa::GpioLinuxMraa(iotjs_jval_t* jgpio)
     : Gpio(jgpio)
     , _initialized(false) {
   for (int i = 0; i < GPIO_MAX_PINNO; ++i) {
@@ -204,7 +204,7 @@ void AfterWork(uv_work_t* work_req, int status) {
     case kGpioOpReadPin:
     {
       if (req_data->result == kGpioErrOk) {
-        jargs.Add(iotjs_jval_bool(req_data->value));
+        jargs.Add(iotjs_jval_get_boolean(req_data->value));
       }
       break;
     }

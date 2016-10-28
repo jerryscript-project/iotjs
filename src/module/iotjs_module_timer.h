@@ -21,15 +21,15 @@
 
 namespace iotjs {
 
-JObject* InitTimer();
+iotjs_jval_t InitTimer();
 
 class TimerWrap : public HandleWrap {
  public:
-  explicit TimerWrap(Environment* env, JObject& jtimer)
-      : HandleWrap(jtimer, reinterpret_cast<uv_handle_t*>(&_handle))
-      , _jcallback(NULL) {
-    // Initialze timer handler.
+  explicit TimerWrap(Environment* env, const iotjs_jval_t* jtimer)
+      : HandleWrap(jtimer, reinterpret_cast<uv_handle_t*>(&_handle)) {
+    // Initialize timer handler.
     uv_timer_init(env->loop(), &_handle);
+    _jcallback = *iotjs_jval_get_undefined();
   }
 
   // Timer timeout callback handler.
@@ -39,13 +39,13 @@ class TimerWrap : public HandleWrap {
   void OnClose();
 
   // Start timer.
-  int Start(int64_t timeout, int64_t repeat, JObject& jcallback);
+  int Start(int64_t timeout, int64_t repeat, const iotjs_jval_t* jcallback);
 
   // Stop & close timer.
   int Stop();
 
   // Retrieve javascript callback function.
-  JObject* jcallback() { return _jcallback; }
+  const iotjs_jval_t* jcallback() { return &_jcallback; }
 
   uv_timer_t handle() { return _handle; }
 
@@ -54,7 +54,7 @@ class TimerWrap : public HandleWrap {
   uv_timer_t _handle;
 
   // Javascript callback function.
-  JObject* _jcallback;
+  iotjs_jval_t _jcallback;
 };
 
 } // namespace iotjs

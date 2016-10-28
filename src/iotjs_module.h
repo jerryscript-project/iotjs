@@ -22,7 +22,7 @@
 namespace iotjs {
 
 
-typedef JObject* (*register_func)();
+typedef iotjs_jval_t (*register_func)();
 
 
 #define CONCATENATE(x, ...) x ## __VA_ARGS__
@@ -64,7 +64,7 @@ enum ModuleKind {
 
 struct Module {
   ModuleKind kind;
-  JObject* module;
+  iotjs_jval_t module;
   register_func fn_register;
 };
 

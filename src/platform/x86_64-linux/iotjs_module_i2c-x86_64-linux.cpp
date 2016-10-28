@@ -22,7 +22,7 @@
 namespace iotjs {
 
 
-I2c* I2c::Create(JObject& ji2c) {
+I2c* I2c::Create(const iotjs_jval_t* ji2c) {
   return new I2cLinuxGeneral(ji2c);
 }
 

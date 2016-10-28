@@ -51,7 +51,7 @@ function CreateGpioError(operation, errno) {
       return new GpioError(errno, operation, 'GPIO not initialized');
     case gpio.kGpioErrWrongUse:
       return new GpioError(errno, operation, 'Wrong use of GPIO API');
-    case gpio.kGpioErrSysErr:
+    case gpio.kGpioErrSys:
       return new GpioError(errno, operation, 'System error');
   }
   return new GpioError(errno, operation, 'Unknown error');

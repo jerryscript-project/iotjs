@@ -25,38 +25,36 @@
 namespace iotjs {
 
 
-JObject* GetProcess() {
+iotjs_jval_t* GetProcess() {
   Module* module = GetBuiltinModule(MODULE_PROCESS);
   IOTJS_ASSERT(module != NULL);
 
-  JObject* process = module->module;
+  iotjs_jval_t* process = &module->module;
   IOTJS_ASSERT(process != NULL);
-  IOTJS_ASSERT(process->IsObject());
+  IOTJS_ASSERT(iotjs_jval_is_object(process));
 
   return process;
 }
 
 
 JHANDLER_FUNCTION(Binding) {
-  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) == 1);
-  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 0)->IsNumber());
+  JHANDLER_CHECK_ARGS(1, number);
 
-  int module_kind = iotjs_jhandler_get_arg(jhandler, 0)->GetInt32();
+  int module_kind = JHANDLER_GET_ARG(0, number);
 
   Module* module = GetBuiltinModule(static_cast<ModuleKind>(module_kind));
   IOTJS_ASSERT(module != NULL);
 
-  if (module->module == NULL) {
+  if (iotjs_jval_is_undefined(&module->module)) {
     IOTJS_ASSERT(module->fn_register != NULL);
     module->module = module->fn_register();
-    IOTJS_ASSERT(module->module);
   }
 
-  iotjs_jhandler_return_obj(jhandler, module->module);
+  iotjs_jhandler_return_jval(jhandler, &module->module);
 }
 
 
-static JResult WrapEval(const char* source, size_t length) {
+static iotjs_jval_t WrapEval(const char* source, size_t length, bool* throws) {
   static const char* wrapper[2] = {
       "(function(exports, require, module) {\n",
       "\n});\n" };
@@ -70,7 +68,9 @@ static JResult WrapEval(const char* source, size_t length) {
   iotjs_string_append(&code, source, length);
   iotjs_string_append(&code, wrapper[1], len1);
 
-  JResult res = JObject::Eval(code);
+  iotjs_jval_t res = iotjs_jhelper_eval(iotjs_string_data(&code),
+                                        iotjs_string_size(&code),
+                                        false, throws);
 
   iotjs_string_destroy(&code);
 
@@ -78,30 +78,31 @@ static JResult WrapEval(const char* source, size_t length) {
 }
 
 
-JHANDLER_FUNCTION(Compile){
-  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) == 1);
-  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 0)->IsString());
+JHANDLER_FUNCTION(Compile) {
+  JHANDLER_CHECK_ARGS(1, string);
 
-  iotjs_string_t source = iotjs_jhandler_get_arg(jhandler, 0)->GetString();
+  iotjs_string_t source = JHANDLER_GET_ARG(0, string);
 
-  JResult jres = WrapEval(iotjs_string_data(&source),
-                          iotjs_string_size(&source));
+  bool throws;
+  iotjs_jval_t jres = WrapEval(iotjs_string_data(&source),
+                               iotjs_string_size(&source),
+                               &throws);
 
-  if (jres.IsOk()) {
-    iotjs_jhandler_return_obj(jhandler, &jres.value());
+  if (!throws) {
+    iotjs_jhandler_return_jval(jhandler, &jres);
   } else {
-    iotjs_jhandler_throw_obj(jhandler, &jres.value());
+    iotjs_jhandler_throw(jhandler, &jres);
   }
 
   iotjs_string_destroy(&source);
+  iotjs_jval_destroy(&jres);
 }
 
 
-JHANDLER_FUNCTION(CompileNativePtr){
-  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) == 1);
-  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 0)->IsString());
+JHANDLER_FUNCTION(CompileNativePtr) {
+  JHANDLER_CHECK_ARGS(1, string);
 
-  iotjs_string_t id = iotjs_jhandler_get_arg(jhandler, 0)->GetString();
+  iotjs_string_t id = JHANDLER_GET_ARG(0, string);
 
   int i=0;
   while (natives[i].name != NULL) {
@@ -115,34 +116,37 @@ JHANDLER_FUNCTION(CompileNativePtr){
   iotjs_string_destroy(&id);
 
   if (natives[i].name != NULL) {
+    bool throws;
 #ifdef ENABLE_SNAPSHOT
-    JResult jres = JObject::ExecSnapshot(natives[i].code,
-                                         natives[i].length);
+    iotjs_jval_t jres = iotjs_jhelper_exec_snapshot(natives[i].code,
+                                                    natives[i].length,
+                                                    &throws);
 #else
-    JResult jres = WrapEval((const char*)natives[i].code, natives[i].length);
+    iotjs_jval_t jres = WrapEval((const char*)natives[i].code,
+                                 natives[i].length, &throws);
 #endif
 
-    if (jres.IsOk()) {
-      iotjs_jhandler_return_obj(jhandler, &jres.value());
+    if (!throws) {
+      iotjs_jhandler_return_jval(jhandler, &jres);
     } else {
-      iotjs_jhandler_throw_obj(jhandler, &jres.value());
+      iotjs_jhandler_throw(jhandler, &jres);
     }
+    iotjs_jval_destroy(&jres);
   } else {
-    JObject jerror = JObject::Error ("Unknown native module");
-    iotjs_jhandler_throw_obj(jhandler, &jerror);
+    iotjs_jval_t jerror = iotjs_jval_create_error ("Unknown native module");
+    iotjs_jhandler_throw(jhandler, &jerror);
+    iotjs_jval_destroy(&jerror);
   }
 }
 
 
-JHANDLER_FUNCTION(ReadSource){
-  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) == 1);
-  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 0)->IsString());
+JHANDLER_FUNCTION(ReadSource) {
+  JHANDLER_CHECK_ARGS(1, string);
 
-  iotjs_string_t path = iotjs_jhandler_get_arg(jhandler, 0)->GetString();
+  iotjs_string_t path = JHANDLER_GET_ARG(0, string);
   iotjs_string_t code = iotjs_file_read(iotjs_string_data(&path));
 
-  JObject ret(code);
-  iotjs_jhandler_return_obj(jhandler, &ret);
+  iotjs_jhandler_return_string(jhandler, &code);
 
   iotjs_string_destroy(&path);
   iotjs_string_destroy(&code);
@@ -150,28 +154,28 @@ JHANDLER_FUNCTION(ReadSource){
 
 
 JHANDLER_FUNCTION(Cwd){
-  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) == 0);
+  JHANDLER_CHECK_ARGS(0);
 
   char path[IOTJS_MAX_PATH_SIZE];
   size_t size_path = sizeof(path);
   int err = uv_cwd(path, &size_path);
   if (err) {
-    JHANDLER_THROW_RETURN(Error, "cwd error");
+    JHANDLER_THROW(COMMON, "cwd error");
+    return;
   }
-  JObject ret(path);
-  iotjs_jhandler_return_obj(jhandler, &ret);
+  iotjs_jhandler_return_string_raw(jhandler, path);
 }
 
 JHANDLER_FUNCTION(Chdir){
-  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) == 1);
-  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 0)->IsString());
+  JHANDLER_CHECK_ARGS(1, string);
 
-  iotjs_string_t path = iotjs_jhandler_get_arg(jhandler, 0)->GetString();
+  iotjs_string_t path = JHANDLER_GET_ARG(0, string);
   int err = uv_cd(iotjs_string_data(&path));
 
   if (err) {
     iotjs_string_destroy(&path);
-    JHANDLER_THROW_RETURN(Error, "chdir error");
+    JHANDLER_THROW(COMMON, "chdir error");
+    return;
   }
 
   iotjs_string_destroy(&path);
@@ -179,10 +183,9 @@ JHANDLER_FUNCTION(Chdir){
 
 
 JHANDLER_FUNCTION(DoExit) {
-  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) == 1);
-  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 0)->IsNumber());
+  JHANDLER_CHECK_ARGS(1, number);
 
-  int exit_code = iotjs_jhandler_get_arg(jhandler, 0)->GetInt32();
+  int exit_code = JHANDLER_GET_ARG(0, number);
 
   exit(exit_code);
 }
@@ -190,39 +193,43 @@ JHANDLER_FUNCTION(DoExit) {
 
 // Initialize `process.argv`
 JHANDLER_FUNCTION(InitArgv) {
-  JHANDLER_CHECK(iotjs_jhandler_get_this(jhandler)->IsObject());
+  JHANDLER_CHECK_THIS(object);
 
   // environtment
   Environment* env = Environment::GetEnv();
 
   // process.argv
-  JObject jargv = iotjs_jhandler_get_this(jhandler)->GetProperty("argv");
+  const iotjs_jval_t* thisObj = JHANDLER_GET_THIS(object);
+  iotjs_jval_t jargv = iotjs_jval_get_property(thisObj, "argv");
 
   for (int i = 0; i < env->argc(); ++i) {
     char index[10] = {0};
     sprintf(index, "%d", i);
-    JObject value(env->argv()[i]);
-    jargv.SetProperty(index, value);
+    iotjs_jval_set_property_string_raw(&jargv, index, env->argv()[i]);
   }
+  iotjs_jval_destroy(&jargv);
 }
 
 
-void SetNativeSources(JObject* native_sources) {
+void SetNativeSources(iotjs_jval_t* native_sources) {
   for (int i = 0; natives[i].name; i++) {
-    JObject native_source;
-    native_source.SetNative((uintptr_t)(&natives[i]), NULL);
-    native_sources->SetProperty(natives[i].name, native_source);
+    iotjs_jval_t native_src = iotjs_jval_create_object();
+    uintptr_t handle = (uintptr_t)(&natives[i]);
+    iotjs_jval_set_object_native_handle(&native_src, handle, NULL);
+    iotjs_jval_set_property_jval(native_sources, natives[i].name, &native_src);
+    iotjs_jval_destroy(&native_src);
   }
 }
 
 
-static void SetProcessEnv(JObject* process){
+static void SetProcessEnv(iotjs_jval_t* process){
   const char *homedir, *nodepath;
+
   homedir = getenv("HOME");
   if (homedir == NULL) {
     homedir = "";
   }
-  JObject home(homedir);
+
   nodepath = getenv("NODE_PATH");
   if (nodepath == NULL) {
 #if defined(__NUTTX__)
@@ -231,70 +238,66 @@ static void SetProcessEnv(JObject* process){
     nodepath = "";
 #endif
   }
-  JObject node_path(nodepath);
 
-  JObject env;
-  env.SetProperty("HOME", home);
-  env.SetProperty("NODE_PATH", node_path);
+  iotjs_jval_t env = iotjs_jval_create_object();
+  iotjs_jval_set_property_string_raw(&env, "HOME", homedir);
+  iotjs_jval_set_property_string_raw(&env, "NODE_PATH", nodepath);
 
-  process->SetProperty("env", env);
+  iotjs_jval_set_property_jval(process, "env", &env);
+
+  iotjs_jval_destroy(&env);
 }
 
 
-static void SetProcessIotjs(JObject* process) {
+static void SetProcessIotjs(iotjs_jval_t* process) {
   // IoT.js specific
-  JObject iotjs;
-  process->SetProperty("iotjs", iotjs);
+  iotjs_jval_t iotjs = iotjs_jval_create_object();
+  iotjs_jval_set_property_jval(process, "iotjs", &iotjs);
 
-  JObject jboard(TOSTRING(TARGET_BOARD));
-  iotjs.SetProperty("board", jboard);
+  iotjs_jval_set_property_string_raw(&iotjs, "board", TOSTRING(TARGET_BOARD));
+  iotjs_jval_destroy(&iotjs);
 }
 
 
-JObject* InitProcess() {
-  Module* module = GetBuiltinModule(MODULE_PROCESS);
-  JObject* process = module->module;
+iotjs_jval_t InitProcess() {
+  iotjs_jval_t process = iotjs_jval_create_object();
 
-  if (process == NULL) {
-    process = new JObject();
-    process->SetMethod("binding", Binding);
-    process->SetMethod("compile", Compile);
-    process->SetMethod("compileNativePtr", CompileNativePtr);
-    process->SetMethod("readSource", ReadSource);
-    process->SetMethod("cwd", Cwd);
-    process->SetMethod("chdir", Chdir);
-    process->SetMethod("doExit", DoExit);
-    process->SetMethod("_initArgv", InitArgv);
-    SetProcessEnv(process);
+  iotjs_jval_set_method(&process, "binding", Binding);
+  iotjs_jval_set_method(&process, "compile", Compile);
+  iotjs_jval_set_method(&process, "compileNativePtr", CompileNativePtr);
+  iotjs_jval_set_method(&process, "readSource", ReadSource);
+  iotjs_jval_set_method(&process, "cwd", Cwd);
+  iotjs_jval_set_method(&process, "chdir", Chdir);
+  iotjs_jval_set_method(&process, "doExit", DoExit);
+  iotjs_jval_set_method(&process, "_initArgv", InitArgv);
+  SetProcessEnv(&process);
 
-    // process.native_sources
-    JObject native_sources;
-    SetNativeSources(&native_sources);
-    process->SetProperty("native_sources", native_sources);
+  // process.native_sources
+  iotjs_jval_t native_sources = iotjs_jval_create_object();
+  SetNativeSources(&native_sources);
+  iotjs_jval_set_property_jval(&process, "native_sources", &native_sources);
+  iotjs_jval_destroy(&native_sources);
 
-    // process.platform
-    JObject platform(TARGET_OS);
-    process->SetProperty("platform", platform);
+  // process.platform
+  iotjs_jval_set_property_string_raw(&process, "platform", TARGET_OS);
 
-    // process.arch
-    JObject arch(TARGET_ARCH);
-    process->SetProperty("arch", arch);
+  // process.arch
+  iotjs_jval_set_property_string_raw(&process, "arch", TARGET_ARCH);
 
-    // Set iotjs
-    SetProcessIotjs(process);
+  // Set iotjs
+  SetProcessIotjs(&process);
 
-    // Binding module id.
-    JObject jbinding = process->GetProperty("binding");
+  // Binding module id.
+  iotjs_jval_t jbinding = iotjs_jval_get_property(&process, "binding");
 
 #define ENUMDEF_MODULE_LIST(upper, Camel, lower) \
-    jbinding.SetProperty(#lower, iotjs_jval_number(MODULE_ ## upper));
+  iotjs_jval_set_property_number(&jbinding, #lower, MODULE_ ## upper); \
 
-    MAP_MODULE_LIST(ENUMDEF_MODULE_LIST)
+  MAP_MODULE_LIST(ENUMDEF_MODULE_LIST)
 
 #undef ENUMDEF_MODULE_LIST
 
-    module->module = process;
-  }
+  iotjs_jval_destroy(&jbinding);
 
   return process;
 }

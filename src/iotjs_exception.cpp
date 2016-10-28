@@ -24,10 +24,10 @@
 namespace iotjs {
 
 
-JObject CreateUVException(int errorno, const char* syscall) {
-    static char msg[256];
-    snprintf(msg, sizeof(msg), "'%s' %s", syscall, uv_strerror(errorno));
-    return JObject::Error(msg);
+iotjs_jval_t CreateUVException(int errorno, const char* syscall) {
+  static char msg[256];
+  snprintf(msg, sizeof(msg), "'%s' %s", syscall, uv_strerror(errorno));
+  return iotjs_jval_create_error(msg);
 }
 
 

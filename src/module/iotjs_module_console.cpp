@@ -14,7 +14,6 @@
  */
 
 #include "iotjs_def.h"
-#include "iotjs_module_console.h"
 
 #include <stdio.h>
 
@@ -23,10 +22,9 @@ namespace iotjs {
 
 
 static void Print(iotjs_jhandler_t* jhandler, FILE* out_fd) {
-  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) == 1);
-  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 0)->IsString());
+  JHANDLER_CHECK_ARGS(1, string);
 
-  iotjs_string_t msg = iotjs_jhandler_get_arg(jhandler, 0)->GetString();
+  iotjs_string_t msg = JHANDLER_GET_ARG(0, string);
   fprintf(out_fd, "%s", iotjs_string_data(&msg));
   iotjs_string_destroy(&msg);
 }
@@ -42,17 +40,11 @@ JHANDLER_FUNCTION(Stderr) {
 }
 
 
-JObject* InitConsole() {
-  Module* module = GetBuiltinModule(MODULE_CONSOLE);
-  JObject* console = module->module;
+iotjs_jval_t InitConsole() {
+  iotjs_jval_t console = iotjs_jval_create_object();
 
-  if (console == NULL) {
-    console = new JObject();
-    console->SetMethod("stdout", Stdout);
-    console->SetMethod("stderr", Stderr);
-
-    module->module = console;
-  }
+  iotjs_jval_set_method(&console, "stdout", Stdout);
+  iotjs_jval_set_method(&console, "stderr", Stderr);
 
   return console;
 }

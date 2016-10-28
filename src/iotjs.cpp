@@ -84,7 +84,7 @@ static void ReleaseJerry() {
 }
 
 
-static JObject* InitModules() {
+static iotjs_jval_t* InitModules() {
   InitModuleList();
   return InitProcessModule();
 }
@@ -95,50 +95,47 @@ static void CleanupModules() {
 }
 
 
-static bool RunIoTjs(JObject* process) {
+static bool RunIoTjs(iotjs_jval_t* process) {
   // Evaluating 'iotjs.js' returns a function.
+  bool throws;
 #ifndef ENABLE_SNAPSHOT
-  iotjs_string_t code = iotjs_string_create_with_buffer((char*)iotjs_s,
-                                                        iotjs_l);
-  JResult jmain = JObject::Eval(code, false);
+  iotjs_jval_t jmain = iotjs_jhelper_eval(iotjs_s, iotjs_l, false, &throws);
 #else
-  JResult jmain = JObject::ExecSnapshot(iotjs_s, iotjs_l);
+  iotjs_jval_t jmain = iotjs_jhelper_exec_snapshot(iotjs_s, iotjs_l, &throws);
 #endif
-  IOTJS_ASSERT(jmain.IsOk());
+  IOTJS_ASSERT(!throws);
 
   // Run the entry function passing process builtin.
   // The entry function will continue initializing process module, global, and
   // other native modules, and finally load and run application.
   iotjs_jargs_t args = iotjs_jargs_create(1);
-  iotjs_jargs_append_obj(&args, process);
+  iotjs_jargs_append_jval(&args, process);
 
-  JObject global(JObject::Global());
-  JResult jmain_res = jmain.value().Call(global, args);
+  const iotjs_jval_t* global = iotjs_jval_get_global_object();
+  iotjs_jval_t jmain_res = iotjs_jhelper_call(&jmain, global, &args, &throws);
 
   iotjs_jargs_destroy(&args);
+  iotjs_jval_destroy(&jmain);
 
-  if (jmain_res.IsException()) {
-    UncaughtException(jmain_res.value());
-    return false;
-  } else {
-    return true;
+  if (throws) {
+    UncaughtException(&jmain_res);
   }
+  iotjs_jval_destroy(&jmain_res);
+
+  return !throws;
 }
 
 
 static bool StartIoTjs(Environment* env) {
-  // Initialize jerry null and undefined objects.
+  // Initialize commonly used jerry values
   iotjs_binding_initialize();
-  JObject::init();
-
-  // Get jerry global object.
-  JObject global = JObject::Global();
 
   // Bind environment to global object.
-  global.SetNative((uintptr_t)(env), NULL);
+  const iotjs_jval_t* global = iotjs_jval_get_global_object();
+  iotjs_jval_set_object_native_handle(global, (uintptr_t)(env), NULL);
 
   // Initialize builtin modules.
-  JObject* process = InitModules();
+  iotjs_jval_t* process = InitModules();
 
   // Call the entry.
   // load and call iotjs.js
@@ -166,8 +163,7 @@ static bool StartIoTjs(Environment* env) {
   // Release bulitin modules.
   CleanupModules();
 
-  // Release jerry null and undefined objects.
-  JObject::cleanup();
+  // Release commonly used jerry values.
   iotjs_binding_finalize();
 
   return true;

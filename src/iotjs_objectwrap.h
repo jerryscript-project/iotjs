@@ -27,15 +27,15 @@ namespace iotjs {
 // If the object is freed by GC, then this wrapper instance will be also freed.
 class JObjectWrap {
  public:
-  explicit JObjectWrap(JObject& jobject);
+  explicit JObjectWrap(const iotjs_jval_t* jobject);
   virtual ~JObjectWrap();
 
-  JObject& jobject();
+  iotjs_jval_t* jobject();
 
   virtual void Destroy(void);
 
  protected:
-  JObject* _jobject;
+  iotjs_jval_t _jobject;
 };
 
 

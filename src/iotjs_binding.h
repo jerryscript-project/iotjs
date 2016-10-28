@@ -26,307 +26,280 @@
 extern "C" {
 #endif
 
+
 typedef jerry_external_handler_t JHandlerType;
 typedef jerry_object_free_callback_t JFreeHandlerType;
-typedef jerry_value_t JRawValueType;
 typedef jerry_length_t JRawLengthType;
 
-struct iotjs_jargs_t;
 
-enum JResultType {
-  JRESULT_OK,
-  JRESULT_EXCEPTION
-};
-
-
-void iotjs_binding_initialize();
-void iotjs_binding_finalize();
-
-
-#ifdef __cplusplus
-} // extern "C"
-#endif
+typedef enum {
+  IOTJS_ERROR_COMMON = JERRY_ERROR_COMMON,
+  IOTJS_ERROR_EVAL = JERRY_ERROR_EVAL,
+  IOTJS_ERROR_RANGE = JERRY_ERROR_RANGE,
+  IOTJS_ERROR_REFERENCE = JERRY_ERROR_REFERENCE,
+  IOTJS_ERROR_SYNTAX = JERRY_ERROR_SYNTAX,
+  IOTJS_ERROR_TYPE = JERRY_ERROR_TYPE,
+  IOTJS_ERROR_URI = JERRY_ERROR_URI
+} iotjs_error_t;
 
 
-namespace iotjs {
+#define FOR_EACH_JVAL_TYPES(F) \
+  F(undefined) \
+  F(null) \
+  F(boolean) \
+  F(number) \
+  F(string) \
+  F(object) \
+  F(array) \
+  F(function) \
 
 
-class JObject;
-class JResult;
+typedef struct {
+  jerry_value_t value;
+} IOTJS_VALIDATED_STRUCT(iotjs_jval_t);
 
 
-/// Wrapper for Javascript objects.
-class JObject {
- public:
-  // Consturctors
+/* Constructors */
+iotjs_jval_t iotjs_jval_create_number(double v);
+iotjs_jval_t iotjs_jval_create_string(const iotjs_string_t* v);
+iotjs_jval_t iotjs_jval_create_string_raw(const char* data);
+iotjs_jval_t iotjs_jval_create_object();
+iotjs_jval_t iotjs_jval_create_array(uint32_t len);
+iotjs_jval_t iotjs_jval_create_byte_array(uint32_t len, const char* data);
+iotjs_jval_t iotjs_jval_create_function(JHandlerType handler);
+iotjs_jval_t iotjs_jval_create_error(const char* msg);
+iotjs_jval_t iotjs_jval_create_error_type(iotjs_error_t type, const char* msg);
+iotjs_jval_t iotjs_jval_create_copied(const iotjs_jval_t* other);
 
-  // Creates an initial javascript object.
-  explicit JObject();
+iotjs_jval_t* iotjs_jval_get_undefined();
+iotjs_jval_t* iotjs_jval_get_null();
+iotjs_jval_t* iotjs_jval_get_boolean(bool v);
+iotjs_jval_t* iotjs_jval_get_global_object();
 
-  // Creates an object copied from other object.
-  JObject(const JObject& other);
+/* Destructor */
+void iotjs_jval_destroy(iotjs_jval_t* jval);
 
-  // Creates a javascript boolean object.
-  explicit JObject(bool v);
+#define THIS_JVAL const iotjs_jval_t* jval
 
-  // Creates a javascript number object from various c type.
-  explicit JObject(int v);
-  explicit JObject(double v);
+/* Type Checkers */
+bool iotjs_jval_is_undefined(THIS_JVAL);
+bool iotjs_jval_is_null(THIS_JVAL);
+bool iotjs_jval_is_boolean(THIS_JVAL);
+bool iotjs_jval_is_number(THIS_JVAL);
+bool iotjs_jval_is_string(THIS_JVAL);
+bool iotjs_jval_is_object(THIS_JVAL);
+bool iotjs_jval_is_array(THIS_JVAL);
+bool iotjs_jval_is_function(THIS_JVAL);
 
-  // Creates a javascript string object.
-  explicit JObject(const char* v);
-  explicit JObject(const iotjs_string_t& v);
+/* Type Converters */
+bool iotjs_jval_as_boolean(THIS_JVAL);
+double iotjs_jval_as_number(THIS_JVAL);
+iotjs_string_t iotjs_jval_as_string(THIS_JVAL);
+const iotjs_jval_t* iotjs_jval_as_object(THIS_JVAL);
+const iotjs_jval_t* iotjs_jval_as_array(THIS_JVAL);
+const iotjs_jval_t* iotjs_jval_as_function(THIS_JVAL);
 
-  // Creates a javascript array object from char array
-  explicit JObject(uint32_t len, const char* data);
+/* Methods for General JavaScript Object */
+void iotjs_jval_set_method(THIS_JVAL, const char* name, JHandlerType handler);
+void iotjs_jval_set_property_jval(THIS_JVAL, const char* name,
+                                  const iotjs_jval_t* value);
+void iotjs_jval_set_property_null(THIS_JVAL, const char* name);
+void iotjs_jval_set_property_undefined(THIS_JVAL, const char* name);
+void iotjs_jval_set_property_boolean(THIS_JVAL, const char* name, bool v);
+void iotjs_jval_set_property_number(THIS_JVAL, const char* name, double v);
+void iotjs_jval_set_property_string(THIS_JVAL, const char* name,
+                                    const iotjs_string_t* v);
+void iotjs_jval_set_property_string_raw(THIS_JVAL, const char* name,
+                                        const char* v);
 
-  // Creates an object from `JRawValueType*`.
-  // If second argument set true, then ref count for the object will be
-  // decreased when this wrapper is being destroyed.
-  explicit JObject(const JRawValueType val, bool need_unref = true);
+iotjs_jval_t iotjs_jval_get_property(THIS_JVAL, const char* name);
 
-  // Creates a javascript function object.
-  // When the function is called, the handler will be triggered.
-  explicit JObject(JHandlerType handler);
+void iotjs_jval_set_object_native_handle(THIS_JVAL, uintptr_t ptr,
+                                         JFreeHandlerType free_handler);
+uintptr_t iotjs_jval_get_object_native_handle(THIS_JVAL);
 
-  // Initializes statically null and undefined objects.
-  // This should be called once before javascript API calls
-  static void init();
-
-  // Releases null and undefined objects.
-  static void cleanup();
-
-  // Creates a javascript null object.
-  static JObject& Null();
-
-  // Creates a javascript undefined object.
-  static JObject& Undefined();
-
-  // Gets the javascript global object.
-  static JObject Global();
-
-  // Creates a javascript error object.
-  static JObject Error(const char* message);
-  static JObject EvalError(const char* message);
-  static JObject RangeError(const char* message);
-  static JObject ReferenceError(const char* message);
-  static JObject SyntaxError(const char* message);
-  static JObject TypeError(const char* message);
-  static JObject URIError(const char* message);
-
-  // Evaluate javascript source file.
-  static JResult Eval(const iotjs_string_t& source,
-                      bool strict_mode = false);
-
-
-  // Destructor for this class
-  // When the wrapper is being destroyed, ref count for correspoding javascript
-  // object will be decreased unless `need_unref` was set false.
-  ~JObject();
-
-  // Increases ref count.
-  void Ref();
-
-  // Decreases ref count.
-  void Unref();
-
-  // Returns whether the object is specific type.
-  bool IsNull();
-  bool IsUndefined();
-  bool IsBoolean();
-  bool IsNumber();
-  bool IsString();
-  bool IsObject();
-  bool IsFunction();
-  bool IsArray();
-
-  // Sets native handler method for the javascript object.
-  void SetMethod(const char* name, JHandlerType handler);
-
-  // Sets & gets property for the javascript object.
-  void SetProperty(const char* name, const JObject& val);
-  void SetProperty(const char* name, JRawValueType val);
-  void SetPropertyByIdx(uint32_t idx, const JObject& val);
-  void SetPropertyByIdx(uint32_t idx, JRawValueType val);
-
-  JObject GetProperty(const char* name);
-
-  // Sets & gets native data for the javascript object.
-  void SetNative(uintptr_t ptr, JFreeHandlerType free_handler);
-  uintptr_t GetNative();
-
-  // Returns value for boolean contents of the object.
-  bool GetBoolean();
-
-  // Returns value for 32bit integer contents of number object.
-  int32_t GetInt32();
-
-  // Returns value for 64bit integer contents of number object.
-  int64_t GetInt64();
-
-  // Returns value for number contents of number object.
-  double GetNumber();
-
-  // Returns value for string contents of string object.
-  iotjs_string_t GetString();
-
-#ifdef ENABLE_SNAPSHOT
-  // Evaluate javascript snapshot.
-  static JResult ExecSnapshot(const void *snapshot_p,
-                              size_t snapshot_size);
-#endif
-
-  // Calls javascript function.
-  JResult Call(JObject& this_, iotjs_jargs_t& arg);
-  JObject CallOk(JObject& this_, iotjs_jargs_t& arg);
-
-  JRawValueType raw_value() const { return _obj_val; }
-
- protected:
-  JRawValueType _obj_val;
-  bool _unref_at_close;
-
- private:
-  // disable assignment.
-  JObject& operator=(const JObject& rhs) = delete;
-
-  static JObject* _null;
-  static JObject* _undefined;
-};
+void iotjs_jval_set_property_by_index(THIS_JVAL, uint32_t idx,
+                                      const iotjs_jval_t* value);
+iotjs_jval_t iotjs_jval_get_property_by_index(THIS_JVAL, uint32_t idx);
 
 
-class JResult {
- public:
-  JResult(const JObject& value, JResultType type);
-  JResult(const JRawValueType raw_val, JResultType type);
-  JResult(const JResult& other);
-
-  JObject& value();
-  JResultType type() const;
-
-  bool IsOk() const;
-  bool IsException() const;
-
- private:
-  JObject _value;
-  JResultType _type;
-
-  // disable assignment.
-  JResult& operator=(const JResult& rhs) = delete;
-};
-
-
-} // namespace iotjs
-
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-
-JRawValueType iotjs_jval_undefined();
-JRawValueType iotjs_jval_null();
-JRawValueType iotjs_jval_bool(bool v);
-JRawValueType iotjs_jval_number(double v);
-JRawValueType iotjs_jval_string(const iotjs_string_t* v);
-JRawValueType iotjs_jval_raw_string(const char* data);
+#undef THIS_JVAL
 
 
 typedef struct {
   uint16_t capacity;
   uint16_t argc;
-  iotjs::JObject** argv;
+  iotjs_jval_t* argv;
 } IOTJS_VALIDATED_STRUCT(iotjs_jargs_t);
 
-extern iotjs_jargs_t iotjs_jargs_empty;
 
 iotjs_jargs_t iotjs_jargs_create(uint16_t capacity);
 
+const iotjs_jargs_t* iotjs_jargs_get_empty();
+
 void iotjs_jargs_destroy(iotjs_jargs_t* jargs);
 
-uint16_t iotjs_jargs_length(iotjs_jargs_t* jargs);
+uint16_t iotjs_jargs_length(const iotjs_jargs_t* jargs);
 
-void iotjs_jargs_append_obj(iotjs_jargs_t* jargs, iotjs::JObject* x);
+void iotjs_jargs_append_jval(iotjs_jargs_t* jargs, const iotjs_jval_t* x);
+void iotjs_jargs_append_undefined(iotjs_jargs_t* jargs);
+void iotjs_jargs_append_null(iotjs_jargs_t* jargs);
 void iotjs_jargs_append_bool(iotjs_jargs_t* jargs, bool x);
 void iotjs_jargs_append_number(iotjs_jargs_t* jargs, double x);
 void iotjs_jargs_append_string(iotjs_jargs_t* jargs, const iotjs_string_t* x);
-void iotjs_jargs_append_raw_string(iotjs_jargs_t* jargs, const char* x);
-void iotjs_jargs_append_undefined(iotjs_jargs_t* jargs);
-void iotjs_jargs_append_null(iotjs_jargs_t* jargs);
+void iotjs_jargs_append_string_raw(iotjs_jargs_t* jargs, const char* x);
 
-void iotjs_jargs_replace(iotjs_jargs_t* jargs, uint16_t i, iotjs::JObject* x);
+void iotjs_jargs_replace(iotjs_jargs_t* jargs, uint16_t index,
+                         const iotjs_jval_t* x);
 
-iotjs::JObject* iotjs_jargs_get(iotjs_jargs_t* jargs, uint16_t i);
+const iotjs_jval_t* iotjs_jargs_get(const iotjs_jargs_t* jargs, uint16_t index);
+
+
+// Calls javascript function.
+iotjs_jval_t iotjs_jhelper_call(const iotjs_jval_t* jfunc,
+                                const iotjs_jval_t* jthis,
+                                const iotjs_jargs_t* jargs, bool* throws);
+
+// Calls javascript function.
+iotjs_jval_t iotjs_jhelper_call_ok(const iotjs_jval_t* jfunc,
+                                   const iotjs_jval_t* jthis,
+                                   const iotjs_jargs_t* jargs);
+
+// Evaluates javascript source file.
+iotjs_jval_t iotjs_jhelper_eval(const char* data, size_t size,
+                                bool strict_mode, bool* throws);
+#ifdef ENABLE_SNAPSHOT
+// Evaluates javascript snapshot.
+iotjs_jval_t iotjs_jhelper_exec_snapshot(const void *snapshot_p,
+                                         size_t snapshot_size,
+                                         bool* throws);
+#endif
 
 
 typedef struct {
-  iotjs::JObject* function;
-  iotjs::JObject* this_val;
-  iotjs_jargs_t arg_list;
-  JRawValueType* ret_val_p;
+  iotjs_jval_t jfunc;
+  iotjs_jval_t jthis;
+  iotjs_jval_t* jargv;
+  iotjs_jval_t jret;
+  uint16_t jargc;
 #ifndef NDEBUG
   bool finished;
 #endif
 } IOTJS_VALIDATED_STRUCT(iotjs_jhandler_t);
 
 void iotjs_jhandler_initialize(iotjs_jhandler_t* jhandler,
-                               const JRawValueType func_obj_val,
-                               const JRawValueType this_val,
-                               JRawValueType* ret_val_p,
-                               const JRawValueType args_p[],
-                               const uint16_t args_cnt);
+                               const jerry_value_t jfunc,
+                               const jerry_value_t jthis,
+                               const jerry_value_t jargv[],
+                               const uint16_t jargc);
 
 void iotjs_jhandler_destroy(iotjs_jhandler_t* jhandler);
 
-iotjs::JObject* iotjs_jhandler_get_function(iotjs_jhandler_t* jhandler);
-iotjs::JObject* iotjs_jhandler_get_this(iotjs_jhandler_t* jhandler);
-iotjs::JObject* iotjs_jhandler_get_arg(iotjs_jhandler_t* jhandler, uint16_t i);
+const iotjs_jval_t* iotjs_jhandler_get_function(iotjs_jhandler_t* jhandler);
+const iotjs_jval_t* iotjs_jhandler_get_this(iotjs_jhandler_t* jhandler);
+const iotjs_jval_t* iotjs_jhandler_get_arg(iotjs_jhandler_t* jhandler,
+                                           uint16_t index);
 uint16_t iotjs_jhandler_get_arg_length(iotjs_jhandler_t* jhandler);
 
-void iotjs_jhandler_return_obj(iotjs_jhandler_t* jhandler, iotjs::JObject* ret);
-void iotjs_jhandler_return_bool(iotjs_jhandler_t* jhandler, bool x);
-void iotjs_jhandler_return_number(iotjs_jhandler_t* jhandler, double x);
+void iotjs_jhandler_return_jval(iotjs_jhandler_t* jhandler,
+                                const iotjs_jval_t* ret);
 void iotjs_jhandler_return_undefined(iotjs_jhandler_t* jhandler);
 void iotjs_jhandler_return_null(iotjs_jhandler_t* jhandler);
+void iotjs_jhandler_return_boolean(iotjs_jhandler_t* jhandler, bool x);
+void iotjs_jhandler_return_number(iotjs_jhandler_t* jhandler, double x);
 void iotjs_jhandler_return_string(iotjs_jhandler_t* jhandler,
                                   const iotjs_string_t* x);
-void iotjs_jhandler_return_raw_string(iotjs_jhandler_t* jhandler,
+void iotjs_jhandler_return_string_raw(iotjs_jhandler_t* jhandler,
                                       const char* x);
 
-void iotjs_jhandler_throw_obj(iotjs_jhandler_t* jhandler, iotjs::JObject* err);
-void iotjs_jhandler_throw_val(iotjs_jhandler_t* jhandler, JRawValueType err);
+void iotjs_jhandler_throw(iotjs_jhandler_t* jhandler, const iotjs_jval_t* err);
 
 
-#define JHANDLER_THROW(error_type, message) \
-  JObject error = JObject::error_type(message); \
-  iotjs_jhandler_throw_obj(jhandler, &error);
-
-#define JHANDLER_THROW_RETURN(error_type, message) \
-  JHANDLER_THROW(error_type, message); \
-  return;
+#define JHANDLER_THROW(TYPE, message) \
+  iotjs_jval_t e = iotjs_jval_create_error_type(IOTJS_ERROR_##TYPE, message); \
+  iotjs_jhandler_throw(jhandler, &e); \
+  iotjs_jval_destroy(&e);
 
 #define JHANDLER_CHECK(predicate) \
   if (!(predicate)) { \
     char buffer[64]; \
     snprintf(buffer, 63, "Internal error (%s)", __func__); \
-    JHANDLER_THROW_RETURN(Error, buffer) \
+    JHANDLER_THROW(COMMON, buffer) \
+    return; \
   }
+
+#define JHANDLER_CHECK_TYPE(jval, type) \
+  JHANDLER_CHECK(iotjs_jval_is_##type(jval));
+
+#define JHANDLER_CHECK_ARG(index, type) \
+  JHANDLER_CHECK_TYPE(iotjs_jhandler_get_arg(jhandler, index), type);
+
+#define JHANDLER_CHECK_ARG_IF_EXIST(index, type) \
+  if (iotjs_jhandler_get_arg_length(jhandler) > index) { \
+    JHANDLER_CHECK_TYPE(iotjs_jhandler_get_arg(jhandler, index), type); \
+  }
+
+#define JHANDLER_CHECK_ARGS_0()
+
+#define JHANDLER_CHECK_ARGS_1(type0) \
+  JHANDLER_CHECK_ARGS_0(); \
+  JHANDLER_CHECK_ARG(0, type0);
+
+#define JHANDLER_CHECK_ARGS_2(type0, type1) \
+  JHANDLER_CHECK_ARGS_1(type0); \
+  JHANDLER_CHECK_ARG(1, type1);
+
+#define JHANDLER_CHECK_ARGS_3(type0, type1, type2) \
+  JHANDLER_CHECK_ARGS_2(type0, type1); \
+  JHANDLER_CHECK_ARG(2, type2);
+
+#define JHANDLER_CHECK_ARGS_4(type0, type1, type2, type3) \
+  JHANDLER_CHECK_ARGS_3(type0, type1, type2); \
+  JHANDLER_CHECK_ARG(3, type3);
+
+#define JHANDLER_CHECK_ARGS_5(type0, type1, type2, type3, type4) \
+  JHANDLER_CHECK_ARGS_4(type0, type1, type2, type3); \
+  JHANDLER_CHECK_ARG(4, type4);
+
+// Workaround for GCC type-limits warning
+static inline bool ge(uint16_t a, uint16_t b) { return a >= b; }
+
+#define JHANDLER_CHECK_ARGS(argc, ...) \
+  JHANDLER_CHECK(ge(iotjs_jhandler_get_arg_length(jhandler), argc)); \
+  JHANDLER_CHECK_ARGS_##argc(__VA_ARGS__) \
+
+#define JHANDLER_CHECK_THIS(type) \
+  JHANDLER_CHECK_TYPE(iotjs_jhandler_get_this(jhandler), type); \
+
+#define JHANDLER_GET_ARG(index, type) \
+  iotjs_jval_as_##type(iotjs_jhandler_get_arg(jhandler, index))
+
+#define JHANDLER_GET_ARG_IF_EXIST(index, type) \
+  ((iotjs_jhandler_get_arg_length(jhandler) > index) ? \
+    (iotjs_jval_is_##type(iotjs_jhandler_get_arg(jhandler, index)) ? \
+       iotjs_jhandler_get_arg(jhandler, index) : NULL) : NULL)\
+
+#define JHANDLER_GET_THIS(type) \
+  iotjs_jval_as_##type(iotjs_jhandler_get_this(jhandler))
 
 #define JHANDLER_FUNCTION(name) \
   static void ___ ## name ## _native(iotjs_jhandler_t* jhandler); \
-  static JRawValueType name(const JRawValueType func_obj_val, \
-                            const JRawValueType this_val, \
-                            const JRawValueType args_p [], \
-                            const JRawLengthType args_cnt) { \
-    JRawValueType ret_val = jerry_create_undefined(); \
+  static jerry_value_t name(const jerry_value_t jfunc, \
+                            const jerry_value_t jthis, \
+                            const jerry_value_t jargv[], \
+                            const JRawLengthType jargc) { \
     iotjs_jhandler_t jhandler; \
-    iotjs_jhandler_initialize(&jhandler, func_obj_val, this_val, &ret_val, \
-                              args_p, args_cnt); \
+    iotjs_jhandler_initialize(&jhandler, jfunc, jthis, jargv, jargc); \
     ___ ## name ## _native(&jhandler); \
+    jerry_value_t ret_val = jhandler.unsafe.jret.unsafe.value; \
     iotjs_jhandler_destroy(&jhandler); \
     return ret_val; \
   } \
   static void ___ ## name ## _native(iotjs_jhandler_t* jhandler)
+
+
+void iotjs_binding_initialize();
+void iotjs_binding_finalize();
 
 
 #ifdef __cplusplus

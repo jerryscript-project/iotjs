@@ -65,12 +65,12 @@ typedef ReqWrap<I2cReqData> I2cReqWrap;
 // This I2c class provides interfaces for I2C operation.
 class I2c : public JObjectWrap {
  public:
-  explicit I2c(JObject& ji2c);
+  explicit I2c(const iotjs_jval_t* ji2c);
   virtual ~I2c();
 
-  static I2c* Create(JObject& ji2c);
+  static I2c* Create(const iotjs_jval_t* ji2c);
   static I2c* GetInstance();
-  static JObject* GetJI2c();
+  static const iotjs_jval_t* GetJI2c();
 
   virtual int SetAddress(uint8_t address) = 0;
   virtual int Scan(I2cReqWrap* i2c_req) = 0;
@@ -85,7 +85,7 @@ class I2c : public JObjectWrap {
 };
 
 
-JObject* InitI2c();
+iotjs_jval_t InitI2c();
 
 
 } // namespace iotjs

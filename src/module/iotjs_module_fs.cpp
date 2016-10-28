@@ -14,9 +14,9 @@
  */
 
 #include "iotjs_def.h"
-#include "iotjs_module_fs.h"
 
 #include "iotjs_module_buffer.h"
+
 #include "iotjs_exception.h"
 #include "iotjs_reqwrap.h"
 
@@ -26,7 +26,7 @@ namespace iotjs {
 
 class FsReqWrap : public ReqWrap<uv_fs_t> {
  public:
-  FsReqWrap(JObject& jcallback) : ReqWrap<uv_fs_t>(jcallback) {
+  FsReqWrap(const iotjs_jval_t* jcallback) : ReqWrap<uv_fs_t>(jcallback) {
   }
 
   ~FsReqWrap() {
@@ -35,18 +35,22 @@ class FsReqWrap : public ReqWrap<uv_fs_t> {
 };
 
 
+iotjs_jval_t MakeStatObject(uv_stat_t* statbuf);
+
+
 static void After(uv_fs_t* req) {
   FsReqWrap* req_wrap = static_cast<FsReqWrap*>(req->data);
   IOTJS_ASSERT(req_wrap != NULL);
   IOTJS_ASSERT(req_wrap->req() == req);
 
-  JObject cb = req_wrap->jcallback();
-  IOTJS_ASSERT(cb.IsFunction());
+  const iotjs_jval_t* cb = req_wrap->jcallback();
+  IOTJS_ASSERT(iotjs_jval_is_function(cb));
 
   iotjs_jargs_t jarg = iotjs_jargs_create(2);
   if (req->result < 0) {
-    JObject jerror(CreateUVException(req->result, "open"));
-    iotjs_jargs_append_obj(&jarg, &jerror);
+    iotjs_jval_t jerror = CreateUVException(req->result, "open");
+    iotjs_jargs_append_jval(&jarg, &jerror);
+    iotjs_jval_destroy(&jerror);
   } else {
     iotjs_jargs_append_null(&jarg);
     switch (req->fs_type) {
@@ -66,27 +70,32 @@ static void After(uv_fs_t* req) {
         int r;
         uv_dirent_t ent;
         uint32_t idx = 0;
-        /* make an empty javascript object */
-        JObject ret(0, (const char*)NULL);
+        iotjs_jval_t ret = iotjs_jval_create_array(0);
         while ((r = uv_fs_scandir_next(req, &ent)) != UV_EOF) {
-          ret.SetPropertyByIdx(idx, JObject(ent.name));
+          iotjs_jval_t name = iotjs_jval_create_string_raw(ent.name);
+          iotjs_jval_set_property_by_index(&ret, idx, &name);
+          iotjs_jval_destroy(&name);
           idx++;
         }
-        iotjs_jargs_append_obj(&jarg, &ret);
+        iotjs_jargs_append_jval(&jarg, &ret);
+        iotjs_jval_destroy(&ret);
         break;
       }
       case UV_FS_STAT: {
         uv_stat_t s = (req->statbuf);
-        JObject ret(MakeStatObject(&s));
-        iotjs_jargs_append_obj(&jarg, &ret);
+        iotjs_jval_t ret = MakeStatObject(&s);
+        iotjs_jargs_append_jval(&jarg, &ret);
+        iotjs_jval_destroy(&ret);
         break;
       }
-      default:
+      default: {
         iotjs_jargs_append_null(&jarg);
+        break;
+      }
     }
   }
 
-  JObject res = MakeCallback(cb, JObject::Undefined(), jarg);
+  MakeCallback(cb, iotjs_jval_get_undefined(), &jarg);
 
   iotjs_jargs_destroy(&jarg);
   delete req_wrap;
@@ -94,7 +103,7 @@ static void After(uv_fs_t* req) {
 
 
 #define FS_ASYNC(env, syscall, pcallback, ...) \
-  FsReqWrap* req_wrap = new FsReqWrap(*pcallback); \
+  FsReqWrap* req_wrap = new FsReqWrap(pcallback); \
   uv_fs_t* fs_req = req_wrap->req(); \
   int err = uv_fs_ ## syscall(env->loop(), \
                               fs_req, \
@@ -108,29 +117,30 @@ static void After(uv_fs_t* req) {
 
 
 #define FS_SYNC(env, syscall, ...) \
-  FsReqWrap req_wrap(JObject::Null()); \
+  FsReqWrap req_wrap(iotjs_jval_get_null()); \
   int err = uv_fs_ ## syscall(env->loop(), \
                               req_wrap.req(), \
                               __VA_ARGS__, \
                               NULL); \
   if (err < 0) { \
-    JObject jerror(CreateUVException(err, #syscall)); \
-    iotjs_jhandler_throw_obj(jhandler, &jerror); \
+    iotjs_jval_t jerror = CreateUVException(err, #syscall); \
+    iotjs_jhandler_throw(jhandler, &jerror); \
+    iotjs_jval_destroy(&jerror); \
   }
 
 
 JHANDLER_FUNCTION(Close) {
-  JHANDLER_CHECK(iotjs_jhandler_get_this(jhandler)->IsObject());
-  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) >= 1);
-  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 0)->IsNumber());
+  JHANDLER_CHECK_THIS(object);
+  JHANDLER_CHECK_ARGS(1, number);
+  JHANDLER_CHECK_ARG_IF_EXIST(1, function);
 
   Environment* env = Environment::GetEnv();
 
-  int fd = iotjs_jhandler_get_arg(jhandler, 0)->GetInt32();
+  int fd = JHANDLER_GET_ARG(0, number);
+  const iotjs_jval_t* jcallback = JHANDLER_GET_ARG_IF_EXIST(1, function);
 
-  if (iotjs_jhandler_get_arg_length(jhandler) > 1 &&
-      iotjs_jhandler_get_arg(jhandler, 1)->IsFunction()) {
-    FS_ASYNC(env, close, iotjs_jhandler_get_arg(jhandler, 1), fd);
+  if (jcallback) {
+    FS_ASYNC(env, close, jcallback, fd);
   } else {
     FS_SYNC(env, close, fd);
   }
@@ -138,22 +148,19 @@ JHANDLER_FUNCTION(Close) {
 
 
 JHANDLER_FUNCTION(Open) {
-  JHANDLER_CHECK(iotjs_jhandler_get_this(jhandler)->IsObject());
-  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) >= 3);
-  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 0)->IsString());
-  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 1)->IsNumber());
-  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 2)->IsNumber());
+  JHANDLER_CHECK_THIS(object);
+  JHANDLER_CHECK_ARGS(3, string, number, number);
+  JHANDLER_CHECK_ARG_IF_EXIST(3, function);
 
   Environment* env = Environment::GetEnv();
 
-  iotjs_string_t path = iotjs_jhandler_get_arg(jhandler, 0)->GetString();
-  int flags = iotjs_jhandler_get_arg(jhandler, 1)->GetInt32();
-  int mode = iotjs_jhandler_get_arg(jhandler, 2)->GetInt32();
+  iotjs_string_t path = JHANDLER_GET_ARG(0, string);
+  int flags = JHANDLER_GET_ARG(1, number);
+  int mode = JHANDLER_GET_ARG(2, number);
+  const iotjs_jval_t* jcallback = JHANDLER_GET_ARG_IF_EXIST(3, function);
 
-  if (iotjs_jhandler_get_arg_length(jhandler) > 3 &&
-      iotjs_jhandler_get_arg(jhandler, 3)->IsFunction()) {
-    FS_ASYNC(env, open, iotjs_jhandler_get_arg(jhandler, 3),
-             iotjs_string_data(&path), flags, mode);
+  if (jcallback) {
+    FS_ASYNC(env, open, jcallback, iotjs_string_data(&path), flags, mode);
   } else {
     FS_SYNC(env, open, iotjs_string_data(&path), flags, mode);
     if (err >= 0)
@@ -165,42 +172,39 @@ JHANDLER_FUNCTION(Open) {
 
 
 JHANDLER_FUNCTION(Read) {
-  JHANDLER_CHECK(iotjs_jhandler_get_this(jhandler)->IsObject());
-  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) >= 5);
-  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 0)->IsNumber());
-  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 1)->IsObject());
-  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 2)->IsNumber());
-  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 3)->IsNumber());
-  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 4)->IsNumber());
+  JHANDLER_CHECK_THIS(object);
+  JHANDLER_CHECK_ARGS(5, number, object, number, number, number);
+  JHANDLER_CHECK_ARG_IF_EXIST(5, function);
 
   Environment* env = Environment::GetEnv();
 
-  int fd = iotjs_jhandler_get_arg(jhandler, 0)->GetInt32();
-  int offset = iotjs_jhandler_get_arg(jhandler, 2)->GetInt32();
-  int length = iotjs_jhandler_get_arg(jhandler, 3)->GetInt32();
-  int position = iotjs_jhandler_get_arg(jhandler, 4)->GetInt32();
+  int fd = JHANDLER_GET_ARG(0, number);
+  const iotjs_jval_t* jbuffer = JHANDLER_GET_ARG(1, object);
+  int offset = JHANDLER_GET_ARG(2, number);
+  int length = JHANDLER_GET_ARG(3, number);
+  int position = JHANDLER_GET_ARG(4, number);
+  const iotjs_jval_t* jcallback = JHANDLER_GET_ARG_IF_EXIST(5, function);
 
-  JObject* jbuffer = iotjs_jhandler_get_arg(jhandler, 1);
-  BufferWrap* buffer_wrap = BufferWrap::FromJBuffer(*jbuffer);
+  BufferWrap* buffer_wrap = BufferWrap::FromJBuffer(jbuffer);
   char* data = buffer_wrap->buffer();
   int data_length = buffer_wrap->length();
   JHANDLER_CHECK(data != NULL);
   JHANDLER_CHECK(data_length > 0);
 
   if (offset >= data_length) {
-    JHANDLER_THROW_RETURN(RangeError, "offset out of bound");
+    JHANDLER_THROW(RANGE, "offset out of bound");
+    return;
   }
   if (offset + length > data_length) {
-    JHANDLER_THROW_RETURN(RangeError, "length out of bound");
+    JHANDLER_THROW(RANGE, "length out of bound");
+    return;
   }
 
   uv_buf_t uvbuf = uv_buf_init(reinterpret_cast<char*>(data + offset),
                                length);
 
-  if (iotjs_jhandler_get_arg_length(jhandler) > 5 &&
-      iotjs_jhandler_get_arg(jhandler, 5)->IsFunction()) {
-    FS_ASYNC(env, read, iotjs_jhandler_get_arg(jhandler, 5), fd, &uvbuf, 1,
-             position);
+  if (jcallback) {
+    FS_ASYNC(env, read, jcallback, fd, &uvbuf, 1, position);
   } else {
     FS_SYNC(env, read, fd, &uvbuf, 1, position);
     if (err >= 0)
@@ -210,42 +214,39 @@ JHANDLER_FUNCTION(Read) {
 
 
 JHANDLER_FUNCTION(Write) {
-  JHANDLER_CHECK(iotjs_jhandler_get_this(jhandler)->IsObject());
-  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) >= 5);
-  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 0)->IsNumber());
-  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 1)->IsObject());
-  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 2)->IsNumber());
-  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 3)->IsNumber());
-  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 4)->IsNumber());
+  JHANDLER_CHECK_THIS(object);
+  JHANDLER_CHECK_ARGS(5, number, object, number, number, number);
+  JHANDLER_CHECK_ARG_IF_EXIST(5, function);
 
   Environment* env = Environment::GetEnv();
 
-  int fd = iotjs_jhandler_get_arg(jhandler, 0)->GetInt32();
-  int offset = iotjs_jhandler_get_arg(jhandler, 2)->GetInt32();
-  int length = iotjs_jhandler_get_arg(jhandler, 3)->GetInt32();
-  int position = iotjs_jhandler_get_arg(jhandler, 4)->GetInt32();
+  int fd = JHANDLER_GET_ARG(0, number);
+  const iotjs_jval_t* jbuffer = JHANDLER_GET_ARG(1, object);
+  int offset = JHANDLER_GET_ARG(2, number);
+  int length = JHANDLER_GET_ARG(3, number);
+  int position = JHANDLER_GET_ARG(4, number);
+  const iotjs_jval_t* jcallback = JHANDLER_GET_ARG_IF_EXIST(5, function);
 
-  JObject* jbuffer = iotjs_jhandler_get_arg(jhandler, 1);
-  BufferWrap* buffer_wrap = BufferWrap::FromJBuffer(*jbuffer);
+  BufferWrap* buffer_wrap = BufferWrap::FromJBuffer(jbuffer);
   char* data = buffer_wrap->buffer();
   int data_length = buffer_wrap->length();
   JHANDLER_CHECK(data != NULL);
   JHANDLER_CHECK(data_length > 0);
 
   if (offset >= data_length) {
-    JHANDLER_THROW_RETURN(RangeError, "offset out of bound");
+    JHANDLER_THROW(RANGE, "offset out of bound");
+    return;
   }
   if (offset + length > data_length) {
-    JHANDLER_THROW_RETURN(RangeError, "length out of bound");
+    JHANDLER_THROW(RANGE, "length out of bound");
+    return;
   }
 
   uv_buf_t uvbuf = uv_buf_init(reinterpret_cast<char*>(data + offset),
                                length);
 
-  if (iotjs_jhandler_get_arg_length(jhandler) > 5 &&
-      iotjs_jhandler_get_arg(jhandler, 5)->IsFunction()) {
-    FS_ASYNC(env, write, iotjs_jhandler_get_arg(jhandler, 5), fd, &uvbuf, 1,
-             position);
+  if (jcallback) {
+    FS_ASYNC(env, write, jcallback, fd, &uvbuf, 1, position);
   } else {
     FS_SYNC(env, write, fd, &uvbuf, 1, position);
     if (err >= 0)
@@ -254,73 +255,67 @@ JHANDLER_FUNCTION(Write) {
 }
 
 
-JObject MakeStatObject(uv_stat_t* statbuf) {
+iotjs_jval_t MakeStatObject(uv_stat_t* statbuf) {
   Module* module = GetBuiltinModule(MODULE_FS);
   IOTJS_ASSERT(module != NULL);
 
-  JObject* fs = module->module;
-  IOTJS_ASSERT(fs != NULL);
+  iotjs_jval_t* fs = &module->module;
+  IOTJS_ASSERT(!iotjs_jval_is_undefined(fs));
 
-  JObject createStat = fs->GetProperty("_createStat");
-  IOTJS_ASSERT(createStat.IsFunction());
+  iotjs_jval_t create_stat = iotjs_jval_get_property(fs, "_createStat");
+  IOTJS_ASSERT(iotjs_jval_is_function(&create_stat));
 
-  JObject jstat;
-
-#define X(statobj, name) \
-  JObject name((int32_t)statbuf->st_##name); \
-  statobj.SetProperty(#name, name); \
-
-  X(jstat, dev)
-  X(jstat, mode)
-  X(jstat, nlink)
-  X(jstat, uid)
-  X(jstat, gid)
-  X(jstat, rdev)
-
-#undef X
+  iotjs_jval_t jstat = iotjs_jval_create_object();
 
 #define X(statobj, name) \
-  JObject name((double)statbuf->st_##name); \
-  statobj.SetProperty(#name, name); \
+  iotjs_jval_set_property_number(statobj, #name, statbuf->st_##name); \
 
-  X(jstat, blksize)
-  X(jstat, ino)
-  X(jstat, size)
-  X(jstat, blocks)
+  X(&jstat, dev)
+  X(&jstat, mode)
+  X(&jstat, nlink)
+  X(&jstat, uid)
+  X(&jstat, gid)
+  X(&jstat, rdev)
+  X(&jstat, blksize)
+  X(&jstat, ino)
+  X(&jstat, size)
+  X(&jstat, blocks)
 
 #undef X
 
   iotjs_jargs_t jargs = iotjs_jargs_create(1);
-  iotjs_jargs_append_obj(&jargs, &jstat);
+  iotjs_jargs_append_jval(&jargs, &jstat);
+  iotjs_jval_destroy(&jstat);
 
-  JResult jstat_res(createStat.Call(JObject::Undefined(), jargs));
-  IOTJS_ASSERT(jstat_res.IsOk());
+  iotjs_jval_t res = iotjs_jhelper_call_ok(&create_stat,
+                                           iotjs_jval_get_undefined(), &jargs);
 
   iotjs_jargs_destroy(&jargs);
+  iotjs_jval_destroy(&create_stat);
 
-  return jstat_res.value();
+  return res;
 }
 
 
 JHANDLER_FUNCTION(Stat) {
-  JHANDLER_CHECK(iotjs_jhandler_get_this(jhandler)->IsObject());
-  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) >= 1);
-  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 0)->IsString());
+  JHANDLER_CHECK_THIS(object);
+  JHANDLER_CHECK_ARGS(1, string);
+  JHANDLER_CHECK_ARG_IF_EXIST(1, function);
 
   Environment* env = Environment::GetEnv();
 
-  iotjs_string_t path = iotjs_jhandler_get_arg(jhandler, 0)->GetString();
+  iotjs_string_t path = JHANDLER_GET_ARG(0, string);
+  const iotjs_jval_t* jcallback = JHANDLER_GET_ARG_IF_EXIST(1, function);
 
-  if (iotjs_jhandler_get_arg_length(jhandler) > 1 &&
-      iotjs_jhandler_get_arg(jhandler, 1)->IsFunction()) {
-    FS_ASYNC(env, stat, iotjs_jhandler_get_arg(jhandler, 1),
-             iotjs_string_data(&path));
+  if (jcallback) {
+    FS_ASYNC(env, stat, jcallback, iotjs_string_data(&path));
   } else {
     FS_SYNC(env, stat, iotjs_string_data(&path));
     if (err >= 0) {
       uv_stat_t* s = &(req_wrap.req()->statbuf);
-      JObject ret(MakeStatObject(s));
-      iotjs_jhandler_return_obj(jhandler, &ret);
+      iotjs_jval_t stat = MakeStatObject(s);
+      iotjs_jhandler_return_jval(jhandler, &stat);
+      iotjs_jval_destroy(&stat);
     }
   }
 
@@ -328,22 +323,21 @@ JHANDLER_FUNCTION(Stat) {
 }
 
 
+
 JHANDLER_FUNCTION(MkDir) {
-  JHANDLER_CHECK(iotjs_jhandler_get_this(jhandler)->IsObject());
-  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) >= 2);
-  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 0)->IsString());
-  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 1)->IsNumber());
+  JHANDLER_CHECK_THIS(object);
+  JHANDLER_CHECK_ARGS(2, string, number);
+  JHANDLER_CHECK_ARG_IF_EXIST(2, function);
+
   Environment* env = Environment::GetEnv();
 
-  iotjs_string_t path = iotjs_jhandler_get_arg(jhandler, 0)->GetString();
-  int mode = iotjs_jhandler_get_arg(jhandler, 1)->GetInt32();
+  iotjs_string_t path = JHANDLER_GET_ARG(0, string);
+  int mode = JHANDLER_GET_ARG(1, number);
+  const iotjs_jval_t* jcallback = JHANDLER_GET_ARG_IF_EXIST(2, function);
 
-  if (iotjs_jhandler_get_arg_length(jhandler) > 2 &&
-      iotjs_jhandler_get_arg(jhandler, 2)->IsFunction()) {
-    FS_ASYNC(env, mkdir, iotjs_jhandler_get_arg(jhandler, 2),
-             iotjs_string_data(&path), mode);
+  if (jcallback) {
+    FS_ASYNC(env, mkdir, jcallback, iotjs_string_data(&path), mode);
   } else {
-    JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 1)->IsNumber());
     FS_SYNC(env, mkdir, iotjs_string_data(&path), mode);
     if (err >= 0)
       iotjs_jhandler_return_undefined(jhandler);
@@ -354,17 +348,17 @@ JHANDLER_FUNCTION(MkDir) {
 
 
 JHANDLER_FUNCTION(RmDir) {
-  JHANDLER_CHECK(iotjs_jhandler_get_this(jhandler)->IsObject());
-  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) >= 1);
-  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 0)->IsString());
+  JHANDLER_CHECK_THIS(object);
+  JHANDLER_CHECK_ARGS(1, string);
+  JHANDLER_CHECK_ARG_IF_EXIST(1, function);
+
   Environment* env = Environment::GetEnv();
 
-  iotjs_string_t path = iotjs_jhandler_get_arg(jhandler, 0)->GetString();
+  iotjs_string_t path = JHANDLER_GET_ARG(0, string);
+  const iotjs_jval_t* jcallback = JHANDLER_GET_ARG_IF_EXIST(1, function);
 
-  if (iotjs_jhandler_get_arg_length(jhandler) > 1 &&
-      iotjs_jhandler_get_arg(jhandler, 1)->IsFunction()) {
-    FS_ASYNC(env, rmdir, iotjs_jhandler_get_arg(jhandler, 1),
-             iotjs_string_data(&path));
+  if (jcallback) {
+    FS_ASYNC(env, rmdir, jcallback, iotjs_string_data(&path));
   } else {
     FS_SYNC(env, rmdir, iotjs_string_data(&path));
     if (err >= 0)
@@ -376,17 +370,17 @@ JHANDLER_FUNCTION(RmDir) {
 
 
 JHANDLER_FUNCTION(Unlink) {
-  JHANDLER_CHECK(iotjs_jhandler_get_this(jhandler)->IsObject());
-  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) >= 1);
-  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 0)->IsString());
+  JHANDLER_CHECK_THIS(object);
+  JHANDLER_CHECK_ARGS(1, string);
+  JHANDLER_CHECK_ARG_IF_EXIST(1, function);
 
   Environment* env = Environment::GetEnv();
-  iotjs_string_t path = iotjs_jhandler_get_arg(jhandler, 0)->GetString();
 
-  if (iotjs_jhandler_get_arg_length(jhandler) > 1 &&
-      iotjs_jhandler_get_arg(jhandler, 1)->IsFunction()) {
-    FS_ASYNC(env, unlink, iotjs_jhandler_get_arg(jhandler, 1),
-             iotjs_string_data(&path));
+  iotjs_string_t path = JHANDLER_GET_ARG(0, string);
+  const iotjs_jval_t* jcallback = JHANDLER_GET_ARG_IF_EXIST(1, function);
+
+  if (jcallback) {
+    FS_ASYNC(env, unlink, jcallback, iotjs_string_data(&path));
   } else {
     FS_SYNC(env, unlink, iotjs_string_data(&path));
     if (err >= 0)
@@ -398,19 +392,19 @@ JHANDLER_FUNCTION(Unlink) {
 
 
 JHANDLER_FUNCTION(Rename) {
-  JHANDLER_CHECK(iotjs_jhandler_get_this(jhandler)->IsObject());
-  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) >= 2);
-  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 0)->IsString());
-  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 1)->IsString());
+  JHANDLER_CHECK_THIS(object);
+  JHANDLER_CHECK_ARGS(2, string, string);
+  JHANDLER_CHECK_ARG_IF_EXIST(2, function);
 
   Environment* env = Environment::GetEnv();
-  iotjs_string_t oldPath = iotjs_jhandler_get_arg(jhandler, 0)->GetString();
-  iotjs_string_t newPath = iotjs_jhandler_get_arg(jhandler, 1)->GetString();
 
-  if (iotjs_jhandler_get_arg_length(jhandler) > 2 &&
-      iotjs_jhandler_get_arg(jhandler, 2)->IsFunction()) {
-    FS_ASYNC(env, rename, iotjs_jhandler_get_arg(jhandler, 2),
-             iotjs_string_data(&oldPath), iotjs_string_data(&newPath));
+  iotjs_string_t oldPath = JHANDLER_GET_ARG(0, string);
+  iotjs_string_t newPath = JHANDLER_GET_ARG(1, string);
+  const iotjs_jval_t* jcallback = JHANDLER_GET_ARG_IF_EXIST(2, function);
+
+  if (jcallback) {
+    FS_ASYNC(env, rename, jcallback, iotjs_string_data(&oldPath),
+             iotjs_string_data(&newPath));
   } else {
     FS_SYNC(env, rename, iotjs_string_data(&oldPath),
             iotjs_string_data(&newPath));
@@ -424,55 +418,50 @@ JHANDLER_FUNCTION(Rename) {
 
 
 JHANDLER_FUNCTION(ReadDir) {
-  JHANDLER_CHECK(iotjs_jhandler_get_this(jhandler)->IsObject());
-  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) >= 1);
-  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 0)->IsString());
+  JHANDLER_CHECK_THIS(object);
+  JHANDLER_CHECK_ARGS(1, string);
+  JHANDLER_CHECK_ARG_IF_EXIST(2, function);
 
   Environment* env = Environment::GetEnv();
-  iotjs_string_t path = iotjs_jhandler_get_arg(jhandler, 0)->GetString();
+  iotjs_string_t path = JHANDLER_GET_ARG(0, string);
+  const iotjs_jval_t* jcallback = JHANDLER_GET_ARG_IF_EXIST(2, function);
 
-  if (iotjs_jhandler_get_arg_length(jhandler) > 1 &&
-      iotjs_jhandler_get_arg(jhandler, 1)->IsFunction()) {
-    FS_ASYNC(env, scandir, iotjs_jhandler_get_arg(jhandler, 1),
-             iotjs_string_data(&path), 0);
+  if (jcallback) {
+    FS_ASYNC(env, scandir, jcallback, iotjs_string_data(&path), 0);
   } else {
     FS_SYNC(env, scandir, iotjs_string_data(&path), 0);
     if (err >= 0) {
       int r;
       uv_dirent_t ent;
       uint32_t idx = 0;
-      /* make an empty javascript object */
-      JObject ret(0, (const char*)NULL);
+      iotjs_jval_t ret = iotjs_jval_create_array(0);
       while ((r = uv_fs_scandir_next(req_wrap.req(), &ent)) != UV_EOF) {
-        ret.SetPropertyByIdx(idx, JObject(ent.name));
+        iotjs_jval_t name = iotjs_jval_create_string_raw(ent.name);
+        iotjs_jval_set_property_by_index(&ret, idx, &name);
+        iotjs_jval_destroy(&name);
         idx++;
       }
-      iotjs_jhandler_return_obj(jhandler, &ret);
+      iotjs_jhandler_return_jval(jhandler, &ret);
+      iotjs_jval_destroy(&ret);
     }
   }
   iotjs_string_destroy(&path);
 }
 
 
-JObject* InitFs() {
-  Module* module = GetBuiltinModule(MODULE_FS);
-  JObject* fs = module->module;
+iotjs_jval_t InitFs() {
+  iotjs_jval_t fs = iotjs_jval_create_object();
 
-  if (fs == NULL) {
-    fs = new JObject();
-    fs->SetMethod("close", Close);
-    fs->SetMethod("open", Open);
-    fs->SetMethod("read", Read);
-    fs->SetMethod("write", Write);
-    fs->SetMethod("stat", Stat);
-    fs->SetMethod("mkdir", MkDir);
-    fs->SetMethod("rmdir", RmDir);
-    fs->SetMethod("unlink", Unlink);
-    fs->SetMethod("rename", Rename);
-    fs->SetMethod("readdir", ReadDir);
-
-    module->module = fs;
-  }
+  iotjs_jval_set_method(&fs, "close", Close);
+  iotjs_jval_set_method(&fs, "open", Open);
+  iotjs_jval_set_method(&fs, "read", Read);
+  iotjs_jval_set_method(&fs, "write", Write);
+  iotjs_jval_set_method(&fs, "stat", Stat);
+  iotjs_jval_set_method(&fs, "mkdir", MkDir);
+  iotjs_jval_set_method(&fs, "rmdir", RmDir);
+  iotjs_jval_set_method(&fs, "unlink", Unlink);
+  iotjs_jval_set_method(&fs, "rename", Rename);
+  iotjs_jval_set_method(&fs, "readdir", ReadDir);
 
   return fs;
 }

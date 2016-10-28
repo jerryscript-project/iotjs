@@ -15,7 +15,6 @@
 
 
 #include "iotjs_def.h"
-#include "iotjs_module_httpparser.h"
 #include "http_parser.h"
 #include "iotjs_objectwrap.h"
 #include "iotjs_module_buffer.h"
@@ -25,13 +24,6 @@
 
 
 namespace iotjs {
-
-
-#define JSETPROPERTY( container_, fname_, vname_ )                      \
-  do {                                                                  \
-    JObject jobj(vname_ );                                              \
-    container_.SetProperty(fname_, jobj);                               \
-  } while(0)
 
 
 // If # of header fields == HEADER_MAX, flush header to JS side.
@@ -47,7 +39,7 @@ namespace iotjs {
 
 class HTTPParserWrap : public JObjectWrap {
 public:
-  explicit HTTPParserWrap(JObject& parser_, http_parser_type type)
+  explicit HTTPParserWrap(const iotjs_jval_t* parser_, http_parser_type type)
     : JObjectWrap(parser_) {
     url = iotjs_string_create("");
     status_msg = iotjs_string_create("");
@@ -120,33 +112,28 @@ public:
     return 0;
   }
 
-  JObject makeHeader(){
-    // FIXME: This must be impl. as JS Array
-    JObject jheader;
-    JSETPROPERTY(jheader, "length", (n_values)*2);
-    for (int i=0;i<n_values;i++) {
-      char index_string0 [5];
-      char index_string1 [5];
-      sprintf(index_string0,"%d",i*2);
-      sprintf(index_string1,"%d",i*2+1);
-      JObject v(values[i]);
-      JObject f(fields[i]);
-      jheader.SetProperty(index_string0, f);
-      jheader.SetProperty(index_string1, v);
-
+  iotjs_jval_t makeHeader() {
+    iotjs_jval_t jheader = iotjs_jval_create_array(n_values * 2);
+    for (int i = 0; i < n_values; i++) {
+      iotjs_jval_t f = iotjs_jval_create_string(&fields[i]);
+      iotjs_jval_t v = iotjs_jval_create_string(&values[i]);
+      iotjs_jval_set_property_by_index(&jheader, i * 2, &f);
+      iotjs_jval_set_property_by_index(&jheader, i * 2 + 1, &v);
+      iotjs_jval_destroy(&f);
+      iotjs_jval_destroy(&v);
     }
     return jheader;
   }
 
 
   int OnHeadersComplete() {
-    JObject jobj = jobject();
-    JObject func = jobj.GetProperty("OnHeadersComplete");
-    IOTJS_ASSERT(func.IsFunction());
+    const iotjs_jval_t* jobj = jobject();
+    iotjs_jval_t func = iotjs_jval_get_property(jobj, "OnHeadersComplete");
+    IOTJS_ASSERT(iotjs_jval_is_function(&func));
 
     // URL
     iotjs_jargs_t argv = iotjs_jargs_create(1);
-    JObject info;
+    iotjs_jval_t info = iotjs_jval_create_object();
 
     if (flushed) {
       // If some headers already are flushed,
@@ -157,89 +144,99 @@ public:
     else {
       // Here, there was no flushed header.
       // We need to make a new header object with all header fields
-      JSETPROPERTY(info, "headers", makeHeader());
-      if ( parser.type == HTTP_REQUEST) {
+      iotjs_jval_t jheader = makeHeader();
+      iotjs_jval_set_property_jval(&info, "headers", &jheader);
+      iotjs_jval_destroy(&jheader);
+      if (parser.type == HTTP_REQUEST) {
         IOTJS_ASSERT(!iotjs_string_is_empty(&url));
-        JSETPROPERTY(info, "url", url);
+        iotjs_jval_set_property_string(&info, "url", &url);
       }
     }
     n_fields = n_values = 0;
 
     // Method
     if (parser.type == HTTP_REQUEST) {
-      JSETPROPERTY(info, "method", (int32_t)parser.method);
+      iotjs_jval_set_property_number(&info, "method", parser.method);
     }
 
     // Status
     if (parser.type == HTTP_RESPONSE) {
-      JSETPROPERTY(info, "status", (int32_t)parser.status_code);
-      JSETPROPERTY(info, "status_msg", status_msg);
+      iotjs_jval_set_property_number(&info, "status", parser.status_code);
+      iotjs_jval_set_property_string(&info, "status_msg", &status_msg);
     }
 
 
     // For future support, current http_server module does not support
     // upgrade and keepalive.
     // upgrade
-    JSETPROPERTY(info, "upgrade", parser.upgrade ? true : false);
+    iotjs_jval_set_property_boolean(&info, "upgrade", parser.upgrade);
     // shouldkeepalive
-    JSETPROPERTY(info, "shouldkeepalive",
-                 http_should_keep_alive(&parser) ? true : false);
+    iotjs_jval_set_property_boolean(&info, "shouldkeepalive",
+                                    http_should_keep_alive(&parser));
 
 
-    iotjs_jargs_append_obj(&argv, &info);
+    iotjs_jargs_append_jval(&argv, &info);
 
-    int ret = MakeCallback(func, jobj, argv).GetBoolean() ? 1 : 0;
+    iotjs_jval_t res = MakeCallbackWithResult(&func, jobj, &argv);
+    bool ret = iotjs_jval_as_boolean(&res);
 
     iotjs_jargs_destroy(&argv);
+    iotjs_jval_destroy(&func);
+    iotjs_jval_destroy(&res);
+    iotjs_jval_destroy(&info);
 
     return ret;
   }
 
   int OnBody(const char* at, size_t length) {
-    JObject jobj = jobject();
-    JObject func = jobj.GetProperty("OnBody");
-    IOTJS_ASSERT(func.IsFunction());
+    const iotjs_jval_t* jobj = jobject();
+    iotjs_jval_t func = iotjs_jval_get_property(jobj, "OnBody");
+    IOTJS_ASSERT(iotjs_jval_is_function(&func));
 
     iotjs_jargs_t argv = iotjs_jargs_create(3);
-    iotjs_jargs_append_obj(&argv, cur_jbuf);
+    iotjs_jargs_append_jval(&argv, cur_jbuf);
     iotjs_jargs_append_number(&argv, at-cur_buf);
     iotjs_jargs_append_number(&argv, length);
 
 
-    MakeCallback(func, jobj, argv);
+    MakeCallback(&func, jobj, &argv);
 
     iotjs_jargs_destroy(&argv);
+    iotjs_jval_destroy(&func);
 
     return 0;
   }
 
   int OnMessageComplete() {
-    JObject jobj = jobject();
-    JObject func = jobj.GetProperty("OnMessageComplete");
-    IOTJS_ASSERT(func.IsFunction());
+    const iotjs_jval_t* jobj = jobject();
+    iotjs_jval_t func = iotjs_jval_get_property(jobj, "OnMessageComplete");
+    IOTJS_ASSERT(iotjs_jval_is_function(&func));
 
-    MakeCallback(func, jobj, iotjs_jargs_empty);
+    MakeCallback(&func, jobj, iotjs_jargs_get_empty());
+
+    iotjs_jval_destroy(&func);
 
     return 0;
   }
 
   void Flush() {
-    JObject jobj = jobject();
-    JObject func = jobj.GetProperty("OnHeaders");
-    IOTJS_ASSERT(func.IsFunction());
-
+    const iotjs_jval_t* jobj = jobject();
+    iotjs_jval_t func = iotjs_jval_get_property(jobj, "OnHeaders");
+    IOTJS_ASSERT(iotjs_jval_is_function(&func));
 
     iotjs_jargs_t argv = iotjs_jargs_create(2);
-    JObject jheader(makeHeader());
-    iotjs_jargs_append_obj(&argv, &jheader);
+    iotjs_jval_t jheader = makeHeader();
+    iotjs_jargs_append_jval(&argv, &jheader);
+    iotjs_jval_destroy(&jheader);
     if (parser.type == HTTP_REQUEST && !iotjs_string_is_empty(&url)) {
       iotjs_jargs_append_string(&argv, &url);
     }
 
-    MakeCallback(func, jobj, argv);
+    MakeCallback(&func, jobj, &argv);
 
     iotjs_string_make_empty(&url);
     iotjs_jargs_destroy(&argv);
+    iotjs_jval_destroy(&func);
     flushed = true;
   }
 
@@ -250,7 +247,7 @@ public:
   iotjs_string_t values[HEADER_MAX];
   int n_fields;
   int n_values;
-  JObject* cur_jbuf;
+  iotjs_jval_t* cur_jbuf;
   char* cur_buf;
   int cur_buf_len;
   bool flushed;
@@ -308,64 +305,65 @@ void HTTPParserWrap::Initialize(http_parser_type type) {
 }
 
 
+static HTTPParserWrap* getParserWrap(const iotjs_jval_t* jparser) {
+  uintptr_t handle = iotjs_jval_get_object_native_handle(jparser);
+  return reinterpret_cast<HTTPParserWrap*>(handle);
+}
+
+
 JHANDLER_FUNCTION(Reinitialize) {
-  JHANDLER_CHECK(iotjs_jhandler_get_this(jhandler)->IsObject());
-  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) == 1);
-  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 0)->IsNumber());
+  JHANDLER_CHECK_THIS(object);
+  JHANDLER_CHECK_ARGS(1, number);
 
-  JObject* jparser = iotjs_jhandler_get_this(jhandler);
+  const iotjs_jval_t* jparser = JHANDLER_GET_THIS(object);
 
-  JObject* arg0 = iotjs_jhandler_get_arg(jhandler, 0);
   http_parser_type httpparser_type =
-    static_cast<http_parser_type>(arg0->GetInt32());
+    static_cast<http_parser_type>(JHANDLER_GET_ARG(0, number));
   IOTJS_ASSERT(httpparser_type == HTTP_REQUEST ||
                httpparser_type == HTTP_RESPONSE);
 
-  HTTPParserWrap* parser =
-    reinterpret_cast<HTTPParserWrap*>(jparser->GetNative());
+  HTTPParserWrap* parser = getParserWrap(jparser);
   parser->Initialize(httpparser_type);
 }
 
 
 JHANDLER_FUNCTION(Finish) {
-  JHANDLER_CHECK(iotjs_jhandler_get_this(jhandler)->IsObject());
-  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) == 0);
+  JHANDLER_CHECK_THIS(object);
+  JHANDLER_CHECK_ARGS(0);
 
-  JObject* jparser = iotjs_jhandler_get_this(jhandler);
-  HTTPParserWrap* parser =
-    reinterpret_cast<HTTPParserWrap*>(jparser->GetNative());
+  const iotjs_jval_t* jparser = JHANDLER_GET_THIS(object);
+  HTTPParserWrap* parser = getParserWrap(jparser);
 
   int rv = http_parser_execute(&(parser->parser), &settings, NULL, 0);
 
   if (rv != 0) {
     enum http_errno err = HTTP_PARSER_ERRNO(&parser->parser);
 
-    JObject eobj(JObject::Error("Parse Error"));
-    JSETPROPERTY(eobj, "byteParsed", 0);
-    JSETPROPERTY(eobj, "code", http_errno_name(err));
-    iotjs_jhandler_return_obj(jhandler, &eobj);
+    iotjs_jval_t eobj = iotjs_jval_create_error("Parse Error");
+    iotjs_jval_set_property_number(&eobj, "byteParsed", 0);
+    iotjs_jval_set_property_string_raw(&eobj, "code", http_errno_name(err));
+    iotjs_jhandler_return_jval(jhandler, &eobj);
+    iotjs_jval_destroy(&eobj);
   }
 }
 
 
 JHANDLER_FUNCTION(Execute) {
-  JHANDLER_CHECK(iotjs_jhandler_get_this(jhandler)->IsObject());
-  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) == 1);
-  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 0)->IsObject());
+  JHANDLER_CHECK_THIS(object);
+  JHANDLER_CHECK_ARGS(1, object);
 
-  JObject* jparser = iotjs_jhandler_get_this(jhandler);
-  HTTPParserWrap* parser =
-    reinterpret_cast<HTTPParserWrap*>(jparser->GetNative());
+  const iotjs_jval_t* jparser = JHANDLER_GET_THIS(object);
+  HTTPParserWrap* parser = getParserWrap(jparser);
 
 
-  JObject* jbuffer = iotjs_jhandler_get_arg(jhandler, 0);
-  BufferWrap* buffer = BufferWrap::FromJBuffer(*jbuffer);
+  const iotjs_jval_t* jbuffer = JHANDLER_GET_ARG(0, object);
+  BufferWrap* buffer = BufferWrap::FromJBuffer(jbuffer);
   char* buf_data = buffer->buffer();
   int buf_len = buffer->length();
   JHANDLER_CHECK(buf_data != NULL);
   JHANDLER_CHECK(buf_len > 0);
 
-  parser->cur_jbuf = jbuffer;
+  parser->cur_jbuf = (iotjs_jval_t*)jbuffer;
   parser->cur_buf = buf_data;
   parser->cur_buf_len = buf_len;
 
@@ -380,96 +378,85 @@ JHANDLER_FUNCTION(Execute) {
   if (!parser->parser.upgrade && nparsed != buf_len) {
     // nparsed should equal to buf_len except UPGRADE protocol
     enum http_errno err = HTTP_PARSER_ERRNO(&parser->parser);
-    JObject eobj(JObject::Error("Parse Error"));
-    JSETPROPERTY(eobj, "byteParsed", 0);
-    JSETPROPERTY(eobj, "code", http_errno_name(err));
-    iotjs_jhandler_return_obj(jhandler, &eobj);
+    iotjs_jval_t eobj = iotjs_jval_create_error("Parse Error");
+    iotjs_jval_set_property_number(&eobj, "byteParsed", 0);
+    iotjs_jval_set_property_string_raw(&eobj, "code", http_errno_name(err));
+    iotjs_jhandler_return_jval(jhandler, &eobj);
+    iotjs_jval_destroy(&eobj);
   }
   else{
-    JObject ret(nparsed);
-    iotjs_jhandler_return_obj(jhandler, &ret);
+    iotjs_jhandler_return_number(jhandler, nparsed);
   }
 }
 
 
 JHANDLER_FUNCTION(Pause) {
-  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) == 0);
-  JHANDLER_CHECK(iotjs_jhandler_get_this(jhandler)->IsObject());
-  JObject* jparser = iotjs_jhandler_get_this(jhandler);
-  HTTPParserWrap* parser =
-    reinterpret_cast<HTTPParserWrap*>(jparser->GetNative());
+  JHANDLER_CHECK_THIS(object);
+  JHANDLER_CHECK_ARGS(0);
+  const iotjs_jval_t* jparser = JHANDLER_GET_THIS(object);
+  HTTPParserWrap* parser = getParserWrap(jparser);
   http_parser_pause(&parser->parser, 1);
 }
 
 
 JHANDLER_FUNCTION(Resume) {
-  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) == 0);
-  JHANDLER_CHECK(iotjs_jhandler_get_this(jhandler)->IsObject());
-  JObject* jparser = iotjs_jhandler_get_this(jhandler);
-  HTTPParserWrap* parser =
-    reinterpret_cast<HTTPParserWrap*>(jparser->GetNative());
+  JHANDLER_CHECK_THIS(object);
+  JHANDLER_CHECK_ARGS(0);
+  const iotjs_jval_t* jparser = JHANDLER_GET_THIS(object);
+  HTTPParserWrap* parser = getParserWrap(jparser);
   http_parser_pause(&parser->parser, 0);
 }
 
 
 JHANDLER_FUNCTION(HTTPParserCons) {
-  JHANDLER_CHECK(iotjs_jhandler_get_this(jhandler)->IsObject());
-  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) == 1);
-  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 0)->IsNumber());
+  JHANDLER_CHECK_THIS(object);
+  JHANDLER_CHECK_ARGS(1, number);
 
-  JObject* jparser = iotjs_jhandler_get_this(jhandler);
+  const iotjs_jval_t* jparser = JHANDLER_GET_THIS(object);
 
-  JObject* arg0 = iotjs_jhandler_get_arg(jhandler, 0);
   http_parser_type httpparser_type =
-    static_cast<http_parser_type>(arg0->GetInt32());
+    static_cast<http_parser_type>(JHANDLER_GET_ARG(0, number));
   IOTJS_ASSERT(httpparser_type == HTTP_REQUEST ||
                httpparser_type == HTTP_RESPONSE);
-  HTTPParserWrap* httpparser_wrap = new HTTPParserWrap(*jparser,
+  HTTPParserWrap* httpparser_wrap = new HTTPParserWrap(jparser,
                                                        httpparser_type);
-  IOTJS_ASSERT(httpparser_wrap->jobject().IsObject());
-  IOTJS_ASSERT(reinterpret_cast<HTTPParserWrap*>(jparser->GetNative())
-         == httpparser_wrap);
+  IOTJS_ASSERT(iotjs_jval_is_object(httpparser_wrap->jobject()));
+  IOTJS_ASSERT(getParserWrap(jparser) == httpparser_wrap);
 }
 
 
-JObject* InitHttpparser() {
+iotjs_jval_t InitHttpparser() {
+  iotjs_jval_t httpparser = iotjs_jval_create_object();
 
-  Module* module = GetBuiltinModule(MODULE_HTTPPARSER);
-  JObject* httpparser = module->module;
+  iotjs_jval_t jParserCons = iotjs_jval_create_function(HTTPParserCons);
+  iotjs_jval_set_property_jval(&httpparser, "HTTPParser", &jParserCons);
 
-  if (httpparser == NULL) {
-    httpparser = new JObject();
+  iotjs_jval_set_property_number(&jParserCons, "REQUEST", HTTP_REQUEST);
+  iotjs_jval_set_property_number(&jParserCons, "RESPONSE", HTTP_RESPONSE);
 
-    JObject HTTPParserConstructor(HTTPParserCons);
-    httpparser->SetProperty("HTTPParser", HTTPParserConstructor);
-
-    JObject request(HTTP_REQUEST);
-    HTTPParserConstructor.SetProperty("REQUEST", request);
-    JObject response(HTTP_RESPONSE);
-    HTTPParserConstructor.SetProperty("RESPONSE", response);
-
-    JObject methods;
+  iotjs_jval_t methods = iotjs_jval_create_object();
 #define V(num, name, string)                                                  \
-    JSETPROPERTY(methods, #num, #string);
+  iotjs_jval_set_property_string_raw(&methods, #num, #string);
   HTTP_METHOD_MAP(V)
 #undef V
 
-    JSETPROPERTY(HTTPParserConstructor, "methods", methods);
+  iotjs_jval_set_property_jval(&jParserCons, "methods", &methods);
 
-    JObject prototype;
-    HTTPParserConstructor.SetProperty("prototype", prototype);
-    // prototype ...
-    prototype.SetMethod("execute", Execute);
-    prototype.SetMethod("reinitialize", Reinitialize);
-    prototype.SetMethod("finish", Finish);
-    prototype.SetMethod("pause", Pause);
-    prototype.SetMethod("resume", Resume);
+  iotjs_jval_t prototype = iotjs_jval_create_object();
 
-    module->module = httpparser;
-  }
+  iotjs_jval_set_method(&prototype, "execute", Execute);
+  iotjs_jval_set_method(&prototype, "reinitialize", Reinitialize);
+  iotjs_jval_set_method(&prototype, "finish", Finish);
+  iotjs_jval_set_method(&prototype, "pause", Pause);
+  iotjs_jval_set_method(&prototype, "resume", Resume);
+
+  iotjs_jval_set_property_jval(&jParserCons, "prototype", &prototype);
+
+  iotjs_jval_destroy(&jParserCons);
+  iotjs_jval_destroy(&methods);
+  iotjs_jval_destroy(&prototype);
 
   return httpparser;
-
 }
 
 

@@ -14,7 +14,6 @@
  */
 
 // FIXME these are for excluding c++-style headers which are not needed here.
-#define IOTJS_BINDING_H
 #define IOTJS_BINDING_HELPER_H
 #define IOTJS_ENV_H
 #define IOTJS_MODULE_H

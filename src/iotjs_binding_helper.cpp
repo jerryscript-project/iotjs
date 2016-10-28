@@ -24,40 +24,42 @@
 namespace iotjs {
 
 
-void UncaughtException(JObject& jexception) {
-  JObject* process = GetProcess();
+void UncaughtException(const iotjs_jval_t* jexception) {
+  iotjs_jval_t* process = GetProcess();
 
-  JObject jonuncaughtexception(process->GetProperty("_onUncaughtExcecption"));
-  IOTJS_ASSERT(jonuncaughtexception.IsFunction());
-
-  JRawValueType jexception_val = jerry_acquire_value(jexception.raw_value());
-  jerry_value_clear_error_flag(&jexception_val);
-  JObject jexception_obj(jexception_val);
+  iotjs_jval_t jonuncaughtexception =
+      iotjs_jval_get_property(process, "_onUncaughtExcecption");
+  IOTJS_ASSERT(iotjs_jval_is_function(&jonuncaughtexception));
 
   iotjs_jargs_t args = iotjs_jargs_create(1);
-  iotjs_jargs_append_obj(&args, &jexception_obj);
+  iotjs_jargs_append_jval(&args, jexception);
 
-  JResult jres = jonuncaughtexception.Call(*process, args);
-  IOTJS_ASSERT(jres.IsOk());
+  iotjs_jval_t jres = iotjs_jhelper_call_ok(&jonuncaughtexception, process,
+                                            &args);
+  iotjs_jval_destroy(&jres);
 
   iotjs_jargs_destroy(&args);
+  iotjs_jval_destroy(&jonuncaughtexception);
 }
 
 
 void ProcessEmitExit(int code) {
-  JObject* process = GetProcess();
+  iotjs_jval_t* process = GetProcess();
 
-  JObject jexit(process->GetProperty("emitExit"));
-  IOTJS_ASSERT(jexit.IsFunction());
+  iotjs_jval_t jexit = iotjs_jval_get_property(process, "emitExit");
+  IOTJS_ASSERT(iotjs_jval_is_function(&jexit));
 
-  iotjs_jargs_t args = iotjs_jargs_create(1);
-  iotjs_jargs_append_number(&args, code);
+  iotjs_jargs_t jargs = iotjs_jargs_create(1);
+  iotjs_jargs_append_number(&jargs, code);
 
-  JResult jres = jexit.Call(JObject::Undefined(), args);
+  bool throws;
+  iotjs_jval_t jres = iotjs_jhelper_call(&jexit, process, &jargs, &throws);
 
-  iotjs_jargs_destroy(&args);
+  iotjs_jargs_destroy(&jargs);
+  iotjs_jval_destroy(&jres);
+  iotjs_jval_destroy(&jexit);
 
-  if (!jres.IsOk()) {
+  if (throws) {
     exit(2);
   }
 }
@@ -65,39 +67,58 @@ void ProcessEmitExit(int code) {
 
 // Calls next tick callbacks registered via `process.nextTick()`.
 bool ProcessNextTick() {
-  JObject* process = GetProcess();
+  iotjs_jval_t* process = GetProcess();
 
-  JObject jon_next_tick(process->GetProperty("_onNextTick"));
-  IOTJS_ASSERT(jon_next_tick.IsFunction());
+  iotjs_jval_t jon_next_tick = iotjs_jval_get_property(process, "_onNextTick");
+  IOTJS_ASSERT(iotjs_jval_is_function(&jon_next_tick));
 
-  JResult jres = jon_next_tick.Call(JObject::Undefined(), iotjs_jargs_empty);
-  IOTJS_ASSERT(jres.IsOk());
-  IOTJS_ASSERT(jres.value().IsBoolean());
+  iotjs_jval_t jres = iotjs_jhelper_call_ok(&jon_next_tick,
+                                            iotjs_jval_get_undefined(),
+                                            iotjs_jargs_get_empty());
 
-  return jres.value().GetBoolean();
+  IOTJS_ASSERT(iotjs_jval_is_boolean(&jres));
+
+  bool ret = iotjs_jval_as_boolean(&jres);
+  iotjs_jval_destroy(&jres);
+  iotjs_jval_destroy(&jon_next_tick);
+
+  return ret;
 }
 
 
 // Make a callback for the given `function` with `this_` binding and `args`
 // arguments. The next tick callbacks registered via `process.nextTick()`
 // will be called after the callback function `function` returns.
-JObject MakeCallback(JObject& function, JObject& this_, iotjs_jargs_t& args) {
+void MakeCallback(const iotjs_jval_t* jfunction,
+                  const iotjs_jval_t* jthis,
+                  const iotjs_jargs_t* jargs) {
+  iotjs_jval_t result = MakeCallbackWithResult(jfunction, jthis, jargs);
+  iotjs_jval_destroy(&result);
+}
+
+
+iotjs_jval_t MakeCallbackWithResult(const iotjs_jval_t* jfunction,
+                                    const iotjs_jval_t* jthis,
+                                    const iotjs_jargs_t* jargs) {
   // Calls back the function.
-  JResult jres = function.Call(this_, args);
-  if (jres.IsException()) {
-    UncaughtException(jres.value());
+  bool throws;
+  iotjs_jval_t jres = iotjs_jhelper_call(jfunction, jthis, jargs, &throws);
+  if (throws) {
+    UncaughtException(&jres);
   }
 
   // Calls the next tick callbacks.
   ProcessNextTick();
 
   // Return value.
-  return jres.value();
+  return jres;
 }
 
 
-JObject* InitProcessModule() {
-  return InitProcess();
+iotjs_jval_t* InitProcessModule() {
+  Module* module = GetBuiltinModule(MODULE_PROCESS);
+  module->module = InitProcess();
+  return &module->module;
 }
 
 

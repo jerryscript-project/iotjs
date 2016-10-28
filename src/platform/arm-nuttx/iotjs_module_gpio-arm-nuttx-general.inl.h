@@ -25,7 +25,7 @@ namespace iotjs {
 // GPIO implementation for arm-nuttx target.
 class GpioArmNuttxGeneral : public Gpio {
  public:
-  explicit GpioArmNuttxGeneral(JObject& jgpio);
+  explicit GpioArmNuttxGeneral(const iotjs_jval_t* jgpio);
 
   static GpioArmNuttxGeneral* GetInstance();
 
@@ -40,12 +40,12 @@ class GpioArmNuttxGeneral : public Gpio {
 };
 
 
-Gpio* Gpio::Create(JObject& jgpio) {
+Gpio* Gpio::Create(const iotjs_jval_t* jgpio) {
   return new GpioArmNuttxGeneral(jgpio);
 }
 
 
-GpioArmNuttxGeneral::GpioArmNuttxGeneral(JObject& jgpio)
+GpioArmNuttxGeneral::GpioArmNuttxGeneral(const iotjs_jval_t* jgpio)
     : Gpio(jgpio) {
 }
 

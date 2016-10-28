@@ -24,7 +24,7 @@
 namespace iotjs {
 
 
-Gpio* Gpio::Create(JObject& jgpio) {
+Gpio* Gpio::Create(const iotjs_jval_t* jgpio) {
   return new GpioLinuxMraa(jgpio);
 }
 
@@ -39,7 +39,7 @@ Gpio* Gpio::Create(JObject& jgpio) {
 namespace iotjs {
 
 
-Gpio* Gpio::Create(JObject& jgpio) {
+Gpio* Gpio::Create(const iotjs_jval_t* jgpio) {
   return new GpioLinuxGeneral(jgpio);
 }
 

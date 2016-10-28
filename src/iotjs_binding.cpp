@@ -251,6 +251,23 @@ void JObject::SetProperty(const char* name, JRawValueType val) {
 }
 
 
+void JObject::SetPropertyByIdx(uint32_t idx, const JObject& obj) {
+  IOTJS_ASSERT(IsObject());
+  SetPropertyByIdx(idx, obj.raw_value());
+}
+
+
+void JObject::SetPropertyByIdx(uint32_t idx, JRawValueType val) {
+  IOTJS_ASSERT(IsObject());
+  JRawValueType ret_val = jerry_set_property_by_index(
+      _obj_val,
+      idx,
+      val);
+  IOTJS_ASSERT(!jerry_value_has_error_flag(ret_val));
+  jerry_release_value(ret_val);
+}
+
+
 JObject JObject::GetProperty(const char* name) {
   IOTJS_ASSERT(IsObject());
   JRawValueType prop_name = jerry_create_string(

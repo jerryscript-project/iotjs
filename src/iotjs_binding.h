@@ -46,12 +46,12 @@ enum JResultType {
 /// Wrapper for Javascript objects.
 class JObject {
  public:
-  // Consturctors.
+  // Consturctors
 
-  // Creates a initail javascript object.
+  // Creates an initial javascript object.
   explicit JObject();
 
-  // Creates a object copied from other object.
+  // Creates an object copied from other object.
   JObject(const JObject& other);
 
   // Creates a javascript boolean object.
@@ -61,14 +61,14 @@ class JObject {
   explicit JObject(int v);
   explicit JObject(double v);
 
-  // Creates a javascirpt string object.
+  // Creates a javascript string object.
   explicit JObject(const char* v);
   explicit JObject(const iotjs_string_t& v);
 
-  // Creates a javascirpt array object from char array
+  // Creates a javascript array object from char array
   explicit JObject(uint32_t len, const char* data);
 
-  // Creates a object from `JRawValueType*`.
+  // Creates an object from `JRawValueType*`.
   // If second argument set true, then ref count for the object will be
   // decreased when this wrapper is being destroyed.
   explicit JObject(const JRawValueType val, bool need_unref = true);
@@ -84,16 +84,16 @@ class JObject {
   // Releases null and undefined objects.
   static void cleanup();
 
-  // Create a javascript null object.
+  // Creates a javascript null object.
   static JObject& Null();
 
-  // Crate a javascript undefined object.
+  // Creates a javascript undefined object.
   static JObject& Undefined();
 
-  // Get the javascript global object.
+  // Gets the javascript global object.
   static JObject Global();
 
-  // Create a javascript error object.
+  // Creates a javascript error object.
   static JObject Error(const char* message);
   static JObject EvalError(const char* message);
   static JObject RangeError(const char* message);
@@ -107,7 +107,7 @@ class JObject {
                       bool strict_mode = false);
 
 
-  // Destoyer for this class.
+  // Destructor for this class
   // When the wrapper is being destroyed, ref count for correspoding javascript
   // object will be decreased unless `need_unref` was set false.
   ~JObject();
@@ -134,6 +134,8 @@ class JObject {
   // Sets & gets property for the javascript object.
   void SetProperty(const char* name, const JObject& val);
   void SetProperty(const char* name, JRawValueType val);
+  void SetPropertyByIdx(uint32_t idx, const JObject& val);
+  void SetPropertyByIdx(uint32_t idx, JRawValueType val);
 
   JObject GetProperty(const char* name);
 
@@ -144,7 +146,7 @@ class JObject {
   // Returns value for boolean contents of the object.
   bool GetBoolean();
 
-  // Retruns value for 32bit integer contents of number object.
+  // Returns value for 32bit integer contents of number object.
   int32_t GetInt32();
 
   // Returns value for 64bit integer contents of number object.

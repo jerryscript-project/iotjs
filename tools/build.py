@@ -442,6 +442,7 @@ def build_libjerry(option):
 
     if option.buildtype == 'debug':
         cmake_opt.append('-DCMAKE_BUILD_TYPE=Debug')
+        cmake_opt.append('-DFEATURE_ERROR_MESSAGES=On')
 
     if option.target_os == 'nuttx':
         cmake_opt.append('-DEXTERNAL_LIBC_INTERFACE=' +

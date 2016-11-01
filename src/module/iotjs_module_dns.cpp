@@ -29,8 +29,8 @@ static void AfterGetAddrInfo(uv_getaddrinfo_t* req, int status, addrinfo* res) {
   GetAddrInfoReqWrap* req_wrap = reinterpret_cast<GetAddrInfoReqWrap*>(
       req->data);
 
-  JArgList args(3);
-  args.Add(JVal::Number(status));
+  iotjs_jargs_t args = iotjs_jargs_create(3);
+  iotjs_jargs_append_number(&args, status);
 
   if (status == 0) {
     char ip[INET6_ADDRSTRLEN];
@@ -52,8 +52,7 @@ static void AfterGetAddrInfo(uv_getaddrinfo_t* req, int status, addrinfo* res) {
       ip[0] = 0;
     }
 
-    JObject result(ip);
-    args.Add(result);
+    iotjs_jargs_append_raw_string(&args, ip);
   }
 
   uv_freeaddrinfo(res);
@@ -61,22 +60,24 @@ static void AfterGetAddrInfo(uv_getaddrinfo_t* req, int status, addrinfo* res) {
   // Make the callback into JavaScript
   MakeCallback(req_wrap->jcallback(), JObject::Undefined(), args);
 
+  iotjs_jargs_destroy(&args);
+
   delete req_wrap;
 }
 
 
 JHANDLER_FUNCTION(GetAddrInfo) {
-  JHANDLER_CHECK(handler.GetThis()->IsObject());
-  JHANDLER_CHECK(handler.GetArgLength() == 4);
-  JHANDLER_CHECK(handler.GetArg(0)->IsString());
-  JHANDLER_CHECK(handler.GetArg(1)->IsNumber());
-  JHANDLER_CHECK(handler.GetArg(2)->IsNumber());
-  JHANDLER_CHECK(handler.GetArg(3)->IsFunction());
+  JHANDLER_CHECK(iotjs_jhandler_get_this(jhandler)->IsObject());
+  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) == 4);
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 0)->IsString());
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 1)->IsNumber());
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 2)->IsNumber());
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 3)->IsFunction());
 
-  iotjs_string_t hostname = handler.GetArg(0)->GetString();
-  int option = handler.GetArg(1)->GetInt32();
-  int flags = handler.GetArg(2)->GetInt32();
-  JObject* jcallback = handler.GetArg(3);
+  iotjs_string_t hostname = iotjs_jhandler_get_arg(jhandler, 0)->GetString();
+  int option = iotjs_jhandler_get_arg(jhandler, 1)->GetInt32();
+  int flags = iotjs_jhandler_get_arg(jhandler, 2)->GetInt32();
+  JObject* jcallback = iotjs_jhandler_get_arg(jhandler, 3);
 
   int family;
   if (option == 0) {
@@ -107,7 +108,7 @@ JHANDLER_FUNCTION(GetAddrInfo) {
     delete req_wrap;
   }
 
-  handler.Return(JVal::Number(err));
+  iotjs_jhandler_return_number(jhandler, err);
 
   iotjs_string_destroy(&hostname);
 }
@@ -120,8 +121,8 @@ JObject* InitDns() {
   if (dns == NULL) {
     dns = new JObject();
     dns->SetMethod("getaddrinfo", GetAddrInfo);
-    dns->SetProperty("AI_ADDRCONFIG", JVal::Number(AI_ADDRCONFIG));
-    dns->SetProperty("AI_V4MAPPED", JVal::Number(AI_V4MAPPED));
+    dns->SetProperty("AI_ADDRCONFIG", iotjs_jval_number(AI_ADDRCONFIG));
+    dns->SetProperty("AI_V4MAPPED", iotjs_jval_number(AI_V4MAPPED));
 
     module->module = dns;
   }

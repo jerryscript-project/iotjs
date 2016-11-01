@@ -109,11 +109,13 @@ static bool RunIoTjs(JObject* process) {
   // Run the entry function passing process builtin.
   // The entry function will continue initializing process module, global, and
   // other native modules, and finally load and run application.
-  JArgList args(1);
-  args.Add(*process);
+  iotjs_jargs_t args = iotjs_jargs_create(1);
+  iotjs_jargs_append_obj(&args, process);
 
   JObject global(JObject::Global());
   JResult jmain_res = jmain.value().Call(global, args);
+
+  iotjs_jargs_destroy(&args);
 
   if (jmain_res.IsException()) {
     UncaughtException(jmain_res.value());
@@ -126,7 +128,9 @@ static bool RunIoTjs(JObject* process) {
 
 static bool StartIoTjs(Environment* env) {
   // Initialize jerry null and undefined objects.
+  iotjs_binding_initialize();
   JObject::init();
+
   // Get jerry global object.
   JObject global = JObject::Global();
 
@@ -164,6 +168,7 @@ static bool StartIoTjs(Environment* env) {
 
   // Release jerry null and undefined objects.
   JObject::cleanup();
+  iotjs_binding_finalize();
 
   return true;
 }

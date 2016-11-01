@@ -70,34 +70,32 @@ JObject::JObject(const JObject& other) {
 
 
 JObject::JObject(bool v) {
-  _obj_val = JVal::Bool(v);
+  _obj_val = iotjs_jval_bool(v);
   _unref_at_close = false;
 }
 
 
 JObject::JObject(int v) {
-  _obj_val = JVal::Number(v);
+  _obj_val = iotjs_jval_number(v);
   _unref_at_close = true;
 }
 
 
 JObject::JObject(double v) {
-  _obj_val = JVal::Number(v);
+  _obj_val = iotjs_jval_number(v);
   _unref_at_close = true;
 }
 
 
 JObject::JObject(const char* v) {
   IOTJS_ASSERT(v != NULL);
-  _obj_val = jerry_create_string(reinterpret_cast<const jerry_char_t*>(v));
+  _obj_val = iotjs_jval_raw_string(v);
   _unref_at_close = true;
 }
 
 
 JObject::JObject(const iotjs_string_t& v) {
-  _obj_val = jerry_create_string_sz(
-      reinterpret_cast<const jerry_char_t*>(iotjs_string_data(&v)),
-                                            iotjs_string_size(&v));
+  _obj_val = iotjs_jval_string(&v);
   _unref_at_close = true;
 }
 
@@ -138,8 +136,8 @@ JObject::~JObject() {
 
 
 void JObject::init() {
-  _null = new JObject(JVal::Null(), false);
-  _undefined = new JObject(JVal::Undefined(), false);
+  _null = new JObject(iotjs_jval_null(), false);
+  _undefined = new JObject(iotjs_jval_undefined(), false);
 }
 
 
@@ -348,18 +346,18 @@ uintptr_t JObject::GetNative() {
 }
 
 
-JResult JObject::Call(JObject& this_, JArgList& arg) {
+JResult JObject::Call(JObject& this_, iotjs_jargs_t& arg) {
   IOTJS_ASSERT(IsFunction());
 
   JRawValueType res;
   JRawValueType* val_args = NULL;
   uint16_t val_argv = 0;
 
-  if (arg.GetLength() > 0) {
-    val_argv = arg.GetLength();
+  if (iotjs_jargs_length(&arg) > 0) {
+    val_argv = iotjs_jargs_length(&arg);
     val_args = new JRawValueType[val_argv];
     for (int i = 0; i < val_argv; ++i) {
-      val_args[i] = arg.Get(i)->raw_value();
+      val_args[i] = iotjs_jargs_get(&arg, i)->raw_value();
     }
   }
 
@@ -379,7 +377,7 @@ JResult JObject::Call(JObject& this_, JArgList& arg) {
 }
 
 
-JObject JObject::CallOk(JObject& this_, JArgList& arg) {
+JObject JObject::CallOk(JObject& this_, iotjs_jargs_t& arg) {
   JResult jres = Call(this_, arg);
   IOTJS_ASSERT(jres.IsOk());
   return jres.value();
@@ -489,178 +487,338 @@ bool JResult::IsException() const {
 }
 
 
-JRawValueType JVal::Undefined() {
-  return jerry_create_undefined();
+} // namespace iotjs
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
+static JRawValueType jundefined;
+static JRawValueType jnull;
+static JRawValueType jtrue;
+static JRawValueType jfalse;
+
+
+void iotjs_binding_initialize() {
+  jundefined = jerry_create_undefined();
+  jnull = jerry_create_null();
+  jtrue = jerry_create_boolean(true);
+  jfalse = jerry_create_boolean(false);
 }
 
 
-JRawValueType JVal::Null() {
-  return jerry_create_null();
+void iotjs_binding_finalize() {
+  /* simple values do not have to be released */
 }
 
 
-JRawValueType JVal::Bool(bool v) {
-  return jerry_create_boolean(v);
+JRawValueType iotjs_jval_undefined() {
+  return jundefined;
 }
 
 
-JRawValueType JVal::Number(int v) {
-  return JVal::Number((double)v);
+JRawValueType iotjs_jval_null() {
+  return jnull;
 }
 
 
-JRawValueType JVal::Number(double v) {
+JRawValueType iotjs_jval_bool(bool v) {
+  return v ? jtrue : jfalse;
+}
+
+
+JRawValueType iotjs_jval_number(double v) {
   return jerry_create_number(v);
 }
 
 
-JRawValueType JVal::Object() {
+JRawValueType iotjs_jval_string(const iotjs_string_t* v) {
+  return jerry_create_string_sz((const jerry_char_t*)(iotjs_string_data(v)),
+                                iotjs_string_size(v));
+
+}
+
+
+JRawValueType iotjs_jval_raw_string(const char* v) {
+  IOTJS_ASSERT(v != NULL);
+  return jerry_create_string((const jerry_char_t*)(v));
+}
+
+
+
+JRawValueType iotjs_jval_object() {
   return jerry_create_object();
 }
 
 
-JArgList::JArgList(uint16_t capacity)
-    : _capacity(capacity)
-    , _argc(0)
-    , _argv(NULL) {
-  if (_capacity > 0) {
-    _argv = new JObject*[_capacity];
-    for (int i = 0; i < _capacity; ++i) {
-      _argv[i] = NULL;
+iotjs_jargs_t iotjs_jargs_create(uint16_t capacity) {
+  iotjs_jargs_t jargs;
+  IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_jargs_t, &jargs);
+
+  _this->capacity = capacity;
+  _this->argc = 0;
+  if (capacity > 0) {
+    unsigned buffer_size = sizeof(void*) * capacity;
+    _this->argv = (iotjs::JObject**) iotjs_buffer_allocate(buffer_size);
+  } else {
+    _this->argv = NULL;
+  }
+
+  return jargs;
+}
+
+
+void iotjs_jargs_destroy(iotjs_jargs_t* jargs) {
+  IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_jargs_t, jargs);
+
+  IOTJS_ASSERT(_this->argv == NULL || _this->argc > 0);
+  IOTJS_ASSERT(_this->argc <= _this->capacity);
+
+  if (_this->capacity > 0) {
+    for (int i = 0; i < _this->argc; ++i) {
+      delete _this->argv[i];
     }
+    iotjs_buffer_release((char*)_this->argv);
+  } else {
+    IOTJS_ASSERT(_this->argv == NULL);
   }
 }
 
 
-JArgList::~JArgList() {
-  IOTJS_ASSERT(_argv == NULL || _argc > 0);
-  IOTJS_ASSERT(_argc <= _capacity);
-  for (int i = 0; i < _argc; ++i) {
-    delete _argv[i];
-  }
-  delete [] _argv;
+iotjs_jargs_t iotjs_jargs_empty =
+  IOTJS_VALIDATED_STRUCT_STATIC_INITIALIZER({ 0, 0, NULL });
+
+
+uint16_t iotjs_jargs_length(iotjs_jargs_t* jargs) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_jargs_t, jargs);
+  return _this->argc;
 }
 
 
-static JArgList jarg_empty(0);
-JArgList& JArgList::Empty() {
-  return jarg_empty;
+void iotjs_jargs_append_obj(iotjs_jargs_t* jargs, iotjs::JObject* x) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_jargs_t, jargs);
+
+  IOTJS_ASSERT(_this->argc < _this->capacity);
+  _this->argv[_this->argc++] = new iotjs::JObject(*x);
 }
 
 
-uint16_t JArgList::GetLength() {
-  return _argc;
+void iotjs_jargs_append_bool(iotjs_jargs_t* jargs, bool x) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_jargs_t, jargs);
+
+  iotjs::JObject jtmp(x);
+  iotjs_jargs_append_obj(jargs, &jtmp);
 }
 
 
-void JArgList::Add(JObject& x) {
-  IOTJS_ASSERT(_argc < _capacity);
-  _argv[_argc++] = new JObject(x);
+void iotjs_jargs_append_number(iotjs_jargs_t* jargs, double x) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_jargs_t, jargs);
+
+  iotjs::JObject jtmp(x);
+  iotjs_jargs_append_obj(jargs, &jtmp);
 }
 
 
-void JArgList::Add(JRawValueType x) {
-  JObject jtmp(x);
-  Add(jtmp);
+void iotjs_jargs_append_string(iotjs_jargs_t* jargs, const iotjs_string_t* x) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_jargs_t, jargs);
+
+  iotjs::JObject jtmp(*x);
+  iotjs_jargs_append_obj(jargs, &jtmp);
 }
 
 
-void JArgList::Set(uint16_t i, JObject& x) {
-  IOTJS_ASSERT(i < _argc);
-  if (_argv[i] != NULL) {
-    delete _argv[i];
-  }
-  _argv[i] = new JObject(x);
+void iotjs_jargs_append_raw_string(iotjs_jargs_t* jargs, const char* x) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_jargs_t, jargs);
+
+  iotjs::JObject jtmp(x);
+  iotjs_jargs_append_obj(jargs, &jtmp);
 }
 
 
-void JArgList::Set(uint16_t i, JRawValueType x) {
-  JObject jtmp(x);
-  Set(i, jtmp);
+void iotjs_jargs_append_undefined(iotjs_jargs_t* jargs) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_jargs_t, jargs);
+
+  iotjs_jargs_append_obj(jargs, &iotjs::JObject::Undefined());
 }
 
 
-JObject* JArgList::Get(uint16_t i) {
-  IOTJS_ASSERT(i < _argc);
-  return _argv[i];
+void iotjs_jargs_append_null(iotjs_jargs_t* jargs) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_jargs_t, jargs);
+
+  iotjs_jargs_append_obj(jargs, &iotjs::JObject::Null());
 }
 
 
-JHandlerInfo::JHandlerInfo(const JRawValueType func_obj_val,
-                           const JRawValueType this_val,
-                           JRawValueType* ret_val_p,
-                           const JRawValueType args_p[],
-                           const uint16_t args_cnt)
-    : _function(func_obj_val, false)
-    , _this(this_val, false)
-    , _arg_list(args_cnt)
-    , _ret_val_p(ret_val_p)
-    , _thrown(false) {
+void iotjs_jargs_replace(iotjs_jargs_t* jargs, uint16_t i, iotjs::JObject* x) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_jargs_t, jargs);
+
+  IOTJS_ASSERT(i < _this->argc);
+  IOTJS_ASSERT(_this->argv[i] != NULL);
+
+  delete _this->argv[i];
+  _this->argv[i] = new iotjs::JObject(*x);
+}
+
+
+iotjs::JObject* iotjs_jargs_get(iotjs_jargs_t* jargs, uint16_t i) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_jargs_t, jargs);
+
+  IOTJS_ASSERT(i < _this->argc);
+  return _this->argv[i];
+}
+
+
+void iotjs_jhandler_initialize(iotjs_jhandler_t* jhandler,
+                               const JRawValueType func_obj_val,
+                               const JRawValueType this_val,
+                               JRawValueType* ret_val_p,
+                               const JRawValueType args_p[],
+                               const uint16_t args_cnt) {
+  IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_jhandler_t, jhandler);
+
+  _this->function = new iotjs::JObject(func_obj_val, false);
+  _this->this_val = new iotjs::JObject(this_val, false);
+  _this->arg_list = iotjs_jargs_create(args_cnt);
+  _this->ret_val_p = ret_val_p;
+#ifndef NDEBUG
+  _this->finished = false;
+#endif
+
   if (args_cnt > 0) {
     for (int i = 0; i < args_cnt; ++i) {
-      JObject arg(args_p[i], false);
-      _arg_list.Add(arg);
+      iotjs::JObject arg(args_p[i], false);
+      iotjs_jargs_append_obj(&_this->arg_list, &arg);
     }
   }
 }
 
 
-JHandlerInfo::~JHandlerInfo() {
+void iotjs_jhandler_destroy(iotjs_jhandler_t* jhandler) {
+  IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_jhandler_t, jhandler);
+  delete _this->function;
+  delete _this->this_val;
+  iotjs_jargs_destroy(&_this->arg_list);
 }
 
 
-JObject* JHandlerInfo::GetFunction() {
-  return &_function;
+iotjs::JObject* iotjs_jhandler_get_function(iotjs_jhandler_t* jhandler) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_jhandler_t, jhandler);
+  return _this->function;
 }
 
 
-JObject* JHandlerInfo::GetThis() {
-  return &_this;
+iotjs::JObject* iotjs_jhandler_get_this(iotjs_jhandler_t* jhandler) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_jhandler_t, jhandler);
+  return _this->this_val;
 }
 
 
-JObject* JHandlerInfo::GetArg(uint16_t i) {
-  return _arg_list.Get(i);
+iotjs::JObject* iotjs_jhandler_get_arg(iotjs_jhandler_t* jhandler, uint16_t i) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_jhandler_t, jhandler);
+  return iotjs_jargs_get(&_this->arg_list, i);
 }
 
 
-uint16_t JHandlerInfo::GetArgLength() {
-  return _arg_list.GetLength();
+uint16_t iotjs_jhandler_get_arg_length(iotjs_jhandler_t* jhandler) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_jhandler_t, jhandler);
+  return iotjs_jargs_length(&_this->arg_list);
 }
 
 
-void JHandlerInfo::Return(JObject& ret) {
-  ret.Ref();
-  *_ret_val_p = ret.raw_value();
+void iotjs_jhandler_return_obj(iotjs_jhandler_t* jhandler,
+                               iotjs::JObject* ret) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_jhandler_t, jhandler);
+
+#ifndef NDEBUG
+  IOTJS_ASSERT(_this->finished == false);
+#endif
+
+  ret->Ref();
+  *_this->ret_val_p = ret->raw_value();
+
+#ifndef NDEBUG
+  _this->finished = true;
+#endif
 }
 
 
-void JHandlerInfo::Return(JRawValueType raw_val) {
-  JObject jret(raw_val);
-  Return(jret);
+void iotjs_jhandler_return_val(iotjs_jhandler_t* jhandler, JRawValueType ret) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_jhandler_t, jhandler);
+  iotjs::JObject jret(ret);
+  iotjs_jhandler_return_obj(jhandler, &jret);
 }
 
 
-void JHandlerInfo::Throw(JObject& ret) {
-  IOTJS_ASSERT(_thrown == false);
-
-  ret.Ref();
-  *_ret_val_p = ret.raw_value();
-  jerry_value_set_error_flag(_ret_val_p);
-
-  _thrown = true;
+void iotjs_jhandler_return_bool(iotjs_jhandler_t* jhandler, bool ret) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_jhandler_t, jhandler);
+  iotjs::JObject jret(ret);
+  iotjs_jhandler_return_obj(jhandler, &jret);
 }
 
 
-void JHandlerInfo::Throw(JRawValueType raw_val) {
-  JObject jthrow(raw_val);
-  Throw(jthrow);
+void iotjs_jhandler_return_number(iotjs_jhandler_t* jhandler, double ret) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_jhandler_t, jhandler);
+  iotjs::JObject jret(ret);
+  iotjs_jhandler_return_obj(jhandler, &jret);
 }
 
 
-bool JHandlerInfo::HasThrown() {
-  return _thrown;
+void iotjs_jhandler_return_undefined(iotjs_jhandler_t* jhandler) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_jhandler_t, jhandler);
+  iotjs::JObject jret(iotjs_jval_undefined());
+  iotjs_jhandler_return_obj(jhandler, &jret);
 }
 
 
-} // namespace iotjs
+void iotjs_jhandler_return_null(iotjs_jhandler_t* jhandler) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_jhandler_t, jhandler);
+  iotjs::JObject jret(iotjs_jval_null());
+  iotjs_jhandler_return_obj(jhandler, &jret);
+}
+
+
+void iotjs_jhandler_return_string(iotjs_jhandler_t* jhandler,
+                                  const iotjs_string_t* ret) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_jhandler_t, jhandler);
+  iotjs::JObject jret(*ret);
+  iotjs_jhandler_return_obj(jhandler, &jret);
+}
+
+
+void iotjs_jhandler_return_raw_string(iotjs_jhandler_t* jhandler,
+                                      const char* ret) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_jhandler_t, jhandler);
+  iotjs::JObject jret(ret);
+  iotjs_jhandler_return_obj(jhandler, &jret);
+}
+
+
+
+void iotjs_jhandler_throw_obj(iotjs_jhandler_t* jhandler, iotjs::JObject* err) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_jhandler_t, jhandler);
+#ifndef NDEBUG
+  IOTJS_ASSERT(_this->finished == false);
+#endif
+
+  err->Ref();
+  *_this->ret_val_p = err->raw_value();
+  jerry_value_set_error_flag(_this->ret_val_p);
+
+#ifndef NDEBUG
+  _this->finished = true;
+#endif
+}
+
+
+void iotjs_jhandler_throw_val(iotjs_jhandler_t* jhandler, JRawValueType err) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_jhandler_t, jhandler);
+  iotjs::JObject jerr(err);
+  iotjs_jhandler_throw_obj(jhandler, &jerr);
+}
+
+
+#ifdef __cplusplus
+} // extern "C"
+#endif

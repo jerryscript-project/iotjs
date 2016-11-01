@@ -43,7 +43,7 @@ Environment::~Environment() {
     // _argv[0] and _argv[1] refer addresses in static memory space.
     // Ohters refer adresses in heap space that is need to be deallocated.
     for (int i = 2; i < _argc; ++i) {
-      delete _argv[i];
+      delete [] _argv[i];
     }
     delete [] _argv;
   }

@@ -38,10 +38,10 @@ JObject* GetProcess() {
 
 
 JHANDLER_FUNCTION(Binding) {
-  JHANDLER_CHECK(handler.GetArgLength() == 1);
-  JHANDLER_CHECK(handler.GetArg(0)->IsNumber());
+  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) == 1);
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 0)->IsNumber());
 
-  int module_kind = handler.GetArg(0)->GetInt32();
+  int module_kind = iotjs_jhandler_get_arg(jhandler, 0)->GetInt32();
 
   Module* module = GetBuiltinModule(static_cast<ModuleKind>(module_kind));
   IOTJS_ASSERT(module != NULL);
@@ -52,7 +52,7 @@ JHANDLER_FUNCTION(Binding) {
     IOTJS_ASSERT(module->module);
   }
 
-  handler.Return(*module->module);
+  iotjs_jhandler_return_obj(jhandler, module->module);
 }
 
 
@@ -79,18 +79,18 @@ static JResult WrapEval(const char* source, size_t length) {
 
 
 JHANDLER_FUNCTION(Compile){
-  JHANDLER_CHECK(handler.GetArgLength() == 1);
-  JHANDLER_CHECK(handler.GetArg(0)->IsString());
+  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) == 1);
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 0)->IsString());
 
-  iotjs_string_t source = handler.GetArg(0)->GetString();
+  iotjs_string_t source = iotjs_jhandler_get_arg(jhandler, 0)->GetString();
 
   JResult jres = WrapEval(iotjs_string_data(&source),
                           iotjs_string_size(&source));
 
   if (jres.IsOk()) {
-    handler.Return(jres.value());
+    iotjs_jhandler_return_obj(jhandler, &jres.value());
   } else {
-    handler.Throw(jres.value());
+    iotjs_jhandler_throw_obj(jhandler, &jres.value());
   }
 
   iotjs_string_destroy(&source);
@@ -98,10 +98,10 @@ JHANDLER_FUNCTION(Compile){
 
 
 JHANDLER_FUNCTION(CompileNativePtr){
-  JHANDLER_CHECK(handler.GetArgLength() == 1);
-  JHANDLER_CHECK(handler.GetArg(0)->IsString());
+  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) == 1);
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 0)->IsString());
 
-  iotjs_string_t id = handler.GetArg(0)->GetString();
+  iotjs_string_t id = iotjs_jhandler_get_arg(jhandler, 0)->GetString();
 
   int i=0;
   while (natives[i].name != NULL) {
@@ -123,26 +123,26 @@ JHANDLER_FUNCTION(CompileNativePtr){
 #endif
 
     if (jres.IsOk()) {
-      handler.Return(jres.value());
+      iotjs_jhandler_return_obj(jhandler, &jres.value());
     } else {
-      handler.Throw(jres.value());
+      iotjs_jhandler_throw_obj(jhandler, &jres.value());
     }
   } else {
     JObject jerror = JObject::Error ("Unknown native module");
-    handler.Throw(jerror);
+    iotjs_jhandler_throw_obj(jhandler, &jerror);
   }
 }
 
 
 JHANDLER_FUNCTION(ReadSource){
-  JHANDLER_CHECK(handler.GetArgLength() == 1);
-  JHANDLER_CHECK(handler.GetArg(0)->IsString());
+  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) == 1);
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 0)->IsString());
 
-  iotjs_string_t path = handler.GetArg(0)->GetString();
+  iotjs_string_t path = iotjs_jhandler_get_arg(jhandler, 0)->GetString();
   iotjs_string_t code = iotjs_file_read(iotjs_string_data(&path));
 
   JObject ret(code);
-  handler.Return(ret);
+  iotjs_jhandler_return_obj(jhandler, &ret);
 
   iotjs_string_destroy(&path);
   iotjs_string_destroy(&code);
@@ -150,7 +150,7 @@ JHANDLER_FUNCTION(ReadSource){
 
 
 JHANDLER_FUNCTION(Cwd){
-  JHANDLER_CHECK(handler.GetArgLength() == 0);
+  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) == 0);
 
   char path[IOTJS_MAX_PATH_SIZE];
   size_t size_path = sizeof(path);
@@ -159,14 +159,14 @@ JHANDLER_FUNCTION(Cwd){
     JHANDLER_THROW_RETURN(Error, "cwd error");
   }
   JObject ret(path);
-  handler.Return(ret);
+  iotjs_jhandler_return_obj(jhandler, &ret);
 }
 
 JHANDLER_FUNCTION(Chdir){
-  JHANDLER_CHECK(handler.GetArgLength() == 1);
-  JHANDLER_CHECK(handler.GetArg(0)->IsString());
+  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) == 1);
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 0)->IsString());
 
-  iotjs_string_t path = handler.GetArg(0)->GetString();
+  iotjs_string_t path = iotjs_jhandler_get_arg(jhandler, 0)->GetString();
   int err = uv_cd(iotjs_string_data(&path));
 
   if (err) {
@@ -179,10 +179,10 @@ JHANDLER_FUNCTION(Chdir){
 
 
 JHANDLER_FUNCTION(DoExit) {
-  JHANDLER_CHECK(handler.GetArgLength() == 1);
-  JHANDLER_CHECK(handler.GetArg(0)->IsNumber());
+  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) == 1);
+  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 0)->IsNumber());
 
-  int exit_code = handler.GetArg(0)->GetInt32();
+  int exit_code = iotjs_jhandler_get_arg(jhandler, 0)->GetInt32();
 
   exit(exit_code);
 }
@@ -190,13 +190,13 @@ JHANDLER_FUNCTION(DoExit) {
 
 // Initialize `process.argv`
 JHANDLER_FUNCTION(InitArgv) {
-  JHANDLER_CHECK(handler.GetThis()->IsObject());
+  JHANDLER_CHECK(iotjs_jhandler_get_this(jhandler)->IsObject());
 
   // environtment
   Environment* env = Environment::GetEnv();
 
   // process.argv
-  JObject jargv = handler.GetThis()->GetProperty("argv");
+  JObject jargv = iotjs_jhandler_get_this(jhandler)->GetProperty("argv");
 
   for (int i = 0; i < env->argc(); ++i) {
     char index[10] = {0};
@@ -287,7 +287,7 @@ JObject* InitProcess() {
     JObject jbinding = process->GetProperty("binding");
 
 #define ENUMDEF_MODULE_LIST(upper, Camel, lower) \
-    jbinding.SetProperty(#lower, JVal::Number(MODULE_ ## upper));
+    jbinding.SetProperty(#lower, iotjs_jval_number(MODULE_ ## upper));
 
     MAP_MODULE_LIST(ENUMDEF_MODULE_LIST)
 

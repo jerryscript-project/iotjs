@@ -149,6 +149,7 @@ typedef struct iotjs_classname_t { \
 #include <uv.h>
 #include <assert.h>
 #include <limits.h> /* PATH_MAX */
+#include <string.h>
 
 
 #endif /* IOTJS_DEF_H */

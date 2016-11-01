@@ -361,7 +361,28 @@ function onread(socket, nread, isEOF, buffer) {
     var err = new Error('read error: ' + nread);
     stream.Readable.prototype.error.call(socket, err);
   } else if (nread > 0) {
-    stream.Readable.prototype.push.call(socket, buffer);
+    if (process.platform  != 'nuttx') {
+      stream.Readable.prototype.push.call(socket, buffer);
+      return;
+    }
+
+    var str = buffer.toString();
+    var eofNeeded = false;
+    if (str.length >= 6
+      && str.substr(str.length - 6, str.length) == '\\e\\n\\d') {
+      eofNeeded  = true;
+      buffer = buffer.slice(0, str.length - 6);
+    }
+
+    if (str.length == 6 && eofNeeded) {
+      // Socket.prototype.end with no argument
+    } else {
+      stream.Readable.prototype.push.call(socket, buffer);
+    }
+
+    if (eofNeeded) {
+      onread(socket, 0, true, null);
+    }
   }
 }
 
@@ -598,4 +619,3 @@ exports.connect = exports.createConnection = function() {
 
 module.exports.Socket = Socket;
 module.exports.Server = Server;
-

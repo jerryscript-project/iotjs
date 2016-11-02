@@ -92,7 +92,7 @@ JHANDLER_FUNCTION(GetAddrInfo) {
   }
 
 #if defined(__NUTTX__)
-  JArgList args(3);
+  iotjs_jargs_t args = iotjs_jargs_create(3);
   int err = 0;
   char ip[INET6_ADDRSTRLEN];
   const char* hostname_data = iotjs_string_data(&hostname);
@@ -110,10 +110,10 @@ JHANDLER_FUNCTION(GetAddrInfo) {
     }
   }
 
-  args.Add(JVal::Number(err));
   JObject ipobj(ip);
-  args.Add(ipobj);
-  args.Add(JVal::Number(family));
+  iotjs_jargs_append_number(&args, err);
+  iotjs_jargs_append_obj(&args, &ipobj);
+  iotjs_jargs_append_number(&args, family);
 
   MakeCallback(*jcallback, JObject::Undefined(), args);
 #else

@@ -21,6 +21,8 @@ function testsets() {
       'test_buffer.js',
       'test_console.js',
       'test_cwd.js',
+      'test_dgram1.js',
+      'test_dgram2.js',
       'test_dns.js',
       'test_events.js',
       'test_exit.js',

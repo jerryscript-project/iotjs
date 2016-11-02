@@ -172,7 +172,7 @@ void AfterGPIOWork(uv_work_t* work_req, int status) {
     case kGpioOpReadPin:
     {
       if (req_data->result == kGpioErrOk) {
-        jargs.Add(iotjs_jval_bool(!!req_data->value));
+        iotjs_jargs_append_bool(&jargs, !!req_data->value);
       }
       break;
     }
@@ -184,7 +184,7 @@ void AfterGPIOWork(uv_work_t* work_req, int status) {
     case kGpioOpReadPort:
     {
       if (req_data->result == kGpioErrOk) {
-        jargs.Add(iotjs_jval_number(req_data->value));
+        iotjs_jargs_append_number(&jargs, req_data->value);
       }
       break;
     }

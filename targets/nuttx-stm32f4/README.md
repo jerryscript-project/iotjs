@@ -48,7 +48,7 @@ $ cd nuttx/tools
 $ ./configure.sh stm32f4discovery/usbnsh
 ```
 
-Now you can configure nuttx like either of below. For convenience, we provide built-in configure file for you.
+Now you can configure nuttx like either of below. For convenience, we provide built-in configure file for you. (This configure file is equipped with modules specified as `always`. For `optional` modules, you might follow instructions below.)
 ```bash
 $ cd ..
 $ cp ../iotjs/targets/nuttx-stm32f4/nuttx/.config.default .config
@@ -63,29 +63,49 @@ $ make menuconfig
 
 Followings are the options to set:
 
-* Change `Build Setup -> Build Host Platform` from _Windows_ to [_Linux_|_OSX_]
-* Enable `System Type -> FPU support`
-* Enable `System Type -> STM32 Peripheral Support -> SDIO`
-* Enable `RTOS Features -> Clocks and Timers -> Support CLOCK_MONOTONIC`
-* Enable `RTOS Features -> Pthread Options -> Enable mutex types`
-* Enable `RTOS Features -> Files and I/O -> Enable /dev/console`
-* Enable `RTOS Features -> Work queue support -> High priority (kernel) worker thread`
-* Disable `Device Drivers -> Disable driver poll interfaces`
-* Enable `Device Drivers -> MMC/SD Driver Suport`
-* Enable `Device Drivers -> MMC/SD Driver Suport -> MMC/SD SDIO transfer support`
-* Enable `Networking Support -> Networking Support`
-* Enable `Networking Support -> Socket Support -> Socket options`
-* Enable `Networking Support -> Unix Domain Socket Support`
-* Enable `Networking Support -> TCP/IP Networking`
-* Enable `Networking Support -> TCP/IP Networking -> Enable TCP/IP write buffering`
-* Enable `File Systems -> FAT file system`
-* Enable `File Systems -> FAT file system -> FAT upper/lower names`
-* Enable `File Systems -> FAT file system -> FAT long file names`
-* Enable `Device Drivers -> Network Device/PHT Support -> Late driver initialization`
-* Enable `Library Routines -> Standard Math library`
-* Enable `Application Configuration -> System Libraries and NSH Add-ons -> IoT.js`
-* Enable all childs of `Application Configuration -> System Libraries and NSH Add-ons -> readline() Support` (for those who wants to use readline)
+* Common
+ * Change `Build Setup -> Build Host Platform` from _Windows_ to [_Linux_|_OSX_]
+ * Enable `System Type -> FPU support`
+ * Enable `System Type -> STM32 Peripheral Support -> SDIO`
+ * Enable `RTOS Features -> Clocks and Timers -> Support CLOCK_MONOTONIC`
+ * Enable `RTOS Features -> Pthread Options -> Enable mutex types`
+ * Enable `RTOS Features -> Files and I/O -> Enable /dev/console`
+ * Enable `RTOS Features -> Work queue support -> High priority (kernel) worker thread`
+ * Disable `Device Drivers -> Disable driver poll interfaces`
+ * Enable `Device Drivers -> MMC/SD Driver Suport`
+ * Enable `Device Drivers -> MMC/SD Driver Suport -> MMC/SD SDIO transfer support`
+ * Enable `Networking Support -> Networking Support`
+ * Enable `Networking Support -> Socket Support -> Socket options`
+ * Enable `Networking Support -> Unix Domain Socket Support`
+ * Enable `Networking Support -> TCP/IP Networking`
+ * Enable `Networking Support -> TCP/IP Networking -> Enable TCP/IP write buffering`
+ * Enable `File Systems -> FAT file system`
+ * Enable `File Systems -> FAT file system -> FAT upper/lower names`
+ * Enable `File Systems -> FAT file system -> FAT long file names`
+ * Enable `Device Drivers -> Network Device/PHY Support -> Late driver initialization`
+ * Enable `Library Routines -> Standard Math library`
+ * Enable `Application Configuration -> System Libraries and NSH Add-ons -> IoT.js`
+ * Enable all childs of `Application Configuration -> System Libraries and NSH Add-ons -> readline() Support` (for those who wants to use readline)
 
+* For `net` module
+ * Enable `System Type -> STM32 Peripheral Support -> Ethernet MAC`
+ * Disable `System Type -> STM32 Peripheral Support -> USART2`
+ * Enable `System Type -> STM32 Peripheral Support -> USART6`
+ * Set `System Type -> Ethernet MAC configuration -> PHY address` to `0`
+ * Set `System Type -> Ethernet MAC configuration -> PHY Status Register Address (decimal)` to `31`
+ * Enable `System Type -> Ethernet MAC configuration -> PHY Status Alternate Bit Layout`
+ * Set `System Type -> Ethernet MAC configuration -> PHY Mode Mask` to `0x001c`
+ * Set `System Type -> Ethernet MAC configuration -> 10MBase-T Half Duplex Value` to `0x0004`
+ * Set `System Type -> Ethernet MAC configuration -> 100Base-T Half Duplex Value` to `0x0008`
+ * Set `System Type -> Ethernet MAC configuration -> 10Base-T Full Duplex Value` to `0x0014`
+ * Set `System Type -> Ethernet MAC configuration -> 10MBase-T Full Duplex Value` to `0x0018`
+ * Set `System Type -> Ethernet MAC configuration -> RMII clock configuration` to `External RMII clock`
+ * Enable `Board Selection -> STM32F4DIS-BB base board`
+ * Set `Device Drivers -> Network Device/PHY Support -> Board PHY Selection` to `SMSC LAN8720 PHY`
+ * Enable `Networking Support -> Driver buffer configuration -> Use multiple device-side I/O buffers`
+ * Enable `Networking Support -> Data link support -> Local loopback`
+ * Enable `Networking Support -> TCP/IP Networking -> TCP/IP backlog support`
+ * Enable `Networking Support -> ARP Configuration -> ARP send`
 
 #### 4. Build IoT.js for NuttX
 

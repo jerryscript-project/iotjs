@@ -20,4 +20,4 @@ env:
   - OPTS="--jerry-lto"
   - OPTS="--no-snapshot"
   - OPTS="--target-arch=arm --target-board=rpi2"
-  - OPTS="--no-check-test --iotjs-exclude-module assert --iotjs-exclude-module dns --iotjs-exclude-module gpio --iotjs-exclude-module i2c --iotjs-exclude-module http --iotjs-exclude-module net --iotjs-exclude-module stream"
+  - OPTS="--no-check-test --iotjs-exclude-module assert --iotjs-exclude-module dns --iotjs-exclude-module gpio --iotjs-exclude-module i2c --iotjs-exclude-module http --iotjs-exclude-module net --iotjs-exclude-module pwm --iotjs-exclude-module stream"

@@ -73,11 +73,6 @@
 #endif
 
 
-#ifndef __cplusplus
-typedef enum { false, true } bool;
-#endif
-
-
 #define IOTJS_VALID_MAGIC_SEQUENCE 0xfee1c001 /* feel cool */
 #define IOTJS_INVALID_MAGIC_SEQUENCE 0xfee1badd /* feel bad */
 
@@ -136,6 +131,16 @@ typedef struct iotjs_classname_t { \
 
 #endif
 
+#include <uv.h>
+#include <assert.h>
+#include <limits.h> /* PATH_MAX */
+#include <string.h>
+
+#ifndef __cplusplus
+#ifndef bool
+typedef enum { false, true } bool;
+#endif
+#endif
 
 // commonly used header files
 #include "iotjs_binding.h"
@@ -145,11 +150,6 @@ typedef struct iotjs_classname_t { \
 #include "iotjs_module.h"
 #include "iotjs_string.h"
 #include "iotjs_util.h"
-
-#include <uv.h>
-#include <assert.h>
-#include <limits.h> /* PATH_MAX */
-#include <string.h>
 
 
 #endif /* IOTJS_DEF_H */

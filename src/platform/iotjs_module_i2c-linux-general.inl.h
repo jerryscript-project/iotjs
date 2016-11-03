@@ -306,6 +306,8 @@ void OpenWorker(uv_work_t* work_req) {
   } else {
     req_data->error = kI2cErrOk;
   }
+
+  iotjs_string_destroy(&req_data->device);
 }
 
 

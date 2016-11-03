@@ -99,10 +99,7 @@ JHANDLER_FUNCTION(Open) {
   I2cReqData* req_data = req_wrap->req();
 
   req_data->op = kI2cOpOpen;
-
-  iotjs_string_t device = iotjs_jhandler_get_arg(jhandler, 0)->GetString();
-  iotjs_string_append(&req_data->device, iotjs_string_data(&device),
-                      iotjs_string_size(&device));
+  req_data->device = iotjs_jhandler_get_arg(jhandler, 0)->GetString();
 
   I2c* i2c = I2c::GetInstance();
   i2c->Open(req_wrap);

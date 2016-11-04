@@ -195,7 +195,7 @@ void AfterGPIOWork(uv_work_t* work_req, int status) {
     }
   }
 
-  MakeCallback(gpio_req->jcallback(), Gpio::GetJGpio(), &jargs);
+  iotjs_make_callback(gpio_req->jcallback(), Gpio::GetJGpio(), &jargs);
 
   delete work_req;
   delete gpio_req;
@@ -386,10 +386,11 @@ void ReadPortWorker(uv_work_t* work_req) {
   do { \
     GpioArmNuttxStm32* gpio = GpioArmNuttxStm32::GetInstance(); \
     IOTJS_ASSERT(gpio->_initialized == initialized); \
-    Environment* env = Environment::GetEnv(); \
+    const iotjs_environment_t* env = iotjs_environment_get(); \
+    uv_loop_t* loop = iotjs_environment_loop(env); \
     uv_work_t* req = new uv_work_t; \
     req->data = reinterpret_cast<void*>(gpio_req); \
-    uv_queue_work(env->loop(), req, op ## Worker, AfterGPIOWork); \
+    uv_queue_work(loop, req, op ## Worker, AfterGPIOWork); \
   } while (0)
 
 

@@ -28,7 +28,6 @@ namespace iotjs {
     iotjs_jval_set_property_number(object, #constant, constant); \
   } while (0)
 
-
 iotjs_jval_t InitConstants() {
 
   iotjs_jval_t constants = iotjs_jval_create_object();
@@ -50,3 +49,12 @@ iotjs_jval_t InitConstants() {
 
 
 } // namespace iotjs
+
+
+extern "C" {
+
+iotjs_jval_t InitConstants() {
+  return iotjs::InitConstants();
+}
+
+} // extern "C"

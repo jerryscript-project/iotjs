@@ -26,10 +26,10 @@ namespace iotjs {
 
 class TcpWrap : public HandleWrap {
  public:
-  explicit TcpWrap(Environment* env,
+  explicit TcpWrap(const iotjs_environment_t* env,
                    const iotjs_jval_t* jtcp)
       : HandleWrap(jtcp, reinterpret_cast<uv_handle_t*>(&_handle)) {
-    uv_tcp_init(env->loop(), &_handle);
+    uv_tcp_init(iotjs_environment_loop(env), &_handle);
   }
 
   static TcpWrap* FromJObject(const iotjs_jval_t* jtcp) {
@@ -57,7 +57,7 @@ JHANDLER_FUNCTION(TCP) {
   JHANDLER_CHECK_THIS(object);
   JHANDLER_CHECK_ARGS(0);
 
-  Environment* env = Environment::GetEnv();
+  const iotjs_environment_t* env = iotjs_environment_get();
   const iotjs_jval_t* jtcp = JHANDLER_GET_THIS(object);
 
   TcpWrap* tcp_wrap = new TcpWrap(env, jtcp);
@@ -82,8 +82,8 @@ void AfterClose(uv_handle_t* handle) {
   // callback function.
   iotjs_jval_t jcallback = iotjs_jval_get_property(jtcp, "onclose");
   if (iotjs_jval_is_function(&jcallback)) {
-    MakeCallback(&jcallback,
-                 iotjs_jval_get_undefined(), iotjs_jargs_get_empty());
+    iotjs_make_callback(&jcallback,
+                        iotjs_jval_get_undefined(), iotjs_jargs_get_empty());
   }
   iotjs_jval_destroy(&jcallback);
 }
@@ -152,7 +152,7 @@ static void AfterConnect(uv_connect_t* req, int status) {
   iotjs_jargs_append_number(&args, status);
 
   // Make callback.
-  MakeCallback(jcallback, iotjs_jval_get_undefined(), &args);
+  iotjs_make_callback(jcallback, iotjs_jval_get_undefined(), &args);
 
   // Destroy args
   iotjs_jargs_destroy(&args);
@@ -250,7 +250,7 @@ static void OnConnection(uv_stream_t* handle, int status) {
     iotjs_jval_destroy(&jclient_tcp);
   }
 
-  MakeCallback(&jonconnection, jtcp, &args);
+  iotjs_make_callback(&jonconnection, jtcp, &args);
 
   iotjs_jval_destroy(&jonconnection);
   iotjs_jargs_destroy(&args);
@@ -287,7 +287,7 @@ void AfterWrite(uv_write_t* req, int status) {
   iotjs_jargs_append_number(&args, status);
 
   // Make callback.
-  MakeCallback(jcallback, iotjs_jval_get_undefined(), &args);
+  iotjs_make_callback(jcallback, iotjs_jval_get_undefined(), &args);
 
   // Destroy args
   iotjs_jargs_destroy(&args);
@@ -371,7 +371,7 @@ void OnRead(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
         iotjs_jargs_replace(&jargs, 2, iotjs_jval_get_boolean(true));
       }
 
-      MakeCallback(&jonread, iotjs_jval_get_undefined(), &jargs);
+      iotjs_make_callback(&jonread, iotjs_jval_get_undefined(), &jargs);
     }
   } else {
 
@@ -381,7 +381,7 @@ void OnRead(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
     buffer_wrap->Copy(buf->base, nread);
 
     iotjs_jargs_append_jval(&jargs, &jbuffer);
-    MakeCallback(&jonread, iotjs_jval_get_undefined(), &jargs);
+    iotjs_make_callback(&jonread, iotjs_jval_get_undefined(), &jargs);
 
     iotjs_jval_destroy(&jbuffer);
     iotjs_buffer_release(buf->base);
@@ -421,7 +421,7 @@ static void AfterShutdown(uv_shutdown_t* req, int status) {
   iotjs_jargs_t args = iotjs_jargs_create(1);
   iotjs_jargs_append_number(&args, status);
 
-  MakeCallback(jonshutdown, iotjs_jval_get_undefined(), &args);
+  iotjs_make_callback(jonshutdown, iotjs_jval_get_undefined(), &args);
 
   iotjs_jargs_destroy(&args);
 
@@ -491,3 +491,12 @@ iotjs_jval_t InitTcp() {
 
 
 } // namespace iotjs
+
+
+extern "C" {
+
+iotjs_jval_t InitTcp() {
+  return iotjs::InitTcp();
+}
+
+} // extern "C"

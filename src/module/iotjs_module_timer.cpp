@@ -37,7 +37,7 @@ void TimerWrap::OnTimeout() {
   IOTJS_ASSERT(iotjs_jval_is_function(&_jcallback));
 
   // Call javascirpt timeout callback function.
-  MakeCallback(&_jcallback, jobject(), iotjs_jargs_get_empty());
+  iotjs_make_callback(&_jcallback, jobject(), iotjs_jargs_get_empty());
 }
 
 
@@ -137,7 +137,7 @@ JHANDLER_FUNCTION(Stop) {
 JHANDLER_FUNCTION(Timer) {
   JHANDLER_CHECK_THIS(object);
 
-  Environment* env = Environment::GetEnv();
+  const iotjs_environment_t* env = iotjs_environment_get();
   const iotjs_jval_t* jtimer = JHANDLER_GET_THIS(object);
 
   TimerWrap* timer_wrap = new TimerWrap(env, jtimer);
@@ -163,3 +163,12 @@ iotjs_jval_t InitTimer() {
 
 
 } // namespace iotjs
+
+
+extern "C" {
+
+iotjs_jval_t InitTimer() {
+  return iotjs::InitTimer();
+}
+
+} // extern "C"

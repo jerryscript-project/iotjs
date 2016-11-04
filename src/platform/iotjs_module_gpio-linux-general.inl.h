@@ -84,15 +84,15 @@ class LocalFsReq : public uv_fs_t {
 };
 
 
-// Checks if given directory exits.
+// Checks if given directory exists.
 bool CheckPath(const char* path) {
-  Environment* env = Environment::GetEnv();
+  const iotjs_environment_t* env = iotjs_environment_get();
 
   DDDLOG("GPIO CheckPath() - path: %s", path);
 
   // stat for the path.
   LocalFsReq fs_req;
-  int err = uv_fs_stat(env->loop(), &fs_req, path, NULL);
+  int err = uv_fs_stat(iotjs_environment_loop(env), &fs_req, path, NULL);
 
   // exist?
   if (err || fs_req.result) {
@@ -106,13 +106,14 @@ bool CheckPath(const char* path) {
 
 
 bool GpioOpenWriteClose(const char* path, char* value) {
-  Environment* env = Environment::GetEnv();
+  const iotjs_environment_t* env = iotjs_environment_get();
+  uv_loop_t* loop = iotjs_environment_loop(env);
 
   DDDLOG("GPIO GpioOpenWriteClose() - path %s, value: %s", path, value);
 
   // Open file.
   LocalFsReq fs_open_req;
-  int fd = uv_fs_open(env->loop(), &fs_open_req, path, O_WRONLY, 0666, NULL);
+  int fd = uv_fs_open(loop, &fs_open_req, path, O_WRONLY, 0666, NULL);
   if (fd < 0) {
     DDLOG("GPIO GpioOpenWriteClose() - open %s failed: %d", path, fd);
     return false;
@@ -121,7 +122,7 @@ bool GpioOpenWriteClose(const char* path, char* value) {
   // Write value.
   LocalFsReq fs_write_req;
   uv_buf_t uvbuf = uv_buf_init(value, strlen(value));
-  int err = uv_fs_write(env->loop(), &fs_write_req, fd, &uvbuf, 1, 0, NULL);
+  int err = uv_fs_write(loop, &fs_write_req, fd, &uvbuf, 1, 0, NULL);
   if (err < 0) {
     DDLOG("GPIO GpioOpenWriteClose() - write %s failed: %d", value, err);
     return false;
@@ -129,7 +130,7 @@ bool GpioOpenWriteClose(const char* path, char* value) {
 
   // Close file.
   LocalFsReq fs_close_req;
-  err = uv_fs_close(env->loop(), &fs_close_req, fd, NULL);
+  err = uv_fs_close(loop, &fs_close_req, fd, NULL);
   if (err < 0) {
     DDLOG("GPIO GpioOpenWriteClose() - close failed: %d", err);
     return false;
@@ -140,13 +141,14 @@ bool GpioOpenWriteClose(const char* path, char* value) {
 
 
 bool GpioOpenReadClose(const char* path, char* buffer, int buffer_len) {
-  Environment* env = Environment::GetEnv();
+  const iotjs_environment_t* env = iotjs_environment_get();
+  uv_loop_t* loop = iotjs_environment_loop(env);
 
   DDDLOG("GPIO GpioOpenReadClose() - path %s", path);
 
   // Open file.
   LocalFsReq fs_open_req;
-  int fd = uv_fs_open(env->loop(), &fs_open_req, path, O_RDONLY, 0666, NULL);
+  int fd = uv_fs_open(loop, &fs_open_req, path, O_RDONLY, 0666, NULL);
   if (fd < 0) {
     DDLOG("GPIO GpioOpenReadClose() - open %s failed: %d", path, fd);
     return false;
@@ -155,7 +157,7 @@ bool GpioOpenReadClose(const char* path, char* buffer, int buffer_len) {
   // Write value.
   LocalFsReq fs_write_req;
   uv_buf_t uvbuf = uv_buf_init(buffer, buffer_len);
-  int err = uv_fs_read(env->loop(), &fs_write_req, fd, &uvbuf, 1, 0, NULL);
+  int err = uv_fs_read(loop, &fs_write_req, fd, &uvbuf, 1, 0, NULL);
   if (err < 0) {
     DDLOG("GPIO GpioOpenReadClose() - read failed: %d", err);
     return false;
@@ -165,7 +167,7 @@ bool GpioOpenReadClose(const char* path, char* buffer, int buffer_len) {
 
   // Close file.
   LocalFsReq fs_close_req;
-  err = uv_fs_close(env->loop(), &fs_close_req, fd, NULL);
+  err = uv_fs_close(loop, &fs_close_req, fd, NULL);
   if (err < 0) {
     DDLOG("GPIO GpioOpenReadClose() - close failed: %d", err);
     return false;
@@ -369,7 +371,7 @@ void AfterWork(uv_work_t* work_req, int status) {
     }
   }
 
-  MakeCallback(gpio_req->jcallback(), Gpio::GetJGpio(), &jargs);
+  iotjs_make_callback(gpio_req->jcallback(), Gpio::GetJGpio(), &jargs);
 
   iotjs_jargs_destroy(&jargs);
 
@@ -586,10 +588,10 @@ void ReadPortWorker(uv_work_t* work_req) {
   do { \
     GpioLinuxGeneral* gpio = GpioLinuxGeneral::GetInstance(); \
     IOTJS_ASSERT(gpio->_initialized == initialized); \
-    Environment* env = Environment::GetEnv(); \
+    const iotjs_environment_t* env = iotjs_environment_get(); \
     uv_work_t* req = new uv_work_t; \
     req->data = reinterpret_cast<void*>(gpio_req); \
-    uv_queue_work(env->loop(), req, op ## Worker, AfterWork); \
+    uv_queue_work(iotjs_environment_loop(env), req, op ## Worker, AfterWork); \
   } while (0)
 
 

@@ -108,9 +108,6 @@ class Gpio : public JObjectWrap {
 };
 
 
-iotjs_jval_t InitGpio();
-
-
 } // namespace iotjs
 
 

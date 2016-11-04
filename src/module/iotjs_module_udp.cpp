@@ -14,7 +14,6 @@
  */
 
 #include "iotjs_def.h"
-#include "iotjs_module_udp.h"
 
 #include "iotjs_module_tcp.h"
 #include "iotjs_module_buffer.h"
@@ -26,10 +25,10 @@ namespace iotjs {
 
 class UdpWrap : public HandleWrap {
  public:
-  explicit UdpWrap(Environment* env,
-                   const iotjs_jval_t* judp)
+  explicit UdpWrap(const iotjs_jval_t* judp)
       : HandleWrap(judp, reinterpret_cast<uv_handle_t*>(&_handle)) {
-    uv_udp_init(env->loop(), &_handle);
+    const iotjs_environment_t* env = iotjs_environment_get();
+    uv_udp_init(iotjs_environment_loop(env), &_handle);
   }
 
   static UdpWrap* FromJObject(const iotjs_jval_t* judp) {
@@ -67,10 +66,9 @@ JHANDLER_FUNCTION(UDP) {
   JHANDLER_CHECK_THIS(object);
   JHANDLER_CHECK_ARGS(0);
 
-  Environment* env = Environment::GetEnv();
   const iotjs_jval_t* judp = iotjs_jhandler_get_this(jhandler);
 
-  UdpWrap* udp_wrap = new UdpWrap(env, judp);
+  UdpWrap* udp_wrap = new UdpWrap(judp);
   IOTJS_ASSERT(iotjs_jval_is_object(udp_wrap->jobject()));
   IOTJS_ASSERT(iotjs_jval_get_object_native_handle(judp) != 0);
 }
@@ -174,7 +172,7 @@ static void OnRecv(uv_udp_t* handle, ssize_t nread, const uv_buf_t* buf,
   if (nread < 0) {
     if (buf->base != nullptr)
       iotjs_buffer_release(buf->base);
-    MakeCallback(&jonmessage, iotjs_jval_get_undefined(), &jargs);
+    iotjs_make_callback(&jonmessage, iotjs_jval_get_undefined(), &jargs);
     iotjs_jval_destroy(&jonmessage);
     iotjs_jargs_destroy(&jargs);
     return;
@@ -191,7 +189,7 @@ static void OnRecv(uv_udp_t* handle, ssize_t nread, const uv_buf_t* buf,
   AddressToJS(&rinfo, addr);
   iotjs_jargs_append_jval(&jargs, &rinfo);
 
-  MakeCallback(&jonmessage, iotjs_jval_get_undefined(), &jargs);
+  iotjs_make_callback(&jonmessage, iotjs_jval_get_undefined(), &jargs);
 
   iotjs_jval_destroy(&rinfo);
   iotjs_jval_destroy(&jbuffer);
@@ -248,7 +246,7 @@ static void OnSend(uv_udp_send_t* req, int status) {
     iotjs_jargs_append_number(&jargs, status);
     iotjs_jargs_append_number(&jargs, req_wrap->msg_size());
 
-    MakeCallback(jcallback, iotjs_jval_get_undefined(), &jargs);
+    iotjs_make_callback(jcallback, iotjs_jval_get_undefined(), &jargs);
     iotjs_jargs_destroy(&jargs);
   }
 
@@ -401,3 +399,12 @@ iotjs_jval_t InitUdp() {
 
 
 } // namespace iotjs
+
+
+extern "C" {
+
+iotjs_jval_t InitUdp() {
+  return iotjs::InitUdp();
+}
+
+} // extern "C"

@@ -334,3 +334,12 @@ iotjs_jval_t InitBuffer() {
 
 
 } // namespace iotjs
+
+
+extern "C" {
+
+iotjs_jval_t InitBuffer() {
+  return iotjs::InitBuffer();
+}
+
+} // extern "C"

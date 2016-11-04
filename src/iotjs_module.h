@@ -19,7 +19,9 @@
 #include "iotjs_binding.h"
 
 
-namespace iotjs {
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 
 typedef iotjs_jval_t (*register_func)();
@@ -55,29 +57,25 @@ typedef iotjs_jval_t (*register_func)();
 #define ENUMDEF_MODULE_LIST(upper, Camel, lower) \
   MODULE_ ## upper,
 
-enum ModuleKind {
+typedef enum {
   MAP_MODULE_LIST(ENUMDEF_MODULE_LIST)
   MODULE_COUNT
-};
+} ModuleKind;
 
 #undef ENUMDEF_MODULE_LIST
 
 
-struct Module {
-  ModuleKind kind;
-  iotjs_jval_t module;
-  register_func fn_register;
-};
+void iotjs_module_list_init();
+
+void iotjs_module_list_cleanup();
+
+const iotjs_jval_t* iotjs_module_initialize_if_necessary(ModuleKind kind);
+const iotjs_jval_t* iotjs_module_get(ModuleKind kind);
 
 
-void InitModuleList();
-
-void CleanupModuleList();
-
-Module* GetBuiltinModule(ModuleKind kind);
-
-
-} // namespace iotjs
+#ifdef __cplusplus
+} // extern "C"
+#endif
 
 
 #endif /* IOTJS_MODULE_H */

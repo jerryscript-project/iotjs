@@ -31,11 +31,7 @@ Pwm::~Pwm() {
 
 
 const iotjs_jval_t* Pwm::GetJPwm() {
-  Module* module = GetBuiltinModule(MODULE_PWM);
-  const iotjs_jval_t* jpwm = &module->module;
-  IOTJS_ASSERT(jpwm != NULL);
-
-  return jpwm;
+  return iotjs_module_get(MODULE_PWM);
 }
 
 
@@ -102,3 +98,12 @@ iotjs_jval_t InitPwm() {
 
 
 } // namespace iotjs
+
+
+extern "C" {
+
+iotjs_jval_t InitPwm() {
+  return iotjs::InitPwm();
+}
+
+} // extern "C"

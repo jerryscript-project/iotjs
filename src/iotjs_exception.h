@@ -17,16 +17,17 @@
 #define IOTJS_EXCEPTION_H
 
 
-#include "iotjs_binding.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 
-namespace iotjs {
+iotjs_jval_t iotjs_create_uv_exception(int errorno, const char* syscall);
 
 
-iotjs_jval_t CreateUVException(int errorno, const char* syscall);
-
-
-} // namespace iotjs
+#ifdef __cplusplus
+} // extern "C"
+#endif
 
 
 #endif /* IOTJS_EXCEPTION_H */

@@ -177,7 +177,7 @@ public:
 
     iotjs_jargs_append_jval(&argv, &info);
 
-    iotjs_jval_t res = MakeCallbackWithResult(&func, jobj, &argv);
+    iotjs_jval_t res = iotjs_make_callback_with_result(&func, jobj, &argv);
     bool ret = iotjs_jval_as_boolean(&res);
 
     iotjs_jargs_destroy(&argv);
@@ -199,7 +199,7 @@ public:
     iotjs_jargs_append_number(&argv, length);
 
 
-    MakeCallback(&func, jobj, &argv);
+    iotjs_make_callback(&func, jobj, &argv);
 
     iotjs_jargs_destroy(&argv);
     iotjs_jval_destroy(&func);
@@ -212,7 +212,7 @@ public:
     iotjs_jval_t func = iotjs_jval_get_property(jobj, "OnMessageComplete");
     IOTJS_ASSERT(iotjs_jval_is_function(&func));
 
-    MakeCallback(&func, jobj, iotjs_jargs_get_empty());
+    iotjs_make_callback(&func, jobj, iotjs_jargs_get_empty());
 
     iotjs_jval_destroy(&func);
 
@@ -232,7 +232,7 @@ public:
       iotjs_jargs_append_string(&argv, &url);
     }
 
-    MakeCallback(&func, jobj, &argv);
+    iotjs_make_callback(&func, jobj, &argv);
 
     iotjs_string_make_empty(&url);
     iotjs_jargs_destroy(&argv);
@@ -461,3 +461,12 @@ iotjs_jval_t InitHttpparser() {
 
 
 } // namespace iotjs
+
+
+extern "C" {
+
+iotjs_jval_t InitHttpparser() {
+  return iotjs::InitHttpparser();
+}
+
+} // extern "C"

@@ -17,19 +17,19 @@
 var Native = require('native');
 var fs = Native.require('fs');
 
-function Module(id, parent) {
+function iotjs_module_t(id, parent) {
   this.id = id;
   this.exports = {};
   this.filename = null;
   this.parent = parent;
 };
 
-module.exports = Module;
+module.exports = iotjs_module_t;
 
 
-Module.cache = {};
-Module.wrapper = Native.wrapper;
-Module.wrap = Native.wrap;
+iotjs_module_t.cache = {};
+iotjs_module_t.wrapper = Native.wrapper;
+iotjs_module_t.wrap = Native.wrap;
 
 
 var cwd;
@@ -47,7 +47,7 @@ if(process.env.NODE_PATH){
   moduledirs.push(process.env.NODE_PATH + "/node_modules/")
 }
 
-Module.concatdir = function(a, b){
+iotjs_module_t.concatdir = function(a, b){
   var rlist = [];
   for(var i = 0; i< a.length ; i++) {
     rlist.push(a[i]);
@@ -61,31 +61,31 @@ Module.concatdir = function(a, b){
 };
 
 
-Module.resolveDirectories = function(id, parent) {
+iotjs_module_t.resolveDirectories = function(id, parent) {
   var dirs = moduledirs;
   if(parent) {
     if(!parent.dirs){
       parent.dirs = [];
     }
-    dirs = Module.concatdir(parent.dirs, dirs);
+    dirs = iotjs_module_t.concatdir(parent.dirs, dirs);
   }
   return dirs;
 };
 
 
-Module.resolveFilepath = function(id, directories) {
+iotjs_module_t.resolveFilepath = function(id, directories) {
 
   for(var i = 0; i<directories.length ; i++) {
     var dir = directories[i];
     // 1. 'id'
-    var filepath = Module.tryPath(dir+id);
+    var filepath = iotjs_module_t.tryPath(dir+id);
 
     if(filepath){
       return filepath;
     }
 
     // 2. 'id.js'
-    filepath = Module.tryPath(dir+id+'.js');
+    filepath = iotjs_module_t.tryPath(dir+id+'.js');
 
     if(filepath){
       return filepath;
@@ -94,16 +94,16 @@ Module.resolveFilepath = function(id, directories) {
     // 3. package path /node_modules/id
     var packagepath = dir + id;
     var jsonpath = packagepath + "/package.json";
-    filepath = Module.tryPath(jsonpath);
+    filepath = iotjs_module_t.tryPath(jsonpath);
     if(filepath){
       var pkgSrc = process.readSource(jsonpath);
       var pkgMainFile = process.JSONParse(pkgSrc).main;
-      filepath = Module.tryPath(packagepath + "/" + pkgMainFile);
+      filepath = iotjs_module_t.tryPath(packagepath + "/" + pkgMainFile);
       if(filepath){
         return filepath;
       }
       // index.js
-      filepath = Module.tryPath(packagepath + "/" + "index.js");
+      filepath = iotjs_module_t.tryPath(packagepath + "/" + "index.js");
       if(filepath){
         return filepath;
       }
@@ -115,12 +115,12 @@ Module.resolveFilepath = function(id, directories) {
 };
 
 
-Module.resolveModPath = function(id, parent) {
+iotjs_module_t.resolveModPath = function(id, parent) {
 
   // 0. resolve Directory for lookup
-  var directories = Module.resolveDirectories(id, parent);
+  var directories = iotjs_module_t.resolveDirectories(id, parent);
 
-  var filepath = Module.resolveFilepath(id, directories);
+  var filepath = iotjs_module_t.resolveFilepath(id, directories);
 
   if(filepath){
     return filepath;
@@ -130,8 +130,8 @@ Module.resolveModPath = function(id, parent) {
 };
 
 
-Module.tryPath = function(path) {
-  var stats = Module.statPath(path);
+iotjs_module_t.tryPath = function(path) {
+  var stats = iotjs_module_t.statPath(path);
   if(stats && !stats.isDirectory()) {
     return path;
   }
@@ -141,7 +141,7 @@ Module.tryPath = function(path) {
 };
 
 
-Module.statPath = function(path) {
+iotjs_module_t.statPath = function(path) {
   try {
     return fs.statSync(path);
   } catch (ex) {}
@@ -149,15 +149,15 @@ Module.statPath = function(path) {
 };
 
 
-Module.load = function(id, parent, isMain) {
+iotjs_module_t.load = function(id, parent, isMain) {
   if(process.native_sources[id]){
     return Native.require(id);
   }
-  var module = new Module(id, parent);
+  var module = new iotjs_module_t(id, parent);
 
-  var modPath = Module.resolveModPath(module.id, module.parent);
+  var modPath = iotjs_module_t.resolveModPath(module.id, module.parent);
 
-  var cachedModule = Module.cache[modPath];
+  var cachedModule = iotjs_module_t.cache[modPath];
   if (cachedModule) {
     return cachedModule.exports;
   }
@@ -171,13 +171,13 @@ Module.load = function(id, parent, isMain) {
     throw new Error('No module found');
   }
 
-  Module.cache[modPath] = module;
+  iotjs_module_t.cache[modPath] = module;
 
   return module.exports;
 };
 
 
-Module.prototype.compile = function() {
+iotjs_module_t.prototype.compile = function() {
   var self = this;
   var requireForThis = function(path) {
       return self.require(path);
@@ -189,14 +189,14 @@ Module.prototype.compile = function() {
 };
 
 
-Module.runMain = function(){
-  Module.load(process.argv[1], null, true);
+iotjs_module_t.runMain = function(){
+  iotjs_module_t.load(process.argv[1], null, true);
   process._onNextTick();
 };
 
 
 
-Module.prototype.SetModuleDirs = function(filepath)
+iotjs_module_t.prototype.SetModuleDirs = function(filepath)
 {
   // At next require, search module from parent's directory
   var dir = "";
@@ -216,6 +216,6 @@ Module.prototype.SetModuleDirs = function(filepath)
 };
 
 
-Module.prototype.require = function(id) {
-  return Module.load(id, this);
+iotjs_module_t.prototype.require = function(id) {
+  return iotjs_module_t.load(id, this);
 };

@@ -22,12 +22,13 @@ namespace iotjs {
 // Only for test driver
 JHANDLER_FUNCTION(IsAliveExceptFor) {
   JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) == 1);
-  Environment* env = Environment::GetEnv();
+  const iotjs_environment_t* env = iotjs_environment_get();
+  uv_loop_t* loop = iotjs_environment_loop(env);
 
   const iotjs_jval_t* arg0 = iotjs_jhandler_get_arg(jhandler, 0);
 
   if (iotjs_jval_is_null(arg0)) {
-    int alive = uv_loop_alive(env->loop());
+    int alive = uv_loop_alive(loop);
 
     iotjs_jhandler_return_boolean(jhandler, alive);
   } else {
@@ -41,14 +42,14 @@ JHANDLER_FUNCTION(IsAliveExceptFor) {
     IOTJS_ASSERT(iotjs_jval_is_object(timer_wrap->jobject()));
     iotjs_jval_destroy(&jtimer);
 
-    bool has_active_reqs = uv__has_active_reqs(env->loop());
-    bool has_closing_handler = env->loop()->closing_handles != NULL;
+    bool has_active_reqs = uv__has_active_reqs(loop);
+    bool has_closing_handler = loop->closing_handles != NULL;
 
     bool ret = true;
     bool alive = !has_active_reqs && !has_closing_handler;
     if (alive) {
 
-      int active_handlers = env->loop()->active_handles;
+      int active_handlers = loop->active_handles;
       if (active_handlers == 1) {
         uv_timer_t timer_handle = timer_wrap->handle();
         uv_handle_t* handle = reinterpret_cast<uv_handle_t*>(&timer_handle);
@@ -75,4 +76,14 @@ iotjs_jval_t InitTestdriver() {
   return testdriver;
 }
 
+
 } // namespace iotjs
+
+
+extern "C" {
+
+iotjs_jval_t InitTestdriver() {
+  return iotjs::InitTestdriver();
+}
+
+} // extern "C"

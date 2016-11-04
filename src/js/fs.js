@@ -398,6 +398,18 @@ fs.renameSync = function(oldPath, newPath) {
 };
 
 
+fs.readdir = function(path, callback) {
+  checkArgString(path);
+  checkArgFunction(callback);
+  fsBuiltin.readdir(path, callback);
+};
+
+
+fs.readdirSync = function(path) {
+  return fsBuiltin.readdir(checkArgString(path, 'path'));
+};
+
+
 function convertFlags(flag) {
   if (util.isString(flag)) {
     switch (flag) {

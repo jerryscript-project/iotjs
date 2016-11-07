@@ -19,7 +19,7 @@ var assert = require('assert');
 var path = '../resources/readdir'
 var ans = 'DO_NOT_MODIFY_THIS_FOLDER\n'+
           'This_is_a_directory\n'+
-          'This_is_an_another_directory\n'+
+          'This_is_another_directory\n'+
           'regular.txt\n';
 
 var res;

@@ -23,7 +23,7 @@
 namespace iotjs {
 
 
-Gpio* Gpio::Create(JObject& jgpio) {
+Gpio* Gpio::Create(const iotjs_jval_t* jgpio) {
   return new GpioArmNuttxStm32(jgpio);
 }
 
@@ -38,7 +38,7 @@ Gpio* Gpio::Create(JObject& jgpio) {
 namespace iotjs {
 
 
-Gpio* Gpio::Create(JObject& jgpio) {
+Gpio* Gpio::Create(const iotjs_jval_t* jgpio) {
   return new GpioArmNuttxGeneral(jgpio);
 }
 

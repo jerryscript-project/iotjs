@@ -29,30 +29,26 @@ static void FreeObjectWrap(const uintptr_t wrapper) {
 }
 
 
-JObjectWrap::JObjectWrap(JObject& jobject)
-    : _jobject(NULL) {
-  IOTJS_ASSERT(jobject.IsObject());
+JObjectWrap::JObjectWrap(const iotjs_jval_t* jobject) {
+  IOTJS_ASSERT(iotjs_jval_is_object(jobject));
 
-  // This wrapper hold pointer to the javascript object but never increase
+  // This wrapper holds pointer to the javascript object but never increases
   // reference count.
-  JRawValueType raw_value = jobject.raw_value();
-  _jobject = new JObject(raw_value, false);
+  _jobject = *((iotjs_jval_t*)jobject);
+
   // Set native pointer of the object to be this wrapper.
   // If the object is freed by GC, the wrapper instance should also be freed.
-  _jobject->SetNative((uintptr_t)this, FreeObjectWrap);
+  uintptr_t handle = (uintptr_t)this;
+  iotjs_jval_set_object_native_handle(&_jobject, handle, FreeObjectWrap);
 }
 
 
 JObjectWrap::~JObjectWrap() {
-  IOTJS_ASSERT(_jobject != NULL);
-
-  delete _jobject;
 }
 
 
-JObject& JObjectWrap::jobject() {
-  IOTJS_ASSERT(_jobject != NULL);
-  return *_jobject;
+iotjs_jval_t* JObjectWrap::jobject() {
+  return &_jobject;
 }
 
 

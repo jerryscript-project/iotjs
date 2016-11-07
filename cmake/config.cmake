@@ -20,6 +20,7 @@ set(CXX ${CMAKE_CXX_COMPILER})
 
 # common compile flags
 set(CFLAGS_COMMON "${CFLAGS_COMMON} -s")
+set(CFLAGS_COMMON "${CFLAGS_COMMON} -g")
 set(CFLAGS_COMMON "${CFLAGS_COMMON} -Wl,-Map=iotjstuv.map")
 set(CFLAGS_COMMON "${CFLAGS_COMMON} -Wall -Wextra -Werror")
 set(CFLAGS_COMMON "${CFLAGS_COMMON} -Wno-unused-parameter")

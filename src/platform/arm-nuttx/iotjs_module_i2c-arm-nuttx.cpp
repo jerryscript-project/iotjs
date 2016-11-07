@@ -25,7 +25,7 @@ namespace iotjs {
 // I2C implementeation for arm-nuttx target.
 class I2cArmNuttx : public I2c {
  public:
-  explicit I2cArmNuttx(JObject& ji2c);
+  explicit I2cArmNuttx(const iotjs_jval_t* ji2c);
 
   static I2cArmNuttx* GetInstance();
 
@@ -42,12 +42,12 @@ class I2cArmNuttx : public I2c {
 };
 
 
-I2c* I2c::Create(JObject& ji2c) {
+I2c* I2c::Create(const iotjs_jval_t* ji2c) {
   return new I2cArmNuttx(ji2c);
 }
 
 
-I2cArmNuttx::I2cArmNuttx(JObject& ji2c)
+I2cArmNuttx::I2cArmNuttx(const iotjs_jval_t* ji2c)
     : I2c(ji2c) {
 }
 

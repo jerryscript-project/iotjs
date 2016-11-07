@@ -23,15 +23,22 @@
 namespace iotjs {
 
 
-void UncaughtException(JObject& jexception);
+void UncaughtException(const iotjs_jval_t* jexception);
 
 void ProcessEmitExit(int code);
 
 bool ProcessNextTick();
 
-JObject MakeCallback(JObject& function, JObject& this_, iotjs_jargs_t& args);
+void MakeCallback(const iotjs_jval_t* jfunction,
+                  const iotjs_jval_t* jthis,
+                  const iotjs_jargs_t* jargs);
 
-JObject* InitProcessModule();
+iotjs_jval_t MakeCallbackWithResult(const iotjs_jval_t* jfunction,
+                                    const iotjs_jval_t* jthis,
+                                    const iotjs_jargs_t* jargs);
+
+
+iotjs_jval_t* InitProcessModule();
 
 
 } // namespace iotjs

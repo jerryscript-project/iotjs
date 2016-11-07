@@ -25,7 +25,7 @@ static Module _modules[MODULE_COUNT];
 
 
 #define DECLARE_MODULE_INITIALIZER(upper, Camel, lower) \
-JObject* Init ## Camel();
+iotjs_jval_t Init ## Camel();
 
 MAP_MODULE_LIST(DECLARE_MODULE_INITIALIZER)
 
@@ -34,7 +34,7 @@ MAP_MODULE_LIST(DECLARE_MODULE_INITIALIZER)
 
 #define INIT_MODULE_LIST(upper, Camel, lower) \
   _modules[MODULE_ ## upper].kind = MODULE_ ## upper; \
-  _modules[MODULE_ ## upper].module = NULL; \
+  _modules[MODULE_ ## upper].module = *iotjs_jval_get_undefined(); \
   _modules[MODULE_ ## upper].fn_register = Init ## Camel;
 
 void InitModuleList() {
@@ -45,9 +45,8 @@ void InitModuleList() {
 
 
 #define CLENUP_MODULE_LIST(upper, Camel, lower) \
-  if (_modules[MODULE_ ## upper].module) \
-    delete _modules[MODULE_ ## upper].module; \
-  _modules[MODULE_ ## upper].module = NULL;
+  if (!iotjs_jval_is_undefined(&_modules[MODULE_ ## upper].module)) \
+    iotjs_jval_destroy(&_modules[MODULE_ ## upper].module); \
 
 void CleanupModuleList() {
   MAP_MODULE_LIST(CLENUP_MODULE_LIST)

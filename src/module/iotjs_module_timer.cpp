@@ -33,23 +33,23 @@ static void TimeoutHandler(uv_timer_t* handle) {
 
 void TimerWrap::OnTimeout() {
   // Verification.
-  IOTJS_ASSERT(jobject().IsObject());
-  IOTJS_ASSERT(_jcallback != NULL);
-  IOTJS_ASSERT(_jcallback->IsFunction());
+  IOTJS_ASSERT(iotjs_jval_is_object(jobject()));
+  IOTJS_ASSERT(iotjs_jval_is_function(&_jcallback));
 
   // Call javascirpt timeout callback function.
-  MakeCallback(*_jcallback, jobject(), iotjs_jargs_empty);
+  MakeCallback(&_jcallback, jobject(), iotjs_jargs_get_empty());
 }
 
 
 // Start timer.
-int TimerWrap::Start(int64_t timeout, int64_t repeat, JObject& jcallback) {
+int TimerWrap::Start(int64_t timeout, int64_t repeat,
+                     const iotjs_jval_t* jcallback) {
   // We should not have javascript callback handler yet.
-  IOTJS_ASSERT(_jcallback == NULL);
-  IOTJS_ASSERT(jcallback.IsFunction());
+  IOTJS_ASSERT(iotjs_jval_is_undefined(&_jcallback));
+  IOTJS_ASSERT(iotjs_jval_is_function(jcallback));
 
   // Create new Javascirpt function reference for the callback function.
-  _jcallback = new JObject(jcallback);
+  _jcallback = iotjs_jval_create_copied(jcallback);
 
   // Start uv timer.
   return uv_timer_start(&_handle,
@@ -72,9 +72,9 @@ static void OnTimerClose(uv_handle_t* handle) {
 
 void TimerWrap::OnClose() {
   // If we have javascript timeout callback reference, release it.
-  if (_jcallback != NULL) {
-    delete _jcallback;
-    _jcallback = NULL;
+  if (!iotjs_jval_is_undefined(&_jcallback)) {
+    iotjs_jval_destroy(&_jcallback);
+    _jcallback = *iotjs_jval_get_undefined();
   }
 }
 
@@ -91,78 +91,72 @@ int TimerWrap::Stop() {
 
 JHANDLER_FUNCTION(Start) {
   // Check parameters.
-  JHANDLER_CHECK(iotjs_jhandler_get_this(jhandler)->IsObject());
-  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) >= 3);
-  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 0)->IsNumber());
-  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 1)->IsNumber());
-  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 2)->IsFunction());
+  JHANDLER_CHECK_THIS(object);
+  JHANDLER_CHECK_ARGS(3, number, number, function);
 
-  JObject* jtimer = iotjs_jhandler_get_this(jhandler);
+  const iotjs_jval_t* jtimer = JHANDLER_GET_THIS(object);
 
   // Take timer wrap.
-  TimerWrap* timer_wrap = reinterpret_cast<TimerWrap*>(jtimer->GetNative());
+  TimerWrap* timer_wrap = reinterpret_cast<TimerWrap*>(
+          iotjs_jval_get_object_native_handle(jtimer));
   IOTJS_ASSERT(timer_wrap != NULL);
-  IOTJS_ASSERT(timer_wrap->jobject().IsObject());
+  IOTJS_ASSERT(iotjs_jval_is_object(timer_wrap->jobject()));
 
   // parameters.
-  int64_t timeout = iotjs_jhandler_get_arg(jhandler, 0)->GetInt64();
-  int64_t repeat = iotjs_jhandler_get_arg(jhandler, 1)->GetInt64();
-  JObject* jcallback = iotjs_jhandler_get_arg(jhandler, 2);
+  int64_t timeout = JHANDLER_GET_ARG(0, number);
+  int64_t repeat = JHANDLER_GET_ARG(1, number);
+  const iotjs_jval_t* jcallback = JHANDLER_GET_ARG(2, function);
 
   // We do not permit double start.
-  JHANDLER_CHECK(timer_wrap->jcallback() == NULL);
+  JHANDLER_CHECK(iotjs_jval_is_undefined(timer_wrap->jcallback()));
 
   // Start timer.
-  int res = timer_wrap->Start(timeout, repeat, *jcallback);
+  int res = timer_wrap->Start(timeout, repeat, jcallback);
 
-  JObject ret(res);
-  iotjs_jhandler_return_obj(jhandler, &ret);
+  iotjs_jhandler_return_number(jhandler, res);
 }
 
 
 JHANDLER_FUNCTION(Stop) {
-  JHANDLER_CHECK(iotjs_jhandler_get_this(jhandler)->IsObject());
+  JHANDLER_CHECK_THIS(object);
 
-  JObject* jtimer = iotjs_jhandler_get_this(jhandler);
+  const iotjs_jval_t* jtimer = JHANDLER_GET_THIS(object);
 
-  TimerWrap* timer_wrap = reinterpret_cast<TimerWrap*>(jtimer->GetNative());
+  TimerWrap* timer_wrap = reinterpret_cast<TimerWrap*>(
+          iotjs_jval_get_object_native_handle(jtimer));
   IOTJS_ASSERT(timer_wrap != NULL);
-  IOTJS_ASSERT(timer_wrap->jobject().IsObject());
+  IOTJS_ASSERT(iotjs_jval_is_object(timer_wrap->jobject()));
 
   // Stop timer.
   int res = timer_wrap->Stop();
 
-  JObject ret(res);
-  iotjs_jhandler_return_obj(jhandler, &ret);
+  iotjs_jhandler_return_number(jhandler, res);
 }
 
 
 JHANDLER_FUNCTION(Timer) {
-  JHANDLER_CHECK(iotjs_jhandler_get_this(jhandler)->IsObject());
+  JHANDLER_CHECK_THIS(object);
 
   Environment* env = Environment::GetEnv();
-  JObject* jtimer = iotjs_jhandler_get_this(jhandler);
+  const iotjs_jval_t* jtimer = JHANDLER_GET_THIS(object);
 
-  TimerWrap* timer_wrap = new TimerWrap(env, *jtimer);
-  IOTJS_ASSERT(timer_wrap->jobject().IsObject());
-  IOTJS_ASSERT(jtimer->GetNative() != 0);;
+  TimerWrap* timer_wrap = new TimerWrap(env, jtimer);
+  IOTJS_ASSERT(iotjs_jval_is_object(timer_wrap->jobject()));
+  IOTJS_ASSERT(iotjs_jval_get_object_native_handle(jtimer) != 0);
 }
 
 
-JObject* InitTimer() {
-  Module* module = GetBuiltinModule(MODULE_TIMER);
-  JObject* timer = module->module;
+iotjs_jval_t InitTimer() {
 
-  if (timer == NULL) {
-    timer = new JObject(Timer);
+  iotjs_jval_t timer = iotjs_jval_create_function(Timer);
 
-    JObject prototype;
-    timer->SetProperty("prototype", prototype);
-    prototype.SetMethod("start", Start);
-    prototype.SetMethod("stop", Stop);
+  iotjs_jval_t prototype = iotjs_jval_create_object();
+  iotjs_jval_set_property_jval(&timer, "prototype", &prototype);
 
-    module->module = timer;
-  }
+  iotjs_jval_set_method(&prototype, "start", Start);
+  iotjs_jval_set_method(&prototype, "stop", Stop);
+
+  iotjs_jval_destroy(&prototype);
 
   return timer;
 }

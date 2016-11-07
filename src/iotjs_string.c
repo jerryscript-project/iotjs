@@ -14,7 +14,6 @@
  */
 
 // FIXME these are for excluding c++-style headers which are not needed here.
-#define IOTJS_BINDING_H
 #define IOTJS_BINDING_HELPER_H
 #define IOTJS_ENV_H
 #define IOTJS_MODULE_H
@@ -30,11 +29,6 @@ static char iotjs_empty_string[] = { '\0' };
 
 
 iotjs_string_t iotjs_string_create(const char* data) {
-  iotjs_string_t str;
-  IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_string_t, &str);
-
-  IOTJS_ASSERT(data != NULL);
-
   return iotjs_string_create_with_size(data, strlen(data));
 }
 

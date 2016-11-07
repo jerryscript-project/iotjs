@@ -33,43 +33,38 @@ namespace iotjs {
 template<typename T>
 class ReqWrap {
  public:
-  ReqWrap(JObject& jcallback);
+  ReqWrap(const iotjs_jval_t* jcallback);
   virtual ~ReqWrap();
 
   // To retrieve javascript callback funciton object.
-  JObject& jcallback();
+  const iotjs_jval_t* jcallback();
 
   // To retrieve pointer to uv request.
   T* req();
 
  protected:
   T _req;
-  JObject* _jcallback;
+  iotjs_jval_t _jcallback;
 };
 
 
 template<typename T>
-ReqWrap<T>::ReqWrap(JObject& jcallback)
-    : _jcallback(NULL) {
-  if (!jcallback.IsNull()) {
-    _jcallback = new JObject(jcallback);
-  }
+ReqWrap<T>::ReqWrap(const iotjs_jval_t* jcallback) {
+  _jcallback = iotjs_jval_create_copied(jcallback);
   _req.data = this;
 }
 
 
 template<typename T>
 ReqWrap<T>::~ReqWrap() {
-  if (_jcallback != NULL) {
-    delete _jcallback;
-  }
+  iotjs_jval_destroy(&_jcallback);
 }
 
 
 template<typename T>
-JObject& ReqWrap<T>::jcallback() {
-  IOTJS_ASSERT(this->_jcallback != NULL);
-  return *(this->_jcallback);
+const iotjs_jval_t* ReqWrap<T>::jcallback() {
+  IOTJS_ASSERT(!iotjs_jval_is_null(&this->_jcallback));
+  return &this->_jcallback;
 }
 
 

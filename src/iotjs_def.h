@@ -103,11 +103,12 @@ typedef struct iotjs_classname_t { \
 iotjs_classname_t##_impl_t; \
 typedef struct iotjs_classname_t { \
   unsigned flag_create; \
+  char* valgrind_tracer; \
   iotjs_classname_t##_impl_t unsafe; \
 } iotjs_classname_t;
 
 #define IOTJS_VALIDATED_STRUCT_STATIC_INITIALIZER(...) \
-  { IOTJS_VALID_MAGIC_SEQUENCE, __VA_ARGS__ }
+  { IOTJS_VALID_MAGIC_SEQUENCE, iotjs_buffer_allocate(4), __VA_ARGS__ }
 
 #define IOTJS_VALIDATE_FLAG(iotjs_classname_t, x) \
   if ((x)->flag_create != IOTJS_VALID_MAGIC_SEQUENCE) { \
@@ -118,12 +119,14 @@ typedef struct iotjs_classname_t { \
 #define IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_classname_t, x) \
   IOTJS_DECLARE_THIS(iotjs_classname_t, x); \
   /* IOTJS_ASSERT((x)->flag_create != IOTJS_VALID_MAGIC_SEQUENCE); */ \
-  (x)->flag_create = IOTJS_VALID_MAGIC_SEQUENCE;
+  (x)->flag_create = IOTJS_VALID_MAGIC_SEQUENCE; \
+  (x)->valgrind_tracer = iotjs_buffer_allocate(4);
 
 #define IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_classname_t, x) \
   IOTJS_DECLARE_THIS(iotjs_classname_t, x); \
   IOTJS_VALIDATE_FLAG(iotjs_classname_t, x); \
-  (x)->flag_create = IOTJS_INVALID_MAGIC_SEQUENCE;
+  (x)->flag_create = IOTJS_INVALID_MAGIC_SEQUENCE; \
+  iotjs_buffer_release((x)->valgrind_tracer);
 
 #define IOTJS_VALIDATED_STRUCT_METHOD(iotjs_classname_t, x) \
   IOTJS_DECLARE_THIS(iotjs_classname_t, x); \

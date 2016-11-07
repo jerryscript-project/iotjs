@@ -42,7 +42,7 @@ namespace iotjs {
 //  https://www.kernel.org/doc/Documentation/gpio/sysfs.txt
 class GpioLinuxGeneral : public Gpio {
  public:
-  explicit GpioLinuxGeneral(JObject& jgpio);
+  explicit GpioLinuxGeneral(const iotjs_jval_t* jgpio);
 
   static GpioLinuxGeneral* GetInstance();
 
@@ -61,7 +61,7 @@ class GpioLinuxGeneral : public Gpio {
 };
 
 
-GpioLinuxGeneral::GpioLinuxGeneral(JObject& jgpio)
+GpioLinuxGeneral::GpioLinuxGeneral(const iotjs_jval_t* jgpio)
     : Gpio(jgpio)
     , _initialized(false) {
   for (int i = 0; i < GPIO_MAX_PINNO; ++i) {
@@ -369,7 +369,7 @@ void AfterWork(uv_work_t* work_req, int status) {
     }
   }
 
-  MakeCallback(gpio_req->jcallback(), *Gpio::GetJGpio(), jargs);
+  MakeCallback(gpio_req->jcallback(), Gpio::GetJGpio(), &jargs);
 
   iotjs_jargs_destroy(&jargs);
 

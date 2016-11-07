@@ -20,7 +20,7 @@
 namespace iotjs {
 
 
-HandleWrap::HandleWrap(JObject& jobject, uv_handle_t* handle)
+HandleWrap::HandleWrap(const iotjs_jval_t* jobject, uv_handle_t* handle)
     : JObjectWrap(jobject)
     , __handle(handle)
     , _on_close_cb(NULL) {
@@ -28,7 +28,7 @@ HandleWrap::HandleWrap(JObject& jobject, uv_handle_t* handle)
 
   // Increase ref count of Javascirpt object to guarantee it is alive until the
   // handle has closed.
-  _jobject->Ref();
+  _jobject = iotjs_jval_create_copied(&_jobject);
 }
 
 
@@ -57,8 +57,8 @@ void HandleWrap::OnClose() {
   __handle = NULL;
 
   // Decrease ref count of Javascript object. From now the object can be
-  // recliamed.
-  _jobject->Unref();
+  // reclaimed.
+  iotjs_jval_destroy(&_jobject);
 }
 
 

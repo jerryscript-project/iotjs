@@ -21,9 +21,9 @@
 
 namespace iotjs {
 
-JObject* GetProcess();
+iotjs_jval_t* GetProcess();
 
-JObject* InitProcess();
+iotjs_jval_t InitProcess();
 
 } // namespace iotjs
 

@@ -14,7 +14,6 @@
  */
 
 #include "iotjs_def.h"
-#include "iotjs_module_tcp.h"
 
 #include "iotjs_reqwrap.h"
 #include "uv.h"
@@ -52,13 +51,13 @@ static void AfterGetAddrInfo(uv_getaddrinfo_t* req, int status, addrinfo* res) {
       ip[0] = 0;
     }
 
-    iotjs_jargs_append_raw_string(&args, ip);
+    iotjs_jargs_append_string_raw(&args, ip);
   }
 
   uv_freeaddrinfo(res);
 
   // Make the callback into JavaScript
-  MakeCallback(req_wrap->jcallback(), JObject::Undefined(), args);
+  MakeCallback(req_wrap->jcallback(), iotjs_jval_get_undefined(), &args);
 
   iotjs_jargs_destroy(&args);
 
@@ -68,17 +67,13 @@ static void AfterGetAddrInfo(uv_getaddrinfo_t* req, int status, addrinfo* res) {
 
 
 JHANDLER_FUNCTION(GetAddrInfo) {
-  JHANDLER_CHECK(iotjs_jhandler_get_this(jhandler)->IsObject());
-  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) == 4);
-  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 0)->IsString());
-  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 1)->IsNumber());
-  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 2)->IsNumber());
-  JHANDLER_CHECK(iotjs_jhandler_get_arg(jhandler, 3)->IsFunction());
+  JHANDLER_CHECK_THIS(object);
+  JHANDLER_CHECK_ARGS(4, string, number, number, function);
 
-  iotjs_string_t hostname = iotjs_jhandler_get_arg(jhandler, 0)->GetString();
-  int option = iotjs_jhandler_get_arg(jhandler, 1)->GetInt32();
-  int flags = iotjs_jhandler_get_arg(jhandler, 2)->GetInt32();
-  JObject* jcallback = iotjs_jhandler_get_arg(jhandler, 3);
+  iotjs_string_t hostname = JHANDLER_GET_ARG(0, string);
+  int option = JHANDLER_GET_ARG(1, number);
+  int flags = JHANDLER_GET_ARG(2, number);
+  const iotjs_jval_t* jcallback = JHANDLER_GET_ARG(3, function);
 
   int family;
   if (option == 0) {
@@ -88,7 +83,8 @@ JHANDLER_FUNCTION(GetAddrInfo) {
   } else if (option == 6) {
     family = AF_INET6;
   } else {
-    JHANDLER_THROW_RETURN(TypeError, "bad address family");
+    JHANDLER_THROW(TYPE, "bad address family");
+    return;
   }
 
 #if defined(__NUTTX__)
@@ -110,14 +106,14 @@ JHANDLER_FUNCTION(GetAddrInfo) {
     }
   }
 
-  JObject ipobj(ip);
   iotjs_jargs_append_number(&args, err);
-  iotjs_jargs_append_obj(&args, &ipobj);
+  iotjs_jargs_append_string_raw(&args, ip);
   iotjs_jargs_append_number(&args, family);
 
-  MakeCallback(*jcallback, JObject::Undefined(), args);
+  MakeCallback(jcallback, iotjs_jval_get_undefined(), &args);
+  iotjs_jargs_destroy(&args);
 #else
-  GetAddrInfoReqWrap* req_wrap = new GetAddrInfoReqWrap(*jcallback);
+  GetAddrInfoReqWrap* req_wrap = new GetAddrInfoReqWrap(jcallback);
 
   struct addrinfo hints = {0};
   hints.ai_family = family;
@@ -142,18 +138,19 @@ JHANDLER_FUNCTION(GetAddrInfo) {
 }
 
 
-JObject* InitDns() {
-  Module* module = GetBuiltinModule(MODULE_DNS);
-  JObject* dns = module->module;
+#define SET_CONSTANT(object, constant) \
+  do { \
+    iotjs_jval_set_property_number(object, #constant, constant); \
+  } while (0)
 
-  if (dns == NULL) {
-    dns = new JObject();
-    dns->SetMethod("getaddrinfo", GetAddrInfo);
-    dns->SetProperty("AI_ADDRCONFIG", iotjs_jval_number(AI_ADDRCONFIG));
-    dns->SetProperty("AI_V4MAPPED", iotjs_jval_number(AI_V4MAPPED));
 
-    module->module = dns;
-  }
+iotjs_jval_t InitDns() {
+
+  iotjs_jval_t dns = iotjs_jval_create_object();
+
+  iotjs_jval_set_method(&dns, "getaddrinfo", GetAddrInfo);
+  SET_CONSTANT(&dns, AI_ADDRCONFIG);
+  SET_CONSTANT(&dns, AI_V4MAPPED);
 
   return dns;
 }

@@ -43,8 +43,8 @@ namespace iotjs {
 // The javascript object now can be reclaimed by GC.
 class HandleWrap : public JObjectWrap {
  public:
-  HandleWrap(JObject& jobject, /* Object that connect with the uv handle*/
-             uv_handle_t* handle);
+  HandleWrap(const iotjs_jval_t* jobject, uv_handle_t* handle);
+  // jobject: Object that connect with the uv handle
 
   virtual ~HandleWrap();
 

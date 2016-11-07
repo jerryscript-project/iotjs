@@ -24,7 +24,32 @@
 
 namespace iotjs {
 
+enum PwmOp {
+  kPwmOpExport,
+  kPwmOpSetDutyCycle,
+  kPwmOpSetPeriod,
+  kPwmOpSetEnable,
+  kPwmOpUnexport,
+};
+
+enum PwmError {
+  kPwmErrOk = 0,
+  kPwmErrExport = -1,
+  kPwmErrUnexport = -2,
+  kPwmErrEnable = -3,
+  kPwmErrWrite = -4,
+  kPwmErrSys = -5,
+};
+
 struct PwmReqData {
+  iotjs_string_t device;
+  int32_t duty_cycle;
+  int32_t period;
+  bool enable;
+
+  PwmError result;
+  PwmOp op;
+
   void* data; // pointer to PwmReqWrap
 };
 
@@ -41,11 +66,12 @@ class Pwm : public JObjectWrap {
   static Pwm* GetInstance();
   static const iotjs_jval_t* GetJPwm();
 
+  virtual int InitializePwmPath(PwmReqWrap* pwm_req) = 0;
   virtual int Export(PwmReqWrap* pwm_req) = 0;
-  virtual int SetDutyCycle(PwmReqWrap* pwm_req) = 0;
   virtual int SetPeriod(PwmReqWrap* pwm_req) = 0;
-  virtual int Enable(PwmReqWrap* pwm_req) = 0;
-  virtual int Unexport(PwmReqWrap* pwm_rea) = 0;
+  virtual int SetDutyCycle(PwmReqWrap* pwm_req) = 0;
+  virtual int SetEnable(PwmReqWrap* pwm_req) = 0;
+  virtual int Unexport(PwmReqWrap* pwm_req) = 0;
 };
 
 

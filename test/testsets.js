@@ -64,6 +64,7 @@ function testsets() {
       'test_net10.js',
       'test_next_tick.js',
       'test_process.js',
+      'test_pwm.js',
       'test_stream.js',
       'test_timers.js',
       'test_timers2.js',

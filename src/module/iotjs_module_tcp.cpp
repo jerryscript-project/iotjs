@@ -1,4 +1,4 @@
-/* Copyright 2015 Samsung Electronics Co., Ltd.
+/* Copyright 2015-2016 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,7 +71,7 @@ JHANDLER_FUNCTION(Open) {
 
 
 // Socket close result handler.
-static void AfterClose(uv_handle_t* handle) {
+void AfterClose(uv_handle_t* handle) {
   HandleWrap* tcp_wrap = HandleWrap::FromHandle(handle);
   IOTJS_ASSERT(tcp_wrap != NULL);
 
@@ -89,9 +89,9 @@ static void AfterClose(uv_handle_t* handle) {
 }
 
 
-// Close socket
-JHANDLER_FUNCTION(Close) {
+void DoClose(iotjs_jhandler_t* jhandler) {
   JHANDLER_CHECK_THIS(object);
+  JHANDLER_CHECK_ARGS(0);
 
   const iotjs_jval_t* jtcp = JHANDLER_GET_THIS(object);
   HandleWrap* wrap = reinterpret_cast<HandleWrap*>(
@@ -99,6 +99,12 @@ JHANDLER_FUNCTION(Close) {
 
   // close uv handle, `AfterClose` will be called after socket closed.
   wrap->Close(AfterClose);
+}
+
+
+// Close socket
+JHANDLER_FUNCTION(Close) {
+  DoClose(jhandler);
 }
 
 

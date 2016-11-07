@@ -115,6 +115,44 @@ function formatValue(v) {
 }
 
 
+function errnoException(err, syscall, original) {
+  var errname = "error"; // uv.errname(err);
+  var message = syscall + ' ' + errname;
+
+  if (original)
+    message += ' ' + original;
+
+  var e = new Error(message);
+  e.code = errname;
+  e.errno = errname;
+  e.syscall = syscall;
+
+  return e;
+};
+
+
+function exceptionWithHostPort(err, syscall, address, port, additional) {
+  var details;
+  if (port && port > 0) {
+    details = address + ':' + port;
+  } else {
+    details = address;
+  }
+
+  if (additional) {
+    details += ' - Local (' + additional + ')';
+  }
+
+  var ex = exports.errnoException(err, syscall, details);
+  ex.address = address;
+  if (port) {
+    ex.port = port;
+  }
+
+  return ex;
+};
+
+
 exports.isNull = isNull;
 exports.isUndefined = isUndefined;
 exports.isNullOrUndefined = isNullOrUndefined;
@@ -125,6 +163,8 @@ exports.isObject = isObject;
 exports.isFunction = isFunction;
 exports.isBuffer = isBuffer;
 exports.isArray = Array.isArray;
+exports.exceptionWithHostPort = exceptionWithHostPort;
+exports.errnoException = errnoException;
 
 exports.inherits = inherits;
 

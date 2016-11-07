@@ -208,10 +208,15 @@ Driver.prototype.finish = function() {
   this.logger.message('TIMEOUT : ' +
     this.results.timeout, this.logger.status.timeout);
   this.logger.message('SKIP : ' + this.results.skip, this.logger.status.skip);
+
+  if (this.results.fail > 0 || this.results.timeout > 0) {
+    originalExit(1);
+  }
 }
 
 var driver = new Driver();
 
+var originalExit = process.exit;
 process.exit = function(code) {
   // this function is called when the following happens.
   // 1. the test case is finished normally.

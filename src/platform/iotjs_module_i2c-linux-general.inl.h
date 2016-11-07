@@ -303,7 +303,7 @@ void AfterI2cWork(uv_work_t* work_req, int status) {
     }
   }
 
-  MakeCallback(i2c_req->jcallback(), I2c::GetJI2c(), &jargs);
+  iotjs_make_callback(i2c_req->jcallback(), I2c::GetJI2c(), &jargs);
 
   delete work_req;
   delete i2c_req;
@@ -454,10 +454,11 @@ void ReadBlockWorker(uv_work_t* work_req) {
 #define I2C_LINUX_GENERAL_IMPL_TEMPLATE(op) \
   do { \
     I2cLinuxGeneral* i2c = I2cLinuxGeneral::GetInstance(); \
-    Environment* env = Environment::GetEnv(); \
+    const iotjs_environment_t* env = iotjs_environment_get(); \
+    uv_loop_t* loop = iotjs_environment_loop(env); \
     uv_work_t* req = new uv_work_t; \
     req->data = reinterpret_cast<void*>(i2c_req); \
-    uv_queue_work(env->loop(), req, op ## Worker, AfterI2cWork); \
+    uv_queue_work(loop, req, op ## Worker, AfterI2cWork); \
   } while (0)
 
 

@@ -14,7 +14,6 @@
  */
 
 #include "iotjs_def.h"
-#include "iotjs_module_process.h"
 #include "iotjs_js.h"
 
 #include <stdio.h>
@@ -25,32 +24,15 @@
 namespace iotjs {
 
 
-iotjs_jval_t* GetProcess() {
-  Module* module = GetBuiltinModule(MODULE_PROCESS);
-  IOTJS_ASSERT(module != NULL);
-
-  iotjs_jval_t* process = &module->module;
-  IOTJS_ASSERT(process != NULL);
-  IOTJS_ASSERT(iotjs_jval_is_object(process));
-
-  return process;
-}
-
-
 JHANDLER_FUNCTION(Binding) {
   JHANDLER_CHECK_ARGS(1, number);
 
-  int module_kind = JHANDLER_GET_ARG(0, number);
+  ModuleKind module_kind = (ModuleKind)JHANDLER_GET_ARG(0, number);
 
-  Module* module = GetBuiltinModule(static_cast<ModuleKind>(module_kind));
-  IOTJS_ASSERT(module != NULL);
+  const iotjs_jval_t* jmodule =
+      iotjs_module_initialize_if_necessary(module_kind);
 
-  if (iotjs_jval_is_undefined(&module->module)) {
-    IOTJS_ASSERT(module->fn_register != NULL);
-    module->module = module->fn_register();
-  }
-
-  iotjs_jhandler_return_jval(jhandler, &module->module);
+  iotjs_jhandler_return_jval(jhandler, jmodule);
 }
 
 
@@ -195,17 +177,19 @@ JHANDLER_FUNCTION(DoExit) {
 JHANDLER_FUNCTION(InitArgv) {
   JHANDLER_CHECK_THIS(object);
 
-  // environtment
-  Environment* env = Environment::GetEnv();
+  // environment
+  const iotjs_environment_t* env = iotjs_environment_get();
 
   // process.argv
   const iotjs_jval_t* thisObj = JHANDLER_GET_THIS(object);
   iotjs_jval_t jargv = iotjs_jval_get_property(thisObj, "argv");
 
-  for (int i = 0; i < env->argc(); ++i) {
-    char index[10] = {0};
-    sprintf(index, "%d", i);
-    iotjs_jval_set_property_string_raw(&jargv, index, env->argv()[i]);
+  int argc = iotjs_environment_argc(env);
+  for (int i = 0; i < argc; ++i) {
+    const char* argvi = iotjs_environment_argv(env, i);
+    iotjs_jval_t arg = iotjs_jval_create_string_raw(argvi);
+    iotjs_jval_set_property_by_index(&jargv, i, &arg);
+    iotjs_jval_destroy(&arg);
   }
   iotjs_jval_destroy(&jargv);
 }
@@ -304,3 +288,12 @@ iotjs_jval_t InitProcess() {
 
 
 } // namespace iotjs
+
+
+extern "C" {
+
+iotjs_jval_t InitProcess() {
+  return iotjs::InitProcess();
+}
+
+} // extern "C"

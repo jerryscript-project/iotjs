@@ -17,10 +17,17 @@
 #define IOTJS_STRING_EXT_H
 
 
-namespace iotjs {
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-void InitJerryMagicStringEx(void);
 
-} // namespace iotjs
+void iotjs_register_jerry_magic_string(void);
+
+
+#ifdef __cplusplus
+} // extern "C"
+#endif
+
 
 #endif /* IOTJS_STRING_EXT_H */

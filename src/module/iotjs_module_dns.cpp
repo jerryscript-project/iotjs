@@ -57,7 +57,7 @@ static void AfterGetAddrInfo(uv_getaddrinfo_t* req, int status, addrinfo* res) {
   uv_freeaddrinfo(res);
 
   // Make the callback into JavaScript
-  MakeCallback(req_wrap->jcallback(), iotjs_jval_get_undefined(), &args);
+  iotjs_make_callback(req_wrap->jcallback(), iotjs_jval_get_undefined(), &args);
 
   iotjs_jargs_destroy(&args);
 
@@ -110,7 +110,7 @@ JHANDLER_FUNCTION(GetAddrInfo) {
   iotjs_jargs_append_string_raw(&args, ip);
   iotjs_jargs_append_number(&args, family);
 
-  MakeCallback(jcallback, iotjs_jval_get_undefined(), &args);
+  iotjs_make_callback(jcallback, iotjs_jval_get_undefined(), &args);
   iotjs_jargs_destroy(&args);
 #else
   GetAddrInfoReqWrap* req_wrap = new GetAddrInfoReqWrap(jcallback);
@@ -120,7 +120,7 @@ JHANDLER_FUNCTION(GetAddrInfo) {
   hints.ai_socktype = SOCK_STREAM;
   hints.ai_flags = flags;
 
-  int err = uv_getaddrinfo(Environment::GetEnv()->loop(),
+  int err = uv_getaddrinfo(iotjs_environment_loop(iotjs_environment_get()),
                            req_wrap->req(),
                            AfterGetAddrInfo,
                            iotjs_string_data(&hostname),
@@ -157,3 +157,12 @@ iotjs_jval_t InitDns() {
 
 
 } // namespace iotjs
+
+
+extern "C" {
+
+iotjs_jval_t InitDns() {
+  return iotjs::InitDns();
+}
+
+} // extern "C"

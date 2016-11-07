@@ -223,10 +223,11 @@ void AfterWork(uv_work_t* work_req, int status) {
     }
   }
 
-  MakeCallback(gpio_req->jcallback(), *Gpio::GetJGpio(), jargs);
+  iotjs_make_callback(gpio_req->jcallback(), Gpio::GetJGpio(), &jargs);
 
   delete work_req;
   delete gpio_req;
+  iotjs_jargs_destroy(&jargs);
 }
 
 
@@ -344,10 +345,10 @@ void ReadPinWorker(uv_work_t* work_req) {
   do { \
     GpioLinuxMraa* gpio = GpioLinuxMraa::GetInstance(); \
     IOTJS_ASSERT(gpio->_initialized == initialized); \
-    Environment* env = Environment::GetEnv(); \
+    const iotjs_environment_t* env = iotjs_environment_get(); \
     uv_work_t* req = new uv_work_t; \
     req->data = reinterpret_cast<void*>(gpio_req); \
-    uv_queue_work(env->loop(), req, op ## Worker, AfterWork); \
+    uv_queue_work(iotjs_environment_loop(env), req, op ## Worker, AfterWork); \
   } while (0)
 
 

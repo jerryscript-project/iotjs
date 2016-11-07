@@ -13,9 +13,7 @@
  * limitations under the License.
  */
 
-#include <stdio.h>
-
-int iotjs_entry(int argc, char** argv);
+#include "iotjs.h"
 
 int main(int argc, char** argv) {
 

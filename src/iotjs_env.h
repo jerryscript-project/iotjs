@@ -18,109 +18,64 @@
 
 #include "uv.h"
 
-#include "iotjs_def.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 
-namespace iotjs {
-
-
-struct Config {
+typedef struct {
   bool memstat;
   bool show_opcode;
-};
+} Config;
+
+typedef enum {
+  kInitializing,
+  kRunningMain,
+  kRunningLoop,
+  kExiting
+} State;
 
 
-class Environment {
- public:
-  enum State {
-    kInitializing,
-    kRunningMain,
-    kRunningLoop,
-    kExiting
-  };
-
-  /**
-   * Get the singleton instance of Environment.
-   */
-  static Environment* GetEnv() {
-    if (Environment::_env == NULL) {
-      Environment::_env = new Environment();
-    }
-    return _env;
-  }
-
-  /**
-   * Release the singleton instance of Environment.
-   */
-  static void Release() {
-    if (Environment::_env) {
-      delete Environment::_env;
-      Environment::_env = NULL;
-    }
-  }
-
-  /**
-   * Parse command line arguments
-   */
-  bool ParseCommandLineArgument(int argc, char** argv);
-
-  int argc() {return _argc; }
-
-  char** argv() { return _argv; }
-
-  uv_loop_t* loop() { return _loop; }
-  void set_loop(uv_loop_t* loop) { _loop = loop; }
-
-  State state() { return _state; }
-
-  const Config* config() { return &_config;}
-
-  void GoStateRunningMain() {
-    IOTJS_ASSERT(_state == kInitializing);
-    _state = kRunningMain;
-  }
-
-  void GoStateRunningLoop() {
-    IOTJS_ASSERT(_state == kRunningMain);
-    _state = kRunningLoop;
-  }
-
-  void GoStateExiting() {
-    IOTJS_ASSERT(_state < kExiting);
-    _state = kExiting;
-  }
-
- private:
+typedef struct {
   // Number of application arguments including 'iotjs' and app name.
-  int _argc;
+  int argc;
 
   // Application arguments list including 'iotjs' and app name.
-  char** _argv;
+  char** argv;
 
   // I/O event loop.
-  uv_loop_t* _loop;
+  uv_loop_t* loop;
 
   // Running state.
-  State _state;
+  State state;
 
   // Run config
-  Config _config;
+  Config config;
+} IOTJS_VALIDATED_STRUCT(iotjs_environment_t);
 
 
- private:
-  /**
-   * Constructor on private section.
-   *  To prevent create an instance of Environment.
-   *  The only way to create an instance of Environment is by using GetEnv().
-   */
-  Environment();
+const iotjs_environment_t* iotjs_environment_get();
+void iotjs_environment_release();
 
-  ~Environment();
+bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
+                                                    int argc, char** argv);
 
-  // The singleton instance of Environment.
-  static Environment* _env;
-}; // class Environment
+int iotjs_environment_argc(const iotjs_environment_t* env);
+const char* iotjs_environment_argv(const iotjs_environment_t* env, int idx);
 
-} // namespace iotjs
+uv_loop_t* iotjs_environment_loop(const iotjs_environment_t* env);
+void iotjs_environment_set_loop(iotjs_environment_t* env, uv_loop_t* loop);
+
+const Config* iotjs_environment_config(const iotjs_environment_t* env);
+
+void iotjs_environment_go_state_running_main(iotjs_environment_t* env);
+void iotjs_environment_go_state_running_loop(iotjs_environment_t* env);
+void iotjs_environment_go_state_exiting(iotjs_environment_t* env);
+
+
+#ifdef __cplusplus
+} // extern "C"
+#endif
+
 
 #endif /* IOTJS_ENV_H */

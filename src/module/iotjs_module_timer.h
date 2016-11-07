@@ -21,14 +21,13 @@
 
 namespace iotjs {
 
-iotjs_jval_t InitTimer();
 
 class TimerWrap : public HandleWrap {
  public:
-  explicit TimerWrap(Environment* env, const iotjs_jval_t* jtimer)
+  explicit TimerWrap(const iotjs_environment_t* env, const iotjs_jval_t* jtimer)
       : HandleWrap(jtimer, reinterpret_cast<uv_handle_t*>(&_handle)) {
     // Initialize timer handler.
-    uv_timer_init(env->loop(), &_handle);
+    uv_timer_init(iotjs_environment_loop(env), &_handle);
     _jcallback = *iotjs_jval_get_undefined();
   }
 

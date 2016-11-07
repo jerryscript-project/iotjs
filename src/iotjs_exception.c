@@ -1,4 +1,4 @@
-/* Copyright 2016 Samsung Electronics Co., Ltd.
+/* Copyright 2015 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,16 @@
  */
 
 
-#ifndef IOTJS_MODULE_UDP_H
-#define IOTJS_MODULE_UDP_H
+#include "iotjs_def.h"
+#include "iotjs_exception.h"
 
-#include "iotjs_binding.h"
+#include <stdio.h>
 
-
-namespace iotjs {
-
-
-iotjs_jval_t InitUpp();
+#include "uv.h"
 
 
-} // namespace iotjs
-
-
-#endif /* IOTJS_MODULE_UDP_H */
+iotjs_jval_t iotjs_create_uv_exception(int errorno, const char* syscall) {
+  static char msg[256];
+  snprintf(msg, sizeof(msg), "'%s' %s", syscall, uv_strerror(errorno));
+  return iotjs_jval_create_error(msg);
+}

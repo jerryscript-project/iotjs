@@ -14,18 +14,14 @@
  */
 
 #include "iotjs_def.h"
-#include "module/iotjs_module_process.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 
-namespace iotjs {
-
-
-void UncaughtException(const iotjs_jval_t* jexception) {
-  iotjs_jval_t* process = GetProcess();
+void iotjs_uncaught_exception(const iotjs_jval_t* jexception) {
+  const iotjs_jval_t* process = iotjs_module_get(MODULE_PROCESS);
 
   iotjs_jval_t jonuncaughtexception =
       iotjs_jval_get_property(process, "_onUncaughtExcecption");
@@ -43,8 +39,8 @@ void UncaughtException(const iotjs_jval_t* jexception) {
 }
 
 
-void ProcessEmitExit(int code) {
-  iotjs_jval_t* process = GetProcess();
+void iotjs_process_emit_exit(int code) {
+  const iotjs_jval_t* process = iotjs_module_get(MODULE_PROCESS);
 
   iotjs_jval_t jexit = iotjs_jval_get_property(process, "emitExit");
   IOTJS_ASSERT(iotjs_jval_is_function(&jexit));
@@ -66,8 +62,8 @@ void ProcessEmitExit(int code) {
 
 
 // Calls next tick callbacks registered via `process.nextTick()`.
-bool ProcessNextTick() {
-  iotjs_jval_t* process = GetProcess();
+bool iotjs_process_next_tick() {
+  const iotjs_jval_t* process = iotjs_module_get(MODULE_PROCESS);
 
   iotjs_jval_t jon_next_tick = iotjs_jval_get_property(process, "_onNextTick");
   IOTJS_ASSERT(iotjs_jval_is_function(&jon_next_tick));
@@ -89,37 +85,33 @@ bool ProcessNextTick() {
 // Make a callback for the given `function` with `this_` binding and `args`
 // arguments. The next tick callbacks registered via `process.nextTick()`
 // will be called after the callback function `function` returns.
-void MakeCallback(const iotjs_jval_t* jfunction,
-                  const iotjs_jval_t* jthis,
-                  const iotjs_jargs_t* jargs) {
-  iotjs_jval_t result = MakeCallbackWithResult(jfunction, jthis, jargs);
+void iotjs_make_callback(const iotjs_jval_t* jfunction,
+                         const iotjs_jval_t* jthis,
+                         const iotjs_jargs_t* jargs) {
+  iotjs_jval_t result =
+      iotjs_make_callback_with_result(jfunction, jthis, jargs);
   iotjs_jval_destroy(&result);
 }
 
 
-iotjs_jval_t MakeCallbackWithResult(const iotjs_jval_t* jfunction,
-                                    const iotjs_jval_t* jthis,
-                                    const iotjs_jargs_t* jargs) {
+iotjs_jval_t iotjs_make_callback_with_result(const iotjs_jval_t* jfunction,
+                                             const iotjs_jval_t* jthis,
+                                             const iotjs_jargs_t* jargs) {
   // Calls back the function.
   bool throws;
   iotjs_jval_t jres = iotjs_jhelper_call(jfunction, jthis, jargs, &throws);
   if (throws) {
-    UncaughtException(&jres);
+    iotjs_uncaught_exception(&jres);
   }
 
   // Calls the next tick callbacks.
-  ProcessNextTick();
+  iotjs_process_next_tick();
 
   // Return value.
   return jres;
 }
 
 
-iotjs_jval_t* InitProcessModule() {
-  Module* module = GetBuiltinModule(MODULE_PROCESS);
-  module->module = InitProcess();
-  return &module->module;
+const iotjs_jval_t* iotjs_init_process_module() {
+  return iotjs_module_initialize_if_necessary(MODULE_PROCESS);
 }
-
-
-} // namespace iotjs

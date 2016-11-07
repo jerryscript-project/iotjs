@@ -49,9 +49,6 @@ class Pwm : public JObjectWrap {
 };
 
 
-iotjs_jval_t InitPwm();
-
-
 } // namespace iotjs
 
 

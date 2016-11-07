@@ -85,9 +85,6 @@ class I2c : public JObjectWrap {
 };
 
 
-iotjs_jval_t InitI2c();
-
-
 } // namespace iotjs
 
 

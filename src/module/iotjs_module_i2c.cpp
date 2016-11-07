@@ -32,11 +32,7 @@ I2c::~I2c() {
 
 
 const iotjs_jval_t* I2c::GetJI2c() {
-  Module* module = GetBuiltinModule(MODULE_I2C);
-  const iotjs_jval_t* ji2c = &module->module;
-  IOTJS_ASSERT(ji2c != NULL);
-
-  return ji2c;
+  return iotjs_module_get(MODULE_I2C);
 }
 
 
@@ -244,3 +240,12 @@ iotjs_jval_t InitI2c() {
 
 
 } // namespace iotjs
+
+
+extern "C" {
+
+iotjs_jval_t InitI2c() {
+  return iotjs::InitI2c();
+}
+
+} // extern "C"

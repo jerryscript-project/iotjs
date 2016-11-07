@@ -23,9 +23,6 @@
 namespace iotjs {
 
 
-iotjs_jval_t InitBuffer();
-
-
 // Create buffer object.
 iotjs_jval_t CreateBuffer(size_t len);
 

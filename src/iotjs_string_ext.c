@@ -13,10 +13,8 @@
  * limitations under the License.
  */
 
+
 #include "iotjs_def.h"
-
-
-namespace iotjs {
 
 //
 // strings in iotjs built-in scripts
@@ -62,12 +60,10 @@ static const jerry_char_ptr_t magic_string_items[] =
 };
 
 
-void InitJerryMagicStringEx(void) {
+void iotjs_register_jerry_magic_string(void) {
   uint32_t num_magic_string_items = (uint32_t)(sizeof(magic_string_items)
                                     / sizeof(jerry_char_ptr_t));
   jerry_register_magic_strings(magic_string_items,
                                num_magic_string_items,
                                magic_string_lengths);
 }
-
-} // namespace iotjs

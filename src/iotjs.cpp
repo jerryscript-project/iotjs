@@ -28,25 +28,19 @@
 #include <string.h>
 
 
-namespace iotjs {
-
-
-Environment* Environment::_env = NULL;
-
-
 /**
  * Initialize JerryScript.
  */
-static bool InitJerry(Environment* env) {
+static bool iotjs_jerry_initialize(const iotjs_environment_t* env) {
   // Set jerry run flags.
   uint32_t jerry_flag = JERRY_INIT_EMPTY;
 
-  if (env->config()->memstat) {
+  if (iotjs_environment_config(env)->memstat) {
     jerry_flag |= JERRY_INIT_MEM_STATS;
     jerry_port_default_set_log_level(JERRY_LOG_LEVEL_DEBUG);
   }
 
-  if (env->config()->show_opcode) {
+  if (iotjs_environment_config(env)->show_opcode) {
     jerry_flag |= JERRY_INIT_SHOW_OPCODES;
     jerry_port_default_set_log_level(JERRY_LOG_LEVEL_DEBUG);
   }
@@ -55,7 +49,7 @@ static bool InitJerry(Environment* env) {
   jerry_init((jerry_init_flag_t) jerry_flag);
 
   // Set magic strings.
-  InitJerryMagicStringEx();
+  iotjs_register_jerry_magic_string();
 
   // Do parse and run to generate initial javascript environment.
   jerry_value_t parsed_code = jerry_parse((jerry_char_t*)"", 0, false);
@@ -79,23 +73,12 @@ static bool InitJerry(Environment* env) {
 }
 
 
-static void ReleaseJerry() {
+static void iotjs_jerry_release() {
   jerry_cleanup();
 }
 
 
-static iotjs_jval_t* InitModules() {
-  InitModuleList();
-  return InitProcessModule();
-}
-
-
-static void CleanupModules() {
-  CleanupModuleList();
-}
-
-
-static bool RunIoTjs(iotjs_jval_t* process) {
+static bool iotjs_run(const iotjs_jval_t* process) {
   // Evaluating 'iotjs.js' returns a function.
   bool throws;
 #ifndef ENABLE_SNAPSHOT
@@ -118,7 +101,7 @@ static bool RunIoTjs(iotjs_jval_t* process) {
   iotjs_jval_destroy(&jmain);
 
   if (throws) {
-    UncaughtException(&jmain_res);
+    iotjs_uncaught_exception(&jmain_res);
   }
   iotjs_jval_destroy(&jmain_res);
 
@@ -126,7 +109,7 @@ static bool RunIoTjs(iotjs_jval_t* process) {
 }
 
 
-static bool StartIoTjs(Environment* env) {
+static bool iotjs_start(iotjs_environment_t* env) {
   // Initialize commonly used jerry values
   iotjs_binding_initialize();
 
@@ -135,33 +118,37 @@ static bool StartIoTjs(Environment* env) {
   iotjs_jval_set_object_native_handle(global, (uintptr_t)(env), NULL);
 
   // Initialize builtin modules.
-  iotjs_jval_t* process = InitModules();
+  iotjs_module_list_init();
+
+  // Initialize builtin process module.
+  const iotjs_jval_t* process =
+      iotjs_module_initialize_if_necessary(MODULE_PROCESS);
 
   // Call the entry.
   // load and call iotjs.js
-  env->GoStateRunningMain();
+  iotjs_environment_go_state_running_main(env);
 
-  RunIoTjs(process);
+  iotjs_run(process);
 
   // Run event loop.
-  env->GoStateRunningLoop();
+  iotjs_environment_go_state_running_loop(env);
 
   bool more;
   do {
-    more = uv_run(env->loop(), UV_RUN_ONCE);
-    more |= ProcessNextTick();
+    more = uv_run(iotjs_environment_loop(env), UV_RUN_ONCE);
+    more |= iotjs_process_next_tick();
     if (more == false) {
-      more = uv_loop_alive(env->loop());
+      more = uv_loop_alive(iotjs_environment_loop(env));
     }
   } while (more);
 
-  env->GoStateExiting();
+  iotjs_environment_go_state_exiting(env);
 
   // Emit 'exit' event.
-  ProcessEmitExit(0);
+  iotjs_process_emit_exit(0);
 
   // Release bulitin modules.
-  CleanupModules();
+  iotjs_module_list_cleanup();
 
   // Release commonly used jerry values.
   iotjs_binding_finalize();
@@ -171,65 +158,57 @@ static bool StartIoTjs(Environment* env) {
 
 
 static void UvWalkToCloseCallback(uv_handle_t* handle, void* arg) {
-  HandleWrap* handle_wrap = HandleWrap::FromHandle(handle);
+  iotjs::HandleWrap* handle_wrap = iotjs::HandleWrap::FromHandle(handle);
   IOTJS_ASSERT(handle_wrap != NULL);
 
   handle_wrap->Close(NULL);
 }
 
 
-int Start(int argc, char** argv) {
+extern "C" int iotjs_entry(int argc, char** argv) {
   // Initialize debug print.
   init_debug_settings();
 
   // Create environtment.
-  Environment* env = Environment::GetEnv();
+  iotjs_environment_t* env = (iotjs_environment_t*)iotjs_environment_get();
 
   // Parse command line arguemnts.
-  if (!env->ParseCommandLineArgument(argc, argv)) {
-    DLOG("ParseCommandLineArgument failed");
+  if (!iotjs_environment_parse_command_line_arguments(env, argc, argv)) {
+    DLOG("iotjs_environment_parse_command_line_arguments failed");
     return 1;
   }
 
   // Set event loop.
-  env->set_loop(uv_default_loop());
+  iotjs_environment_set_loop(env, uv_default_loop());
 
   // Initialize JerryScript engine.
-  if (!InitJerry(env)) {
-    DLOG("InitJerry failed");
+  if (!iotjs_jerry_initialize(env)) {
+    DLOG("iotjs_jerry_initialize failed");
     return 1;
   }
 
   // Start IoT.js
-  if (!StartIoTjs(env)) {
-    DLOG("StartIoTJs failed");
+  if (!iotjs_start(env)) {
+    DLOG("iotjs_start failed");
     return 1;
   }
 
   // close uv loop.
-  //uv_stop(env->loop());
-  uv_walk(env->loop(), UvWalkToCloseCallback, NULL);
-  uv_run(env->loop(), UV_RUN_DEFAULT);
+  //uv_stop(iotjs_environment_loop(env));
+  uv_walk(iotjs_environment_loop(env), UvWalkToCloseCallback, NULL);
+  uv_run(iotjs_environment_loop(env), UV_RUN_DEFAULT);
 
-  int res = uv_loop_close(env->loop());
+  int res = uv_loop_close(iotjs_environment_loop(env));
   IOTJS_ASSERT(res == 0);
 
   // Release JerryScript engine.
-  ReleaseJerry();
+  iotjs_jerry_release();
 
   // Release environment.
-  Environment::Release();
+  iotjs_environment_release();
 
   // Release debug print setting.
   release_debug_settings();
 
   return 0;
-}
-
-
-} // namespace iotjs
-
-
-extern "C" int iotjs_entry(int argc, char** argv) {
-  return iotjs::Start(argc, argv);
 }

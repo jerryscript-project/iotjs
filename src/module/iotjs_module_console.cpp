@@ -49,4 +49,14 @@ iotjs_jval_t InitConsole() {
   return console;
 }
 
+
 } // namespace iotjs
+
+
+extern "C" {
+
+iotjs_jval_t InitConsole() {
+  return iotjs::InitConsole();
+}
+
+} // extern "C"

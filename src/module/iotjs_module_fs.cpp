@@ -48,7 +48,7 @@ static void After(uv_fs_t* req) {
 
   iotjs_jargs_t jarg = iotjs_jargs_create(2);
   if (req->result < 0) {
-    iotjs_jval_t jerror = CreateUVException(req->result, "open");
+    iotjs_jval_t jerror = iotjs_create_uv_exception(req->result, "open");
     iotjs_jargs_append_jval(&jarg, &jerror);
     iotjs_jval_destroy(&jerror);
   } else {
@@ -95,7 +95,7 @@ static void After(uv_fs_t* req) {
     }
   }
 
-  MakeCallback(cb, iotjs_jval_get_undefined(), &jarg);
+  iotjs_make_callback(cb, iotjs_jval_get_undefined(), &jarg);
 
   iotjs_jargs_destroy(&jarg);
   delete req_wrap;
@@ -105,7 +105,7 @@ static void After(uv_fs_t* req) {
 #define FS_ASYNC(env, syscall, pcallback, ...) \
   FsReqWrap* req_wrap = new FsReqWrap(pcallback); \
   uv_fs_t* fs_req = req_wrap->req(); \
-  int err = uv_fs_ ## syscall(env->loop(), \
+  int err = uv_fs_ ## syscall(iotjs_environment_loop(env), \
                               fs_req, \
                               __VA_ARGS__, \
                               After); \
@@ -118,12 +118,12 @@ static void After(uv_fs_t* req) {
 
 #define FS_SYNC(env, syscall, ...) \
   FsReqWrap req_wrap(iotjs_jval_get_null()); \
-  int err = uv_fs_ ## syscall(env->loop(), \
+  int err = uv_fs_ ## syscall(iotjs_environment_loop(env), \
                               req_wrap.req(), \
                               __VA_ARGS__, \
                               NULL); \
   if (err < 0) { \
-    iotjs_jval_t jerror = CreateUVException(err, #syscall); \
+    iotjs_jval_t jerror = iotjs_create_uv_exception(err, #syscall); \
     iotjs_jhandler_throw(jhandler, &jerror); \
     iotjs_jval_destroy(&jerror); \
   }
@@ -134,7 +134,7 @@ JHANDLER_FUNCTION(Close) {
   JHANDLER_CHECK_ARGS(1, number);
   JHANDLER_CHECK_ARG_IF_EXIST(1, function);
 
-  Environment* env = Environment::GetEnv();
+  const iotjs_environment_t* env = iotjs_environment_get();
 
   int fd = JHANDLER_GET_ARG(0, number);
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG_IF_EXIST(1, function);
@@ -152,7 +152,7 @@ JHANDLER_FUNCTION(Open) {
   JHANDLER_CHECK_ARGS(3, string, number, number);
   JHANDLER_CHECK_ARG_IF_EXIST(3, function);
 
-  Environment* env = Environment::GetEnv();
+  const iotjs_environment_t* env = iotjs_environment_get();
 
   iotjs_string_t path = JHANDLER_GET_ARG(0, string);
   int flags = JHANDLER_GET_ARG(1, number);
@@ -176,7 +176,7 @@ JHANDLER_FUNCTION(Read) {
   JHANDLER_CHECK_ARGS(5, number, object, number, number, number);
   JHANDLER_CHECK_ARG_IF_EXIST(5, function);
 
-  Environment* env = Environment::GetEnv();
+  const iotjs_environment_t* env = iotjs_environment_get();
 
   int fd = JHANDLER_GET_ARG(0, number);
   const iotjs_jval_t* jbuffer = JHANDLER_GET_ARG(1, object);
@@ -218,7 +218,7 @@ JHANDLER_FUNCTION(Write) {
   JHANDLER_CHECK_ARGS(5, number, object, number, number, number);
   JHANDLER_CHECK_ARG_IF_EXIST(5, function);
 
-  Environment* env = Environment::GetEnv();
+  const iotjs_environment_t* env = iotjs_environment_get();
 
   int fd = JHANDLER_GET_ARG(0, number);
   const iotjs_jval_t* jbuffer = JHANDLER_GET_ARG(1, object);
@@ -256,11 +256,7 @@ JHANDLER_FUNCTION(Write) {
 
 
 iotjs_jval_t MakeStatObject(uv_stat_t* statbuf) {
-  Module* module = GetBuiltinModule(MODULE_FS);
-  IOTJS_ASSERT(module != NULL);
-
-  iotjs_jval_t* fs = &module->module;
-  IOTJS_ASSERT(!iotjs_jval_is_undefined(fs));
+  const iotjs_jval_t* fs = iotjs_module_get(MODULE_FS);
 
   iotjs_jval_t create_stat = iotjs_jval_get_property(fs, "_createStat");
   IOTJS_ASSERT(iotjs_jval_is_function(&create_stat));
@@ -302,7 +298,7 @@ JHANDLER_FUNCTION(Stat) {
   JHANDLER_CHECK_ARGS(1, string);
   JHANDLER_CHECK_ARG_IF_EXIST(1, function);
 
-  Environment* env = Environment::GetEnv();
+  const iotjs_environment_t* env = iotjs_environment_get();
 
   iotjs_string_t path = JHANDLER_GET_ARG(0, string);
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG_IF_EXIST(1, function);
@@ -329,7 +325,7 @@ JHANDLER_FUNCTION(MkDir) {
   JHANDLER_CHECK_ARGS(2, string, number);
   JHANDLER_CHECK_ARG_IF_EXIST(2, function);
 
-  Environment* env = Environment::GetEnv();
+  const iotjs_environment_t* env = iotjs_environment_get();
 
   iotjs_string_t path = JHANDLER_GET_ARG(0, string);
   int mode = JHANDLER_GET_ARG(1, number);
@@ -352,7 +348,7 @@ JHANDLER_FUNCTION(RmDir) {
   JHANDLER_CHECK_ARGS(1, string);
   JHANDLER_CHECK_ARG_IF_EXIST(1, function);
 
-  Environment* env = Environment::GetEnv();
+  const iotjs_environment_t* env = iotjs_environment_get();
 
   iotjs_string_t path = JHANDLER_GET_ARG(0, string);
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG_IF_EXIST(1, function);
@@ -374,7 +370,7 @@ JHANDLER_FUNCTION(Unlink) {
   JHANDLER_CHECK_ARGS(1, string);
   JHANDLER_CHECK_ARG_IF_EXIST(1, function);
 
-  Environment* env = Environment::GetEnv();
+  const iotjs_environment_t* env = iotjs_environment_get();
 
   iotjs_string_t path = JHANDLER_GET_ARG(0, string);
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG_IF_EXIST(1, function);
@@ -396,7 +392,7 @@ JHANDLER_FUNCTION(Rename) {
   JHANDLER_CHECK_ARGS(2, string, string);
   JHANDLER_CHECK_ARG_IF_EXIST(2, function);
 
-  Environment* env = Environment::GetEnv();
+  const iotjs_environment_t* env = iotjs_environment_get();
 
   iotjs_string_t oldPath = JHANDLER_GET_ARG(0, string);
   iotjs_string_t newPath = JHANDLER_GET_ARG(1, string);
@@ -422,7 +418,7 @@ JHANDLER_FUNCTION(ReadDir) {
   JHANDLER_CHECK_ARGS(1, string);
   JHANDLER_CHECK_ARG_IF_EXIST(2, function);
 
-  Environment* env = Environment::GetEnv();
+  const iotjs_environment_t* env = iotjs_environment_get();
   iotjs_string_t path = JHANDLER_GET_ARG(0, string);
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG_IF_EXIST(2, function);
 
@@ -466,5 +462,13 @@ iotjs_jval_t InitFs() {
   return fs;
 }
 
-
 } // namespace iotjs
+
+
+extern "C" {
+
+iotjs_jval_t InitFs() {
+  return iotjs::InitFs();
+}
+
+} // extern "C"

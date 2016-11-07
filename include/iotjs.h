@@ -16,6 +16,7 @@
 #ifndef IOTJS_IOTJS_H
 #define IOTJS_IOTJS_H
 
+
 #ifdef __cplusplus
 # define IOTJS_EXTERN_C extern "C"
 #else /* !__cplusplus */
@@ -23,10 +24,7 @@
 #endif /* !__cplusplus */
 
 
-namespace iotjs {
+IOTJS_EXTERN_C int iotjs_entry(int argc, char** argv);
 
-IOTJS_EXTERN_C int Start(int argc, char** argv);
-
-} // namespace itojs
 
 #endif /* IOTJS_IOTJS_H */

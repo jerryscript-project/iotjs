@@ -32,11 +32,7 @@ Gpio::~Gpio() {
 
 
 const iotjs_jval_t* Gpio::GetJGpio() {
-  Module* module = GetBuiltinModule(MODULE_GPIO);
-  const iotjs_jval_t* jgpio = &module->module;
-  IOTJS_ASSERT(jgpio != NULL);
-
-  return jgpio;
+  return iotjs_module_get(MODULE_GPIO);
 }
 
 
@@ -250,3 +246,12 @@ iotjs_jval_t InitGpio() {
 
 
 } // namespace iotjs
+
+
+extern "C" {
+
+iotjs_jval_t InitGpio() {
+  return iotjs::InitGpio();
+}
+
+} // extern "C"

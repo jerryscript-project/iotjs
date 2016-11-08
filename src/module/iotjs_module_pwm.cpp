@@ -21,12 +21,13 @@
 namespace iotjs {
 
 
-Pwm::Pwm(const iotjs_jval_t* jpwm)
-    : JObjectWrap(jpwm) {
+Pwm::Pwm(const iotjs_jval_t* jpwm) {
+  iotjs_jobjectwrap_initialize(&_jobjectwrap, jpwm, (uintptr_t)this, Delete);
 }
 
 
 Pwm::~Pwm() {
+  iotjs_jobjectwrap_destroy(&_jobjectwrap);
 }
 
 

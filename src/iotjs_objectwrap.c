@@ -1,4 +1,4 @@
-/* Copyright 2015 Samsung Electronics Co., Ltd.
+/* Copyright 2015-2016 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,44 +17,30 @@
 #include "iotjs_objectwrap.h"
 
 
-namespace iotjs {
+void iotjs_jobjectwrap_initialize(iotjs_jobjectwrap_t* jobjectwrap,
+                                  const iotjs_jval_t* jobject,
+                                  uintptr_t jhandle,
+                                  JFreeHandlerType jfreehandler) {
+  IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_jobjectwrap_t, jobjectwrap);
 
-
-static void FreeObjectWrap(const uintptr_t wrapper) {
-  // native pointer must not be NULL.
-  IOTJS_ASSERT(wrapper != 0);
-
-  JObjectWrap* object_wrap = reinterpret_cast<JObjectWrap*>(wrapper);
-  object_wrap->Destroy();
-}
-
-
-JObjectWrap::JObjectWrap(const iotjs_jval_t* jobject) {
   IOTJS_ASSERT(iotjs_jval_is_object(jobject));
 
   // This wrapper holds pointer to the javascript object but never increases
   // reference count.
-  _jobject = *((iotjs_jval_t*)jobject);
+  _this->jobject = *((iotjs_jval_t*)jobject);
 
   // Set native pointer of the object to be this wrapper.
   // If the object is freed by GC, the wrapper instance should also be freed.
-  uintptr_t handle = (uintptr_t)this;
-  iotjs_jval_set_object_native_handle(&_jobject, handle, FreeObjectWrap);
+  iotjs_jval_set_object_native_handle(&_this->jobject, jhandle, jfreehandler);
 }
 
 
-JObjectWrap::~JObjectWrap() {
+void iotjs_jobjectwrap_destroy(iotjs_jobjectwrap_t* jobjectwrap) {
+  IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_jobjectwrap_t, jobjectwrap);
+  /* Do nothing on _this->jobject */
 }
 
-
-iotjs_jval_t* JObjectWrap::jobject() {
-  return &_jobject;
+iotjs_jval_t* iotjs_jobjectwrap_jobject(iotjs_jobjectwrap_t* jobjectwrap) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_jobjectwrap_t, jobjectwrap);
+  return &_this->jobject;
 }
-
-
-void JObjectWrap::Destroy(void) {
-  delete this;
-}
-
-
-} // namespace itojs

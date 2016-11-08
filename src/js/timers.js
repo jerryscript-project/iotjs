@@ -28,7 +28,7 @@ function Timeout(after) {
 }
 
 
-var handleTimeout = function() {
+Timer.prototype.handleTimeout = function() {
   var timeout = this.timeoutObj; // 'this' is Timer object
   if (timeout && timeout.callback) {
     timeout.callback();
@@ -51,7 +51,7 @@ Timeout.prototype.activate = function() {
   handler.timeoutObj = this;
   this.handler = handler;
 
-  handler.start(this.after, repeat, handleTimeout);
+  handler.start(this.after, repeat);
 };
 
 

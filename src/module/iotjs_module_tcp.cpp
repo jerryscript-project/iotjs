@@ -24,12 +24,17 @@
 namespace iotjs {
 
 
-class TcpWrap : public HandleWrap {
+class TcpWrap {
  public:
   explicit TcpWrap(const iotjs_environment_t* env,
-                   const iotjs_jval_t* jtcp)
-      : HandleWrap(jtcp, reinterpret_cast<uv_handle_t*>(&_handle)) {
+                   const iotjs_jval_t* jtcp) {
+    iotjs_handlewrap_initialize(&_handlewrap, jtcp,
+            reinterpret_cast<uv_handle_t*>(&_handle), (uintptr_t)this, Delete);
     uv_tcp_init(iotjs_environment_loop(env), &_handle);
+  }
+
+  ~TcpWrap() {
+    iotjs_handlewrap_destroy(&_handlewrap);
   }
 
   static TcpWrap* FromJObject(const iotjs_jval_t* jtcp) {
@@ -43,7 +48,16 @@ class TcpWrap : public HandleWrap {
     return &_handle;
   }
 
+  iotjs_jval_t* jobject() {
+    return iotjs_handlewrap_jobject(&_handlewrap);
+  }
+
+  static void Delete(const uintptr_t data) {
+    delete ((TcpWrap*)data);
+  }
+
  protected:
+  iotjs_handlewrap_t _handlewrap;
   uv_tcp_t _handle;
 };
 
@@ -72,11 +86,11 @@ JHANDLER_FUNCTION(Open) {
 
 // Socket close result handler.
 void AfterClose(uv_handle_t* handle) {
-  HandleWrap* tcp_wrap = HandleWrap::FromHandle(handle);
+  iotjs_handlewrap_t* tcp_wrap = iotjs_handlewrap_from_handle(handle);
   IOTJS_ASSERT(tcp_wrap != NULL);
 
   // tcp object.
-  const iotjs_jval_t* jtcp = tcp_wrap->jobject();
+  const iotjs_jval_t* jtcp = iotjs_handlewrap_jobject(tcp_wrap);
   IOTJS_ASSERT(iotjs_jval_is_object(jtcp));
 
   // callback function.
@@ -94,11 +108,11 @@ void DoClose(iotjs_jhandler_t* jhandler) {
   JHANDLER_CHECK_ARGS(0);
 
   const iotjs_jval_t* jtcp = JHANDLER_GET_THIS(object);
-  HandleWrap* wrap = reinterpret_cast<HandleWrap*>(
+  iotjs_handlewrap_t* wrap = reinterpret_cast<iotjs_handlewrap_t*>(
           iotjs_jval_get_object_native_handle(jtcp));
 
   // close uv handle, `AfterClose` will be called after socket closed.
-  wrap->Close(AfterClose);
+  iotjs_handlewrap_close(wrap, AfterClose);
 }
 
 

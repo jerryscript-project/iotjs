@@ -22,12 +22,13 @@
 namespace iotjs {
 
 
-I2c::I2c(const iotjs_jval_t* ji2c)
-    : JObjectWrap(ji2c) {
+I2c::I2c(const iotjs_jval_t* ji2c) {
+  iotjs_jobjectwrap_initialize(&_jobjectwrap, ji2c, (uintptr_t)this, Delete);
 }
 
 
 I2c::~I2c() {
+  iotjs_jobjectwrap_destroy(&_jobjectwrap);
 }
 
 

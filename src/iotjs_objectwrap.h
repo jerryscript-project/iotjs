@@ -1,4 +1,4 @@
-/* Copyright 2015 Samsung Electronics Co., Ltd.
+/* Copyright 2015-2016 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,26 +20,30 @@
 #include "iotjs_binding.h"
 
 
-namespace iotjs {
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 
 // This wrapper refer javascript object but never increase reference count
 // If the object is freed by GC, then this wrapper instance will be also freed.
-class JObjectWrap {
- public:
-  explicit JObjectWrap(const iotjs_jval_t* jobject);
-  virtual ~JObjectWrap();
+typedef struct {
+  iotjs_jval_t jobject;
+} IOTJS_VALIDATED_STRUCT(iotjs_jobjectwrap_t);
 
-  iotjs_jval_t* jobject();
+void iotjs_jobjectwrap_initialize(iotjs_jobjectwrap_t* jobjectwrap,
+                                  const iotjs_jval_t* jobject,
+                                  uintptr_t jhandle,
+                                  JFreeHandlerType jfreehandler);
 
-  virtual void Destroy(void);
+void iotjs_jobjectwrap_destroy(iotjs_jobjectwrap_t* jobjectwrap);
 
- protected:
-  iotjs_jval_t _jobject;
-};
+iotjs_jval_t* iotjs_jobjectwrap_jobject(iotjs_jobjectwrap_t* jobjectwrap);
 
 
-} // namespace iotjs
+#ifdef __cplusplus
+} // extern "C"
+#endif
 
 
 #endif /* IOTJS_OBJECTWRAP_H */

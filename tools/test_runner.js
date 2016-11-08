@@ -50,6 +50,10 @@ Runner.prototype.spin = function() {
   process.nextTick(function() {
       var timerOnlyAlive = !testdriver.isAliveExceptFor(that.timer);
       if (timerOnlyAlive) {
+        timerOnlyAlive = !process._onNextTick();
+      }
+
+      if (timerOnlyAlive) {
         process.exit(0);
       } else {
         if (!that.finished) {

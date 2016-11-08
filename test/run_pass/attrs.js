@@ -156,11 +156,6 @@
       skip: ['nuttx'],
       reason: "too many socket descriptors are in need"
     },
-    'test_next_tick.js': {
-      skip: ['all'],
-      reason:
-        "driver can not run with test which checks out process.nextTick events"
-    },
     'test_timers.js': {
       timeout: {
         all: 10

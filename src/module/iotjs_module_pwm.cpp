@@ -45,53 +45,144 @@ Pwm* Pwm::GetInstance() {
 
 
 JHANDLER_FUNCTION(Export) {
-  IOTJS_ASSERT(!"Not implemented");
+  JHANDLER_CHECK_ARGS(3, string, object, function);
+
+  // PwmReqWrap and string object(PwmReqData.device) are freed by AfterPwmWork.
+  PwmReqWrap* req_wrap = new PwmReqWrap(JHANDLER_GET_ARG(2, function));
+  PwmReqData* req_data = req_wrap->req();
+
+  const iotjs_jval_t* joption = JHANDLER_GET_ARG(1, object);
+  iotjs_jval_t jperiod = iotjs_jval_get_property(joption, "period");
+  iotjs_jval_t jduty_cycle = iotjs_jval_get_property(joption, "dutyCycle");
+
+  req_data->op = kPwmOpExport;
+  req_data->device = JHANDLER_GET_ARG(0, string);
+
+  // Set options.
+  if (iotjs_jval_is_number(&jperiod)) {
+    req_data->period = iotjs_jval_as_number(&jperiod);
+  } else {
+    req_data->period = -1;
+  }
+
+  if (iotjs_jval_is_number(&jduty_cycle)) {
+    req_data->duty_cycle = iotjs_jval_as_number(&jduty_cycle);
+  } else {
+    req_data->duty_cycle = -1;
+  }
+
+  Pwm* pwm = Pwm::GetInstance();
+  if (pwm->InitializePwmPath(req_wrap) < 0) {
+    iotjs_string_destroy(&req_data->device);
+    delete req_wrap;
+
+    JHANDLER_THROW(TYPE, "Invalid Pwm Path");
+  }
+  pwm->Export(req_wrap);
+
+
+  iotjs_jval_destroy(&jperiod);
+  iotjs_jval_destroy(&jduty_cycle);
+
+  // Return exported pwm device path.
+  iotjs_jhandler_return_string(jhandler, &req_data->device);
+}
+
+
+JHANDLER_FUNCTION(SetPeriod) {
+  JHANDLER_CHECK_ARGS(3, string, number, function);
+
+  PwmReqWrap* req_wrap = new PwmReqWrap(JHANDLER_GET_ARG(2, function));
+  PwmReqData* req_data = req_wrap->req();
+
+  req_data->device = JHANDLER_GET_ARG(0, string);
+  req_data->period = JHANDLER_GET_ARG(1, number);
+  req_data->op = kPwmOpSetPeriod;
+
+  Pwm* pwm = Pwm::GetInstance();
+  pwm->SetPeriod(req_wrap);
 
   iotjs_jhandler_return_null(jhandler);
 }
 
 
 JHANDLER_FUNCTION(SetDutyCycle) {
-  IOTJS_ASSERT(!"Not implemented");
+  JHANDLER_CHECK_ARGS(3, string, number, function);
+
+  PwmReqWrap* req_wrap = new PwmReqWrap(JHANDLER_GET_ARG(2, function));
+  PwmReqData* req_data = req_wrap->req();
+
+  req_data->device = JHANDLER_GET_ARG(0, string);
+  req_data->duty_cycle = JHANDLER_GET_ARG(1, number);
+  req_data->op = kPwmOpSetDutyCycle;
+
+  Pwm* pwm = Pwm::GetInstance();
+  pwm->SetDutyCycle(req_wrap);
 
   iotjs_jhandler_return_null(jhandler);
 }
 
 
-JHANDLER_FUNCTION(SetPeriod) {
-  IOTJS_ASSERT(!"Not implemented");
+JHANDLER_FUNCTION(SetEnable) {
+  JHANDLER_CHECK_ARGS(3, string, boolean, function);
 
-  iotjs_jhandler_return_null(jhandler);
-}
+  PwmReqWrap* req_wrap = new PwmReqWrap(JHANDLER_GET_ARG(2, function));
+  PwmReqData* req_data = req_wrap->req();
 
+  req_data->device = JHANDLER_GET_ARG(0, string);
+  req_data->enable = JHANDLER_GET_ARG(1, boolean);
+  req_data->op = kPwmOpSetEnable;
 
-JHANDLER_FUNCTION(Enable) {
-  IOTJS_ASSERT(!"Not implemented");
+  Pwm* pwm = Pwm::GetInstance();
+  pwm->SetEnable(req_wrap);
 
   iotjs_jhandler_return_null(jhandler);
 }
 
 
 JHANDLER_FUNCTION(Unexport) {
-  IOTJS_ASSERT(!"Not implemented");
+  JHANDLER_CHECK_ARGS(2, string, function);
+
+  PwmReqWrap* req_wrap = new PwmReqWrap(JHANDLER_GET_ARG(1, function));
+  PwmReqData* req_data = req_wrap->req();
+
+  req_data->device = JHANDLER_GET_ARG(0, string);
+  req_data->op = kPwmOpUnexport;
+
+  Pwm* pwm = Pwm::GetInstance();
+  pwm->Unexport(req_wrap);
 
   iotjs_jhandler_return_null(jhandler);
 }
 
 
 iotjs_jval_t InitPwm() {
-
   iotjs_jval_t jpwm = iotjs_jval_create_object();
 
   iotjs_jval_set_method(&jpwm, "export", Export);
-  iotjs_jval_set_method(&jpwm, "setDutyCycle", SetDutyCycle);
   iotjs_jval_set_method(&jpwm, "setPeriod", SetPeriod);
-  iotjs_jval_set_method(&jpwm, "enable", Enable);
+  iotjs_jval_set_method(&jpwm, "setDutyCycle", SetDutyCycle);
+  iotjs_jval_set_method(&jpwm, "setEnable", SetEnable);
   iotjs_jval_set_method(&jpwm, "unexport", Unexport);
 
-  // TODO: Need to implement Create for each platform.
-  // Pwm* pwm = Pwm::Create(*jpwm);
-  // IOTJS_ASSERT(pwm == reinterpret_cast<Pwm*>(jpwm->GetNative()));
+
+#define SET_PWM_CONSTANT(object, constant) \
+  do { \
+    iotjs_jval_set_property_number(object, #constant, constant); \
+  } while (0)
+
+    SET_PWM_CONSTANT(&jpwm, kPwmErrOk);
+    SET_PWM_CONSTANT(&jpwm, kPwmErrExport);
+    SET_PWM_CONSTANT(&jpwm, kPwmErrUnexport);
+    SET_PWM_CONSTANT(&jpwm, kPwmErrEnable);
+    SET_PWM_CONSTANT(&jpwm, kPwmErrWrite);
+    SET_PWM_CONSTANT(&jpwm, kPwmErrSys);
+
+#undef SET_PWM_CONSTANT
+
+    Pwm* pwm = Pwm::Create(&jpwm);
+    IOTJS_ASSERT(pwm == reinterpret_cast<Pwm*>(
+                 iotjs_jval_get_object_native_handle(&jpwm)));
 
   return jpwm;
 }

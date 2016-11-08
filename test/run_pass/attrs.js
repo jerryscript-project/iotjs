@@ -156,6 +156,10 @@
       skip: ['nuttx'],
       reason: "too many socket descriptors are in need"
     },
+    'test_pwm.js': {
+      skip: ['all'],
+      reason: "need to setup test environment"
+    },
     'test_timers.js': {
       timeout: {
         all: 10

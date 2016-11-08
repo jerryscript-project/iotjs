@@ -31,6 +31,12 @@ char* iotjs_buffer_allocate(unsigned size);
 char* iotjs_buffer_reallocate(char* buffer, unsigned size);
 void iotjs_buffer_release(char* buff);
 
+#define IOTJS_ALLOC(iotjs_classname_t) \
+  (iotjs_classname_t*) iotjs_buffer_allocate(sizeof(iotjs_classname_t))
+
+#define IOTJS_RELEASE(ptr) \
+  iotjs_buffer_release((char*)ptr)
+
 
 #ifdef __cplusplus
 } // extern "C"

@@ -69,7 +69,7 @@ void iotjs_handlewrap_close(iotjs_handlewrap_t* handlewrap,
 iotjs_handlewrap_t* iotjs_handlewrap_from_handle(uv_handle_t* handle);
 
 uv_handle_t* iotjs_handlewrap_get_uv_handle(iotjs_handlewrap_t* handlewrap);
-
+uintptr_t iotjs_handlewrap_get_jhandle(iotjs_handlewrap_t* handlewrap);
 iotjs_jval_t* iotjs_handlewrap_jobject(iotjs_handlewrap_t* handlewrap);
 
 

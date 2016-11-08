@@ -185,9 +185,9 @@ JHANDLER_FUNCTION(Read) {
   int position = JHANDLER_GET_ARG(4, number);
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG_IF_EXIST(5, function);
 
-  BufferWrap* buffer_wrap = BufferWrap::FromJBuffer(jbuffer);
-  char* data = buffer_wrap->buffer();
-  int data_length = buffer_wrap->length();
+  iotjs_bufferwrap_t* buffer_wrap = iotjs_bufferwrap_from_jbuffer(jbuffer);
+  char* data = iotjs_bufferwrap_buffer(buffer_wrap);
+  int data_length = iotjs_bufferwrap_length(buffer_wrap);
   JHANDLER_CHECK(data != NULL);
   JHANDLER_CHECK(data_length > 0);
 
@@ -227,9 +227,9 @@ JHANDLER_FUNCTION(Write) {
   int position = JHANDLER_GET_ARG(4, number);
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG_IF_EXIST(5, function);
 
-  BufferWrap* buffer_wrap = BufferWrap::FromJBuffer(jbuffer);
-  char* data = buffer_wrap->buffer();
-  int data_length = buffer_wrap->length();
+  iotjs_bufferwrap_t* buffer_wrap = iotjs_bufferwrap_from_jbuffer(jbuffer);
+  char* data = iotjs_bufferwrap_buffer(buffer_wrap);
+  int data_length = iotjs_bufferwrap_length(buffer_wrap);
   JHANDLER_CHECK(data != NULL);
   JHANDLER_CHECK(data_length > 0);
 

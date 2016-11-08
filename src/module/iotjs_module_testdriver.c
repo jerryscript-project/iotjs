@@ -17,8 +17,6 @@
 #include "iotjs_module_timer.h"
 
 
-namespace iotjs {
-
 // Only for test driver
 JHANDLER_FUNCTION(IsAliveExceptFor) {
   JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) == 1);
@@ -36,10 +34,7 @@ JHANDLER_FUNCTION(IsAliveExceptFor) {
 
     iotjs_jval_t jtimer = iotjs_jval_get_property(arg0, "handler");
 
-    TimerWrap* timer_wrap = reinterpret_cast<TimerWrap*>(
-            iotjs_jval_get_object_native_handle(&jtimer));
-    IOTJS_ASSERT(timer_wrap != NULL);
-    IOTJS_ASSERT(iotjs_jval_is_object(timer_wrap->jobject()));
+    iotjs_timerwrap_t* timer_wrap = iotjs_timerwrap_from_jobject(&jtimer);
     iotjs_jval_destroy(&jtimer);
 
     bool has_active_reqs = uv__has_active_reqs(loop);
@@ -51,8 +46,8 @@ JHANDLER_FUNCTION(IsAliveExceptFor) {
 
       int active_handlers = loop->active_handles;
       if (active_handlers == 1) {
-        uv_timer_t timer_handle = timer_wrap->handle();
-        uv_handle_t* handle = reinterpret_cast<uv_handle_t*>(&timer_handle);
+        uv_timer_t timer_handle = iotjs_timerwrap_handle(timer_wrap);
+        uv_handle_t* handle = (uv_handle_t*)(&timer_handle);
         int timer_alive = uv_is_active(handle);
 
         if (timer_alive) {
@@ -75,15 +70,3 @@ iotjs_jval_t InitTestdriver() {
 
   return testdriver;
 }
-
-
-} // namespace iotjs
-
-
-extern "C" {
-
-iotjs_jval_t InitTestdriver() {
-  return iotjs::InitTestdriver();
-}
-
-} // extern "C"

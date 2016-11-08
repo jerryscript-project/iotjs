@@ -1,4 +1,4 @@
-/* Copyright 2015 Samsung Electronics Co., Ltd.
+/* Copyright 2015-2016 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,7 @@
  */
 
 #include "iotjs_def.h"
-
-#include "uv.h"
-
 #include "iotjs_module.h"
-
-
-namespace iotjs {
 
 
 #define SET_CONSTANT(object, constant) \
@@ -46,15 +40,3 @@ iotjs_jval_t InitConstants() {
 
   return constants;
 }
-
-
-} // namespace iotjs
-
-
-extern "C" {
-
-iotjs_jval_t InitConstants() {
-  return iotjs::InitConstants();
-}
-
-} // extern "C"

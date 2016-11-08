@@ -1,4 +1,4 @@
-/* Copyright 2015 Samsung Electronics Co., Ltd.
+/* Copyright 2015-2016 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,6 @@
  */
 
 #include "iotjs_def.h"
-
-#include <stdio.h>
-
-
-namespace iotjs {
 
 
 static void Print(iotjs_jhandler_t* jhandler, FILE* out_fd) {
@@ -48,15 +43,3 @@ iotjs_jval_t InitConsole() {
 
   return console;
 }
-
-
-} // namespace iotjs
-
-
-extern "C" {
-
-iotjs_jval_t InitConsole() {
-  return iotjs::InitConsole();
-}
-
-} // extern "C"

@@ -193,10 +193,10 @@ static void OnRecv(uv_udp_t* handle, ssize_t nread, const uv_buf_t* buf,
     return;
   }
 
-  iotjs_jval_t jbuffer(CreateBuffer(static_cast<size_t>(nread)));
+  iotjs_jval_t jbuffer = iotjs_bufferwrap_create_buffer(nread);
+  iotjs_bufferwrap_t* buffer_wrap = iotjs_bufferwrap_from_jbuffer(&jbuffer);
 
-  BufferWrap* buffer_wrap = BufferWrap::FromJBuffer(&jbuffer);
-  buffer_wrap->Copy(buf->base, nread);
+  iotjs_bufferwrap_copy(buffer_wrap, buf->base, nread);
 
   iotjs_jargs_append_jval(&jargs, &jbuffer);
 
@@ -288,9 +288,9 @@ JHANDLER_FUNCTION(Send) {
   iotjs_string_t address = JHANDLER_GET_ARG(2, string);
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG(3, object);
 
-  BufferWrap* buffer_wrap = BufferWrap::FromJBuffer(jbuffer);
-  char* buffer = buffer_wrap->buffer();
-  int len = buffer_wrap->length();
+  iotjs_bufferwrap_t* buffer_wrap = iotjs_bufferwrap_from_jbuffer(jbuffer);
+  char* buffer = iotjs_bufferwrap_buffer(buffer_wrap);
+  int len = iotjs_bufferwrap_length(buffer_wrap);
 
   SendWrap* req_wrap = new SendWrap(jcallback, len);
 

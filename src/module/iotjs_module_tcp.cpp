@@ -319,9 +319,9 @@ JHANDLER_FUNCTION(Write) {
   IOTJS_ASSERT(tcp_wrap != NULL);
 
   const iotjs_jval_t* jbuffer = JHANDLER_GET_ARG(0, object);
-  BufferWrap* buffer_wrap = BufferWrap::FromJBuffer(jbuffer);
-  char* buffer = buffer_wrap->buffer();
-  int len = buffer_wrap->length();
+  iotjs_bufferwrap_t* buffer_wrap = iotjs_bufferwrap_from_jbuffer(jbuffer);
+  char* buffer = iotjs_bufferwrap_buffer(buffer_wrap);
+  int len = iotjs_bufferwrap_length(buffer_wrap);
 
   uv_buf_t buf;
   buf.base = buffer;
@@ -388,11 +388,10 @@ void OnRead(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
       iotjs_make_callback(&jonread, iotjs_jval_get_undefined(), &jargs);
     }
   } else {
+    iotjs_jval_t jbuffer = iotjs_bufferwrap_create_buffer(nread);
+    iotjs_bufferwrap_t* buffer_wrap = iotjs_bufferwrap_from_jbuffer(&jbuffer);
 
-    iotjs_jval_t jbuffer = CreateBuffer(static_cast<size_t>(nread));
-    BufferWrap* buffer_wrap = BufferWrap::FromJBuffer(&jbuffer);
-
-    buffer_wrap->Copy(buf->base, nread);
+    iotjs_bufferwrap_copy(buffer_wrap, buf->base, nread);
 
     iotjs_jargs_append_jval(&jargs, &jbuffer);
     iotjs_make_callback(&jonread, iotjs_jval_get_undefined(), &jargs);

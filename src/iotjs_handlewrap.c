@@ -67,6 +67,17 @@ uv_handle_t* iotjs_handlewrap_get_uv_handle(iotjs_handlewrap_t* handlewrap) {
 }
 
 
+uintptr_t iotjs_handlewrap_get_jhandle(iotjs_handlewrap_t* handlewrap) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_handlewrap_t, handlewrap);
+
+  iotjs_jval_t* jobject = iotjs_handlewrap_jobject(handlewrap);
+  uintptr_t jhandle = iotjs_jval_get_object_native_handle(jobject);
+  IOTJS_ASSERT(jhandle != 0);
+
+  return jhandle;
+}
+
+
 iotjs_jval_t* iotjs_handlewrap_jobject(iotjs_handlewrap_t* handlewrap) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_handlewrap_t, handlewrap);
   return iotjs_jobjectwrap_jobject(&_this->jobjectwrap);

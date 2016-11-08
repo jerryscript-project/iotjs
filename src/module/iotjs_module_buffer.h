@@ -1,4 +1,4 @@
-/* Copyright 2015 Samsung Electronics Co., Ltd.
+/* Copyright 2015-2016 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,46 +20,45 @@
 #include "iotjs_objectwrap.h"
 
 
-namespace iotjs {
+#ifdef __cplusplus
+extern "C" {
+#endif
 
+
+typedef struct {
+  iotjs_jobjectwrap_t jobjectwrap;
+  char* buffer;
+  size_t length;
+} IOTJS_VALIDATED_STRUCT(iotjs_bufferwrap_t);
+
+
+iotjs_bufferwrap_t* iotjs_bufferwrap_create(const iotjs_jval_t* jbuiltin,
+                                            size_t length);
+void iotjs_bufferwrap_destroy(iotjs_bufferwrap_t* bufferwrap);
+
+iotjs_bufferwrap_t* iotjs_bufferwrap_from_jbuiltin(
+    const iotjs_jval_t* jbuiltin);
+iotjs_bufferwrap_t* iotjs_bufferwrap_from_jbuffer(const iotjs_jval_t* jbuffer);
+
+iotjs_jval_t* iotjs_bufferwrap_jbuiltin(iotjs_bufferwrap_t* bufferwrap);
+iotjs_jval_t iotjs_bufferwrap_jbuffer(iotjs_bufferwrap_t* bufferwrap);
+
+char* iotjs_bufferwrap_buffer(iotjs_bufferwrap_t* bufferwrap);
+size_t iotjs_bufferwrap_length(iotjs_bufferwrap_t* bufferwrap);
+
+int iotjs_bufferwrap_compare(const iotjs_bufferwrap_t* bufferwrap,
+                             const iotjs_bufferwrap_t* other);
+
+size_t iotjs_bufferwrap_copy(iotjs_bufferwrap_t* bufferwrap,
+                             const char* src, size_t len);
 
 // Create buffer object.
-iotjs_jval_t CreateBuffer(size_t len);
+iotjs_jval_t iotjs_bufferwrap_create_buffer(size_t len);
 
 
-class BufferWrap {
- public:
-  BufferWrap(const iotjs_jval_t* jbuiltin, size_t length);
-
-  virtual ~BufferWrap();
-
-  static BufferWrap* FromJBufferBuiltin(const iotjs_jval_t* jbuiltin);
-  static BufferWrap* FromJBuffer(const iotjs_jval_t* jbuffer);
-
-  iotjs_jval_t* jbuiltin();
-  iotjs_jval_t jbuffer();
-
-  char* buffer();
-  size_t length();
-
-  int Compare(const BufferWrap& other) const;
-
-  size_t Copy(const char* src, size_t len);
-  size_t Copy(const char* src, size_t src_from, size_t src_to, size_t dst_from);
-
-  static void Delete(const uintptr_t data) {
-    delete ((BufferWrap*)data);
-  }
-
- protected:
-  iotjs_jobjectwrap_t _jobjectwrap;
-  char* _buffer;
-  size_t _length;
-};
-
-
-
-} // namespace iotjs
+#ifdef __cplusplus
+} // extern "C"
+#endif
 
 
 #endif /* IOTJS_MODULE_BUFFER_H */

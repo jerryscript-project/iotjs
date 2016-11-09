@@ -76,14 +76,23 @@ JHANDLER_FUNCTION(UDP) {
 
 JHANDLER_FUNCTION(Bind) {
   JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARGS_3(string, number, number);
+  JHANDLER_CHECK_ARGS_2(string, number);
 
   UdpWrap* udp_wrap = UdpWrap::FromJObject(iotjs_jhandler_get_this(jhandler));
   IOTJS_ASSERT(udp_wrap != NULL);
 
   iotjs_string_t address = JHANDLER_GET_ARG(0, string);
   const int port = JHANDLER_GET_ARG(1, number);
-  const int flags = JHANDLER_GET_ARG(2, number);
+  const iotjs_jval_t* this_obj = JHANDLER_GET_THIS(object);
+  iotjs_jval_t reuse_addr = iotjs_jval_get_property(this_obj, "_reuseAddr");
+  IOTJS_ASSERT(iotjs_jval_is_boolean(&reuse_addr) ||
+               iotjs_jval_is_undefined(&reuse_addr));
+
+  int flags = false;
+  if (!iotjs_jval_is_undefined(&reuse_addr)) {
+    flags = iotjs_jval_as_boolean(&reuse_addr)? UV_UDP_REUSEADDR : 0;
+  }
+
   char addr[sizeof(sockaddr_in6)];
   int err = uv_ip4_addr(iotjs_string_data(&address), port,
                         reinterpret_cast<sockaddr_in*>(&addr));
@@ -96,6 +105,7 @@ JHANDLER_FUNCTION(Bind) {
 
   iotjs_jhandler_return_number(jhandler, err);
 
+  iotjs_jval_destroy(&reuse_addr);
   iotjs_string_destroy(&address);
 }
 
@@ -108,41 +118,6 @@ static void OnAlloc(uv_handle_t* handle, size_t suggested_size,
 
   buf->base = iotjs_buffer_allocate(suggested_size);
   buf->len = suggested_size;
-}
-
-
-static void AddressToJS(iotjs_jval_t* obj, const sockaddr* addr) {
-  char ip[INET6_ADDRSTRLEN];
-  const sockaddr_in *a4;
-  const sockaddr_in6 *a6;
-  int port;
-
-  switch (addr->sa_family) {
-    case AF_INET6: {
-      a6 = reinterpret_cast<const sockaddr_in6*>(addr);
-      uv_inet_ntop(AF_INET6, &a6->sin6_addr, ip, sizeof ip);
-      port = ntohs(a6->sin6_port);
-      iotjs_jval_set_property_string_raw(obj, "address", ip);
-      iotjs_jval_set_property_string_raw(obj, "family", "IPv6");
-      iotjs_jval_set_property_number(obj, "port", port);
-      break;
-    }
-
-    case AF_INET: {
-      a4 = reinterpret_cast<const sockaddr_in*>(addr);
-      uv_inet_ntop(AF_INET, &a4->sin_addr, ip, sizeof ip);
-      port = ntohs(a4->sin_port);
-      iotjs_jval_set_property_string_raw(obj, "address", ip);
-      iotjs_jval_set_property_string_raw(obj, "family", "IPv4");
-      iotjs_jval_set_property_number(obj, "port", port);
-      break;
-    }
-
-    default: {
-      iotjs_jval_set_property_string_raw(obj, "address", "");
-      break;
-    }
-  }
 }
 
 
@@ -307,52 +282,119 @@ JHANDLER_FUNCTION(Close) {
 }
 
 
-JHANDLER_FUNCTION(GetSockeName) {
-  IOTJS_ASSERT(!"Not implemented");
+GetSockNameFunction(UdpWrap, udp_handle, uv_udp_getsockname);
 
-  iotjs_jhandler_return_null(jhandler);
+JHANDLER_FUNCTION(GetSockeName) {
+  DoGetSockName(jhandler);
 }
+
+#define IOTJS_UV_SET_SOCKOPT(fn)                                              \
+  JHANDLER_CHECK_THIS(object);                                                \
+  JHANDLER_CHECK_ARGS_1(number);                                              \
+  \
+  UdpWrap* udp_wrap = UdpWrap::FromJObject(iotjs_jhandler_get_this(jhandler));\
+  IOTJS_ASSERT(udp_wrap != NULL);                                             \
+  \
+  int flag = JHANDLER_GET_ARG(0, number);                                     \
+  int err = fn(udp_wrap->udp_handle(), flag);                                 \
+  \
+  iotjs_jhandler_return_number(jhandler, err);
 
 
 JHANDLER_FUNCTION(SetBroadcast) {
+#if !defined(__NUTTX__)
+  IOTJS_UV_SET_SOCKOPT(uv_udp_set_broadcast);
+#else
   IOTJS_ASSERT(!"Not implemented");
 
   iotjs_jhandler_return_null(jhandler);
+#endif
 }
 
 
 JHANDLER_FUNCTION(SetTTL) {
+#if !defined(__NUTTX__)
+  IOTJS_UV_SET_SOCKOPT(uv_udp_set_ttl);
+#else
   IOTJS_ASSERT(!"Not implemented");
 
   iotjs_jhandler_return_null(jhandler);
+#endif
 }
 
 
 JHANDLER_FUNCTION(SetMulticastTTL) {
+#if !defined(__NUTTX__)
+  IOTJS_UV_SET_SOCKOPT(uv_udp_set_multicast_ttl);
+#else
   IOTJS_ASSERT(!"Not implemented");
 
   iotjs_jhandler_return_null(jhandler);
+#endif
 }
 
 
 JHANDLER_FUNCTION(SetMulticastLoopback) {
+#if !defined(__NUTTX__)
+  IOTJS_UV_SET_SOCKOPT(uv_udp_set_multicast_loop);
+#else
   IOTJS_ASSERT(!"Not implemented");
 
   iotjs_jhandler_return_null(jhandler);
+#endif
+}
+
+#undef IOTJS_UV_SET_SOCKOPT
+
+
+void SetMembership(iotjs_jhandler_t* jhandler, uv_membership membership) {
+#if !defined(__NUTTX__)
+  JHANDLER_CHECK_THIS(object);
+  JHANDLER_CHECK_ARGS_1(string);
+
+  UdpWrap* udp_wrap = UdpWrap::FromJObject(iotjs_jhandler_get_this(jhandler));
+  IOTJS_ASSERT(udp_wrap != NULL);
+
+  iotjs_string_t address = JHANDLER_GET_ARG(0, string);
+  const iotjs_jval_t* arg1 = iotjs_jhandler_get_arg(jhandler, 1);
+  bool isUndefinedOrNull = iotjs_jval_is_undefined(arg1) ||
+                           iotjs_jval_is_null(arg1);
+  iotjs_string_t iface;
+
+  const char* iface_cstr;
+  if (isUndefinedOrNull) {
+    iface_cstr = nullptr;
+  } else {
+    iface = iotjs_jval_as_string(arg1);
+    iface_cstr = iotjs_string_data(&iface);
+  }
+
+  int err = uv_udp_set_membership(udp_wrap->udp_handle(),
+                                  iotjs_string_data(&address),
+                                  iface_cstr,
+                                  membership);
+
+  iotjs_jhandler_return_number(jhandler, err);
+
+  iotjs_string_destroy(&address);
+  if (!isUndefinedOrNull)
+    iotjs_string_destroy(&iface);
+#else
+  IOTJS_ASSERT(!"Not implemented");
+
+  iotjs_jhandler_return_null(jhandler);
+#endif
 }
 
 
-JHANDLER_FUNCTION(AddMembership) {
-  IOTJS_ASSERT(!"Not implemented");
 
-  iotjs_jhandler_return_null(jhandler);
+JHANDLER_FUNCTION(AddMembership) {
+  SetMembership(jhandler, UV_JOIN_GROUP);
 }
 
 
 JHANDLER_FUNCTION(DropMembership) {
-  IOTJS_ASSERT(!"Not implemented");
-
-  iotjs_jhandler_return_null(jhandler);
+  SetMembership(jhandler, UV_LEAVE_GROUP);
 }
 
 

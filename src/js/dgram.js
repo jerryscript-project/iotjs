@@ -130,14 +130,12 @@ Socket.prototype.bind = function(port /*, address, callback*/) {
       return;
     }
 
-    var flags = 0;
-    if (self._reuseAddr)
-      flags |= constants.UV_UDP_REUSEADDR;
-
     if (!self._handle)
       return; // handle has been closed in the mean time
 
-    var err = self._handle.bind(ip, port || 0, flags);
+    self._handle._reuseAddr = self._reuseAddr;
+
+    var err = self._handle.bind(ip, port || 0);
     if (err) {
       var ex = util.exceptionWithHostPort(err, 'bind', ip, port);
       self.emit('error', ex);

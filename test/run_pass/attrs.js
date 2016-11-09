@@ -21,11 +21,11 @@
       "check out current directory path with js driver. So it skips " +
       "temoporalily."
     },
-    'test_dgram1.js': {
+    'test_dgram_1_server_1_client.js': {
       skip: ['nuttx'],
       reason: "not implemented for nuttx"
     },
-    'test_dgram2.js': {
+    'test_dgram_1_server_n_clients.js': {
       skip: ['nuttx'],
       reason: "not implemented for nuttx"
     },

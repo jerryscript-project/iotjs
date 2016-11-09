@@ -1,4 +1,4 @@
-/* Copyright 2015 Samsung Electronics Co., Ltd.
+/* Copyright 2015-2016 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -221,6 +221,20 @@ Socket.prototype.setKeepAlive = function(enable, delay) {
   if (self._handle && self._handle.setKeepAlive) {
     self._handle.setKeepAlive(enable, ~~(delay / 1000));
   }
+};
+
+
+Socket.prototype.address = function() {
+  if (!this._handle || !this._handle.getsockname) {
+    return {};
+  }
+  if (!this._sockname) {
+    var out = {};
+    var err = this._handle.getsockname(out);
+    if (err) return {};  // FIXME(bnoordhuis) Throw?
+    this._sockname = out;
+  }
+  return this._sockname;
 };
 
 
@@ -498,6 +512,18 @@ Server.prototype.listen = function() {
       self.emit('listening');
     }
   });
+};
+
+
+Server.prototype.address = function() {
+  if (this._handle && this._handle.getsockname) {
+    var out = {};
+    this._handle.getsockname(out);
+    // TODO(bnoordhuis) Check err and throw?
+    return out;
+  }
+
+  return null;
 };
 
 

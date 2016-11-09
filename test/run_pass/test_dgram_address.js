@@ -16,11 +16,11 @@
 var assert = require('assert');
 var dgram = require('dgram');
 
-var port = 41235;
-var msg = '';
-var sockcount = 5;
-var sendcount = 0;
+var port = 41236;
+var msg = 'Hello IoT.js';
+var client = dgram.createSocket('udp4');
 var server = dgram.createSocket('udp4');
+var server_address, server_port, client_address, client_port;
 
 server.on('error', function(err) {
   assert.fail();
@@ -28,45 +28,36 @@ server.on('error', function(err) {
 });
 
 server.on('message', function(data, rinfo) {
-  console.log('server got data : ' + data);
-  msg += data;
-
-  server.send(data, rinfo.port, 'localhost', function (err, len) {
-    sendcount++;
-    if (sendcount >= sockcount) {
-      server.close();
-    }
-  });
+  var address = client.address();
+  client_address = address.address;
+  client_port = address.port;
+  assert.equal('0.0.0.0', client_address);
+  assert.equal(rinfo.port, client_port);
+  server.send(msg, rinfo.port, 'localhost');
 });
+
+server.on('listening', function() {
+  var address = server.address();
+  server_address = address.address;
+  server_port = address.port;
+})
 
 server.bind(port);
 
-for (var i = 0; i < sockcount; i++) {
-  (function sendAndRecieve(i) {
-    var client = dgram.createSocket('udp4');
+client.send(msg, port, 'localhost');
 
-    client.send(i+'', port, 'localhost');
+client.on('error', function(err) {
+  assert.fail();
+  client.close();
+});
 
-    client.on('error', function(err) {
-      assert.fail();
-      client.close();
-    });
-
-    client.on('message', function(data, rinfo) {
-      console.log('client got data : ' + data);
-      assert.equal(port, rinfo.port);
-      assert.equal(data, i+'');
-      client.close();
-    });
-  })(i);
-}
+client.on('message', function(data, rinfo) {
+  assert.equal('0.0.0.0', server_address);
+  assert.equal(rinfo.port, server_port);
+  client.close();
+  server.close();
+});
 
 process.on('exit', function(code) {
-  assert.equal(msg.length, sockcount);
-  for (var i = 0; i < sockcount; i++) {
-      if (msg.indexOf(i+'') == -1) {
-        assert.fail();
-      }
-  }
   assert.equal(code, 0);
 });

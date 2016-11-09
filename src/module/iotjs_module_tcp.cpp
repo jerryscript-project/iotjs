@@ -15,6 +15,7 @@
 
 
 #include "iotjs_def.h"
+#include "iotjs_module_tcp.h"
 
 #include "iotjs_module_buffer.h"
 #include "iotjs_handlewrap.h"
@@ -125,8 +126,7 @@ JHANDLER_FUNCTION(Bind) {
   if (err == 0) {
     TcpWrap* wrap = TcpWrap::FromJObject(JHANDLER_GET_THIS(object));
     err = uv_tcp_bind(wrap->tcp_handle(),
-                      reinterpret_cast<const sockaddr*>(&addr),
-                      0);
+                      reinterpret_cast<const sockaddr*>(&addr), 0);
   }
 
   iotjs_jhandler_return_number(jhandler, err);
@@ -185,8 +185,7 @@ JHANDLER_FUNCTION(Connect) {
     ConnectReqWrap* req_wrap = new ConnectReqWrap(jcallback);
 
     // Create connection request.
-    err = uv_tcp_connect(req_wrap->req(),
-                         tcp_wrap->tcp_handle(),
+    err = uv_tcp_connect(req_wrap->req(), tcp_wrap->tcp_handle(),
                          reinterpret_cast<const sockaddr*>(&addr),
                          AfterConnect);
 
@@ -266,8 +265,7 @@ JHANDLER_FUNCTION(Listen) {
   int backlog = JHANDLER_GET_ARG(0, number);
 
   int err = uv_listen(reinterpret_cast<uv_stream_t*>(tcp_wrap->tcp_handle()),
-                      backlog,
-                      OnConnection);
+                      backlog, OnConnection);
 
   iotjs_jhandler_return_number(jhandler, err);
 }
@@ -318,10 +316,7 @@ JHANDLER_FUNCTION(Write) {
 
   int err = uv_write(req_wrap->req(),
                      reinterpret_cast<uv_stream_t*>(tcp_wrap->tcp_handle()),
-                     &buf,
-                     1,
-                     AfterWrite
-                     );
+                     &buf, 1, AfterWrite);
 
   if (err) {
     delete req_wrap;
@@ -433,6 +428,8 @@ JHANDLER_FUNCTION(Shutdown) {
   JHANDLER_CHECK_THIS(object);
   JHANDLER_CHECK_ARGS(1, function);
 
+
+  iotjs_jhandler_get_arg(jhandler, 0);
   TcpWrap* tcp_wrap = TcpWrap::FromJObject(JHANDLER_GET_THIS(object));
   IOTJS_ASSERT(tcp_wrap != NULL);
 
@@ -468,6 +465,48 @@ JHANDLER_FUNCTION(SetKeepAlive) {
 }
 
 
+// used in iotjs_module_udp.cpp
+void AddressToJS(const iotjs_jval_t* obj, const sockaddr* addr) {
+  char ip[INET6_ADDRSTRLEN];
+  const sockaddr_in *a4;
+  const sockaddr_in6 *a6;
+  int port;
+
+  switch (addr->sa_family) {
+    case AF_INET6: {
+      a6 = reinterpret_cast<const sockaddr_in6*>(addr);
+      uv_inet_ntop(AF_INET6, &a6->sin6_addr, ip, sizeof ip);
+      port = ntohs(a6->sin6_port);
+      iotjs_jval_set_property_string_raw(obj, "address", ip);
+      iotjs_jval_set_property_string_raw(obj, "family", "IPv6");
+      iotjs_jval_set_property_number(obj, "port", port);
+      break;
+    }
+
+    case AF_INET: {
+      a4 = reinterpret_cast<const sockaddr_in*>(addr);
+      uv_inet_ntop(AF_INET, &a4->sin_addr, ip, sizeof ip);
+      port = ntohs(a4->sin_port);
+      iotjs_jval_set_property_string_raw(obj, "address", ip);
+      iotjs_jval_set_property_string_raw(obj, "family", "IPv4");
+      iotjs_jval_set_property_number(obj, "port", port);
+      break;
+    }
+
+    default: {
+      iotjs_jval_set_property_string_raw(obj, "address", "");
+      break;
+    }
+  }
+}
+
+GetSockNameFunction(TcpWrap, tcp_handle, uv_tcp_getsockname);
+
+
+JHANDLER_FUNCTION(GetSockeName) {
+  DoGetSockName(jhandler);
+}
+
 iotjs_jval_t InitTcp() {
   iotjs_jval_t tcp = iotjs_jval_create_function(TCP);
 
@@ -483,6 +522,7 @@ iotjs_jval_t InitTcp() {
   iotjs_jval_set_method(&prototype, "readStart", ReadStart);
   iotjs_jval_set_method(&prototype, "shutdown", Shutdown);
   iotjs_jval_set_method(&prototype, "setKeepAlive", SetKeepAlive);
+  iotjs_jval_set_method(&prototype, "getsockname", GetSockeName);
 
   iotjs_jval_destroy(&prototype);
 

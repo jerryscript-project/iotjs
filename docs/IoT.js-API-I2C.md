@@ -2,6 +2,21 @@ IoT.js provides I2C module.
 
 ## Module: i2c
 
+### Platform Support
+
+The following shows i2c module APIs available for each platform.
+
+|  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | Nuttx<br/>(STM32F4-Discovery) |
+| :---: | :---: | :---: | :---: |
+| scan | O | O | X |
+| write | O | O | X |
+| writeByte | O | O | X |
+| writeBytes | O | O | X |
+| read | O | O | X |
+| readByte | O | O | X |
+| readBytes | O | O | X |
+| stream | O | O | X |
+
 ### Constructor
 
 #### new i2c([address[, options]])

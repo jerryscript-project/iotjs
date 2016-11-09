@@ -17,7 +17,6 @@ Current supported platforms are **Linux and NuttX**
 * Raspberry Pi 2
     * [Setting Raspberry Pi 2](Setting-Raspberry-Pi-2.md)
     * [Build for Raspberry Pi 2](Build-for-RPi2.md)
-* [Build for Intel Edison with mraa](Build-for-Edison-with-mraa.md)
 
 ##### Platforms to support
 * OSX 10.10 as development host

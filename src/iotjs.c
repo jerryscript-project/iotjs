@@ -157,15 +157,15 @@ static bool iotjs_start(iotjs_environment_t* env) {
 }
 
 
-static void UvWalkToCloseCallback(uv_handle_t* handle, void* arg) {
-  iotjs::HandleWrap* handle_wrap = iotjs::HandleWrap::FromHandle(handle);
+static void iotjs_uv_walk_to_close_callback(uv_handle_t* handle, void* arg) {
+  iotjs_handlewrap_t* handle_wrap = iotjs_handlewrap_from_handle(handle);
   IOTJS_ASSERT(handle_wrap != NULL);
 
-  handle_wrap->Close(NULL);
+  iotjs_handlewrap_close(handle_wrap, NULL);
 }
 
 
-extern "C" int iotjs_entry(int argc, char** argv) {
+int iotjs_entry(int argc, char** argv) {
   // Initialize debug print.
   init_debug_settings();
 
@@ -195,7 +195,7 @@ extern "C" int iotjs_entry(int argc, char** argv) {
 
   // close uv loop.
   //uv_stop(iotjs_environment_loop(env));
-  uv_walk(iotjs_environment_loop(env), UvWalkToCloseCallback, NULL);
+  uv_walk(iotjs_environment_loop(env), iotjs_uv_walk_to_close_callback, NULL);
   uv_run(iotjs_environment_loop(env), UV_RUN_DEFAULT);
 
   int res = uv_loop_close(iotjs_environment_loop(env));

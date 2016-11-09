@@ -23,7 +23,8 @@ namespace iotjs {
 // This function is called from uv when timeout expires.
 static void TimeoutHandler(uv_timer_t* handle) {
   // Find timer wrap from handle.
-  HandleWrap* handle_wrap = HandleWrap::FromHandle((uv_handle_t*)handle);
+  iotjs_handlewrap_t* handle_wrap =
+      iotjs_handlewrap_from_handle((uv_handle_t*)handle);
   TimerWrap* timer_wrap = reinterpret_cast<TimerWrap*>(handle_wrap);
 
   // Call the timeout handler.
@@ -34,23 +35,16 @@ static void TimeoutHandler(uv_timer_t* handle) {
 void TimerWrap::OnTimeout() {
   // Verification.
   IOTJS_ASSERT(iotjs_jval_is_object(jobject()));
-  IOTJS_ASSERT(iotjs_jval_is_function(&_jcallback));
 
-  // Call javascirpt timeout callback function.
-  iotjs_make_callback(&_jcallback, jobject(), iotjs_jargs_get_empty());
+  // Call javascript timeout handler function.
+  iotjs_jval_t jcallback = iotjs_jval_get_property(jobject(), "handleTimeout");
+  iotjs_make_callback(&jcallback, jobject(), iotjs_jargs_get_empty());
+  iotjs_jval_destroy(&jcallback);
 }
 
 
 // Start timer.
-int TimerWrap::Start(int64_t timeout, int64_t repeat,
-                     const iotjs_jval_t* jcallback) {
-  // We should not have javascript callback handler yet.
-  IOTJS_ASSERT(iotjs_jval_is_undefined(&_jcallback));
-  IOTJS_ASSERT(iotjs_jval_is_function(jcallback));
-
-  // Create new Javascirpt function reference for the callback function.
-  _jcallback = iotjs_jval_create_copied(jcallback);
-
+int TimerWrap::Start(int64_t timeout, int64_t repeat) {
   // Start uv timer.
   return uv_timer_start(&_handle,
                         TimeoutHandler,
@@ -62,7 +56,7 @@ int TimerWrap::Start(int64_t timeout, int64_t repeat,
 // This function is called from uv after timer close.
 static void OnTimerClose(uv_handle_t* handle) {
   // Find timer wrap from handle.
-  HandleWrap* handle_wrap = HandleWrap::FromHandle(handle);
+  iotjs_handlewrap_t* handle_wrap = iotjs_handlewrap_from_handle(handle);
   TimerWrap* timer_wrap = reinterpret_cast<TimerWrap*>(handle_wrap);
 
   // Call the close handler.
@@ -72,17 +66,13 @@ static void OnTimerClose(uv_handle_t* handle) {
 
 void TimerWrap::OnClose() {
   // If we have javascript timeout callback reference, release it.
-  if (!iotjs_jval_is_undefined(&_jcallback)) {
-    iotjs_jval_destroy(&_jcallback);
-    _jcallback = *iotjs_jval_get_undefined();
-  }
 }
 
 
 int TimerWrap::Stop() {
   // Close timer.
-  if (!uv_is_closing(__handle)) {
-    Close(OnTimerClose);
+  if (!uv_is_closing(iotjs_handlewrap_get_uv_handle(&_handlewrap))) {
+    iotjs_handlewrap_close(&_handlewrap, OnTimerClose);
   }
 
   return 0;
@@ -92,7 +82,7 @@ int TimerWrap::Stop() {
 JHANDLER_FUNCTION(Start) {
   // Check parameters.
   JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARGS(3, number, number, function);
+  JHANDLER_CHECK_ARGS(2, number, number);
 
   const iotjs_jval_t* jtimer = JHANDLER_GET_THIS(object);
 
@@ -105,13 +95,9 @@ JHANDLER_FUNCTION(Start) {
   // parameters.
   int64_t timeout = JHANDLER_GET_ARG(0, number);
   int64_t repeat = JHANDLER_GET_ARG(1, number);
-  const iotjs_jval_t* jcallback = JHANDLER_GET_ARG(2, function);
-
-  // We do not permit double start.
-  JHANDLER_CHECK(iotjs_jval_is_undefined(timer_wrap->jcallback()));
 
   // Start timer.
-  int res = timer_wrap->Start(timeout, repeat, jcallback);
+  int res = timer_wrap->Start(timeout, repeat);
 
   iotjs_jhandler_return_number(jhandler, res);
 }
@@ -137,10 +123,9 @@ JHANDLER_FUNCTION(Stop) {
 JHANDLER_FUNCTION(Timer) {
   JHANDLER_CHECK_THIS(object);
 
-  const iotjs_environment_t* env = iotjs_environment_get();
   const iotjs_jval_t* jtimer = JHANDLER_GET_THIS(object);
 
-  TimerWrap* timer_wrap = new TimerWrap(env, jtimer);
+  TimerWrap* timer_wrap = new TimerWrap(jtimer);
   IOTJS_ASSERT(iotjs_jval_is_object(timer_wrap->jobject()));
   IOTJS_ASSERT(iotjs_jval_get_object_native_handle(jtimer) != 0);
 }

@@ -23,12 +23,18 @@
 namespace iotjs {
 
 
-class UdpWrap : public HandleWrap {
+class UdpWrap {
  public:
-  explicit UdpWrap(const iotjs_jval_t* judp)
-      : HandleWrap(judp, reinterpret_cast<uv_handle_t*>(&_handle)) {
+  explicit UdpWrap(const iotjs_jval_t* judp) {
+    iotjs_handlewrap_initialize(&_handlewrap, judp,
+            reinterpret_cast<uv_handle_t*>(&_handle), (uintptr_t)this, Delete);
+
     const iotjs_environment_t* env = iotjs_environment_get();
     uv_udp_init(iotjs_environment_loop(env), &_handle);
+  }
+
+  ~UdpWrap() {
+    iotjs_handlewrap_destroy(&_handlewrap);
   }
 
   static UdpWrap* FromJObject(const iotjs_jval_t* judp) {
@@ -42,7 +48,16 @@ class UdpWrap : public HandleWrap {
     return &_handle;
   }
 
+  iotjs_jval_t* jobject() {
+    return iotjs_handlewrap_jobject(&_handlewrap);
+  }
+
+  static void Delete(const uintptr_t data) {
+    delete ((UdpWrap*)data);
+  }
+
  protected:
+  iotjs_handlewrap_t _handlewrap;
   uv_udp_t _handle;
 };
 

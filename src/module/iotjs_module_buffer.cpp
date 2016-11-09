@@ -24,9 +24,11 @@ namespace iotjs {
 
 
 BufferWrap::BufferWrap(const iotjs_jval_t* jbuiltin, size_t length)
-    : JObjectWrap(jbuiltin)
-    , _buffer(NULL)
-    , _length(length) {
+  : _buffer(NULL)
+  , _length(length) {
+
+  iotjs_jobjectwrap_initialize(&_jobjectwrap, jbuiltin, (uintptr_t)this,
+                               Delete);
   if (length > 0) {
     _buffer = iotjs_buffer_allocate(length);
     IOTJS_ASSERT(_buffer != NULL);
@@ -38,6 +40,7 @@ BufferWrap::~BufferWrap() {
   if (_buffer != NULL) {
     iotjs_buffer_release(_buffer);
   }
+  iotjs_jobjectwrap_destroy(&_jobjectwrap);
 }
 
 
@@ -61,7 +64,7 @@ BufferWrap* BufferWrap::FromJBuffer(const iotjs_jval_t* jbuffer) {
 
 
 iotjs_jval_t* BufferWrap::jbuiltin() {
-  return jobject();
+  return iotjs_jobjectwrap_jobject(&_jobjectwrap);
 }
 
 

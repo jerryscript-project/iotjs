@@ -57,7 +57,7 @@ typedef ReqWrap<PwmReqData> PwmReqWrap;
 
 
 // This Pwm class provides interfaces for PWM operation.
-class Pwm : public JObjectWrap {
+class Pwm {
  public:
   explicit Pwm(const iotjs_jval_t* jpwm);
   virtual ~Pwm();
@@ -72,6 +72,13 @@ class Pwm : public JObjectWrap {
   virtual int SetDutyCycle(PwmReqWrap* pwm_req) = 0;
   virtual int SetEnable(PwmReqWrap* pwm_req) = 0;
   virtual int Unexport(PwmReqWrap* pwm_req) = 0;
+
+  static void Delete(const uintptr_t data) {
+    delete ((Pwm*)data);
+  }
+
+ protected:
+  iotjs_jobjectwrap_t _jobjectwrap;
 };
 
 

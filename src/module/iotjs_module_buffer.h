@@ -27,7 +27,7 @@ namespace iotjs {
 iotjs_jval_t CreateBuffer(size_t len);
 
 
-class BufferWrap : public JObjectWrap {
+class BufferWrap {
  public:
   BufferWrap(const iotjs_jval_t* jbuiltin, size_t length);
 
@@ -47,7 +47,12 @@ class BufferWrap : public JObjectWrap {
   size_t Copy(const char* src, size_t len);
   size_t Copy(const char* src, size_t src_from, size_t src_to, size_t dst_from);
 
+  static void Delete(const uintptr_t data) {
+    delete ((BufferWrap*)data);
+  }
+
  protected:
+  iotjs_jobjectwrap_t _jobjectwrap;
   char* _buffer;
   size_t _length;
 };

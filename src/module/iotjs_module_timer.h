@@ -19,16 +19,23 @@
 #include "iotjs_binding.h"
 #include "iotjs_handlewrap.h"
 
+
 namespace iotjs {
 
 
-class TimerWrap : public HandleWrap {
+class TimerWrap {
  public:
-  explicit TimerWrap(const iotjs_environment_t* env, const iotjs_jval_t* jtimer)
-      : HandleWrap(jtimer, reinterpret_cast<uv_handle_t*>(&_handle)) {
+  explicit TimerWrap(const iotjs_jval_t* jtimer) {
+    iotjs_handlewrap_initialize(&_handlewrap, jtimer,
+            reinterpret_cast<uv_handle_t*>(&_handle), (uintptr_t)this, Delete);
+
     // Initialize timer handler.
+    const iotjs_environment_t* env = iotjs_environment_get();
     uv_timer_init(iotjs_environment_loop(env), &_handle);
-    _jcallback = *iotjs_jval_get_undefined();
+  }
+
+  ~TimerWrap() {
+    iotjs_handlewrap_destroy(&_handlewrap);
   }
 
   // Timer timeout callback handler.
@@ -38,24 +45,30 @@ class TimerWrap : public HandleWrap {
   void OnClose();
 
   // Start timer.
-  int Start(int64_t timeout, int64_t repeat, const iotjs_jval_t* jcallback);
+  int Start(int64_t timeout, int64_t repeat);
 
   // Stop & close timer.
   int Stop();
 
-  // Retrieve javascript callback function.
-  const iotjs_jval_t* jcallback() { return &_jcallback; }
-
   uv_timer_t handle() { return _handle; }
 
+  iotjs_jval_t* jobject() {
+    return iotjs_handlewrap_jobject(&_handlewrap);
+  }
+
+  static void Delete(const uintptr_t data) {
+    delete ((TimerWrap*)data);
+  }
+
  protected:
+  iotjs_handlewrap_t _handlewrap;
+
   // timer handle.
   uv_timer_t _handle;
-
-  // Javascript callback function.
-  iotjs_jval_t _jcallback;
 };
 
+
 } // namespace iotjs
+
 
 #endif /* IOTJS_MODULE_TIMER_H */

@@ -37,10 +37,12 @@ namespace iotjs {
 
 
 
-class HTTPParserWrap : public JObjectWrap {
+class HTTPParserWrap {
 public:
-  explicit HTTPParserWrap(const iotjs_jval_t* parser_, http_parser_type type)
-    : JObjectWrap(parser_) {
+  explicit HTTPParserWrap(const iotjs_jval_t* parser_, http_parser_type type) {
+    iotjs_jobjectwrap_initialize(&_jobjectwrap, parser_, (uintptr_t)this,
+                                 Delete);
+
     url = iotjs_string_create("");
     status_msg = iotjs_string_create("");
     for (unsigned i = 0; i < HEADER_MAX; i++) {
@@ -59,6 +61,7 @@ public:
       iotjs_string_destroy(&fields[i]);
       iotjs_string_destroy(&values[i]);
     }
+    iotjs_jobjectwrap_destroy(&_jobjectwrap);
   }
 
   void Initialize(http_parser_type type);
@@ -240,6 +243,14 @@ public:
     flushed = true;
   }
 
+  iotjs_jval_t* jobject() {
+    return iotjs_jobjectwrap_jobject(&_jobjectwrap);
+  }
+
+  static void Delete(const uintptr_t data) {
+    delete ((HTTPParserWrap*)data);
+  }
+
   http_parser parser;
   iotjs_string_t url;
   iotjs_string_t status_msg;
@@ -251,6 +262,9 @@ public:
   char* cur_buf;
   int cur_buf_len;
   bool flushed;
+
+ protected:
+  iotjs_jobjectwrap_t _jobjectwrap;
 };
 
 

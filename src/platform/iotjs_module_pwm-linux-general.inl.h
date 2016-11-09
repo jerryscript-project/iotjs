@@ -22,8 +22,8 @@
 #include <stdio.h>
 #include <unistd.h>
 
+#include "iotjs_systemio-linux.h"
 #include "module/iotjs_module_pwm.h"
-#include "iotjs_device_io-linux-general.h"
 
 
 #define PWM_INTERFACE "/sys/class/pwm/pwmchip%d/"

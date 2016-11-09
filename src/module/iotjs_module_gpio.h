@@ -22,16 +22,8 @@
 #include "iotjs_objectwrap.h"
 #include "iotjs_reqwrap.h"
 
-#define GPIO_MAX_PINNO 63
-#define GPIO_MAX_PORTNO 8
-#define GPIO_PINCNT_IN_IOTJS 8
 
 namespace iotjs {
-
-enum GpioSettingType {
-  kGpioPin = 0,
-  kGpioPort,
-};
 
 enum GpioDirection {
   kGpioDirectionNone = 0,
@@ -62,17 +54,14 @@ enum GpioError {
 enum GpioOp {
   kGpioOpInitize,
   kGpioOpRelease,
-  kGpioOpSetPin,
-  kGpioOpWritePin,
-  kGpioOpReadPin,
-  kGpioOpSetPort,
-  kGpioOpWritePort,
-  kGpioOpReadPort,
+  kGpioOpOpen,
+  kGpioOpWrite,
+  kGpioOpRead,
 };
 
 struct GpioReqData {
-  int32_t pin;
-  int32_t value;
+  uint32_t pin;
+  uint32_t value;
   GpioDirection dir;
   GpioMode mode; // only for set pin
   GpioError result;
@@ -99,12 +88,9 @@ class Gpio {
 
   virtual int Initialize(GpioReqWrap* gpio_req) = 0;
   virtual int Release(GpioReqWrap* gpio_req) = 0;
-  virtual int SetPin(GpioReqWrap* gpio_req) = 0;
-  virtual int WritePin(GpioReqWrap* gpio_req) = 0;
-  virtual int ReadPin(GpioReqWrap* gpio_req) = 0;
-  virtual int SetPort(GpioReqWrap* gpio_req) = 0;
-  virtual int WritePort(GpioReqWrap* gpio_req) = 0;
-  virtual int ReadPort(GpioReqWrap* gpio_req) = 0;
+  virtual int Open(GpioReqWrap* gpio_req) = 0;
+  virtual int Write(GpioReqWrap* gpio_req) = 0;
+  virtual int Read(GpioReqWrap* gpio_req) = 0;
 
   static void Delete(const uintptr_t data) {
     delete ((Gpio*)data);

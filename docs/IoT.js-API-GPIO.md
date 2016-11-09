@@ -1,11 +1,20 @@
-## class: GPIO
+## Module: GPIO
 
-### `pins` and `ports`
+### Platform Support
+
+The following shows GPIO module APIs available for each platform.
+
+|  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | Nuttx<br/>(STM32F4-Discovery) |
+| :---: | :---: | :---: | :---: |
+| gpio.initialize | O | O | O |
+| gpio.release | O | O | O |
+| gpio.open | △ | △ | O |
+| gpio.write | O | O | O |
+| gpio.read | O | O | O |
+
+### `pins`
 
 * pin number is logical number starts from 1. Thus logical pin number *k* is not necessarily bound to physical pin number *k* in your board.
-* port number is logical number starts from 1. Thus logical port number *k* is not necessarily bound to physical port number *k* in your board.
-* 8 logical pin will be bound to a logical port. For example, pin number 1~8 will bound to port 1, pin number 9~16 bound to port 2, and so forth.
-* If you write a byte value to a port, the result is the same as writing each bit to corresponding pin. For example, let's say you write (10101011)2 to port 1. the operation will write up bit to pin 1, up bit to pin 2, down bit to pin 3, ... , up bit to pin 8.
 
 ### Methods
 
@@ -33,12 +42,12 @@ After this function any other GPIO function call except `initialize()` will be f
 'release' event will be emitted after GPIO device is released.
 
 
-#### gpio.setPin(pinNumber, direction[, mode][, callback])
+#### gpio.open(pinNumber, direction[, mode][, callback])
 
-* `pinNumber: Number`: pin number to configure
-* `direction: 'in' | 'out' | 'none'`: direction of the pin. `'none'` for releasing GPIO pin.
-* `mode: 'pullup' | 'pulldn' | 'float' | 'pushpull' | 'opendrain' | 'none' | '' | undefined` : pin mode.
-* `callback: Function(err: GpioError | null)`.
+* `pinNumber: Number` - pin number to configure
+* `direction: 'in' | 'out' | 'none'` - direction of the pin `'none'` for releasing GPIO pin
+* `mode: 'pullup' | 'pulldn' | 'float' | 'pushpull' | 'opendrain' | 'none' | '' | undefined` - pin mode
+* `callback: Function(err: GpioError | null)`
 
 Sets GPIO pin configuration.
 
@@ -46,109 +55,69 @@ The mode option is not supported in Raspberry PI.
 
 `callback` will be called after GPIO pin is set.
 
-'setPin' event will be emitted after pin is set.
+'open' event will be emitted after pin is set.
 
 
-#### gpio.writePin(pinNumber, value[, callback])
-* `pinNumber: Number` - pin number to wirte
-* `value: Boolean`.
-* `callback: Function(err: Error | null)`.
+#### gpio.write(pinNumber, value[, callback])
+* `pinNumber: Number` - pin number to write
+* `value: Boolean`
+* `callback: Function(err: Error | null)`
 
 Writes out a boolean value to a GPIO pin.
 
 `callback` will be called after I/O finishes.
 
-'writePin' event will be emitted after I/O finishes.
+'write' event will be emitted after I/O finishes.
 
 
-#### gpio.readPin(pinNumber[, callback])
-* `pinNumber: Number` - pin number to read.
-* `callback: Function(err: Error | null, value: Boolean)`.
+#### gpio.read(pinNumber[, callback])
+* `pinNumber: Number` - pin number to read
+* `callback: Function(err: Error | null, value: Boolean)`
 
 Reads boolean value from a GPIO pin.
 
 `callback` will be called with the value.
 
-'readPin' event will be emitted after I/O finishes.
-
-
-#### gpio.setPort(portNumber, direction[, mode][, callback])
-* `portNumber: Number` - port number to configure.
-* `direction: 'in' | 'out' | 'none'` - direction of the port.
-* `mode: String` - pin mode.
-* `callback: Function(err: Error | null)`.
-
-Sets GPIO port configuration.
-
-All pins bound to this port will have the given configuration.
-
-The mode option is not supported in Raspberry PI.
-
-`callback` will be called after GPIO port is set.
-
-'setPort' event will be emitted after port is set.
-
-'setPin' event will be emitted for pins that are bound to the port after port is set.
-
-
-#### gpio.writePort(portNumber, value[, callback])
-* `portNumber: Number` - port number to write
-* `value: Number`.
-* `callback: Function(err: Error | null)`.
-
-Writes out the given value to a GPIO port.
-
-`callback` will be called after the value flushed.
-
-'writePort' event will be emitted after I/O finishes.
-
-
-#### gpio.readPort(portNumber, callback)
-* `portNumber: Number` - port number to read.
-* `callback: Function(err: Error | null, value: Number)`.
-
-Reads value from a GPIO port.
-
-`callback` will be called with the value.
-
-'readPort' event will be emitted after I/O finishes.
+'read' event will be emitted after I/O finishes.
 
 
 ### Events
 
 #### `'initialize'`
+* `callback: Function()`
 
 Emitted after GPIO device is successfully initialized.
 
 #### `'release'`
+* `callback: Function()`
 
 Emitted after GPIO device is successfully released.
 
-#### `'setPin(pin: Number, direction: String, mode:String)'`
+#### `'open'`
+* `callback: Function(pin, direction, mode)`
+ * `pin: Number` - opened pin number
+ * `direction: String` - direction of the pin
+ * `mode: String` - mode of the pin
 
 Emitted after GPIO pin is set.
 
-#### `'writePin(pin: Number, value: Boolean)'`
+#### `'write'`
+* `callback: Function(pin, value)`
+ * `pin: Number` - written pin number
+ * `value: Boolean` written value
 
 Emitted after GPIO write pin is finished.
 
-#### `'readPin(pin: Number, value: Boolean)'`
+#### `'read'`
+* `callback: Function(pin, value)`
+ * `pin: Number` - read pin number
+ * `value: Boolean` - read value
 
 Emitted after GPIO read pin is finished.
 
-#### `'setPort(port: Number, direction: String, mode:String)'`
-
-Emitted after GPIO port is set.
-
-#### `'writePort(port: Number, value: Number)'`
-
-Emitted after GPIO write port is finished.
-
-#### `'readPort(port: Number, value: Number)'`
-
-Emitted after GPIO read port is finished.
-
-#### `'error(error: GpioError)'`
+#### `'error'`
+* `callback: Function(error)`
+ * `error: GpioError`
 
 Emitted when there is an error.
 

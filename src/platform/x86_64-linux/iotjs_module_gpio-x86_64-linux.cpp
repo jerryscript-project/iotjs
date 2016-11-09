@@ -16,23 +16,6 @@
 
 #if defined(__LINUX__)
 
- #if defined(USING_MRAA)
-
-#include "../iotjs_module_gpio-linux-mraa.inl.h"
-
-
-namespace iotjs {
-
-
-Gpio* Gpio::Create(const iotjs_jval_t* jgpio) {
-  return new GpioLinuxMraa(jgpio);
-}
-
-
-} // namespace iotjs
-
- #else
-
 #include "../iotjs_module_gpio-linux-general.inl.h"
 
 
@@ -46,6 +29,5 @@ Gpio* Gpio::Create(const iotjs_jval_t* jgpio) {
 
 } // namespace iotjs
 
- #endif
 
 #endif

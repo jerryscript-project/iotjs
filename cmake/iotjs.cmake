@@ -41,6 +41,9 @@ foreach(module ${IOTJS_MODULES})
     set(IOTJS_CFLAGS "${IOTJS_CFLAGS} -DENABLE_MODULE_${module}=1")
 endforeach()
 
+if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    list(APPEND IOTJS_MODULE_SRC ${SRC_ROOT}/platform/iotjs_*-linux.cpp)
+endif()
 
 file(GLOB LIB_IOTJS_SRC ${SRC_ROOT}/*.c
                         ${IOTJS_MODULE_SRC})

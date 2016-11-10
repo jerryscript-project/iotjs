@@ -18,55 +18,37 @@ var assert = require('assert');
 var gpio = require("gpio");
 
 // mode : pullup (on-low, off-high), pulldn, float, pushpull, opendrain
-var LED_PORT_NUMBER = 0,
-    LED_PORT_MODE = "pulldn";
+var LED_PIN_NUMBER = 0,
+    LED_PIN_MODE = "pushpull",
+    SWITCH_PIN_NUMBER = 14,
+    SWITCH_PIN_MODE = "pulldn";
 
-var LED_VALUE = 0xAA;
+var SWITCH_ON = true,
+    LED_ON = true,
+    LED_OFF = false;
 
+var openSwitch = false;
+var loopCnt = 0;
 
 gpio.initialize();
 
 gpio.on('initialize', function() {
   console.log('GPIO initialized');
 
-  gpio.setPort(LED_PORT_NUMBER, "out", LED_PORT_MODE);
+  gpio.open(LED_PIN_NUMBER, "out", LED_PIN_MODE);
+  gpio.open(SWITCH_PIN_NUMBER, "in", SWITCH_PIN_MODE);
 });
 
-gpio.on('setPort', function(port, dir, mode) {
-  console.log('setPort complete - port: %d, direction: %s, mode: %s',
-              port, dir, mode);
+gpio.on('open', function(pin, dir, mode) {
+  console.log('open complete - pin: %d, direction: %s, mode: %s',
+              pin, dir, mode);
 
-  if (port === LED_PORT_NUMBER) {
-    gpio.writePort(port, LED_VALUE, function(err) {
-      console.log('writePort complete - port: %d, value: %s',
-                  port, getBinaryString(LED_VALUE));
-    });
-
-    setTimeout(function() {
-      gpio.readPort(port, function(err, value) {
-        gpio.writePort(port, ~value, function(err) {
-          console.log('writePort complete - port: %d, value: %s',
-                      port, getBinaryString(~value));
-        });
-      });
-
-    }, 2000);
+  if (pin === SWITCH_PIN_NUMBER) {
+    openSwitch = true;
   }
-});
-
-gpio.on('setPin', function(port, dir, mode) {
-  console.log('setPin complete - pin: %d, direction: %s, mode: %s',
-              port, dir, mode);
-});
-
-gpio.on('writePort', function(port, value) {
-  console.log('writePort event - port: %d, value: %s',
-              port, getBinaryString(value));
-});
-
-gpio.on('readPort', function(port, value) {
-  console.log('readPort event - port: %d, value: %s', port,
-              getBinaryString(value));
+  else if (pin === LED_PIN_NUMBER) {
+    gpio.write(pin, LED_OFF);
+  }
 });
 
 gpio.on('release', function() {
@@ -77,12 +59,29 @@ gpio.on('error', function(err) {
   console.log(err);
 });
 
-function getBinaryString(number) {
-  var binaryString = '';
-
-  for(var i = 7; i >= 0; i--) {
-    binaryString += (number & (1 << i)) ? '1' : '0';
+var loop = setInterval(function() {
+  if (!openSwitch) {
+    return;
   }
 
-  return binaryString;
-}
+  if ((++loopCnt) == 10) {
+    // release gpio after 1000ms
+    setTimeout(function() {
+      gpio.release();
+    }, 1000);
+
+    clearInterval(loop);
+  }
+
+  gpio.read(SWITCH_PIN_NUMBER, function(err, value) {
+    if (err) {
+      clearInterval(loop);
+    }
+
+    if (value === SWITCH_ON) {
+      gpio.write(LED_PIN_NUMBER, LED_ON)
+    } else {
+      gpio.write(LED_PIN_NUMBER, LED_OFF);
+    }
+  });
+}, 500);

@@ -13,10 +13,13 @@
  * limitations under the License.
  */
 
-#ifndef IOTJS_DEVICE_IO_LINUX_GENERAL_H
-#define IOTJS_DEVICE_IO_LINUX_GENERAL_H
 
+#include <unistd.h>
 #include <uv.h>
+
+#include "iotjs_def.h"
+#include "iotjs_systemio-linux.h"
+
 
 namespace iotjs {
 
@@ -55,7 +58,7 @@ bool DeviceOpenWriteClose(const char* path, char* value) {
   const iotjs_environment_t* env = iotjs_environment_get();
   uv_loop_t* loop = iotjs_environment_loop(env);
 
-  DDLOG("DeviceOpenWriteClose() - path %s, value: %s", path, value);
+  DDDLOG("DeviceOpenWriteClose() - path %s, value: %s", path, value);
 
   // Open file.
   LocalDeviceFsReq fs_req;
@@ -130,11 +133,16 @@ bool DeviceOpenReadClose(const char* path, char* buffer, int buffer_len) {
 bool DeviceExport(const char* export_path, int value, const char* exported_path,
                   const char** created_files, int created_files_length) {
 
+  // Be already exported
+  if (DeviceCheckPath(exported_path)) {
+    return true;
+  }
+
   DDLOG("DeviceExport() - path: %s", export_path);
 
   // Write export pin.
-  char buff[10] = {0};
-  snprintf(buff, 9, "%d", value);
+  char buff[DEVICE_IO_PIN_BUFFER_SIZE] = {0};
+  snprintf(buff, DEVICE_IO_PIN_BUFFER_SIZE - 1, "%d", value);
 
   if (!DeviceOpenWriteClose(export_path, buff)) {
     return false;
@@ -143,9 +151,9 @@ bool DeviceExport(const char* export_path, int value, const char* exported_path,
   // Wait for directory creation.
   int count = 0;
   int count_limit = created_files_length * 10;
-  char buffer[10];
-  char path[64] = {0};
-  char check_format[64] = {0};
+  char buffer[DEVICE_IO_PIN_BUFFER_SIZE];
+  char path[DEVICE_IO_PATH_BUFFER_SIZE] = {0};
+  char check_format[DEVICE_IO_PATH_BUFFER_SIZE] = {0};
 
   while (!DeviceCheckPath(exported_path) && count < count_limit) {
     usleep(100 * 1000); // sleep 100 miliseconds.
@@ -156,11 +164,13 @@ bool DeviceExport(const char* export_path, int value, const char* exported_path,
   strcat(check_format, "%s");
 
   for (int i = 0; i < created_files_length; i++) {
-    snprintf(path, 63, check_format, created_files[i]);
+    snprintf(path, DEVICE_IO_PATH_BUFFER_SIZE - 1,
+             check_format, created_files[i]);
 
-    DDDLOG("DeviceExport() - created file: %s", created_files[i]);
+    DDLOG("DeviceExport() - created file: %s", path);
 
-    while (!DeviceOpenReadClose(path, buffer, 10) && count < count_limit) {
+    while (!DeviceOpenReadClose(path, buffer, DEVICE_IO_PIN_BUFFER_SIZE) &&
+           count < count_limit) {
       usleep(100 * 1000); // sleep 100 miliseconds.
       count++;
     }
@@ -177,8 +187,8 @@ bool DeviceUnexport(const char* export_path, int value) {
 
   DDDLOG("Device Unexport() - path: %s", DeviceUnexport);
 
-  char buff[10] = {0};
-  snprintf(buff, 9, "%d", value);
+  char buff[DEVICE_IO_PIN_BUFFER_SIZE] = {0};
+  snprintf(buff, DEVICE_IO_PIN_BUFFER_SIZE - 1, "%d", value);
 
   if (!DeviceOpenWriteClose(export_path, buff)) {
     return false;
@@ -189,6 +199,3 @@ bool DeviceUnexport(const char* export_path, int value) {
 
 
 } // namespace iotjs
-
-
-#endif /* IOTJS_DEVICE_IO_LINUX_GENERAL_H */

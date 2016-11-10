@@ -46,80 +46,11 @@ Gpio* Gpio::GetInstance() {
 }
 
 
-#define SET_GPIO(setType) \
-  JHANDLER_CHECK_ARGS(4, number, number, number, function); \
-  \
-  int32_t pin = JHANDLER_GET_ARG(0, number); \
-  GpioDirection dir = (GpioDirection)JHANDLER_GET_ARG(1, number); \
-  GpioMode mode = (GpioMode)JHANDLER_GET_ARG(2, number); \
-  const iotjs_jval_t* arg3 = JHANDLER_GET_ARG(3, function); \
-  \
-  if (dir < kGpioDirectionNone || \
-      dir > kGpioDirectionOut) { \
-    JHANDLER_THROW(TYPE, "Invalid GPIO direction"); \
-    return; \
-  } \
-  if (mode < kGpioModeNone || \
-      mode > kGpioModeOpendrain) { \
-    JHANDLER_THROW(TYPE, "Invalid GPIO mode"); \
-    return; \
-  } \
-  \
-  GpioReqWrap* req_wrap = new GpioReqWrap(arg3); \
-  GpioReqData* req_data = req_wrap->req(); \
-  \
-  req_data->pin = pin; \
-  req_data->dir = dir; \
-  req_data->mode = mode; \
-  req_data->op = kGpioOpSet ## setType; \
-  \
-  Gpio* gpio = Gpio::GetInstance(); \
-  gpio->Set ## setType(req_wrap);
-
-
-#define WRITE_GPIO(writeType, writeTypeEnum) \
-  if (writeTypeEnum == GpioSettingType::kGpioPin) { \
-    JHANDLER_CHECK_ARGS(3, number, boolean, function); \
-  } else { \
-    JHANDLER_CHECK_ARGS(3, number, number, function); \
-  } \
-  \
-  const iotjs_jval_t* arg2 = JHANDLER_GET_ARG(2, object); \
-  GpioReqWrap* req_wrap = new GpioReqWrap(arg2); \
-  GpioReqData* req_data = req_wrap->req(); \
-  \
-  req_data->pin = JHANDLER_GET_ARG(0, number); \
-  if (writeTypeEnum == GpioSettingType::kGpioPin) { \
-    req_data->value = JHANDLER_GET_ARG(1, boolean) ? 1 : 0; \
-  } else { \
-    req_data->value = JHANDLER_GET_ARG(1, number); \
-  } \
-  req_data->op = kGpioOpWrite ## writeType; \
-  \
-  Gpio* gpio = Gpio::GetInstance(); \
-  gpio->Write ## writeType(req_wrap);
-
-
-#define READ_GPIO(readType) \
-  JHANDLER_CHECK_ARGS(2, number, function); \
-  \
-  const iotjs_jval_t* arg1 = JHANDLER_GET_ARG(1, function); \
-  GpioReqWrap* req_wrap = new GpioReqWrap(arg1); \
-  GpioReqData* req_data = req_wrap->req(); \
-  \
-  req_data->pin = JHANDLER_GET_ARG(0, number); \
-  req_data->op = kGpioOpRead ## readType; \
-  \
-  Gpio* gpio = Gpio::GetInstance(); \
-  gpio->Read ## readType(req_wrap);
-
-
 // initialize(afterInitialize)
 JHANDLER_FUNCTION(Initialize) {
   JHANDLER_CHECK_ARGS(1, function);
-  const iotjs_jval_t* arg0 = JHANDLER_GET_ARG(0, object);
 
-  GpioReqWrap* req_wrap = new GpioReqWrap(arg0);
+  GpioReqWrap* req_wrap = new GpioReqWrap(JHANDLER_GET_ARG(0, function));
   req_wrap->req()->op = kGpioOpInitize;
 
   Gpio* gpio = Gpio::GetInstance();
@@ -133,7 +64,7 @@ JHANDLER_FUNCTION(Initialize) {
 JHANDLER_FUNCTION(Release) {
   JHANDLER_CHECK_ARGS(1, function);
 
-  GpioReqWrap* req_wrap = new GpioReqWrap(iotjs_jhandler_get_arg(jhandler, 0));
+  GpioReqWrap* req_wrap = new GpioReqWrap(JHANDLER_GET_ARG(0, function));
   req_wrap->req()->op = kGpioOpRelease;
 
   Gpio* gpio = Gpio::GetInstance();
@@ -143,56 +74,70 @@ JHANDLER_FUNCTION(Release) {
 }
 
 
-// setPin(pinNumber, direction, mode, afterSetPin)
-JHANDLER_FUNCTION(SetPin) {
-  SET_GPIO(Pin);
+// open(pinNumber, direction, mode, afterOpen)
+JHANDLER_FUNCTION(Open) {
+  JHANDLER_CHECK_ARGS(4, number, number, number, function);
+
+  int32_t pin = JHANDLER_GET_ARG(0, number);
+  GpioDirection dir = (GpioDirection)JHANDLER_GET_ARG(1, number);
+  GpioMode mode = (GpioMode)JHANDLER_GET_ARG(2, number);
+
+  if (dir < kGpioDirectionNone ||
+      dir > kGpioDirectionOut) {
+    JHANDLER_THROW(TYPE, "Invalid GPIO direction");
+    return;
+  }
+  if (mode < kGpioModeNone ||
+      mode > kGpioModeOpendrain) {
+    JHANDLER_THROW(TYPE, "Invalid GPIO mode");
+    return;
+  }
+
+  GpioReqWrap* req_wrap = new GpioReqWrap(JHANDLER_GET_ARG(3, function));
+  GpioReqData* req_data = req_wrap->req();
+
+  req_data->pin = pin;
+  req_data->dir = dir;
+  req_data->mode = mode;
+  req_data->op = kGpioOpOpen;
+
+  Gpio* gpio = Gpio::GetInstance();
+  gpio->Open(req_wrap);
 
   iotjs_jhandler_return_null(jhandler);
 }
 
 
-// writePin(pinNumber, value, afterWritePin)
-JHANDLER_FUNCTION(WritePin) {
-  WRITE_GPIO(Pin, GpioSettingType::kGpioPin);
+// write(pinNumber, value, afterWrite)
+JHANDLER_FUNCTION(Write) {
+  JHANDLER_CHECK_ARGS(3, number, boolean, function);
+
+  GpioReqWrap* req_wrap = new GpioReqWrap(JHANDLER_GET_ARG(2, function));
+  GpioReqData* req_data = req_wrap->req();
+
+  req_data->pin = JHANDLER_GET_ARG(0, number);
+  req_data->value = JHANDLER_GET_ARG(1, boolean) ? 1 : 0;
+  req_data->op = kGpioOpWrite;
+
+  Gpio* gpio = Gpio::GetInstance();
+  gpio->Write(req_wrap);
 
   iotjs_jhandler_return_null(jhandler);
 }
 
 
-// readPin(pinNumber, afterReadPin)
-JHANDLER_FUNCTION(ReadPin) {
-  READ_GPIO(Pin);
+// read(pinNumber, afterRead)
+JHANDLER_FUNCTION(Read) {
+  JHANDLER_CHECK_ARGS(2, number, function);
 
-  iotjs_jhandler_return_null(jhandler);
-}
+  GpioReqWrap* req_wrap = new GpioReqWrap(JHANDLER_GET_ARG(1, function));
+  GpioReqData* req_data = req_wrap->req();
 
+  req_data->pin = JHANDLER_GET_ARG(0, number);
+  req_data->op = kGpioOpRead;
 
-// setPort(portNumber, direction, mode, afterSetPort)
-JHANDLER_FUNCTION(SetPort) {
-  SET_GPIO(Port);
-
-  iotjs_jhandler_return_null(jhandler);
-}
-
-
-// writePort(portNumber, value, afterWritePort)
-JHANDLER_FUNCTION(WritePort) {
-  WRITE_GPIO(Port, GpioSettingType::kGpioPort);
-
-  iotjs_jhandler_return_null(jhandler);
-}
-
-
-// readPort(portNumber, afterReadPort)
-JHANDLER_FUNCTION(ReadPort) {
-  READ_GPIO(Port);
-
-  iotjs_jhandler_return_null(jhandler);
-}
-
-
-JHANDLER_FUNCTION(Query) {
-  IOTJS_ASSERT(!"Not implemented");
+  Gpio* gpio = Gpio::GetInstance();
+  gpio->Read(req_wrap);
 
   iotjs_jhandler_return_null(jhandler);
 }
@@ -205,13 +150,9 @@ iotjs_jval_t InitGpio() {
 
   iotjs_jval_set_method(&jgpio, "initialize", Initialize);
   iotjs_jval_set_method(&jgpio, "release", Release);
-  iotjs_jval_set_method(&jgpio, "setPin", SetPin);
-  iotjs_jval_set_method(&jgpio, "writePin", WritePin);
-  iotjs_jval_set_method(&jgpio, "readPin", ReadPin);
-  iotjs_jval_set_method(&jgpio, "setPort", SetPort);
-  iotjs_jval_set_method(&jgpio, "writePort", WritePort);
-  iotjs_jval_set_method(&jgpio, "readPort", ReadPort);
-  iotjs_jval_set_method(&jgpio, "query", Query);
+  iotjs_jval_set_method(&jgpio, "open", Open);
+  iotjs_jval_set_method(&jgpio, "write", Write);
+  iotjs_jval_set_method(&jgpio, "read", Read);
 
 #define SET_CONSTANT(object, constant) \
   do { \
@@ -240,7 +181,6 @@ iotjs_jval_t InitGpio() {
   Gpio* gpio = Gpio::Create(&jgpio);
   IOTJS_ASSERT(gpio == reinterpret_cast<Gpio*>(
               iotjs_jval_get_object_native_handle(&jgpio)));
-
 
   return jgpio;
 }

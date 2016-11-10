@@ -31,12 +31,9 @@ class GpioArmNuttxGeneral : public Gpio {
 
   virtual int Initialize(GpioReqWrap* gpio_req);
   virtual int Release(GpioReqWrap* gpio_req);
-  virtual int SetPin(GpioReqWrap* gpio_req);
-  virtual int WritePin(GpioReqWrap* gpio_req);
-  virtual int ReadPin(GpioReqWrap* gpio_req);
-  virtual int SetPort(GpioReqWrap* gpio_req);
-  virtual int WritePort(GpioReqWrap* gpio_req);
-  virtual int ReadPort(GpioReqWrap* gpio_req);
+  virtual int Open(GpioReqWrap* gpio_req);
+  virtual int Write(GpioReqWrap* gpio_req);
+  virtual int Read(GpioReqWrap* gpio_req);
 };
 
 
@@ -67,37 +64,19 @@ int GpioArmNuttxGeneral::Release(GpioReqWrap* gpio_req) {
 }
 
 
-int GpioArmNuttxGeneral::SetPin(GpioReqWrap* gpio_req) {
+int GpioArmNuttxGeneral::Open(GpioReqWrap* gpio_req) {
   IOTJS_ASSERT(!"Not implemented");
   return 0;
 }
 
 
-int GpioArmNuttxGeneral::WritePin(GpioReqWrap* gpio_req) {
+int GpioArmNuttxGeneral::Write(GpioReqWrap* gpio_req) {
   IOTJS_ASSERT(!"Not implemented");
   return 0;
 }
 
 
-int GpioArmNuttxGeneral::ReadPin(GpioReqWrap* gpio_req) {
-  IOTJS_ASSERT(!"Not implemented");
-  return 0;
-}
-
-
-int GpioArmNuttxGeneral::SetPort(GpioReqWrap* gpio_req) {
-  IOTJS_ASSERT(!"Not implemented");
-  return 0;
-}
-
-
-int GpioArmNuttxGeneral::WritePort(GpioReqWrap* gpio_req) {
-  IOTJS_ASSERT(!"Not implemented");
-  return 0;
-}
-
-
-int GpioArmNuttxGeneral::ReadPort(GpioReqWrap* gpio_req) {
+int GpioArmNuttxGeneral::Read(GpioReqWrap* gpio_req) {
   IOTJS_ASSERT(!"Not implemented");
   return 0;
 }

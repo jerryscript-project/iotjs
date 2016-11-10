@@ -68,7 +68,7 @@ Write bytes to I2C device with command. `bytes` is an array of numbers.
 * `length: Number`
 * `callback: Function(err, res)`
 
-Read bytes from I2C device. 
+Read bytes from I2C device.
 `length` is the number of bytes. `res` contains an array of bytes.
 
 #### i2c.readByte(callback)
@@ -89,20 +89,20 @@ Read bytes from I2C device with command.
 * `length: Number`
 * `delay: Number`
 
-Read bytes from I2C device with command, continuosly. It emits `data` event.
+Read bytes from I2C device with command, continuously. It emits `data` event.
 `length` is the number of bytes. It will pause for the amount of time(`delay` in ms).
 
 ### Events
 
 #### `'data'`
-* `data: Object`
+* `callback: Function(data)`
 
-`data` is an object specifying following information:
-* `address: Number`
-* `data: Array (an array of bytes)`
-* `cmd: Number`
-* `length: Number`
-* `timestamp: Number`
+ `data` is an object specifying following information:
+ * `address: Number`
+ * `data: Array (an array of bytes)`
+ * `cmd: Number`
+ * `length: Number`
+ * `timestamp: Number`
 
 Emitted when `stream` method is called.
 

@@ -1,5 +1,32 @@
 ## Class: fs
 
+### Platform Support
+
+The following shows i2c module APIs available for each platform.
+
+|  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | Nuttx<br/>(STM32F4-Discovery) |
+| :---: | :---: | :---: | :---: |
+| fs.close | O | O | O |
+| fs.closeSync | O | O | O |
+| fs.open | O | O | O |
+| fs.openSync | O | O | O |
+| fs.read | O | O | O |
+| fs.readSync | O | O | O |
+| fs.readFile | O | O | O |
+| fs.readFileSync | O | O | O |
+| fs.rename | O | O | X |
+| fs.stat | O | O | X |
+| fs.statSync | O | O | X |
+| fs.fstat | O | O | O |
+| fs.fstatSync | O | O | O |
+| fs.write | O | O | O |
+| fs.writeSync | O | O | O |
+| fs.writeFile | O | O | O |
+| fs.writeFileSync | O | O | O |
+| fs.unlink | O | O | X |
+| fs.unlinkSync | O | O | X |
+
+※ On `nuttx` path should be passed with a form of **absolute path**.
 
 ### Methods
 

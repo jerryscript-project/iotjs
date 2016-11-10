@@ -19,6 +19,7 @@ import argparse
 import json
 import sys
 import re
+import os
 
 from check_tidy import check_tidy
 from js2c import js2c
@@ -705,17 +706,26 @@ def build_iotjs(option):
 
 
 def run_checktest(option):
+    checktest_quiet = 'yes'
+    if os.getenv('TRAVIS') == "true":
+        checktest_quiet = 'no'
+
     # iot.js executable
     iotjs = fs.join(build_root, 'iotjs', 'iotjs')
     fs.chdir(path.PROJECT_ROOT)
-    code = ex.run_cmd(iotjs, [path.CHECKTEST_PATH])
+    code = ex.run_cmd(iotjs, [path.CHECKTEST_PATH,
+                              '--',
+                              'quiet='+checktest_quiet])
     if code != 0:
         ex.fail('Failed to pass unit tests')
     if not option.no_check_valgrind:
         code = ex.run_cmd('valgrind', ['--leak-check=full',
                                        '--error-exitcode=5',
                                        '--undef-value-errors=no',
-                                       iotjs, path.CHECKTEST_PATH])
+                                       iotjs,
+                                       path.CHECKTEST_PATH,
+                                       '--',
+                                       'quiet='+checktest_quiet])
         if code == 5:
             ex.fail('Failed to pass valgrind test')
         if code != 0:

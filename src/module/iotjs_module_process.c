@@ -16,12 +16,7 @@
 #include "iotjs_def.h"
 #include "iotjs_js.h"
 
-#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-
-
-namespace iotjs {
 
 
 JHANDLER_FUNCTION(Binding) {
@@ -185,7 +180,9 @@ JHANDLER_FUNCTION(InitArgv) {
   iotjs_jval_t jargv = iotjs_jval_get_property(thisObj, "argv");
 
   int argc = iotjs_environment_argc(env);
-  for (int i = 0; i < argc; ++i) {
+
+  int i;
+  for (i = 0; i < argc; ++i) {
     const char* argvi = iotjs_environment_argv(env, i);
     iotjs_jval_t arg = iotjs_jval_create_string_raw(argvi);
     iotjs_jval_set_property_by_index(&jargv, i, &arg);
@@ -196,7 +193,8 @@ JHANDLER_FUNCTION(InitArgv) {
 
 
 void SetNativeSources(iotjs_jval_t* native_sources) {
-  for (int i = 0; natives[i].name; i++) {
+  int i;
+  for (i = 0; natives[i].name; i++) {
     iotjs_jval_t native_src = iotjs_jval_create_object();
     uintptr_t handle = (uintptr_t)(&natives[i]);
     iotjs_jval_set_object_native_handle(&native_src, handle, NULL);
@@ -285,15 +283,3 @@ iotjs_jval_t InitProcess() {
 
   return process;
 }
-
-
-} // namespace iotjs
-
-
-extern "C" {
-
-iotjs_jval_t InitProcess() {
-  return iotjs::InitProcess();
-}
-
-} // extern "C"

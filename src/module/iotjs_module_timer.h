@@ -16,59 +16,42 @@
 #ifndef IOTJS_MODULE_TIMER_H
 #define IOTJS_MODULE_TIMER_H
 
+
 #include "iotjs_binding.h"
 #include "iotjs_handlewrap.h"
 
 
-namespace iotjs {
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 
-class TimerWrap {
- public:
-  explicit TimerWrap(const iotjs_jval_t* jtimer) {
-    iotjs_handlewrap_initialize(&_handlewrap, jtimer,
-            reinterpret_cast<uv_handle_t*>(&_handle), (uintptr_t)this, Delete);
-
-    // Initialize timer handler.
-    const iotjs_environment_t* env = iotjs_environment_get();
-    uv_timer_init(iotjs_environment_loop(env), &_handle);
-  }
-
-  ~TimerWrap() {
-    iotjs_handlewrap_destroy(&_handlewrap);
-  }
-
-  // Timer timeout callback handler.
-  void OnTimeout();
-
-  // Timer close callback handler.
-  void OnClose();
-
-  // Start timer.
-  int Start(int64_t timeout, int64_t repeat);
-
-  // Stop & close timer.
-  int Stop();
-
-  uv_timer_t handle() { return _handle; }
-
-  iotjs_jval_t* jobject() {
-    return iotjs_handlewrap_jobject(&_handlewrap);
-  }
-
-  static void Delete(const uintptr_t data) {
-    delete ((TimerWrap*)data);
-  }
-
- protected:
-  iotjs_handlewrap_t _handlewrap;
-
-  // timer handle.
-  uv_timer_t _handle;
-};
+typedef struct {
+  iotjs_handlewrap_t handlewrap;
+  uv_timer_t handle;
+} IOTJS_VALIDATED_STRUCT(iotjs_timerwrap_t);
 
 
-} // namespace iotjs
+iotjs_timerwrap_t* iotjs_timerwrap_create(const iotjs_jval_t* jtimer);
+void iotjs_timerwrap_destroy(iotjs_timerwrap_t* timerwrap);
+
+
+// Start timer.
+int iotjs_timerwrap_start(iotjs_timerwrap_t* timerwrap,
+                          int64_t timeout, int64_t repeat);
+// Stop & close timer.
+int iotjs_timerwrap_stop(iotjs_timerwrap_t* timerwrap);
+
+uv_timer_t iotjs_timerwrap_handle(iotjs_timerwrap_t* timerwrap);
+iotjs_jval_t* iotjs_timerwrap_jobject(iotjs_timerwrap_t* timerwrap);
+
+iotjs_timerwrap_t* iotjs_timerwrap_from_jobject(const iotjs_jval_t* jtimer);
+iotjs_timerwrap_t* iotjs_timerwrap_from_handle(uv_handle_t* handle);
+
+
+#ifdef __cplusplus
+} // extern "C"
+#endif
 
 
 #endif /* IOTJS_MODULE_TIMER_H */

@@ -15,7 +15,8 @@
 cmake_minimum_required(VERSION 2.8)
 
 # Module Configuration - listup all possible modules
-file(GLOB IOTJS_MODULES_ALL ${CMAKE_SOURCE_DIR}/src/module/*.cpp)
+file(GLOB IOTJS_MODULES_ALL ${CMAKE_SOURCE_DIR}/src/module/*.c
+                            ${CMAKE_SOURCE_DIR}/src/module/*.cpp)
 separate_arguments(IOTJS_MODULES_ALL)
 foreach(module ${IOTJS_MODULES_ALL})
     get_filename_component(IOTJS_MODULENAME ${module} NAME_WE)
@@ -28,6 +29,7 @@ endforeach()
 set(IOTJS_MODULE_SRC "")
 separate_arguments(IOTJS_MODULES)
 foreach(module ${IOTJS_MODULES})
+    list(APPEND IOTJS_MODULE_SRC ${SRC_ROOT}/module/iotjs_module_${module}.c)
     list(APPEND IOTJS_MODULE_SRC ${SRC_ROOT}/module/iotjs_module_${module}.cpp)
     set(PLATFORM_SRC "${SRC_ROOT}/platform/${PLATFORM_DESCRIPT}/iotjs_module")
     set(PLATFORM_SRC "${PLATFORM_SRC}_${module}-${PLATFORM_DESCRIPT}.cpp")
@@ -41,7 +43,6 @@ endforeach()
 
 
 file(GLOB LIB_IOTJS_SRC ${SRC_ROOT}/*.c
-                        ${SRC_ROOT}/*.cpp
                         ${IOTJS_MODULE_SRC})
 
 string(REPLACE ";" " " IOTJS_CFLAGS_STR "${IOTJS_CFLAGS}")

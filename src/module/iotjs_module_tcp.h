@@ -27,6 +27,24 @@ iotjs_jval_t InitTcp();
 
 void DoClose(iotjs_jhandler_t* jhandler);
 void AfterClose(uv_handle_t* handle);
+void AddressToJS(const iotjs_jval_t* obj, const sockaddr* addr);
+
+#define GetSockNameFunction(wrap_type, handle_type, function) \
+  static void DoGetSockName(iotjs_jhandler_t* jhandler) { \
+    JHANDLER_CHECK_ARGS_1(object); \
+    \
+    wrap_type* wrap = \
+        wrap_type::FromJObject(JHANDLER_GET_THIS(object)); \
+    IOTJS_ASSERT(wrap != NULL); \
+    \
+    sockaddr_storage storage; \
+    int addrlen = sizeof(storage); \
+    sockaddr* const addr = reinterpret_cast<sockaddr*>(&storage); \
+    const int err = function(wrap->handle_type(), addr, &addrlen); \
+    if (err == 0) \
+      AddressToJS(JHANDLER_GET_ARG(0, object), addr); \
+    iotjs_jhandler_return_number(jhandler, err); \
+  }
 
 } // namespace iotjs
 

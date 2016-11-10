@@ -46,18 +46,18 @@ I2c* I2c::GetInstance() {
 }
 
 
-static void GetI2cArray(const iotjs_jval_t* jarray, I2cReqData* req_data) {
+static void GetI2cArray(const iotjs_jval_t* jarray, I2cReqWrap* req_wrap) {
   // FIXME
   // Need to implement a function to get array info from iotjs_jval_t Array.
   iotjs_jval_t jlength = iotjs_jval_get_property(jarray, "length");
   IOTJS_ASSERT(!iotjs_jval_is_undefined(&jlength));
 
-  req_data->buf_len = iotjs_jval_as_number(&jlength);
-  req_data->buf_data = iotjs_buffer_allocate(req_data->buf_len);
+  req_wrap->buf_len = iotjs_jval_as_number(&jlength);
+  req_wrap->buf_data = iotjs_buffer_allocate(req_wrap->buf_len);
 
-  for (int i = 0; i < req_data->buf_len; i++) {
+  for (int i = 0; i < req_wrap->buf_len; i++) {
     iotjs_jval_t jdata = iotjs_jval_get_property_by_index(jarray, i);
-    req_data->buf_data[i] = iotjs_jval_as_number(&jdata);
+    req_wrap->buf_data[i] = iotjs_jval_as_number(&jdata);
     iotjs_jval_destroy(&jdata);
   }
 
@@ -79,9 +79,8 @@ JHANDLER_FUNCTION(Scan) {
   JHANDLER_CHECK_ARGS(1, function);
 
   I2cReqWrap* req_wrap = new I2cReqWrap(JHANDLER_GET_ARG(0, function));
-  I2cReqData* req_data = req_wrap->req();
 
-  req_data->op = kI2cOpScan;
+  req_wrap->op = kI2cOpScan;
 
   I2c* i2c = I2c::GetInstance();
   i2c->Scan(req_wrap);
@@ -94,10 +93,9 @@ JHANDLER_FUNCTION(Open) {
   JHANDLER_CHECK_ARGS(2, string, function);
 
   I2cReqWrap* req_wrap = new I2cReqWrap(JHANDLER_GET_ARG(1, function));
-  I2cReqData* req_data = req_wrap->req();
 
-  req_data->op = kI2cOpOpen;
-  req_data->device = JHANDLER_GET_ARG(0, string);
+  req_wrap->op = kI2cOpOpen;
+  req_wrap->device = JHANDLER_GET_ARG(0, string);
 
   I2c* i2c = I2c::GetInstance();
   i2c->Open(req_wrap);
@@ -120,10 +118,9 @@ JHANDLER_FUNCTION(Write) {
   JHANDLER_CHECK_ARGS(2, array, function);
 
   I2cReqWrap* req_wrap = new I2cReqWrap(JHANDLER_GET_ARG(1, function));
-  I2cReqData* req_data = req_wrap->req();
 
-  req_data->op = kI2cOpWrite;
-  GetI2cArray(JHANDLER_GET_ARG(0, array), req_data);
+  req_wrap->op = kI2cOpWrite;
+  GetI2cArray(JHANDLER_GET_ARG(0, array), req_wrap);
 
   I2c* i2c = I2c::GetInstance();
   i2c->Write(req_wrap);
@@ -138,10 +135,9 @@ JHANDLER_FUNCTION(WriteByte) {
   uint8_t byte = JHANDLER_GET_ARG(0, number);
 
   I2cReqWrap* req_wrap = new I2cReqWrap(JHANDLER_GET_ARG(1, function));
-  I2cReqData* req_data = req_wrap->req();
 
-  req_data->op = kI2cOpWriteByte;
-  req_data->byte = byte;
+  req_wrap->op = kI2cOpWriteByte;
+  req_wrap->byte = byte;
 
   I2c* i2c = I2c::GetInstance();
   i2c->WriteByte(req_wrap);
@@ -154,11 +150,10 @@ JHANDLER_FUNCTION(WriteBlock) {
   JHANDLER_CHECK_ARGS(3, number, array, function);
 
   I2cReqWrap* req_wrap = new I2cReqWrap(JHANDLER_GET_ARG(2, function));
-  I2cReqData* req_data = req_wrap->req();
 
-  req_data->op = kI2cOpWriteBlock;
-  req_data->cmd = JHANDLER_GET_ARG(0, number);
-  GetI2cArray(JHANDLER_GET_ARG(1, array), req_data);
+  req_wrap->op = kI2cOpWriteBlock;
+  req_wrap->cmd = JHANDLER_GET_ARG(0, number);
+  GetI2cArray(JHANDLER_GET_ARG(1, array), req_wrap);
 
   I2c* i2c = I2c::GetInstance();
   i2c->WriteBlock(req_wrap);
@@ -171,11 +166,10 @@ JHANDLER_FUNCTION(Read) {
   JHANDLER_CHECK_ARGS(2, number, function);
 
   I2cReqWrap* req_wrap = new I2cReqWrap(JHANDLER_GET_ARG(1, function));
-  I2cReqData* req_data = req_wrap->req();
 
-  req_data->op = kI2cOpRead;
-  req_data->buf_len = JHANDLER_GET_ARG(0, number);
-  req_data->delay = 0;
+  req_wrap->op = kI2cOpRead;
+  req_wrap->buf_len = JHANDLER_GET_ARG(0, number);
+  req_wrap->delay = 0;
 
   I2c* i2c = I2c::GetInstance();
   i2c->Read(req_wrap);
@@ -188,9 +182,8 @@ JHANDLER_FUNCTION(ReadByte) {
   JHANDLER_CHECK_ARGS(1, function);
 
   I2cReqWrap* req_wrap = new I2cReqWrap(JHANDLER_GET_ARG(0, function));
-  I2cReqData* req_data = req_wrap->req();
 
-  req_data->op = kI2cOpReadByte;
+  req_wrap->op = kI2cOpReadByte;
 
   I2c* i2c = I2c::GetInstance();
   i2c->ReadByte(req_wrap);
@@ -203,12 +196,11 @@ JHANDLER_FUNCTION(ReadBlock) {
   JHANDLER_CHECK_ARGS(4, number, number, number, function);
 
   I2cReqWrap* req_wrap = new I2cReqWrap(JHANDLER_GET_ARG(0, function));
-  I2cReqData* req_data = req_wrap->req();
 
-  req_data->op = kI2cOpReadBlock;
-  req_data->cmd = JHANDLER_GET_ARG(0, number);
-  req_data->buf_len = JHANDLER_GET_ARG(1, number);
-  req_data->delay = JHANDLER_GET_ARG(2, number);
+  req_wrap->op = kI2cOpReadBlock;
+  req_wrap->cmd = JHANDLER_GET_ARG(0, number);
+  req_wrap->buf_len = JHANDLER_GET_ARG(1, number);
+  req_wrap->delay = JHANDLER_GET_ARG(2, number);
 
   I2c* i2c = I2c::GetInstance();
   i2c->ReadBlock(req_wrap);

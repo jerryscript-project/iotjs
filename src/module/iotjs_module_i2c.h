@@ -45,7 +45,12 @@ enum I2cError {
   kI2cErrWrite = -4,
 };
 
-struct I2cReqData {
+class I2cReqWrap : public ReqWrap<uv_work_t> {
+ public:
+  I2cReqWrap(const iotjs_jval_t* jcallback)
+      : ReqWrap<uv_work_t>(jcallback) {
+  }
+
   iotjs_string_t device;
   char* buf_data;
   uint8_t buf_len;
@@ -55,11 +60,7 @@ struct I2cReqData {
 
   I2cOp op;
   I2cError error;
-
-  void* data; // pointer to I2cReqWrap
 };
-
-typedef ReqWrap<I2cReqData> I2cReqWrap;
 
 
 // This I2c class provides interfaces for I2C operation.
@@ -73,15 +74,15 @@ class I2c {
   static const iotjs_jval_t* GetJI2c();
 
   virtual int SetAddress(uint8_t address) = 0;
-  virtual int Scan(I2cReqWrap* i2c_req) = 0;
-  virtual int Open(I2cReqWrap* i2c_req) = 0;
+  virtual int Scan(I2cReqWrap* req_wrap) = 0;
+  virtual int Open(I2cReqWrap* req_wrap) = 0;
   virtual int Close() = 0;
-  virtual int Write(I2cReqWrap* i2c_req) = 0;
-  virtual int WriteByte(I2cReqWrap* i2c_req) = 0;
-  virtual int WriteBlock(I2cReqWrap* i2c_req) = 0;
-  virtual int Read(I2cReqWrap* i2c_req) = 0;
-  virtual int ReadByte(I2cReqWrap* i2c_req) = 0;
-  virtual int ReadBlock(I2cReqWrap* i2c_req) = 0;
+  virtual int Write(I2cReqWrap* req_wrap) = 0;
+  virtual int WriteByte(I2cReqWrap* req_wrap) = 0;
+  virtual int WriteBlock(I2cReqWrap* req_wrap) = 0;
+  virtual int Read(I2cReqWrap* req_wrap) = 0;
+  virtual int ReadByte(I2cReqWrap* req_wrap) = 0;
+  virtual int ReadBlock(I2cReqWrap* req_wrap) = 0;
 
   static void Delete(const uintptr_t data) {
     delete ((I2c*)data);

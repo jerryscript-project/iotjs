@@ -105,15 +105,15 @@ class I2cLinuxGeneral : public I2c {
   static I2cLinuxGeneral* GetInstance();
 
   virtual int SetAddress(uint8_t address);
-  virtual int Scan(I2cReqWrap* i2c_req);
-  virtual int Open(I2cReqWrap* i2c_req);
+  virtual int Scan(I2cReqWrap* req_wrap);
+  virtual int Open(I2cReqWrap* req_wrap);
   virtual int Close();
-  virtual int Write(I2cReqWrap* i2c_req);
-  virtual int WriteByte(I2cReqWrap* i2c_req);
-  virtual int WriteBlock(I2cReqWrap* i2c_req);
-  virtual int Read(I2cReqWrap* i2c_req);
-  virtual int ReadByte(I2cReqWrap* i2c_req);
-  virtual int ReadBlock(I2cReqWrap* i2c_req);
+  virtual int Write(I2cReqWrap* req_wrap);
+  virtual int WriteByte(I2cReqWrap* req_wrap);
+  virtual int WriteBlock(I2cReqWrap* req_wrap);
+  virtual int Read(I2cReqWrap* req_wrap);
+  virtual int ReadByte(I2cReqWrap* req_wrap);
+  virtual int ReadBlock(I2cReqWrap* req_wrap);
 };
 
 
@@ -198,8 +198,7 @@ int I2cSmbusReadI2cBlockData(int fd, uint8_t command, uint8_t* values,
 void AfterI2cWork(uv_work_t* work_req, int status) {
   I2cLinuxGeneral* i2c = I2cLinuxGeneral::GetInstance();
 
-  I2cReqWrap* i2c_req = reinterpret_cast<I2cReqWrap*>(work_req->data);
-  I2cReqData* req_data = i2c_req->req();
+  I2cReqWrap* req_wrap = reinterpret_cast<I2cReqWrap*>(work_req->data);
 
   iotjs_jargs_t jargs = iotjs_jargs_create(2);
 
@@ -208,10 +207,10 @@ void AfterI2cWork(uv_work_t* work_req, int status) {
     iotjs_jargs_append_jval(&jargs, &error);
     iotjs_jval_destroy(&error);
   } else {
-    switch (req_data->op) {
+    switch (req_wrap->op) {
       case kI2cOpOpen:
       {
-        if (req_data->error == kI2cErrOpen) {
+        if (req_wrap->error == kI2cErrOpen) {
           iotjs_jval_t error =
               iotjs_jval_create_error("Failed to open I2C device");
           iotjs_jargs_append_jval(&jargs, &error);
@@ -224,13 +223,13 @@ void AfterI2cWork(uv_work_t* work_req, int status) {
       case kI2cOpScan:
       {
         iotjs_jargs_append_null(&jargs);
-        iotjs_jval_t result = iotjs_jval_create_byte_array(req_data->buf_len,
-                                                           req_data->buf_data);
+        iotjs_jval_t result = iotjs_jval_create_byte_array(req_wrap->buf_len,
+                                                           req_wrap->buf_data);
         iotjs_jargs_append_jval(&jargs, &result);
         iotjs_jval_destroy(&result);
 
-        if (req_data->buf_data != NULL) {
-          iotjs_buffer_release(req_data->buf_data);
+        if (req_wrap->buf_data != NULL) {
+          iotjs_buffer_release(req_wrap->buf_data);
         }
         break;
       }
@@ -238,7 +237,7 @@ void AfterI2cWork(uv_work_t* work_req, int status) {
       case kI2cOpWriteByte:
       case kI2cOpWriteBlock:
       {
-        if (req_data->error == kI2cErrWrite) {
+        if (req_wrap->error == kI2cErrWrite) {
           iotjs_jval_t error =
               iotjs_jval_create_error("Cannot write to device");
           iotjs_jargs_append_jval(&jargs, &error);
@@ -251,13 +250,13 @@ void AfterI2cWork(uv_work_t* work_req, int status) {
       case kI2cOpRead:
       case kI2cOpReadBlock:
       {
-        if (req_data->error == kI2cErrRead) {
+        if (req_wrap->error == kI2cErrRead) {
           iotjs_jval_t error =
               iotjs_jval_create_error("Cannot read from device");
           iotjs_jargs_append_jval(&jargs, &error);
           iotjs_jargs_append_null(&jargs);
           iotjs_jval_destroy(&error);
-        } else if (req_data->error == kI2cErrReadBlock) {
+        } else if (req_wrap->error == kI2cErrReadBlock) {
           iotjs_jval_t error =
               iotjs_jval_create_error("Error reading length of bytes");
           iotjs_jargs_append_jval(&jargs, &error);
@@ -266,24 +265,24 @@ void AfterI2cWork(uv_work_t* work_req, int status) {
         } else {
           iotjs_jargs_append_null(&jargs);
           iotjs_jval_t result =
-              iotjs_jval_create_byte_array(req_data->buf_len,
-                                           req_data->buf_data);
+              iotjs_jval_create_byte_array(req_wrap->buf_len,
+                                           req_wrap->buf_data);
           iotjs_jargs_append_jval(&jargs, &result);
           iotjs_jval_destroy(&result);
 
-          if (req_data->delay > 0) {
-            usleep(req_data->delay * 1000);
+          if (req_wrap->delay > 0) {
+            usleep(req_wrap->delay * 1000);
           }
 
-          if (req_data->buf_data != NULL) {
-            iotjs_buffer_release(req_data->buf_data);
+          if (req_wrap->buf_data != NULL) {
+            iotjs_buffer_release(req_wrap->buf_data);
           }
         }
         break;
       }
       case kI2cOpReadByte:
       {
-        if (req_data->error == kI2cErrRead) {
+        if (req_wrap->error == kI2cErrRead) {
           iotjs_jval_t error =
               iotjs_jval_create_error("Cannot read from device");
           iotjs_jargs_append_jval(&jargs, &error);
@@ -291,7 +290,7 @@ void AfterI2cWork(uv_work_t* work_req, int status) {
           iotjs_jval_destroy(&error);
         } else {
           iotjs_jargs_append_null(&jargs);
-          iotjs_jargs_append_number(&jargs, req_data->byte);
+          iotjs_jargs_append_number(&jargs, req_wrap->byte);
         }
         break;
       }
@@ -303,37 +302,34 @@ void AfterI2cWork(uv_work_t* work_req, int status) {
     }
   }
 
-  iotjs_make_callback(i2c_req->jcallback(), I2c::GetJI2c(), &jargs);
+  iotjs_make_callback(req_wrap->jcallback(), I2c::GetJI2c(), &jargs);
 
-  delete work_req;
-  delete i2c_req;
+  delete req_wrap;
   iotjs_jargs_destroy(&jargs);
 }
 
 
 void OpenWorker(uv_work_t* work_req) {
-  I2cReqWrap* i2c_req = reinterpret_cast<I2cReqWrap*>(work_req->data);
-  I2cReqData* req_data = i2c_req->req();
+  I2cReqWrap* req_wrap = reinterpret_cast<I2cReqWrap*>(work_req->data);
 
-  fd = open(iotjs_string_data(&req_data->device), O_RDWR);
+  fd = open(iotjs_string_data(&req_wrap->device), O_RDWR);
 
   if (fd == -1) {
-    req_data->error = kI2cErrOpen;
+    req_wrap->error = kI2cErrOpen;
   } else {
-    req_data->error = kI2cErrOk;
+    req_wrap->error = kI2cErrOk;
   }
 
-  iotjs_string_destroy(&req_data->device);
+  iotjs_string_destroy(&req_wrap->device);
 }
 
 
 void ScanWorker(uv_work_t* work_req) {
-  I2cReqWrap* i2c_req = reinterpret_cast<I2cReqWrap*>(work_req->data);
-  I2cReqData* req_data = i2c_req->req();
+  I2cReqWrap* req_wrap = reinterpret_cast<I2cReqWrap*>(work_req->data);
 
   int result;
-  req_data->buf_data = iotjs_buffer_allocate(I2C_MAX_ADDRESS);
-  req_data->buf_len = I2C_MAX_ADDRESS;
+  req_wrap->buf_data = iotjs_buffer_allocate(I2C_MAX_ADDRESS);
+  req_wrap->buf_len = I2C_MAX_ADDRESS;
 
   for (int i = 0; i < I2C_MAX_ADDRESS; i++) {
     ioctl(fd, I2C_SLAVE_FORCE, i);
@@ -356,7 +352,7 @@ void ScanWorker(uv_work_t* work_req) {
       result = 1;
     }
 
-    req_data->buf_data[i] = result;
+    req_wrap->buf_data[i] = result;
   }
 
   ioctl(fd, I2C_SLAVE_FORCE, addr);
@@ -364,90 +360,84 @@ void ScanWorker(uv_work_t* work_req) {
 
 
 void WriteWorker(uv_work_t* work_req) {
-  I2cReqWrap* i2c_req = reinterpret_cast<I2cReqWrap*>(work_req->data);
-  I2cReqData* req_data = i2c_req->req();
+  I2cReqWrap* req_wrap = reinterpret_cast<I2cReqWrap*>(work_req->data);
 
-  uint8_t len = req_data->buf_len;
-  char* data = req_data->buf_data;
+  uint8_t len = req_wrap->buf_len;
+  char* data = req_wrap->buf_data;
 
   if (write(fd, data, len) != len) {
-    req_data->error = kI2cErrWrite;
+    req_wrap->error = kI2cErrWrite;
   }
 
-  if (req_data->buf_data != NULL) {
-    iotjs_buffer_release(req_data->buf_data);
+  if (req_wrap->buf_data != NULL) {
+    iotjs_buffer_release(req_wrap->buf_data);
   }
 }
 
 
 void WriteByteWorker(uv_work_t* work_req) {
-  I2cReqWrap* i2c_req = reinterpret_cast<I2cReqWrap*>(work_req->data);
-  I2cReqData* req_data = i2c_req->req();
+  I2cReqWrap* req_wrap = reinterpret_cast<I2cReqWrap*>(work_req->data);
 
-  if (I2cSmbusWriteByte(fd, req_data->byte) == -1) {
-    req_data->error = kI2cErrWrite;
+  if (I2cSmbusWriteByte(fd, req_wrap->byte) == -1) {
+    req_wrap->error = kI2cErrWrite;
   }
 }
 
 
 void WriteBlockWorker(uv_work_t* work_req) {
-  I2cReqWrap* i2c_req = reinterpret_cast<I2cReqWrap*>(work_req->data);
-  I2cReqData* req_data = i2c_req->req();
+  I2cReqWrap* req_wrap = reinterpret_cast<I2cReqWrap*>(work_req->data);
 
-  uint8_t cmd = req_data->cmd;
-  uint8_t len = req_data->buf_len;
-  uint8_t* data = reinterpret_cast<uint8_t*>(req_data->buf_data);
+  uint8_t cmd = req_wrap->cmd;
+  uint8_t len = req_wrap->buf_len;
+  uint8_t* data = reinterpret_cast<uint8_t*>(req_wrap->buf_data);
 
   if (I2cSmbusWriteI2cBlockData(fd, cmd, data, len) == -1) {
-    req_data->error = kI2cErrWrite;
+    req_wrap->error = kI2cErrWrite;
   }
 
-  if (req_data->buf_data != NULL) {
-    iotjs_buffer_release(req_data->buf_data);
+  if (req_wrap->buf_data != NULL) {
+    iotjs_buffer_release(req_wrap->buf_data);
   }
 }
 
 
 void ReadWorker(uv_work_t* work_req) {
-  I2cReqWrap* i2c_req = reinterpret_cast<I2cReqWrap*>(work_req->data);
-  I2cReqData* req_data = i2c_req->req();
+  I2cReqWrap* req_wrap = reinterpret_cast<I2cReqWrap*>(work_req->data);
 
-  uint8_t len = req_data->buf_len;
-  req_data->buf_data = iotjs_buffer_allocate(len);
+  uint8_t len = req_wrap->buf_len;
+  req_wrap->buf_data = iotjs_buffer_allocate(len);
 
-  if (read(fd, req_data->buf_data, len) != len) {
-    req_data->error = kI2cErrRead;
+  if (read(fd, req_wrap->buf_data, len) != len) {
+    req_wrap->error = kI2cErrRead;
   }
 }
 
 
 void ReadByteWorker(uv_work_t* work_req) {
-  I2cReqWrap* i2c_req = reinterpret_cast<I2cReqWrap*>(work_req->data);
-  I2cReqData* req_data = i2c_req->req();
+  I2cReqWrap* req_wrap = reinterpret_cast<I2cReqWrap*>(work_req->data);
 
   int result = I2cSmbusReadByte(fd);
   if (result == -1) {
-    req_data->error = kI2cErrRead;
+    req_wrap->error = kI2cErrRead;
   } else {
-    req_data->byte = result;
+    req_wrap->byte = result;
   }
 }
 
 
 void ReadBlockWorker(uv_work_t* work_req) {
-  I2cReqWrap* i2c_req = reinterpret_cast<I2cReqWrap*>(work_req->data);
-  I2cReqData* req_data = i2c_req->req();
+  I2cReqWrap* req_wrap = reinterpret_cast<I2cReqWrap*>(work_req->data);
 
-  uint8_t cmd = req_data->cmd;
-  uint8_t len = req_data->buf_len;
+  uint8_t cmd = req_wrap->cmd;
+  uint8_t len = req_wrap->buf_len;
   uint8_t data[I2C_SMBUS_BLOCK_MAX + 2];
 
   if (I2cSmbusReadI2cBlockData(fd, cmd, data, len) != len) {
-    req_data->error = kI2cErrReadBlock;
+    req_wrap->error = kI2cErrReadBlock;
   }
 
-  req_data->buf_data = iotjs_buffer_allocate(len);
-  memcpy(req_data->buf_data, data, len);
+  req_wrap->buf_data = iotjs_buffer_allocate(len);
+  memcpy(req_wrap->buf_data, data, len);
 }
 
 
@@ -456,8 +446,7 @@ void ReadBlockWorker(uv_work_t* work_req) {
     I2cLinuxGeneral* i2c = I2cLinuxGeneral::GetInstance(); \
     const iotjs_environment_t* env = iotjs_environment_get(); \
     uv_loop_t* loop = iotjs_environment_loop(env); \
-    uv_work_t* req = new uv_work_t; \
-    req->data = reinterpret_cast<void*>(i2c_req); \
+    uv_work_t* req = req_wrap->req(); \
     uv_queue_work(loop, req, op ## Worker, AfterI2cWork); \
   } while (0)
 
@@ -469,13 +458,13 @@ int I2cLinuxGeneral::SetAddress(uint8_t address) {
 }
 
 
-int I2cLinuxGeneral::Scan(I2cReqWrap* i2c_req) {
+int I2cLinuxGeneral::Scan(I2cReqWrap* req_wrap) {
   I2C_LINUX_GENERAL_IMPL_TEMPLATE(Scan);
   return 0;
 }
 
 
-int I2cLinuxGeneral::Open(I2cReqWrap* i2c_req) {
+int I2cLinuxGeneral::Open(I2cReqWrap* req_wrap) {
   I2C_LINUX_GENERAL_IMPL_TEMPLATE(Open);
   return 0;
 }
@@ -489,37 +478,37 @@ int I2cLinuxGeneral::Close() {
 }
 
 
-int I2cLinuxGeneral::Write(I2cReqWrap* i2c_req) {
+int I2cLinuxGeneral::Write(I2cReqWrap* req_wrap) {
   I2C_LINUX_GENERAL_IMPL_TEMPLATE(Write);
   return 0;
 }
 
 
-int I2cLinuxGeneral::WriteByte(I2cReqWrap* i2c_req) {
+int I2cLinuxGeneral::WriteByte(I2cReqWrap* req_wrap) {
   I2C_LINUX_GENERAL_IMPL_TEMPLATE(WriteByte);
   return 0;
 }
 
 
-int I2cLinuxGeneral::WriteBlock(I2cReqWrap* i2c_req) {
+int I2cLinuxGeneral::WriteBlock(I2cReqWrap* req_wrap) {
   I2C_LINUX_GENERAL_IMPL_TEMPLATE(WriteBlock);
   return 0;
 }
 
 
-int I2cLinuxGeneral::Read(I2cReqWrap* i2c_req) {
+int I2cLinuxGeneral::Read(I2cReqWrap* req_wrap) {
   I2C_LINUX_GENERAL_IMPL_TEMPLATE(Read);
   return 0;
 }
 
 
-int I2cLinuxGeneral::ReadByte(I2cReqWrap* i2c_req) {
+int I2cLinuxGeneral::ReadByte(I2cReqWrap* req_wrap) {
   I2C_LINUX_GENERAL_IMPL_TEMPLATE(ReadByte);
   return 0;
 }
 
 
-int I2cLinuxGeneral::ReadBlock(I2cReqWrap* i2c_req) {
+int I2cLinuxGeneral::ReadBlock(I2cReqWrap* req_wrap) {
   I2C_LINUX_GENERAL_IMPL_TEMPLATE(ReadBlock);
   return 0;
 }

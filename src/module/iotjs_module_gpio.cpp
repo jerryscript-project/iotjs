@@ -51,7 +51,7 @@ JHANDLER_FUNCTION(Initialize) {
   JHANDLER_CHECK_ARGS(1, function);
 
   GpioReqWrap* req_wrap = new GpioReqWrap(JHANDLER_GET_ARG(0, function));
-  req_wrap->req()->op = kGpioOpInitize;
+  req_wrap->op = kGpioOpInitize;
 
   Gpio* gpio = Gpio::GetInstance();
   gpio->Initialize(req_wrap);
@@ -65,7 +65,7 @@ JHANDLER_FUNCTION(Release) {
   JHANDLER_CHECK_ARGS(1, function);
 
   GpioReqWrap* req_wrap = new GpioReqWrap(JHANDLER_GET_ARG(0, function));
-  req_wrap->req()->op = kGpioOpRelease;
+  req_wrap->op = kGpioOpRelease;
 
   Gpio* gpio = Gpio::GetInstance();
   gpio->Release(req_wrap);
@@ -94,12 +94,11 @@ JHANDLER_FUNCTION(Open) {
   }
 
   GpioReqWrap* req_wrap = new GpioReqWrap(JHANDLER_GET_ARG(3, function));
-  GpioReqData* req_data = req_wrap->req();
 
-  req_data->pin = pin;
-  req_data->dir = dir;
-  req_data->mode = mode;
-  req_data->op = kGpioOpOpen;
+  req_wrap->pin = pin;
+  req_wrap->dir = dir;
+  req_wrap->mode = mode;
+  req_wrap->op = kGpioOpOpen;
 
   Gpio* gpio = Gpio::GetInstance();
   gpio->Open(req_wrap);
@@ -113,11 +112,10 @@ JHANDLER_FUNCTION(Write) {
   JHANDLER_CHECK_ARGS(3, number, boolean, function);
 
   GpioReqWrap* req_wrap = new GpioReqWrap(JHANDLER_GET_ARG(2, function));
-  GpioReqData* req_data = req_wrap->req();
 
-  req_data->pin = JHANDLER_GET_ARG(0, number);
-  req_data->value = JHANDLER_GET_ARG(1, boolean) ? 1 : 0;
-  req_data->op = kGpioOpWrite;
+  req_wrap->pin = JHANDLER_GET_ARG(0, number);
+  req_wrap->value = JHANDLER_GET_ARG(1, boolean) ? 1 : 0;
+  req_wrap->op = kGpioOpWrite;
 
   Gpio* gpio = Gpio::GetInstance();
   gpio->Write(req_wrap);
@@ -131,10 +129,9 @@ JHANDLER_FUNCTION(Read) {
   JHANDLER_CHECK_ARGS(2, number, function);
 
   GpioReqWrap* req_wrap = new GpioReqWrap(JHANDLER_GET_ARG(1, function));
-  GpioReqData* req_data = req_wrap->req();
 
-  req_data->pin = JHANDLER_GET_ARG(0, number);
-  req_data->op = kGpioOpRead;
+  req_wrap->pin = JHANDLER_GET_ARG(0, number);
+  req_wrap->op = kGpioOpRead;
 
   Gpio* gpio = Gpio::GetInstance();
   gpio->Read(req_wrap);

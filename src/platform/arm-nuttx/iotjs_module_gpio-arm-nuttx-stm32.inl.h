@@ -93,11 +93,11 @@ class GpioArmNuttxStm32 : public Gpio {
 
   static GpioArmNuttxStm32* GetInstance();
 
-  virtual int Initialize(GpioReqWrap* gpio_req);
-  virtual int Release(GpioReqWrap* gpio_req);
-  virtual int Open(GpioReqWrap* gpio_req);
-  virtual int Write(GpioReqWrap* gpio_req);
-  virtual int Read(GpioReqWrap* gpio_req);
+  virtual int Initialize(GpioReqWrap* req_wrap);
+  virtual int Release(GpioReqWrap* req_wrap);
+  virtual int Open(GpioReqWrap* req_wrap);
+  virtual int Write(GpioReqWrap* req_wrap);
+  virtual int Read(GpioReqWrap* req_wrap);
 
   bool _initialized;
 };
@@ -118,34 +118,32 @@ GpioArmNuttxStm32* GpioArmNuttxStm32::GetInstance()
 #define GPIO_WORKER_INIT_TEMPLATE \
   GpioArmNuttxStm32* gpio = GpioArmNuttxStm32::GetInstance(); \
   IOTJS_ASSERT(gpio->_initialized == false); \
-  GpioReqWrap* gpio_req = reinterpret_cast<GpioReqWrap*>(work_req->data); \
-  GpioReqData* req_data = gpio_req->req(); \
+  GpioReqWrap* req_wrap = reinterpret_cast<GpioReqWrap*>(work_req->data); \
 
 
 void AfterGPIOWork(uv_work_t* work_req, int status) {
   GpioArmNuttxStm32* gpio = GpioArmNuttxStm32::GetInstance();
 
-  GpioReqWrap* gpio_req = reinterpret_cast<GpioReqWrap*>(work_req->data);
-  GpioReqData* req_data = gpio_req->req();
+  GpioReqWrap* req_wrap = reinterpret_cast<GpioReqWrap*>(work_req->data);
 
   if (status) {
-    req_data->result = kGpioErrSys;
+    req_wrap->result = kGpioErrSys;
   }
 
   iotjs_jargs_t jargs = iotjs_jargs_create(2);
-  iotjs_jargs_append_number(&jargs, req_data->result);
+  iotjs_jargs_append_number(&jargs, req_wrap->result);
 
-  switch (req_data->op) {
+  switch (req_wrap->op) {
     case kGpioOpInitize:
     {
-      if (req_data->result == kGpioErrOk) {
+      if (req_wrap->result == kGpioErrOk) {
         gpio->_initialized = true;
       }
       break;
     }
     case kGpioOpRelease:
     {
-      if (req_data->result == kGpioErrOk) {
+      if (req_wrap->result == kGpioErrOk) {
         gpio->_initialized = false;
       }
       break;
@@ -157,8 +155,8 @@ void AfterGPIOWork(uv_work_t* work_req, int status) {
     }
     case kGpioOpRead:
     {
-      if (req_data->result == kGpioErrOk) {
-        iotjs_jargs_append_bool(&jargs, !!req_data->value);
+      if (req_wrap->result == kGpioErrOk) {
+        iotjs_jargs_append_bool(&jargs, !!req_wrap->value);
       }
       break;
     }
@@ -169,10 +167,9 @@ void AfterGPIOWork(uv_work_t* work_req, int status) {
     }
   }
 
-  iotjs_make_callback(gpio_req->jcallback(), Gpio::GetJGpio(), &jargs);
+  iotjs_make_callback(req_wrap->jcallback(), Gpio::GetJGpio(), &jargs);
 
-  delete work_req;
-  delete gpio_req;
+  delete req_wrap;
   iotjs_jargs_destroy(&jargs);
 }
 
@@ -181,15 +178,14 @@ void InitializeGpioWorker(uv_work_t* work_req) {
   GpioArmNuttxStm32* gpio = GpioArmNuttxStm32::GetInstance();
   IOTJS_ASSERT(gpio->_initialized == false);
 
-  GpioReqWrap* gpio_req = reinterpret_cast<GpioReqWrap*>(work_req->data);
-  GpioReqData* req_data = gpio_req->req();
+  GpioReqWrap* req_wrap = reinterpret_cast<GpioReqWrap*>(work_req->data);
 
   DDDLOG("GPIO InitializeGpioWorker()");
 
   stm32_gpioinit();
 
   // always return OK
-  req_data->result = kGpioErrOk;
+  req_wrap->result = kGpioErrOk;
 }
 
 
@@ -197,13 +193,12 @@ void ReleaseGpioWorker(uv_work_t* work_req) {
   GpioArmNuttxStm32* gpio = GpioArmNuttxStm32::GetInstance();
   IOTJS_ASSERT(gpio->_initialized == true);
 
-  GpioReqWrap* gpio_req = reinterpret_cast<GpioReqWrap*>(work_req->data);
-  GpioReqData* req_data = gpio_req->req();
+  GpioReqWrap* req_wrap = reinterpret_cast<GpioReqWrap*>(work_req->data);
 
   DDDLOG("GPIO ReleaseGpioWorker()");
 
   // always return OK
-  req_data->result = kGpioErrOk;
+  req_wrap->result = kGpioErrOk;
 }
 
 
@@ -211,31 +206,31 @@ void OpenGpioWorker(uv_work_t* work_req) {
   GPIO_WORKER_INIT_TEMPLATE;
 
   DDDLOG("GPIO OpenGpioWorker() - pin: %d, dir: %d, mode: %d",
-         req_data->pin, req_data->dir, req_data->mode);
+         req_wrap->pin, req_wrap->dir, req_wrap->mode);
 
-  uint32_t port_index = GetGpioPortIndexFromPinNumber(req_data->pin);
-  uint32_t pin_index = GetGpioPinIndexFromPinNumber(req_data->pin);
+  uint32_t port_index = GetGpioPortIndexFromPinNumber(req_wrap->pin);
+  uint32_t pin_index = GetGpioPinIndexFromPinNumber(req_wrap->pin);
   uint32_t cfgset = 0;
 
-  if (req_data->dir == kGpioDirectionNone) {
+  if (req_wrap->dir == kGpioDirectionNone) {
     cfgset = gpioPort[port_index] | gpioPin[pin_index];
 
     if (stm32_unconfiggpio(cfgset) != GPIO_CONFIG_OK) {
-      req_data->result = kGpioErrSys;
+      req_wrap->result = kGpioErrSys;
       return;
     }
   } else {
     // Set pin direction and mode
-    cfgset = gpioDirection[req_data->dir] | gpioMode[req_data->mode] |
+    cfgset = gpioDirection[req_wrap->dir] | gpioMode[req_wrap->mode] |
              gpioPort[port_index] | gpioPin[pin_index];
 
     if (stm32_configgpio(cfgset) != GPIO_CONFIG_OK) {
-      req_data->result = kGpioErrSys;
+      req_wrap->result = kGpioErrSys;
       return;
     }
   }
 
-  req_data->result = kGpioErrOk;
+  req_wrap->result = kGpioErrOk;
 }
 
 
@@ -243,33 +238,33 @@ void WriteGpioWorker(uv_work_t* work_req) {
   GPIO_WORKER_INIT_TEMPLATE;
 
   DDDLOG("GPIO WriteGpioWorker() - pin: %d, value: %d",
-         req_data->pin, req_data->value);
+         req_wrap->pin, req_wrap->value);
 
-  uint32_t port_index = GetGpioPortIndexFromPinNumber(req_data->pin);
-  uint32_t pin_index = GetGpioPinIndexFromPinNumber(req_data->pin);
+  uint32_t port_index = GetGpioPortIndexFromPinNumber(req_wrap->pin);
+  uint32_t pin_index = GetGpioPinIndexFromPinNumber(req_wrap->pin);
   uint32_t pinset = gpioPort[port_index] | gpioPin[pin_index];
-  bool data = req_data->value ? 1 : 0;
+  bool data = req_wrap->value ? 1 : 0;
 
   stm32_gpiowrite(pinset, data);
 
   // always return OK
-  req_data->result = kGpioErrOk;
+  req_wrap->result = kGpioErrOk;
 }
 
 
 void ReadGpioWorker(uv_work_t* work_req) {
   GPIO_WORKER_INIT_TEMPLATE;
 
-  DDDLOG("GPIO ReadGpioWorker() - pin: %d" ,req_data->pin);
+  DDDLOG("GPIO ReadGpioWorker() - pin: %d" ,req_wrap->pin);
 
-  uint32_t port_index = GetGpioPortIndexFromPinNumber(req_data->pin);
-  uint32_t pin_index = GetGpioPinIndexFromPinNumber(req_data->pin);
+  uint32_t port_index = GetGpioPortIndexFromPinNumber(req_wrap->pin);
+  uint32_t pin_index = GetGpioPinIndexFromPinNumber(req_wrap->pin);
   uint32_t pinset = gpioPort[port_index] | gpioPin[pin_index];
 
-  req_data->value = (uint32_t)stm32_gpioread(pinset);
+  req_wrap->value = (uint32_t)stm32_gpioread(pinset);
 
   // always return OK
-  req_data->result = kGpioErrOk;
+  req_wrap->result = kGpioErrOk;
 }
 
 
@@ -279,37 +274,36 @@ void ReadGpioWorker(uv_work_t* work_req) {
     IOTJS_ASSERT(gpio->_initialized == initialized); \
     const iotjs_environment_t* env = iotjs_environment_get(); \
     uv_loop_t* loop = iotjs_environment_loop(env); \
-    uv_work_t* req = new uv_work_t; \
-    req->data = reinterpret_cast<void*>(gpio_req); \
+    uv_work_t* req = req_wrap->req(); \
     uv_queue_work(loop, req, op ## GpioWorker, AfterGPIOWork); \
   } while (0)
 
 
-int GpioArmNuttxStm32::Initialize(GpioReqWrap* gpio_req) {
+int GpioArmNuttxStm32::Initialize(GpioReqWrap* req_wrap) {
   GPIO_NUTTX_IMPL_TEMPLATE(Initialize, false);
   return 0;
 }
 
 
-int GpioArmNuttxStm32::Release(GpioReqWrap* gpio_req) {
+int GpioArmNuttxStm32::Release(GpioReqWrap* req_wrap) {
   GPIO_NUTTX_IMPL_TEMPLATE(Release, true);
   return 0;
 }
 
 
-int GpioArmNuttxStm32::Open(GpioReqWrap* gpio_req) {
+int GpioArmNuttxStm32::Open(GpioReqWrap* req_wrap) {
   GPIO_NUTTX_IMPL_TEMPLATE(Open, true);
   return 0;
 }
 
 
-int GpioArmNuttxStm32::Write(GpioReqWrap* gpio_req) {
+int GpioArmNuttxStm32::Write(GpioReqWrap* req_wrap) {
   GPIO_NUTTX_IMPL_TEMPLATE(Write, true);
   return 0;
 }
 
 
-int GpioArmNuttxStm32::Read(GpioReqWrap* gpio_req) {
+int GpioArmNuttxStm32::Read(GpioReqWrap* req_wrap) {
   GPIO_NUTTX_IMPL_TEMPLATE(Read, true);
   return 0;
 }

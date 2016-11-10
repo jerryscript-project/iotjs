@@ -8,14 +8,14 @@ The following shows i2c module APIs available for each platform.
 
 |  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | Nuttx<br/>(STM32F4-Discovery) |
 | :---: | :---: | :---: | :---: |
-| scan | O | O | X |
-| write | O | O | X |
-| writeByte | O | O | X |
-| writeBytes | O | O | X |
-| read | O | O | X |
-| readByte | O | O | X |
-| readBytes | O | O | X |
-| stream | O | O | X |
+| i2c.scan | O | O | X |
+| i2c.write | O | O | X |
+| i2c.writeByte | O | O | X |
+| i2c.writeBytes | O | O | X |
+| i2c.read | O | O | X |
+| i2c.readByte | O | O | X |
+| i2c.readBytes | O | O | X |
+| i2c.stream | O | O | X |
 
 ### Constructor
 

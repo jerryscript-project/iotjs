@@ -32,7 +32,7 @@ The listener will be invoked at the next event and removed.
 Removes listener from the list of event listeners.
 
 If you add the same listener multiple times, this removes only one instance of them.
-#### emiiter.removeAllListener([event])
+#### emitter.removeAllListener([event])
 * `event: String`
 * Returns emitter
 

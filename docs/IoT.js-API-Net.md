@@ -20,7 +20,7 @@ The following shows net module APIs available for each platform.
 | net.Socket.setTimeout | O | O | O |
 | net.Socket.setKeepAlive | X | X | X |
 
-※ net.Socket.destory on `nuttx` works but this is just an empty function inside.
+※ net.Socket.destroy on `nuttx` works but this is just an empty function inside.
 
 IoT.js provides asynchronous networking through Net module.
 

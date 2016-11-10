@@ -196,7 +196,7 @@ Registers cb for 'timeout' event set socket's timeout value to ms. This event wi
 
 
 
-### Member Varible
+### Member Variable
 #### headers
 HTTP header object.
 

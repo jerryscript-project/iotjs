@@ -20,20 +20,20 @@
 void iotjs_handlewrap_initialize(iotjs_handlewrap_t* handlewrap,
                                  const iotjs_jval_t* jobject,
                                  uv_handle_t* handle,
-                                 uintptr_t jhandle,
                                  JFreeHandlerType jfreehandler) {
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_handlewrap_t, handlewrap);
 
   // Increase ref count of Javascript object to guarantee it is alive until the
   // handle has closed.
   iotjs_jval_t jobjectref = iotjs_jval_create_copied(jobject);
-  iotjs_jobjectwrap_initialize(&_this->jobjectwrap, &jobjectref, jhandle,
-                               jfreehandler);
+  iotjs_jobjectwrap_initialize(&_this->jobjectwrap, &jobjectref, jfreehandler);
 
   _this->handle = handle;
   _this->on_close_cb = NULL;
 
-  _this->handle->data = handlewrap;
+  handle->data = handlewrap;
+
+  iotjs_handlewrap_validate(handlewrap);
 }
 
 
@@ -48,38 +48,30 @@ void iotjs_handlewrap_destroy(iotjs_handlewrap_t* handlewrap) {
 
 
 iotjs_handlewrap_t* iotjs_handlewrap_from_handle(uv_handle_t* handle) {
-  iotjs_handlewrap_t* wrap = (iotjs_handlewrap_t*)(handle->data);
-  IOTJS_ASSERT(wrap != NULL);
-  IOTJS_ASSERT(iotjs_handlewrap_get_uv_handle(wrap) == handle);
+  iotjs_handlewrap_t* handlewrap = (iotjs_handlewrap_t*)(handle->data);
+  iotjs_handlewrap_validate(handlewrap);
+  return handlewrap;
+}
 
-  return wrap;
+
+iotjs_handlewrap_t* iotjs_handlewrap_from_jobject(const iotjs_jval_t* jobject) {
+  iotjs_handlewrap_t* handlewrap =
+      (iotjs_handlewrap_t*)(iotjs_jval_get_object_native_handle(jobject));
+  iotjs_handlewrap_validate(handlewrap);
+  return handlewrap;
 }
 
 
 uv_handle_t* iotjs_handlewrap_get_uv_handle(iotjs_handlewrap_t* handlewrap) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_handlewrap_t, handlewrap);
-
-  uv_handle_t* handle  = _this->handle;
-  IOTJS_ASSERT(handle != NULL);
-  IOTJS_ASSERT(handle->data == handlewrap);
-
-  return handle;
-}
-
-
-uintptr_t iotjs_handlewrap_get_jhandle(iotjs_handlewrap_t* handlewrap) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_handlewrap_t, handlewrap);
-
-  iotjs_jval_t* jobject = iotjs_handlewrap_jobject(handlewrap);
-  uintptr_t jhandle = iotjs_jval_get_object_native_handle(jobject);
-  IOTJS_ASSERT(jhandle != 0);
-
-  return jhandle;
+  iotjs_handlewrap_validate(handlewrap);
+  return _this->handle;
 }
 
 
 iotjs_jval_t* iotjs_handlewrap_jobject(iotjs_handlewrap_t* handlewrap) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_handlewrap_t, handlewrap);
+  iotjs_handlewrap_validate(handlewrap);
   return iotjs_jobjectwrap_jobject(&_this->jobjectwrap);
 }
 
@@ -103,8 +95,8 @@ static void iotjs_handlewrap_on_close(iotjs_handlewrap_t* handlewrap) {
 
 
 static void iotjs_on_handle_closed(uv_handle_t* handle) {
-  iotjs_handlewrap_t* wrap = iotjs_handlewrap_from_handle(handle);
-  iotjs_handlewrap_on_close(wrap);
+  iotjs_handlewrap_t* handlewrap = iotjs_handlewrap_from_handle(handle);
+  iotjs_handlewrap_on_close(handlewrap);
 }
 
 
@@ -118,4 +110,15 @@ void iotjs_handlewrap_close(iotjs_handlewrap_t* handlewrap,
   } else {
     DDLOG("Attempt to close uninitialized or already closed handle");
   }
+}
+
+
+void iotjs_handlewrap_validate(iotjs_handlewrap_t* handlewrap) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_handlewrap_t, handlewrap);
+
+  IOTJS_ASSERT((iotjs_handlewrap_t*)_this == handlewrap);
+  IOTJS_ASSERT((iotjs_jobjectwrap_t*)_this == &_this->jobjectwrap);
+  IOTJS_ASSERT((void*)_this == _this->handle->data);
+  IOTJS_ASSERT((uintptr_t)_this == iotjs_jval_get_object_native_handle(
+      iotjs_jobjectwrap_jobject(&_this->jobjectwrap)));
 }

@@ -1,4 +1,4 @@
-/* Copyright 2015 Samsung Electronics Co., Ltd.
+/* Copyright 2015-2016 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,15 +18,52 @@
 #include "iotjs_reqwrap.h"
 #include "uv.h"
 
-namespace iotjs {
+
+typedef struct {
+  iotjs_reqwrap_t reqwrap;
+  uv_getaddrinfo_t req;
+} IOTJS_VALIDATED_STRUCT(iotjs_getaddrinforeqwrap_t);
 
 
-typedef ReqWrap<uv_getaddrinfo_t> GetAddrInfoReqWrap;
+#define THIS iotjs_getaddrinforeqwrap_t* getaddrinforeqwrap
+
+void iotjs_getaddrinforeqwrap_initialize(THIS,
+                                         const iotjs_jval_t* jcallback) {
+  IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_getaddrinforeqwrap_t,
+                                     getaddrinforeqwrap);
+  iotjs_reqwrap_initialize(&_this->reqwrap,
+                           jcallback,
+                           (uv_req_t*)&_this->req,
+                           getaddrinforeqwrap);
+}
+
+
+void iotjs_getaddrinforeqwrap_destroy(THIS) {
+  IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_getaddrinforeqwrap_t,
+                                    getaddrinforeqwrap);
+  iotjs_reqwrap_destroy(&_this->reqwrap);
+}
+
+
+uv_getaddrinfo_t* iotjs_getaddrinforeqwrap_req(THIS) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_getaddrinforeqwrap_t, getaddrinforeqwrap);
+  return &_this->req;
+}
+
+
+const iotjs_jval_t* iotjs_getaddrinforeqwrap_jcallback(THIS) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_getaddrinforeqwrap_t, getaddrinforeqwrap);
+  return iotjs_reqwrap_jcallback(&_this->reqwrap);
+}
+
+#undef THIS
+
 
 #if !defined(__NUTTX__)
-static void AfterGetAddrInfo(uv_getaddrinfo_t* req, int status, addrinfo* res) {
-  GetAddrInfoReqWrap* req_wrap = reinterpret_cast<GetAddrInfoReqWrap*>(
-      req->data);
+static void AfterGetAddrInfo(uv_getaddrinfo_t* req, int status,
+                             struct addrinfo* res) {
+  iotjs_getaddrinforeqwrap_t* req_wrap =
+      (iotjs_getaddrinforeqwrap_t*)(req->data);
 
   iotjs_jargs_t args = iotjs_jargs_create(3);
   iotjs_jargs_append_number(&args, status);
@@ -37,13 +74,11 @@ static void AfterGetAddrInfo(uv_getaddrinfo_t* req, int status, addrinfo* res) {
 
     // Only first address is used
     if (res->ai_family == AF_INET) {
-      struct sockaddr_in* sockaddr = reinterpret_cast<struct sockaddr_in*>(
-          res->ai_addr);
-      addr = reinterpret_cast<char*>(&(sockaddr->sin_addr));
+      struct sockaddr_in* sockaddr = (struct sockaddr_in*)(res->ai_addr);
+      addr = (char*)(&(sockaddr->sin_addr));
     } else {
-      struct sockaddr_in6* sockaddr = reinterpret_cast<struct sockaddr_in6*>(
-          res->ai_addr);
-      addr = reinterpret_cast<char*>(&(sockaddr->sin6_addr));
+      struct sockaddr_in6* sockaddr = (struct sockaddr_in6*)(res->ai_addr);
+      addr = (char*)(&(sockaddr->sin6_addr));
     }
 
     int err = uv_inet_ntop(res->ai_family, addr, ip, INET6_ADDRSTRLEN);
@@ -57,11 +92,13 @@ static void AfterGetAddrInfo(uv_getaddrinfo_t* req, int status, addrinfo* res) {
   uv_freeaddrinfo(res);
 
   // Make the callback into JavaScript
-  iotjs_make_callback(req_wrap->jcallback(), iotjs_jval_get_undefined(), &args);
+  iotjs_make_callback(iotjs_getaddrinforeqwrap_jcallback(req_wrap),
+                      iotjs_jval_get_undefined(), &args);
 
   iotjs_jargs_destroy(&args);
 
-  delete req_wrap;
+  iotjs_getaddrinforeqwrap_destroy(req_wrap);
+  IOTJS_RELEASE(req_wrap);
 }
 #endif
 
@@ -113,7 +150,9 @@ JHANDLER_FUNCTION(GetAddrInfo) {
   iotjs_make_callback(jcallback, iotjs_jval_get_undefined(), &args);
   iotjs_jargs_destroy(&args);
 #else
-  GetAddrInfoReqWrap* req_wrap = new GetAddrInfoReqWrap(jcallback);
+  iotjs_getaddrinforeqwrap_t* req_wrap =
+      IOTJS_ALLOC(iotjs_getaddrinforeqwrap_t);
+  iotjs_getaddrinforeqwrap_initialize(req_wrap, jcallback);
 
   struct addrinfo hints = {0};
   hints.ai_family = family;
@@ -121,14 +160,15 @@ JHANDLER_FUNCTION(GetAddrInfo) {
   hints.ai_flags = flags;
 
   int err = uv_getaddrinfo(iotjs_environment_loop(iotjs_environment_get()),
-                           req_wrap->req(),
+                           iotjs_getaddrinforeqwrap_req(req_wrap),
                            AfterGetAddrInfo,
                            iotjs_string_data(&hostname),
                            NULL,
                            &hints);
 
   if (err) {
-    delete req_wrap;
+    iotjs_getaddrinforeqwrap_destroy(req_wrap);
+    IOTJS_RELEASE(req_wrap);
   }
 #endif
 
@@ -154,15 +194,3 @@ iotjs_jval_t InitDns() {
 
   return dns;
 }
-
-
-} // namespace iotjs
-
-
-extern "C" {
-
-iotjs_jval_t InitDns() {
-  return iotjs::InitDns();
-}
-
-} // extern "C"

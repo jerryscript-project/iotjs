@@ -27,7 +27,6 @@ iotjs_timerwrap_t* iotjs_timerwrap_create(const iotjs_jval_t* jtimer) {
   iotjs_handlewrap_initialize(&_this->handlewrap,
                               jtimer,
                               (uv_handle_t*)(&_this->handle),
-                              (uintptr_t)timerwrap,
                               (JFreeHandlerType)iotjs_timerwrap_destroy);
 
   // Initialize timer handler.
@@ -49,8 +48,7 @@ void iotjs_timerwrap_destroy(iotjs_timerwrap_t* timerwrap) {
 // This function is called from uv when timeout expires.
 static void TimeoutHandler(uv_timer_t* handle) {
   // Find timer wrap from handle.
-  iotjs_timerwrap_t* timer_wrap =
-    iotjs_timerwrap_from_handle((uv_handle_t*)handle);
+  iotjs_timerwrap_t* timer_wrap = iotjs_timerwrap_from_handle(handle);
 
   // Call the timeout handler.
   iotjs_timerwrap_on_timeout(timer_wrap);
@@ -91,34 +89,32 @@ static void iotjs_timerwrap_on_timeout(iotjs_timerwrap_t* timerwrap) {
 }
 
 
-uv_timer_t iotjs_timerwrap_handle(iotjs_timerwrap_t* timerwrap) {
+uv_timer_t* iotjs_timerwrap_handle(iotjs_timerwrap_t* timerwrap) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_timerwrap_t, timerwrap);
-  return _this->handle;
+  return &_this->handle;
 }
 
 
 iotjs_jval_t* iotjs_timerwrap_jobject(iotjs_timerwrap_t* timerwrap){
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_timerwrap_t, timerwrap);
-
   iotjs_jval_t* jobject = iotjs_handlewrap_jobject(&_this->handlewrap);
   IOTJS_ASSERT(iotjs_jval_is_object(jobject));
   return jobject;
 }
 
 
-iotjs_timerwrap_t* iotjs_timerwrap_from_jobject(const iotjs_jval_t* jtimer) {
-  uintptr_t nativehandle = iotjs_jval_get_object_native_handle(jtimer);
-  iotjs_timerwrap_t* timer_wrap = (iotjs_timerwrap_t*)nativehandle;
-  IOTJS_ASSERT(timer_wrap != NULL);
-  IOTJS_ASSERT(iotjs_jval_is_object(iotjs_timerwrap_jobject(timer_wrap)));
-  return timer_wrap;
+iotjs_timerwrap_t* iotjs_timerwrap_from_handle(uv_timer_t* timer_handle) {
+  uv_handle_t* handle = (uv_handle_t*)(timer_handle);
+  iotjs_handlewrap_t* handlewrap = iotjs_handlewrap_from_handle(handle);
+  iotjs_timerwrap_t* timerwrap = (iotjs_timerwrap_t*)handlewrap;
+  IOTJS_ASSERT(iotjs_timerwrap_handle(timerwrap) == timer_handle);
+  return timerwrap;
 }
 
 
-iotjs_timerwrap_t* iotjs_timerwrap_from_handle(uv_handle_t* handle) {
-  iotjs_handlewrap_t* handle_wrap = iotjs_handlewrap_from_handle(handle);
-  const iotjs_jval_t* jtimer = iotjs_handlewrap_jobject(handle_wrap);
-  return iotjs_timerwrap_from_jobject(jtimer);
+iotjs_timerwrap_t* iotjs_timerwrap_from_jobject(const iotjs_jval_t* jtimer) {
+  iotjs_handlewrap_t* handlewrap = iotjs_handlewrap_from_jobject(jtimer);
+  return (iotjs_timerwrap_t*)handlewrap;
 }
 
 

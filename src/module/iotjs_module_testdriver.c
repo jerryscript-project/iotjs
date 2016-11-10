@@ -46,9 +46,8 @@ JHANDLER_FUNCTION(IsAliveExceptFor) {
 
       int active_handlers = loop->active_handles;
       if (active_handlers == 1) {
-        uv_timer_t timer_handle = iotjs_timerwrap_handle(timer_wrap);
-        uv_handle_t* handle = (uv_handle_t*)(&timer_handle);
-        int timer_alive = uv_is_active(handle);
+        const uv_timer_t* timer_handle = iotjs_timerwrap_handle(timer_wrap);
+        int timer_alive = uv_is_active((uv_handle_t*)timer_handle);
 
         if (timer_alive) {
           // If the timer handler we set for test driver is alive,

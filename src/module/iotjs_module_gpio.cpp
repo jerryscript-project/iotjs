@@ -23,7 +23,7 @@ namespace iotjs {
 
 
 Gpio::Gpio(const iotjs_jval_t* jgpio) {
-  iotjs_jobjectwrap_initialize(&_jobjectwrap, jgpio, (uintptr_t)this, Delete);
+  iotjs_jobjectwrap_initialize(&_jobjectwrap, jgpio, Delete);
 }
 
 

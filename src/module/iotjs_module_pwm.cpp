@@ -22,7 +22,7 @@ namespace iotjs {
 
 
 Pwm::Pwm(const iotjs_jval_t* jpwm) {
-  iotjs_jobjectwrap_initialize(&_jobjectwrap, jpwm, (uintptr_t)this, Delete);
+  iotjs_jobjectwrap_initialize(&_jobjectwrap, jpwm, Delete);
 }
 
 

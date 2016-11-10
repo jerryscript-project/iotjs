@@ -2,7 +2,7 @@
 
 ### Platform Support
 
-The following shows i2c module APIs available for each platform.
+The following shows fs module APIs available for each platform.
 
 |  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | Nuttx<br/>(STM32F4-Discovery) |
 | :---: | :---: | :---: | :---: |
@@ -159,7 +159,7 @@ Renames `oldPath` to `newPath` synchronously.
 * `offset: Number` - offset of the buffer where from start reading.
 * `length: Number` - number of bytes to write.
 * `position: Number` - specifying where to start write data to the file, if `null`, read from current position.
-* callback: Function(err, byteWrite)` - callback function.
+* callback: Function(err, bytesWrite)` - callback function.
  * `err: Error`
  * `byteWrite: Int`
 

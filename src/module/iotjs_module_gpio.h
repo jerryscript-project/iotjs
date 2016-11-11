@@ -59,18 +59,20 @@ enum GpioOp {
   kGpioOpRead,
 };
 
-struct GpioReqData {
+
+class GpioReqWrap : public ReqWrap<uv_work_t> {
+ public:
+  GpioReqWrap(const iotjs_jval_t* jcallback)
+      : ReqWrap<uv_work_t>(jcallback) {
+  }
+
   uint32_t pin;
   uint32_t value;
   GpioDirection dir;
   GpioMode mode; // only for set pin
   GpioError result;
   GpioOp op;
-
-  void* data; // pointer to GpioReqWrap
 };
-
-typedef ReqWrap<GpioReqData> GpioReqWrap;
 
 
 // This Gpio class provides interfaces for GPIO operation.

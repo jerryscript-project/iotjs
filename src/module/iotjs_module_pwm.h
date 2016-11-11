@@ -41,7 +41,18 @@ enum PwmError {
   kPwmErrSys = -5,
 };
 
-struct PwmReqData {
+
+class PwmReqWrap : public ReqWrap<uv_work_t> {
+ public:
+  PwmReqWrap(const iotjs_jval_t* jcallback)
+      : ReqWrap<uv_work_t>(jcallback) {
+    device = iotjs_string_create("");
+  }
+
+  ~PwmReqWrap() {
+    iotjs_string_destroy(&device);
+  }
+
   iotjs_string_t device;
   int32_t duty_cycle;
   int32_t period;
@@ -49,11 +60,7 @@ struct PwmReqData {
 
   PwmError result;
   PwmOp op;
-
-  void* data; // pointer to PwmReqWrap
 };
-
-typedef ReqWrap<PwmReqData> PwmReqWrap;
 
 
 // This Pwm class provides interfaces for PWM operation.
@@ -66,12 +73,12 @@ class Pwm {
   static Pwm* GetInstance();
   static const iotjs_jval_t* GetJPwm();
 
-  virtual int InitializePwmPath(PwmReqWrap* pwm_req) = 0;
-  virtual int Export(PwmReqWrap* pwm_req) = 0;
-  virtual int SetPeriod(PwmReqWrap* pwm_req) = 0;
-  virtual int SetDutyCycle(PwmReqWrap* pwm_req) = 0;
-  virtual int SetEnable(PwmReqWrap* pwm_req) = 0;
-  virtual int Unexport(PwmReqWrap* pwm_req) = 0;
+  virtual int InitializePwmPath(PwmReqWrap* req_wrap) = 0;
+  virtual int Export(PwmReqWrap* req_wrap) = 0;
+  virtual int SetPeriod(PwmReqWrap* req_wrap) = 0;
+  virtual int SetDutyCycle(PwmReqWrap* req_wrap) = 0;
+  virtual int SetEnable(PwmReqWrap* req_wrap) = 0;
+  virtual int Unexport(PwmReqWrap* req_wrap) = 0;
 
   static void Delete(const uintptr_t data) {
     delete ((Pwm*)data);

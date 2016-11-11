@@ -48,33 +48,32 @@ Pwm* Pwm::GetInstance() {
 JHANDLER_FUNCTION(Export) {
   JHANDLER_CHECK_ARGS(3, string, object, function);
 
-  // PwmReqWrap and string object(PwmReqData.device) are freed by AfterPwmWork.
+  // PwmReqWrap is freed by AfterPwmWork.
   PwmReqWrap* req_wrap = new PwmReqWrap(JHANDLER_GET_ARG(2, function));
-  PwmReqData* req_data = req_wrap->req();
 
   const iotjs_jval_t* joption = JHANDLER_GET_ARG(1, object);
   iotjs_jval_t jperiod = iotjs_jval_get_property(joption, "period");
   iotjs_jval_t jduty_cycle = iotjs_jval_get_property(joption, "dutyCycle");
 
-  req_data->op = kPwmOpExport;
-  req_data->device = JHANDLER_GET_ARG(0, string);
+  req_wrap->op = kPwmOpExport;
+  req_wrap->device = JHANDLER_GET_ARG(0, string);
 
   // Set options.
   if (iotjs_jval_is_number(&jperiod)) {
-    req_data->period = iotjs_jval_as_number(&jperiod);
+    req_wrap->period = iotjs_jval_as_number(&jperiod);
   } else {
-    req_data->period = -1;
+    req_wrap->period = -1;
   }
 
   if (iotjs_jval_is_number(&jduty_cycle)) {
-    req_data->duty_cycle = iotjs_jval_as_number(&jduty_cycle);
+    req_wrap->duty_cycle = iotjs_jval_as_number(&jduty_cycle);
   } else {
-    req_data->duty_cycle = -1;
+    req_wrap->duty_cycle = -1;
   }
 
   Pwm* pwm = Pwm::GetInstance();
   if (pwm->InitializePwmPath(req_wrap) < 0) {
-    iotjs_string_destroy(&req_data->device);
+    iotjs_string_destroy(&req_wrap->device);
     delete req_wrap;
 
     JHANDLER_THROW(TYPE, "Invalid Pwm Path");
@@ -86,7 +85,7 @@ JHANDLER_FUNCTION(Export) {
   iotjs_jval_destroy(&jduty_cycle);
 
   // Return exported pwm device path.
-  iotjs_jhandler_return_string(jhandler, &req_data->device);
+  iotjs_jhandler_return_string(jhandler, &req_wrap->device);
 }
 
 
@@ -94,11 +93,10 @@ JHANDLER_FUNCTION(SetPeriod) {
   JHANDLER_CHECK_ARGS(3, string, number, function);
 
   PwmReqWrap* req_wrap = new PwmReqWrap(JHANDLER_GET_ARG(2, function));
-  PwmReqData* req_data = req_wrap->req();
 
-  req_data->device = JHANDLER_GET_ARG(0, string);
-  req_data->period = JHANDLER_GET_ARG(1, number);
-  req_data->op = kPwmOpSetPeriod;
+  req_wrap->device = JHANDLER_GET_ARG(0, string);
+  req_wrap->period = JHANDLER_GET_ARG(1, number);
+  req_wrap->op = kPwmOpSetPeriod;
 
   Pwm* pwm = Pwm::GetInstance();
   pwm->SetPeriod(req_wrap);
@@ -111,11 +109,10 @@ JHANDLER_FUNCTION(SetDutyCycle) {
   JHANDLER_CHECK_ARGS(3, string, number, function);
 
   PwmReqWrap* req_wrap = new PwmReqWrap(JHANDLER_GET_ARG(2, function));
-  PwmReqData* req_data = req_wrap->req();
 
-  req_data->device = JHANDLER_GET_ARG(0, string);
-  req_data->duty_cycle = JHANDLER_GET_ARG(1, number);
-  req_data->op = kPwmOpSetDutyCycle;
+  req_wrap->device = JHANDLER_GET_ARG(0, string);
+  req_wrap->duty_cycle = JHANDLER_GET_ARG(1, number);
+  req_wrap->op = kPwmOpSetDutyCycle;
 
   Pwm* pwm = Pwm::GetInstance();
   pwm->SetDutyCycle(req_wrap);
@@ -128,11 +125,10 @@ JHANDLER_FUNCTION(SetEnable) {
   JHANDLER_CHECK_ARGS(3, string, boolean, function);
 
   PwmReqWrap* req_wrap = new PwmReqWrap(JHANDLER_GET_ARG(2, function));
-  PwmReqData* req_data = req_wrap->req();
 
-  req_data->device = JHANDLER_GET_ARG(0, string);
-  req_data->enable = JHANDLER_GET_ARG(1, boolean);
-  req_data->op = kPwmOpSetEnable;
+  req_wrap->device = JHANDLER_GET_ARG(0, string);
+  req_wrap->enable = JHANDLER_GET_ARG(1, boolean);
+  req_wrap->op = kPwmOpSetEnable;
 
   Pwm* pwm = Pwm::GetInstance();
   pwm->SetEnable(req_wrap);
@@ -145,10 +141,9 @@ JHANDLER_FUNCTION(Unexport) {
   JHANDLER_CHECK_ARGS(2, string, function);
 
   PwmReqWrap* req_wrap = new PwmReqWrap(JHANDLER_GET_ARG(1, function));
-  PwmReqData* req_data = req_wrap->req();
 
-  req_data->device = JHANDLER_GET_ARG(0, string);
-  req_data->op = kPwmOpUnexport;
+  req_wrap->device = JHANDLER_GET_ARG(0, string);
+  req_wrap->op = kPwmOpUnexport;
 
   Pwm* pwm = Pwm::GetInstance();
   pwm->Unexport(req_wrap);

@@ -47,12 +47,12 @@ class PwmLinuxGeneral : public Pwm {
 
   static PwmLinuxGeneral* GetInstance();
 
-  virtual int InitializePwmPath(PwmReqWrap* pwm_req);
-  virtual int Export(PwmReqWrap* pwm_req);
-  virtual int SetPeriod(PwmReqWrap* pwm_req);
-  virtual int SetDutyCycle(PwmReqWrap* pwm_req);
-  virtual int SetEnable(PwmReqWrap* pwm_req);
-  virtual int Unexport(PwmReqWrap* pwm_req);
+  virtual int InitializePwmPath(PwmReqWrap* req_wrap);
+  virtual int Export(PwmReqWrap* req_wrap);
+  virtual int SetPeriod(PwmReqWrap* req_wrap);
+  virtual int SetDutyCycle(PwmReqWrap* req_wrap);
+  virtual int SetEnable(PwmReqWrap* req_wrap);
+  virtual int Unexport(PwmReqWrap* req_wrap);
 
  public:
 };
@@ -70,18 +70,18 @@ PwmLinuxGeneral* PwmLinuxGeneral::GetInstance() {
 
 
 // Set PWM period.
-bool SetPwmPeriod(PwmReqData* req_data) {
-  IOTJS_ASSERT(!iotjs_string_is_empty(&req_data->device));
+bool SetPwmPeriod(PwmReqWrap* req_wrap) {
+  IOTJS_ASSERT(!iotjs_string_is_empty(&req_wrap->device));
 
   char path_buff[64] = {0};
   char value_buff[32] = {0};
 
-  strcat(path_buff, iotjs_string_data(&req_data->device));
+  strcat(path_buff, iotjs_string_data(&req_wrap->device));
   strcat(path_buff, PWM_PIN_PERIOD);
 
-  DDDLOG("PWM SetPeriod - path: %s, value: %d", path_buff, req_data->period);
+  DDDLOG("PWM SetPeriod - path: %s, value: %d", path_buff, req_wrap->period);
 
-  snprintf(value_buff, 31, "%d", req_data->period);
+  snprintf(value_buff, 31, "%d", req_wrap->period);
 
   if (!DeviceOpenWriteClose(path_buff, value_buff)) {
     return false;
@@ -92,19 +92,19 @@ bool SetPwmPeriod(PwmReqData* req_data) {
 
 
 // Set PWM Duty-Cycle.
-bool SetPwmDutyCycle(PwmReqData* req_data) {
-  IOTJS_ASSERT(!iotjs_string_is_empty(&req_data->device));
+bool SetPwmDutyCycle(PwmReqWrap* req_wrap) {
+  IOTJS_ASSERT(!iotjs_string_is_empty(&req_wrap->device));
 
   char path_buff[64] = {0};
   char value_buff[32] = {0};
 
-  strcat(path_buff, iotjs_string_data(&req_data->device));
+  strcat(path_buff, iotjs_string_data(&req_wrap->device));
   strcat(path_buff, PWM_PIN_DUTYCYCLE);
 
   DDDLOG("PWM SetdutyCycle - path: %s, value: %d",
-         path_buff, req_data->duty_cycle);
+         path_buff, req_wrap->duty_cycle);
 
-  snprintf(value_buff, 31, "%d", req_data->duty_cycle);
+  snprintf(value_buff, 31, "%d", req_wrap->duty_cycle);
 
   if (!DeviceOpenWriteClose(path_buff, value_buff)) {
     return false;
@@ -116,17 +116,16 @@ bool SetPwmDutyCycle(PwmReqData* req_data) {
 
 void AfterPwmWork(uv_work_t* work_req, int status) {
   PwmLinuxGeneral* pwm = PwmLinuxGeneral::GetInstance();
-  PwmReqWrap* pwm_req = reinterpret_cast<PwmReqWrap*>(work_req->data);
-  PwmReqData* req_data = pwm_req->req();
+  PwmReqWrap* req_wrap = reinterpret_cast<PwmReqWrap*>(work_req->data);
 
   if (status) {
-    req_data->result = kPwmErrSys;
+    req_wrap->result = kPwmErrSys;
   }
 
   iotjs_jargs_t jargs = iotjs_jargs_create(1);
-  iotjs_jargs_append_number(&jargs, req_data->result);
+  iotjs_jargs_append_number(&jargs, req_wrap->result);
 
-  switch (req_data->op) {
+  switch (req_wrap->op) {
     case kPwmOpExport:
     case kPwmOpSetDutyCycle:
     case kPwmOpSetPeriod:
@@ -140,23 +139,20 @@ void AfterPwmWork(uv_work_t* work_req, int status) {
     }
   }
 
-  iotjs_make_callback(pwm_req->jcallback(), Pwm::GetJPwm(), &jargs);
+  iotjs_make_callback(req_wrap->jcallback(), Pwm::GetJPwm(), &jargs);
 
   iotjs_jargs_destroy(&jargs);
-  iotjs_string_destroy(&req_data->device);
 
-  delete work_req;
-  delete pwm_req;
+  delete req_wrap;
 }
 
 
 void ExportWorker(uv_work_t* work_req) {
-  PwmReqWrap* pwm_req = reinterpret_cast<PwmReqWrap*>(work_req->data);
-  PwmReqData* req_data = pwm_req->req();
+  PwmReqWrap* req_wrap = reinterpret_cast<PwmReqWrap*>(work_req->data);
 
-  IOTJS_ASSERT(!iotjs_string_is_empty(&req_data->device));
+  IOTJS_ASSERT(!iotjs_string_is_empty(&req_wrap->device));
 
-  const char* path = iotjs_string_data(&req_data->device);
+  const char* path = iotjs_string_data(&req_wrap->device);
   const char* export_path;
   int32_t chip_number, pwm_number;
 
@@ -164,7 +160,7 @@ void ExportWorker(uv_work_t* work_req) {
   if (!DeviceCheckPath(path)) {
     // Get chip_number and pwm_number.
     if (sscanf(path, PWM_PIN_FORMAT, &chip_number, &pwm_number) != 2) {
-      req_data->result = kPwmErrExport;
+      req_wrap->result = kPwmErrExport;
       return;
     }
 
@@ -177,91 +173,87 @@ void ExportWorker(uv_work_t* work_req) {
     int created_files_length = sizeof(created_files) / sizeof(created_files[0]);
     if (!DeviceExport(buffer, pwm_number, path, created_files,
                       created_files_length)) {
-      req_data->result = kPwmErrExport;
+      req_wrap->result = kPwmErrExport;
       return;
     }
   }
 
   // Set options.
-  if (req_data->period >= 0) {
-    if (!SetPwmPeriod(req_data)) {
-      req_data->result = kPwmErrWrite;
+  if (req_wrap->period >= 0) {
+    if (!SetPwmPeriod(req_wrap)) {
+      req_wrap->result = kPwmErrWrite;
       return;
     }
   }
 
-  if (req_data->duty_cycle >= 0) {
-    if (!SetPwmDutyCycle(req_data)) {
-      req_data->result = kPwmErrWrite;
+  if (req_wrap->duty_cycle >= 0) {
+    if (!SetPwmDutyCycle(req_wrap)) {
+      req_wrap->result = kPwmErrWrite;
       return;
     }
   }
 
   DDDLOG("PWM ExportWorker - path: %s", path);
 
-  req_data->result = kPwmErrOk;
+  req_wrap->result = kPwmErrOk;
 }
 
 
 void SetPeriodWorker(uv_work_t* work_req) {
-  PwmReqWrap* pwm_req = reinterpret_cast<PwmReqWrap*>(work_req->data);
-  PwmReqData* req_data = pwm_req->req();
+  PwmReqWrap* req_wrap = reinterpret_cast<PwmReqWrap*>(work_req->data);
 
-  if (!SetPwmPeriod(req_data)) {
-    req_data->result = kPwmErrWrite;
+  if (!SetPwmPeriod(req_wrap)) {
+    req_wrap->result = kPwmErrWrite;
     return;
   }
 
   DDDLOG("PWM SetPeriodWorker");
 
-  req_data->result = kPwmErrOk;
+  req_wrap->result = kPwmErrOk;
 }
 
 
 void SetDutyCycleWorker(uv_work_t* work_req) {
-  PwmReqWrap* pwm_req = reinterpret_cast<PwmReqWrap*>(work_req->data);
-  PwmReqData* req_data = pwm_req->req();
+  PwmReqWrap* req_wrap = reinterpret_cast<PwmReqWrap*>(work_req->data);
 
-  if (!SetPwmDutyCycle(req_data)) {
-    req_data->result = kPwmErrWrite;
+  if (!SetPwmDutyCycle(req_wrap)) {
+    req_wrap->result = kPwmErrWrite;
     return;
   }
 
   DDDLOG("PWM SetDutyCycleWorker");
 
-  req_data->result = kPwmErrOk;
+  req_wrap->result = kPwmErrOk;
 }
 
 
 void SetEnableWorker(uv_work_t* work_req) {
-  PwmReqWrap* pwm_req = reinterpret_cast<PwmReqWrap*>(work_req->data);
-  PwmReqData* req_data = pwm_req->req();
+  PwmReqWrap* req_wrap = reinterpret_cast<PwmReqWrap*>(work_req->data);
 
-  IOTJS_ASSERT(!iotjs_string_is_empty(&req_data->device));
+  IOTJS_ASSERT(!iotjs_string_is_empty(&req_wrap->device));
 
-  iotjs_string_append(&req_data->device, PWM_PIN_ENABlE, -1);
-  const char* path = iotjs_string_data(&req_data->device);
+  iotjs_string_append(&req_wrap->device, PWM_PIN_ENABlE, -1);
+  const char* path = iotjs_string_data(&req_wrap->device);
 
   char buff[10] = {0};
-  snprintf(buff, 9, "%d", req_data->enable);
+  snprintf(buff, 9, "%d", req_wrap->enable);
   if (!DeviceOpenWriteClose(path, buff)) {
-    req_data->result = kPwmErrWrite;
+    req_wrap->result = kPwmErrWrite;
     return;
   }
 
   DDDLOG("PWM SetEnableWorker - path: %s", path);
 
-  req_data->result = kPwmErrOk;
+  req_wrap->result = kPwmErrOk;
 }
 
 
 void UnexportWorker(uv_work_t* work_req) {
-  PwmReqWrap* pwm_req = reinterpret_cast<PwmReqWrap*>(work_req->data);
-  PwmReqData* req_data = pwm_req->req();
+  PwmReqWrap* req_wrap = reinterpret_cast<PwmReqWrap*>(work_req->data);
 
-  IOTJS_ASSERT(!iotjs_string_is_empty(&req_data->device));
+  IOTJS_ASSERT(!iotjs_string_is_empty(&req_wrap->device));
 
-  const char* path = iotjs_string_data(&req_data->device);
+  const char* path = iotjs_string_data(&req_wrap->device);
   const char* export_path;
   int32_t chip_number, pwm_number;
 
@@ -276,7 +268,7 @@ void UnexportWorker(uv_work_t* work_req) {
 
   DDDLOG("Pwm Unexport - path: %s", path);
 
-  req_data->result = kPwmErrOk;
+  req_wrap->result = kPwmErrOk;
 }
 
 
@@ -285,17 +277,14 @@ void UnexportWorker(uv_work_t* work_req) {
     PwmLinuxGeneral* pwm = PwmLinuxGeneral::GetInstance(); \
     const iotjs_environment_t* env = iotjs_environment_get(); \
     uv_loop_t* loop = iotjs_environment_loop(env); \
-    uv_work_t* req = new uv_work_t; \
-    req->data = reinterpret_cast<void*>(pwm_req); \
+    uv_work_t* req = req_wrap->req(); \
     uv_queue_work(loop, req, op ## Worker, AfterPwmWork); \
   } while (0)
 
 
-int PwmLinuxGeneral::InitializePwmPath(PwmReqWrap* pwm_req) {
-  PwmReqData* req_data = pwm_req->req();
-
+int PwmLinuxGeneral::InitializePwmPath(PwmReqWrap* req_wrap) {
   int32_t chip_number, pwm_number;
-  const char* path = iotjs_string_data(&req_data->device);
+  const char* path = iotjs_string_data(&req_wrap->device);
   char buffer[64] = {0};
 
   if (sscanf(path, PWM_PIN_FORMAT, &chip_number, &pwm_number) == 2) {
@@ -307,39 +296,39 @@ int PwmLinuxGeneral::InitializePwmPath(PwmReqWrap* pwm_req) {
   }
 
   // Create Device Path
-  iotjs_string_make_empty(&req_data->device);
+  iotjs_string_make_empty(&req_wrap->device);
   snprintf(buffer, 63, PWM_PIN_FORMAT, chip_number, pwm_number);
-  iotjs_string_append(&req_data->device, buffer, -1);
+  iotjs_string_append(&req_wrap->device, buffer, -1);
 
   return 0;
 }
 
 
-int PwmLinuxGeneral::Export(PwmReqWrap* pwm_req) {
+int PwmLinuxGeneral::Export(PwmReqWrap* req_wrap) {
   PWM_LINUX_GENERAL_IMPL_TEMPLATE(Export);
   return 0;
 }
 
 
-int PwmLinuxGeneral::SetPeriod(PwmReqWrap* pwm_req) {
+int PwmLinuxGeneral::SetPeriod(PwmReqWrap* req_wrap) {
   PWM_LINUX_GENERAL_IMPL_TEMPLATE(SetPeriod);
   return 0;
 }
 
 
-int PwmLinuxGeneral::SetDutyCycle(PwmReqWrap* pwm_req) {
+int PwmLinuxGeneral::SetDutyCycle(PwmReqWrap* req_wrap) {
   PWM_LINUX_GENERAL_IMPL_TEMPLATE(SetDutyCycle);
   return 0;
 }
 
 
-int PwmLinuxGeneral::SetEnable(PwmReqWrap* pwm_req) {
+int PwmLinuxGeneral::SetEnable(PwmReqWrap* req_wrap) {
   PWM_LINUX_GENERAL_IMPL_TEMPLATE(SetEnable);
   return 0;
 }
 
 
-int PwmLinuxGeneral::Unexport(PwmReqWrap* pwm_req) {
+int PwmLinuxGeneral::Unexport(PwmReqWrap* req_wrap) {
   PWM_LINUX_GENERAL_IMPL_TEMPLATE(Unexport);
   return 0;
 }

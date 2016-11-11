@@ -20,7 +20,8 @@ The following shows net module APIs available for each platform.
 | net.Socket.setTimeout | O | O | O |
 | net.Socket.setKeepAlive | X | X | X |
 
-※ net.Socket.destroy on `nuttx` works but this is just an empty function inside.
+※ When writable stream is finished but readable stream is still alive, IoT.js tries to shutdown the socket, not destroy.
+However on `nuttx` due to lack of implementation, it does nothing inside.
 
 IoT.js provides asynchronous networking through Net module.
 

@@ -1,7 +1,37 @@
-## Build IoT.js with RPi2
+## Build IoT.js with Raspberry Pi 2
 
-### Prerequisite
-#### Linux
+IoT.js supports two build types:
+
+1. Build on your desktop. We support Linux(Ubuntu) and macOS. - Cross compile
+2. Build on Raspberry Pi 2.
+
+### Setting Raspberry Pi
+
+IoT.js officially supports Raspbian. For more information, please visit [the official site](https://www.raspberrypi.org/downloads/raspbian/).
+
+#### Enable the I2C interface
+
+To use I2C module, the I2C interface must be enabled.
+
+From the command line type:
+```bash
+sudo raspi-config
+```
+This will launch raspi-config utility.
+   * Select "9 Advanced Options"
+   * Select "A6 I2C"
+
+The screen will ask you to enable I2C interface.
+   * Select "Yes"
+   * Select "Ok"
+   * Select "Finish" to return to the command line.
+
+Reboot your Raspberry Pi.
+
+### Build IoT.js on your desktop.
+
+#### Prerequisite
+##### Linux
 
 Install arm linux cross compiler.
 
@@ -9,7 +39,7 @@ Install arm linux cross compiler.
 sudo apt-get install gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf
 ```
 
-#### macOS
+##### macOS
 
 Install arm linux cross compiler via [this site](http://www.welzels.de/blog/en/arm-cross-compiling-with-mac-os-x/).
 
@@ -31,7 +61,7 @@ SET(CMAKE_CXX_COMPILER
     /usr/local/linaro/arm-linux-gnueabihf-raspbian/bin/arm-linux-gnueabihf-g++)
 ```
 
-### Raspberry Pi 2 build
+#### Build IoT.js (Cross compile)
 Give `target-arch`, `target-os` and `target-board` options to the script named 'build.py', then the script do the rest for you.
 
 ``` bash
@@ -39,7 +69,7 @@ Give `target-arch`, `target-os` and `target-board` options to the script named '
  --target-os=linux --target-board=rpi2
 ```
 
-### Running in Raspberry Pi 2
+#### Running in Raspberry Pi 2
 
 This script gives you `build/arm-linux/release/iotjs/iotjs` or `build/arm-linux/debug/iotjs/iotjs`.
 Copy this binary with your favorite tool or `scp` like below.
@@ -55,9 +85,9 @@ ssh pi@(your RPi2 IP)
 ./iotjs (your test program)
 ```
 
-### Building in Raspberry Pi 2 ?
+### Build IoT.js on Raspberry Pi 2
 
-Just executing below command will build IoT.js and run our testsuite.
+Executing below command will build IoT.js and run our testsuite.
 
 ``` bash
 ./tools/build.py --target-board rpi2

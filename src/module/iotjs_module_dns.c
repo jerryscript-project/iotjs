@@ -133,7 +133,7 @@ JHANDLER_FUNCTION(GetAddrInfo) {
   if (strcmp(hostname_data, "localhost") == 0) {
     strcpy(ip, "127.0.0.1");
   } else {
-    sockaddr_in addr;
+    struct sockaddr_in addr;
     int result = inet_pton(AF_INET, hostname_data, &(addr.sin_addr));
 
     if (result != 1) {

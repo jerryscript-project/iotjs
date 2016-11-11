@@ -231,6 +231,7 @@ process.exit = function(code) {
     if (driver.runner.attr.fail) {
       driver.runner.finish('pass');
     } else {
+      console.error(e);
       driver.runner.finish('fail');
     }
   } finally {

@@ -181,8 +181,7 @@ JHANDLER_FUNCTION(InitArgv) {
 
   int argc = iotjs_environment_argc(env);
 
-  int i;
-  for (i = 0; i < argc; ++i) {
+  for (int i = 0; i < argc; ++i) {
     const char* argvi = iotjs_environment_argv(env, i);
     iotjs_jval_t arg = iotjs_jval_create_string_raw(argvi);
     iotjs_jval_set_property_by_index(&jargv, i, &arg);
@@ -193,8 +192,7 @@ JHANDLER_FUNCTION(InitArgv) {
 
 
 void SetNativeSources(iotjs_jval_t* native_sources) {
-  int i;
-  for (i = 0; natives[i].name; i++) {
+  for (int i = 0; natives[i].name; i++) {
     iotjs_jval_t native_src = iotjs_jval_create_object();
     uintptr_t handle = (uintptr_t)(&natives[i]);
     iotjs_jval_set_object_native_handle(&native_src, handle, NULL);

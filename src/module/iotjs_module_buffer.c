@@ -149,8 +149,7 @@ size_t iotjs_bufferwrap_copy_internal(iotjs_bufferwrap_t* bufferwrap,
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_bufferwrap_t, bufferwrap);
   size_t copied = 0;
   size_t dst_length = _this->length;
-  size_t i, j;
-  for (i = src_from, j = dst_from;
+  for (size_t i = src_from, j = dst_from;
        i < src_to && j < dst_length;
        ++i, ++j) {
     *(_this->buffer + j) = *(src + i);

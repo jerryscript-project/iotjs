@@ -35,18 +35,17 @@ typedef struct {
 iotjs_timerwrap_t* iotjs_timerwrap_create(const iotjs_jval_t* jtimer);
 void iotjs_timerwrap_destroy(iotjs_timerwrap_t* timerwrap);
 
+iotjs_timerwrap_t* iotjs_timerwrap_from_jobject(const iotjs_jval_t* jtimer);
+iotjs_timerwrap_t* iotjs_timerwrap_from_handle(uv_timer_t* timer_handle);
+
+uv_timer_t* iotjs_timerwrap_handle(iotjs_timerwrap_t* timerwrap);
+iotjs_jval_t* iotjs_timerwrap_jobject(iotjs_timerwrap_t* timerwrap);
 
 // Start timer.
 int iotjs_timerwrap_start(iotjs_timerwrap_t* timerwrap,
                           int64_t timeout, int64_t repeat);
 // Stop & close timer.
 int iotjs_timerwrap_stop(iotjs_timerwrap_t* timerwrap);
-
-uv_timer_t iotjs_timerwrap_handle(iotjs_timerwrap_t* timerwrap);
-iotjs_jval_t* iotjs_timerwrap_jobject(iotjs_timerwrap_t* timerwrap);
-
-iotjs_timerwrap_t* iotjs_timerwrap_from_jobject(const iotjs_jval_t* jtimer);
-iotjs_timerwrap_t* iotjs_timerwrap_from_handle(uv_handle_t* handle);
 
 
 #ifdef __cplusplus

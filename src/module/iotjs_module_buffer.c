@@ -27,7 +27,6 @@ iotjs_bufferwrap_t* iotjs_bufferwrap_create(const iotjs_jval_t* jbuiltin,
 
   iotjs_jobjectwrap_initialize(&_this->jobjectwrap,
                                jbuiltin,
-                               (uintptr_t)bufferwrap,
                                (JFreeHandlerType)iotjs_bufferwrap_destroy);
   if (length > 0) {
     _this->length = length;

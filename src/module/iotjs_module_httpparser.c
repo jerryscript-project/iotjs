@@ -87,7 +87,6 @@ iotjs_httpparserwrap_t* iotjs_httpparserwrap_create(
 
   iotjs_jobjectwrap_initialize(&_this->jobjectwrap,
                                jparser,
-                               (uintptr_t)httpparserwrap,
                                (JFreeHandlerType)iotjs_httpparserwrap_destroy);
 
   _this->url = iotjs_string_create("");

@@ -19,7 +19,6 @@
 
 void iotjs_jobjectwrap_initialize(iotjs_jobjectwrap_t* jobjectwrap,
                                   const iotjs_jval_t* jobject,
-                                  uintptr_t jhandle,
                                   JFreeHandlerType jfreehandler) {
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_jobjectwrap_t, jobjectwrap);
 
@@ -31,7 +30,8 @@ void iotjs_jobjectwrap_initialize(iotjs_jobjectwrap_t* jobjectwrap,
 
   // Set native pointer of the object to be this wrapper.
   // If the object is freed by GC, the wrapper instance should also be freed.
-  iotjs_jval_set_object_native_handle(&_this->jobject, jhandle, jfreehandler);
+  iotjs_jval_set_object_native_handle(&_this->jobject, (uintptr_t)jobjectwrap,
+                                      jfreehandler);
 }
 
 
@@ -40,7 +40,21 @@ void iotjs_jobjectwrap_destroy(iotjs_jobjectwrap_t* jobjectwrap) {
   /* Do nothing on _this->jobject */
 }
 
+
 iotjs_jval_t* iotjs_jobjectwrap_jobject(iotjs_jobjectwrap_t* jobjectwrap) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_jobjectwrap_t, jobjectwrap);
-  return &_this->jobject;
+  iotjs_jval_t* jobject = &_this->jobject;
+  IOTJS_ASSERT(
+      (uintptr_t)jobjectwrap == iotjs_jval_get_object_native_handle(jobject));
+  IOTJS_ASSERT(iotjs_jval_is_object(jobject));
+  return jobject;
+}
+
+
+iotjs_jobjectwrap_t* iotjs_jobjectwrap_from_jobject(
+    const iotjs_jval_t* jobject) {
+  iotjs_jobjectwrap_t* wrap =
+      (iotjs_jobjectwrap_t*)(iotjs_jval_get_object_native_handle(jobject));
+  IOTJS_ASSERT(iotjs_jval_is_object(iotjs_jobjectwrap_jobject(wrap)));
+  return wrap;
 }

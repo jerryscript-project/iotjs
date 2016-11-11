@@ -102,9 +102,9 @@ typedef struct iotjs_classname_t { \
 #define IOTJS_VALIDATED_STRUCT(iotjs_classname_t) \
 iotjs_classname_t##_impl_t; \
 typedef struct iotjs_classname_t { \
+  iotjs_classname_t##_impl_t unsafe; \
   unsigned flag_create; \
   char* valgrind_tracer; \
-  iotjs_classname_t##_impl_t unsafe; \
 } iotjs_classname_t;
 
 #define IOTJS_VALIDATED_STRUCT_STATIC_INITIALIZER(...) \

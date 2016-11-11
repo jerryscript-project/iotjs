@@ -45,10 +45,14 @@ enum I2cError {
   kI2cErrWrite = -4,
 };
 
-class I2cReqWrap : public ReqWrap<uv_work_t> {
+class I2cReqWrap {
  public:
-  I2cReqWrap(const iotjs_jval_t* jcallback)
-      : ReqWrap<uv_work_t>(jcallback) {
+  I2cReqWrap(const iotjs_jval_t* jcallback) {
+    iotjs_reqwrap_initialize(&_reqwrap, jcallback, (uv_req_t*)&_req, this);
+  }
+
+  ~I2cReqWrap() {
+    iotjs_reqwrap_destroy(&_reqwrap);
   }
 
   iotjs_string_t device;
@@ -60,6 +64,18 @@ class I2cReqWrap : public ReqWrap<uv_work_t> {
 
   I2cOp op;
   I2cError error;
+
+  uv_work_t* req() {
+    return &_req;
+  }
+
+  const iotjs_jval_t* jcallback() {
+    return iotjs_reqwrap_jcallback(&_reqwrap);
+  }
+
+ protected:
+  iotjs_reqwrap_t _reqwrap;
+  uv_work_t _req;
 };
 
 

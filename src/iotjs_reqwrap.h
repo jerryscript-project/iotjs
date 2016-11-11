@@ -1,4 +1,4 @@
-/* Copyright 2015 Samsung Electronics Co., Ltd.
+/* Copyright 2015-2016 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,9 @@
 #include "iotjs_binding.h"
 
 
-namespace iotjs {
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 
 // UV request wrapper.
@@ -30,51 +32,27 @@ namespace iotjs {
 // When an instance of request wrapper is created. it will increase ref count
 // for javascript callback function to prevent it from reclaimed by GC. The
 // reference count will decrease back when wrapper is being freed.
-template<typename T>
-class ReqWrap {
- public:
-  ReqWrap(const iotjs_jval_t* jcallback);
-  virtual ~ReqWrap();
-
-  // To retrieve javascript callback funciton object.
-  const iotjs_jval_t* jcallback();
-
-  // To retrieve pointer to uv request.
-  T* req();
-
- protected:
-  T _req;
-  iotjs_jval_t _jcallback;
-};
+typedef struct {
+  iotjs_jval_t jcallback;
+  uv_req_t* request;
+} IOTJS_VALIDATED_STRUCT(iotjs_reqwrap_t);
 
 
-template<typename T>
-ReqWrap<T>::ReqWrap(const iotjs_jval_t* jcallback) {
-  _jcallback = iotjs_jval_create_copied(jcallback);
-  _req.data = this;
-}
+void iotjs_reqwrap_initialize(iotjs_reqwrap_t* reqwrap,
+                              const iotjs_jval_t* jcallback, uv_req_t* request,
+                              void* wrap);
+void iotjs_reqwrap_destroy(iotjs_reqwrap_t* reqwrap);
+
+// To retrieve javascript callback funciton object.
+const iotjs_jval_t* iotjs_reqwrap_jcallback(iotjs_reqwrap_t* reqwrap);
+
+// To retrieve pointer to uv request.
+uv_req_t* iotjs_reqwrap_req(iotjs_reqwrap_t* reqwrap);
 
 
-template<typename T>
-ReqWrap<T>::~ReqWrap() {
-  iotjs_jval_destroy(&_jcallback);
-}
-
-
-template<typename T>
-const iotjs_jval_t* ReqWrap<T>::jcallback() {
-  IOTJS_ASSERT(!iotjs_jval_is_null(&this->_jcallback));
-  return &this->_jcallback;
-}
-
-
-template<typename T>
-T* ReqWrap<T>::req() {
-  return &_req;
-}
-
-
-} // namespace iotjs
+#ifdef __cplusplus
+} // extern "C"
+#endif
 
 
 #endif /* IOTJS_REQWRAP_H */

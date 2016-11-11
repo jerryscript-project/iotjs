@@ -21,29 +21,49 @@
 #include "iotjs_reqwrap.h"
 
 
-namespace iotjs {
+typedef struct {
+  iotjs_reqwrap_t reqwrap;
+  uv_fs_t req;
+} IOTJS_VALIDATED_STRUCT(iotjs_fsreqwrap_t);
 
 
-class FsReqWrap : public ReqWrap<uv_fs_t> {
- public:
-  FsReqWrap(const iotjs_jval_t* jcallback) : ReqWrap<uv_fs_t>(jcallback) {
-  }
+void iotjs_fsreqwrap_initialize(iotjs_fsreqwrap_t* fsreqwrap,
+                                const iotjs_jval_t* jcallback) {
+  IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_fsreqwrap_t, fsreqwrap);
+  iotjs_reqwrap_initialize(&_this->reqwrap,
+                           jcallback,
+                           (uv_req_t*)&_this->req,
+                           fsreqwrap);
+}
 
-  ~FsReqWrap() {
-    uv_fs_req_cleanup(&_req);
-  }
-};
+
+void iotjs_fsreqwrap_destroy(iotjs_fsreqwrap_t* fsreqwrap) {
+  IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_fsreqwrap_t, fsreqwrap);
+  uv_fs_req_cleanup(&_this->req);
+  iotjs_reqwrap_destroy(&_this->reqwrap);
+}
+
+
+uv_fs_t* iotjs_fsreqwrap_req(iotjs_fsreqwrap_t* fsreqwrap) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_fsreqwrap_t, fsreqwrap);
+  return &_this->req;
+}
+
+const iotjs_jval_t* iotjs_fsreqwrap_jcallback(iotjs_fsreqwrap_t* fsreqwrap) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_fsreqwrap_t, fsreqwrap);
+  return iotjs_reqwrap_jcallback(&_this->reqwrap);
+}
 
 
 iotjs_jval_t MakeStatObject(uv_stat_t* statbuf);
 
 
-static void After(uv_fs_t* req) {
-  FsReqWrap* req_wrap = static_cast<FsReqWrap*>(req->data);
+static void AfterAsync(uv_fs_t* req) {
+  iotjs_fsreqwrap_t* req_wrap = (iotjs_fsreqwrap_t*)(req->data);
   IOTJS_ASSERT(req_wrap != NULL);
-  IOTJS_ASSERT(req_wrap->req() == req);
+  IOTJS_ASSERT(iotjs_fsreqwrap_req(req_wrap) == req);
 
-  const iotjs_jval_t* cb = req_wrap->jcallback();
+  const iotjs_jval_t* cb = iotjs_fsreqwrap_jcallback(req_wrap);
   IOTJS_ASSERT(iotjs_jval_is_function(cb));
 
   iotjs_jargs_t jarg = iotjs_jargs_create(2);
@@ -98,35 +118,92 @@ static void After(uv_fs_t* req) {
   iotjs_make_callback(cb, iotjs_jval_get_undefined(), &jarg);
 
   iotjs_jargs_destroy(&jarg);
-  delete req_wrap;
+  iotjs_fsreqwrap_destroy(req_wrap);
+  IOTJS_RELEASE(req_wrap);
+}
+
+
+static void AfterSync(uv_fs_t* req, int err, const char* syscall_name,
+                      iotjs_jhandler_t* jhandler) {
+  iotjs_fsreqwrap_t* req_wrap = (iotjs_fsreqwrap_t*)(req->data);
+  IOTJS_ASSERT(req_wrap != NULL);
+  IOTJS_ASSERT(iotjs_fsreqwrap_req(req_wrap) == req);
+
+  if (err < 0) {
+    iotjs_jval_t jerror = iotjs_create_uv_exception(err, syscall_name);
+    iotjs_jhandler_throw(jhandler, &jerror);
+    iotjs_jval_destroy(&jerror);
+  } else {
+    switch (req->fs_type) {
+      case UV_FS_CLOSE:
+        break;
+      case UV_FS_OPEN:
+      case UV_FS_READ:
+      case UV_FS_WRITE:
+        iotjs_jhandler_return_number(jhandler, err);
+        break;
+      case UV_FS_STAT: {
+        uv_stat_t* s = &(req->statbuf);
+        iotjs_jval_t stat = MakeStatObject(s);
+        iotjs_jhandler_return_jval(jhandler, &stat);
+        iotjs_jval_destroy(&stat);
+        break;
+      }
+      case UV_FS_MKDIR:
+      case UV_FS_RMDIR:
+      case UV_FS_UNLINK:
+      case UV_FS_RENAME:
+        iotjs_jhandler_return_undefined(jhandler);
+        break;
+      case UV_FS_SCANDIR: {
+        int r;
+        uv_dirent_t ent;
+        uint32_t idx = 0;
+        iotjs_jval_t ret = iotjs_jval_create_array(0);
+        while ((r = uv_fs_scandir_next(req, &ent)) != UV_EOF) {
+          iotjs_jval_t name = iotjs_jval_create_string_raw(ent.name);
+          iotjs_jval_set_property_by_index(&ret, idx, &name);
+          iotjs_jval_destroy(&name);
+          idx++;
+        }
+        iotjs_jhandler_return_jval(jhandler, &ret);
+        iotjs_jval_destroy(&ret);
+        break;
+      }
+      default: {
+        IOTJS_ASSERT(false);
+        break;
+      }
+    }
+  }
+  iotjs_fsreqwrap_destroy(req_wrap);
 }
 
 
 #define FS_ASYNC(env, syscall, pcallback, ...) \
-  FsReqWrap* req_wrap = new FsReqWrap(pcallback); \
-  uv_fs_t* fs_req = req_wrap->req(); \
+  iotjs_fsreqwrap_t* req_wrap = IOTJS_ALLOC(iotjs_fsreqwrap_t); \
+  iotjs_fsreqwrap_initialize(req_wrap, pcallback); \
+  uv_fs_t* fs_req = iotjs_fsreqwrap_req(req_wrap); \
   int err = uv_fs_ ## syscall(iotjs_environment_loop(env), \
                               fs_req, \
                               __VA_ARGS__, \
-                              After); \
+                              AfterAsync); \
   if (err < 0) { \
     fs_req->result = err; \
-    After(fs_req); \
+    AfterAsync(fs_req); \
   } \
   iotjs_jhandler_return_null(jhandler);
 
 
 #define FS_SYNC(env, syscall, ...) \
-  FsReqWrap req_wrap(iotjs_jval_get_null()); \
+  iotjs_fsreqwrap_t req_wrap; \
+  iotjs_fsreqwrap_initialize(&req_wrap, iotjs_jval_get_null()); \
+  uv_fs_t* fs_req = iotjs_fsreqwrap_req(&req_wrap); \
   int err = uv_fs_ ## syscall(iotjs_environment_loop(env), \
-                              req_wrap.req(), \
+                              fs_req, \
                               __VA_ARGS__, \
                               NULL); \
-  if (err < 0) { \
-    iotjs_jval_t jerror = iotjs_create_uv_exception(err, #syscall); \
-    iotjs_jhandler_throw(jhandler, &jerror); \
-    iotjs_jval_destroy(&jerror); \
-  }
+  AfterSync(fs_req, err, #syscall, jhandler);
 
 
 JHANDLER_FUNCTION(Close) {
@@ -163,8 +240,6 @@ JHANDLER_FUNCTION(Open) {
     FS_ASYNC(env, open, jcallback, iotjs_string_data(&path), flags, mode);
   } else {
     FS_SYNC(env, open, iotjs_string_data(&path), flags, mode);
-    if (err >= 0)
-      iotjs_jhandler_return_number(jhandler, err);
   }
 
   iotjs_string_destroy(&path);
@@ -200,15 +275,12 @@ JHANDLER_FUNCTION(Read) {
     return;
   }
 
-  uv_buf_t uvbuf = uv_buf_init(reinterpret_cast<char*>(data + offset),
-                               length);
+  uv_buf_t uvbuf = uv_buf_init(data + offset, length);
 
   if (jcallback) {
     FS_ASYNC(env, read, jcallback, fd, &uvbuf, 1, position);
   } else {
     FS_SYNC(env, read, fd, &uvbuf, 1, position);
-    if (err >= 0)
-      iotjs_jhandler_return_number(jhandler, err);
   }
 }
 
@@ -242,15 +314,12 @@ JHANDLER_FUNCTION(Write) {
     return;
   }
 
-  uv_buf_t uvbuf = uv_buf_init(reinterpret_cast<char*>(data + offset),
-                               length);
+  uv_buf_t uvbuf = uv_buf_init(data + offset, length);
 
   if (jcallback) {
     FS_ASYNC(env, write, jcallback, fd, &uvbuf, 1, position);
   } else {
     FS_SYNC(env, write, fd, &uvbuf, 1, position);
-    if (err >= 0)
-      iotjs_jhandler_return_number(jhandler, err);
   }
 }
 
@@ -307,12 +376,6 @@ JHANDLER_FUNCTION(Stat) {
     FS_ASYNC(env, stat, jcallback, iotjs_string_data(&path));
   } else {
     FS_SYNC(env, stat, iotjs_string_data(&path));
-    if (err >= 0) {
-      uv_stat_t* s = &(req_wrap.req()->statbuf);
-      iotjs_jval_t stat = MakeStatObject(s);
-      iotjs_jhandler_return_jval(jhandler, &stat);
-      iotjs_jval_destroy(&stat);
-    }
   }
 
   iotjs_string_destroy(&path);
@@ -335,8 +398,6 @@ JHANDLER_FUNCTION(MkDir) {
     FS_ASYNC(env, mkdir, jcallback, iotjs_string_data(&path), mode);
   } else {
     FS_SYNC(env, mkdir, iotjs_string_data(&path), mode);
-    if (err >= 0)
-      iotjs_jhandler_return_undefined(jhandler);
   }
 
   iotjs_string_destroy(&path);
@@ -357,8 +418,6 @@ JHANDLER_FUNCTION(RmDir) {
     FS_ASYNC(env, rmdir, jcallback, iotjs_string_data(&path));
   } else {
     FS_SYNC(env, rmdir, iotjs_string_data(&path));
-    if (err >= 0)
-      iotjs_jhandler_return_undefined(jhandler);
   }
 
   iotjs_string_destroy(&path);
@@ -379,8 +438,6 @@ JHANDLER_FUNCTION(Unlink) {
     FS_ASYNC(env, unlink, jcallback, iotjs_string_data(&path));
   } else {
     FS_SYNC(env, unlink, iotjs_string_data(&path));
-    if (err >= 0)
-      iotjs_jhandler_return_undefined(jhandler);
   }
 
   iotjs_string_destroy(&path);
@@ -404,8 +461,6 @@ JHANDLER_FUNCTION(Rename) {
   } else {
     FS_SYNC(env, rename, iotjs_string_data(&oldPath),
             iotjs_string_data(&newPath));
-    if (err >= 0)
-      iotjs_jhandler_return_undefined(jhandler);
   }
 
   iotjs_string_destroy(&oldPath);
@@ -426,20 +481,6 @@ JHANDLER_FUNCTION(ReadDir) {
     FS_ASYNC(env, scandir, jcallback, iotjs_string_data(&path), 0);
   } else {
     FS_SYNC(env, scandir, iotjs_string_data(&path), 0);
-    if (err >= 0) {
-      int r;
-      uv_dirent_t ent;
-      uint32_t idx = 0;
-      iotjs_jval_t ret = iotjs_jval_create_array(0);
-      while ((r = uv_fs_scandir_next(req_wrap.req(), &ent)) != UV_EOF) {
-        iotjs_jval_t name = iotjs_jval_create_string_raw(ent.name);
-        iotjs_jval_set_property_by_index(&ret, idx, &name);
-        iotjs_jval_destroy(&name);
-        idx++;
-      }
-      iotjs_jhandler_return_jval(jhandler, &ret);
-      iotjs_jval_destroy(&ret);
-    }
   }
   iotjs_string_destroy(&path);
 }
@@ -461,14 +502,3 @@ iotjs_jval_t InitFs() {
 
   return fs;
 }
-
-} // namespace iotjs
-
-
-extern "C" {
-
-iotjs_jval_t InitFs() {
-  return iotjs::InitFs();
-}
-
-} // extern "C"

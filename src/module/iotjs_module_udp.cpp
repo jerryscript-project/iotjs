@@ -27,7 +27,7 @@ class UdpWrap {
  public:
   explicit UdpWrap(const iotjs_jval_t* judp) {
     iotjs_handlewrap_initialize(&_handlewrap, judp,
-            reinterpret_cast<uv_handle_t*>(&_handle), (uintptr_t)this, Delete);
+            reinterpret_cast<uv_handle_t*>(&_handle), Delete);
 
     const iotjs_environment_t* env = iotjs_environment_get();
     uv_udp_init(iotjs_environment_loop(env), &_handle);
@@ -61,18 +61,32 @@ class UdpWrap {
   uv_udp_t _handle;
 };
 
-class SendWrap: public ReqWrap<uv_udp_send_t> {
+class SendWrap {
  public:
   SendWrap(const iotjs_jval_t* jcallback, const size_t msg_size)
-      : ReqWrap<uv_udp_send_t>(jcallback),
-        _msg_size(msg_size) {
+    : _msg_size(msg_size) {
+    iotjs_reqwrap_initialize(&_reqwrap, jcallback, (uv_req_t*)&_req, this);
+  }
+
+  ~SendWrap() {
+    iotjs_reqwrap_destroy(&_reqwrap);
   }
 
   inline size_t msg_size() {
     return _msg_size;
   }
 
+  uv_udp_send_t* req() {
+    return &_req;
+  }
+
+  const iotjs_jval_t* jcallback() {
+    return iotjs_reqwrap_jcallback(&_reqwrap);
+  }
+
  protected:
+  iotjs_reqwrap_t _reqwrap;
+  uv_udp_send_t _req;
   size_t _msg_size;
 };
 

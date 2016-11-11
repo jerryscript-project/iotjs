@@ -60,10 +60,14 @@ enum GpioOp {
 };
 
 
-class GpioReqWrap : public ReqWrap<uv_work_t> {
+class GpioReqWrap {
  public:
-  GpioReqWrap(const iotjs_jval_t* jcallback)
-      : ReqWrap<uv_work_t>(jcallback) {
+  GpioReqWrap(const iotjs_jval_t* jcallback) {
+    iotjs_reqwrap_initialize(&_reqwrap, jcallback, (uv_req_t*)&_req, this);
+  }
+
+  ~GpioReqWrap() {
+    iotjs_reqwrap_destroy(&_reqwrap);
   }
 
   uint32_t pin;
@@ -72,6 +76,18 @@ class GpioReqWrap : public ReqWrap<uv_work_t> {
   GpioMode mode; // only for set pin
   GpioError result;
   GpioOp op;
+
+  uv_work_t* req() {
+    return &_req;
+  }
+
+  const iotjs_jval_t* jcallback() {
+    return iotjs_reqwrap_jcallback(&_reqwrap);
+  }
+
+ protected:
+  iotjs_reqwrap_t _reqwrap;
+  uv_work_t _req;
 };
 
 

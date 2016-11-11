@@ -33,12 +33,13 @@ typedef struct {
 
 void iotjs_jobjectwrap_initialize(iotjs_jobjectwrap_t* jobjectwrap,
                                   const iotjs_jval_t* jobject,
-                                  uintptr_t jhandle,
                                   JFreeHandlerType jfreehandler);
 
 void iotjs_jobjectwrap_destroy(iotjs_jobjectwrap_t* jobjectwrap);
 
 iotjs_jval_t* iotjs_jobjectwrap_jobject(iotjs_jobjectwrap_t* jobjectwrap);
+iotjs_jobjectwrap_t* iotjs_jobjectwrap_from_jobject(
+    const iotjs_jval_t* jobject);
 
 
 #ifdef __cplusplus

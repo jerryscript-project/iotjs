@@ -20,10 +20,15 @@
 #include "iotjs_binding.h"
 
 
-namespace iotjs {
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 
-iotjs_jval_t InitTcp();
+typedef struct sockaddr sockaddr;
+typedef struct sockaddr_in sockaddr_in;
+typedef struct sockaddr_in6 sockaddr_in6;
+typedef struct sockaddr_storage sockaddr_storage;
 
 void DoClose(iotjs_jhandler_t* jhandler);
 void AfterClose(uv_handle_t* handle);
@@ -31,7 +36,7 @@ void AddressToJS(const iotjs_jval_t* obj, const sockaddr* addr);
 
 #define GetSockNameFunction(wrap_type, handle_type, function) \
   static void DoGetSockName(iotjs_jhandler_t* jhandler) { \
-    JHANDLER_CHECK_ARGS_1(object); \
+    JHANDLER_CHECK_ARGS(1, object); \
     \
     wrap_type* wrap = \
         wrap_type::FromJObject(JHANDLER_GET_THIS(object)); \
@@ -39,14 +44,35 @@ void AddressToJS(const iotjs_jval_t* obj, const sockaddr* addr);
     \
     sockaddr_storage storage; \
     int addrlen = sizeof(storage); \
-    sockaddr* const addr = reinterpret_cast<sockaddr*>(&storage); \
-    const int err = function(wrap->handle_type(), addr, &addrlen); \
+    sockaddr* const addr = (sockaddr*)(&storage); \
+    int err = function(wrap->handle_type(), addr, &addrlen); \
     if (err == 0) \
       AddressToJS(JHANDLER_GET_ARG(0, object), addr); \
     iotjs_jhandler_return_number(jhandler, err); \
   }
 
-} // namespace iotjs
+#define GetSockNameFunctionTcp(wraptype, handletype, function) \
+  static void DoGetSockName(iotjs_jhandler_t* jhandler) { \
+    JHANDLER_CHECK_ARGS(1, object); \
+    \
+    iotjs_##wraptype##_t* wrap = \
+        iotjs_##wraptype##_from_jobject(JHANDLER_GET_THIS(object)); \
+    IOTJS_ASSERT(wrap != NULL); \
+    \
+    sockaddr_storage storage; \
+    int addrlen = sizeof(storage); \
+    sockaddr* const addr = (sockaddr*)(&storage); \
+    int err = function(iotjs_##wraptype##_##handletype(wrap), addr, &addrlen); \
+    if (err == 0) \
+      AddressToJS(JHANDLER_GET_ARG(0, object), addr); \
+    iotjs_jhandler_return_number(jhandler, err); \
+  }
+
+
+
+#ifdef __cplusplus
+} // extern "C"
+#endif
 
 
 #endif /* IOTJS_MODULE_TCP_H */

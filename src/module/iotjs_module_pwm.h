@@ -42,15 +42,16 @@ enum PwmError {
 };
 
 
-class PwmReqWrap : public ReqWrap<uv_work_t> {
+class PwmReqWrap {
  public:
-  PwmReqWrap(const iotjs_jval_t* jcallback)
-      : ReqWrap<uv_work_t>(jcallback) {
+  PwmReqWrap(const iotjs_jval_t* jcallback) {
     device = iotjs_string_create("");
+    iotjs_reqwrap_initialize(&_reqwrap, jcallback, (uv_req_t*)&_req, this);
   }
 
   ~PwmReqWrap() {
     iotjs_string_destroy(&device);
+    iotjs_reqwrap_destroy(&_reqwrap);
   }
 
   iotjs_string_t device;
@@ -60,6 +61,18 @@ class PwmReqWrap : public ReqWrap<uv_work_t> {
 
   PwmError result;
   PwmOp op;
+
+  uv_work_t* req() {
+    return &_req;
+  }
+
+  const iotjs_jval_t* jcallback() {
+    return iotjs_reqwrap_jcallback(&_reqwrap);
+  }
+
+ protected:
+  iotjs_reqwrap_t _reqwrap;
+  uv_work_t _req;
 };
 
 

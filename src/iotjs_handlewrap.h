@@ -58,7 +58,6 @@ typedef struct {
 void iotjs_handlewrap_initialize(iotjs_handlewrap_t* handlewrap,
                                  const iotjs_jval_t* jobject,
                                  uv_handle_t* handle,
-                                 uintptr_t jhandle,
                                  JFreeHandlerType jfreehandler);
 
 void iotjs_handlewrap_destroy(iotjs_handlewrap_t* handlewrap);
@@ -67,10 +66,12 @@ void iotjs_handlewrap_close(iotjs_handlewrap_t* handlewrap,
                             OnCloseHandler on_close_cb);
 
 iotjs_handlewrap_t* iotjs_handlewrap_from_handle(uv_handle_t* handle);
+iotjs_handlewrap_t* iotjs_handlewrap_from_jobject(const iotjs_jval_t* jobject);
 
 uv_handle_t* iotjs_handlewrap_get_uv_handle(iotjs_handlewrap_t* handlewrap);
-uintptr_t iotjs_handlewrap_get_jhandle(iotjs_handlewrap_t* handlewrap);
 iotjs_jval_t* iotjs_handlewrap_jobject(iotjs_handlewrap_t* handlewrap);
+
+void iotjs_handlewrap_validate(iotjs_handlewrap_t* handlewrap);
 
 
 #ifdef __cplusplus

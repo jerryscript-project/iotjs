@@ -103,7 +103,7 @@ typedef struct iotjs_classname_t { \
 iotjs_classname_t##_impl_t; \
 typedef struct iotjs_classname_t { \
   iotjs_classname_t##_impl_t unsafe; \
-  unsigned flag_create; \
+  uint32_t flag_create; \
   char* valgrind_tracer; \
 } iotjs_classname_t;
 
@@ -140,9 +140,7 @@ typedef struct iotjs_classname_t { \
 #include <string.h>
 
 #ifndef __cplusplus
-#ifndef bool
-typedef enum { false, true } bool;
-#endif
+#include <stdbool.h>
 #endif
 
 // commonly used header files

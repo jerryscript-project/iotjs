@@ -90,8 +90,7 @@ iotjs_jval_t iotjs_jval_create_byte_array(uint32_t len, const char* data) {
   IOTJS_ASSERT(data != NULL);
 
   _this->value = jerry_create_array(len);
-  uint32_t i;
-  for (i = 0; i < len; i++) {
+  for (uint32_t i = 0; i < len; i++) {
     jerry_value_t val = jerry_create_number((double)data[i]);
     jerry_set_property_by_index(_this->value, i, val);
     jerry_release_value(val);
@@ -408,8 +407,7 @@ iotjs_jval_t iotjs_jhelper_call(const iotjs_jval_t* jfunc,
   if (jargc_ > 0) {
     unsigned buffer_size = sizeof(iotjs_jval_t) * jargc_;
     jargv_ = (jerry_value_t*)iotjs_buffer_allocate(buffer_size);
-    unsigned i;
-    for (i = 0; i < jargc_; ++i) {
+    for (unsigned i = 0; i < jargc_; ++i) {
       jargv_[i] = iotjs_jval_as_raw(iotjs_jargs_get(jargs, i));
     }
   }
@@ -509,8 +507,7 @@ void iotjs_jargs_destroy(iotjs_jargs_t* jargs) {
   IOTJS_ASSERT(_this->argc <= _this->capacity);
 
   if (_this->capacity > 0) {
-    unsigned i;
-    for (i = 0; i < _this->argc; ++i) {
+    for (unsigned i = 0; i < _this->argc; ++i) {
       iotjs_jval_destroy(&_this->argv[i]);
     }
     iotjs_buffer_release((char*)_this->argv);
@@ -611,8 +608,7 @@ void iotjs_jhandler_initialize(iotjs_jhandler_t* jhandler,
   if (jargc > 0) {
     unsigned buffer_size = sizeof(iotjs_jval_t) * jargc;
     _this->jargv = (iotjs_jval_t*)iotjs_buffer_allocate(buffer_size);
-    int i;
-    for (i = 0; i < jargc; ++i) {
+    for (int i = 0; i < jargc; ++i) {
       _this->jargv[i] = iotjs_jval_create_raw(jargv[i]);
     }
   } else {
@@ -632,8 +628,7 @@ void iotjs_jhandler_destroy(iotjs_jhandler_t* jhandler) {
   iotjs_jval_destroy_norelease(&_this->jret);
 #ifndef NDEBUG
   if (_this->jargc > 0) {
-    int i;
-    for (i = 0; i < _this->jargc; ++i) {
+    for (int i = 0; i < _this->jargc; ++i) {
       iotjs_jval_destroy_norelease(&_this->jargv[i]);
     }
     iotjs_buffer_release((char*)(_this->jargv));

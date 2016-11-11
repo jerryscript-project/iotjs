@@ -43,12 +43,12 @@ typedef struct {
 
   iotjs_string_t fields[HEADER_MAX];
   iotjs_string_t values[HEADER_MAX];
-  int n_fields;
-  int n_values;
+  size_t n_fields;
+  size_t n_values;
 
   iotjs_jval_t* cur_jbuf;
   char* cur_buf;
-  int cur_buf_len;
+  size_t cur_buf_len;
 
   bool flushed;
 } IOTJS_VALIDATED_STRUCT(iotjs_httpparserwrap_t);
@@ -91,8 +91,7 @@ iotjs_httpparserwrap_t* iotjs_httpparserwrap_create(
 
   _this->url = iotjs_string_create("");
   _this->status_msg = iotjs_string_create("");
-  unsigned i;
-  for (i = 0; i < HEADER_MAX; i++) {
+  for (size_t i = 0; i < HEADER_MAX; i++) {
     _this->fields[i] = iotjs_string_create("");
     _this->values[i] = iotjs_string_create("");
   }
@@ -109,8 +108,7 @@ void iotjs_httpparserwrap_destroy(THIS) {
 
   iotjs_string_destroy(&_this->url);
   iotjs_string_destroy(&_this->status_msg);
-  unsigned i;
-  for (i = 0; i < HEADER_MAX; i++) {
+  for (size_t i = 0; i < HEADER_MAX; i++) {
       iotjs_string_destroy(&_this->fields[i]);
       iotjs_string_destroy(&_this->values[i]);
   }
@@ -298,8 +296,7 @@ iotjs_jval_t iotjs_httpparserwrap_make_header(THIS) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_httpparserwrap_t, httpparserwrap);
 
   iotjs_jval_t jheader = iotjs_jval_create_array(_this->n_values * 2);
-  int i;
-  for (i = 0; i < _this->n_values; i++) {
+  for (size_t i = 0; i < _this->n_values; i++) {
     iotjs_jval_t f = iotjs_jval_create_string(&_this->fields[i]);
     iotjs_jval_t v = iotjs_jval_create_string(&_this->values[i]);
     iotjs_jval_set_property_by_index(&jheader, i * 2, &f);

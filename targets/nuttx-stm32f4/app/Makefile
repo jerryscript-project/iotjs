@@ -58,7 +58,7 @@ CONFIG_IOTJS_STACKSIZE ?= 16384
 # NSH sysinfo command
 
 APPNAME = iotjs
-ROOT_DIR = ../../..
+IOTJS_ROOT_DIR = ../../../iotjs
 PRIORITY = $(CONFIG_IOTJS_PRIORITY)
 STACKSIZE = $(CONFIG_IOTJS_STACKSIZE)
 HEAPSIZE = $(CONFIG_IOTJS_HEAPSIZE)
@@ -138,11 +138,11 @@ $(CXXOBJS) $(MAINOBJ): %$(OBJEXT): %.cxx
 	$(call COMPILEXX, $<, $@)
 
 copylibs :
-	cp $(ROOT_DIR)/iotjs/build/arm-nuttx/$(BUILD_TYPE)/lib/lib* .
-	make -C $(ROOT_DIR)/iotjs/build/arm-nuttx/$(BUILD_TYPE)/deps/jerry jerry-libm
-	make -C $(ROOT_DIR)/iotjs/build/arm-nuttx/$(BUILD_TYPE)/deps/jerry jerry-libc
-	cp $(ROOT_DIR)/iotjs/build/arm-nuttx/$(BUILD_TYPE)/deps/jerry/lib/libjerry-libc.a .
-	cp $(ROOT_DIR)/iotjs/build/arm-nuttx/$(BUILD_TYPE)/deps/jerry/lib/libjerry-libm.a .
+	cp $(IOTJS_ROOT_DIR)/build/arm-nuttx/$(BUILD_TYPE)/lib/lib* .
+	make -C $(IOTJS_ROOT_DIR)/build/arm-nuttx/$(BUILD_TYPE)/deps/jerry jerry-libm
+	make -C $(IOTJS_ROOT_DIR)/build/arm-nuttx/$(BUILD_TYPE)/deps/jerry jerry-libc
+	cp $(IOTJS_ROOT_DIR)/build/arm-nuttx/$(BUILD_TYPE)/deps/jerry/lib/libjerry-libc.a .
+	cp $(IOTJS_ROOT_DIR)/build/arm-nuttx/$(BUILD_TYPE)/deps/jerry/lib/libjerry-libm.a .
 
 $(LIBS) : copylibs
 	$(firstword $(AR)) x $@

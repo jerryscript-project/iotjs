@@ -20,11 +20,6 @@
 #include "iotjs_binding.h"
 
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-
 // This wrapper refer javascript object but never increase reference count
 // If the object is freed by GC, then this wrapper instance will be also freed.
 typedef struct {
@@ -40,11 +35,6 @@ void iotjs_jobjectwrap_destroy(iotjs_jobjectwrap_t* jobjectwrap);
 iotjs_jval_t* iotjs_jobjectwrap_jobject(iotjs_jobjectwrap_t* jobjectwrap);
 iotjs_jobjectwrap_t* iotjs_jobjectwrap_from_jobject(
     const iotjs_jval_t* jobject);
-
-
-#ifdef __cplusplus
-} // extern "C"
-#endif
 
 
 #endif /* IOTJS_OBJECTWRAP_H */

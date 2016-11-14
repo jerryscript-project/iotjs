@@ -13,11 +13,18 @@
  * limitations under the License.
  */
 
-#ifndef IOTJS_EXCEPTION_H
-#define IOTJS_EXCEPTION_H
+#if defined(__NUTTX__)
 
+ #if defined(TARGET_BOARD) && TARGET_BOARD == STM32F4DIS
 
-iotjs_jval_t iotjs_create_uv_exception(int errorno, const char* syscall);
+#include "iotjs_def.h"
+#include "./iotjs_module_gpio-arm-nuttx-stm32.inl.h"
 
+ #else
 
-#endif /* IOTJS_EXCEPTION_H */
+#include "iotjs_def.h"
+#include "./iotjs_module_gpio-arm-nuttx-general.inl.h"
+
+ #endif
+
+#endif // __NUTTX__

@@ -22,11 +22,6 @@
 #include <stdio.h>
 
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-
 typedef jerry_external_handler_t JHandlerType;
 typedef jerry_object_free_callback_t JFreeHandlerType;
 typedef jerry_length_t JRawLengthType;
@@ -300,11 +295,6 @@ static inline bool ge(uint16_t a, uint16_t b) { return a >= b; }
 
 void iotjs_binding_initialize();
 void iotjs_binding_finalize();
-
-
-#ifdef __cplusplus
-} // extern "C"
-#endif
 
 
 #endif /* IOTJS_BINDING_H */

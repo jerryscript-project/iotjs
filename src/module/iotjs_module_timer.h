@@ -1,4 +1,4 @@
-/* Copyright 2015 Samsung Electronics Co., Ltd.
+/* Copyright 2015-2016 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,11 +21,6 @@
 #include "iotjs_handlewrap.h"
 
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-
 typedef struct {
   iotjs_handlewrap_t handlewrap;
   uv_timer_t handle;
@@ -46,11 +41,6 @@ int iotjs_timerwrap_start(iotjs_timerwrap_t* timerwrap,
                           int64_t timeout, int64_t repeat);
 // Stop & close timer.
 int iotjs_timerwrap_stop(iotjs_timerwrap_t* timerwrap);
-
-
-#ifdef __cplusplus
-} // extern "C"
-#endif
 
 
 #endif /* IOTJS_MODULE_TIMER_H */

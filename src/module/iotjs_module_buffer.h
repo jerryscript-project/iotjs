@@ -20,11 +20,6 @@
 #include "iotjs_objectwrap.h"
 
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-
 typedef struct {
   iotjs_jobjectwrap_t jobjectwrap;
   char* buffer;
@@ -54,11 +49,6 @@ size_t iotjs_bufferwrap_copy(iotjs_bufferwrap_t* bufferwrap,
 
 // Create buffer object.
 iotjs_jval_t iotjs_bufferwrap_create_buffer(size_t len);
-
-
-#ifdef __cplusplus
-} // extern "C"
-#endif
 
 
 #endif /* IOTJS_MODULE_BUFFER_H */

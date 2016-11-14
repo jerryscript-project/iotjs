@@ -1,4 +1,4 @@
-/* Copyright 2015 Samsung Electronics Co., Ltd.
+/* Copyright 2015-2016 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,6 @@
 #define IOTJS_ENV_H
 
 #include "uv.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 
 typedef struct {
@@ -71,11 +67,6 @@ const Config* iotjs_environment_config(const iotjs_environment_t* env);
 void iotjs_environment_go_state_running_main(iotjs_environment_t* env);
 void iotjs_environment_go_state_running_loop(iotjs_environment_t* env);
 void iotjs_environment_go_state_exiting(iotjs_environment_t* env);
-
-
-#ifdef __cplusplus
-} // extern "C"
-#endif
 
 
 #endif /* IOTJS_ENV_H */

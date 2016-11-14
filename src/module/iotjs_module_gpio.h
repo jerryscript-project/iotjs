@@ -1,4 +1,4 @@
-/* Copyright 2015 Samsung Electronics Co., Ltd.
+/* Copyright 2015-2016 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,103 +23,87 @@
 #include "iotjs_reqwrap.h"
 
 
-namespace iotjs {
-
-enum GpioDirection {
+typedef enum {
   kGpioDirectionNone = 0,
   kGpioDirectionIn,
   kGpioDirectionOut,
-};
+} GpioDirection;
 
 
-enum GpioMode {
+typedef enum {
   kGpioModeNone = 0,
   kGpioModePullup,
   kGpioModePulldown,
   kGpioModeFloat,
   kGpioModePushpull,
   kGpioModeOpendrain,
-};
+} GpioMode;
 
 
-enum GpioError {
+typedef enum {
   kGpioErrOk = 0,
   kGpioErrInitialize = -1,
   kGpioErrNotInitialized = -2,
   kGpioErrWrongUse = -98,
   kGpioErrSys = -99,
-};
+} GpioError;
 
 
-enum GpioOp {
+typedef enum {
   kGpioOpInitize,
   kGpioOpRelease,
   kGpioOpOpen,
   kGpioOpWrite,
   kGpioOpRead,
-};
+} GpioOp;
 
 
-class GpioReqWrap {
- public:
-  GpioReqWrap(const iotjs_jval_t* jcallback) {
-    iotjs_reqwrap_initialize(&_reqwrap, jcallback, (uv_req_t*)&_req, this);
-  }
-
-  ~GpioReqWrap() {
-    iotjs_reqwrap_destroy(&_reqwrap);
-  }
-
+typedef struct {
   uint32_t pin;
-  uint32_t value;
+  bool value;
   GpioDirection dir;
   GpioMode mode; // only for set pin
   GpioError result;
   GpioOp op;
+} iotjs_gpioreqdata_t;
 
-  uv_work_t* req() {
-    return &_req;
-  }
 
-  const iotjs_jval_t* jcallback() {
-    return iotjs_reqwrap_jcallback(&_reqwrap);
-  }
+typedef struct {
+  iotjs_reqwrap_t reqwrap;
+  uv_work_t req;
+  iotjs_gpioreqdata_t req_data;
+} IOTJS_VALIDATED_STRUCT(iotjs_gpioreqwrap_t);
 
- protected:
-  iotjs_reqwrap_t _reqwrap;
-  uv_work_t _req;
-};
+#define THIS iotjs_gpioreqwrap_t* gpioreqwrap
+void iotjs_gpioreqwrap_initialize(THIS, const iotjs_jval_t* jcallback,
+                                  GpioOp op);
+void iotjs_gpioreqwrap_destroy(THIS);
+uv_work_t* iotjs_gpioreqwrap_req(THIS);
+const iotjs_jval_t* iotjs_gpioreqwrap_jcallback(THIS);
+iotjs_gpioreqwrap_t* iotjs_gpioreqwrap_from_request(uv_work_t* req);
+iotjs_gpioreqdata_t* iotjs_gpioreqwrap_data(THIS);
+#undef THIS
 
 
 // This Gpio class provides interfaces for GPIO operation.
-class Gpio {
- public:
-  explicit Gpio(const iotjs_jval_t* jgpio);
-  virtual ~Gpio();
+typedef struct {
+  iotjs_jobjectwrap_t jobjectwrap;
+  bool initialized;
+} IOTJS_VALIDATED_STRUCT(iotjs_gpio_t);
 
-  static Gpio* Create(const iotjs_jval_t* jgpio);
-  static Gpio* GetInstance();
-  static const iotjs_jval_t* GetJGpio();
-  static void SetGpio();
-  static void WriteGpio();
-  static void ReadGpio();
-
-  virtual int Initialize(GpioReqWrap* gpio_req) = 0;
-  virtual int Release(GpioReqWrap* gpio_req) = 0;
-  virtual int Open(GpioReqWrap* gpio_req) = 0;
-  virtual int Write(GpioReqWrap* gpio_req) = 0;
-  virtual int Read(GpioReqWrap* gpio_req) = 0;
-
-  static void Delete(const uintptr_t data) {
-    delete ((Gpio*)data);
-  }
-
- protected:
-  iotjs_jobjectwrap_t _jobjectwrap;
-};
+iotjs_gpio_t* iotjs_gpio_create(const iotjs_jval_t* jgpio);
+void iotjs_gpio_destroy(iotjs_gpio_t* gpio);
+const iotjs_jval_t* iotjs_gpio_get_jgpio();
+iotjs_gpio_t* iotjs_gpio_get_instance();
+bool iotjs_gpio_initialized();
+void iotjs_gpio_set_initialized(iotjs_gpio_t* gpio, bool initialized);
 
 
-} // namespace iotjs
+void InitializeGpioWorker(uv_work_t* work_req);
+void ReleaseGpioWorker(uv_work_t* work_req);
+void OpenGpioWorker(uv_work_t* work_req);
+void WriteGpioWorker(uv_work_t* work_req);
+void ReadGpioWorker(uv_work_t* work_req);
 
 
 #endif /* IOTJS_MODULE_GPIO_H */

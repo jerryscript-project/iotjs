@@ -230,7 +230,8 @@ void AfterClose(uv_handle_t* handle) {
 }
 
 
-void DoClose(iotjs_jhandler_t* jhandler) {
+// Close socket
+JHANDLER_FUNCTION(Close) {
   JHANDLER_CHECK_THIS(object);
   JHANDLER_CHECK_ARGS(0);
 
@@ -239,12 +240,6 @@ void DoClose(iotjs_jhandler_t* jhandler) {
 
   // close uv handle, `AfterClose` will be called after socket closed.
   iotjs_handlewrap_close(wrap, AfterClose);
-}
-
-
-// Close socket
-JHANDLER_FUNCTION(Close) {
-  DoClose(jhandler);
 }
 
 
@@ -278,9 +273,7 @@ JHANDLER_FUNCTION(Bind) {
 // Connection request result handler.
 static void AfterConnect(uv_connect_t* req, int status) {
   iotjs_connectreqwrap_t* req_wrap = (iotjs_connectreqwrap_t*)(req->data);
-  iotjs_tcpwrap_t* tcp_wrap = (iotjs_tcpwrap_t*)(req->handle->data);
   IOTJS_ASSERT(req_wrap != NULL);
-  IOTJS_ASSERT(tcp_wrap != NULL);
 
   // Take callback function object.
   // function afterConnect(status)
@@ -646,7 +639,7 @@ void AddressToJS(const iotjs_jval_t* obj, const sockaddr* addr) {
   }
 }
 
-GetSockNameFunctionTcp(tcpwrap, tcp_handle, uv_tcp_getsockname);
+GetSockNameFunction(tcpwrap, tcp_handle, uv_tcp_getsockname);
 
 
 JHANDLER_FUNCTION(GetSockeName) {

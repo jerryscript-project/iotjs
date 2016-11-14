@@ -17,11 +17,6 @@
 #define IOTJS_STRING_H
 
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-
 typedef struct {
   unsigned size;
   unsigned cap;
@@ -56,11 +51,6 @@ static inline void iotjs_string_append_without_size(iotjs_string_t* str,
 const char* iotjs_string_data(const iotjs_string_t* str);
 
 unsigned iotjs_string_size(const iotjs_string_t* str);
-
-
-#ifdef __cplusplus
-} // extern "C"
-#endif
 
 
 #endif /* IOTJS_STRING_H */

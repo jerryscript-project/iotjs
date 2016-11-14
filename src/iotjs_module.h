@@ -1,4 +1,4 @@
-/* Copyright 2015 Samsung Electronics Co., Ltd.
+/* Copyright 2015-2016 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,6 @@
 #define IOTJS_MODULE_H
 
 #include "iotjs_binding.h"
-
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 
 typedef iotjs_jval_t (*register_func)();
@@ -71,11 +66,6 @@ void iotjs_module_list_cleanup();
 
 const iotjs_jval_t* iotjs_module_initialize_if_necessary(ModuleKind kind);
 const iotjs_jval_t* iotjs_module_get(ModuleKind kind);
-
-
-#ifdef __cplusplus
-} // extern "C"
-#endif
 
 
 #endif /* IOTJS_MODULE_H */

@@ -1,4 +1,4 @@
-/* Copyright 2015 Samsung Electronics Co., Ltd.
+/* Copyright 2016 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,36 +15,40 @@
 
 #if defined(__NUTTX__)
 
- #if defined(TARGET_BOARD) && TARGET_BOARD == STM32F4DIS
 
-#include "iotjs_module_gpio-arm-nuttx-stm32.inl.h"
-
-
-namespace iotjs {
+#include "iotjs_def.h"
+#include "module/iotjs_module_pwm.h"
 
 
-Gpio* Gpio::Create(const iotjs_jval_t* jgpio) {
-  return new GpioArmNuttxStm32(jgpio);
+int PwmInitializePwmPath(iotjs_pwmreqdata_t* req_data) {
+  IOTJS_ASSERT(!"Not implemented");
+  return 0;
 }
 
 
-} // namespace iotjs
-
- #else
-
-#include "./iotjs_module_gpio-arm-nuttx-general.inl.h"
-
-
-namespace iotjs {
-
-
-Gpio* Gpio::Create(const iotjs_jval_t* jgpio) {
-  return new GpioArmNuttxGeneral(jgpio);
+void ExportWorker(uv_work_t* work_req) {
+  IOTJS_ASSERT(!"Not implemented");
 }
 
 
-} // namespace iotjs
+void SetPeriodWorker(uv_work_t* work_req) {
+  IOTJS_ASSERT(!"Not implemented");
+}
 
- #endif
+
+void SetDutyCycleWorker(uv_work_t* work_req) {
+  IOTJS_ASSERT(!"Not implemented");
+}
+
+
+void SetEnableWorker(uv_work_t* work_req) {
+  IOTJS_ASSERT(!"Not implemented");
+}
+
+
+void UnexportWorker(uv_work_t* work_req) {
+  IOTJS_ASSERT(!"Not implemented");
+}
+
 
 #endif // __NUTTX__

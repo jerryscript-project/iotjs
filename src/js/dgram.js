@@ -107,14 +107,11 @@ Socket.prototype.bind = function(port /*, address, callback*/) {
     self.once('listening', arguments[arguments.length - 1]);
 
   var address;
-  var exclusive;
   if (util.isObject(port)) {
     address = port.address || '';
-    exclusive = !!port.exclusive;
     port = port.port;
   } else {
     address = util.isFunction(arguments[1]) ? '' : arguments[1];
-    exclusive = false;
   }
 
   // defaulting address for bind to all interfaces
@@ -260,7 +257,7 @@ Socket.prototype.send = function(buffer, offset, length, port, address,
   self._healthCheck();
 
   if (self._bindState === BIND_STATE_UNBOUND)
-    self.bind({port: 0, exclusive: true}, null);
+    self.bind(0, null);
 
   if (list.length === 0)
     list.push(new Buffer(0));

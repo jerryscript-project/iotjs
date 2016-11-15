@@ -21,11 +21,19 @@
       "check out current directory path with js driver. So it skips " +
       "temoporalily."
     },
-    'test_dgram_1_server_1_client.js': {
+    'test_dgram_address.js': {
       skip: ['nuttx'],
       reason: "not implemented for nuttx"
     },
-    'test_dgram_1_server_n_clients.js': {
+    'test_dgram_broadcast.js': {
+      skip: ['nuttx'],
+      reason: "not implemented for nuttx"
+    },
+    'test_dgram_multicast_membership.js': {
+      skip: ['nuttx'],
+      reason: "not implemented for nuttx"
+    },
+    'test_dgram_multicast_set_multicast_loop.js': {
       skip: ['nuttx'],
       reason: "not implemented for nuttx"
     },

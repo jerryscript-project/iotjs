@@ -103,6 +103,8 @@ def init_option():
 
     parser.add_argument('--iotjs-exclude-module', action='append')
 
+    parser.add_argument('--iotjs-minimal-profile', action='store_true')
+
     parser.add_argument('--jerry-cmake-param', action='append')
 
     parser.add_argument('--jerry-compile-flag', action='append')
@@ -167,6 +169,8 @@ def adjust_option(option):
         option.iotjs_include_module = []
     if option.iotjs_exclude_module is None:
         option.iotjs_exclude_module = []
+    if option.iotjs_minimal_profile:
+        option.no_check_test = True
     if option.jerry_cmake_param is None:
         option.jerry_cmake_param = []
     if option.jerry_compile_flag is None:
@@ -577,11 +581,12 @@ def analyze_module_dependency(option):
         else:
             option.iotjs_include_module.append(name)
 
-    for name in option.config['module']['optional']:
-        if name in option.iotjs_include_module:
-            print_warn('Module \"%s\" is already included', name)
-        else:
-            option.iotjs_include_module.append(name)
+    if not option.iotjs_minimal_profile:
+        for name in option.config['module']['optional']:
+            if name in option.iotjs_include_module:
+                print_warn('Module \"%s\" is already included', name)
+            else:
+                option.iotjs_include_module.append(name)
 
     for name in option.config['module']['exclude']:
         if name in option.iotjs_exclude_module:

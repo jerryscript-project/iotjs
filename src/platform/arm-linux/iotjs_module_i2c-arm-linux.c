@@ -16,18 +16,6 @@
 
 #if defined(__LINUX__)
 
-#include "../iotjs_module_pwm-linux-general.inl.h"
-
-
-namespace iotjs {
-
-
-Pwm* Pwm::Create(const iotjs_jval_t* jpwm) {
-  return new PwmLinuxGeneral(jpwm);
-}
-
-
-} // namespace iotjs
-
+#include "../iotjs_module_i2c-linux-general.inl.h"
 
 #endif

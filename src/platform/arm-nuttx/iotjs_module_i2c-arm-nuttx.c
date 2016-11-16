@@ -13,31 +13,60 @@
  * limitations under the License.
  */
 
-#ifndef IOTJS_MODULE_GPIO_ARM_NUTTX_GENERAL_INL_H
-#define IOTJS_MODULE_GPIO_ARM_NUTTX_GENERAL_INL_H
-
-#include "module/iotjs_module_gpio.h"
+#if defined(__NUTTX__)
 
 
-void InitializeGpioWorker(uv_work_t* work_req) {
-  IOTJS_ASSERT(!"Not implemented");
-}
+#include "module/iotjs_module_i2c.h"
 
-void ReleaseGpioWorker(uv_work_t* work_req) {
-  IOTJS_ASSERT(!"Not implemented");
-}
 
-void OpenGpioWorker(uv_work_t* work_req) {
-  IOTJS_ASSERT(!"Not implemented");
-}
-
-void WriteGpioWorker(uv_work_t* work_req) {
-  IOTJS_ASSERT(!"Not implemented");
-}
-
-void ReadGpioWorker(uv_work_t* work_req) {
+void I2cSetAddress(uint8_t address) {
   IOTJS_ASSERT(!"Not implemented");
 }
 
 
-#endif /* IOTJS_MODULE_GPIO_ARM_NUTTX_GENERAL_INL_H */
+void ScanWorker(uv_work_t* work_req) {
+  IOTJS_ASSERT(!"Not implemented");
+}
+
+
+void OpenWorker(uv_work_t* work_req) {
+  IOTJS_ASSERT(!"Not implemented");
+}
+
+
+void I2cClose() {
+  IOTJS_ASSERT(!"Not implemented");
+}
+
+
+void WriteWorker(uv_work_t* work_req) {
+  IOTJS_ASSERT(!"Not implemented");
+}
+
+
+void WriteByteWorker(uv_work_t* work_req) {
+  IOTJS_ASSERT(!"Not implemented");
+}
+
+
+void WriteBlockWorker(uv_work_t* work_req) {
+  IOTJS_ASSERT(!"Not implemented");
+}
+
+
+void ReadWorker(uv_work_t* work_req) {
+  IOTJS_ASSERT(!"Not implemented");
+}
+
+
+void ReadByteWorker(uv_work_t* work_req) {
+  IOTJS_ASSERT(!"Not implemented");
+}
+
+
+void ReadBlockWorker(uv_work_t* work_req) {
+  IOTJS_ASSERT(!"Not implemented");
+}
+
+
+#endif // __NUTTX__

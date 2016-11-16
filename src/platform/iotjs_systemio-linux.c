@@ -21,18 +21,6 @@
 #include "iotjs_systemio-linux.h"
 
 
-namespace iotjs {
-
-
-// uv fs request wrapper for auto cleanup.
-class LocalDeviceFsReq : public uv_fs_t {
- public:
-  ~LocalDeviceFsReq() {
-    uv_fs_req_cleanup(this);
-  }
-};
-
-
 // Checks if given directory exists.
 bool DeviceCheckPath(const char* path) {
   const iotjs_environment_t* env = iotjs_environment_get();
@@ -40,8 +28,9 @@ bool DeviceCheckPath(const char* path) {
   DDDLOG("DeviceCheckPath() - path: %s", path);
 
   // stat for the path.
-  LocalDeviceFsReq fs_req;
+  uv_fs_t fs_req;
   int err = uv_fs_stat(iotjs_environment_loop(env), &fs_req, path, NULL);
+  uv_fs_req_cleanup(&fs_req);
 
   // exist?
   if (err || fs_req.result) {
@@ -61,8 +50,9 @@ bool DeviceOpenWriteClose(const char* path, char* value) {
   DDDLOG("DeviceOpenWriteClose() - path %s, value: %s", path, value);
 
   // Open file.
-  LocalDeviceFsReq fs_req;
+  uv_fs_t fs_req;
   int fd = uv_fs_open(loop, &fs_req, path, O_WRONLY, 0666, NULL);
+  uv_fs_req_cleanup(&fs_req);
   if (fd < 0) {
     DDLOG("DeviceOpenWriteClose() - open %s failed: %d", path, fd);
     return false;
@@ -70,12 +60,12 @@ bool DeviceOpenWriteClose(const char* path, char* value) {
 
   // Write value.
   uv_buf_t uvbuf = uv_buf_init(value, strlen(value));
-  uv_fs_req_cleanup(&fs_req);
   int write_err = uv_fs_write(loop, &fs_req, fd, &uvbuf, 1, 0, NULL);
+  uv_fs_req_cleanup(&fs_req);
 
   // Close file.
-  uv_fs_req_cleanup(&fs_req);
   int close_err = uv_fs_close(loop, &fs_req, fd, NULL);
+  uv_fs_req_cleanup(&fs_req);
 
   if (write_err < 0) {
     DDLOG("DeviceOpenWriteClose() - write %s %s failed: %d", path, value,
@@ -99,17 +89,19 @@ bool DeviceOpenReadClose(const char* path, char* buffer, int buffer_len) {
   DDDLOG("DeviceOpenReadClose() - path %s", path);
 
   // Open file.
-  LocalDeviceFsReq fs_open_req;
+  uv_fs_t fs_open_req;
   int fd = uv_fs_open(loop, &fs_open_req, path, O_RDONLY, 0666, NULL);
+  uv_fs_req_cleanup(&fs_open_req);
   if (fd < 0) {
     DDLOG("DeviceOpenReadClose() - open %s failed: %d", path, fd);
     return false;
   }
 
   // Write value.
-  LocalDeviceFsReq fs_write_req;
+  uv_fs_t fs_write_req;
   uv_buf_t uvbuf = uv_buf_init(buffer, buffer_len);
   int err = uv_fs_read(loop, &fs_write_req, fd, &uvbuf, 1, 0, NULL);
+  uv_fs_req_cleanup(&fs_write_req);
   if (err < 0) {
     DDLOG("DeviceOpenReadClose() - read failed: %d", err);
     return false;
@@ -118,8 +110,9 @@ bool DeviceOpenReadClose(const char* path, char* buffer, int buffer_len) {
   DDDLOG("DeviceOpenReadClose() - read value: %s", buffer);
 
   // Close file.
-  LocalDeviceFsReq fs_close_req;
+  uv_fs_t fs_close_req;
   err = uv_fs_close(loop, &fs_close_req, fd, NULL);
+  uv_fs_req_cleanup(&fs_close_req);
   if (err < 0) {
     DDLOG("DeviceOpenReadClose() - close failed: %d", err);
     return false;
@@ -196,6 +189,3 @@ bool DeviceUnexport(const char* export_path, int value) {
 
   return true;
 }
-
-
-} // namespace iotjs

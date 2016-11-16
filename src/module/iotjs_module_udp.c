@@ -20,86 +20,126 @@
 #include "iotjs_handlewrap.h"
 #include "iotjs_reqwrap.h"
 
-namespace iotjs {
+
+typedef struct {
+  iotjs_handlewrap_t handlewrap;
+  uv_udp_t handle;
+} IOTJS_VALIDATED_STRUCT(iotjs_udpwrap_t);
 
 
-class UdpWrap {
- public:
-  explicit UdpWrap(const iotjs_jval_t* judp) {
-    iotjs_handlewrap_initialize(&_handlewrap, judp,
-            reinterpret_cast<uv_handle_t*>(&_handle), Delete);
+iotjs_udpwrap_t* iotjs_udpwrap_create(const iotjs_jval_t* judp);
+void iotjs_udpwrap_destroy(iotjs_udpwrap_t* udpwrap);
 
-    const iotjs_environment_t* env = iotjs_environment_get();
-    uv_udp_init(iotjs_environment_loop(env), &_handle);
-  }
+iotjs_udpwrap_t* iotjs_udpwrap_from_handle(uv_udp_t* handle);
+iotjs_udpwrap_t* iotjs_udpwrap_from_jobject(const iotjs_jval_t* judp);
 
-  ~UdpWrap() {
-    iotjs_handlewrap_destroy(&_handlewrap);
-  }
+uv_udp_t* iotjs_udpwrap_udp_handle(iotjs_udpwrap_t* udpwrap);
+iotjs_jval_t* iotjs_udpwrap_jobject(iotjs_udpwrap_t* udpwrap);
 
-  static UdpWrap* FromJObject(const iotjs_jval_t* judp) {
-    UdpWrap* wrap = reinterpret_cast<UdpWrap*>(
-                iotjs_jval_get_object_native_handle(judp));
-    IOTJS_ASSERT(wrap != NULL);
-    return wrap;
-  }
 
-  uv_udp_t* udp_handle() {
-    return &_handle;
-  }
+iotjs_udpwrap_t* iotjs_udpwrap_create(const iotjs_jval_t* judp) {
+  iotjs_udpwrap_t* udpwrap = IOTJS_ALLOC(iotjs_udpwrap_t);
+  IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_udpwrap_t, udpwrap);
 
-  iotjs_jval_t* jobject() {
-    return iotjs_handlewrap_jobject(&_handlewrap);
-  }
+  iotjs_handlewrap_initialize(&_this->handlewrap,
+                              judp,
+                              (uv_handle_t*)(&_this->handle),
+                              (JFreeHandlerType)iotjs_udpwrap_destroy);
 
-  static void Delete(const uintptr_t data) {
-    delete ((UdpWrap*)data);
-  }
+  const iotjs_environment_t* env = iotjs_environment_get();
+  uv_udp_init(iotjs_environment_loop(env), &_this->handle);
 
- protected:
-  iotjs_handlewrap_t _handlewrap;
-  uv_udp_t _handle;
-};
+  return udpwrap;
+}
 
-class SendWrap {
- public:
-  SendWrap(const iotjs_jval_t* jcallback, const size_t msg_size)
-    : _msg_size(msg_size) {
-    iotjs_reqwrap_initialize(&_reqwrap, jcallback, (uv_req_t*)&_req, this);
-  }
 
-  ~SendWrap() {
-    iotjs_reqwrap_destroy(&_reqwrap);
-  }
+void iotjs_udpwrap_destroy(iotjs_udpwrap_t* udpwrap) {
+  IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_udpwrap_t, udpwrap);
+  iotjs_handlewrap_destroy(&_this->handlewrap);
+  IOTJS_RELEASE(udpwrap);
+}
 
-  inline size_t msg_size() {
-    return _msg_size;
-  }
 
-  uv_udp_send_t* req() {
-    return &_req;
-  }
+iotjs_udpwrap_t* iotjs_udpwrap_from_handle(uv_udp_t* udp_handle) {
+  uv_handle_t* handle = (uv_handle_t*)(udp_handle);
+  iotjs_handlewrap_t* handlewrap = iotjs_handlewrap_from_handle(handle);
+  iotjs_udpwrap_t* udpwrap = (iotjs_udpwrap_t*)handlewrap;
+  IOTJS_ASSERT(iotjs_udpwrap_udp_handle(udpwrap) == udp_handle);
+  return udpwrap;
+}
 
-  const iotjs_jval_t* jcallback() {
-    return iotjs_reqwrap_jcallback(&_reqwrap);
-  }
 
- protected:
-  iotjs_reqwrap_t _reqwrap;
-  uv_udp_send_t _req;
-  size_t _msg_size;
-};
+iotjs_udpwrap_t* iotjs_udpwrap_from_jobject(const iotjs_jval_t* judp) {
+  iotjs_handlewrap_t* handlewrap = iotjs_handlewrap_from_jobject(judp);
+  return (iotjs_udpwrap_t*)handlewrap;
+}
+
+
+uv_udp_t* iotjs_udpwrap_udp_handle(iotjs_udpwrap_t* udpwrap) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_udpwrap_t, udpwrap);
+  uv_handle_t* handle = iotjs_handlewrap_get_uv_handle(&_this->handlewrap);
+  return (uv_udp_t*)handle;
+}
+
+
+iotjs_jval_t* iotjs_udpwrap_jobject(iotjs_udpwrap_t* udpwrap) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_udpwrap_t, udpwrap);
+  return iotjs_handlewrap_jobject(&_this->handlewrap);
+}
+
+
+typedef struct {
+  iotjs_reqwrap_t reqwrap;
+  uv_udp_send_t req;
+  size_t msg_size;
+} IOTJS_VALIDATED_STRUCT(iotjs_sendreqwrap_t);
+
+
+#define THIS iotjs_sendreqwrap_t* sendreqwrap
+
+void iotjs_sendreqwrap_initialize(THIS, const iotjs_jval_t* jcallback,
+                                  const size_t msg_size) {
+  IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_sendreqwrap_t, sendreqwrap);
+  iotjs_reqwrap_initialize(&_this->reqwrap,
+                           jcallback,
+                           (uv_req_t*)&_this->req,
+                           sendreqwrap);
+  _this->msg_size = msg_size;
+}
+
+
+void iotjs_sendreqwrap_destroy(THIS) {
+  IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_sendreqwrap_t, sendreqwrap);
+  iotjs_reqwrap_destroy(&_this->reqwrap);
+}
+
+
+uv_udp_send_t* iotjs_sendreqwrap_req(THIS) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_sendreqwrap_t, sendreqwrap);
+  return &_this->req;
+}
+
+
+const iotjs_jval_t* iotjs_sendreqwrap_jcallback(THIS) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_sendreqwrap_t, sendreqwrap);
+  return iotjs_reqwrap_jcallback(&_this->reqwrap);
+}
+
+
+size_t iotjs_sendreqwrap_msg_size(THIS) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_sendreqwrap_t, sendreqwrap);
+  return _this->msg_size;
+}
+
+#undef THIS
 
 
 JHANDLER_FUNCTION(UDP) {
   JHANDLER_CHECK_THIS(object);
   JHANDLER_CHECK_ARGS(0);
 
-  const iotjs_jval_t* judp = iotjs_jhandler_get_this(jhandler);
-
-  UdpWrap* udp_wrap = new UdpWrap(judp);
-  IOTJS_ASSERT(iotjs_jval_is_object(udp_wrap->jobject()));
-  IOTJS_ASSERT(iotjs_jval_get_object_native_handle(judp) != 0);
+  const iotjs_jval_t* judp = JHANDLER_GET_THIS(object);
+  iotjs_udpwrap_t* udp_wrap = iotjs_udpwrap_create(judp);
 }
 
 
@@ -107,8 +147,8 @@ JHANDLER_FUNCTION(Bind) {
   JHANDLER_CHECK_THIS(object);
   JHANDLER_CHECK_ARGS_2(string, number);
 
-  UdpWrap* udp_wrap = UdpWrap::FromJObject(iotjs_jhandler_get_this(jhandler));
-  IOTJS_ASSERT(udp_wrap != NULL);
+  const iotjs_jval_t* judp = JHANDLER_GET_THIS(object);
+  iotjs_udpwrap_t* udp_wrap = iotjs_udpwrap_from_jobject(judp);
 
   iotjs_string_t address = JHANDLER_GET_ARG(0, string);
   const int port = JHANDLER_GET_ARG(1, number);
@@ -124,11 +164,11 @@ JHANDLER_FUNCTION(Bind) {
 
   char addr[sizeof(sockaddr_in6)];
   int err = uv_ip4_addr(iotjs_string_data(&address), port,
-                        reinterpret_cast<sockaddr_in*>(&addr));
+                        (sockaddr_in*)(&addr));
 
   if (err == 0) {
-    err = uv_udp_bind(udp_wrap->udp_handle(),
-                      reinterpret_cast<const sockaddr*>(&addr),
+    err = uv_udp_bind(iotjs_udpwrap_udp_handle(udp_wrap),
+                      (const sockaddr*)(&addr),
                       flags);
   }
 
@@ -152,17 +192,16 @@ static void OnAlloc(uv_handle_t* handle, size_t suggested_size,
 
 static void OnRecv(uv_udp_t* handle, ssize_t nread, const uv_buf_t* buf,
                    const struct sockaddr* addr, unsigned int flags) {
-  if (nread == 0 && addr == nullptr) {
-    if (buf->base != nullptr)
+  if (nread == 0 && addr == NULL) {
+    if (buf->base != NULL)
       iotjs_buffer_release(buf->base);
     return;
   }
 
-  UdpWrap* udp_wrap = reinterpret_cast<UdpWrap*>(handle->data);
-  IOTJS_ASSERT(udp_wrap != NULL);
+  iotjs_udpwrap_t* udp_wrap = iotjs_udpwrap_from_handle(handle);
 
   // udp handle
-  const iotjs_jval_t* judp = udp_wrap->jobject();
+  const iotjs_jval_t* judp = iotjs_udpwrap_jobject(udp_wrap);
   IOTJS_ASSERT(iotjs_jval_is_object(judp));
 
   // onmessage callback
@@ -174,7 +213,7 @@ static void OnRecv(uv_udp_t* handle, ssize_t nread, const uv_buf_t* buf,
   iotjs_jargs_append_jval(&jargs, judp);
 
   if (nread < 0) {
-    if (buf->base != nullptr)
+    if (buf->base != NULL)
       iotjs_buffer_release(buf->base);
     iotjs_make_callback(&jonmessage, iotjs_jval_get_undefined(), &jargs);
     iotjs_jval_destroy(&jonmessage);
@@ -207,10 +246,10 @@ JHANDLER_FUNCTION(RecvStart) {
   JHANDLER_CHECK_THIS(object);
   JHANDLER_CHECK_ARGS(0);
 
-  UdpWrap* udp_wrap = UdpWrap::FromJObject(iotjs_jhandler_get_this(jhandler));
-  IOTJS_ASSERT(udp_wrap != NULL);
+  const iotjs_jval_t* judp = JHANDLER_GET_THIS(object);
+  iotjs_udpwrap_t* udp_wrap = iotjs_udpwrap_from_jobject(judp);
 
-  int err = uv_udp_recv_start(udp_wrap->udp_handle(),
+  int err = uv_udp_recv_start(iotjs_udpwrap_udp_handle(udp_wrap),
                               OnAlloc, OnRecv);
 
   // UV_EALREADY means that the socket is already bound but that's okay
@@ -225,36 +264,35 @@ JHANDLER_FUNCTION(RecvStop) {
   JHANDLER_CHECK_THIS(object);
   JHANDLER_CHECK_ARGS(0);
 
-  UdpWrap* udp_wrap = UdpWrap::FromJObject(iotjs_jhandler_get_this(jhandler));
-  IOTJS_ASSERT(udp_wrap != NULL);
+  const iotjs_jval_t* judp = JHANDLER_GET_THIS(object);
+  iotjs_udpwrap_t* udp_wrap = iotjs_udpwrap_from_jobject(judp);
 
-  int r = uv_udp_recv_stop(udp_wrap->udp_handle());
+  int r = uv_udp_recv_stop(iotjs_udpwrap_udp_handle(udp_wrap));
 
   iotjs_jhandler_return_number(jhandler, r);
 }
 
 
 static void OnSend(uv_udp_send_t* req, int status) {
-  SendWrap* req_wrap = static_cast<SendWrap*>(req->data);
-  UdpWrap* udp_wrap = reinterpret_cast<UdpWrap*>(req->handle->data);
+  iotjs_sendreqwrap_t* req_wrap = (iotjs_sendreqwrap_t*)(req->data);
   IOTJS_ASSERT(req_wrap != NULL);
-  IOTJS_ASSERT(udp_wrap != NULL);
 
   // Take callback function object.
-  const iotjs_jval_t* jcallback = req_wrap->jcallback();
+  const iotjs_jval_t* jcallback = iotjs_sendreqwrap_jcallback(req_wrap);
 
   if (iotjs_jval_is_function(jcallback)) {
     // Take callback function object.
 
     iotjs_jargs_t jargs = iotjs_jargs_create(2);
     iotjs_jargs_append_number(&jargs, status);
-    iotjs_jargs_append_number(&jargs, req_wrap->msg_size());
+    iotjs_jargs_append_number(&jargs, iotjs_sendreqwrap_msg_size(req_wrap));
 
     iotjs_make_callback(jcallback, iotjs_jval_get_undefined(), &jargs);
     iotjs_jargs_destroy(&jargs);
   }
 
-  delete req_wrap;
+  iotjs_sendreqwrap_destroy(req_wrap);
+  IOTJS_RELEASE(req_wrap);
 }
 
 
@@ -269,8 +307,8 @@ JHANDLER_FUNCTION(Send) {
   IOTJS_ASSERT(iotjs_jval_is_function(iotjs_jhandler_get_arg(jhandler, 3)) ||
                iotjs_jval_is_undefined(iotjs_jhandler_get_arg(jhandler, 3)));
 
-  UdpWrap* udp_wrap = UdpWrap::FromJObject(iotjs_jhandler_get_this(jhandler));
-  IOTJS_ASSERT(udp_wrap != NULL);
+  const iotjs_jval_t* judp = JHANDLER_GET_THIS(object);
+  iotjs_udpwrap_t* udp_wrap = iotjs_udpwrap_from_jobject(judp);
 
   const iotjs_jval_t* jbuffer = JHANDLER_GET_ARG(0, object);
   const unsigned short port = JHANDLER_GET_ARG(1, number);
@@ -281,7 +319,8 @@ JHANDLER_FUNCTION(Send) {
   char* buffer = iotjs_bufferwrap_buffer(buffer_wrap);
   int len = iotjs_bufferwrap_length(buffer_wrap);
 
-  SendWrap* req_wrap = new SendWrap(jcallback, len);
+  iotjs_sendreqwrap_t* req_wrap = IOTJS_ALLOC(iotjs_sendreqwrap_t);
+  iotjs_sendreqwrap_initialize(req_wrap, jcallback, len);
 
   uv_buf_t buf;
   buf.base = buffer;
@@ -289,15 +328,18 @@ JHANDLER_FUNCTION(Send) {
 
   char addr[sizeof(sockaddr_in6)];
   int err = uv_ip4_addr(iotjs_string_data(&address), port,
-                        reinterpret_cast<sockaddr_in*>(&addr));
+                        (sockaddr_in*)(&addr));
 
   if (err == 0) {
-    err = uv_udp_send(req_wrap->req(), udp_wrap->udp_handle(), &buf, 1,
-        reinterpret_cast<const sockaddr*>(&addr), OnSend);
+    err = uv_udp_send(iotjs_sendreqwrap_req(req_wrap),
+                      iotjs_udpwrap_udp_handle(udp_wrap), &buf, 1,
+                      (const sockaddr*)(&addr), OnSend);
   }
 
-  if (err)
-    delete req_wrap;
+  if (err) {
+    iotjs_sendreqwrap_destroy(req_wrap);
+    IOTJS_RELEASE(req_wrap);
+  }
 
   iotjs_jhandler_return_number(jhandler, err);
 
@@ -307,25 +349,33 @@ JHANDLER_FUNCTION(Send) {
 
 // Close socket
 JHANDLER_FUNCTION(Close) {
-  DoClose(jhandler);
+  JHANDLER_CHECK_THIS(object);
+  JHANDLER_CHECK_ARGS(0);
+
+  const iotjs_jval_t* judp = JHANDLER_GET_THIS(object);
+  iotjs_handlewrap_t* wrap = iotjs_handlewrap_from_jobject(judp);
+
+  iotjs_handlewrap_close(wrap, NULL);
 }
 
 
-GetSockNameFunction(UdpWrap, udp_handle, uv_udp_getsockname);
+GetSockNameFunction(udpwrap, udp_handle, uv_udp_getsockname);
+
 
 JHANDLER_FUNCTION(GetSockeName) {
   DoGetSockName(jhandler);
 }
 
+
 #define IOTJS_UV_SET_SOCKOPT(fn)                                              \
   JHANDLER_CHECK_THIS(object);                                                \
   JHANDLER_CHECK_ARGS_1(number);                                              \
   \
-  UdpWrap* udp_wrap = UdpWrap::FromJObject(iotjs_jhandler_get_this(jhandler));\
-  IOTJS_ASSERT(udp_wrap != NULL);                                             \
+  const iotjs_jval_t* judp = JHANDLER_GET_THIS(object);                       \
+  iotjs_udpwrap_t* udp_wrap = iotjs_udpwrap_from_jobject(judp);               \
   \
   int flag = JHANDLER_GET_ARG(0, number);                                     \
-  int err = fn(udp_wrap->udp_handle(), flag);                                 \
+  int err = fn(iotjs_udpwrap_udp_handle(udp_wrap), flag);                     \
   \
   iotjs_jhandler_return_number(jhandler, err);
 
@@ -381,8 +431,8 @@ void SetMembership(iotjs_jhandler_t* jhandler, uv_membership membership) {
   JHANDLER_CHECK_THIS(object);
   JHANDLER_CHECK_ARGS_1(string);
 
-  UdpWrap* udp_wrap = UdpWrap::FromJObject(iotjs_jhandler_get_this(jhandler));
-  IOTJS_ASSERT(udp_wrap != NULL);
+  const iotjs_jval_t* judp = JHANDLER_GET_THIS(object);
+  iotjs_udpwrap_t* udp_wrap = iotjs_udpwrap_from_jobject(judp);
 
   iotjs_string_t address = JHANDLER_GET_ARG(0, string);
   const iotjs_jval_t* arg1 = iotjs_jhandler_get_arg(jhandler, 1);
@@ -392,13 +442,13 @@ void SetMembership(iotjs_jhandler_t* jhandler, uv_membership membership) {
 
   const char* iface_cstr;
   if (isUndefinedOrNull) {
-    iface_cstr = nullptr;
+    iface_cstr = NULL;
   } else {
     iface = iotjs_jval_as_string(arg1);
     iface_cstr = iotjs_string_data(&iface);
   }
 
-  int err = uv_udp_set_membership(udp_wrap->udp_handle(),
+  int err = uv_udp_set_membership(iotjs_udpwrap_udp_handle(udp_wrap),
                                   iotjs_string_data(&address),
                                   iface_cstr,
                                   membership);
@@ -467,15 +517,3 @@ iotjs_jval_t InitUdp() {
 
   return udp;
 }
-
-
-} // namespace iotjs
-
-
-extern "C" {
-
-iotjs_jval_t InitUdp() {
-  return iotjs::InitUdp();
-}
-
-} // extern "C"

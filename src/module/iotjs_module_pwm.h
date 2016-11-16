@@ -22,38 +22,25 @@
 #include "iotjs_reqwrap.h"
 
 
-namespace iotjs {
-
-enum PwmOp {
+typedef enum {
   kPwmOpExport,
   kPwmOpSetDutyCycle,
   kPwmOpSetPeriod,
   kPwmOpSetEnable,
   kPwmOpUnexport,
-};
+} PwmOp;
 
-enum PwmError {
+typedef enum {
   kPwmErrOk = 0,
   kPwmErrExport = -1,
   kPwmErrUnexport = -2,
   kPwmErrEnable = -3,
   kPwmErrWrite = -4,
   kPwmErrSys = -5,
-};
+} PwmError;
 
 
-class PwmReqWrap {
- public:
-  PwmReqWrap(const iotjs_jval_t* jcallback) {
-    device = iotjs_string_create("");
-    iotjs_reqwrap_initialize(&_reqwrap, jcallback, (uv_req_t*)&_req, this);
-  }
-
-  ~PwmReqWrap() {
-    iotjs_string_destroy(&device);
-    iotjs_reqwrap_destroy(&_reqwrap);
-  }
-
+typedef struct {
   iotjs_string_t device;
   int32_t duty_cycle;
   int32_t period;
@@ -61,48 +48,46 @@ class PwmReqWrap {
 
   PwmError result;
   PwmOp op;
+} iotjs_pwmreqdata_t;
 
-  uv_work_t* req() {
-    return &_req;
-  }
 
-  const iotjs_jval_t* jcallback() {
-    return iotjs_reqwrap_jcallback(&_reqwrap);
-  }
+typedef struct {
+  iotjs_reqwrap_t reqwrap;
+  uv_work_t req;
+  iotjs_pwmreqdata_t req_data;
+} IOTJS_VALIDATED_STRUCT(iotjs_pwmreqwrap_t);
 
- protected:
-  iotjs_reqwrap_t _reqwrap;
-  uv_work_t _req;
-};
+
+#define THIS iotjs_pwmreqwrap_t* pwmreqwrap
+void iotjs_pwmreqwrap_initialize(THIS, const iotjs_jval_t* jcallback,
+                                 PwmOp op);
+void iotjs_pwmreqwrap_destroy(THIS);
+uv_work_t* iotjs_pwmreqwrap_req(THIS);
+const iotjs_jval_t* iotjs_pwmreqwrap_jcallback(THIS);
+iotjs_pwmreqwrap_t* iotjs_pwmreqwrap_from_request(uv_work_t* req);
+iotjs_pwmreqdata_t* iotjs_pwmreqwrap_data(THIS);
+#undef THIS
 
 
 // This Pwm class provides interfaces for PWM operation.
-class Pwm {
- public:
-  explicit Pwm(const iotjs_jval_t* jpwm);
-  virtual ~Pwm();
+typedef struct {
+  iotjs_jobjectwrap_t jobjectwrap;
+} IOTJS_VALIDATED_STRUCT(iotjs_pwm_t);
 
-  static Pwm* Create(const iotjs_jval_t* jpwm);
-  static Pwm* GetInstance();
-  static const iotjs_jval_t* GetJPwm();
-
-  virtual int InitializePwmPath(PwmReqWrap* req_wrap) = 0;
-  virtual int Export(PwmReqWrap* req_wrap) = 0;
-  virtual int SetPeriod(PwmReqWrap* req_wrap) = 0;
-  virtual int SetDutyCycle(PwmReqWrap* req_wrap) = 0;
-  virtual int SetEnable(PwmReqWrap* req_wrap) = 0;
-  virtual int Unexport(PwmReqWrap* req_wrap) = 0;
-
-  static void Delete(const uintptr_t data) {
-    delete ((Pwm*)data);
-  }
-
- protected:
-  iotjs_jobjectwrap_t _jobjectwrap;
-};
+iotjs_pwm_t* iotjs_pwm_create(const iotjs_jval_t* jpwm);
+void iotjs_pwm_destroy(iotjs_pwm_t* pwm);
+const iotjs_jval_t* iotjs_pwm_get_jpwm();
+iotjs_pwm_t* iotjs_pwm_get_instance();
+bool iotjs_pwm_initialized();
+void iotjs_pwm_set_initialized(iotjs_pwm_t* pwm, bool initialized);
 
 
-} // namespace iotjs
+int PwmInitializePwmPath(iotjs_pwmreqdata_t* req_data);
+void ExportWorker(uv_work_t* work_req);
+void SetPeriodWorker(uv_work_t* work_req);
+void SetDutyCycleWorker(uv_work_t* work_req);
+void SetEnableWorker(uv_work_t* work_req);
+void UnexportWorker(uv_work_t* work_req);
 
 
 #endif /* IOTJS_MODULE_PWM_H */

@@ -15,8 +15,7 @@
 cmake_minimum_required(VERSION 2.8)
 
 # Module Configuration - listup all possible modules
-file(GLOB IOTJS_MODULES_ALL ${CMAKE_SOURCE_DIR}/src/module/*.c
-                            ${CMAKE_SOURCE_DIR}/src/module/*.cpp)
+file(GLOB IOTJS_MODULES_ALL ${CMAKE_SOURCE_DIR}/src/module/*.c)
 separate_arguments(IOTJS_MODULES_ALL)
 foreach(module ${IOTJS_MODULES_ALL})
     get_filename_component(IOTJS_MODULENAME ${module} NAME_WE)
@@ -30,9 +29,8 @@ set(IOTJS_MODULE_SRC "")
 separate_arguments(IOTJS_MODULES)
 foreach(module ${IOTJS_MODULES})
     list(APPEND IOTJS_MODULE_SRC ${SRC_ROOT}/module/iotjs_module_${module}.c)
-    list(APPEND IOTJS_MODULE_SRC ${SRC_ROOT}/module/iotjs_module_${module}.cpp)
     set(PLATFORM_SRC "${SRC_ROOT}/platform/${PLATFORM_DESCRIPT}/iotjs_module")
-    set(PLATFORM_SRC "${PLATFORM_SRC}_${module}-${PLATFORM_DESCRIPT}.cpp")
+    set(PLATFORM_SRC "${PLATFORM_SRC}_${module}-${PLATFORM_DESCRIPT}.c")
     if(EXISTS "${PLATFORM_SRC}")
         list(APPEND IOTJS_MODULE_SRC ${PLATFORM_SRC})
     endif()
@@ -42,7 +40,7 @@ foreach(module ${IOTJS_MODULES})
 endforeach()
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    list(APPEND IOTJS_MODULE_SRC ${SRC_ROOT}/platform/iotjs_*-linux.cpp)
+    list(APPEND IOTJS_MODULE_SRC ${SRC_ROOT}/platform/iotjs_*-linux.c)
 endif()
 
 file(GLOB LIB_IOTJS_SRC ${SRC_ROOT}/*.c

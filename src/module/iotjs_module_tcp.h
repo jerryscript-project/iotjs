@@ -20,38 +20,16 @@
 #include "iotjs_binding.h"
 
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-
 typedef struct sockaddr sockaddr;
 typedef struct sockaddr_in sockaddr_in;
 typedef struct sockaddr_in6 sockaddr_in6;
 typedef struct sockaddr_storage sockaddr_storage;
 
-void DoClose(iotjs_jhandler_t* jhandler);
-void AfterClose(uv_handle_t* handle);
+
 void AddressToJS(const iotjs_jval_t* obj, const sockaddr* addr);
 
-#define GetSockNameFunction(wrap_type, handle_type, function) \
-  static void DoGetSockName(iotjs_jhandler_t* jhandler) { \
-    JHANDLER_CHECK_ARGS(1, object); \
-    \
-    wrap_type* wrap = \
-        wrap_type::FromJObject(JHANDLER_GET_THIS(object)); \
-    IOTJS_ASSERT(wrap != NULL); \
-    \
-    sockaddr_storage storage; \
-    int addrlen = sizeof(storage); \
-    sockaddr* const addr = (sockaddr*)(&storage); \
-    int err = function(wrap->handle_type(), addr, &addrlen); \
-    if (err == 0) \
-      AddressToJS(JHANDLER_GET_ARG(0, object), addr); \
-    iotjs_jhandler_return_number(jhandler, err); \
-  }
 
-#define GetSockNameFunctionTcp(wraptype, handletype, function) \
+#define GetSockNameFunction(wraptype, handletype, function) \
   static void DoGetSockName(iotjs_jhandler_t* jhandler) { \
     JHANDLER_CHECK_ARGS(1, object); \
     \
@@ -67,12 +45,6 @@ void AddressToJS(const iotjs_jval_t* obj, const sockaddr* addr);
       AddressToJS(JHANDLER_GET_ARG(0, object), addr); \
     iotjs_jhandler_return_number(jhandler, err); \
   }
-
-
-
-#ifdef __cplusplus
-} // extern "C"
-#endif
 
 
 #endif /* IOTJS_MODULE_TCP_H */

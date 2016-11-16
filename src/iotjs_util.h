@@ -20,10 +20,6 @@
 #include "iotjs_string.h"
 
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 // Return value should be released with iotjs_string_destroy()
 iotjs_string_t iotjs_file_read(const char* path);
 
@@ -36,11 +32,6 @@ void iotjs_buffer_release(char* buff);
 
 #define IOTJS_RELEASE(ptr) \
   iotjs_buffer_release((char*)ptr)
-
-
-#ifdef __cplusplus
-} // extern "C"
-#endif
 
 
 #endif /* IOTJS_UTIL_H */

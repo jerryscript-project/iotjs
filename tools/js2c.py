@@ -104,17 +104,9 @@ LICENSE = '''/* Copyright 2015-2016 Samsung Electronics Co., Ltd.
 
 HEADER1 = '''#ifndef IOTJS_JS_H
 #define IOTJS_JS_H
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 '''
 
 FOOTER1 = '''
-#ifdef __cplusplus
-}
-#endif
-
 #endif
 '''
 

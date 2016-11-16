@@ -1,4 +1,4 @@
-/* Copyright 2015 Samsung Electronics Co., Ltd.
+/* Copyright 2015-2016 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,11 +21,6 @@
 
 #include "iotjs_binding.h"
 #include "iotjs_objectwrap.h"
-
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 
 typedef void (*OnCloseHandler)(uv_handle_t*);
@@ -72,11 +67,6 @@ uv_handle_t* iotjs_handlewrap_get_uv_handle(iotjs_handlewrap_t* handlewrap);
 iotjs_jval_t* iotjs_handlewrap_jobject(iotjs_handlewrap_t* handlewrap);
 
 void iotjs_handlewrap_validate(iotjs_handlewrap_t* handlewrap);
-
-
-#ifdef __cplusplus
-} // extern "C"
-#endif
 
 
 #endif /* IOTJS_HANDLEWRAP_H */

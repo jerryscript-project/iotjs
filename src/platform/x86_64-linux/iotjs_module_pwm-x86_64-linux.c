@@ -1,4 +1,4 @@
-/* Copyright 2015 Samsung Electronics Co., Ltd.
+/* Copyright 2016 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,18 +16,7 @@
 
 #if defined(__LINUX__)
 
-#include "../iotjs_module_gpio-linux-general.inl.h"
-
-
-namespace iotjs {
-
-
-Gpio* Gpio::Create(const iotjs_jval_t* jgpio) {
-  return new GpioLinuxGeneral(jgpio);
-}
-
-
-} // namespace iotjs
-
+#include "iotjs_def.h"
+#include "../iotjs_module_pwm-linux-general.inl.h"
 
 #endif

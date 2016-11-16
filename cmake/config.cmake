@@ -15,7 +15,6 @@
 cmake_minimum_required(VERSION 2.8)
 
 set(CC ${CMAKE_C_COMPILER})
-set(CXX ${CMAKE_CXX_COMPILER})
 
 
 # common compile flags
@@ -27,12 +26,6 @@ set(CFLAGS_COMMON "${CFLAGS_COMMON} -Wno-unused-parameter")
 set(CFLAGS_COMMON "${CFLAGS_COMMON} -Wno-unused-variable")
 set(CFLAGS_COMMON "${CFLAGS_COMMON} -Wno-missing-field-initializers")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DCONFIG_WCHAR_BUILTIN")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-exceptions")
-
 
 set(IOTJS_CFLAGS "${IOTJS_CFLAGS} ${CFLAGS_COMMON}")
 set(IOTJS_LINK_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")

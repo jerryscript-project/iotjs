@@ -1,4 +1,4 @@
-/* Copyright 2015 Samsung Electronics Co., Ltd.
+/* Copyright 2015-2016 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,16 +57,9 @@ extern const char* iotjs_debug_prefix[4];
 
 #endif /* ENABLE_DEBUG_LOG */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 void init_debug_settings();
 void release_debug_settings();
-
-#ifdef __cplusplus
-} // extern "C"
-#endif
 
 
 #endif /* IOTJS_DEBUGLOG_H */

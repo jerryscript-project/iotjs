@@ -21,9 +21,6 @@
 #define DEVICE_IO_PIN_BUFFER_SIZE 10
 
 
-namespace iotjs {
-
-
 bool DeviceCheckPath(const char* path);
 
 bool DeviceOpenWriteClose(const char* path, char* value);
@@ -34,9 +31,6 @@ bool DeviceExport(const char* export_path, int value, const char* exported_path,
                   const char** created_files, int created_files_length);
 
 bool DeviceUnexport(const char* export_path, int value);
-
-
-} // namespace iotjs
 
 
 #endif /* IOTJS_DEVICE_IO_LINUX_GENERAL_H */

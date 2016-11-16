@@ -294,9 +294,6 @@ def inflate_cmake_option(cmake_opt, option, for_jerry=False):
 
     cmake_opt.append('-DCMAKE_C_FLAGS=' + ' '.join(compile_flags))
 
-    if not for_jerry:
-        cmake_opt.append('-DCMAKE_CXX_FLAGS=' + ' '.join(compile_flags))
-
     # link flags
     link_flags = []
 
@@ -315,7 +312,6 @@ def inflate_cmake_option(cmake_opt, option, for_jerry=False):
     include_dirs = []
     if option.target_os == 'nuttx' and option.nuttx_home:
         include_dirs.append('%s/include' % option.nuttx_home)
-        include_dirs.append('%s/include/cxx' % option.nuttx_home)
         if option.target_board == 'stm32f4dis':
             include_dirs.append('%s/arch/arm/src/stm32' % option.nuttx_home)
     include_dirs.extend(option.external_include_dir)
@@ -457,6 +453,7 @@ def build_libjerry(option):
 
     if option.target_os == 'linux':
         cmake_opt.append('-DJERRY_LIBC=OFF')
+        cmake_opt.append('-DJERRY_LIBM=OFF')
 
     # --jerry-heaplimit
     if option.jerry_heaplimit:
@@ -679,6 +676,8 @@ def build_iotjs(option):
                     ' '.join(option.external_static_lib))
 
     # --external_shared_lib
+    config_shared_libs = option.config['shared_libs']
+    option.external_shared_lib += config_shared_libs['os'][option.target_os]
     cmake_opt.append('-DEXTERNAL_SHARED_LIB=' +
                     ' '.join(option.external_shared_lib))
 

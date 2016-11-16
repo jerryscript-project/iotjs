@@ -22,9 +22,7 @@
 #include "iotjs_reqwrap.h"
 
 
-namespace iotjs {
-
-enum I2cOp {
+typedef enum {
   kI2cOpSetAddress,
   kI2cOpScan,
   kI2cOpOpen,
@@ -35,26 +33,18 @@ enum I2cOp {
   kI2cOpRead,
   kI2cOpReadByte,
   kI2cOpReadBlock,
-};
+} I2cOp;
 
-enum I2cError {
+typedef enum {
   kI2cErrOk = 0,
   kI2cErrOpen = -1,
   kI2cErrRead = -2,
   kI2cErrReadBlock = -3,
   kI2cErrWrite = -4,
-};
+} I2cError;
 
-class I2cReqWrap {
- public:
-  I2cReqWrap(const iotjs_jval_t* jcallback) {
-    iotjs_reqwrap_initialize(&_reqwrap, jcallback, (uv_req_t*)&_req, this);
-  }
 
-  ~I2cReqWrap() {
-    iotjs_reqwrap_destroy(&_reqwrap);
-  }
-
+typedef struct {
   iotjs_string_t device;
   char* buf_data;
   uint8_t buf_len;
@@ -64,52 +54,47 @@ class I2cReqWrap {
 
   I2cOp op;
   I2cError error;
+} iotjs_i2creqdata_t;
 
-  uv_work_t* req() {
-    return &_req;
-  }
 
-  const iotjs_jval_t* jcallback() {
-    return iotjs_reqwrap_jcallback(&_reqwrap);
-  }
+typedef struct {
+  iotjs_reqwrap_t reqwrap;
+  uv_work_t req;
+  iotjs_i2creqdata_t req_data;
+} IOTJS_VALIDATED_STRUCT(iotjs_i2creqwrap_t);
 
- protected:
-  iotjs_reqwrap_t _reqwrap;
-  uv_work_t _req;
-};
+
+#define THIS iotjs_i2creqwrap_t* i2creqwrap
+void iotjs_i2creqwrap_initialize(THIS, const iotjs_jval_t* jcallback, I2cOp op);
+void iotjs_i2creqwrap_destroy(THIS);
+uv_work_t* iotjs_i2creqwrap_req(THIS);
+const iotjs_jval_t* iotjs_i2creqwrap_jcallback(THIS);
+iotjs_i2creqwrap_t* iotjs_i2creqwrap_from_request(uv_work_t* req);
+iotjs_i2creqdata_t* iotjs_i2creqwrap_data(THIS);
+#undef THIS
 
 
 // This I2c class provides interfaces for I2C operation.
-class I2c {
- public:
-  explicit I2c(const iotjs_jval_t* ji2c);
-  virtual ~I2c();
+typedef struct {
+  iotjs_jobjectwrap_t jobjectwrap;
+} IOTJS_VALIDATED_STRUCT(iotjs_i2c_t);
 
-  static I2c* Create(const iotjs_jval_t* ji2c);
-  static I2c* GetInstance();
-  static const iotjs_jval_t* GetJI2c();
-
-  virtual int SetAddress(uint8_t address) = 0;
-  virtual int Scan(I2cReqWrap* req_wrap) = 0;
-  virtual int Open(I2cReqWrap* req_wrap) = 0;
-  virtual int Close() = 0;
-  virtual int Write(I2cReqWrap* req_wrap) = 0;
-  virtual int WriteByte(I2cReqWrap* req_wrap) = 0;
-  virtual int WriteBlock(I2cReqWrap* req_wrap) = 0;
-  virtual int Read(I2cReqWrap* req_wrap) = 0;
-  virtual int ReadByte(I2cReqWrap* req_wrap) = 0;
-  virtual int ReadBlock(I2cReqWrap* req_wrap) = 0;
-
-  static void Delete(const uintptr_t data) {
-    delete ((I2c*)data);
-  }
-
- protected:
-  iotjs_jobjectwrap_t _jobjectwrap;
-};
+iotjs_i2c_t* iotjs_i2c_create(const iotjs_jval_t* ji2c);
+void iotjs_i2c_destroy(iotjs_i2c_t* i2c);
+const iotjs_jval_t* iotjs_i2c_get_ji2c();
+iotjs_i2c_t* iotjs_i2c_get_instance();
 
 
-} // namespace iotjs
+void I2cSetAddress(uint8_t address);
+void ScanWorker(uv_work_t* work_req);
+void OpenWorker(uv_work_t* work_req);
+void I2cClose();
+void WriteWorker(uv_work_t* work_req);
+void WriteByteWorker(uv_work_t* work_req);
+void WriteBlockWorker(uv_work_t* work_req);
+void ReadWorker(uv_work_t* work_req);
+void ReadByteWorker(uv_work_t* work_req);
+void ReadBlockWorker(uv_work_t* work_req);
 
 
 #endif /* IOTJS_MODULE_I2C_H */

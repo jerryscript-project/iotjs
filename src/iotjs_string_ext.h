@@ -1,4 +1,4 @@
-/* Copyright 2015 Samsung Electronics Co., Ltd.
+/* Copyright 2015-2016 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,17 +17,7 @@
 #define IOTJS_STRING_EXT_H
 
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-
 void iotjs_register_jerry_magic_string(void);
-
-
-#ifdef __cplusplus
-} // extern "C"
-#endif
 
 
 #endif /* IOTJS_STRING_EXT_H */

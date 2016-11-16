@@ -16,8 +16,8 @@
 #include <string.h>
 
 #include "iotjs_def.h"
-#include "iotjs_objectwrap.h"
 #include "iotjs_module_gpio.h"
+#include "iotjs_objectwrap.h"
 
 
 #define THIS iotjs_gpioreqwrap_t* gpioreqwrap
@@ -121,34 +121,29 @@ void AfterGPIOWork(uv_work_t* work_req, int status) {
   iotjs_jargs_append_number(&jargs, result);
 
   switch (req_data->op) {
-    case kGpioOpInitize:
-    {
+    case kGpioOpInitize: {
       if (result == kGpioErrOk) {
         iotjs_gpio_set_initialized(gpio, true);
       }
       break;
     }
-    case kGpioOpRelease:
-    {
+    case kGpioOpRelease: {
       if (result == kGpioErrOk) {
         iotjs_gpio_set_initialized(gpio, false);
       }
       break;
     }
     case kGpioOpOpen:
-    case kGpioOpWrite:
-    {
+    case kGpioOpWrite: {
       break;
     }
-    case kGpioOpRead:
-    {
+    case kGpioOpRead: {
       if (result == kGpioErrOk) {
         iotjs_jargs_append_bool(&jargs, value);
       }
       break;
     }
-    default:
-    {
+    default: {
       IOTJS_ASSERT(!"Unreachable");
       break;
     }
@@ -165,12 +160,12 @@ void AfterGPIOWork(uv_work_t* work_req, int status) {
 }
 
 
-#define GPIO_ASYNC(op, initialized) \
-  do { \
-    IOTJS_ASSERT(iotjs_gpio_initialized() == initialized); \
+#define GPIO_ASYNC(op, initialized)                                    \
+  do {                                                                 \
+    IOTJS_ASSERT(iotjs_gpio_initialized() == initialized);             \
     uv_loop_t* loop = iotjs_environment_loop(iotjs_environment_get()); \
-    uv_work_t* req = iotjs_gpioreqwrap_req(req_wrap); \
-    uv_queue_work(loop, req, op ## GpioWorker, AfterGPIOWork); \
+    uv_work_t* req = iotjs_gpioreqwrap_req(req_wrap);                  \
+    uv_queue_work(loop, req, op##GpioWorker, AfterGPIOWork);           \
   } while (0)
 
 
@@ -211,13 +206,11 @@ JHANDLER_FUNCTION(Open) {
   GpioMode mode = (GpioMode)JHANDLER_GET_ARG(2, number);
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG(3, function);
 
-  if (dir < kGpioDirectionNone ||
-      dir > kGpioDirectionOut) {
+  if (dir < kGpioDirectionNone || dir > kGpioDirectionOut) {
     JHANDLER_THROW(TYPE, "Invalid GPIO direction");
     return;
   }
-  if (mode < kGpioModeNone ||
-      mode > kGpioModeOpendrain) {
+  if (mode < kGpioModeNone || mode > kGpioModeOpendrain) {
     JHANDLER_THROW(TYPE, "Invalid GPIO mode");
     return;
   }
@@ -287,8 +280,8 @@ iotjs_jval_t InitGpio() {
   iotjs_jval_set_method(&jgpio, "write", Write);
   iotjs_jval_set_method(&jgpio, "read", Read);
 
-#define SET_CONSTANT(object, constant) \
-  do { \
+#define SET_CONSTANT(object, constant)                           \
+  do {                                                           \
     iotjs_jval_set_property_number(object, #constant, constant); \
   } while (0)
 
@@ -312,8 +305,8 @@ iotjs_jval_t InitGpio() {
 #undef SET_CONSTANT
 
   iotjs_gpio_t* gpio = iotjs_gpio_create(&jgpio);
-  IOTJS_ASSERT(gpio == (iotjs_gpio_t*)(
-              iotjs_jval_get_object_native_handle(&jgpio)));
+  IOTJS_ASSERT(gpio ==
+               (iotjs_gpio_t*)(iotjs_jval_get_object_native_handle(&jgpio)));
 
   return jgpio;
 }

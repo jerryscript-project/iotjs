@@ -27,10 +27,10 @@ char* iotjs_buffer_allocate(unsigned size);
 char* iotjs_buffer_reallocate(char* buffer, unsigned size);
 void iotjs_buffer_release(char* buff);
 
-#define IOTJS_ALLOC(iotjs_classname_t) \
-  (iotjs_classname_t*) iotjs_buffer_allocate(sizeof(iotjs_classname_t))
+#define IOTJS_ALLOC(type) /* Allocate (type)-sized, (type*)-typed memory */ \
+  (type*)iotjs_buffer_allocate(sizeof(type))
 
-#define IOTJS_RELEASE(ptr) \
+#define IOTJS_RELEASE(ptr) /* Release memory allocated by IOTJS_ALLOC() */ \
   iotjs_buffer_release((char*)ptr)
 
 

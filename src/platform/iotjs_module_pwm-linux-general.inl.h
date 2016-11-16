@@ -17,9 +17,9 @@
 #define IOTJS_MODULE_PWM_LINUX_GENERAL_INL_H
 
 
-#include <string.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
 #include "iotjs_systemio-linux.h"
@@ -44,8 +44,8 @@
 bool SetPwmPeriod(iotjs_pwmreqdata_t* req_data) {
   IOTJS_ASSERT(!iotjs_string_is_empty(&req_data->device));
 
-  char path_buff[64] = {0};
-  char value_buff[32] = {0};
+  char path_buff[64] = { 0 };
+  char value_buff[32] = { 0 };
 
   strcat(path_buff, iotjs_string_data(&req_data->device));
   strcat(path_buff, PWM_PIN_PERIOD);
@@ -66,14 +66,14 @@ bool SetPwmPeriod(iotjs_pwmreqdata_t* req_data) {
 bool SetPwmDutyCycle(iotjs_pwmreqdata_t* req_data) {
   IOTJS_ASSERT(!iotjs_string_is_empty(&req_data->device));
 
-  char path_buff[64] = {0};
-  char value_buff[32] = {0};
+  char path_buff[64] = { 0 };
+  char value_buff[32] = { 0 };
 
   strcat(path_buff, iotjs_string_data(&req_data->device));
   strcat(path_buff, PWM_PIN_DUTYCYCLE);
 
-  DDDLOG("PWM SetdutyCycle - path: %s, value: %d",
-         path_buff, req_data->duty_cycle);
+  DDDLOG("PWM SetdutyCycle - path: %s, value: %d", path_buff,
+         req_data->duty_cycle);
 
   snprintf(value_buff, 31, "%d", req_data->duty_cycle);
 
@@ -85,7 +85,7 @@ bool SetPwmDutyCycle(iotjs_pwmreqdata_t* req_data) {
 }
 
 
-#define PWM_WORKER_INIT_TEMPLATE \
+#define PWM_WORKER_INIT_TEMPLATE                                          \
   iotjs_pwmreqwrap_t* req_wrap = iotjs_pwmreqwrap_from_request(work_req); \
   iotjs_pwmreqdata_t* req_data = iotjs_pwmreqwrap_data(req_wrap);
 
@@ -93,10 +93,9 @@ bool SetPwmDutyCycle(iotjs_pwmreqdata_t* req_data) {
 int PwmInitializePwmPath(iotjs_pwmreqdata_t* req_data) {
   int32_t chip_number, pwm_number;
   const char* path = iotjs_string_data(&req_data->device);
-  char buffer[64] = {0};
+  char buffer[64] = { 0 };
 
   if (sscanf(path, PWM_PIN_FORMAT, &chip_number, &pwm_number) == 2) {
-
   } else if (sscanf(path, "%d", &pwm_number) == 1) {
     chip_number = PWM_DEFAULT_CHIP_NUMBER;
   } else {
@@ -130,11 +129,11 @@ void ExportWorker(uv_work_t* work_req) {
     }
 
     // Write export pwm
-    char buffer[64] = {0};
+    char buffer[64] = { 0 };
     snprintf(buffer, 63, PWM_EXPORT, chip_number);
 
-    const char* created_files[] = {PWM_PIN_DUTYCYCLE, PWM_PIN_PERIOD,
-                                   PWM_PIN_ENABlE};
+    const char* created_files[] = { PWM_PIN_DUTYCYCLE, PWM_PIN_PERIOD,
+                                    PWM_PIN_ENABlE };
     int created_files_length = sizeof(created_files) / sizeof(created_files[0]);
     if (!DeviceExport(buffer, pwm_number, path, created_files,
                       created_files_length)) {
@@ -200,7 +199,7 @@ void SetEnableWorker(uv_work_t* work_req) {
   iotjs_string_append(&req_data->device, PWM_PIN_ENABlE, -1);
   const char* path = iotjs_string_data(&req_data->device);
 
-  char buff[10] = {0};
+  char buff[10] = { 0 };
   snprintf(buff, 9, "%d", req_data->enable);
   if (!DeviceOpenWriteClose(path, buff)) {
     req_data->result = kPwmErrWrite;
@@ -225,7 +224,7 @@ void UnexportWorker(uv_work_t* work_req) {
   if (DeviceCheckPath(path)) {
     sscanf(path, PWM_PIN_FORMAT, &chip_number, &pwm_number);
     // Write export pin
-    char buffer[64] = {0};
+    char buffer[64] = { 0 };
     snprintf(buffer, 63, PWM_UNEXPORT, chip_number);
 
     DeviceUnexport(buffer, pwm_number);

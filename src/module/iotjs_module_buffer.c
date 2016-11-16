@@ -25,8 +25,7 @@ iotjs_bufferwrap_t* iotjs_bufferwrap_create(const iotjs_jval_t* jbuiltin,
   iotjs_bufferwrap_t* bufferwrap = IOTJS_ALLOC(iotjs_bufferwrap_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_bufferwrap_t, bufferwrap);
 
-  iotjs_jobjectwrap_initialize(&_this->jobjectwrap,
-                               jbuiltin,
+  iotjs_jobjectwrap_initialize(&_this->jobjectwrap, jbuiltin,
                                (JFreeHandlerType)iotjs_bufferwrap_destroy);
   if (length > 0) {
     _this->length = length;
@@ -37,8 +36,9 @@ iotjs_bufferwrap_t* iotjs_bufferwrap_create(const iotjs_jval_t* jbuiltin,
     _this->buffer = NULL;
   }
 
-  IOTJS_ASSERT(bufferwrap ==
-          (iotjs_bufferwrap_t*)(iotjs_jval_get_object_native_handle(jbuiltin)));
+  IOTJS_ASSERT(
+      bufferwrap ==
+      (iotjs_bufferwrap_t*)(iotjs_jval_get_object_native_handle(jbuiltin)));
 
   return bufferwrap;
 }
@@ -149,8 +149,7 @@ size_t iotjs_bufferwrap_copy_internal(iotjs_bufferwrap_t* bufferwrap,
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_bufferwrap_t, bufferwrap);
   size_t copied = 0;
   size_t dst_length = _this->length;
-  for (size_t i = src_from, j = dst_from;
-       i < src_to && j < dst_length;
+  for (size_t i = src_from, j = dst_from; i < src_to && j < dst_length;
        ++i, ++j) {
     *(_this->buffer + j) = *(src + i);
     ++copied;
@@ -159,8 +158,8 @@ size_t iotjs_bufferwrap_copy_internal(iotjs_bufferwrap_t* bufferwrap,
 }
 
 
-size_t iotjs_bufferwrap_copy(iotjs_bufferwrap_t* bufferwrap,
-                             const char* src, size_t len) {
+size_t iotjs_bufferwrap_copy(iotjs_bufferwrap_t* bufferwrap, const char* src,
+                             size_t len) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_bufferwrap_t, bufferwrap);
   return iotjs_bufferwrap_copy_internal(bufferwrap, src, 0, len, 0);
 }
@@ -175,8 +174,8 @@ iotjs_jval_t iotjs_bufferwrap_create_buffer(size_t len) {
   iotjs_jargs_t jargs = iotjs_jargs_create(1);
   iotjs_jargs_append_number(&jargs, len);
 
-  iotjs_jval_t jres = iotjs_jhelper_call_ok(&jbuffer,
-                                            iotjs_jval_get_undefined(), &jargs);
+  iotjs_jval_t jres =
+      iotjs_jhelper_call_ok(&jbuffer, iotjs_jval_get_undefined(), &jargs);
   IOTJS_ASSERT(iotjs_jval_is_object(&jres));
 
   iotjs_jargs_destroy(&jargs);
@@ -245,11 +244,8 @@ JHANDLER_FUNCTION(Copy) {
   }
 
   const char* src_data = iotjs_bufferwrap_buffer(src_buffer_wrap);
-  size_t copied = iotjs_bufferwrap_copy_internal(dst_buffer_wrap,
-                                                 src_data,
-                                                 src_start,
-                                                 src_end,
-                                                 dst_start);
+  size_t copied = iotjs_bufferwrap_copy_internal(dst_buffer_wrap, src_data,
+                                                 src_start, src_end, dst_start);
 
   iotjs_jhandler_return_number(jhandler, copied);
 }
@@ -272,11 +268,8 @@ JHANDLER_FUNCTION(Write) {
   length = bound_range(length, 0, iotjs_string_size(&src));
 
   const char* src_data = iotjs_string_data(&src);
-  size_t copied = iotjs_bufferwrap_copy_internal(buffer_wrap,
-                                                 src_data,
-                                                 0,
-                                                 length,
-                                                 offset);
+  size_t copied =
+      iotjs_bufferwrap_copy_internal(buffer_wrap, src_data, 0, length, offset);
 
   iotjs_jhandler_return_number(jhandler, copied);
 
@@ -314,10 +307,8 @@ JHANDLER_FUNCTION(Slice) {
   iotjs_bufferwrap_t* new_buffer_wrap =
       iotjs_bufferwrap_from_jbuffer(&jnew_buffer);
   iotjs_bufferwrap_copy_internal(new_buffer_wrap,
-                                 iotjs_bufferwrap_buffer(buffer_wrap),
-                                 start,
-                                 end,
-                                 0);
+                                 iotjs_bufferwrap_buffer(buffer_wrap), start,
+                                 end, 0);
 
   iotjs_jhandler_return_jval(jhandler, &jnew_buffer);
   iotjs_jval_destroy(&jnew_buffer);

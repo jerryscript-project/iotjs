@@ -16,13 +16,13 @@
 #include "iotjs_def.h"
 
 #include "iotjs.h"
+#include "iotjs_handlewrap.h"
 #include "iotjs_js.h"
 #include "iotjs_string_ext.h"
-#include "iotjs_handlewrap.h"
 
 #include "jerry-api.h"
-#include "jerry-port.h"
 #include "jerry-port-default.h"
+#include "jerry-port.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -46,7 +46,7 @@ static bool iotjs_jerry_initialize(const iotjs_environment_t* env) {
   }
 
   // Initialize jerry.
-  jerry_init((jerry_init_flag_t) jerry_flag);
+  jerry_init((jerry_init_flag_t)jerry_flag);
 
   // Set magic strings.
   iotjs_register_jerry_magic_string();
@@ -194,7 +194,7 @@ int iotjs_entry(int argc, char** argv) {
   }
 
   // close uv loop.
-  //uv_stop(iotjs_environment_loop(env));
+  // uv_stop(iotjs_environment_loop(env));
   uv_walk(iotjs_environment_loop(env), iotjs_uv_walk_to_close_callback, NULL);
   uv_run(iotjs_environment_loop(env), UV_RUN_DEFAULT);
 

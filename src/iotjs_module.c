@@ -29,17 +29,17 @@ static iotjs_module_t modules[MODULE_COUNT];
 
 
 #define DECLARE_MODULE_INITIALIZER(upper, Camel, lower) \
-iotjs_jval_t Init ## Camel();
+  iotjs_jval_t Init##Camel();
 
 MAP_MODULE_LIST(DECLARE_MODULE_INITIALIZER)
 
 #undef DECLARE_MODULE_INITIALIZER
 
 
-#define INIT_MODULE_LIST(upper, Camel, lower) \
-  modules[MODULE_ ## upper].kind = MODULE_ ## upper; \
-  modules[MODULE_ ## upper].jmodule = *iotjs_jval_get_undefined(); \
-  modules[MODULE_ ## upper].fn_register = Init ## Camel;
+#define INIT_MODULE_LIST(upper, Camel, lower)                    \
+  modules[MODULE_##upper].kind = MODULE_##upper;                 \
+  modules[MODULE_##upper].jmodule = *iotjs_jval_get_undefined(); \
+  modules[MODULE_##upper].fn_register = Init##Camel;
 
 void iotjs_module_list_init() {
   MAP_MODULE_LIST(INIT_MODULE_LIST)
@@ -48,9 +48,9 @@ void iotjs_module_list_init() {
 #undef INIT_MODULE_LIST
 
 
-#define CLENUP_MODULE_LIST(upper, Camel, lower) \
-  if (!iotjs_jval_is_undefined(&modules[MODULE_ ## upper].jmodule)) \
-    iotjs_jval_destroy(&modules[MODULE_ ## upper].jmodule); \
+#define CLENUP_MODULE_LIST(upper, Camel, lower)                   \
+  if (!iotjs_jval_is_undefined(&modules[MODULE_##upper].jmodule)) \
+    iotjs_jval_destroy(&modules[MODULE_##upper].jmodule);
 
 void iotjs_module_list_cleanup() {
   MAP_MODULE_LIST(CLENUP_MODULE_LIST)

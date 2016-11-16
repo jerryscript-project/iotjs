@@ -15,12 +15,12 @@
 
 
 #include "iotjs_def.h"
-#include "http_parser.h"
-#include "iotjs_objectwrap.h"
 #include "iotjs_module_buffer.h"
-#include <string.h>
-#include <stdlib.h>
+#include "iotjs_objectwrap.h"
+#include "http_parser.h"
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 // If # of header fields == HEADER_MAX, flush header to JS side.
@@ -56,8 +56,8 @@ typedef struct {
 typedef enum http_parser_type http_parser_type;
 #define THIS iotjs_httpparserwrap_t* httpparserwrap
 
-iotjs_httpparserwrap_t* iotjs_httpparserwrap_create(
-    const iotjs_jval_t* jparser, http_parser_type type);
+iotjs_httpparserwrap_t* iotjs_httpparserwrap_create(const iotjs_jval_t* jparser,
+                                                    http_parser_type type);
 void iotjs_httpparserwrap_destroy(THIS);
 
 void iotjs_httpparserwrap_initialize(THIS, http_parser_type type);
@@ -80,13 +80,12 @@ void iotjs_httpparserwrap_set_buf(THIS, iotjs_jval_t* jbuf, char* buf, int sz);
 iotjs_jval_t* iotjs_httpparserwrap_jobject(THIS);
 http_parser* iotjs_httpparserwrap_parser(THIS);
 
-iotjs_httpparserwrap_t* iotjs_httpparserwrap_create(
-    const iotjs_jval_t* jparser, http_parser_type type) {
+iotjs_httpparserwrap_t* iotjs_httpparserwrap_create(const iotjs_jval_t* jparser,
+                                                    http_parser_type type) {
   iotjs_httpparserwrap_t* httpparserwrap = IOTJS_ALLOC(iotjs_httpparserwrap_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_httpparserwrap_t, httpparserwrap);
 
-  iotjs_jobjectwrap_initialize(&_this->jobjectwrap,
-                               jparser,
+  iotjs_jobjectwrap_initialize(&_this->jobjectwrap, jparser,
                                (JFreeHandlerType)iotjs_httpparserwrap_destroy);
 
   _this->url = iotjs_string_create("");
@@ -109,8 +108,8 @@ void iotjs_httpparserwrap_destroy(THIS) {
   iotjs_string_destroy(&_this->url);
   iotjs_string_destroy(&_this->status_msg);
   for (size_t i = 0; i < HEADER_MAX; i++) {
-      iotjs_string_destroy(&_this->fields[i]);
-      iotjs_string_destroy(&_this->values[i]);
+    iotjs_string_destroy(&_this->fields[i]);
+    iotjs_string_destroy(&_this->values[i]);
   }
   iotjs_jobjectwrap_destroy(&_this->jobjectwrap);
 
@@ -167,10 +166,10 @@ int iotjs_httpparserwrap_on_header_field(THIS, const char* at, size_t length) {
       _this->n_fields = 1;
       _this->n_values = 0;
     }
-    iotjs_string_make_empty(&_this->fields[_this->n_fields-1]);
+    iotjs_string_make_empty(&_this->fields[_this->n_fields - 1]);
   }
   IOTJS_ASSERT(_this->n_fields == _this->n_values + 1);
-  iotjs_string_append(&_this->fields[_this->n_fields-1], at, length);
+  iotjs_string_append(&_this->fields[_this->n_fields - 1], at, length);
 
   return 0;
 }
@@ -180,12 +179,12 @@ int iotjs_httpparserwrap_on_header_value(THIS, const char* at, size_t length) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_httpparserwrap_t, httpparserwrap);
   if (_this->n_fields != _this->n_values) {
     _this->n_values++;
-    iotjs_string_make_empty(&_this->values[_this->n_values-1]);
+    iotjs_string_make_empty(&_this->values[_this->n_values - 1]);
   }
 
   IOTJS_ASSERT(_this->n_fields == _this->n_values);
 
-  iotjs_string_append(&_this->values[_this->n_values-1], at, length);
+  iotjs_string_append(&_this->values[_this->n_values - 1], at, length);
 
   return 0;
 }
@@ -238,7 +237,7 @@ int iotjs_httpparserwrap_on_headers_complete(THIS) {
   iotjs_jval_set_property_boolean(&info, "upgrade", _this->parser.upgrade);
   // shouldkeepalive
   iotjs_jval_set_property_boolean(&info, "shouldkeepalive",
-      http_should_keep_alive(&_this->parser));
+                                  http_should_keep_alive(&_this->parser));
 
 
   iotjs_jargs_append_jval(&argv, &info);
@@ -357,21 +356,23 @@ http_parser* iotjs_httpparserwrap_parser(THIS) {
 #undef THIS
 
 
-#define HTTP_CB(name)                                                          \
-int name(http_parser* parser) {                                                \
-  iotjs_httpparserwrap_t* container = (iotjs_httpparserwrap_t*)(parser->data); \
-  return iotjs_httpparserwrap_##name(container);                               \
-}                                                                              \
+#define HTTP_CB(name)                              \
+  int name(http_parser* parser) {                  \
+    iotjs_httpparserwrap_t* container =            \
+        (iotjs_httpparserwrap_t*)(parser->data);   \
+    return iotjs_httpparserwrap_##name(container); \
+  }
 
 
-#define HTTP_DATA_CB(name)                                                     \
-int name(http_parser* parser, const char* at, size_t length) {                 \
-  iotjs_httpparserwrap_t* container = (iotjs_httpparserwrap_t*)(parser->data); \
-  return iotjs_httpparserwrap_##name(container, at, length);                   \
-}                                                                              \
+#define HTTP_DATA_CB(name)                                       \
+  int name(http_parser* parser, const char* at, size_t length) { \
+    iotjs_httpparserwrap_t* container =                          \
+        (iotjs_httpparserwrap_t*)(parser->data);                 \
+    return iotjs_httpparserwrap_##name(container, at, length);   \
+  }
 
 
-//http-parser callbacks
+// http-parser callbacks
 HTTP_CB(on_message_begin);
 HTTP_DATA_CB(on_url);
 HTTP_DATA_CB(on_status);
@@ -383,14 +384,10 @@ HTTP_CB(on_message_complete);
 
 
 const struct http_parser_settings settings = {
-  on_message_begin,
-  on_url,
-  on_status,
-  on_header_field,
-  on_header_value,
-  on_headers_complete,
-  on_body,
-  on_message_complete,
+  on_message_begin, on_url,
+  on_status,        on_header_field,
+  on_header_value,  on_headers_complete,
+  on_body,          on_message_complete,
 };
 
 
@@ -407,7 +404,7 @@ JHANDLER_FUNCTION(Reinitialize) {
   const iotjs_jval_t* jparser = JHANDLER_GET_THIS(object);
 
   http_parser_type httpparser_type =
-    (http_parser_type)(JHANDLER_GET_ARG(0, number));
+      (http_parser_type)(JHANDLER_GET_ARG(0, number));
   IOTJS_ASSERT(httpparser_type == HTTP_REQUEST ||
                httpparser_type == HTTP_RESPONSE);
 
@@ -503,7 +500,7 @@ JHANDLER_FUNCTION(HTTPParserCons) {
   const iotjs_jval_t* jparser = JHANDLER_GET_THIS(object);
 
   http_parser_type httpparser_type =
-    (http_parser_type)(JHANDLER_GET_ARG(0, number));
+      (http_parser_type)(JHANDLER_GET_ARG(0, number));
   IOTJS_ASSERT(httpparser_type == HTTP_REQUEST ||
                httpparser_type == HTTP_RESPONSE);
   iotjs_httpparserwrap_t* parser =
@@ -523,7 +520,7 @@ iotjs_jval_t InitHttpparser() {
   iotjs_jval_set_property_number(&jParserCons, "RESPONSE", HTTP_RESPONSE);
 
   iotjs_jval_t methods = iotjs_jval_create_object();
-#define V(num, name, string)                                                  \
+#define V(num, name, string) \
   iotjs_jval_set_property_string_raw(&methods, #num, #string);
   HTTP_METHOD_MAP(V)
 #undef V

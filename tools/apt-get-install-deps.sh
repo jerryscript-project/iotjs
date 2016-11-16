@@ -16,4 +16,4 @@
 
 sudo apt-get update -q
 sudo apt-get install -q -y \
-    cmake g++ valgrind
+    cmake g++ valgrind clang-format-3.8

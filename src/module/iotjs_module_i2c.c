@@ -15,8 +15,8 @@
 
 
 #include "iotjs_def.h"
-#include "iotjs_objectwrap.h"
 #include "iotjs_module_i2c.h"
+#include "iotjs_objectwrap.h"
 
 
 #define THIS iotjs_i2creqwrap_t* i2creqwrap
@@ -108,8 +108,7 @@ void AfterI2CWork(uv_work_t* work_req, int status) {
     iotjs_jval_destroy(&error);
   } else {
     switch (req_data->op) {
-      case kI2cOpOpen:
-      {
+      case kI2cOpOpen: {
         if (req_data->error == kI2cErrOpen) {
           iotjs_jval_t error =
               iotjs_jval_create_error("Failed to open I2C device");
@@ -120,11 +119,10 @@ void AfterI2CWork(uv_work_t* work_req, int status) {
         }
         break;
       }
-      case kI2cOpScan:
-      {
+      case kI2cOpScan: {
         iotjs_jargs_append_null(&jargs);
-        iotjs_jval_t result = iotjs_jval_create_byte_array(req_data->buf_len,
-                                                           req_data->buf_data);
+        iotjs_jval_t result =
+            iotjs_jval_create_byte_array(req_data->buf_len, req_data->buf_data);
         iotjs_jargs_append_jval(&jargs, &result);
         iotjs_jval_destroy(&result);
 
@@ -135,8 +133,7 @@ void AfterI2CWork(uv_work_t* work_req, int status) {
       }
       case kI2cOpWrite:
       case kI2cOpWriteByte:
-      case kI2cOpWriteBlock:
-      {
+      case kI2cOpWriteBlock: {
         if (req_data->error == kI2cErrWrite) {
           iotjs_jval_t error =
               iotjs_jval_create_error("Cannot write to device");
@@ -148,8 +145,7 @@ void AfterI2CWork(uv_work_t* work_req, int status) {
         break;
       }
       case kI2cOpRead:
-      case kI2cOpReadBlock:
-      {
+      case kI2cOpReadBlock: {
         if (req_data->error == kI2cErrRead) {
           iotjs_jval_t error =
               iotjs_jval_create_error("Cannot read from device");
@@ -180,8 +176,7 @@ void AfterI2CWork(uv_work_t* work_req, int status) {
         }
         break;
       }
-      case kI2cOpReadByte:
-      {
+      case kI2cOpReadByte: {
         if (req_data->error == kI2cErrRead) {
           iotjs_jval_t error =
               iotjs_jval_create_error("Cannot read from device");
@@ -194,8 +189,7 @@ void AfterI2CWork(uv_work_t* work_req, int status) {
         }
         break;
       }
-      default:
-      {
+      default: {
         IOTJS_ASSERT(!"Unreachable");
         break;
       }
@@ -233,11 +227,11 @@ static void GetI2cArray(const iotjs_jval_t* jarray,
 }
 
 
-#define I2C_ASYNC(op) \
-  do { \
+#define I2C_ASYNC(op)                                                  \
+  do {                                                                 \
     uv_loop_t* loop = iotjs_environment_loop(iotjs_environment_get()); \
-    uv_work_t* req = iotjs_i2creqwrap_req(req_wrap); \
-    uv_queue_work(loop, req, op ## Worker, AfterI2CWork); \
+    uv_work_t* req = iotjs_i2creqwrap_req(req_wrap);                   \
+    uv_queue_work(loop, req, op##Worker, AfterI2CWork);                \
   } while (0)
 
 
@@ -411,8 +405,8 @@ iotjs_jval_t InitI2c() {
   iotjs_jval_set_method(&ji2c, "readBlock", ReadBlock);
 
   iotjs_i2c_t* i2c = iotjs_i2c_create(&ji2c);
-  IOTJS_ASSERT(i2c == (iotjs_i2c_t*)(
-              iotjs_jval_get_object_native_handle(&ji2c)));
+  IOTJS_ASSERT(i2c ==
+               (iotjs_i2c_t*)(iotjs_jval_get_object_native_handle(&ji2c)));
 
   return ji2c;
 }

@@ -59,8 +59,7 @@ typedef struct {
 
 
 #define THIS iotjs_pwmreqwrap_t* pwmreqwrap
-void iotjs_pwmreqwrap_initialize(THIS, const iotjs_jval_t* jcallback,
-                                 PwmOp op);
+void iotjs_pwmreqwrap_initialize(THIS, const iotjs_jval_t* jcallback, PwmOp op);
 void iotjs_pwmreqwrap_destroy(THIS);
 uv_work_t* iotjs_pwmreqwrap_req(THIS);
 const iotjs_jval_t* iotjs_pwmreqwrap_jcallback(THIS);

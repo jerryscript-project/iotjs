@@ -28,7 +28,7 @@ typedef enum {
   kInitializing,
   kRunningMain,
   kRunningLoop,
-  kExiting
+  kExiting,
 } State;
 
 

@@ -20,6 +20,7 @@ import fileinput
 
 from check_license import CheckLicenser
 from common_py.system.filesystem import FileSystem as fs
+from common_py.system.executor import Executor as ex
 
 TERM_RED = "\033[1;31m"
 TERM_YELLOW = "\033[1;33m"
@@ -32,9 +33,11 @@ column_limit = 80
 
 count_err = 0
 
-interesting_exts = ['.c', '.cpp', '.cc', '.h', '.js', '.py', '.sh', '.cmake']
+interesting_exts = ['.c', '.h', '.js', '.py', '.sh', '.cmake']
+clang_format_exts = ['.c', '.h']
 skip_dirs = ['deps', 'build']
-skip_files = ['check_signed_off.sh', '__init__.py']
+skip_files = ['check_signed_off.sh', '__init__.py',
+              'iotjs_js.c', 'iotjs_js.h', 'iotjs_string_ext.inl.h']
 
 
 def report_error_name_line(name, line, msg):
@@ -55,6 +58,11 @@ def is_interesting(file):
     return ext in interesting_exts and file not in skip_files
 
 
+def is_checked_by_clang(file):
+    _, ext = fs.splitext(file)
+    return ext in clang_format_exts and file not in skip_files
+
+
 def check_tidy(src_dir):
     count_lines = 0
     count_empty_lines = 0
@@ -68,6 +76,17 @@ def check_tidy(src_dir):
 
         if not files:
             continue
+
+        for file in files:
+            if is_checked_by_clang(file):
+                formatted = ex.run_cmd_output(' '.join(['clang-format-3.8',
+                                                        '-style=file', file]),
+                                              quiet=True)
+                f = open(file + '.formatted', 'w')
+                f.write(formatted)
+                f.close()
+                ex.check_run_cmd('diff', [file, file+'.formatted'], quiet=True)
+                fs.remove(file + '.formatted')
 
         for line in fileinput.input(files):
             if '\t' in line:

@@ -43,7 +43,6 @@ JHANDLER_FUNCTION(IsAliveExceptFor) {
     bool ret = true;
     bool alive = !has_active_reqs && !has_closing_handler;
     if (alive) {
-
       int active_handlers = loop->active_handles;
       if (active_handlers == 1) {
         const uv_timer_t* timer_handle = iotjs_timerwrap_handle(timer_wrap);
@@ -63,7 +62,6 @@ JHANDLER_FUNCTION(IsAliveExceptFor) {
 
 
 iotjs_jval_t InitTestdriver() {
-
   iotjs_jval_t testdriver = iotjs_jval_create_object();
   iotjs_jval_set_method(&testdriver, "isAliveExceptFor", IsAliveExceptFor);
 

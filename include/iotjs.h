@@ -18,9 +18,9 @@
 
 
 #ifdef __cplusplus
-# define IOTJS_EXTERN_C extern "C"
+#define IOTJS_EXTERN_C extern "C"
 #else /* !__cplusplus */
-# define IOTJS_EXTERN_C extern
+#define IOTJS_EXTERN_C extern
 #endif /* !__cplusplus */
 
 

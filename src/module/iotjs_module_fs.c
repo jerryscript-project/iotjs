@@ -30,9 +30,7 @@ typedef struct {
 void iotjs_fsreqwrap_initialize(iotjs_fsreqwrap_t* fsreqwrap,
                                 const iotjs_jval_t* jcallback) {
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_fsreqwrap_t, fsreqwrap);
-  iotjs_reqwrap_initialize(&_this->reqwrap,
-                           jcallback,
-                           (uv_req_t*)&_this->req,
+  iotjs_reqwrap_initialize(&_this->reqwrap, jcallback, (uv_req_t*)&_this->req,
                            fsreqwrap);
 }
 
@@ -74,19 +72,16 @@ static void AfterAsync(uv_fs_t* req) {
   } else {
     iotjs_jargs_append_null(&jarg);
     switch (req->fs_type) {
-      case UV_FS_CLOSE:
-      {
+      case UV_FS_CLOSE: {
         break;
       }
       case UV_FS_OPEN:
       case UV_FS_READ:
-      case UV_FS_WRITE:
-      {
+      case UV_FS_WRITE: {
         iotjs_jargs_append_number(&jarg, req->result);
         break;
       }
-      case UV_FS_SCANDIR:
-      {
+      case UV_FS_SCANDIR: {
         int r;
         uv_dirent_t ent;
         uint32_t idx = 0;
@@ -180,29 +175,25 @@ static void AfterSync(uv_fs_t* req, int err, const char* syscall_name,
 }
 
 
-#define FS_ASYNC(env, syscall, pcallback, ...) \
-  iotjs_fsreqwrap_t* req_wrap = IOTJS_ALLOC(iotjs_fsreqwrap_t); \
-  iotjs_fsreqwrap_initialize(req_wrap, pcallback); \
-  uv_fs_t* fs_req = iotjs_fsreqwrap_req(req_wrap); \
-  int err = uv_fs_ ## syscall(iotjs_environment_loop(env), \
-                              fs_req, \
-                              __VA_ARGS__, \
-                              AfterAsync); \
-  if (err < 0) { \
-    fs_req->result = err; \
-    AfterAsync(fs_req); \
-  } \
+#define FS_ASYNC(env, syscall, pcallback, ...)                                \
+  iotjs_fsreqwrap_t* req_wrap = IOTJS_ALLOC(iotjs_fsreqwrap_t);               \
+  iotjs_fsreqwrap_initialize(req_wrap, pcallback);                            \
+  uv_fs_t* fs_req = iotjs_fsreqwrap_req(req_wrap);                            \
+  int err = uv_fs_##syscall(iotjs_environment_loop(env), fs_req, __VA_ARGS__, \
+                            AfterAsync);                                      \
+  if (err < 0) {                                                              \
+    fs_req->result = err;                                                     \
+    AfterAsync(fs_req);                                                       \
+  }                                                                           \
   iotjs_jhandler_return_null(jhandler);
 
 
-#define FS_SYNC(env, syscall, ...) \
-  iotjs_fsreqwrap_t req_wrap; \
-  iotjs_fsreqwrap_initialize(&req_wrap, iotjs_jval_get_null()); \
-  uv_fs_t* fs_req = iotjs_fsreqwrap_req(&req_wrap); \
-  int err = uv_fs_ ## syscall(iotjs_environment_loop(env), \
-                              fs_req, \
-                              __VA_ARGS__, \
-                              NULL); \
+#define FS_SYNC(env, syscall, ...)                                             \
+  iotjs_fsreqwrap_t req_wrap;                                                  \
+  iotjs_fsreqwrap_initialize(&req_wrap, iotjs_jval_get_null());                \
+  uv_fs_t* fs_req = iotjs_fsreqwrap_req(&req_wrap);                            \
+  int err =                                                                    \
+      uv_fs_##syscall(iotjs_environment_loop(env), fs_req, __VA_ARGS__, NULL); \
   AfterSync(fs_req, err, #syscall, jhandler);
 
 
@@ -333,7 +324,7 @@ iotjs_jval_t MakeStatObject(uv_stat_t* statbuf) {
   iotjs_jval_t jstat = iotjs_jval_create_object();
 
 #define X(statobj, name) \
-  iotjs_jval_set_property_number(statobj, #name, statbuf->st_##name); \
+  iotjs_jval_set_property_number(statobj, #name, statbuf->st_##name);
 
   X(&jstat, dev)
   X(&jstat, mode)
@@ -352,8 +343,8 @@ iotjs_jval_t MakeStatObject(uv_stat_t* statbuf) {
   iotjs_jargs_append_jval(&jargs, &jstat);
   iotjs_jval_destroy(&jstat);
 
-  iotjs_jval_t res = iotjs_jhelper_call_ok(&create_stat,
-                                           iotjs_jval_get_undefined(), &jargs);
+  iotjs_jval_t res =
+      iotjs_jhelper_call_ok(&create_stat, iotjs_jval_get_undefined(), &jargs);
 
   iotjs_jargs_destroy(&jargs);
   iotjs_jval_destroy(&create_stat);
@@ -380,7 +371,6 @@ JHANDLER_FUNCTION(Stat) {
 
   iotjs_string_destroy(&path);
 }
-
 
 
 JHANDLER_FUNCTION(MkDir) {

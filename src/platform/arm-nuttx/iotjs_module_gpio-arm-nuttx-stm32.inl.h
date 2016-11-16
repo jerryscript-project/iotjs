@@ -16,8 +16,8 @@
 #ifndef IOTJS_MODULE_GPIO_ARM_NUTTX_STM32_INL_H
 #define IOTJS_MODULE_GPIO_ARM_NUTTX_STM32_INL_H
 
-#include "stm32_gpio.h"
 #include "module/iotjs_module_gpio.h"
+#include "stm32_gpio.h"
 
 #define GPIO_FREQUENCY_DEFAULT GPIO_SPEED_25MHz
 #define GPIO_PINCNT_IN_NUTTXPORT 16
@@ -36,55 +36,32 @@ static inline uint32_t GetGpioPinIndexFromPinNumber(int32_t pin) {
 
 
 uint32_t gpioDirection[3] = {
-  0,  // none
-  GPIO_INPUT,
-  GPIO_OUTPUT | GPIO_OUTPUT_SET | GPIO_FREQUENCY_DEFAULT
+  0, // none
+  GPIO_INPUT, GPIO_OUTPUT | GPIO_OUTPUT_SET | GPIO_FREQUENCY_DEFAULT,
 };
 
 
 uint32_t gpioPort[7] = {
-  GPIO_PORTA,
-  GPIO_PORTB,
-  GPIO_PORTC,
-  GPIO_PORTD,
-  GPIO_PORTE,
-  GPIO_PORTF,
-  GPIO_PORTG
+  GPIO_PORTA, GPIO_PORTB, GPIO_PORTC, GPIO_PORTD,
+  GPIO_PORTE, GPIO_PORTF, GPIO_PORTG,
 };
 
 
 uint32_t gpioPin[GPIO_PINCNT_IN_NUTTXPORT] = {
-  GPIO_PIN0,
-  GPIO_PIN1,
-  GPIO_PIN2,
-  GPIO_PIN3,
-  GPIO_PIN4,
-  GPIO_PIN5,
-  GPIO_PIN6,
-  GPIO_PIN7,
-  GPIO_PIN8,
-  GPIO_PIN9,
-  GPIO_PIN10,
-  GPIO_PIN11,
-  GPIO_PIN12,
-  GPIO_PIN13,
-  GPIO_PIN14,
-  GPIO_PIN15
+  GPIO_PIN0,  GPIO_PIN1,  GPIO_PIN2,  GPIO_PIN3,  GPIO_PIN4,  GPIO_PIN5,
+  GPIO_PIN6,  GPIO_PIN7,  GPIO_PIN8,  GPIO_PIN9,  GPIO_PIN10, GPIO_PIN11,
+  GPIO_PIN12, GPIO_PIN13, GPIO_PIN14, GPIO_PIN15,
 };
 
 
 uint32_t gpioMode[6] = {
-  0,  // none
-  GPIO_PULLUP,
-  GPIO_PULLDOWN,
-  GPIO_FLOAT,
-  GPIO_PUSHPULL,
-  GPIO_OPENDRAIN
+  0, // none
+  GPIO_PULLUP, GPIO_PULLDOWN, GPIO_FLOAT, GPIO_PUSHPULL, GPIO_OPENDRAIN,
 };
 
 
-#define GPIO_WORKER_INIT_TEMPLATE(initialized) \
-  IOTJS_ASSERT(iotjs_gpio_initialized() == initialized); \
+#define GPIO_WORKER_INIT_TEMPLATE(initialized)                              \
+  IOTJS_ASSERT(iotjs_gpio_initialized() == initialized);                    \
   iotjs_gpioreqwrap_t* req_wrap = iotjs_gpioreqwrap_from_request(work_req); \
   iotjs_gpioreqdata_t* req_data = iotjs_gpioreqwrap_data(req_wrap);
 
@@ -111,8 +88,8 @@ void ReleaseGpioWorker(uv_work_t* work_req) {
 
 void OpenGpioWorker(uv_work_t* work_req) {
   GPIO_WORKER_INIT_TEMPLATE(true);
-  DDDLOG("Gpio OpenGpioWorker() - pin: %d, dir: %d, mode: %d",
-         req_data->pin, req_data->dir, req_data->mode);
+  DDDLOG("Gpio OpenGpioWorker() - pin: %d, dir: %d, mode: %d", req_data->pin,
+         req_data->dir, req_data->mode);
 
   uint32_t port_index = GetGpioPortIndexFromPinNumber(req_data->pin);
   uint32_t pin_index = GetGpioPinIndexFromPinNumber(req_data->pin);
@@ -142,8 +119,8 @@ void OpenGpioWorker(uv_work_t* work_req) {
 
 void WriteGpioWorker(uv_work_t* work_req) {
   GPIO_WORKER_INIT_TEMPLATE(true);
-  DDDLOG("Gpio WriteGpioWorker() - pin: %d, value: %d",
-         req_data->pin, req_data->value);
+  DDDLOG("Gpio WriteGpioWorker() - pin: %d, value: %d", req_data->pin,
+         req_data->value);
 
   uint32_t port_index = GetGpioPortIndexFromPinNumber(req_data->pin);
   uint32_t pin_index = GetGpioPinIndexFromPinNumber(req_data->pin);

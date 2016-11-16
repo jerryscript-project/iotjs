@@ -17,13 +17,12 @@
 #include "iotjs_module.h"
 
 
-#define SET_CONSTANT(object, constant) \
-  do { \
+#define SET_CONSTANT(object, constant)                           \
+  do {                                                           \
     iotjs_jval_set_property_number(object, #constant, constant); \
   } while (0)
 
 iotjs_jval_t InitConstants() {
-
   iotjs_jval_t constants = iotjs_jval_create_object();
 
   SET_CONSTANT(&constants, O_APPEND);

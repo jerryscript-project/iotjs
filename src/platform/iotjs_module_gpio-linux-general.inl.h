@@ -17,9 +17,9 @@
 #define IOTJS_MODULE_GPIO_LINUX_GENERAL_INL_H
 
 
-#include <string.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
 #include "iotjs_systemio-linux.h"
@@ -45,7 +45,6 @@
 #define GPIO_VALUE_BUFFER_SIZE 10
 
 
-
 // Implementation used here are based on:
 //  https://www.kernel.org/doc/Documentation/gpio/sysfs.txt
 
@@ -54,7 +53,7 @@
 bool UnexportPin(int32_t pin) {
   DDDLOG("GPIO UnexportPin() - path: %s", GPIO_PIN_FORMAT_UNEXPORT);
 
-  char buff[GPIO_PIN_BUFFER_SIZE] = {0};
+  char buff[GPIO_PIN_BUFFER_SIZE] = { 0 };
   snprintf(buff, GPIO_PIN_BUFFER_SIZE - 1, "%d", pin);
 
   if (!DeviceOpenWriteClose(GPIO_PIN_FORMAT_UNEXPORT, buff)) {
@@ -68,11 +67,11 @@ bool UnexportPin(int32_t pin) {
 bool SetPinDirection(int32_t pin, GpioDirection direction) {
   IOTJS_ASSERT(direction == kGpioDirectionIn || direction == kGpioDirectionOut);
 
-  char direction_path[GPIO_PATH_BUFFER_SIZE] = {0};
-  snprintf(direction_path, GPIO_PATH_BUFFER_SIZE - 1,
-           GPIO_PIN_FORMAT_DIRECTION, pin);
+  char direction_path[GPIO_PATH_BUFFER_SIZE] = { 0 };
+  snprintf(direction_path, GPIO_PATH_BUFFER_SIZE - 1, GPIO_PIN_FORMAT_DIRECTION,
+           pin);
 
-  char buffer[4] = {0};
+  char buffer[4] = { 0 };
   if (direction == kGpioDirectionIn) {
     strcpy(buffer, "in");
   } else {
@@ -93,8 +92,8 @@ bool SetPinMode(int32_t pin, GpioMode mode) {
 }
 
 
-#define GPIO_WORKER_INIT_TEMPLATE(initialized) \
-  IOTJS_ASSERT(iotjs_gpio_initialized() == initialized); \
+#define GPIO_WORKER_INIT_TEMPLATE(initialized)                              \
+  IOTJS_ASSERT(iotjs_gpio_initialized() == initialized);                    \
   iotjs_gpioreqwrap_t* req_wrap = iotjs_gpioreqwrap_from_request(work_req); \
   iotjs_gpioreqdata_t* req_data = iotjs_gpioreqwrap_data(req_wrap);
 
@@ -140,8 +139,8 @@ void ReleaseGpioWorker(uv_work_t* work_req) {
 void OpenGpioWorker(uv_work_t* work_req) {
   GPIO_WORKER_INIT_TEMPLATE(true);
   uint32_t pin = req_data->pin;
-  DDDLOG("Gpio OpenGpioWorker() - pin: %d, dir: %d, mode: %d",
-         req_data->pin, req_data->dir, req_data->mode);
+  DDDLOG("Gpio OpenGpioWorker() - pin: %d, dir: %d, mode: %d", req_data->pin,
+         req_data->dir, req_data->mode);
 
   if (req_data->dir == kGpioDirectionNone) {
     // Unexport GPIO pin.
@@ -150,12 +149,11 @@ void OpenGpioWorker(uv_work_t* work_req) {
       return;
     }
   } else {
-
     // Export GPIO pin.
-    char exported_path[GPIO_PATH_BUFFER_SIZE] = {0};
+    char exported_path[GPIO_PATH_BUFFER_SIZE] = { 0 };
     snprintf(exported_path, GPIO_PATH_BUFFER_SIZE - 1, GPIO_PIN_FORMAT, pin);
 
-    const char* created_files[] = {GPIO_DIRECTION, GPIO_EDGE, GPIO_VALUE};
+    const char* created_files[] = { GPIO_DIRECTION, GPIO_EDGE, GPIO_VALUE };
     int created_files_length = sizeof(created_files) / sizeof(created_files[0]);
 
     if (!DeviceExport(GPIO_PIN_FORMAT_EXPORT, pin, exported_path, created_files,
@@ -181,14 +179,14 @@ void OpenGpioWorker(uv_work_t* work_req) {
 
 void WriteGpioWorker(uv_work_t* work_req) {
   GPIO_WORKER_INIT_TEMPLATE(true);
-  DDDLOG("Gpio WriteGpioWorker() - pin: %d, value: %d",
-         req_data->pin, req_data->value);
+  DDDLOG("Gpio WriteGpioWorker() - pin: %d, value: %d", req_data->pin,
+         req_data->value);
 
-  char value_path[GPIO_PATH_BUFFER_SIZE] = {0};
-  snprintf(value_path, GPIO_PATH_BUFFER_SIZE - 1,
-           GPIO_PIN_FORMAT_VALUE, req_data->pin);
+  char value_path[GPIO_PATH_BUFFER_SIZE] = { 0 };
+  snprintf(value_path, GPIO_PATH_BUFFER_SIZE - 1, GPIO_PIN_FORMAT_VALUE,
+           req_data->pin);
 
-  char buffer[2] = {0};
+  char buffer[2] = { 0 };
   buffer[0] = req_data->value ? '1' : '0';
 
   if (DeviceOpenWriteClose(value_path, buffer)) {
@@ -204,7 +202,7 @@ void ReadGpioWorker(uv_work_t* work_req) {
   uint32_t pin = req_data->pin;
   DDDLOG("Gpio ReadGpioWorker() - pin: %d", pin);
 
-  char value_path[GPIO_PATH_BUFFER_SIZE] = {0};
+  char value_path[GPIO_PATH_BUFFER_SIZE] = { 0 };
   snprintf(value_path, GPIO_PATH_BUFFER_SIZE - 1, GPIO_PIN_FORMAT_VALUE, pin);
 
   char buffer[GPIO_VALUE_BUFFER_SIZE];

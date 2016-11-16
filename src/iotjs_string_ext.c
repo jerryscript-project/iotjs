@@ -1,4 +1,4 @@
-/* Copyright 2015 Samsung Electronics Co., Ltd.
+/* Copyright 2015-2016 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@
 // declare string items
 //
 #define MAGICSTR_EX_DEF(NAME, STRING) \
-  static const char jerry_magic_string_ex_ ## NAME[] = STRING;
+  static const char jerry_magic_string_ex_##NAME[] = STRING;
 
 JERRY_MAGIC_STRING_ITEMS
 
@@ -35,10 +35,9 @@ JERRY_MAGIC_STRING_ITEMS
 //
 // declare strings length array
 //
-static const jerry_length_t magic_string_lengths[] =
-{
+static const jerry_length_t magic_string_lengths[] = {
 #define MAGICSTR_EX_DEF(NAME, STRING) \
-  (jerry_length_t)(sizeof(jerry_magic_string_ex_ ## NAME) - 1u),
+  (jerry_length_t)(sizeof(jerry_magic_string_ex_##NAME) - 1u),
 
   JERRY_MAGIC_STRING_ITEMS
 
@@ -49,10 +48,9 @@ static const jerry_length_t magic_string_lengths[] =
 //
 // declare strings table
 //
-static const jerry_char_ptr_t magic_string_items[] =
-{
+static const jerry_char_ptr_t magic_string_items[] = {
 #define MAGICSTR_EX_DEF(NAME, STRING) \
-  (const jerry_char_ptr_t)jerry_magic_string_ex_ ## NAME,
+  (const jerry_char_ptr_t) jerry_magic_string_ex_##NAME,
 
   JERRY_MAGIC_STRING_ITEMS
 
@@ -61,9 +59,8 @@ static const jerry_char_ptr_t magic_string_items[] =
 
 
 void iotjs_register_jerry_magic_string(void) {
-  uint32_t num_magic_string_items = (uint32_t)(sizeof(magic_string_items)
-                                    / sizeof(jerry_char_ptr_t));
-  jerry_register_magic_strings(magic_string_items,
-                               num_magic_string_items,
+  uint32_t num_magic_string_items =
+      (uint32_t)(sizeof(magic_string_items) / sizeof(jerry_char_ptr_t));
+  jerry_register_magic_strings(magic_string_items, num_magic_string_items,
                                magic_string_lengths);
 }

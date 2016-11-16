@@ -27,13 +27,10 @@ typedef struct {
 
 #define THIS iotjs_getaddrinforeqwrap_t* getaddrinforeqwrap
 
-void iotjs_getaddrinforeqwrap_initialize(THIS,
-                                         const iotjs_jval_t* jcallback) {
+void iotjs_getaddrinforeqwrap_initialize(THIS, const iotjs_jval_t* jcallback) {
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_getaddrinforeqwrap_t,
                                      getaddrinforeqwrap);
-  iotjs_reqwrap_initialize(&_this->reqwrap,
-                           jcallback,
-                           (uv_req_t*)&_this->req,
+  iotjs_reqwrap_initialize(&_this->reqwrap, jcallback, (uv_req_t*)&_this->req,
                            getaddrinforeqwrap);
 }
 
@@ -70,7 +67,7 @@ static void AfterGetAddrInfo(uv_getaddrinfo_t* req, int status,
 
   if (status == 0) {
     char ip[INET6_ADDRSTRLEN];
-    const char *addr;
+    const char* addr;
 
     // Only first address is used
     if (res->ai_family == AF_INET) {
@@ -154,17 +151,15 @@ JHANDLER_FUNCTION(GetAddrInfo) {
       IOTJS_ALLOC(iotjs_getaddrinforeqwrap_t);
   iotjs_getaddrinforeqwrap_initialize(req_wrap, jcallback);
 
-  struct addrinfo hints = {0};
+  struct addrinfo hints = { 0 };
   hints.ai_family = family;
   hints.ai_socktype = SOCK_STREAM;
   hints.ai_flags = flags;
 
-  int err = uv_getaddrinfo(iotjs_environment_loop(iotjs_environment_get()),
-                           iotjs_getaddrinforeqwrap_req(req_wrap),
-                           AfterGetAddrInfo,
-                           iotjs_string_data(&hostname),
-                           NULL,
-                           &hints);
+  int err =
+      uv_getaddrinfo(iotjs_environment_loop(iotjs_environment_get()),
+                     iotjs_getaddrinforeqwrap_req(req_wrap), AfterGetAddrInfo,
+                     iotjs_string_data(&hostname), NULL, &hints);
 
   if (err) {
     iotjs_getaddrinforeqwrap_destroy(req_wrap);
@@ -178,14 +173,13 @@ JHANDLER_FUNCTION(GetAddrInfo) {
 }
 
 
-#define SET_CONSTANT(object, constant) \
-  do { \
+#define SET_CONSTANT(object, constant)                           \
+  do {                                                           \
     iotjs_jval_set_property_number(object, #constant, constant); \
   } while (0)
 
 
 iotjs_jval_t InitDns() {
-
   iotjs_jval_t dns = iotjs_jval_create_object();
 
   iotjs_jval_set_method(&dns, "getaddrinfo", GetAddrInfo);

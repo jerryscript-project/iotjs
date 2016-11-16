@@ -17,8 +17,8 @@
 #include "iotjs_def.h"
 #include "iotjs_module_tcp.h"
 
-#include "iotjs_module_buffer.h"
 #include "iotjs_handlewrap.h"
+#include "iotjs_module_buffer.h"
 #include "iotjs_reqwrap.h"
 
 
@@ -42,8 +42,7 @@ iotjs_tcpwrap_t* iotjs_tcpwrap_create(const iotjs_jval_t* jtcp) {
   iotjs_tcpwrap_t* tcpwrap = IOTJS_ALLOC(iotjs_tcpwrap_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_tcpwrap_t, tcpwrap);
 
-  iotjs_handlewrap_initialize(&_this->handlewrap,
-                              jtcp,
+  iotjs_handlewrap_initialize(&_this->handlewrap, jtcp,
                               (uv_handle_t*)(&_this->handle),
                               (JFreeHandlerType)iotjs_tcpwrap_destroy);
 
@@ -99,9 +98,7 @@ typedef struct {
 
 void iotjs_connectreqwrap_initialize(THIS, const iotjs_jval_t* jcallback) {
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_connectreqwrap_t, connectreqwrap);
-  iotjs_reqwrap_initialize(&_this->reqwrap,
-                           jcallback,
-                           (uv_req_t*)&_this->req,
+  iotjs_reqwrap_initialize(&_this->reqwrap, jcallback, (uv_req_t*)&_this->req,
                            connectreqwrap);
 }
 
@@ -136,9 +133,7 @@ typedef struct {
 
 void iotjs_writereqwrap_initialize(THIS, const iotjs_jval_t* jcallback) {
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_writereqwrap_t, writereqwrap);
-  iotjs_reqwrap_initialize(&_this->reqwrap,
-                           jcallback,
-                           (uv_req_t*)&_this->req,
+  iotjs_reqwrap_initialize(&_this->reqwrap, jcallback, (uv_req_t*)&_this->req,
                            writereqwrap);
 }
 
@@ -173,9 +168,7 @@ typedef struct {
 
 void iotjs_shutdownreqwrap_initialize(THIS, const iotjs_jval_t* jcallback) {
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_shutdownreqwrap_t, shutdownreqwrap);
-  iotjs_reqwrap_initialize(&_this->reqwrap,
-                           jcallback,
-                           (uv_req_t*)&_this->req,
+  iotjs_reqwrap_initialize(&_this->reqwrap, jcallback, (uv_req_t*)&_this->req,
                            shutdownreqwrap);
 }
 
@@ -223,8 +216,8 @@ void AfterClose(uv_handle_t* handle) {
   // callback function.
   iotjs_jval_t jcallback = iotjs_jval_get_property(jtcp, "onclose");
   if (iotjs_jval_is_function(&jcallback)) {
-    iotjs_make_callback(&jcallback,
-                        iotjs_jval_get_undefined(), iotjs_jargs_get_empty());
+    iotjs_make_callback(&jcallback, iotjs_jval_get_undefined(),
+                        iotjs_jargs_get_empty());
   }
   iotjs_jval_destroy(&jcallback);
 }
@@ -323,8 +316,7 @@ JHANDLER_FUNCTION(Connect) {
     // Create connection request.
     err = uv_tcp_connect(iotjs_connectreqwrap_req(req_wrap),
                          iotjs_tcpwrap_tcp_handle(tcp_wrap),
-                         (const sockaddr*)(&addr),
-                         AfterConnect);
+                         (const sockaddr*)(&addr), AfterConnect);
 
     if (err) {
       iotjs_connectreqwrap_destroy(req_wrap);
@@ -364,13 +356,13 @@ static void OnConnection(uv_stream_t* handle, int status) {
     iotjs_jval_t jcreate_tcp = iotjs_jval_get_property(jtcp, "createTCP");
     IOTJS_ASSERT(iotjs_jval_is_function(&jcreate_tcp));
 
-    iotjs_jval_t jclient_tcp = iotjs_jhelper_call_ok(&jcreate_tcp,
-                                                     iotjs_jval_get_undefined(),
-                                                     iotjs_jargs_get_empty());
+    iotjs_jval_t jclient_tcp =
+        iotjs_jhelper_call_ok(&jcreate_tcp, iotjs_jval_get_undefined(),
+                              iotjs_jargs_get_empty());
     IOTJS_ASSERT(iotjs_jval_is_object(&jclient_tcp));
 
-    iotjs_tcpwrap_t* tcp_wrap = (iotjs_tcpwrap_t*)(
-            iotjs_jval_get_object_native_handle(&jclient_tcp));
+    iotjs_tcpwrap_t* tcp_wrap =
+        (iotjs_tcpwrap_t*)(iotjs_jval_get_object_native_handle(&jclient_tcp));
 
     uv_stream_t* client_handle =
         (uv_stream_t*)(iotjs_tcpwrap_tcp_handle(tcp_wrap));
@@ -454,8 +446,8 @@ JHANDLER_FUNCTION(Write) {
   iotjs_writereqwrap_initialize(req_wrap, arg1);
 
   int err = uv_write(iotjs_writereqwrap_req(req_wrap),
-                     (uv_stream_t*)(iotjs_tcpwrap_tcp_handle(tcp_wrap)),
-                     &buf, 1, AfterWrite);
+                     (uv_stream_t*)(iotjs_tcpwrap_tcp_handle(tcp_wrap)), &buf,
+                     1, AfterWrite);
 
   if (err) {
     iotjs_writereqwrap_destroy(req_wrap);
@@ -531,10 +523,8 @@ JHANDLER_FUNCTION(ReadStart) {
   const iotjs_jval_t* jtcp = JHANDLER_GET_THIS(object);
   iotjs_tcpwrap_t* tcp_wrap = iotjs_tcpwrap_from_jobject(jtcp);
 
-  int err = uv_read_start(
-      (uv_stream_t*)(iotjs_tcpwrap_tcp_handle(tcp_wrap)),
-      OnAlloc,
-      OnRead);
+  int err = uv_read_start((uv_stream_t*)(iotjs_tcpwrap_tcp_handle(tcp_wrap)),
+                          OnAlloc, OnRead);
 
   iotjs_jhandler_return_number(jhandler, err);
 }
@@ -607,8 +597,8 @@ JHANDLER_FUNCTION(SetKeepAlive) {
 // used in iotjs_module_udp.cpp
 void AddressToJS(const iotjs_jval_t* obj, const sockaddr* addr) {
   char ip[INET6_ADDRSTRLEN];
-  const sockaddr_in *a4;
-  const sockaddr_in6 *a6;
+  const sockaddr_in* a4;
+  const sockaddr_in6* a6;
   int port;
 
   switch (addr->sa_family) {

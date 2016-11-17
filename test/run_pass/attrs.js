@@ -15,6 +15,10 @@
 
 (function() {
   var attrs = {
+    'test_ble.js': {
+      skip: ['all'],
+      reason: "need to setup test environment"
+     },
     'test_cwd.js': {
       skip: ['all'],
       reason: "this test had @STDOUT=COMMAND[pwd], but there's no way to " +
@@ -100,7 +104,7 @@
     },
     'test_i2c.js': {
       skip: ['all'],
-      reason: "need to setup test environment",
+      reason: "need to setup test environment"
     },
     'test_http_get.js': {
       timeout: {

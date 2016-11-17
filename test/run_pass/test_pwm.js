@@ -36,7 +36,7 @@ var pwm0 = new pwm(0, option, function (err) {
 
   pwm0.setEnable(1, callback);
 
-s  test1();
+  test1();
 });
 
 function test1() {

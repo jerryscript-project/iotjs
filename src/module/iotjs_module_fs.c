@@ -15,40 +15,43 @@
 
 #include "iotjs_def.h"
 
+#include "iotjs_module_fs.h"
+
 #include "iotjs_module_buffer.h"
 
 #include "iotjs_exception.h"
 #include "iotjs_reqwrap.h"
 
 
-typedef struct {
-  iotjs_reqwrap_t reqwrap;
-  uv_fs_t req;
-} IOTJS_VALIDATED_STRUCT(iotjs_fsreqwrap_t);
-
-
-void iotjs_fsreqwrap_initialize(iotjs_fsreqwrap_t* fsreqwrap,
-                                const iotjs_jval_t* jcallback) {
-  IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_fsreqwrap_t, fsreqwrap);
-  iotjs_reqwrap_initialize(&_this->reqwrap, jcallback, (uv_req_t*)&_this->req,
-                           fsreqwrap);
+iotjs_fs_reqwrap_t* iotjs_fs_reqwrap_create(const iotjs_jval_t* jcallback) {
+  iotjs_fs_reqwrap_t* fs_reqwrap = IOTJS_ALLOC(iotjs_fs_reqwrap_t);
+  IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_fs_reqwrap_t, fs_reqwrap);
+  iotjs_reqwrap_initialize(&_this->reqwrap, jcallback, (uv_req_t*)&_this->req);
+  return fs_reqwrap;
 }
 
 
-void iotjs_fsreqwrap_destroy(iotjs_fsreqwrap_t* fsreqwrap) {
-  IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_fsreqwrap_t, fsreqwrap);
+static void iotjs_fs_reqwrap_destroy(iotjs_fs_reqwrap_t* fs_reqwrap) {
+  IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_fs_reqwrap_t, fs_reqwrap);
   uv_fs_req_cleanup(&_this->req);
   iotjs_reqwrap_destroy(&_this->reqwrap);
+  IOTJS_RELEASE(fs_reqwrap);
 }
 
 
-uv_fs_t* iotjs_fsreqwrap_req(iotjs_fsreqwrap_t* fsreqwrap) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_fsreqwrap_t, fsreqwrap);
+void iotjs_fs_reqwrap_dispatched(iotjs_fs_reqwrap_t* fs_reqwrap) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_fs_reqwrap_t, fs_reqwrap);
+  iotjs_fs_reqwrap_destroy(fs_reqwrap);
+}
+
+
+uv_fs_t* iotjs_fs_reqwrap_req(iotjs_fs_reqwrap_t* fs_reqwrap) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_fs_reqwrap_t, fs_reqwrap);
   return &_this->req;
 }
 
-const iotjs_jval_t* iotjs_fsreqwrap_jcallback(iotjs_fsreqwrap_t* fsreqwrap) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_fsreqwrap_t, fsreqwrap);
+const iotjs_jval_t* iotjs_fs_reqwrap_jcallback(iotjs_fs_reqwrap_t* fs_reqwrap) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_fs_reqwrap_t, fs_reqwrap);
   return iotjs_reqwrap_jcallback(&_this->reqwrap);
 }
 
@@ -57,11 +60,11 @@ iotjs_jval_t MakeStatObject(uv_stat_t* statbuf);
 
 
 static void AfterAsync(uv_fs_t* req) {
-  iotjs_fsreqwrap_t* req_wrap = (iotjs_fsreqwrap_t*)(req->data);
+  iotjs_fs_reqwrap_t* req_wrap = (iotjs_fs_reqwrap_t*)(req->data);
   IOTJS_ASSERT(req_wrap != NULL);
-  IOTJS_ASSERT(iotjs_fsreqwrap_req(req_wrap) == req);
+  IOTJS_ASSERT(iotjs_fs_reqwrap_req(req_wrap) == req);
 
-  const iotjs_jval_t* cb = iotjs_fsreqwrap_jcallback(req_wrap);
+  const iotjs_jval_t* cb = iotjs_fs_reqwrap_jcallback(req_wrap);
   IOTJS_ASSERT(iotjs_jval_is_function(cb));
 
   iotjs_jargs_t jarg = iotjs_jargs_create(2);
@@ -113,17 +116,12 @@ static void AfterAsync(uv_fs_t* req) {
   iotjs_make_callback(cb, iotjs_jval_get_undefined(), &jarg);
 
   iotjs_jargs_destroy(&jarg);
-  iotjs_fsreqwrap_destroy(req_wrap);
-  IOTJS_RELEASE(req_wrap);
+  iotjs_fs_reqwrap_dispatched(req_wrap);
 }
 
 
 static void AfterSync(uv_fs_t* req, int err, const char* syscall_name,
                       iotjs_jhandler_t* jhandler) {
-  iotjs_fsreqwrap_t* req_wrap = (iotjs_fsreqwrap_t*)(req->data);
-  IOTJS_ASSERT(req_wrap != NULL);
-  IOTJS_ASSERT(iotjs_fsreqwrap_req(req_wrap) == req);
-
   if (err < 0) {
     iotjs_jval_t jerror = iotjs_create_uv_exception(err, syscall_name);
     iotjs_jhandler_throw(jhandler, &jerror);
@@ -171,14 +169,12 @@ static void AfterSync(uv_fs_t* req, int err, const char* syscall_name,
       }
     }
   }
-  iotjs_fsreqwrap_destroy(req_wrap);
 }
 
 
 #define FS_ASYNC(env, syscall, pcallback, ...)                                \
-  iotjs_fsreqwrap_t* req_wrap = IOTJS_ALLOC(iotjs_fsreqwrap_t);               \
-  iotjs_fsreqwrap_initialize(req_wrap, pcallback);                            \
-  uv_fs_t* fs_req = iotjs_fsreqwrap_req(req_wrap);                            \
+  iotjs_fs_reqwrap_t* req_wrap = iotjs_fs_reqwrap_create(pcallback);          \
+  uv_fs_t* fs_req = iotjs_fs_reqwrap_req(req_wrap);                           \
   int err = uv_fs_##syscall(iotjs_environment_loop(env), fs_req, __VA_ARGS__, \
                             AfterAsync);                                      \
   if (err < 0) {                                                              \
@@ -189,12 +185,11 @@ static void AfterSync(uv_fs_t* req, int err, const char* syscall_name,
 
 
 #define FS_SYNC(env, syscall, ...)                                             \
-  iotjs_fsreqwrap_t req_wrap;                                                  \
-  iotjs_fsreqwrap_initialize(&req_wrap, iotjs_jval_get_null());                \
-  uv_fs_t* fs_req = iotjs_fsreqwrap_req(&req_wrap);                            \
-  int err =                                                                    \
-      uv_fs_##syscall(iotjs_environment_loop(env), fs_req, __VA_ARGS__, NULL); \
-  AfterSync(fs_req, err, #syscall, jhandler);
+  uv_fs_t fs_req;                                                              \
+  int err = uv_fs_##syscall(iotjs_environment_loop(env), &fs_req, __VA_ARGS__, \
+                            NULL);                                             \
+  AfterSync(&fs_req, err, #syscall, jhandler);                                 \
+  uv_fs_req_cleanup(&fs_req);
 
 
 JHANDLER_FUNCTION(Close) {

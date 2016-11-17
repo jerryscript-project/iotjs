@@ -20,7 +20,7 @@
 #include "module/iotjs_module_pwm.h"
 
 
-int PwmInitializePwmPath(iotjs_pwmreqdata_t* req_data) {
+int PwmInitializePwmPath(iotjs_pwm_reqdata_t* req_data) {
   IOTJS_ASSERT(!"Not implemented");
   return 0;
 }

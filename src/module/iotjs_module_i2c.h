@@ -54,23 +54,24 @@ typedef struct {
 
   I2cOp op;
   I2cError error;
-} iotjs_i2creqdata_t;
+} iotjs_i2c_reqdata_t;
 
 
 typedef struct {
   iotjs_reqwrap_t reqwrap;
   uv_work_t req;
-  iotjs_i2creqdata_t req_data;
-} IOTJS_VALIDATED_STRUCT(iotjs_i2creqwrap_t);
+  iotjs_i2c_reqdata_t req_data;
+} IOTJS_VALIDATED_STRUCT(iotjs_i2c_reqwrap_t);
 
 
-#define THIS iotjs_i2creqwrap_t* i2creqwrap
-void iotjs_i2creqwrap_initialize(THIS, const iotjs_jval_t* jcallback, I2cOp op);
-void iotjs_i2creqwrap_destroy(THIS);
-uv_work_t* iotjs_i2creqwrap_req(THIS);
-const iotjs_jval_t* iotjs_i2creqwrap_jcallback(THIS);
-iotjs_i2creqwrap_t* iotjs_i2creqwrap_from_request(uv_work_t* req);
-iotjs_i2creqdata_t* iotjs_i2creqwrap_data(THIS);
+#define THIS iotjs_i2c_reqwrap_t* i2c_reqwrap
+void iotjs_i2c_reqwrap_initialize(THIS, const iotjs_jval_t* jcallback,
+                                  I2cOp op);
+void iotjs_i2c_reqwrap_dispatched(THIS);
+uv_work_t* iotjs_i2c_reqwrap_req(THIS);
+const iotjs_jval_t* iotjs_i2c_reqwrap_jcallback(THIS);
+iotjs_i2c_reqwrap_t* iotjs_i2c_reqwrap_from_request(uv_work_t* req);
+iotjs_i2c_reqdata_t* iotjs_i2c_reqwrap_data(THIS);
 #undef THIS
 
 
@@ -80,7 +81,6 @@ typedef struct {
 } IOTJS_VALIDATED_STRUCT(iotjs_i2c_t);
 
 iotjs_i2c_t* iotjs_i2c_create(const iotjs_jval_t* ji2c);
-void iotjs_i2c_destroy(iotjs_i2c_t* i2c);
 const iotjs_jval_t* iotjs_i2c_get_ji2c();
 iotjs_i2c_t* iotjs_i2c_get_instance();
 

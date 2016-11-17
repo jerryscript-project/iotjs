@@ -48,23 +48,24 @@ typedef struct {
 
   PwmError result;
   PwmOp op;
-} iotjs_pwmreqdata_t;
+} iotjs_pwm_reqdata_t;
 
 
 typedef struct {
   iotjs_reqwrap_t reqwrap;
   uv_work_t req;
-  iotjs_pwmreqdata_t req_data;
-} IOTJS_VALIDATED_STRUCT(iotjs_pwmreqwrap_t);
+  iotjs_pwm_reqdata_t req_data;
+} IOTJS_VALIDATED_STRUCT(iotjs_pwm_reqwrap_t);
 
 
-#define THIS iotjs_pwmreqwrap_t* pwmreqwrap
-void iotjs_pwmreqwrap_initialize(THIS, const iotjs_jval_t* jcallback, PwmOp op);
-void iotjs_pwmreqwrap_destroy(THIS);
-uv_work_t* iotjs_pwmreqwrap_req(THIS);
-const iotjs_jval_t* iotjs_pwmreqwrap_jcallback(THIS);
-iotjs_pwmreqwrap_t* iotjs_pwmreqwrap_from_request(uv_work_t* req);
-iotjs_pwmreqdata_t* iotjs_pwmreqwrap_data(THIS);
+#define THIS iotjs_pwm_reqwrap_t* pwm_reqwrap
+iotjs_pwm_reqwrap_t* iotjs_pwm_reqwrap_create(const iotjs_jval_t* jcallback,
+                                              PwmOp op);
+void iotjs_pwm_reqwrap_dispatched(THIS);
+uv_work_t* iotjs_pwm_reqwrap_req(THIS);
+const iotjs_jval_t* iotjs_pwm_reqwrap_jcallback(THIS);
+iotjs_pwm_reqwrap_t* iotjs_pwm_reqwrap_from_request(uv_work_t* req);
+iotjs_pwm_reqdata_t* iotjs_pwm_reqwrap_data(THIS);
 #undef THIS
 
 
@@ -74,14 +75,13 @@ typedef struct {
 } IOTJS_VALIDATED_STRUCT(iotjs_pwm_t);
 
 iotjs_pwm_t* iotjs_pwm_create(const iotjs_jval_t* jpwm);
-void iotjs_pwm_destroy(iotjs_pwm_t* pwm);
 const iotjs_jval_t* iotjs_pwm_get_jpwm();
 iotjs_pwm_t* iotjs_pwm_get_instance();
 bool iotjs_pwm_initialized();
 void iotjs_pwm_set_initialized(iotjs_pwm_t* pwm, bool initialized);
 
 
-int PwmInitializePwmPath(iotjs_pwmreqdata_t* req_data);
+int PwmInitializePwmPath(iotjs_pwm_reqdata_t* req_data);
 void ExportWorker(uv_work_t* work_req);
 void SetPeriodWorker(uv_work_t* work_req);
 void SetDutyCycleWorker(uv_work_t* work_req);

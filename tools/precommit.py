@@ -22,6 +22,7 @@ from common_py import path
 from common_py.system.filesystem import FileSystem as fs
 from common_py.system.executor import Executor as ex
 from common_py.system.platform import Platform
+from check_tidy import check_tidy
 
 TESTS=['host', 'rpi2', 'nuttx', 'misc'] # TODO: support darwin
 BUILDTYPES=['debug', 'release']
@@ -107,8 +108,6 @@ def build(buildtype, args=[]):
 
 
 option = parse_option()
-if os.getenv('TRAVIS') == None:
-    ex.check_run_cmd('tools/check_signed_off.sh')
 
 for test in option.test:
     if test == "host":
@@ -134,5 +133,14 @@ for test in option.test:
                 ex.fail('nuttx ' + buildtype + ' build failed')
 
     elif test == "misc":
+
+        args = []
+        if os.getenv('TRAVIS') != None:
+            args = ['--travis']
+        ex.check_run_cmd('tools/check_signed_off.sh', args)
+
+        if not check_tidy(path.PROJECT_ROOT):
+            ex.fail("Failed tidy check")
+
         build("debug", ['--no-snapshot', '--jerry-lto'])
         build("debug", ['--iotjs-minimal-profile'])

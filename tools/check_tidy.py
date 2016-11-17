@@ -19,6 +19,7 @@ import os
 import fileinput
 
 from check_license import CheckLicenser
+from common_py import path
 from common_py.system.filesystem import FileSystem as fs
 from common_py.system.executor import Executor as ex
 
@@ -120,3 +121,6 @@ def check_tidy(src_dir):
     print
 
     return count_err == 0
+
+if __name__ == '__main__':
+    check_tidy(path.PROJECT_ROOT)

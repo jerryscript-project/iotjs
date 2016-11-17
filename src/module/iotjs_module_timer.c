@@ -24,8 +24,7 @@ iotjs_timerwrap_t* iotjs_timerwrap_create(const iotjs_jval_t* jtimer) {
   iotjs_timerwrap_t* timerwrap = IOTJS_ALLOC(iotjs_timerwrap_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_timerwrap_t, timerwrap);
 
-  iotjs_handlewrap_initialize(&_this->handlewrap,
-                              jtimer,
+  iotjs_handlewrap_initialize(&_this->handlewrap, jtimer,
                               (uv_handle_t*)(&_this->handle),
                               (JFreeHandlerType)iotjs_timerwrap_destroy);
 
@@ -55,15 +54,12 @@ static void TimeoutHandler(uv_timer_t* handle) {
 }
 
 
-int iotjs_timerwrap_start(iotjs_timerwrap_t* timerwrap,
-                          int64_t timeout, int64_t repeat) {
+int iotjs_timerwrap_start(iotjs_timerwrap_t* timerwrap, int64_t timeout,
+                          int64_t repeat) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_timerwrap_t, timerwrap);
 
   // Start uv timer.
-  return uv_timer_start(&_this->handle,
-                        TimeoutHandler,
-                        timeout,
-                        repeat);
+  return uv_timer_start(&_this->handle, TimeoutHandler, timeout, repeat);
 }
 
 
@@ -95,7 +91,7 @@ uv_timer_t* iotjs_timerwrap_handle(iotjs_timerwrap_t* timerwrap) {
 }
 
 
-iotjs_jval_t* iotjs_timerwrap_jobject(iotjs_timerwrap_t* timerwrap){
+iotjs_jval_t* iotjs_timerwrap_jobject(iotjs_timerwrap_t* timerwrap) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_timerwrap_t, timerwrap);
   iotjs_jval_t* jobject = iotjs_handlewrap_jobject(&_this->handlewrap);
   IOTJS_ASSERT(iotjs_jval_is_object(jobject));
@@ -165,7 +161,6 @@ JHANDLER_FUNCTION(Timer) {
 
 
 iotjs_jval_t InitTimer() {
-
   iotjs_jval_t timer = iotjs_jval_create_function(Timer);
 
   iotjs_jval_t prototype = iotjs_jval_create_object();

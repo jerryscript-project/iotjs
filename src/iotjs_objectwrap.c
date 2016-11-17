@@ -44,8 +44,8 @@ void iotjs_jobjectwrap_destroy(iotjs_jobjectwrap_t* jobjectwrap) {
 iotjs_jval_t* iotjs_jobjectwrap_jobject(iotjs_jobjectwrap_t* jobjectwrap) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_jobjectwrap_t, jobjectwrap);
   iotjs_jval_t* jobject = &_this->jobject;
-  IOTJS_ASSERT(
-      (uintptr_t)jobjectwrap == iotjs_jval_get_object_native_handle(jobject));
+  IOTJS_ASSERT((uintptr_t)jobjectwrap ==
+               iotjs_jval_get_object_native_handle(jobject));
   IOTJS_ASSERT(iotjs_jval_is_object(jobject));
   return jobject;
 }

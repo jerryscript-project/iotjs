@@ -48,15 +48,15 @@
 #define IOTJS_MODULE_I2C_LINUX_GENERAL_INL_H
 
 
-#include <stdint.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/ioctl.h>
 #include <fcntl.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/ioctl.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 
 #include "module/iotjs_module_i2c.h"
@@ -82,8 +82,7 @@ typedef union I2cSmbusDataUnion {
 } I2cSmbusData;
 
 
-typedef struct I2cSmbusIoctlDataStruct
-{
+typedef struct I2cSmbusIoctlDataStruct {
   uint8_t read_write;
   uint8_t command;
   int size;
@@ -93,7 +92,6 @@ typedef struct I2cSmbusIoctlDataStruct
 
 int fd;
 uint8_t addr;
-
 
 
 int I2cSmbusAccess(int fd, uint8_t read_write, uint8_t command, int size,
@@ -135,8 +133,8 @@ int I2cSmbusWriteI2cBlockData(int fd, uint8_t command, uint8_t* values,
 int I2cSmbusReadByte(int fd) {
   I2cSmbusData data;
 
-  int result = I2cSmbusAccess(fd, I2C_SMBUS_READ, I2C_NOCMD, I2C_SMBUS_BYTE,
-                              &data);
+  int result =
+      I2cSmbusAccess(fd, I2C_SMBUS_READ, I2C_NOCMD, I2C_SMBUS_BYTE, &data);
 
   // Mask one byte from result (data.byte).
   return result >= 0 ? 0xFF & data.byte : -1;
@@ -155,7 +153,7 @@ int I2cSmbusReadI2cBlockData(int fd, uint8_t command, uint8_t* values,
   int result = I2cSmbusAccess(fd, I2C_SMBUS_READ, command,
                               I2C_SMBUS_I2C_BLOCK_DATA, &data);
   if (result >= 0) {
-    for(int i = 1; i <= data.block[0]; i++) {
+    for (int i = 1; i <= data.block[0]; i++) {
       values[i - 1] = data.block[i];
     }
     result = data.block[0];
@@ -165,7 +163,7 @@ int I2cSmbusReadI2cBlockData(int fd, uint8_t command, uint8_t* values,
 }
 
 
-#define I2C_WORKER_INIT_TEMPLATE \
+#define I2C_WORKER_INIT_TEMPLATE                                          \
   iotjs_i2creqwrap_t* req_wrap = iotjs_i2creqwrap_from_request(work_req); \
   iotjs_i2creqdata_t* req_data = iotjs_i2creqwrap_data(req_wrap);
 

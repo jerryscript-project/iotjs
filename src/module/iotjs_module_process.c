@@ -32,9 +32,8 @@ JHANDLER_FUNCTION(Binding) {
 
 
 static iotjs_jval_t WrapEval(const char* source, size_t length, bool* throws) {
-  static const char* wrapper[2] = {
-      "(function(exports, require, module) {\n",
-      "\n});\n" };
+  static const char* wrapper[2] = { "(function(exports, require, module) {\n",
+                                    "\n});\n" };
 
   int len0 = strlen(wrapper[0]);
   int len1 = strlen(wrapper[1]);
@@ -45,9 +44,9 @@ static iotjs_jval_t WrapEval(const char* source, size_t length, bool* throws) {
   iotjs_string_append(&code, source, length);
   iotjs_string_append(&code, wrapper[1], len1);
 
-  iotjs_jval_t res = iotjs_jhelper_eval(iotjs_string_data(&code),
-                                        iotjs_string_size(&code),
-                                        false, throws);
+  iotjs_jval_t res =
+      iotjs_jhelper_eval(iotjs_string_data(&code), iotjs_string_size(&code),
+                         false, throws);
 
   iotjs_string_destroy(&code);
 
@@ -61,9 +60,8 @@ JHANDLER_FUNCTION(Compile) {
   iotjs_string_t source = JHANDLER_GET_ARG(0, string);
 
   bool throws;
-  iotjs_jval_t jres = WrapEval(iotjs_string_data(&source),
-                               iotjs_string_size(&source),
-                               &throws);
+  iotjs_jval_t jres =
+      WrapEval(iotjs_string_data(&source), iotjs_string_size(&source), &throws);
 
   if (!throws) {
     iotjs_jhandler_return_jval(jhandler, &jres);
@@ -81,7 +79,7 @@ JHANDLER_FUNCTION(CompileNativePtr) {
 
   iotjs_string_t id = JHANDLER_GET_ARG(0, string);
 
-  int i=0;
+  int i = 0;
   while (natives[i].name != NULL) {
     if (!strcmp(natives[i].name, iotjs_string_data(&id))) {
       break;
@@ -96,11 +94,10 @@ JHANDLER_FUNCTION(CompileNativePtr) {
     bool throws;
 #ifdef ENABLE_SNAPSHOT
     iotjs_jval_t jres = iotjs_jhelper_exec_snapshot(natives[i].code,
-                                                    natives[i].length,
-                                                    &throws);
+                                                    natives[i].length, &throws);
 #else
-    iotjs_jval_t jres = WrapEval((const char*)natives[i].code,
-                                 natives[i].length, &throws);
+    iotjs_jval_t jres =
+        WrapEval((const char*)natives[i].code, natives[i].length, &throws);
 #endif
 
     if (!throws) {
@@ -110,7 +107,7 @@ JHANDLER_FUNCTION(CompileNativePtr) {
     }
     iotjs_jval_destroy(&jres);
   } else {
-    iotjs_jval_t jerror = iotjs_jval_create_error ("Unknown native module");
+    iotjs_jval_t jerror = iotjs_jval_create_error("Unknown native module");
     iotjs_jhandler_throw(jhandler, &jerror);
     iotjs_jval_destroy(&jerror);
   }
@@ -130,7 +127,7 @@ JHANDLER_FUNCTION(ReadSource) {
 }
 
 
-JHANDLER_FUNCTION(Cwd){
+JHANDLER_FUNCTION(Cwd) {
   JHANDLER_CHECK_ARGS(0);
 
   char path[IOTJS_MAX_PATH_SIZE];
@@ -143,7 +140,7 @@ JHANDLER_FUNCTION(Cwd){
   iotjs_jhandler_return_string_raw(jhandler, path);
 }
 
-JHANDLER_FUNCTION(Chdir){
+JHANDLER_FUNCTION(Chdir) {
   JHANDLER_CHECK_ARGS(1, string);
 
   iotjs_string_t path = JHANDLER_GET_ARG(0, string);
@@ -202,7 +199,7 @@ void SetNativeSources(iotjs_jval_t* native_sources) {
 }
 
 
-static void SetProcessEnv(iotjs_jval_t* process){
+static void SetProcessEnv(iotjs_jval_t* process) {
   const char *homedir, *nodepath;
 
   homedir = getenv("HOME");
@@ -271,7 +268,7 @@ iotjs_jval_t InitProcess() {
   iotjs_jval_t jbinding = iotjs_jval_get_property(&process, "binding");
 
 #define ENUMDEF_MODULE_LIST(upper, Camel, lower) \
-  iotjs_jval_set_property_number(&jbinding, #lower, MODULE_ ## upper); \
+  iotjs_jval_set_property_number(&jbinding, #lower, MODULE_##upper);
 
   MAP_MODULE_LIST(ENUMDEF_MODULE_LIST)
 

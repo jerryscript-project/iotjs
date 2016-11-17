@@ -1,4 +1,4 @@
-/* Copyright 2015 Samsung Electronics Co., Ltd.
+/* Copyright 2015-2016 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@
 
 #ifdef ENABLE_DEBUG_LOG
 int iotjs_debug_level = DBGLEV_ERR;
-FILE *iotjs_log_stream;
+FILE* iotjs_log_stream;
 const char* iotjs_debug_prefix[4] = { "", "ERR", "WRN", "INF" };
 #endif // ENABLE_DEBUG_LOG
 
@@ -36,18 +36,20 @@ void init_debug_settings() {
 #endif // defined(__LINUX__)
   if (dbglevel) {
     iotjs_debug_level = atoi(dbglevel);
-    if (iotjs_debug_level < 0) iotjs_debug_level = 0;
-    if (iotjs_debug_level > DBGLEV_INFO) iotjs_debug_level = DBGLEV_INFO;
+    if (iotjs_debug_level < 0)
+      iotjs_debug_level = 0;
+    if (iotjs_debug_level > DBGLEV_INFO)
+      iotjs_debug_level = DBGLEV_INFO;
   }
   iotjs_log_stream = stderr;
   if (dbglogfile) {
     FILE* logstream;
-    logstream  = fopen(dbglogfile, "w+");
+    logstream = fopen(dbglogfile, "w+");
     if (logstream != NULL)
       iotjs_log_stream = logstream;
   }
-  //fprintf(stderr, "DBG LEV = %d", iotjs_debug_level);
-  //fprintf(stderr, "DBG OUT = %s", (dbglogfile==NULL?"(stderr)":dbglogfile));
+// fprintf(stderr, "DBG LEV = %d", iotjs_debug_level);
+// fprintf(stderr, "DBG OUT = %s", (dbglogfile==NULL?"(stderr)":dbglogfile));
 #endif // ENABLE_DEBUG_LOG
 }
 

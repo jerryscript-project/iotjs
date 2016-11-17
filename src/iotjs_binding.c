@@ -178,11 +178,11 @@ iotjs_jval_t* iotjs_jval_get_global_object() {
 }
 
 
-#define TYPE_CHECKER_BODY(jval_type) \
-bool iotjs_jval_is_##jval_type(const iotjs_jval_t* val) { \
-  const IOTJS_VALIDATED_STRUCT_METHOD(iotjs_jval_t, val); \
-  return jerry_value_is_##jval_type(_this->value); \
-}
+#define TYPE_CHECKER_BODY(jval_type)                        \
+  bool iotjs_jval_is_##jval_type(const iotjs_jval_t* val) { \
+    const IOTJS_VALIDATED_STRUCT_METHOD(iotjs_jval_t, val); \
+    return jerry_value_is_##jval_type(_this->value);        \
+  }
 
 FOR_EACH_JVAL_TYPES(TYPE_CHECKER_BODY)
 
@@ -318,8 +318,7 @@ void iotjs_jval_set_property_string(const iotjs_jval_t* jobj, const char* name,
 
 
 void iotjs_jval_set_property_string_raw(const iotjs_jval_t* jobj,
-                                        const char* name,
-                                        const char* v) {
+                                        const char* name, const char* v) {
   const IOTJS_VALIDATED_STRUCT_METHOD(iotjs_jval_t, jobj);
   iotjs_jval_t jval = iotjs_jval_create_string_raw(v);
   iotjs_jval_set_property_jval(jobj, name, &jval);
@@ -336,8 +335,8 @@ iotjs_jval_t iotjs_jval_get_property(const iotjs_jval_t* jobj,
   jerry_value_t res = jerry_get_property(_this->value, prop_name);
   jerry_release_value(prop_name);
 
-  if (jerry_value_has_error_flag (res)) {
-    jerry_release_value (res);
+  if (jerry_value_has_error_flag(res)) {
+    jerry_release_value(res);
     return iotjs_jval_create_copied(iotjs_jval_get_undefined());
   }
 
@@ -384,8 +383,8 @@ iotjs_jval_t iotjs_jval_get_property_by_index(const iotjs_jval_t* jarr,
 
   jerry_value_t res = jerry_get_property_by_index(_this->value, idx);
 
-  if (jerry_value_has_error_flag (res)) {
-    jerry_release_value (res);
+  if (jerry_value_has_error_flag(res)) {
+    jerry_release_value(res);
     return iotjs_jval_create_copied(iotjs_jval_get_undefined());
   }
 
@@ -441,8 +440,8 @@ iotjs_jval_t iotjs_jhelper_call_ok(const iotjs_jval_t* jfunc,
 }
 
 
-iotjs_jval_t iotjs_jhelper_eval(const char* data, size_t size,
-                                bool strict_mode, bool* throws) {
+iotjs_jval_t iotjs_jhelper_eval(const char* data, size_t size, bool strict_mode,
+                                bool* throws) {
   jerry_value_t res = jerry_eval((const jerry_char_t*)data, size, strict_mode);
 
   *throws = jerry_value_has_error_flag(res);
@@ -454,9 +453,8 @@ iotjs_jval_t iotjs_jhelper_eval(const char* data, size_t size,
 
 
 #ifdef ENABLE_SNAPSHOT
-iotjs_jval_t iotjs_jhelper_exec_snapshot(const void *snapshot_p,
-                                         size_t snapshot_size,
-                                         bool* throws) {
+iotjs_jval_t iotjs_jhelper_exec_snapshot(const void* snapshot_p,
+                                         size_t snapshot_size, bool* throws) {
   jerry_value_t res = jerry_exec_snapshot(snapshot_p, snapshot_size, false);
   /* the snapshot buffer can be referenced
    * until jerry_cleanup is not called */
@@ -478,7 +476,7 @@ iotjs_jargs_t iotjs_jargs_create(uint16_t capacity) {
   _this->argc = 0;
   if (capacity > 0) {
     unsigned buffer_size = sizeof(iotjs_jval_t) * capacity;
-    _this->argv = (iotjs_jval_t*) iotjs_buffer_allocate(buffer_size);
+    _this->argv = (iotjs_jval_t*)iotjs_buffer_allocate(buffer_size);
   } else {
     return jargs_empty;
   }
@@ -523,7 +521,7 @@ uint16_t iotjs_jargs_length(const iotjs_jargs_t* jargs) {
 }
 
 
-void iotjs_jargs_append_jval(iotjs_jargs_t* jargs, const iotjs_jval_t *x) {
+void iotjs_jargs_append_jval(iotjs_jargs_t* jargs, const iotjs_jval_t* x) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_jargs_t, jargs);
   IOTJS_ASSERT(_this->argc < _this->capacity);
   _this->argv[_this->argc++] = iotjs_jval_create_copied(x);
@@ -573,7 +571,7 @@ void iotjs_jargs_append_string_raw(iotjs_jargs_t* jargs, const char* x) {
 
 
 void iotjs_jargs_replace(iotjs_jargs_t* jargs, uint16_t index,
-                         const iotjs_jval_t *x) {
+                         const iotjs_jval_t* x) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_jargs_t, jargs);
 
   IOTJS_ASSERT(index < _this->argc);

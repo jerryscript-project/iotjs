@@ -16,7 +16,5 @@
 #include "iotjs.h"
 
 int main(int argc, char** argv) {
-
   return iotjs_entry(argc, argv);
-
 }

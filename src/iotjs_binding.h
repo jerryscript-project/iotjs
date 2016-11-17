@@ -16,8 +16,8 @@
 #ifndef IOTJS_BINDING_H
 #define IOTJS_BINDING_H
 
-#include "jerry-api.h"
 #include "iotjs_util.h"
+#include "jerry-api.h"
 
 #include <stdio.h>
 
@@ -39,18 +39,18 @@ typedef enum {
 
 
 #define FOR_EACH_JVAL_TYPES(F) \
-  F(undefined) \
-  F(null) \
-  F(boolean) \
-  F(number) \
-  F(string) \
-  F(object) \
-  F(array) \
-  F(function) \
+  F(undefined)                 \
+  F(null)                      \
+  F(boolean)                   \
+  F(number)                    \
+  F(string)                    \
+  F(object)                    \
+  F(array)                     \
+  F(function)
 
 
 typedef struct {
-  jerry_value_t value;
+  jerry_value_t value; // JavaScript value repesentation
 } IOTJS_VALIDATED_STRUCT(iotjs_jval_t);
 
 
@@ -161,13 +161,12 @@ iotjs_jval_t iotjs_jhelper_call_ok(const iotjs_jval_t* jfunc,
                                    const iotjs_jargs_t* jargs);
 
 // Evaluates javascript source file.
-iotjs_jval_t iotjs_jhelper_eval(const char* data, size_t size,
-                                bool strict_mode, bool* throws);
+iotjs_jval_t iotjs_jhelper_eval(const char* data, size_t size, bool strict_mode,
+                                bool* throws);
 #ifdef ENABLE_SNAPSHOT
 // Evaluates javascript snapshot.
-iotjs_jval_t iotjs_jhelper_exec_snapshot(const void *snapshot_p,
-                                         size_t snapshot_size,
-                                         bool* throws);
+iotjs_jval_t iotjs_jhelper_exec_snapshot(const void* snapshot_p,
+                                         size_t snapshot_size, bool* throws);
 #endif
 
 
@@ -210,17 +209,17 @@ void iotjs_jhandler_return_string_raw(iotjs_jhandler_t* jhandler,
 void iotjs_jhandler_throw(iotjs_jhandler_t* jhandler, const iotjs_jval_t* err);
 
 
-#define JHANDLER_THROW(TYPE, message) \
+#define JHANDLER_THROW(TYPE, message)                                         \
   iotjs_jval_t e = iotjs_jval_create_error_type(IOTJS_ERROR_##TYPE, message); \
-  iotjs_jhandler_throw(jhandler, &e); \
+  iotjs_jhandler_throw(jhandler, &e);                                         \
   iotjs_jval_destroy(&e);
 
-#define JHANDLER_CHECK(predicate) \
-  if (!(predicate)) { \
-    char buffer[64]; \
+#define JHANDLER_CHECK(predicate)                          \
+  if (!(predicate)) {                                      \
+    char buffer[64];                                       \
     snprintf(buffer, 63, "Internal error (%s)", __func__); \
-    JHANDLER_THROW(COMMON, buffer) \
-    return; \
+    JHANDLER_THROW(COMMON, buffer)                         \
+    return;                                                \
   }
 
 #define JHANDLER_CHECK_TYPE(jval, type) \
@@ -229,68 +228,72 @@ void iotjs_jhandler_throw(iotjs_jhandler_t* jhandler, const iotjs_jval_t* err);
 #define JHANDLER_CHECK_ARG(index, type) \
   JHANDLER_CHECK_TYPE(iotjs_jhandler_get_arg(jhandler, index), type);
 
-#define JHANDLER_CHECK_ARG_IF_EXIST(index, type) \
-  if (iotjs_jhandler_get_arg_length(jhandler) > index) { \
+#define JHANDLER_CHECK_ARG_IF_EXIST(index, type)                        \
+  if (iotjs_jhandler_get_arg_length(jhandler) > index) {                \
     JHANDLER_CHECK_TYPE(iotjs_jhandler_get_arg(jhandler, index), type); \
   }
 
 #define JHANDLER_CHECK_ARGS_0()
 
 #define JHANDLER_CHECK_ARGS_1(type0) \
-  JHANDLER_CHECK_ARGS_0(); \
+  JHANDLER_CHECK_ARGS_0();           \
   JHANDLER_CHECK_ARG(0, type0);
 
 #define JHANDLER_CHECK_ARGS_2(type0, type1) \
-  JHANDLER_CHECK_ARGS_1(type0); \
+  JHANDLER_CHECK_ARGS_1(type0);             \
   JHANDLER_CHECK_ARG(1, type1);
 
 #define JHANDLER_CHECK_ARGS_3(type0, type1, type2) \
-  JHANDLER_CHECK_ARGS_2(type0, type1); \
+  JHANDLER_CHECK_ARGS_2(type0, type1);             \
   JHANDLER_CHECK_ARG(2, type2);
 
 #define JHANDLER_CHECK_ARGS_4(type0, type1, type2, type3) \
-  JHANDLER_CHECK_ARGS_3(type0, type1, type2); \
+  JHANDLER_CHECK_ARGS_3(type0, type1, type2);             \
   JHANDLER_CHECK_ARG(3, type3);
 
 #define JHANDLER_CHECK_ARGS_5(type0, type1, type2, type3, type4) \
-  JHANDLER_CHECK_ARGS_4(type0, type1, type2, type3); \
+  JHANDLER_CHECK_ARGS_4(type0, type1, type2, type3);             \
   JHANDLER_CHECK_ARG(4, type4);
 
 // Workaround for GCC type-limits warning
-static inline bool ge(uint16_t a, uint16_t b) { return a >= b; }
+static inline bool ge(uint16_t a, uint16_t b) {
+  return a >= b;
+}
 
-#define JHANDLER_CHECK_ARGS(argc, ...) \
+#define JHANDLER_CHECK_ARGS(argc, ...)                               \
   JHANDLER_CHECK(ge(iotjs_jhandler_get_arg_length(jhandler), argc)); \
-  JHANDLER_CHECK_ARGS_##argc(__VA_ARGS__) \
+  JHANDLER_CHECK_ARGS_##argc(__VA_ARGS__)
 
 #define JHANDLER_CHECK_THIS(type) \
-  JHANDLER_CHECK_TYPE(iotjs_jhandler_get_this(jhandler), type); \
+  JHANDLER_CHECK_TYPE(iotjs_jhandler_get_this(jhandler), type);
 
 #define JHANDLER_GET_ARG(index, type) \
   iotjs_jval_as_##type(iotjs_jhandler_get_arg(jhandler, index))
 
-#define JHANDLER_GET_ARG_IF_EXIST(index, type) \
-  ((iotjs_jhandler_get_arg_length(jhandler) > index) ? \
-    (iotjs_jval_is_##type(iotjs_jhandler_get_arg(jhandler, index)) ? \
-       iotjs_jhandler_get_arg(jhandler, index) : NULL) : NULL)\
+#define JHANDLER_GET_ARG_IF_EXIST(index, type)                          \
+  ((iotjs_jhandler_get_arg_length(jhandler) > index)                    \
+       ? (iotjs_jval_is_##type(iotjs_jhandler_get_arg(jhandler, index)) \
+              ? iotjs_jhandler_get_arg(jhandler, index)                 \
+              : NULL)                                                   \
+       : NULL)
 
 #define JHANDLER_GET_THIS(type) \
   iotjs_jval_as_##type(iotjs_jhandler_get_this(jhandler))
 
-#define JHANDLER_FUNCTION(name) \
-  static void ___ ## name ## _native(iotjs_jhandler_t* jhandler); \
-  static jerry_value_t name(const jerry_value_t jfunc, \
-                            const jerry_value_t jthis, \
-                            const jerry_value_t jargv[], \
-                            const JRawLengthType jargc) { \
-    iotjs_jhandler_t jhandler; \
+#define JHANDLER_FUNCTION(name)                                       \
+  static void ___##name##_native(iotjs_jhandler_t* jhandler);         \
+  static jerry_value_t name(const jerry_value_t jfunc,                \
+                            const jerry_value_t jthis,                \
+                            const jerry_value_t jargv[],              \
+                            const JRawLengthType jargc) {             \
+    iotjs_jhandler_t jhandler;                                        \
     iotjs_jhandler_initialize(&jhandler, jfunc, jthis, jargv, jargc); \
-    ___ ## name ## _native(&jhandler); \
-    jerry_value_t ret_val = jhandler.unsafe.jret.unsafe.value; \
-    iotjs_jhandler_destroy(&jhandler); \
-    return ret_val; \
-  } \
-  static void ___ ## name ## _native(iotjs_jhandler_t* jhandler)
+    ___##name##_native(&jhandler);                                    \
+    jerry_value_t ret_val = jhandler.unsafe.jret.unsafe.value;        \
+    iotjs_jhandler_destroy(&jhandler);                                \
+    return ret_val;                                                   \
+  }                                                                   \
+  static void ___##name##_native(iotjs_jhandler_t* jhandler)
 
 
 void iotjs_binding_initialize();

@@ -40,19 +40,21 @@ class Executor(object):
         exit(1)
 
     @staticmethod
-    def run_cmd(cmd, args=[]):
-        Executor.print_cmd_line(cmd, args)
+    def run_cmd(cmd, args=[], quiet=False):
+        if not quiet:
+            Executor.print_cmd_line(cmd, args)
         return subprocess.call([cmd] + args)
 
     @staticmethod
-    def run_cmd_output(cmd):
-        Executor.print_cmd_line(cmd)
+    def run_cmd_output(cmd, quiet=False):
+        if not quiet:
+            Executor.print_cmd_line(cmd)
         cmd_list = cmd.split()
-        return subprocess.check_output(cmd_list).strip()
+        return subprocess.check_output(cmd_list)
 
     @staticmethod
-    def check_run_cmd(cmd, args=[]):
-        retcode = Executor.run_cmd(cmd, args)
+    def check_run_cmd(cmd, args=[], quiet=False):
+        retcode = Executor.run_cmd(cmd, args, quiet)
         if retcode != 0:
             Executor.fail("[Failed - %d] %s" % (retcode,
                                                 Executor.cmd_line(cmd, args)))

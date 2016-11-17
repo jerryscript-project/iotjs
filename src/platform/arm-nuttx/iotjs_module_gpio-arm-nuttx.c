@@ -15,16 +15,16 @@
 
 #if defined(__NUTTX__)
 
- #if defined(TARGET_BOARD) && TARGET_BOARD == STM32F4DIS
+#if defined(TARGET_BOARD) && TARGET_BOARD == STM32F4DIS
 
 #include "iotjs_def.h"
 #include "./iotjs_module_gpio-arm-nuttx-stm32.inl.h"
 
- #else
+#else
 
 #include "iotjs_def.h"
 #include "./iotjs_module_gpio-arm-nuttx-general.inl.h"
 
- #endif
+#endif
 
 #endif // __NUTTX__

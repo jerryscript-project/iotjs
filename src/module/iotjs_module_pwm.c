@@ -14,8 +14,8 @@
  */
 
 #include "iotjs_def.h"
-#include "iotjs_objectwrap.h"
 #include "iotjs_module_pwm.h"
+#include "iotjs_objectwrap.h"
 
 
 #define THIS iotjs_pwmreqwrap_t* pwmreqwrap
@@ -110,8 +110,7 @@ void AfterPwmWork(uv_work_t* work_req, int status) {
     case kPwmOpSetEnable:
     case kPwmOpUnexport:
       break;
-    default:
-    {
+    default: {
       IOTJS_ASSERT(!"Unreachable");
       break;
     }
@@ -128,13 +127,12 @@ void AfterPwmWork(uv_work_t* work_req, int status) {
 }
 
 
-#define PWM_ASYNC(op) \
-  do { \
+#define PWM_ASYNC(op)                                                  \
+  do {                                                                 \
     uv_loop_t* loop = iotjs_environment_loop(iotjs_environment_get()); \
-    uv_work_t* req = iotjs_pwmreqwrap_req(req_wrap); \
-    uv_queue_work(loop, req, op ## Worker, AfterPwmWork); \
+    uv_work_t* req = iotjs_pwmreqwrap_req(req_wrap);                   \
+    uv_queue_work(loop, req, op##Worker, AfterPwmWork);                \
   } while (0)
-
 
 
 JHANDLER_FUNCTION(Export) {
@@ -265,8 +263,8 @@ iotjs_jval_t InitPwm() {
   iotjs_jval_set_method(&jpwm, "unexport", Unexport);
 
 
-#define SET_PWM_CONSTANT(object, constant) \
-  do { \
+#define SET_PWM_CONSTANT(object, constant)                       \
+  do {                                                           \
     iotjs_jval_set_property_number(object, #constant, constant); \
   } while (0)
 
@@ -280,8 +278,8 @@ iotjs_jval_t InitPwm() {
 #undef SET_PWM_CONSTANT
 
   iotjs_pwm_t* pwm = iotjs_pwm_create(&jpwm);
-  IOTJS_ASSERT(pwm == (iotjs_pwm_t*)(
-              iotjs_jval_get_object_native_handle(&jpwm)));
+  IOTJS_ASSERT(pwm ==
+               (iotjs_pwm_t*)(iotjs_jval_get_object_native_handle(&jpwm)));
 
   return jpwm;
 }

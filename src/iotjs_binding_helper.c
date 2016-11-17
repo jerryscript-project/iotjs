@@ -30,8 +30,8 @@ void iotjs_uncaught_exception(const iotjs_jval_t* jexception) {
   iotjs_jargs_t args = iotjs_jargs_create(1);
   iotjs_jargs_append_jval(&args, jexception);
 
-  iotjs_jval_t jres = iotjs_jhelper_call_ok(&jonuncaughtexception, process,
-                                            &args);
+  iotjs_jval_t jres =
+      iotjs_jhelper_call_ok(&jonuncaughtexception, process, &args);
   iotjs_jval_destroy(&jres);
 
   iotjs_jargs_destroy(&args);
@@ -68,9 +68,9 @@ bool iotjs_process_next_tick() {
   iotjs_jval_t jon_next_tick = iotjs_jval_get_property(process, "_onNextTick");
   IOTJS_ASSERT(iotjs_jval_is_function(&jon_next_tick));
 
-  iotjs_jval_t jres = iotjs_jhelper_call_ok(&jon_next_tick,
-                                            iotjs_jval_get_undefined(),
-                                            iotjs_jargs_get_empty());
+  iotjs_jval_t jres =
+      iotjs_jhelper_call_ok(&jon_next_tick, iotjs_jval_get_undefined(),
+                            iotjs_jargs_get_empty());
 
   IOTJS_ASSERT(iotjs_jval_is_boolean(&jres));
 

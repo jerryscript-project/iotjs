@@ -21,7 +21,6 @@ import sys
 import re
 import os
 
-from check_tidy import check_tidy
 from js2c import js2c
 from common_py import path
 from common_py.system.filesystem import FileSystem as fs
@@ -120,8 +119,6 @@ def init_option():
     parser.add_argument('--jerry-memstat', action='store_true')
 
     parser.add_argument('--no-init-submodule', action='store_true')
-
-    parser.add_argument('--no-check-tidy', action='store_true')
 
     parser.add_argument('--no-check-valgrind', action='store_true')
 
@@ -753,12 +750,6 @@ if option.clean:
     fs.rmtree(host_build_root)
 
 create_build_directories(option)
-
-# Perform tidy check.
-print_progress('Tidy checking')
-if not option.no_check_tidy:
-    if not check_tidy(path.PROJECT_ROOT):
-        ex.fail("Failed check_tidy")
 
 # Anazlye module dependency
 print_progress('Analyze module dependency')

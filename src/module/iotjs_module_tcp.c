@@ -22,20 +22,7 @@
 #include "iotjs_reqwrap.h"
 
 
-typedef struct {
-  iotjs_handlewrap_t handlewrap;
-  uv_tcp_t handle;
-} IOTJS_VALIDATED_STRUCT(iotjs_tcpwrap_t);
-
-
-iotjs_tcpwrap_t* iotjs_tcpwrap_create(const iotjs_jval_t* jtcp);
-void iotjs_tcpwrap_destroy(iotjs_tcpwrap_t* tcpwrap);
-
-iotjs_tcpwrap_t* iotjs_tcpwrap_from_handle(uv_tcp_t* handle);
-iotjs_tcpwrap_t* iotjs_tcpwrap_from_jobject(const iotjs_jval_t* jtcp);
-
-uv_tcp_t* iotjs_tcpwrap_tcp_handle(iotjs_tcpwrap_t* tcpwrap);
-iotjs_jval_t* iotjs_tcpwrap_jobject(iotjs_tcpwrap_t* tcpwrap);
+static void iotjs_tcpwrap_destroy(iotjs_tcpwrap_t* tcpwrap);
 
 
 iotjs_tcpwrap_t* iotjs_tcpwrap_create(const iotjs_jval_t* jtcp) {
@@ -53,7 +40,7 @@ iotjs_tcpwrap_t* iotjs_tcpwrap_create(const iotjs_jval_t* jtcp) {
 }
 
 
-void iotjs_tcpwrap_destroy(iotjs_tcpwrap_t* tcpwrap) {
+static void iotjs_tcpwrap_destroy(iotjs_tcpwrap_t* tcpwrap) {
   IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_tcpwrap_t, tcpwrap);
   iotjs_handlewrap_destroy(&_this->handlewrap);
   IOTJS_RELEASE(tcpwrap);
@@ -88,105 +75,129 @@ iotjs_jval_t* iotjs_tcpwrap_jobject(iotjs_tcpwrap_t* tcpwrap) {
 }
 
 
-typedef struct {
-  iotjs_reqwrap_t reqwrap;
-  uv_connect_t req;
-} IOTJS_VALIDATED_STRUCT(iotjs_connectreqwrap_t);
+#define THIS iotjs_connect_reqwrap_t* connect_reqwrap
 
 
-#define THIS iotjs_connectreqwrap_t* connectreqwrap
+static void iotjs_connect_reqwrap_destroy(THIS);
 
-void iotjs_connectreqwrap_initialize(THIS, const iotjs_jval_t* jcallback) {
-  IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_connectreqwrap_t, connectreqwrap);
-  iotjs_reqwrap_initialize(&_this->reqwrap, jcallback, (uv_req_t*)&_this->req,
-                           connectreqwrap);
+
+iotjs_connect_reqwrap_t* iotjs_connect_reqwrap_create(
+    const iotjs_jval_t* jcallback) {
+  iotjs_connect_reqwrap_t* connect_reqwrap =
+      IOTJS_ALLOC(iotjs_connect_reqwrap_t);
+  IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_connect_reqwrap_t, connect_reqwrap);
+  iotjs_reqwrap_initialize(&_this->reqwrap, jcallback, (uv_req_t*)&_this->req);
+  return connect_reqwrap;
 }
 
 
-void iotjs_connectreqwrap_destroy(THIS) {
-  IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_connectreqwrap_t, connectreqwrap);
+static void iotjs_connect_reqwrap_destroy(THIS) {
+  IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_connect_reqwrap_t, connect_reqwrap);
   iotjs_reqwrap_destroy(&_this->reqwrap);
+  IOTJS_RELEASE(connect_reqwrap);
 }
 
 
-uv_connect_t* iotjs_connectreqwrap_req(THIS) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_connectreqwrap_t, connectreqwrap);
+void iotjs_connect_reqwrap_dispatched(THIS) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_connect_reqwrap_t, connect_reqwrap);
+  iotjs_connect_reqwrap_destroy(connect_reqwrap);
+}
+
+
+uv_connect_t* iotjs_connect_reqwrap_req(THIS) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_connect_reqwrap_t, connect_reqwrap);
   return &_this->req;
 }
 
 
-const iotjs_jval_t* iotjs_connectreqwrap_jcallback(THIS) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_connectreqwrap_t, connectreqwrap);
+const iotjs_jval_t* iotjs_connect_reqwrap_jcallback(THIS) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_connect_reqwrap_t, connect_reqwrap);
   return iotjs_reqwrap_jcallback(&_this->reqwrap);
 }
 
 #undef THIS
 
 
-typedef struct {
-  iotjs_reqwrap_t reqwrap;
-  uv_write_t req;
-} IOTJS_VALIDATED_STRUCT(iotjs_writereqwrap_t);
+#define THIS iotjs_write_reqwrap_t* write_reqwrap
 
 
-#define THIS iotjs_writereqwrap_t* writereqwrap
+static void iotjs_write_reqwrap_destroy(THIS);
 
-void iotjs_writereqwrap_initialize(THIS, const iotjs_jval_t* jcallback) {
-  IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_writereqwrap_t, writereqwrap);
-  iotjs_reqwrap_initialize(&_this->reqwrap, jcallback, (uv_req_t*)&_this->req,
-                           writereqwrap);
+
+iotjs_write_reqwrap_t* iotjs_write_reqwrap_create(
+    const iotjs_jval_t* jcallback) {
+  iotjs_write_reqwrap_t* write_reqwrap = IOTJS_ALLOC(iotjs_write_reqwrap_t);
+  IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_write_reqwrap_t, write_reqwrap);
+  iotjs_reqwrap_initialize(&_this->reqwrap, jcallback, (uv_req_t*)&_this->req);
+  return write_reqwrap;
 }
 
 
-void iotjs_writereqwrap_destroy(THIS) {
-  IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_writereqwrap_t, writereqwrap);
+static void iotjs_write_reqwrap_destroy(THIS) {
+  IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_write_reqwrap_t, write_reqwrap);
   iotjs_reqwrap_destroy(&_this->reqwrap);
+  IOTJS_RELEASE(write_reqwrap);
 }
 
 
-uv_write_t* iotjs_writereqwrap_req(THIS) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_writereqwrap_t, writereqwrap);
+void iotjs_write_reqwrap_dispatched(THIS) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_write_reqwrap_t, write_reqwrap);
+  iotjs_write_reqwrap_destroy(write_reqwrap);
+}
+
+
+uv_write_t* iotjs_write_reqwrap_req(THIS) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_write_reqwrap_t, write_reqwrap);
   return &_this->req;
 }
 
 
-const iotjs_jval_t* iotjs_writereqwrap_jcallback(THIS) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_writereqwrap_t, writereqwrap);
+const iotjs_jval_t* iotjs_write_reqwrap_jcallback(THIS) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_write_reqwrap_t, write_reqwrap);
   return iotjs_reqwrap_jcallback(&_this->reqwrap);
 }
 
 #undef THIS
 
 
-typedef struct {
-  iotjs_reqwrap_t reqwrap;
-  uv_shutdown_t req;
-} IOTJS_VALIDATED_STRUCT(iotjs_shutdownreqwrap_t);
+#define THIS iotjs_shutdown_reqwrap_t* shutdown_reqwrap
 
 
-#define THIS iotjs_shutdownreqwrap_t* shutdownreqwrap
+static void iotjs_shutdown_reqwrap_destroy(THIS);
 
-void iotjs_shutdownreqwrap_initialize(THIS, const iotjs_jval_t* jcallback) {
-  IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_shutdownreqwrap_t, shutdownreqwrap);
-  iotjs_reqwrap_initialize(&_this->reqwrap, jcallback, (uv_req_t*)&_this->req,
-                           shutdownreqwrap);
+
+iotjs_shutdown_reqwrap_t* iotjs_shutdown_reqwrap_create(
+    const iotjs_jval_t* jcallback) {
+  iotjs_shutdown_reqwrap_t* shutdown_reqwrap =
+      IOTJS_ALLOC(iotjs_shutdown_reqwrap_t);
+  IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_shutdown_reqwrap_t,
+                                     shutdown_reqwrap);
+  iotjs_reqwrap_initialize(&_this->reqwrap, jcallback, (uv_req_t*)&_this->req);
+  return shutdown_reqwrap;
 }
 
 
-void iotjs_shutdownreqwrap_destroy(THIS) {
-  IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_shutdownreqwrap_t, shutdownreqwrap);
+static void iotjs_shutdown_reqwrap_destroy(THIS) {
+  IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_shutdown_reqwrap_t, shutdown_reqwrap);
   iotjs_reqwrap_destroy(&_this->reqwrap);
+  IOTJS_RELEASE(shutdown_reqwrap);
 }
 
 
-uv_shutdown_t* iotjs_shutdownreqwrap_req(THIS) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_shutdownreqwrap_t, shutdownreqwrap);
+void iotjs_shutdown_reqwrap_dispatched(THIS) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_shutdown_reqwrap_t, shutdown_reqwrap);
+  iotjs_shutdown_reqwrap_destroy(shutdown_reqwrap);
+}
+
+
+uv_shutdown_t* iotjs_shutdown_reqwrap_req(THIS) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_shutdown_reqwrap_t, shutdown_reqwrap);
   return &_this->req;
 }
 
 
-const iotjs_jval_t* iotjs_shutdownreqwrap_jcallback(THIS) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_shutdownreqwrap_t, shutdownreqwrap);
+const iotjs_jval_t* iotjs_shutdown_reqwrap_jcallback(THIS) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_shutdown_reqwrap_t, shutdown_reqwrap);
   return iotjs_reqwrap_jcallback(&_this->reqwrap);
 }
 
@@ -265,12 +276,12 @@ JHANDLER_FUNCTION(Bind) {
 
 // Connection request result handler.
 static void AfterConnect(uv_connect_t* req, int status) {
-  iotjs_connectreqwrap_t* req_wrap = (iotjs_connectreqwrap_t*)(req->data);
+  iotjs_connect_reqwrap_t* req_wrap = (iotjs_connect_reqwrap_t*)(req->data);
   IOTJS_ASSERT(req_wrap != NULL);
 
   // Take callback function object.
   // function afterConnect(status)
-  const iotjs_jval_t* jcallback = iotjs_connectreqwrap_jcallback(req_wrap);
+  const iotjs_jval_t* jcallback = iotjs_connect_reqwrap_jcallback(req_wrap);
   IOTJS_ASSERT(iotjs_jval_is_function(jcallback));
 
   // Only parameter is status code.
@@ -284,8 +295,7 @@ static void AfterConnect(uv_connect_t* req, int status) {
   iotjs_jargs_destroy(&args);
 
   // Release request wrapper.
-  iotjs_connectreqwrap_destroy(req_wrap);
-  IOTJS_RELEASE(req_wrap);
+  iotjs_connect_reqwrap_dispatched(req_wrap);
 }
 
 
@@ -310,17 +320,15 @@ JHANDLER_FUNCTION(Connect) {
     iotjs_tcpwrap_t* tcp_wrap = iotjs_tcpwrap_from_jobject(jtcp);
 
     // Create connection request wrapper.
-    iotjs_connectreqwrap_t* req_wrap = IOTJS_ALLOC(iotjs_connectreqwrap_t);
-    iotjs_connectreqwrap_initialize(req_wrap, jcallback);
+    iotjs_connect_reqwrap_t* req_wrap = iotjs_connect_reqwrap_create(jcallback);
 
     // Create connection request.
-    err = uv_tcp_connect(iotjs_connectreqwrap_req(req_wrap),
+    err = uv_tcp_connect(iotjs_connect_reqwrap_req(req_wrap),
                          iotjs_tcpwrap_tcp_handle(tcp_wrap),
                          (const sockaddr*)(&addr), AfterConnect);
 
     if (err) {
-      iotjs_connectreqwrap_destroy(req_wrap);
-      IOTJS_RELEASE(req_wrap);
+      iotjs_connect_reqwrap_dispatched(req_wrap);
     }
   }
 
@@ -401,13 +409,13 @@ JHANDLER_FUNCTION(Listen) {
 
 
 void AfterWrite(uv_write_t* req, int status) {
-  iotjs_writereqwrap_t* req_wrap = (iotjs_writereqwrap_t*)(req->data);
+  iotjs_write_reqwrap_t* req_wrap = (iotjs_write_reqwrap_t*)(req->data);
   iotjs_tcpwrap_t* tcp_wrap = (iotjs_tcpwrap_t*)(req->handle->data);
   IOTJS_ASSERT(req_wrap != NULL);
   IOTJS_ASSERT(tcp_wrap != NULL);
 
   // Take callback function object.
-  const iotjs_jval_t* jcallback = iotjs_writereqwrap_jcallback(req_wrap);
+  const iotjs_jval_t* jcallback = iotjs_write_reqwrap_jcallback(req_wrap);
 
   // Only parameter is status code.
   iotjs_jargs_t args = iotjs_jargs_create(1);
@@ -420,8 +428,7 @@ void AfterWrite(uv_write_t* req, int status) {
   iotjs_jargs_destroy(&args);
 
   // Release request wrapper.
-  iotjs_writereqwrap_destroy(req_wrap);
-  IOTJS_RELEASE(req_wrap);
+  iotjs_write_reqwrap_dispatched(req_wrap);
 }
 
 
@@ -442,16 +449,14 @@ JHANDLER_FUNCTION(Write) {
   buf.len = len;
 
   const iotjs_jval_t* arg1 = JHANDLER_GET_ARG(1, object);
-  iotjs_writereqwrap_t* req_wrap = IOTJS_ALLOC(iotjs_writereqwrap_t);
-  iotjs_writereqwrap_initialize(req_wrap, arg1);
+  iotjs_write_reqwrap_t* req_wrap = iotjs_write_reqwrap_create(arg1);
 
-  int err = uv_write(iotjs_writereqwrap_req(req_wrap),
+  int err = uv_write(iotjs_write_reqwrap_req(req_wrap),
                      (uv_stream_t*)(iotjs_tcpwrap_tcp_handle(tcp_wrap)), &buf,
                      1, AfterWrite);
 
   if (err) {
-    iotjs_writereqwrap_destroy(req_wrap);
-    IOTJS_RELEASE(req_wrap);
+    iotjs_write_reqwrap_dispatched(req_wrap);
   }
 
   iotjs_jhandler_return_number(jhandler, err);
@@ -531,13 +536,13 @@ JHANDLER_FUNCTION(ReadStart) {
 
 
 static void AfterShutdown(uv_shutdown_t* req, int status) {
-  iotjs_shutdownreqwrap_t* req_wrap = (iotjs_shutdownreqwrap_t*)(req->data);
+  iotjs_shutdown_reqwrap_t* req_wrap = (iotjs_shutdown_reqwrap_t*)(req->data);
   iotjs_tcpwrap_t* tcp_wrap = (iotjs_tcpwrap_t*)(req->handle->data);
   IOTJS_ASSERT(req_wrap != NULL);
   IOTJS_ASSERT(tcp_wrap != NULL);
 
   // function onShutdown(status)
-  const iotjs_jval_t* jonshutdown = iotjs_shutdownreqwrap_jcallback(req_wrap);
+  const iotjs_jval_t* jonshutdown = iotjs_shutdown_reqwrap_jcallback(req_wrap);
   IOTJS_ASSERT(iotjs_jval_is_function(jonshutdown));
 
   iotjs_jargs_t args = iotjs_jargs_create(1);
@@ -547,8 +552,7 @@ static void AfterShutdown(uv_shutdown_t* req, int status) {
 
   iotjs_jargs_destroy(&args);
 
-  iotjs_shutdownreqwrap_destroy(req_wrap);
-  IOTJS_RELEASE(req_wrap);
+  iotjs_shutdown_reqwrap_dispatched(req_wrap);
 }
 
 
@@ -560,16 +564,14 @@ JHANDLER_FUNCTION(Shutdown) {
   iotjs_tcpwrap_t* tcp_wrap = iotjs_tcpwrap_from_jobject(jtcp);
 
   const iotjs_jval_t* arg0 = JHANDLER_GET_ARG(0, object);
-  iotjs_shutdownreqwrap_t* req_wrap = IOTJS_ALLOC(iotjs_shutdownreqwrap_t);
-  iotjs_shutdownreqwrap_initialize(req_wrap, arg0);
+  iotjs_shutdown_reqwrap_t* req_wrap = iotjs_shutdown_reqwrap_create(arg0);
 
-  int err = uv_shutdown(iotjs_shutdownreqwrap_req(req_wrap),
+  int err = uv_shutdown(iotjs_shutdown_reqwrap_req(req_wrap),
                         (uv_stream_t*)(iotjs_tcpwrap_tcp_handle(tcp_wrap)),
                         AfterShutdown);
 
   if (err) {
-    iotjs_shutdownreqwrap_destroy(req_wrap);
-    IOTJS_RELEASE(req_wrap);
+    iotjs_shutdown_reqwrap_dispatched(req_wrap);
   }
 
   iotjs_jhandler_return_number(jhandler, err);

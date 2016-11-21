@@ -92,10 +92,10 @@ bool SetPinMode(int32_t pin, GpioMode mode) {
 }
 
 
-#define GPIO_WORKER_INIT_TEMPLATE(initialized)                              \
-  IOTJS_ASSERT(iotjs_gpio_initialized() == initialized);                    \
-  iotjs_gpioreqwrap_t* req_wrap = iotjs_gpioreqwrap_from_request(work_req); \
-  iotjs_gpioreqdata_t* req_data = iotjs_gpioreqwrap_data(req_wrap);
+#define GPIO_WORKER_INIT_TEMPLATE(initialized)                                \
+  IOTJS_ASSERT(iotjs_gpio_initialized() == initialized);                      \
+  iotjs_gpio_reqwrap_t* req_wrap = iotjs_gpio_reqwrap_from_request(work_req); \
+  iotjs_gpio_reqdata_t* req_data = iotjs_gpio_reqwrap_data(req_wrap);
 
 
 void InitializeGpioWorker(uv_work_t* work_req) {

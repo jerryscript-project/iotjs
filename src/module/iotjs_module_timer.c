@@ -17,6 +17,7 @@
 #include "iotjs_module_timer.h"
 
 
+static void iotjs_timerwrap_destroy(iotjs_timerwrap_t* timerwrap);
 static void iotjs_timerwrap_on_timeout(iotjs_timerwrap_t* timerwrap);
 
 
@@ -36,7 +37,7 @@ iotjs_timerwrap_t* iotjs_timerwrap_create(const iotjs_jval_t* jtimer) {
 }
 
 
-void iotjs_timerwrap_destroy(iotjs_timerwrap_t* timerwrap) {
+static void iotjs_timerwrap_destroy(iotjs_timerwrap_t* timerwrap) {
   IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_timerwrap_t, timerwrap);
   iotjs_handlewrap_destroy(&_this->handlewrap);
 

@@ -163,9 +163,9 @@ int I2cSmbusReadI2cBlockData(int fd, uint8_t command, uint8_t* values,
 }
 
 
-#define I2C_WORKER_INIT_TEMPLATE                                          \
-  iotjs_i2creqwrap_t* req_wrap = iotjs_i2creqwrap_from_request(work_req); \
-  iotjs_i2creqdata_t* req_data = iotjs_i2creqwrap_data(req_wrap);
+#define I2C_WORKER_INIT_TEMPLATE                                            \
+  iotjs_i2c_reqwrap_t* req_wrap = iotjs_i2c_reqwrap_from_request(work_req); \
+  iotjs_i2c_reqdata_t* req_data = iotjs_i2c_reqwrap_data(req_wrap);
 
 
 void I2cSetAddress(uint8_t address) {

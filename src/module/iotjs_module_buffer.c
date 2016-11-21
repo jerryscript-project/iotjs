@@ -20,6 +20,8 @@
 #include <string.h>
 
 
+static void iotjs_bufferwrap_destroy(iotjs_bufferwrap_t* bufferwrap);
+
 iotjs_bufferwrap_t* iotjs_bufferwrap_create(const iotjs_jval_t* jbuiltin,
                                             size_t length) {
   iotjs_bufferwrap_t* bufferwrap = IOTJS_ALLOC(iotjs_bufferwrap_t);
@@ -44,7 +46,7 @@ iotjs_bufferwrap_t* iotjs_bufferwrap_create(const iotjs_jval_t* jbuiltin,
 }
 
 
-void iotjs_bufferwrap_destroy(iotjs_bufferwrap_t* bufferwrap) {
+static void iotjs_bufferwrap_destroy(iotjs_bufferwrap_t* bufferwrap) {
   IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_bufferwrap_t, bufferwrap);
   if (_this->buffer != NULL) {
     iotjs_buffer_release(_this->buffer);

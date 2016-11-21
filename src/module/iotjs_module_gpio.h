@@ -65,23 +65,23 @@ typedef struct {
   GpioMode mode; // only for set pin
   GpioError result;
   GpioOp op;
-} iotjs_gpioreqdata_t;
+} iotjs_gpio_reqdata_t;
 
 
 typedef struct {
   iotjs_reqwrap_t reqwrap;
   uv_work_t req;
-  iotjs_gpioreqdata_t req_data;
-} IOTJS_VALIDATED_STRUCT(iotjs_gpioreqwrap_t);
+  iotjs_gpio_reqdata_t req_data;
+} IOTJS_VALIDATED_STRUCT(iotjs_gpio_reqwrap_t);
 
-#define THIS iotjs_gpioreqwrap_t* gpioreqwrap
-void iotjs_gpioreqwrap_initialize(THIS, const iotjs_jval_t* jcallback,
-                                  GpioOp op);
-void iotjs_gpioreqwrap_destroy(THIS);
-uv_work_t* iotjs_gpioreqwrap_req(THIS);
-const iotjs_jval_t* iotjs_gpioreqwrap_jcallback(THIS);
-iotjs_gpioreqwrap_t* iotjs_gpioreqwrap_from_request(uv_work_t* req);
-iotjs_gpioreqdata_t* iotjs_gpioreqwrap_data(THIS);
+#define THIS iotjs_gpio_reqwrap_t* gpio_reqwrap
+iotjs_gpio_reqwrap_t* iotjs_gpio_reqwrap_create(const iotjs_jval_t* jcallback,
+                                                GpioOp op);
+void iotjs_gpio_reqwrap_dispatched(THIS);
+uv_work_t* iotjs_gpio_reqwrap_req(THIS);
+const iotjs_jval_t* iotjs_gpio_reqwrap_jcallback(THIS);
+iotjs_gpio_reqwrap_t* iotjs_gpio_reqwrap_from_request(uv_work_t* req);
+iotjs_gpio_reqdata_t* iotjs_gpio_reqwrap_data(THIS);
 #undef THIS
 
 
@@ -92,7 +92,6 @@ typedef struct {
 } IOTJS_VALIDATED_STRUCT(iotjs_gpio_t);
 
 iotjs_gpio_t* iotjs_gpio_create(const iotjs_jval_t* jgpio);
-void iotjs_gpio_destroy(iotjs_gpio_t* gpio);
 const iotjs_jval_t* iotjs_gpio_get_jgpio();
 iotjs_gpio_t* iotjs_gpio_get_instance();
 bool iotjs_gpio_initialized();

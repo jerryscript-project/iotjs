@@ -41,7 +41,7 @@
 
 
 // Set PWM period.
-bool SetPwmPeriod(iotjs_pwmreqdata_t* req_data) {
+bool SetPwmPeriod(iotjs_pwm_reqdata_t* req_data) {
   IOTJS_ASSERT(!iotjs_string_is_empty(&req_data->device));
 
   char path_buff[64] = { 0 };
@@ -63,7 +63,7 @@ bool SetPwmPeriod(iotjs_pwmreqdata_t* req_data) {
 
 
 // Set PWM Duty-Cycle.
-bool SetPwmDutyCycle(iotjs_pwmreqdata_t* req_data) {
+bool SetPwmDutyCycle(iotjs_pwm_reqdata_t* req_data) {
   IOTJS_ASSERT(!iotjs_string_is_empty(&req_data->device));
 
   char path_buff[64] = { 0 };
@@ -85,12 +85,12 @@ bool SetPwmDutyCycle(iotjs_pwmreqdata_t* req_data) {
 }
 
 
-#define PWM_WORKER_INIT_TEMPLATE                                          \
-  iotjs_pwmreqwrap_t* req_wrap = iotjs_pwmreqwrap_from_request(work_req); \
-  iotjs_pwmreqdata_t* req_data = iotjs_pwmreqwrap_data(req_wrap);
+#define PWM_WORKER_INIT_TEMPLATE                                            \
+  iotjs_pwm_reqwrap_t* req_wrap = iotjs_pwm_reqwrap_from_request(work_req); \
+  iotjs_pwm_reqdata_t* req_data = iotjs_pwm_reqwrap_data(req_wrap);
 
 
-int PwmInitializePwmPath(iotjs_pwmreqdata_t* req_data) {
+int PwmInitializePwmPath(iotjs_pwm_reqdata_t* req_data) {
   int32_t chip_number, pwm_number;
   const char* path = iotjs_string_data(&req_data->device);
   char buffer[64] = { 0 };

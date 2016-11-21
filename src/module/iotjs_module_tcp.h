@@ -17,13 +17,73 @@
 #ifndef IOTJS_MODULE_TCP_H
 #define IOTJS_MODULE_TCP_H
 
+
 #include "iotjs_binding.h"
+#include "iotjs_handlewrap.h"
+#include "iotjs_reqwrap.h"
 
 
 typedef struct sockaddr sockaddr;
 typedef struct sockaddr_in sockaddr_in;
 typedef struct sockaddr_in6 sockaddr_in6;
 typedef struct sockaddr_storage sockaddr_storage;
+
+
+typedef struct {
+  iotjs_handlewrap_t handlewrap;
+  uv_tcp_t handle;
+} IOTJS_VALIDATED_STRUCT(iotjs_tcpwrap_t);
+
+
+iotjs_tcpwrap_t* iotjs_tcpwrap_create(const iotjs_jval_t* jtcp);
+
+iotjs_tcpwrap_t* iotjs_tcpwrap_from_handle(uv_tcp_t* handle);
+iotjs_tcpwrap_t* iotjs_tcpwrap_from_jobject(const iotjs_jval_t* jtcp);
+
+uv_tcp_t* iotjs_tcpwrap_tcp_handle(iotjs_tcpwrap_t* tcpwrap);
+iotjs_jval_t* iotjs_tcpwrap_jobject(iotjs_tcpwrap_t* tcpwrap);
+
+
+typedef struct {
+  iotjs_reqwrap_t reqwrap;
+  uv_connect_t req;
+} IOTJS_VALIDATED_STRUCT(iotjs_connect_reqwrap_t);
+
+#define THIS iotjs_connect_reqwrap_t* connect_reqwrap
+iotjs_connect_reqwrap_t* iotjs_connect_reqwrap_create(
+    const iotjs_jval_t* jcallback);
+void iotjs_connect_reqwrap_dispatched(THIS);
+uv_connect_t* iotjs_connect_reqwrap_req(THIS);
+const iotjs_jval_t* iotjs_connect_reqwrap_jcallback(THIS);
+#undef THIS
+
+
+typedef struct {
+  iotjs_reqwrap_t reqwrap;
+  uv_write_t req;
+} IOTJS_VALIDATED_STRUCT(iotjs_write_reqwrap_t);
+
+#define THIS iotjs_write_reqwrap_t* write_reqwrap
+iotjs_write_reqwrap_t* iotjs_write_reqwrap_create(
+    const iotjs_jval_t* jcallback);
+void iotjs_write_reqwrap_dispatched(THIS);
+uv_write_t* iotjs_write_reqwrap_req(THIS);
+const iotjs_jval_t* iotjs_write_reqwrap_jcallback(THIS);
+#undef THIS
+
+
+typedef struct {
+  iotjs_reqwrap_t reqwrap;
+  uv_shutdown_t req;
+} IOTJS_VALIDATED_STRUCT(iotjs_shutdown_reqwrap_t);
+
+#define THIS iotjs_shutdown_reqwrap_t* shutdown_reqwrap
+iotjs_shutdown_reqwrap_t* iotjs_shutdown_reqwrap_create(
+    const iotjs_jval_t* jcallback);
+void iotjs_shutdown_reqwrap_dispatched(THIS);
+uv_shutdown_t* iotjs_shutdown_reqwrap_req(THIS);
+const iotjs_jval_t* iotjs_shutdown_reqwrap_jcallback(THIS);
+#undef THIS
 
 
 void AddressToJS(const iotjs_jval_t* obj, const sockaddr* addr);

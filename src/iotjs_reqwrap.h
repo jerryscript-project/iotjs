@@ -34,8 +34,7 @@ typedef struct {
 
 
 void iotjs_reqwrap_initialize(iotjs_reqwrap_t* reqwrap,
-                              const iotjs_jval_t* jcallback, uv_req_t* request,
-                              void* wrap);
+                              const iotjs_jval_t* jcallback, uv_req_t* request);
 void iotjs_reqwrap_destroy(iotjs_reqwrap_t* reqwrap);
 
 // To retrieve javascript callback funciton object.

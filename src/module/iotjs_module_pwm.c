@@ -18,48 +18,62 @@
 #include "iotjs_objectwrap.h"
 
 
-#define THIS iotjs_pwmreqwrap_t* pwmreqwrap
+#define THIS iotjs_pwm_reqwrap_t* pwm_reqwrap
 
-void iotjs_pwmreqwrap_initialize(THIS, const iotjs_jval_t* jcallback,
-                                 PwmOp op) {
-  IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_pwmreqwrap_t, pwmreqwrap);
-  iotjs_reqwrap_initialize(&_this->reqwrap, jcallback, (uv_req_t*)&_this->req,
-                           (void*)pwmreqwrap);
+iotjs_pwm_reqwrap_t* iotjs_pwm_reqwrap_create(const iotjs_jval_t* jcallback,
+                                              PwmOp op) {
+  iotjs_pwm_reqwrap_t* pwm_reqwrap = IOTJS_ALLOC(iotjs_pwm_reqwrap_t);
+  IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_pwm_reqwrap_t, pwm_reqwrap);
+
+  iotjs_reqwrap_initialize(&_this->reqwrap, jcallback, (uv_req_t*)&_this->req);
+
   _this->req_data.op = op;
   _this->req_data.device = iotjs_string_create("");
+
+  return pwm_reqwrap;
 }
 
 
-void iotjs_pwmreqwrap_destroy(THIS) {
-  IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_pwmreqwrap_t, pwmreqwrap);
+static void iotjs_pwm_reqwrap_destroy(THIS) {
+  IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_pwm_reqwrap_t, pwm_reqwrap);
   iotjs_string_destroy(&_this->req_data.device);
   iotjs_reqwrap_destroy(&_this->reqwrap);
+  IOTJS_RELEASE(pwm_reqwrap);
 }
 
 
-uv_work_t* iotjs_pwmreqwrap_req(THIS) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_pwmreqwrap_t, pwmreqwrap);
+void iotjs_pwm_reqwrap_dispatched(THIS) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_pwm_reqwrap_t, pwm_reqwrap);
+  iotjs_pwm_reqwrap_destroy(pwm_reqwrap);
+}
+
+
+uv_work_t* iotjs_pwm_reqwrap_req(THIS) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_pwm_reqwrap_t, pwm_reqwrap);
   return &_this->req;
 }
 
 
-const iotjs_jval_t* iotjs_pwmreqwrap_jcallback(THIS) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_pwmreqwrap_t, pwmreqwrap);
+const iotjs_jval_t* iotjs_pwm_reqwrap_jcallback(THIS) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_pwm_reqwrap_t, pwm_reqwrap);
   return iotjs_reqwrap_jcallback(&_this->reqwrap);
 }
 
 
-iotjs_pwmreqwrap_t* iotjs_pwmreqwrap_from_request(uv_work_t* req) {
-  return (iotjs_pwmreqwrap_t*)(iotjs_reqwrap_from_request((uv_req_t*)req));
+iotjs_pwm_reqwrap_t* iotjs_pwm_reqwrap_from_request(uv_work_t* req) {
+  return (iotjs_pwm_reqwrap_t*)(iotjs_reqwrap_from_request((uv_req_t*)req));
 }
 
 
-iotjs_pwmreqdata_t* iotjs_pwmreqwrap_data(THIS) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_pwmreqwrap_t, pwmreqwrap);
+iotjs_pwm_reqdata_t* iotjs_pwm_reqwrap_data(THIS) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_pwm_reqwrap_t, pwm_reqwrap);
   return &_this->req_data;
 }
 
 #undef THIS
+
+
+static void iotjs_pwm_destroy(iotjs_pwm_t* pwm);
 
 
 iotjs_pwm_t* iotjs_pwm_create(const iotjs_jval_t* jpwm) {
@@ -71,7 +85,7 @@ iotjs_pwm_t* iotjs_pwm_create(const iotjs_jval_t* jpwm) {
 }
 
 
-void iotjs_pwm_destroy(iotjs_pwm_t* pwm) {
+static void iotjs_pwm_destroy(iotjs_pwm_t* pwm) {
   IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_pwm_t, pwm);
   iotjs_jobjectwrap_destroy(&_this->jobjectwrap);
   IOTJS_RELEASE(pwm);
@@ -93,8 +107,8 @@ iotjs_pwm_t* iotjs_pwm_get_instance() {
 void AfterPwmWork(uv_work_t* work_req, int status) {
   iotjs_pwm_t* pwm = iotjs_pwm_get_instance();
 
-  iotjs_pwmreqwrap_t* req_wrap = iotjs_pwmreqwrap_from_request(work_req);
-  iotjs_pwmreqdata_t* req_data = iotjs_pwmreqwrap_data(req_wrap);
+  iotjs_pwm_reqwrap_t* req_wrap = iotjs_pwm_reqwrap_from_request(work_req);
+  iotjs_pwm_reqdata_t* req_data = iotjs_pwm_reqwrap_data(req_wrap);
 
   if (status) {
     req_data->result = kPwmErrSys;
@@ -116,21 +130,20 @@ void AfterPwmWork(uv_work_t* work_req, int status) {
     }
   }
 
-  const iotjs_jval_t* jcallback = iotjs_pwmreqwrap_jcallback(req_wrap);
+  const iotjs_jval_t* jcallback = iotjs_pwm_reqwrap_jcallback(req_wrap);
   const iotjs_jval_t* jpwm = iotjs_pwm_get_jpwm();
   iotjs_make_callback(jcallback, jpwm, &jargs);
 
   iotjs_jargs_destroy(&jargs);
 
-  iotjs_pwmreqwrap_destroy(req_wrap);
-  IOTJS_RELEASE(req_wrap);
+  iotjs_pwm_reqwrap_dispatched(req_wrap);
 }
 
 
 #define PWM_ASYNC(op)                                                  \
   do {                                                                 \
     uv_loop_t* loop = iotjs_environment_loop(iotjs_environment_get()); \
-    uv_work_t* req = iotjs_pwmreqwrap_req(req_wrap);                   \
+    uv_work_t* req = iotjs_pwm_reqwrap_req(req_wrap);                  \
     uv_queue_work(loop, req, op##Worker, AfterPwmWork);                \
   } while (0)
 
@@ -140,10 +153,10 @@ JHANDLER_FUNCTION(Export) {
 
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG(2, function);
 
-  iotjs_pwmreqwrap_t* req_wrap = IOTJS_ALLOC(iotjs_pwmreqwrap_t);
-  iotjs_pwmreqwrap_initialize(req_wrap, jcallback, kPwmOpExport);
+  iotjs_pwm_reqwrap_t* req_wrap =
+      iotjs_pwm_reqwrap_create(jcallback, kPwmOpExport);
 
-  iotjs_pwmreqdata_t* req_data = iotjs_pwmreqwrap_data(req_wrap);
+  iotjs_pwm_reqdata_t* req_data = iotjs_pwm_reqwrap_data(req_wrap);
 
   const iotjs_jval_t* joption = JHANDLER_GET_ARG(1, object);
   iotjs_jval_t jperiod = iotjs_jval_get_property(joption, "period");
@@ -166,8 +179,7 @@ JHANDLER_FUNCTION(Export) {
 
   if (PwmInitializePwmPath(req_data) < 0) {
     iotjs_string_destroy(&req_data->device);
-    iotjs_pwmreqwrap_destroy(req_wrap);
-    IOTJS_RELEASE(req_wrap);
+    iotjs_pwm_reqwrap_dispatched(req_wrap);
 
     JHANDLER_THROW(TYPE, "Invalid Pwm Path");
   }
@@ -187,10 +199,10 @@ JHANDLER_FUNCTION(SetPeriod) {
 
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG(2, function);
 
-  iotjs_pwmreqwrap_t* req_wrap = IOTJS_ALLOC(iotjs_pwmreqwrap_t);
-  iotjs_pwmreqwrap_initialize(req_wrap, jcallback, kPwmOpSetPeriod);
+  iotjs_pwm_reqwrap_t* req_wrap =
+      iotjs_pwm_reqwrap_create(jcallback, kPwmOpSetPeriod);
 
-  iotjs_pwmreqdata_t* req_data = iotjs_pwmreqwrap_data(req_wrap);
+  iotjs_pwm_reqdata_t* req_data = iotjs_pwm_reqwrap_data(req_wrap);
   req_data->device = JHANDLER_GET_ARG(0, string);
   req_data->period = JHANDLER_GET_ARG(1, number);
 
@@ -205,10 +217,10 @@ JHANDLER_FUNCTION(SetDutyCycle) {
 
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG(2, function);
 
-  iotjs_pwmreqwrap_t* req_wrap = IOTJS_ALLOC(iotjs_pwmreqwrap_t);
-  iotjs_pwmreqwrap_initialize(req_wrap, jcallback, kPwmOpSetDutyCycle);
+  iotjs_pwm_reqwrap_t* req_wrap =
+      iotjs_pwm_reqwrap_create(jcallback, kPwmOpSetDutyCycle);
 
-  iotjs_pwmreqdata_t* req_data = iotjs_pwmreqwrap_data(req_wrap);
+  iotjs_pwm_reqdata_t* req_data = iotjs_pwm_reqwrap_data(req_wrap);
   req_data->device = JHANDLER_GET_ARG(0, string);
   req_data->duty_cycle = JHANDLER_GET_ARG(1, number);
 
@@ -223,10 +235,10 @@ JHANDLER_FUNCTION(SetEnable) {
 
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG(2, function);
 
-  iotjs_pwmreqwrap_t* req_wrap = IOTJS_ALLOC(iotjs_pwmreqwrap_t);
-  iotjs_pwmreqwrap_initialize(req_wrap, jcallback, kPwmOpSetEnable);
+  iotjs_pwm_reqwrap_t* req_wrap =
+      iotjs_pwm_reqwrap_create(jcallback, kPwmOpSetEnable);
 
-  iotjs_pwmreqdata_t* req_data = iotjs_pwmreqwrap_data(req_wrap);
+  iotjs_pwm_reqdata_t* req_data = iotjs_pwm_reqwrap_data(req_wrap);
   req_data->device = JHANDLER_GET_ARG(0, string);
   req_data->enable = JHANDLER_GET_ARG(1, boolean);
 
@@ -241,10 +253,10 @@ JHANDLER_FUNCTION(Unexport) {
 
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG(1, function);
 
-  iotjs_pwmreqwrap_t* req_wrap = IOTJS_ALLOC(iotjs_pwmreqwrap_t);
-  iotjs_pwmreqwrap_initialize(req_wrap, jcallback, kPwmOpUnexport);
+  iotjs_pwm_reqwrap_t* req_wrap =
+      iotjs_pwm_reqwrap_create(jcallback, kPwmOpUnexport);
 
-  iotjs_pwmreqdata_t* req_data = iotjs_pwmreqwrap_data(req_wrap);
+  iotjs_pwm_reqdata_t* req_data = iotjs_pwm_reqwrap_data(req_wrap);
   req_data->device = JHANDLER_GET_ARG(0, string);
 
   PWM_ASYNC(Unexport);

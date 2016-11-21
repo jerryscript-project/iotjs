@@ -26,7 +26,7 @@ It will be easier to write a new IoT.js module if you have background on:
 Builtin JavaScript module can be written in the same way as writing [Node.js module](https://nodejs.org/api/modules.html). JavaScript file should be located in `src/js/` directory, and you should notify to our build script that your module should be included in one of following ways:
 
 * Use `./tools/build.py --iotjs-include-module mymodule` when building
-* Add your module in `.build.default.config` or `build.config` file
+* Add your module in `build.config` file
 
 Your new module will look like below:
 
@@ -55,7 +55,7 @@ OK
 
 ## Writing Native Module Builtin
 
-You can implement some part of the builtin module in C++, to enhance performance and to fully exploit the H/W functionality, etc. It has same concept with [Node.js native addon](https://nodejs.org/api/addons.html), but we have different set of APIs. Node.js uses its own binding layer with v8 API, but we use [our own binding layer](https://github.com/Samsung/iotjs/blob/master/src/iotjs_binding.h) which wraps [JerryScript API](https://github.com/Samsung/JerryScript/blob/master/jerry-core/jerry-api.h). You can see `src/iotjs_binding.*` files to find more APIs to communicate with JS-side values from native-side.
+You can implement some part of the builtin module in C, to enhance performance and to fully exploit the H/W functionality, etc. It has similar concept with [Node.js native addon](https://nodejs.org/api/addons.html), but we have different set of APIs. Node.js uses its own binding layer with v8 API, but we use [our own binding layer](https://github.com/Samsung/iotjs/blob/master/src/iotjs_binding.h) which wraps [JerryScript API](https://github.com/Samsung/JerryScript/blob/master/jerry-core/jerry-api.h). You can see `src/iotjs_binding.*` files to find more APIs to communicate with JS-side values from native-side.
 
 For simple explanation, `console` module will be used as an example.
 
@@ -72,34 +72,28 @@ Console.prototype.log = consoleBuiltin.stdout(util.format.apply(this, arguments)
 ### Registering native module
 
 According to the code above, `process.binding.console` should be defined before evaluating JavaScript code. IoT.js source code can automatically register native module if some functions are implemented as expected. First you should register your new module into `MODULE_LIST` macro in `src/iotjs_module.h`:
-```c++
+```c
 #define MAP_MODULE_LIST(F) \
-  F(BUFFER, Buffer, buffer) \
-  F(CONSOLE, Console, console) \
-  F(CONSTANTS, Constants, constants) \
+  E(F, BUFFER, Buffer, buffer) \
+  E(F, CONSOLE, Console, console) \
+  E(F, CONSTANTS, Constants, constants) \
   ...
 ```
 
-Then `JObject* Init##ModuleName()` function will be called automatically when registering native module. We already have its implementation in `src/iotjs_module_console.cpp`:
-```c++
-JObject* InitConsole() {
-  Module* module = GetBuiltinModule(MODULE_CONSOLE);
-  JObject* console = module->module;
+Then `iotjs_jval_t Init##ModuleName()` function will be called automatically when registering native module. We already have its implementation in `src/module/iotjs_module_console.c`:
+```c
+iotjs_jval_t InitConsole() {
+  iotjs_jval_t console = iotjs_jval_create_object();
 
-  if (console == NULL) {
-    console = new JObject();
-    console->SetMethod("stdout", Stdout);
-    console->SetMethod("stderr", Stderr);
-
-    module->module = console;
-  }
+  iotjs_jval_set_method(&console, "stdout", Stdout);
+  iotjs_jval_set_method(&console, "stderr", Stderr);
 
   return console;
 }
 ```
-The return value of initializer function (in this case, `JObject* console`,) will be passed to JS-side, as a return value of calling `process.binding(process.binding.modulename)`. Simply calling `new JObject()` will create a JavaScript object in c++ code.
+The return value of initializer function (in this case, `iotjs_jval_t console`,) will be passed to JS-side, as a return value of calling `process.binding(process.binding.modulename)`. Calling `iotjs_jval_create_object()` will create a JavaScript object in c code.
 
-And you might want to define some functions and properties to the newly created object. `JObject::SetMethod()` will register a native handler as a JavaScript function property. (That's how we called `consoleBuiltin.stdout()` in JavaScript.) And `JObject::SetProperty()` will define a non-function property into object. You can find the example of registering a constant value as a JavaScript property in `src/iotjs_module_constants.cpp`.
+And you might want to define some functions and properties to the newly created object. `iotjs_jval_set_method()` will register a native handler as a JavaScript function property. (That's how we was able to call `consoleBuiltin.stdout()` in JavaScript.) And `iotjs_jval_set_property_*()` will define a non-function property into object. You can find the example of registering a constant value as a JavaScript property in `src/module/iotjs_module_constants.c`.
 
 ### Native handler
 
@@ -107,21 +101,21 @@ Native handler reads arguments from JavaScript, executes native operations, and 
 
 #### Arguments and Return
 
-Let's see an example in `src/iotjs_module_console.cpp`:
+Let's see an example in `src/module/iotjs_module_console.c`:
 
-```c++
+```c
 JHANDLER_FUNCTION(Stdout) {
-  JHANDLER_CHECK(handler.GetArgLength() == 1);
-  JHANDLER_CHECK(handler.GetArg(0)->IsString());
+  JHANDLER_CHECK_ARGS(1, string);
 
-  String msg = handler.GetArg(0)->GetString();
-  fprintf(stdout, "%s", msg.data());
+  iotjs_string_t msg = JHANDLER_GET_ARG(0, string);
+  fprintf(stdout, "%s", iotjs_string_data(&msg));
+  iotjs_string_destroy(&msg);
 }
 ```
 
-Calling `JObject* JHandlerInfo::GetArg()` method inside `JHANDLER_FUNCTION()` will read JS-side argument. Since JavaScript values can have dynamic types, you must check if argument has valid type. You can use `JHANDLER_CHECK` macro, which throws JavaScript TypeError when given condition is not satisfied. After validating the type, you can convert the argument into the type you want. In this case, to print the arguments as string,
+Using `JHANDLER_GET_ARG(index, type)` macro inside `JHANDLER_FUNCTION()` will read JS-side argument. Since JavaScript values can have dynamic types, you must check if argument has valid type with `JHANDLER_CHECK_ARGS(number_of_arguments, type1, type2, type3, ...)` macro, which throws JavaScript TypeError when given condition is not satisfied.
 
-Calling `void JHandlerInfo::Return()` method inside `JHANDLER_FUNCTION()` will return value into JS-side. (`undefined` will be returned if `Return` was not called.) You should wrap c++ values into `JObject` or `JVal` type. Console methods doesn't have to return values, but you can easily find more examples from other modules.
+Calling `void iotjs_jhandler_return_*()` function inside `JHANDLER_FUNCTION()` will return value into JS-side. `undefined` will be returned if you didn't explicitly returned something, like normal JavaScript function does. Console methods doesn't have to return values, but you can easily find more examples from other modules.
 
 #### Wrapping native object with JS object
 
@@ -129,44 +123,52 @@ Calling `void JHandlerInfo::Return()` method inside `JHANDLER_FUNCTION()` will r
 
 However, there are many cases that module should maintain its state. Maintaining the state in JS-side would be simple. But maintaining values in native-side is not an easy problem, because native-side values should follow the lifecycle of JS-side values. Let's take `Buffer` module as an example. `Buffer` should maintain the native buffer content and its length. And the native buffer content should be deallocated when JS-side buffer variable becomes unreachable.
 
-There's `JObjectWrap` class for that purpose. if you create a new `JObjectWrap` instance with JavaScript object as its argument, its destructor will be automatically called when its corresponding JavaScript object becomes unreachable. `Buffer` module also exploits this feature.
+There's `iotjs_jobjectwrap_t` struct for that purpose. if you create a new `iotjs_jobjectwrap_t` struct with JavaScript object as its argument and free handler, the registered free handler will be automatically called when its corresponding JavaScript object becomes unreachable. `Buffer` module also exploits this feature.
 
-```
+```c
 // This wrapper refer javascript object but never increase reference count
 // If the object is freed by GC, then this wrapper instance will be also freed.
-class JObjectWrap {
- public:
-  explicit JObjectWrap(JObject& jobject);
-  virtual ~JObjectWrap();
-  ...
-};
+typedef struct {
+  iotjs_jval_t jobject;
+} iotjs_jobjectwrap_t;
 
-class BufferWrap : public JObjectWrap {
- public:
-  BufferWrap(JObject& jbuiltin, size_t length);
-  virtual ~BufferWrap(); // destructor will deallocate native buffer
+typedef struct {
+  iotjs_jobjectwrap_t jobjectwrap;
+  char* buffer;
+  size_t length;
+} iotjs_bufferwrap_t;
+
+iotjs_bufferwrap_t* iotjs_bufferwrap_create(const iotjs_jval_t* jbuiltin,
+                                            size_t length) {
+  iotjs_bufferwrap_t* bufferwrap = IOTJS_ALLOC(iotjs_bufferwrap_t);
+  iotjs_jobjectwrap_initialize(&_this->jobjectwrap,
+                               jbuiltin,
+                               (JFreeHandlerType)iotjs_bufferwrap_destroy); /* Automatically called */
   ...
- protected:
-  char* _buffer;
-  size_t _length;
-};
+}
+
+void iotjs_bufferwrap_destroy(iotjs_bufferwrap_t* bufferwrap) {
+  ...
+  iotjs_jobjectwrap_destroy(&_this->jobjectwrap);
+  IOTJS_RELEASE(bufferwrap);
+}
 ```
 
-You can use this class like below:
+You can use this code like below:
 
-```
-JObject* jbuiltin = /*...*/;
-BufferWrap* buffer_wrap = new BufferWrap(*jbuiltin, length);
+```c
+const iotjs_jval_t* jbuiltin = /*...*/;
+iotjs_bufferwrap_t* buffer_wrap = iotjs_bufferwrap_create(jbuiltin, length);
 // Now `jbuiltin` object can be used in JS-side,
-// and when it becomes unreachable, destructor of `buffer_wrap` will be called.
+// and when it becomes unreachable, `iotjs_bufferwrap_destroy` will be called.
 ```
 
 #### Callback
 
-Sometimes native handler should call JavaScript function directly. For general function calls (inside current tick), you can use `iotjs::JObject::Call(JObject& this_, JArgList& arg)` function to call JavaScript function from native-side.
+Sometimes native handler should call JavaScript function directly. For general function calls (inside current tick), you can use `iotjs_jhelper_call()` function to call JavaScript function from native-side.
 
-And for asyncronous callbacks, after `libtuv` calls your native function, if you want to call JS-side callback you should use `iotjs::MakeCallback(JObject& function, JObject& this_, JArgList& args)`. It will not only call the callback function, but also handle the exception, and process the next tick(i.e. it will call `ProcessNextTick()`).
+And for asyncronous callbacks, after `libtuv` calls your native function, if you want to call JS-side callback you should use `iotjs_make_callback()`. It will not only call the callback function, but also handle the exception, and process the next tick(i.e. it will call `iotjs_process_next_tick()`).
 
-For asyncronous callbacks, you must consider the lifetime of JS-side callback objects. The lifetime of JS-side callback object should be extended until the native-side callback is really called. You can use `ReqWrap` and `HandleWrap` to achieve this.
+For asyncronous callbacks, you must consider the lifetime of JS-side callback objects. The lifetime of JS-side callback object should be extended until the native-side callback is really called. You can use `iotjs_reqwrap_t` and `iotjs_handlewrap_t` to achieve this.
 
 (Work In Progress)

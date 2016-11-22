@@ -297,7 +297,8 @@ fs.writeFile = function(path, data, callback) {
   });
 
   var write = function() {
-    fs.write(fd, data, bytesWritten, len - bytesWritten, 0, afterWrite);
+    var tryN = (len - bytesWritten) >= 1024 ? 1023 : (len - bytesWritten);
+    fs.write(fd, data, bytesWritten, tryN, bytesWritten, afterWrite);
   };
 
   var afterWrite = function(err, n) {
@@ -331,7 +332,8 @@ fs.writeFileSync = function(path, data) {
 
   while (true) {
     try {
-      var n = fs.writeSync(fd, data, bytesWritten, len - bytesWritten, 0);
+      var tryN = (len - bytesWritten) >= 1024 ? 1023 : (len - bytesWritten);
+      var n = fs.writeSync(fd, data, bytesWritten, tryN, bytesWritten);
       bytesWritten += n;
       if (bytesWritten == len) {
         break;

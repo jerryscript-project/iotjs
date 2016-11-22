@@ -12,19 +12,22 @@ The following shows fs module APIs available for each platform.
 | fs.openSync | O | O | O |
 | fs.read | O | O | O |
 | fs.readSync | O | O | O |
+| fs.readDir | O | O | X |
+| fs.readDirSync | O | O | X |
 | fs.readFile | O | O | O |
 | fs.readFileSync | O | O | O |
-| fs.rename | O | O | X |
-| fs.stat | O | O | X |
-| fs.statSync | O | O | X |
+| fs.rename | O | O | O |
+| fs.renameSync | O | O | O |
+| fs.stat | O | O | O |
+| fs.statSync | O | O | O |
 | fs.fstat | O | O | O |
 | fs.fstatSync | O | O | O |
 | fs.write | O | O | O |
 | fs.writeSync | O | O | O |
 | fs.writeFile | O | O | O |
 | fs.writeFileSync | O | O | O |
-| fs.unlink | O | O | X |
-| fs.unlinkSync | O | O | X |
+| fs.unlink | O | O | O |
+| fs.unlinkSync | O | O | O |
 
 ※ On `nuttx` path should be passed with a form of **absolute path**.
 

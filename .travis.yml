@@ -1,4 +1,4 @@
-language: cpp
+language: c
 
 os: linux
 dist: trusty

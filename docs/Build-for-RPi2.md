@@ -87,8 +87,16 @@ ssh pi@(your RPi2 IP)
 
 ### Build IoT.js on Raspberry Pi 2
 
+#### Prerequisite
+Install cmake.
+```bash
+sudo apt-get update
+sudo apt-get install cmake
+```
+
+#### Build IoT.js
 Executing below command will build IoT.js and run our testsuite.
 
 ``` bash
-./tools/build.py --target-board rpi2
+./tools/build.py --target-board=rpi2
 ```

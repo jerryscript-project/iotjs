@@ -150,6 +150,8 @@ def adjust_option(option):
         option.target_arch = 'i686'
     if option.target_arch == 'x64':
         option.target_arch = 'x86_64'
+    if option.target_board == 'rpi2':
+        option.no_check_valgrind = True
     if option.cmake_param is None:
         option.cmake_param = []
     if option.compile_flag is None:

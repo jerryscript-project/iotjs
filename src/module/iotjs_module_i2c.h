@@ -65,8 +65,8 @@ typedef struct {
 
 
 #define THIS iotjs_i2c_reqwrap_t* i2c_reqwrap
-void iotjs_i2c_reqwrap_initialize(THIS, const iotjs_jval_t* jcallback,
-                                  I2cOp op);
+iotjs_i2c_reqwrap_t* iotjs_i2c_reqwrap_create(const iotjs_jval_t* jcallback,
+                                              I2cOp op);
 void iotjs_i2c_reqwrap_dispatched(THIS);
 uv_work_t* iotjs_i2c_reqwrap_req(THIS);
 const iotjs_jval_t* iotjs_i2c_reqwrap_jcallback(THIS);

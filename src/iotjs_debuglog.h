@@ -45,7 +45,7 @@ extern const char* iotjs_debug_prefix[4];
 /*
   Use DLOG for errors, default you will see them
   Use DDLOG for warnings, set iotjs_debug_level=2 to see them
-  USE DDDLOG for informations, set iotjs_debug_level=3 to see them
+  USE DDDLOG for information, set iotjs_debug_level=3 to see them
 */
 
 #else /* !ENABLE_DEBUG_LOG */

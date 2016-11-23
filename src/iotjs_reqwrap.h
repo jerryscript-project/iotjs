@@ -37,7 +37,7 @@ void iotjs_reqwrap_initialize(iotjs_reqwrap_t* reqwrap,
                               const iotjs_jval_t* jcallback, uv_req_t* request);
 void iotjs_reqwrap_destroy(iotjs_reqwrap_t* reqwrap);
 
-// To retrieve javascript callback funciton object.
+// To retrieve javascript callback function object.
 const iotjs_jval_t* iotjs_reqwrap_jcallback(iotjs_reqwrap_t* reqwrap);
 
 // To retrieve pointer to uv request.

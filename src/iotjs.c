@@ -147,7 +147,7 @@ static bool iotjs_start(iotjs_environment_t* env) {
   // Emit 'exit' event.
   iotjs_process_emit_exit(0);
 
-  // Release bulitin modules.
+  // Release builtin modules.
   iotjs_module_list_cleanup();
 
   // Release commonly used jerry values.
@@ -169,10 +169,10 @@ int iotjs_entry(int argc, char** argv) {
   // Initialize debug print.
   init_debug_settings();
 
-  // Create environtment.
+  // Create environment.
   iotjs_environment_t* env = (iotjs_environment_t*)iotjs_environment_get();
 
-  // Parse command line arguemnts.
+  // Parse command line arguments.
   if (!iotjs_environment_parse_command_line_arguments(env, argc, argv)) {
     DLOG("iotjs_environment_parse_command_line_arguments failed");
     return 1;

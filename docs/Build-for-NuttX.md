@@ -90,7 +90,7 @@ This time make command for NuttX has to be successful unlike above.
 
 #### USB Connection
 
-There are two USB Connections on the Target board. USB mini CN1 and USB micro CN5. Both USB ports need to be connected to your Host. CN1 is used for power and Flashing, but it will not appear as a device in Linux. CN5 is used for NSH and will appear as `/dev/ttyACM0(linux)` or  `/dev/tty.usbmodem1(macOS)` when things work good.
+There are two USB Connections on the Target board. USB mini CN1 and USB micro CN5. Both USB ports need to be connected to your Host. CN1 is used for power and Flashing, but it will not appear as a device in Linux. CN5 is used for NSH and will appear as `/dev/ttyACM0(linux)` or  `/dev/tty.usbmodem1(macOS)` when things work well.
 
 #### Use minicom
 

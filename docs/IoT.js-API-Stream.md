@@ -82,7 +82,7 @@ Emitted if there were something wrong writing data.
 #### 'finish'
 * `callback: Function()`
 
-After `writable.end()` has been called, and all data bas been flushed, this event will be fired.
+After `writable.end()` has been called, and all data has been flushed, this event will be fired.
 
 
 ### Methods

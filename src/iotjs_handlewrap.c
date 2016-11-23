@@ -23,7 +23,7 @@ void iotjs_handlewrap_initialize(iotjs_handlewrap_t* handlewrap,
                                  JFreeHandlerType jfreehandler) {
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_handlewrap_t, handlewrap);
 
-  // Increase ref count of JavaScript object to guarantee it is alive until the
+  // Increase ref count of Javascript object to guarantee it is alive until the
   // handle has closed.
   iotjs_jval_t jobjectref = iotjs_jval_create_copied(jobject);
   iotjs_jobjectwrap_initialize(&_this->jobjectwrap, &jobjectref, jfreehandler);
@@ -88,7 +88,7 @@ static void iotjs_handlewrap_on_close(iotjs_handlewrap_t* handlewrap) {
   // Set handle null.
   _this->handle = NULL;
 
-  // Decrease ref count of JavaScript object. From now the object can be
+  // Decrease ref count of Javascript object. From now the object can be
   // reclaimed.
   iotjs_jval_destroy(iotjs_jobjectwrap_jobject(&_this->jobjectwrap));
 }

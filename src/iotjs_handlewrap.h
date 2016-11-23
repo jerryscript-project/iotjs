@@ -27,20 +27,20 @@ typedef void (*OnCloseHandler)(uv_handle_t*);
 
 
 // UV handle wrapper.
-// This wrapper connects a JavaScript object and a libuv handler.
-// This wrapper will increase ref count for the JavaScript object and decrease
-//  it after corresponding handle has closed. Hence the JavaScript object will
+// This wrapper connects a Javascript object and a libuv handler.
+// This wrapper will increase ref count for the Javascript object and decrease
+//  it after corresponding handle has closed. Hence the Javascript object will
 //  not turn into garbage until the handle is open.
 
-// JavaScript object
+// Javascript object
 //   ->
 // Create a handle wrap, initializing uv handle, increase ref count.
 //   ->
-// The JavaScript object will be alive until handle has closed.
+// The javascript object will be alive until handle has closed.
 //   ->
 // Handle closed, release handle, decrease ref count.
 //   ->
-// The JavaScript object now can be reclaimed by GC.
+// The javascript object now can be reclaimed by GC.
 
 typedef struct {
   iotjs_jobjectwrap_t jobjectwrap;

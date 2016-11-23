@@ -24,7 +24,7 @@ void iotjs_jobjectwrap_initialize(iotjs_jobjectwrap_t* jobjectwrap,
 
   IOTJS_ASSERT(iotjs_jval_is_object(jobject));
 
-  // This wrapper holds pointer to the JavaScript object but never increases
+  // This wrapper holds pointer to the javascript object but never increases
   // reference count.
   _this->jobject = *((iotjs_jval_t*)jobject);
 

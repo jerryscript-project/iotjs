@@ -150,21 +150,21 @@ void iotjs_jargs_replace(iotjs_jargs_t* jargs, uint16_t index,
 const iotjs_jval_t* iotjs_jargs_get(const iotjs_jargs_t* jargs, uint16_t index);
 
 
-// Calls JavaScript function.
+// Calls javascript function.
 iotjs_jval_t iotjs_jhelper_call(const iotjs_jval_t* jfunc,
                                 const iotjs_jval_t* jthis,
                                 const iotjs_jargs_t* jargs, bool* throws);
 
-// Calls JavaScript function.
+// Calls javascript function.
 iotjs_jval_t iotjs_jhelper_call_ok(const iotjs_jval_t* jfunc,
                                    const iotjs_jval_t* jthis,
                                    const iotjs_jargs_t* jargs);
 
-// Evaluates JavaScript source file.
+// Evaluates javascript source file.
 iotjs_jval_t iotjs_jhelper_eval(const char* data, size_t size, bool strict_mode,
                                 bool* throws);
 #ifdef ENABLE_SNAPSHOT
-// Evaluates JavaScript snapshot.
+// Evaluates javascript snapshot.
 iotjs_jval_t iotjs_jhelper_exec_snapshot(const void* snapshot_p,
                                          size_t snapshot_size, bool* throws);
 #endif

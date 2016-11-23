@@ -23,9 +23,9 @@
 
 
 // UV request wrapper.
-// Wrapping UV request and JavaScript callback.
+// Wrapping UV request and javascript callback.
 // When an instance of request wrapper is created. it will increase ref count
-// for JavaScript callback function to prevent it from reclaimed by GC. The
+// for javascript callback function to prevent it from reclaimed by GC. The
 // reference count will decrease back when wrapper is being freed.
 typedef struct {
   iotjs_jval_t jcallback;
@@ -37,7 +37,7 @@ void iotjs_reqwrap_initialize(iotjs_reqwrap_t* reqwrap,
                               const iotjs_jval_t* jcallback, uv_req_t* request);
 void iotjs_reqwrap_destroy(iotjs_reqwrap_t* reqwrap);
 
-// To retrieve JavaScript callback function object.
+// To retrieve javascript callback function object.
 const iotjs_jval_t* iotjs_reqwrap_jcallback(iotjs_reqwrap_t* reqwrap);
 
 // To retrieve pointer to uv request.

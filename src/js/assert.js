@@ -1,6 +1,6 @@
 // Originally from narwhal.js (http://narwhaljs.org)
 // Copyright (c) 2009 Thomas Robinson <280north.com>
-// Copyright (c) 2015 Samsung Electronocs Co., Ltd.
+// Copyright (c) 2015 Samsung Electronics Co., Ltd.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the 'Software'), to

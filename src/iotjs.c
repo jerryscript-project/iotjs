@@ -51,7 +51,7 @@ static bool iotjs_jerry_initialize(const iotjs_environment_t* env) {
   // Set magic strings.
   iotjs_register_jerry_magic_string();
 
-  // Do parse and run to generate initial JavaScript environment.
+  // Do parse and run to generate initial javascript environment.
   jerry_value_t parsed_code = jerry_parse((jerry_char_t*)"", 0, false);
   if (jerry_value_has_error_flag(parsed_code)) {
     DLOG("jerry_parse() failed");
@@ -117,10 +117,10 @@ static bool iotjs_start(iotjs_environment_t* env) {
   const iotjs_jval_t* global = iotjs_jval_get_global_object();
   iotjs_jval_set_object_native_handle(global, (uintptr_t)(env), NULL);
 
-  // Initialize built-in modules.
+  // Initialize builtin modules.
   iotjs_module_list_init();
 
-  // Initialize built-in process module.
+  // Initialize builtin process module.
   const iotjs_jval_t* process =
       iotjs_module_initialize_if_necessary(MODULE_PROCESS);
 

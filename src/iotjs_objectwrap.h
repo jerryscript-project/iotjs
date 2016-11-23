@@ -20,7 +20,7 @@
 #include "iotjs_binding.h"
 
 
-// This wrapper refer JavaScript object but never increase reference count
+// This wrapper refer javascript object but never increase reference count
 // If the object is freed by GC, then this wrapper instance will be also freed.
 typedef struct {
   iotjs_jval_t jobject;

@@ -50,7 +50,7 @@ typedef enum {
 
 
 typedef struct {
-  jerry_value_t value; // JavaScript value repesentation
+  jerry_value_t value; // JavaScript value representation
 } IOTJS_VALIDATED_STRUCT(iotjs_jval_t);
 
 
@@ -150,21 +150,21 @@ void iotjs_jargs_replace(iotjs_jargs_t* jargs, uint16_t index,
 const iotjs_jval_t* iotjs_jargs_get(const iotjs_jargs_t* jargs, uint16_t index);
 
 
-// Calls javascript function.
+// Calls JavaScript function.
 iotjs_jval_t iotjs_jhelper_call(const iotjs_jval_t* jfunc,
                                 const iotjs_jval_t* jthis,
                                 const iotjs_jargs_t* jargs, bool* throws);
 
-// Calls javascript function.
+// Calls JavaScript function.
 iotjs_jval_t iotjs_jhelper_call_ok(const iotjs_jval_t* jfunc,
                                    const iotjs_jval_t* jthis,
                                    const iotjs_jargs_t* jargs);
 
-// Evaluates javascript source file.
+// Evaluates JavaScript source file.
 iotjs_jval_t iotjs_jhelper_eval(const char* data, size_t size, bool strict_mode,
                                 bool* throws);
 #ifdef ENABLE_SNAPSHOT
-// Evaluates javascript snapshot.
+// Evaluates JavaScript snapshot.
 iotjs_jval_t iotjs_jhelper_exec_snapshot(const void* snapshot_p,
                                          size_t snapshot_size, bool* throws);
 #endif

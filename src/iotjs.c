@@ -32,7 +32,7 @@
  * Initialize JerryScript.
  */
 static bool iotjs_jerry_initialize(const iotjs_environment_t* env) {
-  // Set jerry run flags.
+  // Set JerryScript run flags.
   uint32_t jerry_flag = JERRY_INIT_EMPTY;
 
   if (iotjs_environment_config(env)->memstat) {
@@ -45,13 +45,13 @@ static bool iotjs_jerry_initialize(const iotjs_environment_t* env) {
     jerry_port_default_set_log_level(JERRY_LOG_LEVEL_DEBUG);
   }
 
-  // Initialize jerry.
+  // Initialize JerryScript.
   jerry_init((jerry_init_flag_t)jerry_flag);
 
   // Set magic strings.
   iotjs_register_jerry_magic_string();
 
-  // Do parse and run to generate initial javascript environment.
+  // Do parse and run to generate initial JavaScript environment.
   jerry_value_t parsed_code = jerry_parse((jerry_char_t*)"", 0, false);
   if (jerry_value_has_error_flag(parsed_code)) {
     DLOG("jerry_parse() failed");
@@ -88,7 +88,7 @@ static bool iotjs_run(const iotjs_jval_t* process) {
 #endif
   IOTJS_ASSERT(!throws);
 
-  // Run the entry function passing process builtin.
+  // Run the entry function passing process built-in.
   // The entry function will continue initializing process module, global, and
   // other native modules, and finally load and run application.
   iotjs_jargs_t args = iotjs_jargs_create(1);
@@ -110,17 +110,17 @@ static bool iotjs_run(const iotjs_jval_t* process) {
 
 
 static bool iotjs_start(iotjs_environment_t* env) {
-  // Initialize commonly used jerry values
+  // Initialize commonly used JerryScript values
   iotjs_binding_initialize();
 
   // Bind environment to global object.
   const iotjs_jval_t* global = iotjs_jval_get_global_object();
   iotjs_jval_set_object_native_handle(global, (uintptr_t)(env), NULL);
 
-  // Initialize builtin modules.
+  // Initialize built-in modules.
   iotjs_module_list_init();
 
-  // Initialize builtin process module.
+  // Initialize built-in process module.
   const iotjs_jval_t* process =
       iotjs_module_initialize_if_necessary(MODULE_PROCESS);
 
@@ -147,10 +147,10 @@ static bool iotjs_start(iotjs_environment_t* env) {
   // Emit 'exit' event.
   iotjs_process_emit_exit(0);
 
-  // Release bulitin modules.
+  // Release built-in modules.
   iotjs_module_list_cleanup();
 
-  // Release commonly used jerry values.
+  // Release commonly used JerryScript values.
   iotjs_binding_finalize();
 
   return true;
@@ -169,10 +169,10 @@ int iotjs_entry(int argc, char** argv) {
   // Initialize debug print.
   init_debug_settings();
 
-  // Create environtment.
+  // Create environment.
   iotjs_environment_t* env = (iotjs_environment_t*)iotjs_environment_get();
 
-  // Parse command line arguemnts.
+  // Parse command line arguments.
   if (!iotjs_environment_parse_command_line_arguments(env, argc, argv)) {
     DLOG("iotjs_environment_parse_command_line_arguments failed");
     return 1;

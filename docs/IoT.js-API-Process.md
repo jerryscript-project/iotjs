@@ -15,37 +15,15 @@ The following shows process module APIs available for each platform.
 
 `process` is unique global object can be accessed from anywhere.
 
-### Methods
-
-#### process.nextTick(callback)
-
-* `callback: Function()`
-
-After current event loop finished, calls the `callback` function. The next tick callback will be called before any I/O events.
-
-#### process.exit(code)
-
-* `code: Number - exitCode`
-
-Exits executing process with code.
-
-#### process.chdir(path)
-
-* `path: String`
-
-Changes current working directory to `path`.
-
-#### process.cwd()
-
-Returns current working directory.
-
 ### Events
+
 
 #### `'exit'`
 * `callback: Function(code)`
  * `code: Number - exitCode`
 
 Emitted when IoT.js process is about to exit.
+
 
 #### `'uncaughtException'`
 * `callback: Function(err)`
@@ -54,24 +32,55 @@ Emitted when IoT.js process is about to exit.
 Emitted there's no catch handler for exception.
 
 
+### Methods
+
+
+#### process.chdir(path)
+* `path: String`
+
+Changes current working directory to `path`.
+
+
+#### process.cwd()
+
+Returns current working directory.
+
+
+#### process.exit(code)
+* `code: Number - exitCode`
+
+Exits executing process with code.
+
+
+#### process.nextTick(callback)
+* `callback: Function()`
+
+After current event loop finished, calls the `callback` function. The next tick callback will be called before any I/O events.
+
+
 ### Member Variable
+
 
 #### `'arch'`
 
 Target Arch, one of (`arm`|`ia32`|`x64`|`unknown`)
 
+
 #### `'argv'`
 
 Argument vector to be passed to IoT.js
+
 
 #### `'board'`
 
 Target Board, one of (`STM32F4DIS`|`RP2`|`unknown`)
 
-#### `'platform'`
-
-Target Platform, one of (`linux`|`nuttx`|`darwin`|`unknown`)
 
 #### `'env'`
 
 Environment object holding `HOME` and `NODE_PATH`. On NuttX `NODE_PATH` is `/mnt/sdcard` in default.
+
+
+#### `'platform'`
+
+Target Platform, one of (`linux`|`nuttx`|`darwin`|`unknown`)

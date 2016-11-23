@@ -9,18 +9,17 @@
 * [Module](IoT.js-API-Module.md)
 * [Net](IoT.js-API-Net.md)
 * [Process](IoT.js-API-Process.md)
-* [Stream](IoT.js-API-Stream.md)
 * [Timers](IoT.js-API-Timers.md)
-* [(GPIO)](IoT.js-API-GPIO.md)
 
 ## Extended API
-* CoAP
-* Console
-* Encoding
-* REPL
-* UDP/Datagram
-* URL
+* (BLE)
+* [(GPIO)](IoT.js-API-GPIO.md)
 * [(I2C)](IoT.js-API-I2C.md)
+* [(PWM)](IoT.js-API-PWM.md)
 * (SPI)
+* [UDP/Datagram](IoT.js-API-DGRAM.md)
+
+## Abstract interfaces
+* [Stream](IoT.js-API-Stream.md)
 
 *() not supported by node.js

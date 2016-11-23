@@ -368,7 +368,7 @@ function onread(socket, nread, isEOF, buffer) {
     if (socket._readableState.length == 0) {
       // this socket is no longer readable.
       state.readable = false;
-      // destory if this socket is not writable.
+      // destroy if this socket is not writable.
       maybeDestroy(socket);
     }
   } else if (nread < 0) {
@@ -407,7 +407,7 @@ function onSocketFinish() {
   var state = self._socketState;
 
   if (!state.readable || self._readableState.ended) {
-    // no readable steram or ended, destory(close) socket.
+    // no readable stream or ended, destroy(close) socket.
     return self.destroy();
   } else {
     // Readable stream alive, shutdown only outgoing stream.

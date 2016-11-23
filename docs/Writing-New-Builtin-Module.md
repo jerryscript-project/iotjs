@@ -167,8 +167,8 @@ iotjs_bufferwrap_t* buffer_wrap = iotjs_bufferwrap_create(jbuiltin, length);
 
 Sometimes native handler should call JavaScript function directly. For general function calls (inside current tick), you can use `iotjs_jhelper_call()` function to call JavaScript function from native-side.
 
-And for asyncronous callbacks, after `libtuv` calls your native function, if you want to call JS-side callback you should use `iotjs_make_callback()`. It will not only call the callback function, but also handle the exception, and process the next tick(i.e. it will call `iotjs_process_next_tick()`).
+And for asynchronous callbacks, after `libtuv` calls your native function, if you want to call JS-side callback you should use `iotjs_make_callback()`. It will not only call the callback function, but also handle the exception, and process the next tick(i.e. it will call `iotjs_process_next_tick()`).
 
-For asyncronous callbacks, you must consider the lifetime of JS-side callback objects. The lifetime of JS-side callback object should be extended until the native-side callback is really called. You can use `iotjs_reqwrap_t` and `iotjs_handlewrap_t` to achieve this.
+For asynchronous callbacks, you must consider the lifetime of JS-side callback objects. The lifetime of JS-side callback object should be extended until the native-side callback is really called. You can use `iotjs_reqwrap_t` and `iotjs_handlewrap_t` to achieve this.
 
 (Work In Progress)

@@ -81,7 +81,7 @@ static void iotjs_environment_destroy(iotjs_environment_t* env) {
   if (_this->argv) {
     // release command line argument strings.
     // _argv[0] and _argv[1] refer addresses in static memory space.
-    // Ohters refer adresses in heap space that is need to be deallocated.
+    // Others refer addresses in heap space that is need to be deallocated.
     int i;
     for (i = 2; i < _this->argc; ++i) {
       iotjs_buffer_release(_this->argv[i]);
@@ -98,7 +98,7 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
                                                     int argc, char** argv) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_environment_t, env);
 
-  // There must be at least two arguemnts.
+  // There must be at least two arguments.
   if (argc < 2) {
     fprintf(stderr,
             "usage: iotjs <js> [<iotjs arguments>] [-- <app arguments>]\n");

@@ -72,8 +72,8 @@ Followings are the options to set:
  * Enable `RTOS Features -> Files and I/O -> Enable /dev/console`
  * Enable `RTOS Features -> Work queue support -> High priority (kernel) worker thread`
  * Disable `Device Drivers -> Disable driver poll interfaces`
- * Enable `Device Drivers -> MMC/SD Driver Suport`
- * Enable `Device Drivers -> MMC/SD Driver Suport -> MMC/SD SDIO transfer support`
+ * Enable `Device Drivers -> MMC/SD Driver Support`
+ * Enable `Device Drivers -> MMC/SD Driver Support -> MMC/SD SDIO transfer support`
  * Enable `Networking Support -> Networking Support`
  * Enable `Networking Support -> Socket Support -> Socket options`
  * Enable `Networking Support -> Unix Domain Socket Support`
@@ -85,7 +85,7 @@ Followings are the options to set:
  * Enable `Device Drivers -> Network Device/PHY Support -> Late driver initialization`
  * Enable `Library Routines -> Standard Math library`
  * Enable `Application Configuration -> System Libraries and NSH Add-ons -> IoT.js`
- * Enable all childs of `Application Configuration -> System Libraries and NSH Add-ons -> readline() Support` (for those who wants to use readline)
+ * Enable all children of `Application Configuration -> System Libraries and NSH Add-ons -> readline() Support` (for those who wants to use readline)
 
 * For `net` module
  * Enable `System Type -> STM32 Peripheral Support -> Ethernet MAC`

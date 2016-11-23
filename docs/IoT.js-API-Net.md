@@ -249,7 +249,7 @@ If the socket is inactive for `timeout` milliseconds, `'timeout'` event will emi
 
 #### socket.write(data[, callback])
 * `data: String | Buffer`
-* `callback: Funciton()`
+* `callback: Function()`
 
 Sends `data` on the socket.
 

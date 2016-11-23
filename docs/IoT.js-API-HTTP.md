@@ -45,13 +45,13 @@ This event is emitted when server is closed.
 * `callback: Function`
 
 Wait for new TCP connection with specified port and hostname. If no hostname is provided, server accepts any IP address.
-```backlog``` is maximum pending connections. Default backlog length is 511.
-```callback``` will be called when server has been bound.
+`backlog` is maximum pending connections. Default backlog length is 511.
+`callback` will be called when server has been bound.
 
 #### close([callback])
 * `callback: Function`
 
-Stop accecpting new connection to this server. However, the existing connections are preserved. When server is finally closed after all connections are closed, a callback is called.
+Stop accepting new connection to this server. However, the existing connections are preserved. When server is finally closed after all connections are closed, a callback is called.
 
 #### setTimeout(ms, cb)
 
@@ -179,6 +179,9 @@ Registers cb for 'timeout' event and set socket's timeout value to ms. This even
 
 
 ## Class: http.IncomingMessage
+
+http.IncomingMessage inherits [`Stream.readable`](IoT.js-API-Stream.md)
+
 ### Event
 #### 'end'
 This event is fired when no more data to be received.

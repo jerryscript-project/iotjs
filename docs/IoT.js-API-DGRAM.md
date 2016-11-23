@@ -22,7 +22,9 @@ IoT.js provides udp connections through Dgram module.
 
 You can use this module with `require('dgram')` and create sockets.
 
-### Methods
+
+### Module Functions
+
 
 #### dgram.createSocket(options[, createListener])
 #### dgram.createSocket(type[, createListener])
@@ -43,13 +45,69 @@ Creates a `dgram.Socket` according to `options` or `type`. (Currently we only ac
 
 `createListener` is automatically registered as `message` event listener.
 
+
 ***
+
 
 ## class: dgram.Socket
 
 You can create `dgram.Socket` instance with `dgram.createSocket()`.
 
-### Instance Methods
+
+### Events
+
+
+#### `'close'`
+* `callback: Function()`
+
+Emitted when socket closed.
+
+
+#### `'error'`
+* `callback: Function()`
+
+Emitted when an error occurs.
+
+
+#### `'listening'`
+* `callback: Function()`
+
+Emitted when socket is ready to receive data.
+
+
+#### `'message'`
+* `callback: Function(msg, rinfo)`
+ * `msg: Buffer`
+ * `rinfo: Object`
+   * `address: String`
+   * `family: String`: it indicates an address family either `IPv4` or `IPv6`
+   * `port: Number`
+
+Emitted when message comes to the socket.
+
+
+
+### Methods
+
+
+#### socket.address()
+
+Returns an object with the properties `address`, `port` and `family`. Basically the returned object is same with the object `rinfo` mentioned above.
+
+
+#### socket.addMembership(multicastAddress[, multicastInterface])
+* `multicastAddress: String`
+* `multicastInterface: String`
+
+Joins for socket the given multicast group with given `multicastAddress` and `multicastInterface`.
+
+
+#### socket.dropMembership(multicastAddress[, multicastInterface])
+* `multicastAddress: String`
+* `multicastInterface: String`
+
+Leaves for socket the given multicast group with given `multicastAddress` and `multicastInterface`.
+
 
 #### socket.bind([port][, address][, bindListener])
 #### socket.bind(options[, bindListener])
@@ -72,6 +130,18 @@ Stops listening data.
 `closeListener` is registered as `close` event listener.
 
 
+#### socket.setBroadcast(flag)
+* `flag: Boolean`
+
+Sets or clears the `SO_BROADCAST` socket option.
+
+
+#### socket.setTTL(ttl)
+* `ttl: Number`, it should be between 1 and 255.
+
+Sets the `IP_TTL` socket option.
+
+
 #### socket.send(msg, [offset, length], port, address[, sendListener])
 * `msg: Buffer | String | Array`
 * `offset: Number`, is is only valid when `msg` is Buffer.
@@ -92,37 +162,6 @@ Sends the message to the destination with given `address` and `port`.
 If send operation is successfully completed, `sendListener` will be called with Null and the length of data, otherwise with Error object and the length of data.
 
 
-#### socket.address()
-
-Returns an object with the properties `address`, `port` and `family`. Basically the returned object is same with the object `rinfo` mentioned above.
-
-
-#### socket.setBroadcast(flag)
-* `flag: Boolean`
-
-Sets or clears the `SO_BROADCAST` socket option.
-
-
-#### socket.setTTL(ttl)
-* `ttl: Number`, it should be between 1 and 255.
-
-Sets the `IP_TTL` socket option.
-
-
-#### socket.addMembership(multicastAddress[, multicastInterface])
-* `multicastAddress: String`
-* `multicastInterface: String`
-
-Joins for socket the given multicast group with given `multicastAddress` and `multicastInterface`.
-
-
-#### socket.dropMembership(multicastAddress[, multicastInterface])
-* `multicastAddress: String`
-* `multicastInterface: String`
-
-Leaves for socket the given multicast group with given `multicastAddress` and `multicastInterface`.
-
-
 #### socket.setMulticastLoopback(flag)
 * `flag: Boolean`
 
@@ -133,31 +172,3 @@ Sets or clears the `IP_MULTICAST_LOOP` socket option.
 * `ttl: Number`, it should be between 0 and 255.
 
 Sets the `IP_MULTICAST_TTL` socket option.
-
-
-### Events
-
-#### `'close'`
-* `callback: Function()`
-
-Emitted when socket closed.
-
-#### `'error'`
-* `callback: Function()`
-
-Emitted when an error occurs.
-
-#### `'listening'`
-* `callback: Function()`
-
-Emitted when socket is ready to receive data.
-
-#### `'message'`
-* `callback: Function(msg, rinfo)`
- * `msg: Buffer`
- * `rinfo: Object`
-   * `address: String`
-   * `family: String`: it indicates an address family either `IPv4` or `IPv6`
-   * `port: Number`
-
-Emitted when message comes to the socket.

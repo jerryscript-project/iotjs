@@ -1,4 +1,4 @@
-## Class: fs
+## Module: fs
 
 ### Platform Support
 
@@ -31,6 +31,7 @@ The following shows fs module APIs available for each platform.
 
 ※ On `nuttx` path should be passed with a form of **absolute path**.
 
+
 ### Methods
 
 #### fs.close(fd, callback)
@@ -41,11 +42,13 @@ The following shows fs module APIs available for each platform.
 
 Closes the file of fd asynchronously.
 
+
 #### fs.closeSync(fd)
 
 * `fd: Int` - file descriptor.
 
 Closes the file of fd synchronously.
+
 
 #### fs.open(path, flags[, mode], callback)
 
@@ -56,11 +59,13 @@ Closes the file of fd synchronously.
  * `err: Error` - `Error` object if there was something wrong, otherwise `null`.
  * `fd: Number` - file descriptor.
 
+
 #### fs.openSync(path, flags[, mode])
 
 * `path: String` - file path to be opened.
 * `flags: String` - open flags.
 * `mode: Number`, Default: `0666` - permission mode.
+
 
 #### fs.read(fd, buffer, offset, length, position, callback)
 
@@ -74,6 +79,7 @@ Closes the file of fd synchronously.
  * `bytesRead: Number`
  * `buffer: Buffer`
 
+
 #### fs.readSync(fd, buffer, offset, length, position)
 
 * `fd: Int` - file descriptor.
@@ -81,6 +87,7 @@ Closes the file of fd synchronously.
 * `offset: Number` - offset of the buffer where to start writing.
 * `length: Number` - number of bytes to read.
 * `position: Number` - specifying where to start read data from the file, if `null`, read from current position.
+
 
 #### fs.readFile(path[, options], callback)
 
@@ -94,6 +101,7 @@ Closes the file of fd synchronously.
 
 Reads entire file asynchronously.
 
+
 #### fs.readFileSync(path[, options])
 
 * `path: String` - file path to be opened.
@@ -102,6 +110,7 @@ Reads entire file asynchronously.
  * `flag: String`, Default: `r` - file open flag.
 
 Reads entire file synchronously.
+
 
 #### fs.rename(oldPath, newPath, callback)
 
@@ -112,12 +121,14 @@ Reads entire file synchronously.
 
 Renames `oldPath` to `newPath` asynchronously.
 
+
 #### fs.renameSync(oldPath, newPath)
 
 * `oldPath: String` - old file path
 * `newPath: String` - new file path
 
 Renames `oldPath` to `newPath` synchronously.
+
 
 #### fs.stat(path, callback)
 
@@ -126,9 +137,11 @@ Renames `oldPath` to `newPath` synchronously.
  * `err: Error`
  * `stat: Object`
 
+
 #### fs.statSync(path)
 
 * `path: String` - file path to be stated
+
 
 #### fs.fstat(fd, callback)
 
@@ -136,6 +149,7 @@ Renames `oldPath` to `newPath` synchronously.
 * callback: Function(err, stat)` - callback function.
  * `err: Error`
  * `stat: Object`
+
 
 #### fs.fstatSync(fd)
 
@@ -155,6 +169,7 @@ Renames `oldPath` to `newPath` synchronously.
 
  Returns true if stated file is a file
 
+
 #### fs.write(fd, buffer, offset, length, position, callback)
 
 * `fd: Int` - file descriptor.
@@ -166,6 +181,7 @@ Renames `oldPath` to `newPath` synchronously.
  * `err: Error`
  * `byteWrite: Int`
 
+
 #### fs.writeSync(fd, buffer, offset, length, position)
 
 * `fd: Int` - file descriptor.
@@ -173,6 +189,7 @@ Renames `oldPath` to `newPath` synchronously.
 * `offset: Number` - offset of the buffer where from start reading.
 * `length: Number` - number of bytes to write.
 * `position: Number` - specifying where to start write data to the file, if `null`, read from current position.
+
 
 #### fs.writeFile(path, data, [, options], callback)
 
@@ -184,6 +201,7 @@ Renames `oldPath` to `newPath` synchronously.
 
 Writes entire `data` to the file specified by `path` asynchronously.
 
+
 #### fs.writeFileSync(path, data, [, options])
 
 * `path: String` - file path that the `data` will be written
@@ -192,6 +210,7 @@ Writes entire `data` to the file specified by `path` asynchronously.
 
 Writes entire `data` to the file specified by `path` synchronously.
 
+
 #### fs.unlink(path, callback)
 
 * `path: String` - file path to be removed
@@ -199,6 +218,7 @@ Writes entire `data` to the file specified by `path` synchronously.
  * `err: Error`
 
 Removes the file specified by `path` asynchronously.
+
 
 #### fs.unlinkSync(path)
 

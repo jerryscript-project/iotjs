@@ -3,12 +3,15 @@
 Since ``` require ``` function is implicitly passed to user code, user do not need to import it explicitly.
 
 ### Methods
+
 #### require(id)
 * ``` id : String ``` - module name to be loaded
 
 Loads the module named 'id'
 
+
 ### Module Loading by ``` require ``` function
+
 #### ``` require ``` search paths
 ``` require ``` function finds modules in the order of
 

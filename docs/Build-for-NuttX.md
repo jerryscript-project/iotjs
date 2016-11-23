@@ -6,7 +6,7 @@ We work on STM32F4 board for NuttX and the detail of the reference board is well
 ### Relation with STM board?
 We do not have any business relation with STM board. It is selected because it has enough RAM and Flash ROM, so that development can be more comfortable. And it has lots of pins to play with.
 
-When IoT.js is built up and optimised, it may work in devices having smaller resource.
+When IoT.js is built up and optimized, it may work in devices having smaller resource.
 
 
 ### 1. Prepare for prerequisite
@@ -76,7 +76,7 @@ Library files will be generated like below when build is successful.
 
 ```bash
 $ ls build/arm-nuttx/release/lib
-libhttparser.a libiotjs.a libjerrycore.a libtuv.a
+libhttpparser.a libiotjs.a libjerrycore.a libtuv.a
 ```
 
 ### 4. Build NuttX

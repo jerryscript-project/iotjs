@@ -478,7 +478,7 @@ Server.prototype.listen = function() {
     throw new Error('invalid argument - need port number');
   }
 
-  // register listening event linstener.
+  // register listening event listener.
   if (util.isFunction(callback)) {
     self.once('listening', callback);
   }

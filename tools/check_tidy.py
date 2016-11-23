@@ -106,7 +106,7 @@ def check_tidy(src_dir):
                 if not CheckLicenser.check(fileinput.filename()):
                     report_error_name_line(fileinput.filename(),
                                            None,
-                                           'incorrent license')
+                                           'incorrect license')
 
             count_lines += 1
             if not line.strip():

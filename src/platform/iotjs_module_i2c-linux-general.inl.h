@@ -1,7 +1,7 @@
 /* The MIT License (MIT)
  *
  * Copyright (c) 2005-2014 RoadNarrows LLC.
- * htpt://roadnarrows.com
+ * http://roadnarrows.com
  * All Rights Reserved
  *
  * Permission is hereby granted, free of charge, to any person obtaining

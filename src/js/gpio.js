@@ -39,7 +39,7 @@ function CreateGpioError(operation, errno) {
 
   switch (errno) {
     case gpio.kGpioErrInitialize:
-      return new GpioError(errno, operation, 'Failed to initilize GPIO');
+      return new GpioError(errno, operation, 'Failed to initialize GPIO');
     case gpio.kGpioErrNotInitialized:
       return new GpioError(errno, operation, 'GPIO not initialized');
     case gpio.kGpioErrWrongUse:

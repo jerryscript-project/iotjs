@@ -5,7 +5,7 @@ IoT.js follows the practice of node.js npm to provide module development communi
 * To see what it actually is, please visit [www.npmjs.com](https://www.npmjs.com/), and also [docs.npmjs.com](https://docs.npmjs.com/).
 * To avoid confusion with the original server, we'll call it "ipm", for IoT.js Package Manager.
 * Current status of "ipm" is started and it's for developers so has no separate web page. We need to develop them.
-* "npm" program is used for publish and download modules. We may fork when customisation is needed.
+* "npm" program is used for publish and download modules. We may fork when customization is needed.
 
 ### Installing "npm"
 ```

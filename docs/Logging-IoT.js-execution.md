@@ -18,7 +18,7 @@ export IOTJS_DEBUG_LEVEL=2
 ```
 Numbers can be 0, 1, 2 or 3. If you give 0, it will be silence, no message.
 
-### Loggin to a file
+### Logging to a file
 
 To save to a file, use also the environment variable, for example;
 ```

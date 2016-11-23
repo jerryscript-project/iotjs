@@ -29,8 +29,8 @@ typedef void (*OnCloseHandler)(uv_handle_t*);
 // UV handle wrapper.
 // This wrapper connects a Javascript object and a libuv handler.
 // This wrapper will increase ref count for the Javascript object and decrease
-//  it after corresponding handle has closed. Hence the Javasciprt object will
-//  not turn into garbage untile the handle is open.
+//  it after corresponding handle has closed. Hence the Javascript object will
+//  not turn into garbage until the handle is open.
 
 // Javascript object
 //   ->

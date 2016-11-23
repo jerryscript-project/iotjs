@@ -76,8 +76,8 @@ OutgoingMessage.prototype.end = function(data, encoding, callback) {
   // body were all sent finished. This means different from 'finish' event
   // emitted by net which indicate there will be no more data to be sent through
   // the connection. On the other hand emitting 'finish' event from http does
-  // not neccessarily imply end of data trasmission since there might be another
-  // segment of data when connection is 'Keep-Alive'.
+  // not neccessarily imply end of data transmission since there might be
+  // another segment of data when connection is 'Keep-Alive'.
   this._send('', function() {
     self.emit('finish');
   });

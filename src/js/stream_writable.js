@@ -32,7 +32,7 @@ function WritableState(options) {
   // buffer of WriteReq
   this.buffer = [];
 
-  // total length of messages not fllushed yet.
+  // total length of messages not flushed yet.
   this.length = 0;
 
   // high water mark.
@@ -46,7 +46,7 @@ function WritableState(options) {
   // `true` if stream is writing down data underlying system.
   this.writing = false;
 
-  // the length of message being wrinting.
+  // the length of message being writing.
   this.writingLength = 0;
 
   // turn 'true' when some messages are buffered. After buffered messages are
@@ -102,7 +102,7 @@ Writable.prototype.write = function(chunk, callback) {
 };
 
 
-// This function object naver to be called. concrete stream should override
+// This function object never to be called. concrete stream should override
 // this method.
 Writable.prototype._write = function(chunk, callback, onwrite) {
   throw new Error('unreachable');
@@ -186,7 +186,7 @@ function writeOrBuffer(stream, chunk, callback) {
     doWrite(stream, chunk, callback);
   }
 
-  // total length of buffered message excceded high water mark.
+  // total length of buffered message exceeded high water mark.
   if (state.length >= state.highWaterMark) {
     state.needDrain = true;
   }

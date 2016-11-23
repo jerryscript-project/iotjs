@@ -104,11 +104,11 @@
 
     function _onNextTick() {
       // clone nextTickQueue to new array object, and calls function
-      // iterating the cloned array. This is becuase,
+      // iterating the cloned array. This is because,
       // during processing nextTick
       // a callback could add another next tick callback using
       // `process.nextTick()`, if we calls back iterating original
-      // `nextTickQueue` that could turn into infinify loop.
+      // `nextTickQueue` that could turn into infinite loop.
 
       var callbacks = nextTickQueue.slice(0);
       nextTickQueue = [];

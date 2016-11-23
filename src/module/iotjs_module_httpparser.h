@@ -29,7 +29,7 @@
 // and check whether field == HEADER_MAX.
 // ex) HEADER_MAX 2 means that we can keep at most 1 header field/value
 // during http parsing.
-// Increse this to minimize inter JS-C call
+// Increase this to minimize inter JS-C call
 #define HEADER_MAX 10
 
 

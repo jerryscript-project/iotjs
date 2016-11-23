@@ -63,7 +63,7 @@ def init_option():
     argv = argv + ([arg for arg in sys.argv[1:]
                     if not arg.startswith('--config=')])
 
-    # Prepare argument parser.
+    # Prepare aguemnt parser.
     parser = argparse.ArgumentParser()
 
     parser.add_argument('--buildtype',
@@ -753,7 +753,7 @@ if option.clean:
 
 create_build_directories(option)
 
-# Analyze module dependency
+# Anazlye module dependency
 print_progress('Analyze module dependency')
 if not analyze_module_dependency(option):
     ex.fail('Failed to analyze module dependency')

@@ -140,7 +140,7 @@ Opens the connection with supplied port and host.
 #### socket.write(data[, callback])
 
 * `data: String | Buffer`
-* `callback: Function()`
+* `callback: Funciton()`
 
 Sends `data` on the socket.
 

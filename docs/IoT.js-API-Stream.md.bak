@@ -51,7 +51,7 @@ If `writable.write()` returns false, `drain` events will indicate you that the s
 
 #### 'finish'
 
-After `writable.end()` has been called, and all data has been flushed, this event will be fired.
+After `writable.end()` has been called, and all data bas been flushed, this event will be fired.
 
 #### 'error'
 * `err: Error`

@@ -24,27 +24,41 @@ foreach(module ${IOTJS_MODULES_ALL})
     set(IOTJS_CFLAGS "${IOTJS_CFLAGS} -DENABLE_MODULE_${IOTJS_MODULENAME}=0")
 endforeach()
 
-# Module Configuration - enable only selected modules
+# Module Configuration - enable only selected modules and board
+if(DEFINED CMAKE_TARGET_BOARD)
+    set(BOARD_DESCRIPT "")
+    string(TOLOWER ${CMAKE_TARGET_BOARD} BOARD_DESCRIPT)
+endif()
 set(IOTJS_MODULE_SRC "")
 separate_arguments(IOTJS_MODULES)
+set(PLATFORM_SRC "${SRC_ROOT}/platform/${PLATFORM_DESCRIPT}/iotjs_module")
 foreach(module ${IOTJS_MODULES})
     list(APPEND IOTJS_MODULE_SRC ${SRC_ROOT}/module/iotjs_module_${module}.c)
-    set(PLATFORM_SRC "${SRC_ROOT}/platform/${PLATFORM_DESCRIPT}/iotjs_module")
-    set(PLATFORM_SRC "${PLATFORM_SRC}_${module}-${PLATFORM_DESCRIPT}.c")
-    if(EXISTS "${PLATFORM_SRC}")
-        list(APPEND IOTJS_MODULE_SRC ${PLATFORM_SRC})
+    set(MODULE_SRC "${PLATFORM_SRC}_${module}-${PLATFORM_DESCRIPT}.c")
+    if(EXISTS "${MODULE_SRC}")
+        list(APPEND IOTJS_MODULE_SRC ${MODULE_SRC})
+    endif()
+    if(DEFINED BOARD_DESCRIPT)
+        set(MODULE_SRC "${PLATFORM_SRC}_${module}-")
+        set(MODULE_SRC "${MODULE_SRC}${PLATFORM_DESCRIPT}-${BOARD_DESCRIPT}.c")
+        if(EXISTS "${MODULE_SRC}")
+            list(APPEND IOTJS_MODULE_SRC ${MODULE_SRC})
+        endif()
     endif()
     string(TOUPPER ${module} module)
     set(IOTJS_CFLAGS "${IOTJS_CFLAGS} -UENABLE_MODULE_${module}")
     set(IOTJS_CFLAGS "${IOTJS_CFLAGS} -DENABLE_MODULE_${module}=1")
 endforeach()
 
+# System Configuration
+set(IOTJS_PLATFORM_SRC "")
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    list(APPEND IOTJS_MODULE_SRC ${SRC_ROOT}/platform/iotjs_*-linux.c)
+    list(APPEND IOTJS_PLATFORM_SRC ${SRC_ROOT}/platform/iotjs_*-linux.c)
 endif()
 
 file(GLOB LIB_IOTJS_SRC ${SRC_ROOT}/*.c
-                        ${IOTJS_MODULE_SRC})
+                        ${IOTJS_MODULE_SRC}
+                        ${IOTJS_PLATFORM_SRC})
 
 string(REPLACE ";" " " IOTJS_CFLAGS_STR "${IOTJS_CFLAGS}")
 string(REPLACE ";" " " IOTJS_LINK_FLAGS_STR "${IOTJS_LINK_FLAGS}")

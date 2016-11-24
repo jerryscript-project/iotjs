@@ -172,7 +172,7 @@ Buffer.prototype.slice = function(start, end) {
 // [2] buff.toString(start)
 // [3] buff.toString(start, end)
 // * start - default to 0
-// * end - default to buff.lengfth
+// * end - default to buff.length
 Buffer.prototype.toString = function(start, end) {
   start = util.isUndefined(start) ? 0 : ~~start;
   end = util.isUndefined(end) ? this.length : ~~end;

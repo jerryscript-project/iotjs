@@ -13,17 +13,20 @@
  * limitations under the License.
  */
 
-function absolutePath(path) {
-  // FIXME: On NuttX side, when dealing with file, path should be absolute.
-  // So workaround this problem, test driver converts relative path
-  // to absolute one.
-  return process.cwd() + '/' + path;
-}
+#ifndef IOTJS_MODULE_PIN_H
+#define IOTJS_MODULE_PIN_H
 
-function join() {
-  var path = Array.prototype.join.call(arguments, '/');
-  return path;
-}
 
-module.exports.absolutePath = absolutePath;
-module.exports.join = join;
+#if defined(__NUTTX__) && defined(ENABLE_MODULE_PWM)
+
+#define TIMER_PIN_SHIFT 21 /* Bits 21-24: Timer number */
+#define TIMER_PIN_MASK 15
+#define TIMER_NUM(n) ((n) << TIMER_PIN_SHIFT)
+
+#endif
+
+
+void iotjs_pin_initialize(const iotjs_jval_t* jobj);
+
+
+#endif /* IOTJS_MODULE_PIN_H */

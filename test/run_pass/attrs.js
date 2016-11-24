@@ -19,7 +19,7 @@
       skip: ['all'],
       reason: "this test had @STDOUT=COMMAND[pwd], but there's no way to " +
       "check out current directory path with js driver. So it skips " +
-      "temoporalily."
+      "temporarily."
     },
     'test_dgram_address.js': {
       skip: ['nuttx'],

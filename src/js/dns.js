@@ -35,7 +35,7 @@ exports.lookup = function lookup(hostname, options, callback) {
 
   // Parse arguments
   if (!util.isString(hostname)) {
-    throw TypeError('invalid argument: hostname must be a string or falsey');
+    throw TypeError('invalid argument: hostname must be a string');
   }
   if (util.isFunction(options)) {
     callback = options;

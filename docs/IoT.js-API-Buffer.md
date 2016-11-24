@@ -1,5 +1,4 @@
-IoT.js provides Buffer to compensate the lack of pure JavaScript's capability of manipulating binary data, JavaScript string is only suitable for Unicode string. Buffer allows you to handle sequence of binary data in Javascript world.
-
+IoT.js provides Buffer to compensate the lack of pure JavaScript's capability of manipulating binary data, JavaScript string is only suitable for Unicode string. Buffer allows you to handle sequence of binary data in JavaScript world.
 
 ## Class: Buffer
 Buffer class is a global type. you can create a buffer object in several way.

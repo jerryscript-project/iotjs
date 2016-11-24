@@ -150,7 +150,7 @@ void iotjs_jargs_replace(iotjs_jargs_t* jargs, uint16_t index,
 const iotjs_jval_t* iotjs_jargs_get(const iotjs_jargs_t* jargs, uint16_t index);
 
 
-// Calls javascript function.
+// Calls JavaScript function.
 iotjs_jval_t iotjs_jhelper_call(const iotjs_jval_t* jfunc,
                                 const iotjs_jval_t* jthis,
                                 const iotjs_jargs_t* jargs, bool* throws);

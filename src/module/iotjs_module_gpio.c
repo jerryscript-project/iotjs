@@ -286,8 +286,6 @@ iotjs_jval_t InitGpio() {
   iotjs_jval_t jgpio = iotjs_jval_create_object();
 
   iotjs_jval_set_method(&jgpio, "initialize", Initialize);
-
-  iotjs_jval_set_method(&jgpio, "initialize", Initialize);
   iotjs_jval_set_method(&jgpio, "release", Release);
   iotjs_jval_set_method(&jgpio, "open", Open);
   iotjs_jval_set_method(&jgpio, "write", Write);

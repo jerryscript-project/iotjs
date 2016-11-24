@@ -13,17 +13,4 @@
  * limitations under the License.
  */
 
-function absolutePath(path) {
-  // FIXME: On NuttX side, when dealing with file, path should be absolute.
-  // So workaround this problem, test driver converts relative path
-  // to absolute one.
-  return process.cwd() + '/' + path;
-}
-
-function join() {
-  var path = Array.prototype.join.call(arguments, '/');
-  return path;
-}
-
-module.exports.absolutePath = absolutePath;
-module.exports.join = join;
+module.exports = process.binding(process.binding.pin);

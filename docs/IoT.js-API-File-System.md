@@ -157,7 +157,7 @@ Renames `oldPath` to `newPath` synchronously.
 
  ### Class: fs.Stats
 
- fs.Stats class is a object returned from ```fs.stats()```,```fs.fstats()``` and their synchronous counterparts.
+ fs.Stats class is a object returned from ```fs.stat()```,```fs.fstat()``` and their synchronous counterparts.
 
  ### Methods
 

@@ -13,17 +13,13 @@
  * limitations under the License.
  */
 
-function absolutePath(path) {
-  // FIXME: On NuttX side, when dealing with file, path should be absolute.
-  // So workaround this problem, test driver converts relative path
-  // to absolute one.
-  return process.cwd() + '/' + path;
+
+#if defined(__LINUX__)
+
+#include "iotjs_def.h"
+
+void iotjs_pin_initialize(const iotjs_jval_t* jobj) {
+  IOTJS_ASSERT(!"Not implemented");
 }
 
-function join() {
-  var path = Array.prototype.join.call(arguments, '/');
-  return path;
-}
-
-module.exports.absolutePath = absolutePath;
-module.exports.join = join;
+#endif

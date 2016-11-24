@@ -20,9 +20,3 @@ set(JERRY_PORT_ROOT ${JERRY_ROOT}/targets/default)
 set(JERRY_INCDIR ${JERRY_CORE_ROOT} ${JERRY_PORT_ROOT})
 set(JERRY_BIN ${BIN_ROOT}/deps/jerry)
 set(JERRY_LIB ${LIB_ROOT}/libjerrycore.a)
-
-
-add_custom_command(OUTPUT ${JERRY_LIB}
-                   COMMAND touch ${JERRY_LIB})
-
-add_custom_target(targetJerry DEPENDS ${JERRY_LIB})

@@ -19,9 +19,3 @@ set(LIBTUV_INCDIR ${LIBTUV_ROOT}/include
                   ${LIBTUV_ROOT}/source
                   ${LIBTUV_ROOT}/source/${TARGET_OS})
 set(LIBTUV_LIB ${LIB_ROOT}/libtuv.a)
-
-
-add_custom_command(OUTPUT ${LIBTUV_LIB}
-                   COMMAND touch ${LIBTUV_LIB})
-
-add_custom_target(targetLibtuv DEPENDS ${LIBTUV_LIB})

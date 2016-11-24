@@ -176,7 +176,7 @@ bool DeviceExport(const char* export_path, int value, const char* exported_path,
 
 // Unexport.
 bool DeviceUnexport(const char* export_path, int value) {
-  DDDLOG("Device Unexport() - path: %s", DeviceUnexport);
+  DDDLOG("Device Unexport() - path: %s", export_path);
 
   char buff[DEVICE_IO_PIN_BUFFER_SIZE] = { 0 };
   snprintf(buff, DEVICE_IO_PIN_BUFFER_SIZE - 1, "%d", value);

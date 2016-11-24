@@ -24,11 +24,22 @@ foreach(module ${IOTJS_MODULES_ALL})
     set(IOTJS_CFLAGS "${IOTJS_CFLAGS} -DENABLE_MODULE_${IOTJS_MODULENAME}=0")
 endforeach()
 
-# Module Configuration - enable only selected modules and board
+# System Configuration
+set(IOTJS_PLATFORM_SRC "")
+if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    list(APPEND IOTJS_PLATFORM_SRC ${SRC_ROOT}/platform/iotjs_*-linux.c)
+endif()
+
+# Board Configuration (not module)
 if(DEFINED CMAKE_TARGET_BOARD)
     set(BOARD_DESCRIPT "")
     string(TOLOWER ${CMAKE_TARGET_BOARD} BOARD_DESCRIPT)
+    set(PLATFORM_SRC ${SRC_ROOT}/platform/${PLATFORM_DESCRIPT})
+    set(PLATFORM_SRC ${PLATFORM_SRC}/iotjs_[^module]*${BOARD_DESCRIPT}.c)
+    list(APPEND IOTJS_PLATFORM_SRC ${PLATFORM_SRC})
 endif()
+
+# Module Configuration - enable only selected modules and board
 set(IOTJS_MODULE_SRC "")
 separate_arguments(IOTJS_MODULES)
 set(PLATFORM_SRC "${SRC_ROOT}/platform/${PLATFORM_DESCRIPT}/iotjs_module")
@@ -50,11 +61,7 @@ foreach(module ${IOTJS_MODULES})
     set(IOTJS_CFLAGS "${IOTJS_CFLAGS} -DENABLE_MODULE_${module}=1")
 endforeach()
 
-# System Configuration
-set(IOTJS_PLATFORM_SRC "")
-if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    list(APPEND IOTJS_PLATFORM_SRC ${SRC_ROOT}/platform/iotjs_*-linux.c)
-endif()
+
 
 file(GLOB LIB_IOTJS_SRC ${SRC_ROOT}/*.c
                         ${IOTJS_MODULE_SRC}

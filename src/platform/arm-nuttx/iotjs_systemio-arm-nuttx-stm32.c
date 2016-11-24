@@ -13,20 +13,28 @@
  * limitations under the License.
  */
 
-#ifndef IOTJS_MODULE_PIN_H
-#define IOTJS_MODULE_PIN_H
+#if defined(__NUTTX__) && TARGET_BOARD == STM32F4DIS
 
 
-#if defined(__NUTTX__) && ENABLE_MODULE_PWM
+#include "stm32_gpio.h"
 
-#define TIMER_PIN_SHIFT 21 /* Bits 21-24: Timer number */
-#define TIMER_PIN_MASK 15
-#define TIMER_NUM(n) ((n) << TIMER_PIN_SHIFT)
+#if ENABLE_MODULE_PWM
 
-#endif
+#include "stm32_pwm.h"
+
+struct pwm_lowerhalf_s* iotjs_pwm_config_nuttx(int timer, int pin) {
+  // Set alternative function
+  stm32_configgpio(pin);
+
+  // PWM initialize
+  return stm32_pwminitialize(timer);
+}
 
 
-void iotjs_pin_initialize(const iotjs_jval_t* jobj);
+void iotjs_pwm_unconfig_nuttx(int pin) {
+  stm32_unconfiggpio(pin);
+}
 
+#endif /* ENABLE_MODULE_PWM */
 
-#endif /* IOTJS_MODULE_PIN_H */
+#endif // __NUTTX__

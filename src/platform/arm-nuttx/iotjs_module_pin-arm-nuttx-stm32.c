@@ -21,7 +21,7 @@
 #include "stm32_gpio.h"
 
 
-#if defined(ENABLE_MODULE_GPIO)
+#if ENABLE_MODULE_GPIO
 
 void iotjs_pin_initialize_gpio(const iotjs_jval_t* jobj) {
   iotjs_jval_t jgpio = iotjs_jval_create_object();
@@ -69,7 +69,7 @@ void iotjs_pin_initialize_gpio(const iotjs_jval_t* jobj) {
 #endif /* ENABLE_MODULE_GPIO */
 
 
-#if defined(ENABLE_MODULE_PWM)
+#if ENABLE_MODULE_PWM
 
 void iotjs_pin_initialize_pwm(const iotjs_jval_t* jobj) {
   iotjs_jval_t jpwm = iotjs_jval_create_object();
@@ -141,13 +141,18 @@ void iotjs_pin_initialize_pwm(const iotjs_jval_t* jobj) {
 
 
 void iotjs_pin_initialize(const iotjs_jval_t* jobj) {
-#if defined(ENABLE_MODULE_GPIO)
-  iotjs_pin_initialize_gpio(jobj);
+  iotjs_jval_t jstm32f4dis = iotjs_jval_create_object();
+  iotjs_jval_set_property_jval(jobj, "STM32F4DIS", &jstm32f4dis);
+
+#if ENABLE_MODULE_GPIO
+  iotjs_pin_initialize_gpio(&jstm32f4dis);
 #endif /* ENABLE_MODULE_GPIO */
 
-#if defined(ENABLE_MODULE_PWM)
-  iotjs_pin_initialize_pwm(jobj);
+#if ENABLE_MODULE_PWM
+  iotjs_pin_initialize_pwm(&jstm32f4dis);
 #endif /* ENABLE_MODULE_PWM */
+
+  iotjs_jval_destroy(&jstm32f4dis);
 }
 
 

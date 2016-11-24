@@ -26,6 +26,7 @@ typedef enum {
   kPwmOpExport,
   kPwmOpSetDutyCycle,
   kPwmOpSetPeriod,
+  kPwmOpSetFrequency,
   kPwmOpSetEnable,
   kPwmOpUnexport,
 } PwmOp;
@@ -41,7 +42,7 @@ typedef enum {
 
 
 typedef struct {
-  iotjs_string_t device;
+  int32_t pin;
   int32_t duty_cycle;
   int32_t period;
   bool enable;
@@ -77,13 +78,11 @@ typedef struct {
 iotjs_pwm_t* iotjs_pwm_create(const iotjs_jval_t* jpwm);
 const iotjs_jval_t* iotjs_pwm_get_jpwm();
 iotjs_pwm_t* iotjs_pwm_get_instance();
-bool iotjs_pwm_initialized();
-void iotjs_pwm_set_initialized(iotjs_pwm_t* pwm, bool initialized);
+void iotjs_pwm_initialize();
 
-
-int PwmInitializePwmPath(iotjs_pwm_reqdata_t* req_data);
 void ExportWorker(uv_work_t* work_req);
 void SetPeriodWorker(uv_work_t* work_req);
+void SetFrequencyWorker(uv_work_t* work_req);
 void SetDutyCycleWorker(uv_work_t* work_req);
 void SetEnableWorker(uv_work_t* work_req);
 void UnexportWorker(uv_work_t* work_req);

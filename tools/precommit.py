@@ -77,7 +77,7 @@ def setup_nuttx_root(nuttx_root):
                     'targets',
                     'nuttx-stm32f4',
                     'nuttx',
-                    '.config.default'),
+                    '.config.travis'),
             '.config')
 
 

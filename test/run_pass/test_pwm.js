@@ -18,7 +18,7 @@ var assert = require('assert');
 var pwm = require('pwm');
 var option = {
   period: 1000000,
-  dutyCycle: 250000
+  dutyCycle: 25
 };
 
 var callback = function (err) {
@@ -67,7 +67,7 @@ function test2() {
     period;
 
   option.period = 500000;
-  option.dutyCycle = 250000;
+  option.dutyCycle = 25;
   pwm0.setDutyCycle(option.dutyCycle, callback);
 
   console.log('test2 start');

@@ -56,27 +56,39 @@ function PWM(pin, options, callback) {
     return new PWM(pin, options, callback);
   }
 
-  if (!util.isNumber(pin) && !util.isString(pin)) {
+  if (!util.isNumber(pin)) {
     throw new TypeError('Bad arguments - pin');
   }
 
   self._options = {};
-
-  var pinPath = pin + ''; // make string
+  self._pin = pin;
 
   // Check arguments.
   if (util.isFunction(options)) {
     callback = options;
+    self._options.dutyCycle = -1;
+    self._options.period = -1;
   } else if (util.isObject(options)) {
     if (util.isNumber(options.dutyCycle)) {
       self._options.dutyCycle = options.dutyCycle;
+    } else {
+      self._options.dutyCycle = -1;
     }
+
     if (util.isNumber(options.period)) {
       self._options.period = options.period;
+    } else {
+      self._options.dutyCycle = -1;
+    }
+
+    if (util.isNumber(options.frequency)) {
+      self._options.period = options.frequency;
+    } else {
+      self._options.dutyCycle = -1;
     }
   }
 
-  self._pinPath = pwm.export(pinPath, self._options, function (err) {
+  pwm.export(self._pin, self._options, function (err) {
     var errObj = CreatePwmError('PWM()', err);
 
     if (util.isFunction(callback)) {
@@ -93,14 +105,29 @@ PWM.prototype.setPeriod = function (period, callback) {
     throw new TypeError('Bad arguments - period');
   }
 
-  if (period < self._options.dutyCycle) {
-    throw new Error('setPeriod() - period is smaller than dutyCycle')
-  }
-
   self._options.period = period;
 
-  return pwm.setPeriod(self._pinPath, period, function (err) {
+  return pwm.setPeriod(self._pin, self._options, function (err) {
     var errObj = CreatePwmError('setPeriod()', err);
+
+    if (util.isFunction(callback)) {
+      callback(errObj);
+    }
+  });
+};
+
+// pwm.setFrequency(frequency[, callback])
+PWM.prototype.setFrequency = function (frequency, callback) {
+  var self = this;
+  // Check arguments.
+  if (!util.isNumber(frequency)) {
+    throw new TypeError('Bad arguments - frequency');
+  }
+
+  self._options.period = frequency;
+
+  return pwm.setFrequency(self._pin, self._options, function (err) {
+    var errObj = CreatePwmError('setFrequency()', err);
 
     if (util.isFunction(callback)) {
       callback(errObj);
@@ -121,13 +148,9 @@ PWM.prototype.setDutyCycle = function (dutyCycle, callback) {
       'before calling this function');
   }
 
-  if (dutyCycle > self._options.period) {
-    throw new Error('setDutyCycle() - dutyCycle is bigger than period');
-  }
-
   self._options.dutyCycle = dutyCycle;
 
-  return pwm.setDutyCycle(self._pinPath, dutyCycle, function (err) {
+  return pwm.setDutyCycle(self._pin, self._options, function (err) {
     var errObj = CreatePwmError('setDutyCycle()', err);
 
     if (util.isFunction(callback)) {
@@ -144,7 +167,7 @@ PWM.prototype.setEnable = function (enable, callback) {
     throw new TypeError('Bad arguments - enable');
   }
 
-  return pwm.setEnable(self._pinPath, !!enable, function (err) {
+  return pwm.setEnable(self._pin, !!enable, function (err) {
     var errObj = CreatePwmError('setEnable()', err);
 
     if (util.isFunction(callback)) {
@@ -155,7 +178,7 @@ PWM.prototype.setEnable = function (enable, callback) {
 
 // pwm.unexport([callback])
 PWM.prototype.unexport = function (callback) {
-  return pwm.unexport(this._pinPath, function (err) {
+  return pwm.unexport(this._pin, function (err) {
     var errObj = CreatePwmError('unexport()', err);
 
     if (util.isFunction(callback)) {

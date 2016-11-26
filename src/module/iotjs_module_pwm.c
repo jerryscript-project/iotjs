@@ -28,7 +28,6 @@ iotjs_pwm_reqwrap_t* iotjs_pwm_reqwrap_create(const iotjs_jval_t* jcallback,
   iotjs_reqwrap_initialize(&_this->reqwrap, jcallback, (uv_req_t*)&_this->req);
 
   _this->req_data.op = op;
-  _this->req_data.device = iotjs_string_create("");
 
   return pwm_reqwrap;
 }
@@ -36,7 +35,6 @@ iotjs_pwm_reqwrap_t* iotjs_pwm_reqwrap_create(const iotjs_jval_t* jcallback,
 
 static void iotjs_pwm_reqwrap_destroy(THIS) {
   IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_pwm_reqwrap_t, pwm_reqwrap);
-  iotjs_string_destroy(&_this->req_data.device);
   iotjs_reqwrap_destroy(&_this->reqwrap);
   IOTJS_RELEASE(pwm_reqwrap);
 }
@@ -68,6 +66,24 @@ iotjs_pwm_reqwrap_t* iotjs_pwm_reqwrap_from_request(uv_work_t* req) {
 iotjs_pwm_reqdata_t* iotjs_pwm_reqwrap_data(THIS) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_pwm_reqwrap_t, pwm_reqwrap);
   return &_this->req_data;
+}
+
+
+void iotjs_pwm_set_pwmdata(iotjs_jhandler_t* jhandler, THIS) {
+  iotjs_pwm_reqdata_t* req_data = iotjs_pwm_reqwrap_data(pwm_reqwrap);
+  req_data->pin = JHANDLER_GET_ARG(0, number);
+
+  const iotjs_jval_t* joptions = JHANDLER_GET_ARG(1, object);
+  iotjs_jval_t jperiod = iotjs_jval_get_property(joptions, "period");
+  if (iotjs_jval_is_number(&jperiod))
+    req_data->period = iotjs_jval_as_number(&jperiod);
+
+  iotjs_jval_t jduty_cycle = iotjs_jval_get_property(joptions, "dutyCycle");
+  if (iotjs_jval_is_number(&jduty_cycle))
+    req_data->duty_cycle = iotjs_jval_as_number(&jduty_cycle);
+
+  iotjs_jval_destroy(&jperiod);
+  iotjs_jval_destroy(&jduty_cycle);
 }
 
 #undef THIS
@@ -121,6 +137,7 @@ void AfterPwmWork(uv_work_t* work_req, int status) {
     case kPwmOpExport:
     case kPwmOpSetDutyCycle:
     case kPwmOpSetPeriod:
+    case kPwmOpSetFrequency:
     case kPwmOpSetEnable:
     case kPwmOpUnexport:
       break;
@@ -149,62 +166,30 @@ void AfterPwmWork(uv_work_t* work_req, int status) {
 
 
 JHANDLER_FUNCTION(Export) {
-  JHANDLER_CHECK_ARGS(3, string, object, function);
+  JHANDLER_CHECK_ARGS(3, number, object, function);
 
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG(2, function);
 
   iotjs_pwm_reqwrap_t* req_wrap =
       iotjs_pwm_reqwrap_create(jcallback, kPwmOpExport);
 
-  iotjs_pwm_reqdata_t* req_data = iotjs_pwm_reqwrap_data(req_wrap);
-
-  const iotjs_jval_t* joption = JHANDLER_GET_ARG(1, object);
-  iotjs_jval_t jperiod = iotjs_jval_get_property(joption, "period");
-  iotjs_jval_t jduty_cycle = iotjs_jval_get_property(joption, "dutyCycle");
-
-  req_data->device = JHANDLER_GET_ARG(0, string);
-
-  // Set options.
-  if (iotjs_jval_is_number(&jperiod)) {
-    req_data->period = iotjs_jval_as_number(&jperiod);
-  } else {
-    req_data->period = -1;
-  }
-
-  if (iotjs_jval_is_number(&jduty_cycle)) {
-    req_data->duty_cycle = iotjs_jval_as_number(&jduty_cycle);
-  } else {
-    req_data->duty_cycle = -1;
-  }
-
-  if (PwmInitializePwmPath(req_data) < 0) {
-    iotjs_string_destroy(&req_data->device);
-    iotjs_pwm_reqwrap_dispatched(req_wrap);
-
-    JHANDLER_THROW(TYPE, "Invalid Pwm Path");
-  }
+  iotjs_pwm_set_pwmdata(jhandler, req_wrap);
 
   PWM_ASYNC(Export);
 
-  iotjs_jval_destroy(&jperiod);
-  iotjs_jval_destroy(&jduty_cycle);
-
-  // Return exported pwm device path.
-  iotjs_jhandler_return_string(jhandler, &req_data->device);
+  iotjs_jhandler_return_null(jhandler);
 }
 
 
 JHANDLER_FUNCTION(SetPeriod) {
-  JHANDLER_CHECK_ARGS(3, string, number, function);
+  JHANDLER_CHECK_ARGS(3, number, object, function);
 
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG(2, function);
 
   iotjs_pwm_reqwrap_t* req_wrap =
       iotjs_pwm_reqwrap_create(jcallback, kPwmOpSetPeriod);
 
-  iotjs_pwm_reqdata_t* req_data = iotjs_pwm_reqwrap_data(req_wrap);
-  req_data->device = JHANDLER_GET_ARG(0, string);
-  req_data->period = JHANDLER_GET_ARG(1, number);
+  iotjs_pwm_set_pwmdata(jhandler, req_wrap);
 
   PWM_ASYNC(SetPeriod);
 
@@ -212,17 +197,30 @@ JHANDLER_FUNCTION(SetPeriod) {
 }
 
 
+JHANDLER_FUNCTION(SetFrequency) {
+  JHANDLER_CHECK_ARGS(3, number, object, function);
+
+  const iotjs_jval_t* jcallback = JHANDLER_GET_ARG(2, function);
+
+  iotjs_pwm_reqwrap_t* req_wrap =
+      iotjs_pwm_reqwrap_create(jcallback, kPwmOpSetFrequency);
+
+  iotjs_pwm_set_pwmdata(jhandler, req_wrap);
+
+  PWM_ASYNC(SetFrequency);
+
+  iotjs_jhandler_return_null(jhandler);
+}
+
 JHANDLER_FUNCTION(SetDutyCycle) {
-  JHANDLER_CHECK_ARGS(3, string, number, function);
+  JHANDLER_CHECK_ARGS(3, number, object, function);
 
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG(2, function);
 
   iotjs_pwm_reqwrap_t* req_wrap =
       iotjs_pwm_reqwrap_create(jcallback, kPwmOpSetDutyCycle);
 
-  iotjs_pwm_reqdata_t* req_data = iotjs_pwm_reqwrap_data(req_wrap);
-  req_data->device = JHANDLER_GET_ARG(0, string);
-  req_data->duty_cycle = JHANDLER_GET_ARG(1, number);
+  iotjs_pwm_set_pwmdata(jhandler, req_wrap);
 
   PWM_ASYNC(SetDutyCycle);
 
@@ -231,7 +229,7 @@ JHANDLER_FUNCTION(SetDutyCycle) {
 
 
 JHANDLER_FUNCTION(SetEnable) {
-  JHANDLER_CHECK_ARGS(3, string, boolean, function);
+  JHANDLER_CHECK_ARGS(3, number, boolean, function);
 
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG(2, function);
 
@@ -239,7 +237,7 @@ JHANDLER_FUNCTION(SetEnable) {
       iotjs_pwm_reqwrap_create(jcallback, kPwmOpSetEnable);
 
   iotjs_pwm_reqdata_t* req_data = iotjs_pwm_reqwrap_data(req_wrap);
-  req_data->device = JHANDLER_GET_ARG(0, string);
+  req_data->pin = JHANDLER_GET_ARG(0, number);
   req_data->enable = JHANDLER_GET_ARG(1, boolean);
 
   PWM_ASYNC(SetEnable);
@@ -249,7 +247,7 @@ JHANDLER_FUNCTION(SetEnable) {
 
 
 JHANDLER_FUNCTION(Unexport) {
-  JHANDLER_CHECK_ARGS(2, string, function);
+  JHANDLER_CHECK_ARGS(2, number, function);
 
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG(1, function);
 
@@ -257,7 +255,7 @@ JHANDLER_FUNCTION(Unexport) {
       iotjs_pwm_reqwrap_create(jcallback, kPwmOpUnexport);
 
   iotjs_pwm_reqdata_t* req_data = iotjs_pwm_reqwrap_data(req_wrap);
-  req_data->device = JHANDLER_GET_ARG(0, string);
+  req_data->pin = JHANDLER_GET_ARG(0, number);
 
   PWM_ASYNC(Unexport);
 
@@ -270,6 +268,7 @@ iotjs_jval_t InitPwm() {
 
   iotjs_jval_set_method(&jpwm, "export", Export);
   iotjs_jval_set_method(&jpwm, "setPeriod", SetPeriod);
+  iotjs_jval_set_method(&jpwm, "setFrequency", SetFrequency);
   iotjs_jval_set_method(&jpwm, "setDutyCycle", SetDutyCycle);
   iotjs_jval_set_method(&jpwm, "setEnable", SetEnable);
   iotjs_jval_set_method(&jpwm, "unexport", Unexport);
@@ -288,6 +287,8 @@ iotjs_jval_t InitPwm() {
   SET_PWM_CONSTANT(&jpwm, kPwmErrSys);
 
 #undef SET_PWM_CONSTANT
+
+  iotjs_pwm_initialize();
 
   iotjs_pwm_t* pwm = iotjs_pwm_create(&jpwm);
   IOTJS_ASSERT(pwm ==

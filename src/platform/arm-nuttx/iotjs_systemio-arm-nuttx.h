@@ -13,20 +13,19 @@
  * limitations under the License.
  */
 
-#ifndef IOTJS_MODULE_PIN_H
-#define IOTJS_MODULE_PIN_H
+#ifndef IOTJS_SYSTEMIO_ARM_NUTTX_H
+#define IOTJS_SYSTEMIO_ARM_NUTTX_H
 
+#if ENABLE_MODULE_PWM
 
-#if defined(__NUTTX__) && ENABLE_MODULE_PWM
+#include <nuttx/drivers/pwm.h>
 
-#define TIMER_PIN_SHIFT 21 /* Bits 21-24: Timer number */
-#define TIMER_PIN_MASK 15
-#define TIMER_NUM(n) ((n) << TIMER_PIN_SHIFT)
+#define PWM_DEVICE_PATH_FORMAT "/dev/pwm%d"
+#define PWM_DEVICE_PATH_BUFFER_SIZE 12
 
-#endif
+struct pwm_lowerhalf_s* iotjs_pwm_config_nuttx(int timer, int pin);
+void iotjs_pwm_unconfig_nuttx(int pin);
 
+#endif /* ENABLE_MODULE_PWM */
 
-void iotjs_pin_initialize(const iotjs_jval_t* jobj);
-
-
-#endif /* IOTJS_MODULE_PIN_H */
+#endif /* IOTJS_SYSTEMIO_ARM_NUTTX_H */

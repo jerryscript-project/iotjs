@@ -17,8 +17,3 @@ cmake_minimum_required(VERSION 2.8)
 set(HTTPPARSER_ROOT ${DEP_ROOT}/http-parser)
 set(HTTPPARSER_INCDIR ${HTTPPARSER_ROOT})
 set(HTTPPARSER_LIB ${LIB_ROOT}/libhttpparser.a)
-
-add_custom_command(OUTPUT ${HTTPPARSER_LIB}
-                   COMMAND touch ${HTTPPARSER_LIB})
-
-add_custom_target(targetHttpparser DEPENDS ${HTTPPARSER_LIB})

@@ -49,6 +49,7 @@ typedef iotjs_jval_t (*register_func)();
   E(F, TESTDRIVER, Testdriver, testdriver) \
   E(F, TCP, Tcp, tcp)                      \
   E(F, TIMER, Timer, timer)                \
+  E(F, UART, Uart, uart)                   \
   E(F, UDP, Udp, udp)
 
 #define ENUMDEF_MODULE_LIST(upper, Camel, lower) MODULE_##upper,

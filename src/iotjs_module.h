@@ -34,6 +34,7 @@ typedef iotjs_jval_t (*register_func)();
 
 // List of builtin modules
 #define MAP_MODULE_LIST(F)                 \
+  E(F, BLECENTRAL, Blecentral, blecentral) \
   E(F, BUFFER, Buffer, buffer)             \
   E(F, CONSOLE, Console, console)          \
   E(F, CONSTANTS, Constants, constants)    \

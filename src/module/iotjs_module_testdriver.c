@@ -37,7 +37,7 @@ JHANDLER_FUNCTION(IsAliveExceptFor) {
     iotjs_timerwrap_t* timer_wrap = iotjs_timerwrap_from_jobject(&jtimer);
     iotjs_jval_destroy(&jtimer);
 
-    bool has_active_reqs = uv__has_active_reqs(loop);
+    bool has_active_reqs = uv_loop_has_active_reqs(loop);
     bool has_closing_handler = loop->closing_handles != NULL;
 
     bool ret = true;

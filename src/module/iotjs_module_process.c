@@ -144,7 +144,7 @@ JHANDLER_FUNCTION(Chdir) {
   JHANDLER_CHECK_ARGS(1, string);
 
   iotjs_string_t path = JHANDLER_GET_ARG(0, string);
-  int err = uv_cd(iotjs_string_data(&path));
+  int err = uv_chdir(iotjs_string_data(&path));
 
   if (err) {
     iotjs_string_destroy(&path);

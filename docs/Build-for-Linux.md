@@ -76,6 +76,8 @@ link_flag
 external-include-dir
 external-static-lib
 external-shared-lib
+iotjs-include-module
+iotjs-exclude-module
 jerry-cmake-param
 jerry-compile-flag
 jerry-link-flag
@@ -103,6 +105,19 @@ Options that may need explanations.
 * nuttx-home: it's NuttX platform specific, to tell where the NuttX configuration and header files are.
 
 If you want to know more details about options, please check the [Build Script](https://github.com/Samsung/iotjs/wiki/Build%20Script) page.
+
+
+#### Include extended module
+There are two ways to include [extended module](IoT.js-API-reference.md).
+
+The first way is to modify a property value of module in `build.config` file. You can move a module name from 'exclude' to 'include'.
+
+The second way is by using build options which is `--iotjs-include-module`.
+If you enter several modules, separate them with a comma.
+
+```
+./tools/build.py --iotjs-include-module=dgram,pin,gpio
+```
 
 
 #### Options example

@@ -94,17 +94,9 @@
       skip: ['nuttx'],
       reason: "not implemented for nuttx"
     },
-    'test_gpio1.js': {
-      skip: ['all'],
-      reason: "not implemented"
-    },
     'test_gpio2.js': {
       skip: ['all'],
-      reason: "not implemented"
-    },
-    'test_gpio3.js': {
-      skip: ['all'],
-      reason: "not implemented"
+      reason: "need user input"
     },
     'test_i2c.js': {
       skip: ['all'],

@@ -52,6 +52,7 @@ Existing test options are listed as follows;
 start-from
 quiet=yes|no (default is yes)
 output-file
+skip-module
 ```
 
 To give options, please use two dashes '--' **once** before the option name as described in the following sections.
@@ -60,6 +61,7 @@ Options that may need explanations.
 * start-from: a test case file name where the driver starts.
 * quiet: a flag that indicates if the driver suppresses console outputs of test case.
 * output-file: a file name where the driver leaves output.
+* skip-module: a module list to skip test of specific modules.
 
 ##### Options example
 

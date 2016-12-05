@@ -78,6 +78,8 @@ Driver.prototype.config = function() {
     "console outputs of test case");
   parser.addOption('output-file', "", "",
     "a file name where the driver leaves output");
+  parser.addOption('skip-module', "", "",
+    "a module list to skip test of specific modules");
 
   var options = parser.parse();
 
@@ -95,6 +97,10 @@ Driver.prototype.config = function() {
     }
     fs.writeFileSync(path, new Buffer(''));
   }
+  var skipModule = options['skip-module'];
+  if (skipModule) {
+    this.skipModule = skipModule.split(',');
+  }
 
   this.logger = new Logger(path);
 
@@ -109,7 +115,7 @@ Driver.prototype.config = function() {
 
   this.nextTestSet(skipped);
   return true;
-}
+};
 
 Driver.prototype.getAttrs = function() {
   var content = fs.readFileSync(util.absolutePath('attrs.js')).toString();
@@ -169,7 +175,7 @@ Driver.prototype.skipTestSet = function(filename) {
   }
 
   return false;
-}
+};
 
 Driver.prototype.nextTestSet = function(skipped) {
   if (!skipped) {
@@ -182,7 +188,7 @@ Driver.prototype.nextTestSet = function(skipped) {
   this.attrs = this.getAttrs();
   this.logger.message("\n");
   this.logger.message(">>>> " + dirname, "summary");
-}
+};
 
 Driver.prototype.dirname = function() {
   return Object.keys(this.tests)[this.dIdx]
@@ -192,7 +198,7 @@ Driver.prototype.filename = function() {
   var dirname = this.dirname();
   var filename = this.tests[dirname][this.fIdx];
   return filename;
-}
+};
 
 Driver.prototype.test = function() {
   var filename = this.filename();
@@ -212,7 +218,7 @@ Driver.prototype.finish = function() {
   if (this.results.fail > 0 || this.results.timeout > 0) {
     originalExit(1);
   }
-}
+};
 
 var driver = new Driver();
 
@@ -243,7 +249,7 @@ process.exit = function(code) {
       driver.runner.finish('pass');
     }
   }
-}
+};
 
 var conf = driver.config();
 if (conf) {

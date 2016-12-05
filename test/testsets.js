@@ -47,7 +47,6 @@ function testsets() {
       'test_fs2.js',
       'test_gpio1.js',
       'test_gpio2.js',
-      'test_gpio3.js',
       'test_http_get.js',
       'test_http_header.js',
       'test_httpclient_timeout.js',

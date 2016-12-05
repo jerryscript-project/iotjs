@@ -20,17 +20,22 @@ function Runner(driver) {
   process._exiting = false;
 
   this.driver = driver;
-  var filename = driver.filename();
-  this.attr = driver.attrs[filename] || {};
+  this.filename = driver.filename();
+  this.attr = driver.attrs[this.filename] || {};
   this.finished = false;
-
+  if (driver.skipModule) {
+    this.skipModule = driver.skipModule;
+    this.skipModuleLength = this.skipModule.length;
+  } else {
+    this.skipModuleLength = 0;
+  }
   if (driver.options.quiet == 'yes') {
     this.console = console;
     console = console_wrapper;
   }
 
   return this;
-};
+}
 
 Runner.prototype.cleanup = function() {
   if (this.driver.options.quiet == 'yes') {
@@ -43,7 +48,7 @@ Runner.prototype.cleanup = function() {
     clearTimeout(this.timer);
     this.timer = null;
   }
-}
+};
 
 Runner.prototype.spin = function() {
   var that = this;
@@ -61,13 +66,30 @@ Runner.prototype.spin = function() {
         }
       }
   });
-}
+};
+
+Runner.prototype.checkSkipModule = function() {
+  for (var i = 0; i < this.skipModuleLength; i++) {
+    if (this.filename.indexOf(this.skipModule[i]) >= 0) {
+      return true;
+    }
+  }
+
+  return false;
+};
+
 
 Runner.prototype.run = function() {
   if (this.attr.skip && (this.attr.skip.indexOf('all') >= 0 ||
       this.attr.skip.indexOf(this.driver.os) >= 0)) {
       this.finish('skip');
       return;
+  }
+
+  if (this.skipModuleLength && this.checkSkipModule()) {
+    this.attr.reason = 'exclude module';
+    this.finish('skip');
+    return;
   }
 
   this.timer = null;
@@ -98,7 +120,7 @@ Runner.prototype.run = function() {
       this.spin();
     }
   }
-}
+};
 
 Runner.prototype.finish = function(status) {
   if (this.finished)
@@ -107,6 +129,6 @@ Runner.prototype.finish = function(status) {
   this.finished = true;
 
   this.driver.emitter.emit('nextTest', this.driver, status, this.attr);
-}
+};
 
 module.exports.Runner = Runner;

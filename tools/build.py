@@ -98,9 +98,9 @@ def init_option():
 
     parser.add_argument('--external-shared-lib', action='append')
 
-    parser.add_argument('--iotjs-include-module', action='append')
+    parser.add_argument('--iotjs-include-module', action='store')
 
-    parser.add_argument('--iotjs-exclude-module', action='append')
+    parser.add_argument('--iotjs-exclude-module', action='store')
 
     parser.add_argument('--iotjs-minimal-profile', action='store_true')
 
@@ -166,8 +166,12 @@ def adjust_option(option):
         option.external_shared_lib = []
     if option.iotjs_include_module is None:
         option.iotjs_include_module = []
+    else:
+        option.iotjs_include_module = option.iotjs_include_module.split(',')
     if option.iotjs_exclude_module is None:
         option.iotjs_exclude_module = []
+    else:
+        option.iotjs_exclude_module = option.iotjs_exclude_module.split(',')
     if option.iotjs_minimal_profile:
         option.no_check_test = True
     if option.jerry_cmake_param is None:
@@ -575,35 +579,30 @@ def analyze_module_dependency(option):
         ex.fail('Failed to analyze module dependency')
 
     for name in option.config['module']['always']:
-        if name in option.iotjs_include_module:
-            print_warn('Module \"%s\" is already included', name)
-        else:
+        if not name in option.iotjs_include_module:
             option.iotjs_include_module.append(name)
 
     if not option.iotjs_minimal_profile:
-        for name in option.config['module']['optional']:
-            if name in option.iotjs_include_module:
-                print_warn('Module \"%s\" is already included', name)
-            else:
+        for name in option.config['module']['include']:
+            if name in option.config['module']['exclude']:
+                print_warn('Cannot have duplicate module \"%s\" ', name)
+            if not name in option.iotjs_include_module:
                 option.iotjs_include_module.append(name)
 
+    for name in option.iotjs_exclude_module:
+        if name in option.config['module']['always']:
+            print_warn('Cannot exclude always module \"%s\"', name)
+        if name in option.iotjs_include_module:
+            option.iotjs_include_module.remove(name)
+
     for name in option.config['module']['exclude']:
-        if name in option.iotjs_exclude_module:
-            print_warn('Module \"%s\" is already excluded', name)
-        else:
+        if (not name in option.iotjs_exclude_module and
+            not name in option.iotjs_include_module):
             option.iotjs_exclude_module.append(name)
 
     analyze_queue = set()
     for name in option.iotjs_include_module:
         analyze_queue.add(name)
-    for name in option.iotjs_exclude_module:
-        if name in option.config['module']['always']:
-            print_warn('Cannot exclude mandatory module \"%s\"', name)
-        else:
-            if name in analyze_queue:
-                analyze_queue.remove(name)
-            else:
-                print_warn('Cannot find module \"%s\" to exclude', name)
 
     js_modules = { 'iotjs', 'native' }
     native_modules = { 'process' }
@@ -718,10 +717,13 @@ def run_checktest(option):
 
     # iot.js executable
     iotjs = fs.join(build_root, 'iotjs', 'iotjs')
+    build_args = ['--', 'quiet='+checktest_quiet]
+    if len(option.iotjs_exclude_module) > 0:
+        skip_module = ','.join(option.iotjs_exclude_module)
+        build_args += ['skip-module='+skip_module]
+
     fs.chdir(path.PROJECT_ROOT)
-    code = ex.run_cmd(iotjs, [path.CHECKTEST_PATH,
-                              '--',
-                              'quiet='+checktest_quiet])
+    code = ex.run_cmd(iotjs, [path.CHECKTEST_PATH] + build_args)
     if code != 0:
         ex.fail('Failed to pass unit tests')
     if not option.no_check_valgrind:
@@ -729,9 +731,7 @@ def run_checktest(option):
                                        '--error-exitcode=5',
                                        '--undef-value-errors=no',
                                        iotjs,
-                                       path.CHECKTEST_PATH,
-                                       '--',
-                                       'quiet='+checktest_quiet])
+                                       path.CHECKTEST_PATH] + build_args)
         if code == 5:
             ex.fail('Failed to pass valgrind test')
         if code != 0:

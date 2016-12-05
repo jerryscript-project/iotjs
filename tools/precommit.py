@@ -18,6 +18,7 @@
 import argparse
 import sys
 import os
+import json
 from common_py import path
 from common_py.system.filesystem import FileSystem as fs
 from common_py.system.executor import Executor as ex
@@ -26,6 +27,12 @@ from check_tidy import check_tidy
 
 TESTS=['host', 'rpi2', 'nuttx', 'misc'] # TODO: support darwin
 BUILDTYPES=['debug', 'release']
+
+def get_config():
+    config_path = path.BUILD_CONFIG_PATH
+    with open(config_path, 'r') as f:
+        config = json.loads(f.read().encode('ascii'))
+    return config
 
 
 def parse_option():
@@ -108,16 +115,22 @@ def build(buildtype, args=[]):
 
 
 option = parse_option()
+config = get_config()
+if len(config['module']['exclude']) > 0 :
+    include_module = ','.join(config['module']['exclude'])
+    include_module = ['--iotjs-include-module=' + include_module]
+else:
+    include_module = []
 
 for test in option.test:
     if test == "host":
         for buildtype in option.buildtype:
-            build(buildtype)
+            build(buildtype, include_module)
 
     elif test == "rpi2":
         for buildtype in option.buildtype:
             build(buildtype, ['--target-arch=arm',
-                              '--target-board=rpi2'])
+                              '--target-board=rpi2'] + include_module)
 
     elif test == "nuttx":
         for buildtype in option.buildtype:
@@ -128,7 +141,7 @@ for test in option.test:
                               '--target-os=nuttx',
                               '--nuttx-home=' + fs.join(nuttx_root, 'nuttx'),
                               '--target-board=stm32f4dis',
-                              '--jerry-heaplimit=78'])
+                              '--jerry-heaplimit=78'] + include_module)
             if not build_nuttx(nuttx_root, buildtype):
                 ex.fail('nuttx ' + buildtype + ' build failed')
 
@@ -142,5 +155,6 @@ for test in option.test:
         if not check_tidy(path.PROJECT_ROOT):
             ex.fail("Failed tidy check")
 
-        build("debug", ['--no-snapshot', '--jerry-lto'])
+        build("debug")
+        build("debug", ['--no-snapshot', '--jerry-lto'] + include_module)
         build("debug", ['--iotjs-minimal-profile'])

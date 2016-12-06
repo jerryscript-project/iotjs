@@ -24,33 +24,10 @@
 
 #define GPIO_CONFIG_OK 0
 
-// Change iotjs pin or port number to nuttx gpio pin or port index
-static inline uint32_t GetGpioPortIndexFromPinNumber(int32_t pin) {
-  return (pin / GPIO_PINCNT_IN_NUTTXPORT);
-}
-
-
-static inline uint32_t GetGpioPinIndexFromPinNumber(int32_t pin) {
-  return (pin % GPIO_PINCNT_IN_NUTTXPORT);
-}
-
 
 uint32_t gpioDirection[3] = {
   0, // none
   GPIO_INPUT, GPIO_OUTPUT | GPIO_OUTPUT_SET | GPIO_FREQUENCY_DEFAULT,
-};
-
-
-uint32_t gpioPort[7] = {
-  GPIO_PORTA, GPIO_PORTB, GPIO_PORTC, GPIO_PORTD,
-  GPIO_PORTE, GPIO_PORTF, GPIO_PORTG,
-};
-
-
-uint32_t gpioPin[GPIO_PINCNT_IN_NUTTXPORT] = {
-  GPIO_PIN0,  GPIO_PIN1,  GPIO_PIN2,  GPIO_PIN3,  GPIO_PIN4,  GPIO_PIN5,
-  GPIO_PIN6,  GPIO_PIN7,  GPIO_PIN8,  GPIO_PIN9,  GPIO_PIN10, GPIO_PIN11,
-  GPIO_PIN12, GPIO_PIN13, GPIO_PIN14, GPIO_PIN15,
 };
 
 
@@ -91,12 +68,10 @@ void OpenGpioWorker(uv_work_t* work_req) {
   DDDLOG("Gpio OpenGpioWorker() - pin: %d, dir: %d, mode: %d", req_data->pin,
          req_data->dir, req_data->mode);
 
-  uint32_t port_index = GetGpioPortIndexFromPinNumber(req_data->pin);
-  uint32_t pin_index = GetGpioPinIndexFromPinNumber(req_data->pin);
   uint32_t cfgset = 0;
 
   if (req_data->dir == kGpioDirectionNone) {
-    cfgset = gpioPort[port_index] | gpioPin[pin_index];
+    cfgset = req_data->pin;
 
     if (stm32_unconfiggpio(cfgset) != GPIO_CONFIG_OK) {
       req_data->result = kGpioErrSys;
@@ -104,8 +79,8 @@ void OpenGpioWorker(uv_work_t* work_req) {
     }
   } else {
     // Set pin direction and mode
-    cfgset = gpioDirection[req_data->dir] | gpioMode[req_data->mode] |
-             gpioPort[port_index] | gpioPin[pin_index];
+    cfgset =
+        gpioDirection[req_data->dir] | gpioMode[req_data->mode] | req_data->pin;
 
     if (stm32_configgpio(cfgset) != GPIO_CONFIG_OK) {
       req_data->result = kGpioErrSys;
@@ -122,12 +97,9 @@ void WriteGpioWorker(uv_work_t* work_req) {
   DDDLOG("Gpio WriteGpioWorker() - pin: %d, value: %d", req_data->pin,
          req_data->value);
 
-  uint32_t port_index = GetGpioPortIndexFromPinNumber(req_data->pin);
-  uint32_t pin_index = GetGpioPinIndexFromPinNumber(req_data->pin);
-  uint32_t pinset = gpioPort[port_index] | gpioPin[pin_index];
   bool value = req_data->value;
 
-  stm32_gpiowrite(pinset, value);
+  stm32_gpiowrite(req_data->pin, value);
 
   // always return OK
   req_data->result = kGpioErrOk;
@@ -138,13 +110,9 @@ void ReadGpioWorker(uv_work_t* work_req) {
   GPIO_WORKER_INIT_TEMPLATE(true);
   DDDLOG("Gpio ReadGpioWorker() - pin: %d", req_data->pin);
 
-  uint32_t port_index = GetGpioPortIndexFromPinNumber(req_data->pin);
-  uint32_t pin_index = GetGpioPinIndexFromPinNumber(req_data->pin);
-  uint32_t pinset = gpioPort[port_index] | gpioPin[pin_index];
-
   // always return OK
   req_data->result = kGpioErrOk;
-  req_data->value = stm32_gpioread(pinset);
+  req_data->value = stm32_gpioread(req_data->pin);
 }
 
 

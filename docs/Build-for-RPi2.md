@@ -28,6 +28,29 @@ The screen will ask you to enable I2C interface.
 
 Reboot your Raspberry Pi.
 
+#### Enable the PWM interface
+
+Raspberry Pi2 has two PWM outputs on the following pins.
+
+| PWM Number | GPIO PIN(FUNC) |
+| :---: | :---: |
+| PWM0 | GPIO12(4), GPIO18(2) |
+| PWM1 | GPIO13(4), GPIO19(2) |
+
+To use PWM module, you must add PWM overlays in `/boot/config.txt` file.
+
+For example, to get a single PWM on GPIO18, add overlays like below.
+```
+dtoverlay=pwm,pin=18,func=2
+```
+
+For example, to get multi PWM on GPIO18 and GPIO19, add overlays like below.
+```
+dtoverlay=pwm-2chan,pin=18,func=2,pin2=19,func2=2
+```
+
+For more information about overlays, refer to [README](https://github.com/raspberrypi/linux/blob/rpi-4.9.y/arch/arm/boot/dts/overlays/README).
+
 ### Build IoT.js on your desktop.
 
 #### Prerequisite

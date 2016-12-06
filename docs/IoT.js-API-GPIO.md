@@ -15,7 +15,8 @@ The following shows GPIO module APIs available for each platform.
 
 ### `pins`
 
-* pin number is logical number starts from 1. Thus logical pin number *k* is not necessarily bound to physical pin number *k* in your board.
+* On Linux, pin number is logical number starts from 1. Thus logical pin number *k* is not necessarily bound to physical pin number *k* in your board.
+* On Nuttx, you must use pin module that is designed to find a pin name easier for target board. For more pin information, refer to [Pin Module](IoT.js-API-Pin.md).
 
 
 ### Events
@@ -73,7 +74,7 @@ Emitted after GPIO write pin is finished.
 Initializes GPIO device.
 This function must be called before other GPIO functions.
 
-`callback` will be called after after GPIO device is initialized.
+`callback` will be called after GPIO device is initialized.
 
 'initialize' event will be emitted after GPIO device is initialized.
 

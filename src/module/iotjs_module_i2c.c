@@ -180,7 +180,7 @@ void AfterI2CWork(uv_work_t* work_req, int status) {
           iotjs_jval_destroy(&result);
 
           if (req_data->delay > 0) {
-            tuv_usleep(req_data->delay * 1000);
+            uv_sleep(req_data->delay);
           }
 
           if (req_data->buf_data != NULL) {

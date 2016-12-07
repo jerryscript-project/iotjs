@@ -13,29 +13,32 @@
  * limitations under the License.
  */
 
-#ifndef IOTJS_SYSTEMIO_ARM_NUTTX_H
-#define IOTJS_SYSTEMIO_ARM_NUTTX_H
+#ifndef IOTJS_MODULE_ADC_LINUX_GENERAL_INL_H
+#define IOTJS_MODULE_ADC_LINUX_GENERAL_INL_H
 
 
-void iotjs_gpio_unconfig_nuttx(int pin);
+#include "module/iotjs_module_adc.h"
 
 
-#if ENABLE_MODULE_ADC
-
-#include <nuttx/analog/adc.h>
-
-struct adc_dev_s* iotjs_adc_config_nuttx(int number, int timer, int pin);
-
-#endif /* ENABLE_MODULE_ADC */
+void iotjs_adc_export_worker(uv_work_t* work_req) {
+  IOTJS_ASSERT(!"Not implemented");
+}
 
 
-#if ENABLE_MODULE_PWM
-
-#include <nuttx/drivers/pwm.h>
-
-struct pwm_lowerhalf_s* iotjs_pwm_config_nuttx(int timer, int pin);
-
-#endif /* ENABLE_MODULE_PWM */
+void iotjs_adc_read_worker(uv_work_t* work_req) {
+  IOTJS_ASSERT(!"Not implemented");
+}
 
 
-#endif /* IOTJS_SYSTEMIO_ARM_NUTTX_H */
+int32_t iotjs_adc_read_sync(int32_t pin) {
+  IOTJS_ASSERT(!"Not implemented");
+  return -1;
+}
+
+
+void iotjs_adc_unexport_worker(uv_work_t* work_req) {
+  IOTJS_ASSERT(!"Not implemented");
+}
+
+
+#endif /* IOTJS_MODULE_ADC_LINUX_GENERAL_INL_H */

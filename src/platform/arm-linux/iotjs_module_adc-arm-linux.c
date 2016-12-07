@@ -13,29 +13,9 @@
  * limitations under the License.
  */
 
-#ifndef IOTJS_SYSTEMIO_ARM_NUTTX_H
-#define IOTJS_SYSTEMIO_ARM_NUTTX_H
 
+#if defined(__LINUX__)
 
-void iotjs_gpio_unconfig_nuttx(int pin);
+#include "../iotjs_module_adc-linux-general.inl.h"
 
-
-#if ENABLE_MODULE_ADC
-
-#include <nuttx/analog/adc.h>
-
-struct adc_dev_s* iotjs_adc_config_nuttx(int number, int timer, int pin);
-
-#endif /* ENABLE_MODULE_ADC */
-
-
-#if ENABLE_MODULE_PWM
-
-#include <nuttx/drivers/pwm.h>
-
-struct pwm_lowerhalf_s* iotjs_pwm_config_nuttx(int timer, int pin);
-
-#endif /* ENABLE_MODULE_PWM */
-
-
-#endif /* IOTJS_SYSTEMIO_ARM_NUTTX_H */
+#endif

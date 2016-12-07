@@ -15,6 +15,10 @@
 
 (function() {
   var attrs = {
+    'test_adc.js': {
+      skip: ['all'],
+      reason: "need to setup test environment"
+    },
     'test_ble.js': {
       skip: ['all'],
       reason: "need to setup test environment"

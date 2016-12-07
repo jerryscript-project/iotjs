@@ -17,13 +17,31 @@
 #define IOTJS_MODULE_PIN_H
 
 
-#if defined(__NUTTX__) && ENABLE_MODULE_PWM
+#if defined(__NUTTX__)
 
-#define TIMER_PIN_SHIFT 21 /* Bits 21-24: Timer number */
-#define TIMER_PIN_MASK 15
-#define TIMER_NUM(n) ((n) << TIMER_PIN_SHIFT)
 
-#endif
+#if ENABLE_MODULE_ADC || ENABLE_MODULE_PWM
+
+#define SYSIO_TIMER_PIN_SHIFT 21 /* Bits 21-24: Timer number */
+#define SYSIO_TIMER_PIN_MASK 15
+#define SYSIO_TIMER_NUMBER(n) ((n) << SYSIO_TIMER_PIN_SHIFT)
+#define SYSIO_GET_TIMER(n) \
+  (((n) >> SYSIO_TIMER_PIN_SHIFT) & SYSIO_TIMER_PIN_MASK)
+
+#endif /* ENABLE_MODULE_ADC || ENABLE_MODULE_PWM */
+
+
+#if ENABLE_MODULE_ADC
+
+#define ADC_NUMBER_SHIFT 25 /* Bits 25-26: ADC number */
+#define ADC_NUMBER_MASK 3
+#define ADC_NUMBER(n) ((n) << ADC_NUMBER_SHIFT)
+#define ADC_GET_NUMBER(n) (((n) >> ADC_NUMBER_SHIFT) & ADC_NUMBER_MASK)
+
+#endif /* ENABLE_MODULE_ADC */
+
+
+#endif /* __NUTTX__ */
 
 
 void iotjs_pin_initialize(const iotjs_jval_t* jobj);

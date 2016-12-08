@@ -15,7 +15,5 @@
 cmake_minimum_required(VERSION 2.8)
 
 set(LIBTUV_ROOT ${DEP_ROOT}/libtuv)
-set(LIBTUV_INCDIR ${LIBTUV_ROOT}/include
-                  ${LIBTUV_ROOT}/source
-                  ${LIBTUV_ROOT}/source/${TARGET_OS})
+set(LIBTUV_INCDIR ${LIBTUV_ROOT}/include)
 set(LIBTUV_LIB ${LIB_ROOT}/libtuv.a)

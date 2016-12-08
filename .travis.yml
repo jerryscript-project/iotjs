@@ -5,7 +5,7 @@ dist: trusty
 sudo: required
 
 before_install:
-  - if [[ "$INSTALL_ARM_DEPS" == "yes" ]]; then tools/apt-get-install-arm.sh; fi
+  - if [[ "$INSTALL_ARM_DEPS" == "yes" ]]; then tools/apt-get-install-arm.sh; tools/install-bluez-arm.sh; fi
   - if [[ "$INSTALL_NUTTX_DEPS" == "yes" ]]; then tools/apt-get-install-nuttx.sh; fi
   - tools/apt-get-install-deps.sh
   - deps/jerry/tools/apt-get-install-deps.sh

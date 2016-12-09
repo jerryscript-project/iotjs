@@ -51,6 +51,25 @@ dtoverlay=pwm-2chan,pin=18,func=2,pin2=19,func2=2
 
 For more information about overlays, refer to [README](https://github.com/raspberrypi/linux/blob/rpi-4.9.y/arch/arm/boot/dts/overlays/README).
 
+#### Enable the UART interface
+
+To use UART module, the UART interface must be enabled.
+
+In `/boot/config.txt` file, change the value of enable_uart from 0 to 1.
+```
+enable_uart=1
+```
+
+To disable the serial console, edit the file `/boot/cmdline.txt`.
+remove the word phase ```"console=serial0,115200"``` or ```"console=ttyAMA0,115200"```
+
+To enable the serial console, edit the file `/boot/cmdline.txt`.
+add the word phase ```"console=serial0,115200"``` or ```"console=ttyAMA0,115200"```
+
+Reboot your Raspberry Pi.
+
+* Note for Raspberry Pi 3 : You should use /dev/ttyS0 instead of /dev/ttyAMA0 in RPI3.
+
 ### Build IoT.js on your desktop.
 
 #### Prerequisite

@@ -72,6 +72,7 @@ function testsets() {
       'test_stream.js',
       'test_timers.js',
       'test_timers2.js',
+      'test_uart.js',
       'test_uncaught1.js',
       'test_uncaught2.js',
       'test_uncaught_error1.js',

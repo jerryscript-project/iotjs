@@ -169,6 +169,10 @@
         all: 10
       },
     },
+    'test_uart.js': {
+      skip: ['all'],
+      reason: "need to setup test environment"
+    },
     'test_uncaught1.js': {
       uncaught: true,
     },

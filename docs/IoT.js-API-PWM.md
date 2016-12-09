@@ -24,7 +24,7 @@ The following shows PWM module APIs available for each platform.
 #### new pwm(pin[, options][, callback])
 * `pin: Number | Pin module`
 * `options: Object`
-* `callback: Function`
+* `callback: Function(err: PwmError | null)`
 
 Create PWM object.
 
@@ -40,7 +40,7 @@ For example,
 ```javascript
 var pwm = require('pwm');
 var pwm0 = new pwm(0, {period: 10000, dutyCycle: 50}, function() {
-    pwm0.setEnable(1);
+  pwm0.setEnable(1);
 });
 ```
 

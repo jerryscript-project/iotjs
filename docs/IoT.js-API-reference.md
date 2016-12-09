@@ -12,6 +12,7 @@
 * [Timers](IoT.js-API-Timers.md)
 
 ## Extended API
+* [(ADC)](IoT.js-API-ADC.md)
 * (BLE)
 * [(GPIO)](IoT.js-API-GPIO.md)
 * [(I2C)](IoT.js-API-I2C.md)

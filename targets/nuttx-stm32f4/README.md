@@ -107,11 +107,21 @@ Followings are the options to set:
  * Enable `Networking Support -> TCP/IP Networking -> TCP/IP backlog support`
  * Enable `Networking Support -> ARP Configuration -> ARP send`
 
- * For `pwm` module
-  * Enable `System Type -> STM32 Peripheral Support -> TIM(N)`
-  * Enable `System Type -> Timer Configuration -> TIM(N) PWM`
-  * Set `System Type -> Timer Configuration -> TIM(N) PWM -> TIM(n) PWM Output Channel` to channel number you want
-  * Enable `Device Drivers -> PWM Driver Support`
+* For `dgram`
+ * Enable `Networking Support > UDP Networking`
+
+* For `pwm` module
+ * Enable `System Type -> STM32 Peripheral Support -> TIM(N)`
+ * Enable `System Type -> Timer Configuration -> TIM(N) PWM`
+ * Set `System Type -> Timer Configuration -> TIM(N) PWM -> TIM(n) PWM Output Channel` to channel number you want
+ * Enable `Device Drivers -> PWM Driver Support`
+
+* For `adc` module
+ * Enable `System Type -> STM32 Peripheral Support -> ADC(N)`
+ * Enable `System Type -> STM32 Peripheral Support -> TIM(M)`
+ * Enable `System Type -> Timer Configuration -> TIM(M) ADC`
+ * Enable `Device Drivers -> Analog Device(ADC/DAC) Support`
+ * Enable `Device Drivers -> Analog Device(ADC/DAC) Support -> Analog-to-Digital Conversion`
 
 #### 4. Build IoT.js for NuttX
 

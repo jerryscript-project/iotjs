@@ -16,6 +16,7 @@
 function testsets() {
   var tests = {
     'run_pass': [
+      'test_adc.js',
       'test_assert.js',
       'test_ble.js',
       'test_buffer_builtin.js',

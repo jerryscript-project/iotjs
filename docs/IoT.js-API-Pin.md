@@ -8,55 +8,87 @@ var stm32f4Pin = require('pin').STM32F4DIS;
 
 
 ### GPIO
-`GPIO.P<port><pin>`
+`P<port><pin>`
 
 For example,
 ``` javascript
 var gpio = require('gpio');
 var stm32f4Pin = require('pin').STM32F4DIS;
 
-gpio.open(stm32f4Pin.GPIO.PD6);
+gpio.open(stm32f4Pin.PD6);
 ```
 
 
 ### PWM
-`PWM.TIM<timer>.CH<channel>_<number>`
+`PWM<timer>.CH<channel>_<number>`
 
 For example,
 ``` javascript
 var pwm = require('pwm');
 var stm32f4Pin = require('pin').STM32F4DIS;
 
-var pwm2 = new pwm(stm32f4Pin.PWM.TIM2_CH1_2);
+var pwm2 = new pwm(stm32f4Pin.PWM2.CH1_2);
 ```
 The following is a list of PWM pin name.
 
 | PWM Pin Name | GPIO Name | PWM Pin Name | GPIO Name|
 | :---: | :---: | :---: | :---: | :---: |
-| TIM1_CH1_1 | PA8 | TIM4_CH1_1| PB6 |
-| TIM1_CH1_2 | PE9 | TIM4_CH1_2| PD12 |
-| TIM1_CH2_1 | PA9 | TIM4_CH2_1| PB7 |
-| TIM1_CH2_2 | PE11 | TIM4_CH2_2| PD13 |
-| TIM1_CH3_1 | PA10 | TIM4_CH3_1| PB8 |
-| TIM1_CH3_2 | PE13 | TIM4_CH3_2| PD14 |
-| TIM1_CH4_1 | PA11 | TIM4_CH4_1| PB9 |
-| TIM1_CH4_2 | PE14 | TIM4_CH4_2| PD15 |
-| TIM2_CH1_1| PA0 | TIM5_CH1_1| PA0 |
-| TIM2_CH1_2| PA15 | TIM5_CH2_1| PA1 |
-| TIM2_CH1_3| PA5 | TIM5_CH3_1| PA2 |
-| TIM2_CH2_1| PA1 | TIM5_CH4_1| PA3 |
-| TIM2_CH2_2| PB3 | TIM8_CH1_1| PC6 |
-| TIM2_CH3_1| PA2| TIM8_CH2_1| PC7|
-| TIM2_CH3_2| PB10| TIM8_CH3_1| PC8|
-| TIM2_CH4_1| PA3 | TIM8_CH4_1| PC9 |
-| TIM2_CH4_2| PB11 | TIM9_CH1_1 | PA2 |
-| TIM3_CH1_1 | PA6 | TIM9_CH1_2 | PE5 |
-| TIM3_CH1_2 | PB4 | TIM9_CH2_1 | PA3 |
-| TIM3_CH1_3 | PC6 | TIM9_CH2_2 | PE6 |
-| TIM3_CH2_1 | PA7 | TIM10_CH1_1 | PB8 |
-| TIM3_CH2_2 | PB5 | TIM11_CH1_1 | PB9 |
-| TIM3_CH2_3 | PC7 | TIM12_CH1_2 | PB14 |
-| TIM3_CH3_1 | PA11 | TIM12_CH2_1 | PB15 |
-| TIM3_CH3_2 | PE14 | TIM13_CH1_1 | PA6 |
-| TIM3_CH4_1 | PB1 | TIM14_CH1_1 | PA7 |
-| TIM3_CH4_2 | PC9 | | |
+| PWM1.CH1_1 | PA8 | PWM4.CH1_1| PB6 |
+| PWM1.CH1_2 | PE9 | PWM4.CH1_2| PD12 |
+| PWM1.CH2_1 | PA9 | PWM4.CH2_1| PB7 |
+| PWM1.CH2_2 | PE11 | PWM4.CH2_2| PD13 |
+| PWM1.CH3_1 | PA10 | PWM4.CH3_1| PB8 |
+| PWM1.CH3_2 | PE13 | PWM4.CH3_2| PD14 |
+| PWM1.CH4_1 | PA11 | PWM4.CH4_1| PB9 |
+| PWM1.CH4_2 | PE14 | PWM4.CH4_2| PD15 |
+| PWM2.CH1_1| PA0 | PWM5.CH1_1| PA0 |
+| PWM2.CH1_2| PA15 | PWM5.CH2_1| PA1 |
+| PWM2.CH1_3| PA5 | PWM5.CH3_1| PA2 |
+| PWM2.CH2_1| PA1 | PWM5.CH4_1| PA3 |
+| PWM2.CH2_2| PB3 | PWM8.CH1_1| PC6 |
+| PWM2.CH3_1| PA2| PWM8.CH2_1| PC7|
+| PWM2.CH3_2| PB10| PWM8.CH3_1| PC8|
+| PWM2.CH4_1| PA3 | PWM8.CH4_1| PC9 |
+| PWM2.CH4_2| PB11 | PWM9.CH1_1 | PA2 |
+| PWM3.CH1_1 | PA6 | PWM9.CH1_2 | PE5 |
+| PWM3.CH1_2 | PB4 | PWM9.CH2_1 | PA3 |
+| PWM3.CH1_3 | PC6 | PWM9.CH2_2 | PE6 |
+| PWM3.CH2_1 | PA7 | PWM10.CH1_1 | PB8 |
+| PWM3.CH2_2 | PB5 | PWM11.CH1_1 | PB9 |
+| PWM3.CH2_3 | PC7 | PWM12.CH1_2 | PB14 |
+| PWM3.CH3_1 | PA11 | PWM12.CH2_1 | PB15 |
+| PWM3.CH3_2 | PE14 | PWM13.CH1_1 | PA6 |
+| PWM3.CH4_1 | PB1 | PWM14.CH1_1 | PA7 |
+| PWM3.CH4_2 | PC9 | | |
+
+
+### ADC
+`ADC<number>_<timer>`
+
+For example,
+``` javascript
+var adc = require('adc');
+var stm32f4Pin = require('pin').STM32F4DIS;
+
+var adc1 = new adc(stm32f4Pin.ADC1_3);
+```
+The following is a list of ADC pin name.
+
+| ADC Pin Name | GPIO Name |
+| :--- | :---: |
+| ADC1_0, ADC2_0, ADC3_0 | PA0 |
+| ADC1_1, ADC2_1, ADC3_1 | PA1 |
+| ADC1_2, ADC2_2, ADC3_2 | PA2 |
+| ADC1_3, ADC2_3, ADC3_3 | PA3 |
+| ADC1_4, ADC2_4 | PA4 |
+| ADC1_5, ADC2_5 | PA5 |
+| ADC1_6, ADC2_6 | PA6 |
+| ADC1_7, ADC2_7 | PA7 |
+| ADC1_8, ADC2_8 | PB0 |
+| ADC1_9, ADC2_9 | PB1 |
+| ADC1_10, ADC2_10, ADC3_10 | PC0 |
+| ADC1_11, ADC2_11, ADC3_11 | PC1 |
+| ADC1_12, ADC2_12, ADC3_12 | PC2 |
+| ADC1_13, ADC2_13, ADC3_13 | PC3 |
+| ADC1_14, ADC2_14 | PC4 |
+| ADC1_15, ADC2_15 | PC5 |

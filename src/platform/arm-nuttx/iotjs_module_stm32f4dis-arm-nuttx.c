@@ -17,12 +17,13 @@
 
 
 #include "iotjs_def.h"
-#include "module/iotjs_module_pin.h"
+#include "module/iotjs_module_stm32f4dis.h"
+#include "iotjs_systemio-arm-nuttx.h"
 #include "stm32_gpio.h"
 
 
 #if ENABLE_MODULE_ADC
-void iotjs_pin_initialize_adc(const iotjs_jval_t* jobj) {
+static void iotjs_pin_initialize_adc(const iotjs_jval_t* jobj) {
   unsigned int number_bit;
 
 // ADC pin name is "ADC.(number)_(timer)".
@@ -62,7 +63,7 @@ void iotjs_pin_initialize_adc(const iotjs_jval_t* jobj) {
 
 #if ENABLE_MODULE_GPIO
 
-void iotjs_pin_initialize_gpio(const iotjs_jval_t* jobj) {
+static void iotjs_pin_initialize_gpio(const iotjs_jval_t* jobj) {
 // Set GPIO pin from configuration bits of nuttx.
 // GPIO pin name is "P(port)(pin)".
 #define SET_GPIO_CONSTANT(port, pin)                   \
@@ -105,7 +106,7 @@ void iotjs_pin_initialize_gpio(const iotjs_jval_t* jobj) {
 
 #if ENABLE_MODULE_PWM
 
-void iotjs_pin_initialize_pwm(const iotjs_jval_t* jobj) {
+static void iotjs_pin_initialize_pwm(const iotjs_jval_t* jobj) {
   unsigned int timer_bit;
 
 // Set PWM pin from configuration bits of nuttx.
@@ -170,23 +171,23 @@ void iotjs_pin_initialize_pwm(const iotjs_jval_t* jobj) {
 #endif /* ENABLE_MODULE_PWM */
 
 
-void iotjs_pin_initialize(const iotjs_jval_t* jobj) {
-  iotjs_jval_t jstm32f4dis = iotjs_jval_create_object();
-  iotjs_jval_set_property_jval(jobj, "STM32F4DIS", &jstm32f4dis);
+void iotjs_stm32f4dis_pin_initialize(const iotjs_jval_t* jobj) {
+  iotjs_jval_t jpin = iotjs_jval_create_object();
+  iotjs_jval_set_property_jval(jobj, "pin", &jpin);
 
 #if ENABLE_MODULE_ADC
-  iotjs_pin_initialize_adc(&jstm32f4dis);
+  iotjs_pin_initialize_adc(&jpin);
 #endif /* ENABLE_MODULE_ADC */
 
 #if ENABLE_MODULE_GPIO
-  iotjs_pin_initialize_gpio(&jstm32f4dis);
+  iotjs_pin_initialize_gpio(&jpin);
 #endif /* ENABLE_MODULE_GPIO */
 
 #if ENABLE_MODULE_PWM
-  iotjs_pin_initialize_pwm(&jstm32f4dis);
+  iotjs_pin_initialize_pwm(&jpin);
 #endif /* ENABLE_MODULE_PWM */
 
-  iotjs_jval_destroy(&jstm32f4dis);
+  iotjs_jval_destroy(&jpin);
 }
 
 

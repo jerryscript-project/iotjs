@@ -13,4 +13,18 @@
  * limitations under the License.
  */
 
-module.exports = process.binding(process.binding.pin);
+#include "iotjs_def.h"
+#include "iotjs_module_stm32f4dis.h"
+
+
+iotjs_jval_t InitStm32f4dis() {
+  iotjs_jval_t stm32f4dis = iotjs_jval_create_object();
+
+#if defined(__NUTTX__)
+
+  iotjs_stm32f4dis_pin_initialize(&stm32f4dis);
+
+#endif
+
+  return stm32f4dis;
+}

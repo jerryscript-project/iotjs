@@ -16,13 +16,14 @@ The following shows PWM module APIs available for each platform.
 
 ### `pin`
 * On Linux, `pin` is a pwm number which is 0 or 1.
-* On Nuttx, you have to use [Pin module](IoT.js-API-Pin.md).
+* On Nuttx, you have to know pin name. The pin name is defined in target board module. For more module information, please see below list.
+ * [STM32F4-discovery](../targets/nuttx-stm32f4/Stm32f4dis-Module.md).
 
 
 ### Constructor
 
 #### new pwm(pin[, options][, callback])
-* `pin: Number | Pin module`
+* `pin: Number`
 * `options: Object`
 * `callback: Function(err: PwmError | null)`
 

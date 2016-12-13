@@ -13,13 +13,14 @@ The following shows ADC module APIs available for each platform.
 | adc.unexport | X | X | O |
 
 ### `pin`
-* On Nuttx, you have to use [Pin module](IoT.js-API-Pin.md).
+* On Nuttx, you have to know pin name. The pin name is defined in target board module. For more module information, please see below list.
+ * [STM32F4-discovery](../targets/nuttx-stm32f4/Stm32f4dis-Module.md).
 
 
 ### Constructor
 
 #### new adc(pin[, callback])
-* `pin: Pin module`
+* `pin: Number`
 * `callback: Function(err)`
  * `err: Error`
 

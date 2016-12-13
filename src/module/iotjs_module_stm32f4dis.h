@@ -13,14 +13,11 @@
  * limitations under the License.
  */
 
-#include "iotjs_def.h"
-#include "iotjs_module_pin.h"
+#ifndef IOTJS_MODULE_STM32F4DIS_H
+#define IOTJS_MODULE_STM32F4DIS_H
 
 
-iotjs_jval_t InitPin() {
-  iotjs_jval_t pin = iotjs_jval_create_object();
+void iotjs_stm32f4dis_pin_initialize(const iotjs_jval_t* jobj);
 
-  iotjs_pin_initialize(&pin);
 
-  return pin;
-}
+#endif /* IOTJS_MODULE_STM32F4DIS_H */

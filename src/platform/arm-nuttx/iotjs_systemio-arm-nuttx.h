@@ -20,9 +20,25 @@
 void iotjs_gpio_unconfig_nuttx(int pin);
 
 
+#if ENABLE_MODULE_ADC || ENABLE_MODULE_PWM
+
+#define SYSIO_TIMER_PIN_SHIFT 21 /* Bits 21-24: Timer number */
+#define SYSIO_TIMER_PIN_MASK 15
+#define SYSIO_TIMER_NUMBER(n) ((n) << SYSIO_TIMER_PIN_SHIFT)
+#define SYSIO_GET_TIMER(n) \
+  (((n) >> SYSIO_TIMER_PIN_SHIFT) & SYSIO_TIMER_PIN_MASK)
+
+#endif /* ENABLE_MODULE_ADC || ENABLE_MODULE_PWM */
+
+
 #if ENABLE_MODULE_ADC
 
 #include <nuttx/analog/adc.h>
+
+#define ADC_NUMBER_SHIFT 25 /* Bits 25-26: ADC number */
+#define ADC_NUMBER_MASK 3
+#define ADC_NUMBER(n) ((n) << ADC_NUMBER_SHIFT)
+#define ADC_GET_NUMBER(n) (((n) >> ADC_NUMBER_SHIFT) & ADC_NUMBER_MASK)
 
 struct adc_dev_s* iotjs_adc_config_nuttx(int number, int timer, int pin);
 

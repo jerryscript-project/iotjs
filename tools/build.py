@@ -609,9 +609,11 @@ def analyze_module_dependency(option):
     while len(analyze_queue) != 0:
         item = analyze_queue.pop()
         js_modules.add(item)
-
-        content = open(fs.join(path.PROJECT_ROOT,
-                               'src', 'js', item + '.js')).read()
+        js_module_path = fs.join(path.PROJECT_ROOT,
+                               'src', 'js', item + '.js')
+        if not fs.exists(js_module_path):
+            print_warn('Cannot read file \"%s\" ', js_module_path)
+        content = open(js_module_path).read()
 
         re_js_module = 'require\([\'\"](.*)[\'\"]\)'
         for js_module in re.findall(re_js_module, content):

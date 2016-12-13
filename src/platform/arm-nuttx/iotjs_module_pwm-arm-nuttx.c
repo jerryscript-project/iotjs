@@ -22,7 +22,6 @@
 
 #include "iotjs_def.h"
 #include "iotjs_systemio-arm-nuttx.h"
-#include "module/iotjs_module_pin.h"
 #include "module/iotjs_module_pwm.h"
 
 

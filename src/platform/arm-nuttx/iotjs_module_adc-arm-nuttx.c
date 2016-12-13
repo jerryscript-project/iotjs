@@ -23,7 +23,7 @@
 #include "iotjs_def.h"
 #include "iotjs_systemio-arm-nuttx.h"
 #include "module/iotjs_module_adc.h"
-#include "module/iotjs_module_pin.h"
+#include "module/iotjs_module_stm32f4dis.h"
 
 
 #define ADC_DEVICE_PATH_FORMAT "/dev/adc%d"

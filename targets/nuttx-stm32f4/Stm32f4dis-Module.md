@@ -1,11 +1,13 @@
-## Module: pin
+## stm32f4dis Module
 
-## STM32F4-discovery
-The pin name of STM32F4-discovery is `STM32F4DIS`.
+## pin
+
+To use system IO, such as GPIO, PWM, ADC and so on, you must know pin name.
+`stm32f4dis` module has pin object which is designed to find a pin name easier.
+
 ``` javascript
-var stm32f4Pin = require('pin').STM32F4DIS;
+var pin = require('stm32f4dis').pin;
 ```
-
 
 ### GPIO
 `P<port><pin>`
@@ -13,9 +15,9 @@ var stm32f4Pin = require('pin').STM32F4DIS;
 For example,
 ``` javascript
 var gpio = require('gpio');
-var stm32f4Pin = require('pin').STM32F4DIS;
+var pin = require('stm32f4dis').pin;
 
-gpio.open(stm32f4Pin.PD6);
+gpio.open(pin.PD6);
 ```
 
 
@@ -25,9 +27,9 @@ gpio.open(stm32f4Pin.PD6);
 For example,
 ``` javascript
 var pwm = require('pwm');
-var stm32f4Pin = require('pin').STM32F4DIS;
+var pin = require('stm32f4dis').pin;
 
-var pwm2 = new pwm(stm32f4Pin.PWM2.CH1_2);
+var pwm2 = new pwm(pin.PWM2.CH1_2);
 ```
 The following is a list of PWM pin name.
 
@@ -68,9 +70,9 @@ The following is a list of PWM pin name.
 For example,
 ``` javascript
 var adc = require('adc');
-var stm32f4Pin = require('pin').STM32F4DIS;
+var pin = require('stm32f4dis').pin;
 
-var adc1 = new adc(stm32f4Pin.ADC1_3);
+var adc1 = new adc(pin.ADC1_3);
 ```
 The following is a list of ADC pin name.
 

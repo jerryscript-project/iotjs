@@ -12,7 +12,7 @@ The following shows dgram module APIs available for each platform.
 | dgram.Socket.send | O | O | O |
 | dgram.Socket.address | O | O | X |
 | dgram.Socket.setBroadcast | O | O | X |
-| dgram.Socket.setTTL | X | X | X |
+| dgram.Socket.setTTL | O | O | X |
 | dgram.Socket.addMembership | O | O | X |
 | dgram.Socket.dropMembership | O | O | X |
 | dgram.Socket.setMulticastLoopback | O | O | X |

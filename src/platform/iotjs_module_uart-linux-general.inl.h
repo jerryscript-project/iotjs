@@ -20,12 +20,9 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <sys/signal.h>
-#include <termios.h>
 #include <unistd.h>
 
 #include "module/iotjs_module_uart.h"
-
-void signal_handler_IO(int status);
 
 static iotjs_jval_t jthis;
 static int fd;
@@ -132,6 +129,16 @@ void OpenWorkerUart(uv_work_t* work_req) {
   uv_loop_t* loop = iotjs_environment_loop(iotjs_environment_get());
   uv_poll_init(loop, &poll_handle, fd);
   uv_poll_start(&poll_handle, UV_READABLE, read_cb);
+}
+
+
+void UartClose() {
+  if (!uv_is_closing((uv_handle_t*)&poll_handle)) {
+    uv_close((uv_handle_t*)&poll_handle, NULL);
+  }
+  if (fd > 0) {
+    close(fd);
+  }
 }
 
 

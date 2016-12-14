@@ -7,6 +7,7 @@ The following shows uart module APIs available for each platform.
 |  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | Nuttx<br/>(STM32F4-Discovery) |
 | :---: | :---: | :---: | :---: |
 | uart.open | O | O | X |
+| uart.close | O | O | X |
 | uart.write | O | O | X |
 
 ### Constructor
@@ -37,7 +38,10 @@ var serial = new uart('/dev/ttyUSB0', options, function(err) {
 });
 
 serial.write("Hello?", function(err) {
-  // Do something.
+  if (err) {
+    // Do something.
+  }
+  serial.close();
 });
 ```
 
@@ -65,6 +69,11 @@ serial.on('data', function(data) {
 * `callback: Function(err)`
 
 Opens UART device.
+
+
+#### uart.close()
+
+Closes UART device.
 
 
 #### uart.write(data, callback)

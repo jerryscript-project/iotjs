@@ -18,6 +18,7 @@
 * [(I2C)](IoT.js-API-I2C.md)
 * [(PWM)](IoT.js-API-PWM.md)
 * (SPI)
+* [(UART)](IoT.js-API-UART.md)
 * [UDP/Datagram](IoT.js-API-DGRAM.md)
 
 ## Abstract interfaces

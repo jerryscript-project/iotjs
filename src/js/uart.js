@@ -83,6 +83,10 @@ UART.prototype.open = function(callback) {
   }.bind(this));
 }
 
+UART.prototype.close = function() {
+  return uart.close();
+}
+
 UART.prototype.write = function(buffer, callback) {
   uart.write(buffer, function(err) {
     return process.nextTick(function() {

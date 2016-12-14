@@ -24,6 +24,11 @@ void OpenWorkerUart(uv_work_t* work_req) {
 }
 
 
+void UartClose() {
+  IOTJS_ASSERT(!"Not implemented");
+}
+
+
 void WriteWorkerUart(uv_work_t* work_req) {
   IOTJS_ASSERT(!"Not implemented");
 }

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# Copyright 2015-2016 Samsung Electronics Co., Ltd.
+# Copyright 2015-present Samsung Electronics Co., Ltd. and other contributors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ import re
 
 class CheckLicenser(object):
     _license = re.compile(
-u"""((#|//|\*) Copyright .*)+
+u"""((#|//|\*) Copyright .* Samsung Electronics Co., Ltd. and other contribu.*)+
 \s?\\2
 \s?\\2 Licensed under the Apache License, Version 2.0 \(the "License"\);
 \s?\\2 you may not use this file except in compliance with the License.

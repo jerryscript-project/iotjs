@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Copyright 2015-2016 Samsung Electronics Co., Ltd.
+# Copyright 2015-present Samsung Electronics Co., Ltd. and other contributors
 # Copyright 2016 University of Szeged
 #
 # Licensed under the Apache License, Version 2.0 (the "License");

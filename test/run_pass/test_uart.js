@@ -23,17 +23,30 @@ var options = {
   autoOpen: true,
 }
 
+var read = 0;
+var write = 0;
+
 var serial = new uart(device, options, function(err){
   assert.equal(err, null);
   console.log('open done');
 
   serial.on('data', function(data) {
     console.log('read result: ' + data.toString());
+    read = 1;
+
+    if (read && write) {
+      serial.close();
+    }
   });
 
 
   serial.write("Hello there?\n", function(err) {
     assert.equal(err, null);
     console.log('write done');
+    write = 1;
+
+    if (read && write) {
+      serial.close();
+    }
   });
 });

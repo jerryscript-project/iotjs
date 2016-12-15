@@ -119,6 +119,7 @@ void iotjs_uart_onread(iotjs_jval_t* jthis, char* buf) {
   iotjs_jval_destroy(&str);
   iotjs_jval_destroy(&data);
   iotjs_jargs_destroy(&jargs);
+  iotjs_jval_destroy(&jemit);
 }
 
 
@@ -146,6 +147,7 @@ void AfterUARTWork(uv_work_t* work_req, int status) {
         } else {
           iotjs_jargs_append_null(&jargs);
         }
+        iotjs_jval_destroy(&req_data->jthis);
         break;
       }
       case kUartOpWrite: {
@@ -210,6 +212,13 @@ JHANDLER_FUNCTION(Open) {
   iotjs_jhandler_return_null(jhandler);
 }
 
+JHANDLER_FUNCTION(Close) {
+  JHANDLER_CHECK_ARGS(0);
+
+  UartClose();
+
+  iotjs_jhandler_return_null(jhandler);
+}
 
 // write(value, afterWrite)
 JHANDLER_FUNCTION(Write) {
@@ -234,6 +243,7 @@ iotjs_jval_t InitUart() {
   iotjs_jval_t juart = iotjs_jval_create_object();
 
   iotjs_jval_set_method(&juart, "open", Open);
+  iotjs_jval_set_method(&juart, "close", Close);
   iotjs_jval_set_method(&juart, "write", Write);
 
   iotjs_uart_t* uart = iotjs_uart_create(&juart);

@@ -72,7 +72,8 @@ iotjs_uart_t* iotjs_uart_get_instance();
 
 void iotjs_uart_onread(iotjs_jval_t* jthis, char* buf);
 
-void WriteWorkerUart(uv_work_t* work_req);
 void OpenWorkerUart(uv_work_t* work_req);
+void UartClose();
+void WriteWorkerUart(uv_work_t* work_req);
 
 #endif /* IOTJS_MODULE_UART_H */

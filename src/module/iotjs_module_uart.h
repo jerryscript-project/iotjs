@@ -34,13 +34,19 @@ typedef enum {
 } UartError;
 
 typedef struct {
+  iotjs_jobjectwrap_t jobjectwrap;
+  iotjs_jval_t jthis;
+  int device_fd;
+  uv_poll_t poll_handle;
+} IOTJS_VALIDATED_STRUCT(iotjs_uart_t);
+
+typedef struct {
   iotjs_string_t path;
   int baudRate;
   uint8_t dataBits;
   char* buf_data;
-  uint8_t buf_len;
-
-  iotjs_jval_t jthis;
+  unsigned buf_len;
+  iotjs_uart_t* uart_instance;
 
   UartOp op;
   UartError error;
@@ -62,18 +68,19 @@ iotjs_uart_reqwrap_t* iotjs_uart_reqwrap_from_request(uv_work_t* req);
 iotjs_uart_reqdata_t* iotjs_uart_reqwrap_data(THIS);
 #undef THIS
 
-typedef struct {
-  iotjs_jobjectwrap_t jobjectwrap;
-} IOTJS_VALIDATED_STRUCT(iotjs_uart_t);
+void iotjs_uart_set_device_fd(iotjs_uart_t* uart, int fd);
+int iotjs_uart_get_device_fd(iotjs_uart_t* uart);
+iotjs_jval_t* iotjs_uart_get_jthis(iotjs_uart_t* uart);
+uv_poll_t* iotjs_uart_get_poll_handle(iotjs_uart_t* uart);
 
 iotjs_uart_t* iotjs_uart_create(const iotjs_jval_t* juart);
 const iotjs_jval_t* iotjs_uart_get_juart();
-iotjs_uart_t* iotjs_uart_get_instance();
+iotjs_uart_t* iotjs_uart_get_instance(const iotjs_jval_t* juart);
 
 void iotjs_uart_onread(iotjs_jval_t* jthis, char* buf);
 
 void OpenWorkerUart(uv_work_t* work_req);
-void UartClose();
+void UartClose(iotjs_uart_t* uart);
 void WriteWorkerUart(uv_work_t* work_req);
 
 #endif /* IOTJS_MODULE_UART_H */

@@ -17,20 +17,9 @@
 #ifndef IOTJS_MODULE_UART_LINUX_GENERAL_INL_H
 #define IOTJS_MODULE_UART_LINUX_GENERAL_INL_H
 
-#include <errno.h>
-#include <fcntl.h>
-#include <sys/signal.h>
-#include <unistd.h>
+#include <termios.h>
 
-#include "module/iotjs_module_uart.h"
-
-static iotjs_jval_t jthis;
-static int fd;
-static uv_poll_t poll_handle;
-
-#define UART_WORKER_INIT_TEMPLATE                                             \
-  iotjs_uart_reqwrap_t* req_wrap = iotjs_uart_reqwrap_from_request(work_req); \
-  iotjs_uart_reqdata_t* req_data = iotjs_uart_reqwrap_data(req_wrap);
+#include "iotjs_module_uart-posix-general.inl.h"
 
 
 int toBaudConstant(int baudRate) {
@@ -92,21 +81,12 @@ int toDataBitsConstant(int dataBits) {
   return -1;
 }
 
-void read_cb(uv_poll_t* req, int status, int events) {
-  char buf[512];
-  int i = read(fd, buf, 511);
-  if (i > 0) {
-    buf[i] = '\0';
-    iotjs_uart_onread(&jthis, buf);
-  }
-}
-
 
 void OpenWorkerUart(uv_work_t* work_req) {
   UART_WORKER_INIT_TEMPLATE;
 
-  jthis = req_data->jthis;
-  fd = open(iotjs_string_data(&req_data->path), O_RDWR | O_NOCTTY | O_NDELAY);
+  int fd =
+      open(iotjs_string_data(&req_data->path), O_RDWR | O_NOCTTY | O_NDELAY);
 
   if (fd == -1) {
     req_data->error = kUartErrOpen;
@@ -126,32 +106,30 @@ void OpenWorkerUart(uv_work_t* work_req) {
   tcflush(fd, TCIFLUSH);
   tcsetattr(fd, TCSANOW, &options);
 
+  iotjs_uart_set_device_fd(req_data->uart_instance, fd);
+  uv_poll_t* poll_handle = iotjs_uart_get_poll_handle(req_data->uart_instance);
+
   uv_loop_t* loop = iotjs_environment_loop(iotjs_environment_get());
-  uv_poll_init(loop, &poll_handle, fd);
-  uv_poll_start(&poll_handle, UV_READABLE, read_cb);
-}
-
-
-void UartClose() {
-  if (!uv_is_closing((uv_handle_t*)&poll_handle)) {
-    uv_close((uv_handle_t*)&poll_handle, NULL);
-  }
-  if (fd > 0) {
-    close(fd);
-  }
+  uv_poll_init(loop, poll_handle, fd);
+  poll_handle->data = req_data->uart_instance;
+  uv_poll_start(poll_handle, UV_READABLE, read_cb);
 }
 
 
 void WriteWorkerUart(uv_work_t* work_req) {
   UART_WORKER_INIT_TEMPLATE;
   int bytesWritten = 0;
+  unsigned offset = 0;
+  int fd = iotjs_uart_get_device_fd(req_data->uart_instance);
 
   do {
     errno = 0;
-    bytesWritten = write(fd, req_data->buf_data, req_data->buf_len);
+    bytesWritten =
+        write(fd, req_data->buf_data + offset, req_data->buf_len - offset);
     tcdrain(fd);
 
     if (bytesWritten != -1) {
+      offset += bytesWritten;
       continue;
     }
 
@@ -162,7 +140,8 @@ void WriteWorkerUart(uv_work_t* work_req) {
     req_data->error = kUartErrWrite;
     return;
 
-  } while (0);
+  } while (req_data->buf_len > offset);
 }
+
 
 #endif /* IOTJS_MODULE_UART_LINUX_GENERAL_INL_H */

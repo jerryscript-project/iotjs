@@ -123,6 +123,9 @@ Followings are the options to set:
  * Enable `Device Drivers -> Analog Device(ADC/DAC) Support`
  * Enable `Device Drivers -> Analog Device(ADC/DAC) Support -> Analog-to-Digital Conversion`
 
+* For `uart` module
+ * Enable `System Type -> STM32 Peripheral Support -> U[S]ART(N)`
+
 #### 4. Build IoT.js for NuttX
 
 ##### Follow the instruction

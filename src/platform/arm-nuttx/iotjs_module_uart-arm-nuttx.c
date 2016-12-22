@@ -16,21 +16,56 @@
 #if defined(__NUTTX__)
 
 
-#include "module/iotjs_module_uart.h"
+#include "../iotjs_module_uart-posix-general.inl.h"
 
 
 void OpenWorkerUart(uv_work_t* work_req) {
-  IOTJS_ASSERT(!"Not implemented");
-}
+  UART_WORKER_INIT_TEMPLATE;
 
+  int fd =
+      open(iotjs_string_data(&req_data->path), O_RDWR | O_NOCTTY | O_NDELAY);
 
-void UartClose() {
-  IOTJS_ASSERT(!"Not implemented");
+  if (fd == -1) {
+    req_data->error = kUartErrOpen;
+    return;
+  } else {
+    req_data->error = kUartErrOk;
+  }
+
+  iotjs_uart_set_device_fd(req_data->uart_instance, fd);
+  uv_poll_t* poll_handle = iotjs_uart_get_poll_handle(req_data->uart_instance);
+
+  uv_loop_t* loop = iotjs_environment_loop(iotjs_environment_get());
+  uv_poll_init(loop, poll_handle, fd);
+  poll_handle->data = req_data->uart_instance;
+  uv_poll_start(poll_handle, UV_READABLE, read_cb);
 }
 
 
 void WriteWorkerUart(uv_work_t* work_req) {
-  IOTJS_ASSERT(!"Not implemented");
+  UART_WORKER_INIT_TEMPLATE;
+  int bytesWritten = 0;
+  unsigned offset = 0;
+  int fd = iotjs_uart_get_device_fd(req_data->uart_instance);
+
+  do {
+    errno = 0;
+    bytesWritten =
+        write(fd, req_data->buf_data + offset, req_data->buf_len - offset);
+
+    if (bytesWritten != -1) {
+      offset += bytesWritten;
+      continue;
+    }
+
+    if (errno == EINTR) {
+      continue;
+    }
+
+    req_data->error = kUartErrWrite;
+    return;
+
+  } while (req_data->buf_len > offset);
 }
 
 

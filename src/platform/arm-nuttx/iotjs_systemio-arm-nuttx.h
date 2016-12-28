@@ -45,6 +45,16 @@ struct adc_dev_s* iotjs_adc_config_nuttx(int number, int timer, int pin);
 #endif /* ENABLE_MODULE_ADC */
 
 
+#if ENABLE_MODULE_I2C
+
+#include <nuttx/i2c/i2c_master.h>
+
+struct i2c_master_s* iotjs_i2c_config_nuttx(int port);
+int iotjs_i2c_unconfig_nuttx(struct i2c_master_s* i2c);
+
+#endif /* ENABLE_MODULE_I2C */
+
+
 #if ENABLE_MODULE_PWM
 
 #include <nuttx/drivers/pwm.h>

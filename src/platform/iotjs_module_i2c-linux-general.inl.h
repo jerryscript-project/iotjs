@@ -168,7 +168,7 @@ int I2cSmbusReadI2cBlockData(int fd, uint8_t command, uint8_t* values,
   iotjs_i2c_reqdata_t* req_data = iotjs_i2c_reqwrap_data(req_wrap);
 
 
-void I2cSetAddress(uint8_t address) {
+void I2cSetAddress(iotjs_i2c_t* i2c, uint8_t address) {
   addr = address;
   ioctl(fd, I2C_SLAVE_FORCE, addr);
 }
@@ -222,7 +222,7 @@ void ScanWorker(uv_work_t* work_req) {
 }
 
 
-void I2cClose() {
+void I2cClose(iotjs_i2c_t* i2c) {
   if (fd > 0) {
     close(fd);
   }

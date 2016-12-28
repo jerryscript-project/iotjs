@@ -48,7 +48,7 @@ var util = require('util');
 var assert  = require('assert');
 var i2c = process.binding(process.binding.i2c);
 
-function I2C(address, options) {
+function I2C(address, options, callback) {
   if (!(this instanceof I2C)) {
     return new I2C(address, options);
   }
@@ -67,6 +67,7 @@ function I2C(address, options) {
     options.device = '/dev/i2c-1';
   }
 
+  this._i2c = null;
   this.address = address;
   this.options = options;
 
@@ -87,7 +88,7 @@ function I2C(address, options) {
   this.open(this.options.device, (function(_this) {
     return function(err) {
       if(!err) {
-        return _this.setAddress(_this.address);
+        return _this.setAddress(_this.address, callback);
       }
       else {
         throw err;
@@ -101,7 +102,7 @@ util.inherits(I2C, EventEmiter);
 I2C.prototype.history = [];
 
 I2C.prototype.scan = function(callback) {
-  return i2c.scan(function(err, data) {
+  return this._i2c.scan(function(err, data) {
     return process.nextTick(function() {
       var result = [];
       for(var i = 0; i < data.length; i++) {
@@ -112,26 +113,31 @@ I2C.prototype.scan = function(callback) {
   });
 };
 
-I2C.prototype.setAddress = function(address) {
-  i2c.setAddress(address);
+I2C.prototype.setAddress = function(address, callback) {
+  this._i2c.setAddress(address);
+
+  callback && callback();
+
   return this.address = address;
 };
 
 I2C.prototype.open = function(device, callback) {
-  return i2c.open(device, function(err) {
-    return process.nextTick(function() {
-      return callback(err);
+  if (util.isNull(this._i2c)) {
+    this._i2c = new i2c(device, function(err) {
+      return process.nextTick(function() {
+        return callback(err);
+      });
     });
-  });
+  }
 };
 
 I2C.prototype.close = function() {
-  return i2c.close();
+  return this._i2c.close();
 };
 
 I2C.prototype.write = function(array, callback) {
   this.setAddress(this.address);
-  return i2c.write(array, function(err) {
+  return this._i2c.write(array, function(err) {
     return process.nextTick(function() {
       return callback(err);
     });
@@ -140,7 +146,7 @@ I2C.prototype.write = function(array, callback) {
 
 I2C.prototype.writeByte = function(byte, callback) {
   this.setAddress(this.address);
-  return i2c.writeByte(byte, function(err) {
+  return this._i2c.writeByte(byte, function(err) {
     return process.nextTick(function() {
       return callback(err);
     });
@@ -149,7 +155,7 @@ I2C.prototype.writeByte = function(byte, callback) {
 
 I2C.prototype.writeBytes = function(cmd, array, callback) {
   this.setAddress(this.address);
-  return i2c.writeBlock(cmd, array, function(err) {
+  return this._i2c.writeBlock(cmd, array, function(err) {
     return process.nextTick(function() {
       return callback(err);
     });
@@ -158,7 +164,7 @@ I2C.prototype.writeBytes = function(cmd, array, callback) {
 
 I2C.prototype.read = function(len, callback) {
   this.setAddress(this.address);
-  return i2c.read(len, function(err, data) {
+  return this._i2c.read(len, function(err, data) {
     return process.nextTick(function() {
       return callback(err, data);
     });
@@ -167,7 +173,7 @@ I2C.prototype.read = function(len, callback) {
 
 I2C.prototype.readByte = function(callback) {
   this.setAddress(this.address);
-  return i2c.readByte(function(err, data) {
+  return this._i2c.readByte(function(err, data) {
     return process.nextTick(function() {
       return callback(err, data);
     });
@@ -176,7 +182,7 @@ I2C.prototype.readByte = function(callback) {
 
 I2C.prototype.readBytes = function(cmd, len, callback) {
   this.setAddress(this.address);
-  return i2c.readBlock(cmd, len, 0, function(err, resArray) {
+  return this._i2c.readBlock(cmd, len, 0, function(err, resArray) {
     return process.nextTick(function() {
       return callback(err, resArray);
     });
@@ -188,7 +194,7 @@ I2C.prototype.stream = function(cmd, len, delay) {
     delay = 100;
   }
   this.setAddress(this.address);
-  i2c.readBlock(cmd, len, delay, (function(_this) {
+  this._i2c.readBlock(cmd, len, delay, (function(_this) {
     return function(err, data) {
       if (err) {
         _this.emit('error', err);

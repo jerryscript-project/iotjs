@@ -15,10 +15,9 @@
 
 var EventEmitter = require('events').EventEmitter;
 var util = require('util');
-
 var uart = process.binding(process.binding.uart);
 
-//  VALIDATION ARRAYS
+// VALIDATION ARRAYS
 var BAUDRATE = [0, 50, 75, 110, 134, 150, 200, 300, 600, 1200, 1800, 2400
                 , 4800, 9600, 19200, 38400, 57600, 115200, 230400];
 var DATABITS = [5, 6, 7, 8];
@@ -29,7 +28,10 @@ var defaultSettings = {
   dataBits: 8,
 }
 
+// UART(path[, options][, callback])
 function UART(path, options, callback) { //constructor
+  var self = this;
+
   if (!(this instanceof UART)) {
     return new UART(path, options, callback);
   }
@@ -65,8 +67,18 @@ function UART(path, options, callback) { //constructor
     throw new TypeError("Invalid 'databits': " + settings.dataBits);
   }
 
-  this.path = path;
-  this.options = settings;
+  self._path = path;
+  self._options = settings;
+  self._closed = true;
+
+  process.on('exit', (function(_this) {
+    return function() {
+      if (_this._closed == false)
+        return _this._uart.close();
+    };
+  })(self));
+
+  self._uart = new uart(this);
 
   if (settings.autoOpen) {
     this.open(callback);
@@ -76,19 +88,21 @@ function UART(path, options, callback) { //constructor
 util.inherits(UART, EventEmitter);
 
 UART.prototype.open = function(callback) {
-  uart.open(this, this.path, this.options, function (err) {
+  this._closed = false;
+  this._uart.open(this._path, this._options, function (err) {
     return process.nextTick(function() {
       return callback(err);
     });
-  }.bind(this));
+  });
 }
 
 UART.prototype.close = function() {
-  return uart.close();
+  this._closed = true;
+  return this._uart.close();
 }
 
 UART.prototype.write = function(buffer, callback) {
-  uart.write(buffer, function(err) {
+  this._uart.write(buffer, function(err) {
     return process.nextTick(function() {
       return callback(err);
     });

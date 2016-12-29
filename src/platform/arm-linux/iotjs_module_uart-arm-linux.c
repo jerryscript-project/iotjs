@@ -18,4 +18,4 @@
 
 #include "../iotjs_module_uart-linux-general.inl.h"
 
-#endif
+#endif // __LINUX__

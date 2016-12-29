@@ -321,8 +321,6 @@ JHANDLER_FUNCTION(SpiCons) {
   req_data->selected_option = iotjs_spi_check_options(spi, joptions);
 
   SPI_ASYNC(export);
-
-  iotjs_jhandler_return_null(jhandler);
 }
 
 

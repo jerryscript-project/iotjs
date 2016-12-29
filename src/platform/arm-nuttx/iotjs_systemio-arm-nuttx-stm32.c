@@ -16,6 +16,7 @@
 #if defined(__NUTTX__) && TARGET_BOARD == STM32F4DIS
 
 
+#include "iotjs_systemio-arm-nuttx.h"
 #include "stm32_gpio.h"
 
 
@@ -36,6 +37,22 @@ struct adc_dev_s* iotjs_adc_config_nuttx(int number, int timer, int pin) {
 }
 
 #endif /* ENABLE_MODULE_ADC */
+
+
+#if ENABLE_MODULE_I2C
+
+#include "stm32_i2c.h"
+
+struct i2c_master_s* iotjs_i2c_config_nuttx(int port) {
+  return stm32_i2cbus_initialize(port);
+}
+
+
+int iotjs_i2c_unconfig_nuttx(struct i2c_master_s* i2c) {
+  return stm32_i2cbus_uninitialize(i2c);
+}
+
+#endif /* ENABLE_MODULE_I2C */
 
 
 #if ENABLE_MODULE_PWM

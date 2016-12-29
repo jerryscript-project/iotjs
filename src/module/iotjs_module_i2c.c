@@ -23,6 +23,7 @@
 
 
 iotjs_i2c_reqwrap_t* iotjs_i2c_reqwrap_create(const iotjs_jval_t* jcallback,
+                                              const iotjs_jval_t* ji2c,
                                               I2cOp op) {
   iotjs_i2c_reqwrap_t* i2c_reqwrap = IOTJS_ALLOC(iotjs_i2c_reqwrap_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_i2c_reqwrap_t, i2c_reqwrap);
@@ -30,8 +31,10 @@ iotjs_i2c_reqwrap_t* iotjs_i2c_reqwrap_create(const iotjs_jval_t* jcallback,
   iotjs_reqwrap_initialize(&_this->reqwrap, jcallback, (uv_req_t*)&_this->req);
 
   _this->req_data.op = op;
+#if defined(__LINUX__)
   _this->req_data.device = iotjs_string_create("");
-
+#endif
+  _this->i2c_data = iotjs_i2c_instance_from_jval(ji2c);
   return i2c_reqwrap;
 }
 
@@ -39,7 +42,9 @@ iotjs_i2c_reqwrap_t* iotjs_i2c_reqwrap_create(const iotjs_jval_t* jcallback,
 static void iotjs_i2c_reqwrap_destroy(THIS) {
   IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_i2c_reqwrap_t, i2c_reqwrap);
   iotjs_reqwrap_destroy(&_this->reqwrap);
+#if defined(__LINUX__)
   iotjs_string_destroy(&_this->req_data.device);
+#endif
   IOTJS_RELEASE(i2c_reqwrap);
 }
 
@@ -73,6 +78,11 @@ iotjs_i2c_reqdata_t* iotjs_i2c_reqwrap_data(THIS) {
 }
 
 
+iotjs_i2c_t* iotjs_i2c_instance_from_reqwrap(THIS) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_i2c_reqwrap_t, i2c_reqwrap);
+  return _this->i2c_data;
+}
+
 #undef THIS
 
 
@@ -82,6 +92,11 @@ static void iotjs_i2c_destroy(iotjs_i2c_t* i2c);
 iotjs_i2c_t* iotjs_i2c_create(const iotjs_jval_t* ji2c) {
   iotjs_i2c_t* i2c = IOTJS_ALLOC(iotjs_i2c_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_i2c_t, i2c);
+
+#if defined(__NUTTX__)
+  _this->i2c_master = NULL;
+#endif
+
   iotjs_jobjectwrap_initialize(&_this->jobjectwrap, ji2c,
                                (JFreeHandlerType)iotjs_i2c_destroy);
   return i2c;
@@ -95,21 +110,13 @@ static void iotjs_i2c_destroy(iotjs_i2c_t* i2c) {
 }
 
 
-const iotjs_jval_t* iotjs_i2c_get_ji2c() {
-  return iotjs_module_get(MODULE_I2C);
-}
-
-
-iotjs_i2c_t* iotjs_i2c_get_instance() {
-  const iotjs_jval_t* ji2c = iotjs_i2c_get_ji2c();
+iotjs_i2c_t* iotjs_i2c_instance_from_jval(const iotjs_jval_t* ji2c) {
   iotjs_jobjectwrap_t* jobjectwrap = iotjs_jobjectwrap_from_jobject(ji2c);
   return (iotjs_i2c_t*)jobjectwrap;
 }
 
 
 void AfterI2CWork(uv_work_t* work_req, int status) {
-  iotjs_i2c_t* i2c = iotjs_i2c_get_instance();
-
   iotjs_i2c_reqwrap_t* req_wrap = iotjs_i2c_reqwrap_from_request(work_req);
   iotjs_i2c_reqdata_t* req_data = iotjs_i2c_reqwrap_data(req_wrap);
 
@@ -210,8 +217,7 @@ void AfterI2CWork(uv_work_t* work_req, int status) {
   }
 
   const iotjs_jval_t* jcallback = iotjs_i2c_reqwrap_jcallback(req_wrap);
-  const iotjs_jval_t* ji2c = iotjs_i2c_get_ji2c();
-  iotjs_make_callback(jcallback, ji2c, &jargs);
+  iotjs_make_callback(jcallback, iotjs_jval_get_undefined(), &jargs);
 
   iotjs_jargs_destroy(&jargs);
   iotjs_i2c_reqwrap_dispatched(req_wrap);
@@ -246,22 +252,59 @@ static void GetI2cArray(const iotjs_jval_t* jarray,
   } while (0)
 
 
-JHANDLER_FUNCTION(SetAddress) {
-  JHANDLER_CHECK_ARGS(1, number);
+JHANDLER_FUNCTION(I2cCons) {
+  JHANDLER_CHECK_THIS(object);
+#if defined(__LINUX__)
+  JHANDLER_CHECK_ARGS(2, string, function);
+  iotjs_string_t device = JHANDLER_GET_ARG(0, string);
+#elif defined(__NUTTX__)
+  JHANDLER_CHECK_ARGS(2, number, function);
+  uint32_t device = JHANDLER_GET_ARG(0, number);
+#endif
 
-  I2cSetAddress(JHANDLER_GET_ARG(0, number));
+  // Create I2C object
+  const iotjs_jval_t* ji2c = JHANDLER_GET_THIS(object);
+  iotjs_i2c_t* i2c = iotjs_i2c_create(ji2c);
+  IOTJS_ASSERT(i2c ==
+               (iotjs_i2c_t*)(iotjs_jval_get_object_native_handle(ji2c)));
+
+  // Create I2C request wrap
+  const iotjs_jval_t* jcallback = JHANDLER_GET_ARG(1, function);
+  iotjs_i2c_reqwrap_t* req_wrap =
+      iotjs_i2c_reqwrap_create(jcallback, ji2c, kI2cOpOpen);
+
+  iotjs_i2c_reqdata_t* req_data = iotjs_i2c_reqwrap_data(req_wrap);
+#if defined(__LINUX__)
+  iotjs_string_append(&req_data->device, iotjs_string_data(&device),
+                      iotjs_string_size(&device));
+#elif defined(__NUTTX__)
+  req_data->device = device;
+#endif
+
+  I2C_ASYNC(Open);
+}
+
+
+JHANDLER_FUNCTION(SetAddress) {
+  JHANDLER_CHECK_THIS(object);
+  JHANDLER_CHECK_ARGS(1, number);
+  iotjs_i2c_t* i2c = iotjs_i2c_instance_from_jval(JHANDLER_GET_THIS(object));
+
+  I2cSetAddress(i2c, JHANDLER_GET_ARG(0, number));
 
   iotjs_jhandler_return_null(jhandler);
 }
 
 
 JHANDLER_FUNCTION(Scan) {
+  JHANDLER_CHECK_THIS(object);
   JHANDLER_CHECK_ARGS(1, function);
 
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG(0, function);
+  const iotjs_jval_t* ji2c = JHANDLER_GET_THIS(object);
 
   iotjs_i2c_reqwrap_t* req_wrap =
-      iotjs_i2c_reqwrap_create(jcallback, kI2cOpScan);
+      iotjs_i2c_reqwrap_create(jcallback, ji2c, kI2cOpScan);
 
   I2C_ASYNC(Scan);
 
@@ -269,41 +312,26 @@ JHANDLER_FUNCTION(Scan) {
 }
 
 
-JHANDLER_FUNCTION(Open) {
-  JHANDLER_CHECK_ARGS(2, string, function);
-
-  iotjs_string_t device = JHANDLER_GET_ARG(0, string);
-  const iotjs_jval_t* jcallback = JHANDLER_GET_ARG(1, function);
-
-  iotjs_i2c_reqwrap_t* req_wrap =
-      iotjs_i2c_reqwrap_create(jcallback, kI2cOpOpen);
-
-  iotjs_i2c_reqdata_t* req_data = iotjs_i2c_reqwrap_data(req_wrap);
-  iotjs_string_append(&req_data->device, iotjs_string_data(&device),
-                      iotjs_string_size(&device));
-
-  I2C_ASYNC(Open);
-
-  iotjs_jhandler_return_null(jhandler);
-}
-
-
 JHANDLER_FUNCTION(Close) {
+  JHANDLER_CHECK_THIS(object);
   JHANDLER_CHECK_ARGS(0);
 
-  I2cClose();
+  iotjs_i2c_t* i2c = iotjs_i2c_instance_from_jval(JHANDLER_GET_THIS(object));
+  I2cClose(i2c);
 
   iotjs_jhandler_return_null(jhandler);
 }
 
 
 JHANDLER_FUNCTION(Write) {
+  JHANDLER_CHECK_THIS(object);
   JHANDLER_CHECK_ARGS(2, array, function);
 
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG(1, function);
+  const iotjs_jval_t* ji2c = JHANDLER_GET_THIS(object);
 
   iotjs_i2c_reqwrap_t* req_wrap =
-      iotjs_i2c_reqwrap_create(jcallback, kI2cOpWrite);
+      iotjs_i2c_reqwrap_create(jcallback, ji2c, kI2cOpWrite);
   iotjs_i2c_reqdata_t* req_data = iotjs_i2c_reqwrap_data(req_wrap);
 
   GetI2cArray(JHANDLER_GET_ARG(0, array), req_data);
@@ -315,13 +343,15 @@ JHANDLER_FUNCTION(Write) {
 
 
 JHANDLER_FUNCTION(WriteByte) {
+  JHANDLER_CHECK_THIS(object);
   JHANDLER_CHECK_ARGS(2, number, function);
 
   uint8_t byte = JHANDLER_GET_ARG(0, number);
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG(1, function);
+  const iotjs_jval_t* ji2c = JHANDLER_GET_THIS(object);
 
   iotjs_i2c_reqwrap_t* req_wrap =
-      iotjs_i2c_reqwrap_create(jcallback, kI2cOpWriteByte);
+      iotjs_i2c_reqwrap_create(jcallback, ji2c, kI2cOpWriteByte);
 
   iotjs_i2c_reqdata_t* req_data = iotjs_i2c_reqwrap_data(req_wrap);
   req_data->byte = byte;
@@ -333,12 +363,14 @@ JHANDLER_FUNCTION(WriteByte) {
 
 
 JHANDLER_FUNCTION(WriteBlock) {
+  JHANDLER_CHECK_THIS(object);
   JHANDLER_CHECK_ARGS(3, number, array, function);
 
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG(2, function);
+  const iotjs_jval_t* ji2c = JHANDLER_GET_THIS(object);
 
   iotjs_i2c_reqwrap_t* req_wrap =
-      iotjs_i2c_reqwrap_create(jcallback, kI2cOpWriteBlock);
+      iotjs_i2c_reqwrap_create(jcallback, ji2c, kI2cOpWriteBlock);
 
   iotjs_i2c_reqdata_t* req_data = iotjs_i2c_reqwrap_data(req_wrap);
   req_data->cmd = JHANDLER_GET_ARG(0, number);
@@ -351,12 +383,14 @@ JHANDLER_FUNCTION(WriteBlock) {
 
 
 JHANDLER_FUNCTION(Read) {
+  JHANDLER_CHECK_THIS(object);
   JHANDLER_CHECK_ARGS(2, number, function);
 
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG(1, function);
+  const iotjs_jval_t* ji2c = JHANDLER_GET_THIS(object);
 
   iotjs_i2c_reqwrap_t* req_wrap =
-      iotjs_i2c_reqwrap_create(jcallback, kI2cOpRead);
+      iotjs_i2c_reqwrap_create(jcallback, ji2c, kI2cOpRead);
 
   iotjs_i2c_reqdata_t* req_data = iotjs_i2c_reqwrap_data(req_wrap);
   req_data->buf_len = JHANDLER_GET_ARG(0, number);
@@ -369,12 +403,14 @@ JHANDLER_FUNCTION(Read) {
 
 
 JHANDLER_FUNCTION(ReadByte) {
+  JHANDLER_CHECK_THIS(object);
   JHANDLER_CHECK_ARGS(1, function);
 
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG(0, function);
+  const iotjs_jval_t* ji2c = JHANDLER_GET_THIS(object);
 
   iotjs_i2c_reqwrap_t* req_wrap =
-      iotjs_i2c_reqwrap_create(jcallback, kI2cOpReadByte);
+      iotjs_i2c_reqwrap_create(jcallback, ji2c, kI2cOpReadByte);
 
   I2C_ASYNC(ReadByte);
 
@@ -383,12 +419,14 @@ JHANDLER_FUNCTION(ReadByte) {
 
 
 JHANDLER_FUNCTION(ReadBlock) {
+  JHANDLER_CHECK_THIS(object);
   JHANDLER_CHECK_ARGS(4, number, number, number, function);
 
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG(3, function);
+  const iotjs_jval_t* ji2c = JHANDLER_GET_THIS(object);
 
   iotjs_i2c_reqwrap_t* req_wrap =
-      iotjs_i2c_reqwrap_create(jcallback, kI2cOpReadBlock);
+      iotjs_i2c_reqwrap_create(jcallback, ji2c, kI2cOpReadBlock);
 
   iotjs_i2c_reqdata_t* req_data = iotjs_i2c_reqwrap_data(req_wrap);
   req_data->cmd = JHANDLER_GET_ARG(0, number);
@@ -402,22 +440,23 @@ JHANDLER_FUNCTION(ReadBlock) {
 
 
 iotjs_jval_t InitI2c() {
-  iotjs_jval_t ji2c = iotjs_jval_create_object();
+  iotjs_jval_t jI2cCons = iotjs_jval_create_function(I2cCons);
 
-  iotjs_jval_set_method(&ji2c, "setAddress", SetAddress);
-  iotjs_jval_set_method(&ji2c, "scan", Scan);
-  iotjs_jval_set_method(&ji2c, "open", Open);
-  iotjs_jval_set_method(&ji2c, "close", Close);
-  iotjs_jval_set_method(&ji2c, "write", Write);
-  iotjs_jval_set_method(&ji2c, "writeByte", WriteByte);
-  iotjs_jval_set_method(&ji2c, "writeBlock", WriteBlock);
-  iotjs_jval_set_method(&ji2c, "read", Read);
-  iotjs_jval_set_method(&ji2c, "readByte", ReadByte);
-  iotjs_jval_set_method(&ji2c, "readBlock", ReadBlock);
+  iotjs_jval_t prototype = iotjs_jval_create_object();
 
-  iotjs_i2c_t* i2c = iotjs_i2c_create(&ji2c);
-  IOTJS_ASSERT(i2c ==
-               (iotjs_i2c_t*)(iotjs_jval_get_object_native_handle(&ji2c)));
+  iotjs_jval_set_method(&prototype, "setAddress", SetAddress);
+  iotjs_jval_set_method(&prototype, "scan", Scan);
+  iotjs_jval_set_method(&prototype, "close", Close);
+  iotjs_jval_set_method(&prototype, "write", Write);
+  iotjs_jval_set_method(&prototype, "writeByte", WriteByte);
+  iotjs_jval_set_method(&prototype, "writeBlock", WriteBlock);
+  iotjs_jval_set_method(&prototype, "read", Read);
+  iotjs_jval_set_method(&prototype, "readByte", ReadByte);
+  iotjs_jval_set_method(&prototype, "readBlock", ReadBlock);
 
-  return ji2c;
+  iotjs_jval_set_property_jval(&jI2cCons, "prototype", &prototype);
+
+  iotjs_jval_destroy(&prototype);
+
+  return jI2cCons;
 }

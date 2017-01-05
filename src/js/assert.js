@@ -53,15 +53,7 @@ util.inherits(AssertionError, Error);
 
 
 function getMessage(assertion) {
-  // FIXME: use `JSON.stringify` to generate assertion message.
-  var msg  = '{ actual: '
-           + assertion.actual
-           + ', expected: '
-           + assertion.expected
-           + ', operator: '
-           + assertion.operator
-           + ' }';
-  return msg;
+  return JSON.stringify(assertion, ['actual', 'expected', 'operator']);
 }
 
 

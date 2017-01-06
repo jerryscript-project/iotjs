@@ -53,6 +53,19 @@ iotjs_jval_t iotjs_jval_create_string(const iotjs_string_t* v) {
 }
 
 
+iotjs_jval_t iotjs_jval_get_string_size(const iotjs_string_t* str) {
+  iotjs_jval_t str_val = iotjs_jval_create_string(str);
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_jval_t, &str_val);
+
+  jerry_size_t size = jerry_get_string_size(_this->value);
+  iotjs_jval_t jval = iotjs_jval_create_number(size);
+
+  iotjs_jval_destroy(&str_val);
+
+  return jval;
+}
+
+
 iotjs_jval_t iotjs_jval_create_string_raw(const char* data) {
   iotjs_jval_t jval;
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_jval_t, &jval);

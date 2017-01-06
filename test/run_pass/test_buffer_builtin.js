@@ -102,3 +102,10 @@ assert.equal(buff9._builtin.slice(0, -2).toString(), 'abcabcab');
 
 
 assert.equal(buff3.toString(), 'testabcdefgh');
+
+
+assert.equal(Buffer.byteLength('\u007F'), 1);
+assert.equal(Buffer.byteLength('\u008F'), 2);
+assert.equal(Buffer.byteLength('\u08FF'), 3);
+assert.equal(Buffer.byteLength('abc'), 'abc'.length);
+assert.notEqual(Buffer.byteLength('\u2040'), '\u2040'.length);

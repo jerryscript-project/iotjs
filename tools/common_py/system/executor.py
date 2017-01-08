@@ -43,14 +43,20 @@ class Executor(object):
     def run_cmd(cmd, args=[], quiet=False):
         if not quiet:
             Executor.print_cmd_line(cmd, args)
-        return subprocess.call([cmd] + args)
+        try:
+            return subprocess.call([cmd] + args)
+        except OSError as e:
+            Executor.fail("[Failed - %s] %s" % (cmd, e.strerror))
 
     @staticmethod
     def run_cmd_output(cmd, quiet=False):
         if not quiet:
             Executor.print_cmd_line(cmd)
         cmd_list = cmd.split()
-        return subprocess.check_output(cmd_list)
+        try:
+            return subprocess.check_output(cmd_list)
+        except OSError as e:
+            Executor.fail("[Failed - %s] %s" % (cmd, e.strerror))
 
     @staticmethod
     def check_run_cmd(cmd, args=[], quiet=False):

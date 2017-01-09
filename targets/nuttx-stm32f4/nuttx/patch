@@ -1,0 +1,24 @@
+--- a/configs/stm32f4discovery/include/board.h
++++ b/configs/stm32f4discovery/include/board.h
+@@ -253,6 +253,13 @@
+ #  define GPIO_CAN2_TX GPIO_CAN2_TX_1
+ #endif
+
+# Patch code to enable UART1:
+# It maps pin PB6 and pin PB7 to USART1_TX and USART2_RX respectively.
+#
++
++#define GPIO_USART1_RX GPIO_USART1_RX_2
++#define GPIO_USART1_TX GPIO_USART1_TX_2
++
+# Patch code to enable UART4:
+# It maps pin PA0 and pin PA1 to UART4_TX and UART4_RX respectively.
+# Because it makes conflict with pins of USART2,
+# you have to disable USART2 to use this port.
+#
++#define GPIO_UART4_RX GPIO_UART4_RX_1
++#define GPIO_UART4_TX GPIO_UART4_TX_1
++
+ /* UART2:
+  *
+  * The STM32F4 Discovery has no on-board serial devices, but the console is

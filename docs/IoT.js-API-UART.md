@@ -109,3 +109,13 @@ But as our default config option sets SDIO to be on, it makes conflict with UART
 | USART6_RX | PC7 |
 
 * Different from other system IO such as GPIO, ADC, PWM, you can't find the name of the UART device easily by `stm32f4dis.pin` module. It's because the name of the uart device can be changed according to your Nuttx config option. You can find '/dev/ttyS[0-3]' according to your environment.
+
+### Enable more ports using patch file
+
+Current version of Nuttx doesn't support USART1 and UART4 as the ports for stm32f4-discovery board. But if you want to enable more ports other than above, you can modify Nuttx code by referring to a part of `targets/nuttx-stm32f4/nuttx/patch` file.
+
+To apply whole patch,
+```bash
+~/workspace/nuttx$ patch -p1 < ../iotjs/targets/nuttx-stm32f4/nuttx/patch
+```
+Make sure it is your responsibility to enable the ports only when they do not make any conflicts.

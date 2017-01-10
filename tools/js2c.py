@@ -143,7 +143,13 @@ const iotjs_js_module natives[] = {
 DUMPER = ''
 NO_SNAPSHOT = True
 BUILDTYPE = 'debug'
-MAGIC_STRING_SET = { 'process' }
+MAGIC_STRING_SET = { b'process' }
+
+def hex_format(ch):
+    if isinstance(ch, str):
+        ch = ord(ch)
+
+    return "0x{:02x}".format(ch)
 
 def printJSContents(fout_c, name, indent = 0):
 
@@ -194,17 +200,16 @@ def printJSContents(fout_c, name, indent = 0):
                                js_path + '.wrapped'])
         if ret != 0:
             msg = 'Failed to dump ' + js_path + (": - %d]" % (ret))
-            print "%s%s%s" % ("\033[1;31m", msg, "\033[0m")
+            print("%s%s%s" % ("\033[1;31m", msg, "\033[0m"))
             exit(1)
 
-        code = open(js_path + '.snapshot', 'r').read()
+        code = open(js_path + '.snapshot', 'rb').read()
 
         fs.remove(js_path + '.wrapped')
         fs.remove(js_path + '.snapshot')
 
         for line in regroup(code, 8):
-            buf = ', '.join(map(lambda ch: "0x{:02x}".format(ord(ch)),
-                                line))
+            buf = ', '.join(map(hex_format, line))
             buf += ','
             writeLine(fout_c, buf, indent)
 
@@ -262,7 +267,13 @@ def js2c(buildtype, no_snapshot, js_modules, js_dumper):
 
     global MAGIC_STRING_SET
     for idx, magic_string in enumerate(sorted(MAGIC_STRING_SET)):
+        if not isinstance(magic_string, str):
+            magic = magic_string.decode('utf-8')
+        else:
+            magic = magic_string
+        magic_text = repr(magic)[1:-1]
+
         fout_magic_str.write('  MAGICSTR_EX_DEF(MAGIC_STR_%d, "%s") \\\n'
-                             % (idx, repr(magic_string)[1:-1]))
+                             % (idx, magic_text))
 
     fout_magic_str.write(FOOTER3)

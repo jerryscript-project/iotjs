@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import print_function
+
 import subprocess
 
 
@@ -28,15 +30,15 @@ class Executor(object):
 
     @staticmethod
     def print_cmd_line(cmd, args=[]):
-        print "%s%s%s" % (Executor._TERM_BLUE, Executor.cmd_line(cmd, args),
-                          Executor._TERM_EMPTY)
-        print
+        print("%s%s%s" % (Executor._TERM_BLUE, Executor.cmd_line(cmd, args),
+                          Executor._TERM_EMPTY))
+        print()
 
     @staticmethod
     def fail(msg):
-        print
-        print "%s%s%s" % (Executor._TERM_RED, msg, Executor._TERM_EMPTY)
-        print
+        print()
+        print("%s%s%s" % (Executor._TERM_RED, msg, Executor._TERM_EMPTY))
+        print()
         exit(1)
 
     @staticmethod

@@ -14,6 +14,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import print_function
+try:
+    basestring
+except:
+    # in Python 3.x there is no basestring just str
+    basestring = str
 
 import argparse
 import json
@@ -33,7 +39,7 @@ platform = Platform()
 # Initialize build option.
 def init_option():
     # Check config option.
-    arg_config = filter(lambda x: x.startswith('--config='), sys.argv)
+    arg_config = list(filter(lambda x: x.startswith('--config='), sys.argv))
 
     config_path = path.BUILD_CONFIG_PATH
 
@@ -43,8 +49,8 @@ def init_option():
     # Read config file and apply it to argv.
     argv = []
     config = {}
-    with open(config_path, 'r') as f:
-        config = json.loads(f.read().encode('ascii'))
+    with open(config_path, 'rb') as f:
+        config = json.loads(f.read().decode('ascii'))
         config_option = config['build_option']
         for opt_key in config_option:
             opt_val = config_option[opt_key]
@@ -183,11 +189,11 @@ def adjust_option(option):
 
 
 def print_build_option(option):
-    print '================================================='
+    print('=================================================')
     option_vars = vars(option)
     for opt in option_vars:
-        print ' --%s: %s ' % (opt, option_vars[opt])
-    print
+        print(' --%s: %s ' % (opt, option_vars[opt]))
+    print()
 
 
 def set_global_vars(option):
@@ -272,8 +278,7 @@ def create_build_directories(option):
 
 
 def print_progress(msg):
-    print '==> %s' % msg
-    print
+    print('==> %s\n' % msg)
 
 
 def init_submodule():
@@ -423,7 +428,7 @@ def build_jerry(option):
     # Check output
     output = target_jerry['output_path']
     if not fs.exists(output):
-        print output
+        print(output)
         ex.fail('JerryScript build failed - target not produced.')
 
     # copy
@@ -516,7 +521,7 @@ def build_libjerry(option):
         # Check output
         output = target['output_path']
         if not fs.exists(output):
-            print output
+            print(output)
             ex.fail('JerryScript build failed - target not produced.')
 
         # copy
@@ -575,7 +580,7 @@ def build_libhttpparser(option):
 def analyze_module_dependency(option):
 
     def print_warn(fmt, arg):
-        print fmt % arg
+        print(fmt % arg)
         ex.fail('Failed to analyze module dependency')
 
     for name in option.config['module']['always']:
@@ -632,9 +637,8 @@ def analyze_module_dependency(option):
     option.js_modules = js_modules
     option.native_modules = native_modules
 
-    print 'Building js modules: %s\nBuilding native modules: %s' \
-          % (', '.join(js_modules), ', '.join(native_modules))
-    print
+    print('Building js modules: %s\nBuilding native modules: %s\n' \
+          % (', '.join(js_modules), ', '.join(native_modules)))
 
     return True
 
@@ -800,18 +804,14 @@ if not option.no_check_test:
     # Run check test when target is host.
     if (option.target_os != platform.os() or
             option.target_arch != platform.arch()):
-        print "Skip unit tests - target is not host"
-        print
+        print("Skip unit tests - target is not host\n")
     elif option.buildlib:
-        print "Skip unit tests - build target is library"
-        print
+        print("Skip unit tests - build target is library\n")
     else:
         if not run_checktest(option):
             ex.fail('Failed to pass unit tests')
 
 
-print
-print "%sIoT.js Build Succeeded!!%s" % (ex._TERM_GREEN, ex._TERM_EMPTY)
-print
+print("\n%sIoT.js Build Succeeded!!%s\n" % (ex._TERM_GREEN, ex._TERM_EMPTY))
 
 sys.exit(0)

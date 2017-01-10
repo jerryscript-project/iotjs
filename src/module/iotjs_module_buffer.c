@@ -347,12 +347,27 @@ JHANDLER_FUNCTION(ToString) {
 }
 
 
+JHANDLER_FUNCTION(ByteLength) {
+  JHANDLER_CHECK_THIS(object);
+  JHANDLER_CHECK_ARGS(1, string);
+
+  iotjs_string_t str = JHANDLER_GET_ARG(0, string);
+  iotjs_jval_t size = iotjs_jval_get_string_size(&str);
+
+  iotjs_jhandler_return_jval(jhandler, &size);
+  iotjs_string_destroy(&str);
+  iotjs_jval_destroy(&size);
+}
+
+
 iotjs_jval_t InitBuffer() {
   iotjs_jval_t buffer = iotjs_jval_create_function(Buffer);
 
   iotjs_jval_t prototype = iotjs_jval_create_object();
+  iotjs_jval_t byte_length = iotjs_jval_create_function(ByteLength);
 
   iotjs_jval_set_property_jval(&buffer, "prototype", &prototype);
+  iotjs_jval_set_property_jval(&buffer, "byteLength", &byte_length);
 
   iotjs_jval_set_method(&prototype, "compare", Compare);
   iotjs_jval_set_method(&prototype, "copy", Copy);
@@ -361,6 +376,7 @@ iotjs_jval_t InitBuffer() {
   iotjs_jval_set_method(&prototype, "toString", ToString);
 
   iotjs_jval_destroy(&prototype);
+  iotjs_jval_destroy(&byte_length);
 
   return buffer;
 }

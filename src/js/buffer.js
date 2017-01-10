@@ -49,8 +49,7 @@ function Buffer(subject) {
 
 // Buffer.byteLength(string)
 Buffer.byteLength = function(str) {
-  // FIXME: Returns actual byte length of string not counts of characters.
-  return str.length;
+  return bufferBuiltin.byteLength(str);
 };
 
 

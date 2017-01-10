@@ -66,6 +66,8 @@ iotjs_jval_t iotjs_jval_create_error(const char* msg);
 iotjs_jval_t iotjs_jval_create_error_type(iotjs_error_t type, const char* msg);
 iotjs_jval_t iotjs_jval_create_copied(const iotjs_jval_t* other);
 
+iotjs_jval_t iotjs_jval_get_string_size(const iotjs_string_t* str);
+
 iotjs_jval_t* iotjs_jval_get_undefined();
 iotjs_jval_t* iotjs_jval_get_null();
 iotjs_jval_t* iotjs_jval_get_boolean(bool v);

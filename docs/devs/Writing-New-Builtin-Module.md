@@ -55,7 +55,7 @@ OK
 
 ## Writing Native Module Builtin
 
-You can implement some part of the builtin module in C, to enhance performance and to fully exploit the H/W functionality, etc. It has similar concept with [Node.js native addon](https://nodejs.org/api/addons.html), but we have different set of APIs. Node.js uses its own binding layer with v8 API, but we use [our own binding layer](https://github.com/Samsung/iotjs/blob/master/src/iotjs_binding.h) which wraps [JerryScript API](https://github.com/Samsung/JerryScript/blob/master/jerry-core/jerry-api.h). You can see `src/iotjs_binding.*` files to find more APIs to communicate with JS-side values from native-side.
+You can implement some part of the builtin module in C, to enhance performance and to fully exploit the H/W functionality, etc. It has similar concept with [Node.js native addon](https://nodejs.org/api/addons.html), but we have different set of APIs. Node.js uses its own binding layer with v8 API, but we use [our own binding layer](../../src/iotjs_binding.h) which wraps [JerryScript API](https://github.com/jerryscript-project/JerryScript/blob/master/jerry-core/jerry-api.h). You can see `src/iotjs_binding.*` files to find more APIs to communicate with JS-side values from native-side.
 
 For simple explanation, `console` module will be used as an example.
 

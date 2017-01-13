@@ -7,14 +7,14 @@ IoT.js is built based on JerryScript(lightweight JavaScript engine) and libuv fo
 * libuv: https://github.com/Samsung/libuv.git
 
 ### Build script
-There is a script to help you build IoT.js called "[build.py](../tools/build.py)" in source repository.
+There is a script to help you build IoT.js called "[build.py](../../tools/build.py)" in source repository.
 
 ### Supported platforms
 Current supported platforms are **Linux and NuttX**
 
-* [Build for Linux](Build-for-Linux.md): Ubuntu 14.04 is used as a base platform.
-* [Build for NuttX](Build-for-NuttX.md)
-* [Build for Raspberry Pi 2](Build-for-RPi2.md)
+* [Build for Linux](../build/Build-for-Linux.md): Ubuntu 14.04 is used as a base platform.
+* [Build for NuttX](../build/Build-for-NuttX.md)
+* [Build for Raspberry Pi 2](../build/Build-for-RPi2.md)
 
 ##### Platforms to support
 * OSX 10.10 as development host
@@ -31,7 +31,7 @@ Current supported platforms are **Linux and NuttX**
     * Intel Edison
     * (and your contributions including above plans)
 
-We will support the correct behavior of APIs for above environments. However, since IoT.js is targeting various kind IoT devices and platforms, single implementation cannot be the best practice for every environments. Therefore embedders should be in charge of optimization for their own environments. For more details on optimization, see the [Optimization Tips](Optimization-Tips.md) page.
+We will support the correct behavior of APIs for above environments. However, since IoT.js is targeting various kind IoT devices and platforms, single implementation cannot be the best practice for every environments. Therefore embedders should be in charge of optimization for their own environments. For more details on optimization, see the [Optimization Tips](../devs/Optimization-Tips.md) page.
 
 ### For Developers
 
@@ -76,9 +76,9 @@ build/x86_64-linux/debug/bin/iotjs tools/check_test.js -- start-from=test_consol
 3. Set attributes on the test case if it needs in **attrs.js** where the directory of your test case belongs.
 
 #### Advanced Topics
-You can refer to [Writing new IoT.js builtin module](Writing-New-Builtin-Module.md) and [Optimization Tips](Optimization-Tips.md) pages for detailed information.
+You can refer to [Writing new IoT.js builtin module](../devs/Writing-New-Builtin-Module.md) and [Optimization Tips](../devs/Optimization-Tips.md) pages for detailed information.
 
 ### When something goes wrong
-Please read the [Logging IoT.js execution](Logging-IoT.js-execution.md) page how to display and add log messages while developing.
+Please read the [Logging IoT.js execution](../devs/Logging-IoT.js-execution.md) page how to display and add log messages while developing.
 
-### [IoT.js API Reference](IoT.js-API-reference.md)
+### [IoT.js API Reference](../api/IoT.js-API-reference.md)

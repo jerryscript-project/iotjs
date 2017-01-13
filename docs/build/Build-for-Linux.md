@@ -104,11 +104,11 @@ Options that may need explanations.
 * no-check-test: do not run all tests in test folder after build.
 * nuttx-home: it's NuttX platform specific, to tell where the NuttX configuration and header files are.
 
-If you want to know more details about options, please check the [Build Script](https://github.com/Samsung/iotjs/wiki/Build%20Script) page.
+If you want to know more details about options, please check the [Build Script](Build-Script.md) page.
 
 
 #### Include extended module
-There are two ways to include [extended module](IoT.js-API-reference.md).
+There are two ways to include [extended module](../api/IoT.js-API-reference.md).
 
 The first way is to modify a property value of module in `build.config` file. You can move a module name from 'exclude' to 'include'.
 

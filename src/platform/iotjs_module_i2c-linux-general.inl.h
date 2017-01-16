@@ -64,7 +64,6 @@
 
 #define I2C_SLAVE_FORCE 0x0706
 #define I2C_SMBUS 0x0720
-#define I2C_SMBUS_BLOCK_MAX 32
 #define I2C_SMBUS_READ 1
 #define I2C_SMBUS_WRITE 0
 #define I2C_NOCMD 0
@@ -125,7 +124,7 @@ int I2cSmbusWriteI2cBlockData(int fd, uint8_t command, uint8_t* values,
   }
   data.block[0] = length;
 
-  return I2cSmbusAccess(fd, I2C_SMBUS_WRITE, command, I2C_SMBUS_BLOCK_DATA,
+  return I2cSmbusAccess(fd, I2C_SMBUS_WRITE, command, I2C_SMBUS_I2C_BLOCK_DATA,
                         &data);
 }
 

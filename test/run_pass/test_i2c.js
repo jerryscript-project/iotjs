@@ -31,6 +31,11 @@ wire.writeByte(0x10, function(err) {
   console.log('writeByte done');
 });
 
+wire.writeBytes(0x10, [0x10], function(err) {
+  assert.equal(err, null);
+  console.log('writeBytes done');
+})
+
 wire.read(2, function(err, res) {
   assert.equal(err, null);
   assert.equal(res.length, 2, 'I2C read failed.(length is not equal)');

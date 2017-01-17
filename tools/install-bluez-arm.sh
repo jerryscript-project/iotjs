@@ -27,9 +27,9 @@ sudo apt-get install -q -y \
     g++-arm-linux-gnueabihf cmake libglib2.0-dev
 
 # Download & install zlib for GLib.
-wget http://zlib.net/zlib-1.2.10.tar.gz
-tar -xzf zlib-1.2.10.tar.gz
-cd zlib-1.2.10/
+wget http://zlib.net/zlib-1.2.11.tar.gz
+tar -xzf zlib-1.2.11.tar.gz
+cd zlib-1.2.11/
 ./configure --prefix=/usr/arm-linux-gnueabihf
 patch -p0 < $DIR/zlib-Makefile.patch
 make

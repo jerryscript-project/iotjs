@@ -83,7 +83,7 @@ def init_option():
     parser.add_argument('--buildlib', action='store_true')
 
     parser.add_argument('--target-arch',
-                        choices=['arm', 'x86', 'i686', 'x86_64', 'x64'],
+                        choices=['arm', 'x86', 'i686', 'x86_64', 'x64', 'armhf'],
                         default=platform.arch())
 
     parser.add_argument('--target-os',
@@ -397,7 +397,7 @@ def build_jerry(option):
     # Set JerryScript cmake option.
     cmake_opt = [path.JERRY_ROOT]
 
-    cmake_opt.append('-DCMAKE_TOOLCHAIN_FILE=' + host_cmake_toolchain_file)
+    cmake_opt.append('-DCMAKE_TOOLCHAIN_FILE=' + cmake_toolchain_file)
 
     if option.buildtype == 'debug':
         cmake_opt.append('-DCMAKE_BUILD_TYPE=Debug')

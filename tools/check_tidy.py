@@ -14,113 +14,180 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sys
-import os
+from __future__ import print_function
 import fileinput
+import functools
+import os
+import subprocess
+import tempfile
+
+from distutils import spawn
 
 from check_license import CheckLicenser
-from common_py import path
 from common_py.system.filesystem import FileSystem as fs
 from common_py.system.executor import Executor as ex
 
-TERM_RED = "\033[1;31m"
-TERM_YELLOW = "\033[1;33m"
-TERM_GREEN = "\033[1;32m"
-TERM_BLUE = "\033[1;34m"
-TERM_EMPTY = "\033[0m"
 
+class StyleChecker(object):
 
-column_limit = 80
+    column_limit = 80
 
-count_err = 0
+    def __init__(self):
+        self.count_lines = 0
+        self.count_empty_lines = 0
+        self.errors = []
 
-interesting_exts = ['.c', '.h', '.js', '.py', '.sh', '.cmake']
-clang_format_exts = ['.c', '.h']
-skip_dirs = ['deps', 'build']
-skip_files = ['check_signed_off.sh', '__init__.py',
-              'iotjs_js.c', 'iotjs_js.h', 'iotjs_string_ext.inl.h']
+    @property
+    def error_count(self):
+        return len(self.errors)
 
+    @property
+    def count_valid_lines(self):
+        return self.count_lines - self.count_empty_lines
 
-def report_error_name_line(name, line, msg):
-    global count_err
-    if line is None:
-        print("%s: %s" % (name, msg))
-    else:
-        print("%s:%d: %s" % (name, line, msg))
-    count_err += 1
+    def report_error(self, msg):
+        name = fileinput.filename()
+        line = fileinput.filelineno()
+        self.errors.append("%s:%d: %s" % (name, line, msg))
 
-
-def report_error(msg):
-    report_error_name_line(fileinput.filename(), fileinput.filelineno(), msg)
-
-
-def is_interesting(file):
-    _, ext = fs.splitext(file)
-    return ext in interesting_exts and file not in skip_files
-
-
-def is_checked_by_clang(file):
-    _, ext = fs.splitext(file)
-    return ext in clang_format_exts and file not in skip_files
-
-
-def check_tidy(src_dir):
-    count_lines = 0
-    count_empty_lines = 0
-
-    for (dirpath, dirnames, filenames) in os.walk(src_dir):
-        if any(d in fs.relpath(dirpath, src_dir) for d in skip_dirs):
-            continue
-
-        files = [fs.join(dirpath, name) for name in filenames
-                 if is_interesting(name)]
-
-        if not files:
-            continue
-
-        for file in files:
-            if is_checked_by_clang(file):
-                formatted = ex.run_cmd_output(' '.join(['clang-format-3.8',
-                                                        '-style=file', file]),
-                                              quiet=True)
-                f = open(file + '.formatted', 'w')
-                f.write(formatted)
-                f.close()
-                ex.check_run_cmd('diff', [file, file+'.formatted'], quiet=True)
-                fs.remove(file + '.formatted')
-
+    def check(self, files):
         for line in fileinput.input(files):
             if '\t' in line:
-                report_error('TAB character')
+                self.report_error('TAB character')
             if '\r' in line:
-                report_error('CR character')
+                self.report_error('CR character')
             if line.endswith(' \n') or line.endswith('\t\n'):
-                report_error('trailing whitespace')
+                self.report_error('trailing whitespace')
             if not line.endswith('\n'):
-                report_error('line ends without NEW LINE character')
+                self.report_error('line ends without NEW LINE character')
 
-            if len(line) - 1 > column_limit:
-                report_error('line exceeds %d characters' % column_limit)
+            if len(line) - 1 > StyleChecker.column_limit:
+                self.report_error('line exceeds %d characters'
+                                  % StyleChecker.column_limit)
 
             if fileinput.isfirstline():
                 if not CheckLicenser.check(fileinput.filename()):
-                    report_error_name_line(fileinput.filename(),
-                                           None,
-                                           'incorrect license')
+                    self.report_error('incorrect license')
 
-            count_lines += 1
+
+            self.count_lines += 1
             if not line.strip():
-                count_empty_lines += 1
+                self.count_empty_lines += 1
 
-    print "* total lines of code: %d" % count_lines
-    print ("* total non-blank lines of code: %d"
-           % (count_lines - count_empty_lines))
-    print "%s* total errors: %d%s" % (TERM_RED if count_err > 0 else TERM_GREEN,
-                                      count_err,
-                                      TERM_EMPTY)
-    print
 
-    return count_err == 0
+class ClangFormat(object):
+
+    def __init__(self, extensions, skip_files=None):
+        self.diffs = []
+        self._extensions = extensions
+        self._skip_files = skip_files
+
+        self._check_clang_format("clang-format-3.8")
+
+    def _check_clang_format(self, base):
+        clang_format = spawn.find_executable(base)
+
+        if not clang_format:
+            clang_format = spawn.find_executable("clang-format")
+            if clang_format:
+                print("%sUsing %s instead of %s%s"
+                      % (ex._TERM_YELLOW, clang_format, base, ex._TERM_EMPTY))
+            else:
+                print("%sNo %s found, skipping checks!%s"
+                      % (ex._TERM_RED, base, ex._TERM_EMPTY))
+
+        self._clang_format = clang_format
+
+    @property
+    def error_count(self):
+        return len(self.diffs)
+
+    def is_checked_by_clang(self, file):
+        _, ext = fs.splitext(file)
+        return ext in self._extensions and file not in self._skip_files
+
+    def check(self, files):
+        if not self._clang_format:
+            return
+
+        for file in filter(self.is_checked_by_clang, files):
+            output = ex.run_cmd_output(self._clang_format,
+                                       ['-style=file', file],
+                                       quiet=True)
+
+            with tempfile.NamedTemporaryFile() as temp:
+                temp.write(output)
+                temp.flush() # just to be really safe
+                self._diff(file, temp.name)
+
+    def _diff(self, original, formatted):
+        try:
+            subprocess.check_output(['diff', '-u', original, formatted])
+        except subprocess.CalledProcessError as error:
+            # if there is a difference between the two files
+            # this error will be generated and we can extract
+            # the diff from that it. Otherwise nothing to do.
+            self.diffs.append(error.output.decode())
+
+
+class FileFilter(object):
+
+    def __init__(self, allowed_exts, allowed_files, skip_files):
+        self._allowed_exts = allowed_exts
+        self._allowed_files = allowed_files
+        self._skip_files = skip_files
+
+    def __call__(self, dir_path, file):
+        if file in self._allowed_files:
+            return True
+
+        if file in self._skip_files:
+            return False
+
+        _, ext = fs.splitext(file)
+        return ext in self._allowed_exts
+
+
+def check_tidy(src_dir):
+    allowed_exts = ['.c', '.h', '.js', '.py', '.sh', '.cmake']
+    allowed_files = ['CMakeLists.txt']
+    clang_format_exts = ['.c', '.h']
+    skip_dirs = ['deps', 'build', '.git']
+    skip_files = ['check_signed_off.sh', '__init__.py',
+                  'iotjs_js.c', 'iotjs_js.h', 'iotjs_string_ext.inl.h']
+
+    style = StyleChecker()
+    clang = ClangFormat(clang_format_exts, skip_files)
+
+    file_filter = FileFilter(allowed_exts, allowed_files, skip_files)
+    files = fs.files_under(src_dir, skip_dirs, file_filter)
+
+    clang.check(files)
+    style.check(files)
+
+    if clang.error_count:
+        print("Detected clang-format problems:")
+        print("".join(clang.diffs))
+        print()
+
+    if style.error_count:
+        print("Detected stype problems:")
+        print("\n".join(style.errors))
+        print()
+
+    total_errors = style.error_count + clang.error_count
+    print("* total lines of code: %d" % style.count_lines)
+    print("* total non-blank lines of code: %d" % style.count_valid_lines)
+    print("* style errors: %d" % style.error_count)
+    print("* clang-format errors: %d" % clang.error_count)
+
+    msg_color = ex._TERM_RED if total_errors > 0 else ex._TERM_GREEN
+    print("%s* total errors: %d%s" % (msg_color, total_errors, ex._TERM_EMPTY))
+    print()
+
+    return total_errors == 0
+
 
 if __name__ == '__main__':
+    from common_py import path
     check_tidy(path.PROJECT_ROOT)

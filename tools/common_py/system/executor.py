@@ -51,12 +51,11 @@ class Executor(object):
             Executor.fail("[Failed - %s] %s" % (cmd, e.strerror))
 
     @staticmethod
-    def run_cmd_output(cmd, quiet=False):
+    def run_cmd_output(cmd, args=[], quiet=False):
         if not quiet:
-            Executor.print_cmd_line(cmd)
-        cmd_list = cmd.split()
+            Executor.print_cmd_line(cmd, args)
         try:
-            return subprocess.check_output(cmd_list)
+            return subprocess.check_output([cmd] + args)
         except OSError as e:
             Executor.fail("[Failed - %s] %s" % (cmd, e.strerror))
 

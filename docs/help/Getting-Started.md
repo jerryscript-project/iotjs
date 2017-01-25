@@ -3,7 +3,7 @@ IoT.js is built based on JerryScript(lightweight JavaScript engine) and libuv fo
 
 #### Source repositories
 * IoT.js: https://github.com/Samsung/iotjs.git
-* JerryScript: https://github.com/Samsung/jerryscript.git
+* JerryScript: https://github.com/jerryscript-project/jerryscript.git
 * libuv: https://github.com/Samsung/libuv.git
 
 ### Build script

@@ -1,6 +1,6 @@
 [submodule "deps/jerry"]
 	path = deps/jerry
-	url = https://github.com/Samsung/jerryscript.git
+	url = https://github.com/jerryscript-project/jerryscript.git
 [submodule "deps/http-parser"]
 	path = deps/http-parser
 	url = https://github.com/Samsung/http-parser.git

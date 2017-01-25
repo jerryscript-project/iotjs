@@ -129,7 +129,7 @@ Followings are the options to set:
 #### 4. Build IoT.js for NuttX
 
 ##### Follow the instruction
-* [Build-for-NuttX](../../docs/Build-for-NuttX.md)
+* [Build-for-NuttX](../../docs/build/Build-for-NuttX.md)
 
 #### 5. Build NuttX
 

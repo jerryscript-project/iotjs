@@ -218,12 +218,6 @@
     fn(this.exports, Native.require, this);
   };
 
-
-  // temp impl. before JSON.parse is done
-  process.JSONParse = function(text) {
-    return JSON.parse(text);
-  };
-
   startIoTjs();
 
 });

@@ -22,7 +22,7 @@ var x = require("require_add");
 assert.equal(x.add(1,4), 5);
 
 var str = process.readSource("package.json");
-var json = process.JSONParse(str);
+var json = JSON.parse(str);
 
 assert.equal(json.version, "2.9.1");
 assert.equal(json.name, "npm");

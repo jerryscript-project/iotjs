@@ -97,7 +97,7 @@ iotjs_module_t.resolveFilepath = function(id, directories) {
     filepath = iotjs_module_t.tryPath(jsonpath);
     if(filepath){
       var pkgSrc = process.readSource(jsonpath);
-      var pkgMainFile = process.JSONParse(pkgSrc).main;
+      var pkgMainFile = JSON.parse(pkgSrc).main;
       filepath = iotjs_module_t.tryPath(packagepath + "/" + pkgMainFile);
       if(filepath){
         return filepath;

@@ -16,6 +16,7 @@
 
 #if defined(__linux__)
 
-#include "../iotjs_module_ble-linux-general.inl.h"
+#include "iotjs_def.h"
+#include "../iotjs_module_blehcisocket-linux-general.inl.h"
 
 #endif

@@ -19,10 +19,9 @@ ble.on('stateChange', function(state){
   console.log('onStateChange: ' + state);
 
   if (state == 'poweredOn') {
-    ble.startAdvertising('test', ['180F'], function(err) {
+    ble.startAdvertising('iotjs', ['180F'], function(err) {
       if (err) console.log(err);
       else {
-        console.log('advertising start success.');
 
         setTimeout(function() {
           ble.stopAdvertising(function(err) {

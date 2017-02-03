@@ -620,7 +620,7 @@ def analyze_module_dependency(option):
             print_warn('Cannot read file \"%s\" ', js_module_path)
         content = open(js_module_path).read()
 
-        re_js_module = 'require\([\'\"](.*)[\'\"]\)'
+        re_js_module = 'require\([\'\"](.*?)[\'\"]\)'
         for js_module in re.findall(re_js_module, content):
             if js_module in option.iotjs_exclude_module:
                 print_warn('Cannot exclude \"%s\" since \"%s\" requires it',
@@ -628,7 +628,7 @@ def analyze_module_dependency(option):
             if js_module not in js_modules:
                 analyze_queue.add(js_module)
 
-        re_native_module = 'process.binding\(process.binding.(.*)\)'
+        re_native_module = 'process.binding\(process.binding.(.*?)\)'
         for native_module in re.findall(re_native_module, content):
             native_modules.add(native_module)
 

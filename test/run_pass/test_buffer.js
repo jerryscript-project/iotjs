@@ -95,3 +95,26 @@ assert.equal(Buffer.isBuffer({obj:buff1}), false);
 
 
 assert.equal(buff3.toString(), 'testabcdefgh');
+
+
+var buff13 = new Buffer(4);
+buff13.writeUInt8(0x11, 0);
+assert.equal(buff13.readUInt8(0), 0x11);
+buff13.writeUInt16LE(0x3456, 1);
+assert.equal(buff13.readUInt8(1), 0x56);
+assert.equal(buff13.readUInt8(2), 0x34);
+assert.equal(buff13.readUInt16LE(1), 0x3456);
+buff13.writeUInt32LE(0x89abcdef, 0);
+assert.equal(buff13.readUInt8(0), 0xef);
+assert.equal(buff13.readUInt8(1), 0xcd);
+assert.equal(buff13.readUInt8(2), 0xab);
+assert.equal(buff13.readUInt8(3), 0x89);
+assert.equal(buff13.readUInt16LE(0), 0xcdef);
+assert.equal(buff13.readUInt16LE(2), 0x89ab);
+
+
+var buff14 = new Buffer([0x01, 0xa1, 0xfb]);
+assert.equal(buff14.readUInt8(0), 0x01);
+assert.equal(buff14.readUInt8(1), 0xa1);
+assert.equal(buff14.readUInt8(2), 0xfb);
+assert.equal(buff14.readInt8(2), -5);

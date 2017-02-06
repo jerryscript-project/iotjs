@@ -10,19 +10,34 @@ Buffer class is a global type. you can create a buffer object in several way.
 #### new Buffer(size)
 * `size: Number`
 
-Allocate a new buffer of `size` bytes.
+Allocates a new buffer of `size` bytes.
 
 
 #### new Buffer(buffer)
 * `buffer: Buffer`
 
-Allocate a new buffer copied from given `buffer`.
+Allocates a new buffer copied from given `buffer`.
 
 
 #### new Buffer(str)
 * `str: String`
 
-Allocate a new buffer containing given `str`.
+Allocates a new buffer containing given `str`.
+
+
+#### new Buffer(str[, encoding]))
+* `str: String`
+* `encoding: String`
+
+Allocates a new buffer containing given `str`.
+If provided, the encoding parameter identifies the character encoding of string.
+It only supports `hex`.
+
+
+#### new Buffer(array)
+* `array: Array`
+
+Allocates a new Buffer using an array of octets.
 
 
 ### Class Methods
@@ -109,3 +124,54 @@ Returns a string from buffer.
 * Return: `Number` - total number of bytes written.
 
 Writes `string` to buffer starting from `offset`. Returns total number of bytes written to the buffer.
+
+
+#### buf.writeUInt8(value, offset[, noAssert])
+* `value: Number` - number to be written to buffer
+* `offset: Number`, - start position of buffer for writing.
+* `noAssert: Boolean`, Default: false - skip value and offset validation.
+* Return: `Number` offset plus the number of bytes written.
+
+Writes `value` to buffer starting from `offset`. `value` should be a valid unsigned 8-bit integer.
+
+
+#### buf.writeUInt16LE(value, offset[, noAssert])
+* `value: Number` - number to be written to buffer
+* `offset: Number`, - start position of buffer for writing.
+* `noAssert: Boolean`, Default: false - skip value and offset validation.
+* Return: `Number` offset plus the number of bytes written.
+
+Writes `value` to buffer starting from `offset` writes little endian format. `value` should be a valid unsigned 16-bit integer.
+
+
+#### buf.writeUInt32LE(value, offset[, noAssert])
+* `value: Number` - number to be written to buffer
+* `offset: Number` - start position of buffer for writing.
+* `noAssert: Boolean`, Default: false - skip value and offset validation.
+* Return: `Number` offset plus the number of bytes written.
+
+Writes `value` to buffer starting from `offset` writes little endian format. `value` should be a valid unsigned 32-bit integer.
+
+
+#### buf.readUInt8(offset[, noAssert])
+* `offset: Number` - start position of buffer for reading.
+* `noAssert: Boolean`, Default: false - skip offset validation.
+* Return: `Number`
+
+Reads an unsigned 8-bit integer from buf at the specified offset.
+
+
+#### buf.readInt8(offset[, noAssert])
+* `offset: Number` - start position of buffer for reading.
+* `noAssert: Boolean`, Default: false - skip offset validation.
+* Return: `Number`
+
+Reads an signed 8-bit integer from buf at the specified offset.
+
+
+#### buf.readUInt16LE(offset[, noAssert])
+* `offset: Number` - start position of buffer for reading.
+* `noAssert: Boolean`, Default: false - skip offset validation.
+* Return: `Number`
+
+Reads an unsigned 16-bit integer from buf at the specified offset with little endian format.

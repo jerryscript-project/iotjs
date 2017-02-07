@@ -42,6 +42,7 @@ def init_option():
     arg_config = list(filter(lambda x: x.startswith('--config='), sys.argv))
 
     config_path = path.BUILD_CONFIG_PATH
+    print "using config path: " + config_path
 
     if len(arg_config) != 0:
         config_path = arg_config[-1].split('=', 1)[1]
@@ -746,6 +747,7 @@ def run_checktest(option):
 
 
 # Initialize build option object.
+print "1) Initialize build option object."
 option = init_option()
 
 adjust_option(option)
@@ -755,6 +757,7 @@ print_build_option(option)
 set_global_vars(option)
 
 # clean build directory.
+print "2) clean build directory."
 if option.clean:
     print_progress('Clear build directory')
     fs.rmtree(build_root)
@@ -763,25 +766,30 @@ if option.clean:
 create_build_directories(option)
 
 # Analyze module dependency
+print "3) Analyze module dependency"
 print_progress('Analyze module dependency')
 if not analyze_module_dependency(option):
     ex.fail('Failed to analyze module dependency')
 
 # Perform init-submodule.
+print "4) Perform init-submodule."
 print_progress('Initialize submodules')
 if not option.no_init_submodule:
     init_submodule()
 
 # make build directory.
+print "5) make build directory."
 print_progress('Create build directory')
 fs.maybe_make_directory(build_root)
 
 # build tuv.
+print "6) build tuv."
 print_progress('Build libtuv')
 if not build_tuv(option):
     ex.fail('Failed to build libtuv')
 
 # build jerry.
+print "7) build jerry."
 print_progress('Build JerryScript')
 if not build_jerry(option):
     ex.fail('Failed to build jerry')
@@ -789,16 +797,19 @@ if not build_libjerry(option):
     ex.fail('Failed to build libjerry')
 
 # build httpparser
+print "8) build httpparser"
 print_progress('Build libhttpparser')
 if not build_libhttpparser(option):
     ex.fail('Failed to build libhttpparser')
 
 # build iotjs.
+print "9) build iotjs."
 print_progress('Build IoT.js')
 if not build_iotjs(option):
     ex.fail('Failed to build IoT.js')
 
 # check unit test.
+print "10) check unit test"
 if not option.no_check_test:
     print_progress('Check unit tests')
     # Run check test when target is host.

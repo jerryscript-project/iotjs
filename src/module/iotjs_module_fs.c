@@ -456,11 +456,11 @@ JHANDLER_FUNCTION(Rename) {
 JHANDLER_FUNCTION(ReadDir) {
   JHANDLER_CHECK_THIS(object);
   JHANDLER_CHECK_ARGS(1, string);
-  JHANDLER_CHECK_ARG_IF_EXIST(2, function);
+  JHANDLER_CHECK_ARG_IF_EXIST(1, function);
 
   const iotjs_environment_t* env = iotjs_environment_get();
   iotjs_string_t path = JHANDLER_GET_ARG(0, string);
-  const iotjs_jval_t* jcallback = JHANDLER_GET_ARG_IF_EXIST(2, function);
+  const iotjs_jval_t* jcallback = JHANDLER_GET_ARG_IF_EXIST(1, function);
 
   if (jcallback) {
     FS_ASYNC(env, scandir, jcallback, iotjs_string_data(&path), 0);

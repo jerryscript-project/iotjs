@@ -119,6 +119,35 @@ static size_t bound_range(int index, size_t low, size_t upper) {
 }
 
 
+static unsigned hex2bin(char c) {
+  if (c >= '0' && c <= '9')
+    return c - '0';
+  if (c >= 'A' && c <= 'F')
+    return 10 + (c - 'A');
+  if (c >= 'a' && c <= 'f')
+    return 10 + (c - 'a');
+
+  IOTJS_ASSERT(!"Bad argument");
+  return (unsigned)(-1);
+}
+
+
+static size_t hex_decode(char* buf, size_t len, const char* src,
+                         const size_t srcLen) {
+  size_t i;
+
+  for (i = 0; i < len && i * 2 + 1 < srcLen; ++i) {
+    unsigned a = hex2bin(src[i * 2 + 0]);
+    unsigned b = hex2bin(src[i * 2 + 1]);
+    if (!~a || !~b)
+      return i;
+    buf[i] = (a << 4) | b;
+  }
+
+  return i;
+}
+
+
 int iotjs_bufferwrap_compare(const iotjs_bufferwrap_t* bufferwrap,
                              const iotjs_bufferwrap_t* other) {
   const IOTJS_VALIDATED_STRUCT_METHOD(iotjs_bufferwrap_t, bufferwrap);
@@ -279,6 +308,79 @@ JHANDLER_FUNCTION(Write) {
 }
 
 
+JHANDLER_FUNCTION(WriteUInt8) {
+  JHANDLER_CHECK_ARGS(2, number, number);
+
+  uint8_t src = (uint8_t)JHANDLER_GET_ARG(0, number);
+  int offset = JHANDLER_GET_ARG(1, number);
+  int length = 1;
+
+  const iotjs_jval_t* jbuiltin = JHANDLER_GET_THIS(object);
+
+  iotjs_bufferwrap_t* buffer_wrap = iotjs_bufferwrap_from_jbuiltin(jbuiltin);
+
+  size_t buffer_length = iotjs_bufferwrap_length(buffer_wrap);
+  offset = bound_range(offset, 0, buffer_length);
+  length = bound_range(length, 0, buffer_length - offset);
+  length = bound_range(length, 0, 1);
+
+  size_t copied = iotjs_bufferwrap_copy_internal(buffer_wrap, (const char*)&src,
+                                                 0, length, offset);
+
+  iotjs_jhandler_return_number(jhandler, copied);
+}
+
+
+JHANDLER_FUNCTION(HexWrite) {
+  JHANDLER_CHECK_ARGS(3, string, number, number);
+
+  iotjs_string_t src = JHANDLER_GET_ARG(0, string);
+  int offset = JHANDLER_GET_ARG(1, number);
+  int length = JHANDLER_GET_ARG(2, number);
+
+  const iotjs_jval_t* jbuiltin = JHANDLER_GET_THIS(object);
+
+  iotjs_bufferwrap_t* buffer_wrap = iotjs_bufferwrap_from_jbuiltin(jbuiltin);
+
+  size_t buffer_length = iotjs_bufferwrap_length(buffer_wrap);
+  offset = bound_range(offset, 0, buffer_length);
+  length = bound_range(length, 0, buffer_length - offset);
+
+  const char* src_data = iotjs_string_data(&src);
+  unsigned src_length = iotjs_string_size(&src);
+  char* src_buf = iotjs_buffer_allocate(length);
+
+  size_t nbytes = hex_decode(src_buf, length, src_data, src_length);
+
+  size_t copied =
+      iotjs_bufferwrap_copy_internal(buffer_wrap, src_buf, 0, nbytes, offset);
+
+  iotjs_jhandler_return_number(jhandler, copied);
+
+  iotjs_buffer_release(src_buf);
+  iotjs_string_destroy(&src);
+}
+
+
+JHANDLER_FUNCTION(ReadUInt8) {
+  JHANDLER_CHECK_ARGS(1, number);
+
+  int offset = JHANDLER_GET_ARG(0, number);
+  int length = 1;
+
+  const iotjs_jval_t* jbuiltin = JHANDLER_GET_THIS(object);
+
+  iotjs_bufferwrap_t* buffer_wrap = iotjs_bufferwrap_from_jbuiltin(jbuiltin);
+
+  size_t buffer_length = iotjs_bufferwrap_length(buffer_wrap);
+  offset = bound_range(offset, 0, buffer_length);
+
+  char* buffer = iotjs_bufferwrap_buffer(buffer_wrap);
+
+  iotjs_jhandler_return_number(jhandler, (uint8_t)buffer[offset]);
+}
+
+
 JHANDLER_FUNCTION(Slice) {
   JHANDLER_CHECK_ARGS(2, number, number);
 
@@ -372,6 +474,9 @@ iotjs_jval_t InitBuffer() {
   iotjs_jval_set_method(&prototype, "compare", Compare);
   iotjs_jval_set_method(&prototype, "copy", Copy);
   iotjs_jval_set_method(&prototype, "write", Write);
+  iotjs_jval_set_method(&prototype, "hexWrite", HexWrite);
+  iotjs_jval_set_method(&prototype, "writeUInt8", WriteUInt8);
+  iotjs_jval_set_method(&prototype, "readUInt8", ReadUInt8);
   iotjs_jval_set_method(&prototype, "slice", Slice);
   iotjs_jval_set_method(&prototype, "toString", ToString);
 

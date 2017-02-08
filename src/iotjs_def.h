@@ -38,7 +38,7 @@
 #endif
 
 
-#if defined(__ARM__)
+#if defined(__arm__)
 #define TARGET_ARCH "arm"
 #elif defined(__i686__)
 #define TARGET_ARCH "ia32"
@@ -49,11 +49,11 @@
 #endif
 
 
-#if defined(__LINUX__)
+#if defined(__linux__)
 #define TARGET_OS "linux"
 #elif defined(__NUTTX__)
 #define TARGET_OS "nuttx"
-#elif defined(__DARWIN__)
+#elif defined(__APPLE__)
 #define TARGET_OS "darwin"
 #else
 #define TARGET_OS "unknown"

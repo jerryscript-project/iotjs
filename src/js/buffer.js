@@ -208,13 +208,17 @@ Buffer.prototype.slice = function(start, end) {
 };
 
 
-// buff.toString([,start[, end]])
+// buff.toString([encoding,[,start[, end]]])
 // [1] buff.toString()
 // [2] buff.toString(start)
 // [3] buff.toString(start, end)
+// [4] buff.toString('hex')
 // * start - default to 0
 // * end - default to buff.length
 Buffer.prototype.toString = function(start, end) {
+  if (util.isString(start) && start === "hex" && util.isUndefined(end)) {
+      return this._builtin.toHexString();
+  }
   start = util.isUndefined(start) ? 0 : ~~start;
   end = util.isUndefined(end) ? this.length : ~~end;
 
@@ -297,6 +301,18 @@ Buffer.prototype.readUInt16LE = function(offset, noAssert) {
     checkOffset(offset, 2, this.length);
   return this._builtin.readUInt8(offset) |
          (this._builtin.readUInt8(offset + 1) << 8);
+};
+
+
+// buff.fill(value)
+Buffer.prototype.fill = function(value) {
+  if (util.isNumber(value)) {
+    value = value & 255;
+    for (var i = 0; i < this.length; i++) {
+      this._builtin.writeUInt8(value, i);
+    }
+  }
+  return this;
 };
 
 

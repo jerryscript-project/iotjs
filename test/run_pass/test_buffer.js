@@ -118,3 +118,24 @@ assert.equal(buff14.readUInt8(0), 0x01);
 assert.equal(buff14.readUInt8(1), 0xa1);
 assert.equal(buff14.readUInt8(2), 0xfb);
 assert.equal(buff14.readInt8(2), -5);
+assert.equal(buff14.toString('hex'), '01a1fb');
+
+var buff15 = new Buffer('7456a9', 'hex');
+assert.equal(buff15.length, 3);
+assert.equal(buff15.readUInt8(0), 0x74);
+assert.equal(buff15.readUInt8(1), 0x56);
+assert.equal(buff15.readUInt8(2), 0xa9);
+assert.equal(buff15.toString('hex'), '7456a9');
+
+var buff16 = new Buffer(4);
+var ret = buff16.fill(7);
+assert.equal(buff16.readInt8(0), 7);
+assert.equal(buff16.readInt8(1), 7);
+assert.equal(buff16.readInt8(2), 7);
+assert.equal(buff16.readInt8(3), 7);
+assert.equal(buff16, ret);
+buff16.fill(13+1024);
+assert.equal(buff16.readInt8(0), 13);
+assert.equal(buff16.readInt8(1), 13);
+assert.equal(buff16.readInt8(2), 13);
+assert.equal(buff16.readInt8(3), 13);

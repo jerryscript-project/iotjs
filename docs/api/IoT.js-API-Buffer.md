@@ -98,6 +98,11 @@ Returns a number indicating which buffer comes first between `this` and `otherBu
 
 Returns whether `this` and `otherBuffer` have the same bytes.
 
+#### buf.fill(value)
+* `value: Integer` The value to fill `buf` with
+* Return: `Buffer` A reference to buffer
+
+Fills buf with the specified value.
 
 #### buf.slice([start[,end]])
 * `start: Number`, Default: `0
@@ -109,7 +114,8 @@ Returns new buffer containing the same bytes of original buffer cropped by the g
 Copies data from `buf[sourceStart..sourceEnd-1]` to `targetBuffer[targetStart..]`.
 
 
-#### buf.toString([,start[,end]])
+#### buf.toString([encoding,[,start[,end]]])
+* `encoding: String`, The character encoding to decode to. Currently `hex` is supported.
 * `start: Number`, Default: `0`
 * `end: Number`, Default: `buffer.length`
 * Return: `String`

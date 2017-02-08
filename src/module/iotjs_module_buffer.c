@@ -449,6 +449,26 @@ JHANDLER_FUNCTION(ToString) {
 }
 
 
+JHANDLER_FUNCTION(ToHexString) {
+  JHANDLER_CHECK_THIS(object);
+
+  const iotjs_jval_t* jbuiltin = JHANDLER_GET_THIS(object);
+  iotjs_bufferwrap_t* buffer_wrap = iotjs_bufferwrap_from_jbuiltin(jbuiltin);
+
+  int length = iotjs_bufferwrap_length(buffer_wrap);
+  const char* data = iotjs_bufferwrap_buffer(buffer_wrap);
+
+  iotjs_string_t str = iotjs_string_create("");
+  iotjs_string_reserve(&str, length * 2);
+  for (int i = 0; i < length; i++) {
+    iotjs_string_append(&str, &"0123456789abcdef"[data[i] >> 4 & 0xF], 1);
+    iotjs_string_append(&str, &"0123456789abcdef"[data[i] >> 0 & 0xF], 1);
+  }
+  iotjs_jhandler_return_string(jhandler, &str);
+  iotjs_string_destroy(&str);
+}
+
+
 JHANDLER_FUNCTION(ByteLength) {
   JHANDLER_CHECK_THIS(object);
   JHANDLER_CHECK_ARGS(1, string);
@@ -479,6 +499,7 @@ iotjs_jval_t InitBuffer() {
   iotjs_jval_set_method(&prototype, "readUInt8", ReadUInt8);
   iotjs_jval_set_method(&prototype, "slice", Slice);
   iotjs_jval_set_method(&prototype, "toString", ToString);
+  iotjs_jval_set_method(&prototype, "toHexString", ToHexString);
 
   iotjs_jval_destroy(&prototype);
   iotjs_jval_destroy(&byte_length);

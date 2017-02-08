@@ -14,7 +14,7 @@
  */
 
 
-#if defined(__LINUX__)
+#if defined(__linux__)
 
 #include "../iotjs_module_ble-linux-general.inl.h"
 

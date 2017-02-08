@@ -48,7 +48,7 @@ typedef enum {
 
 
 typedef struct {
-#if defined(__LINUX__)
+#if defined(__linux__)
   iotjs_string_t device;
 #elif defined(__NUTTX__)
   uint32_t device;

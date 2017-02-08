@@ -13,34 +13,10 @@
  * limitations under the License.
  */
 
-#if defined(__NUTTX__)
 
+#if defined(__linux__)
 
-#include "module/iotjs_module_ble.h"
+#include "iotjs_def.h"
+#include "../iotjs_module_blehcisocket-linux-general.inl.h"
 
-
-void InitWorker(uv_work_t* work_req) {
-  IOTJS_ASSERT(!"Not implemented");
-}
-
-
-void StartAdvertisingWorker(uv_work_t* work_req) {
-  IOTJS_ASSERT(!"Not implemented");
-}
-
-
-void StopAdvertisingWorker(uv_work_t* work_req) {
-  IOTJS_ASSERT(!"Not implemented");
-}
-
-
-void SetServicesWorker(uv_work_t* work_req) {
-  IOTJS_ASSERT(!"Not implemented");
-}
-
-
-void RunBleLoopWorker(uv_work_t* work_req) {
-  IOTJS_ASSERT(!"Not implemented");
-}
-
-#endif // __NUTTX__
+#endif

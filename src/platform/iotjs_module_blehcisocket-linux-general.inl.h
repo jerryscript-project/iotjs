@@ -1,0 +1,100 @@
+/* Copyright 2017-present Samsung Electronics Co., Ltd. and other contributors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#ifndef IOTJS_MODULE_BLE_HCI_SOCKET_LINUX_GENERAL_INL_H
+#define IOTJS_MODULE_BLE_HCI_SOCKET_LINUX_GENERAL_INL_H
+
+
+#include <sys/ioctl.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <unistd.h>
+
+#include "iotjs_def.h"
+#include "module/iotjs_module_blehcisocket.h"
+
+#define THIS iotjs_blehcisocket_t* blehcisocket
+
+
+void iotjs_blehcisocket_initialize(THIS) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_blehcisocket_t, blehcisocket);
+}
+
+
+void iotjs_blehcisocket_start(THIS) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_blehcisocket_t, blehcisocket);
+
+  // _this->_devId;
+}
+
+
+void iotjs_blehcisocket_bindRaw(THIS, int* devId) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_blehcisocket_t, blehcisocket);
+}
+
+
+void iotjs_blehcisocket_bindUser(THIS, int* devId) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_blehcisocket_t, blehcisocket);
+}
+
+
+void iotjs_blehcisocket_bindControl(THIS) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_blehcisocket_t, blehcisocket);
+}
+
+
+void iotjs_blehcisocket_isDevUp(THIS) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_blehcisocket_t, blehcisocket);
+}
+
+
+void iotjs_blehcisocket_setFilter(THIS, char* data, int length) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_blehcisocket_t, blehcisocket);
+}
+
+
+void iotjs_blehcisocket_poll(THIS) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_blehcisocket_t, blehcisocket);
+}
+
+
+void iotjs_blehcisocket_stop(THIS) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_blehcisocket_t, blehcisocket);
+}
+
+
+void iotjs_blehcisocket_write(THIS, char* data, int length) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_blehcisocket_t, blehcisocket);
+}
+
+
+void iotjs_blehcisocket_emitErrnoError(THIS) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_blehcisocket_t, blehcisocket);
+}
+
+
+void iotjs_blehcisocket_devIdFor(THIS) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_blehcisocket_t, blehcisocket);
+}
+
+
+void iotjs_blehcisocket_kernelDisconnectWorkArounds(THIS) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_blehcisocket_t, blehcisocket);
+}
+
+
+#undef THIS
+
+#endif /* IOTJS_MODULE_BLE_HCI_SOCKET_LINUX_GENERAL_INL_H */

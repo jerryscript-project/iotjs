@@ -33,25 +33,25 @@ typedef iotjs_jval_t (*register_func)();
   IF(ENABLE_MODULE_##UPPER)(F(UPPER, Camel, lower))
 
 // List of builtin modules
-#define MAP_MODULE_LIST(F)                 \
-  E(F, ADC, Adc, adc)                      \
-  E(F, BLE, Ble, ble)                      \
-  E(F, BUFFER, Buffer, buffer)             \
-  E(F, CONSOLE, Console, console)          \
-  E(F, CONSTANTS, Constants, constants)    \
-  E(F, DNS, Dns, dns)                      \
-  E(F, FS, Fs, fs)                         \
-  E(F, GPIO, Gpio, gpio)                   \
-  E(F, HTTPPARSER, Httpparser, httpparser) \
-  E(F, I2C, I2c, i2c)                      \
-  E(F, PROCESS, Process, process)          \
-  E(F, PWM, Pwm, pwm)                      \
-  E(F, SPI, Spi, spi)                      \
-  E(F, STM32F4DIS, Stm32f4dis, stm32f4dis) \
-  E(F, TESTDRIVER, Testdriver, testdriver) \
-  E(F, TCP, Tcp, tcp)                      \
-  E(F, TIMER, Timer, timer)                \
-  E(F, UART, Uart, uart)                   \
+#define MAP_MODULE_LIST(F)                       \
+  E(F, ADC, Adc, adc)                            \
+  E(F, BLEHCISOCKET, Blehcisocket, blehcisocket) \
+  E(F, BUFFER, Buffer, buffer)                   \
+  E(F, CONSOLE, Console, console)                \
+  E(F, CONSTANTS, Constants, constants)          \
+  E(F, DNS, Dns, dns)                            \
+  E(F, FS, Fs, fs)                               \
+  E(F, GPIO, Gpio, gpio)                         \
+  E(F, HTTPPARSER, Httpparser, httpparser)       \
+  E(F, I2C, I2c, i2c)                            \
+  E(F, PROCESS, Process, process)                \
+  E(F, PWM, Pwm, pwm)                            \
+  E(F, SPI, Spi, spi)                            \
+  E(F, STM32F4DIS, Stm32f4dis, stm32f4dis)       \
+  E(F, TESTDRIVER, Testdriver, testdriver)       \
+  E(F, TCP, Tcp, tcp)                            \
+  E(F, TIMER, Timer, timer)                      \
+  E(F, UART, Uart, uart)                         \
   E(F, UDP, Udp, udp)
 
 #define ENUMDEF_MODULE_LIST(upper, Camel, lower) MODULE_##upper,

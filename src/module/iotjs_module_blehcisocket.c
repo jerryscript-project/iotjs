@@ -13,9 +13,30 @@
  * limitations under the License.
  */
 
+/* Copyright (C) 2015 Sandeep Mistry sandeep.mistry@gmail.com
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
 
 #include "iotjs_def.h"
 #include "iotjs_module_blehcisocket.h"
+#include "iotjs_module_buffer.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -34,8 +55,6 @@ iotjs_blehcisocket_t* iotjs_blehcisocket_create(const iotjs_jval_t* jble) {
   iotjs_jobjectwrap_initialize(&_this->jobjectwrap, jble,
                                (JFreeHandlerType)iotjs_blehcisocket_destroy);
 
-  // initialize
-
   iotjs_blehcisocket_initialize(blehcisocket);
 
   return blehcisocket;
@@ -50,6 +69,8 @@ iotjs_blehcisocket_t* iotjs_blehcisocket_instance_from_jval(
 
 
 static void iotjs_blehcisocket_destroy(THIS) {
+  iotjs_blehcisocket_close(blehcisocket);
+
   IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_blehcisocket_t, blehcisocket);
   iotjs_jobjectwrap_destroy(&_this->jobjectwrap);
   IOTJS_RELEASE(blehcisocket);
@@ -58,7 +79,7 @@ static void iotjs_blehcisocket_destroy(THIS) {
 
 JHANDLER_FUNCTION(Start) {
   JHANDLER_CHECK_THIS(object);
-  // JHANDLER_CHECK_ARGS(1, number);
+  JHANDLER_CHECK_ARGS(0);
 
   const iotjs_jval_t* jblehcisocket = JHANDLER_GET_THIS(object);
 
@@ -67,7 +88,7 @@ JHANDLER_FUNCTION(Start) {
 
   iotjs_blehcisocket_start(blehcisocket);
 
-  // iotjs_jhandler_return_null(jhandler);
+  iotjs_jhandler_return_undefined(jhandler);
 }
 
 
@@ -97,22 +118,25 @@ JHANDLER_FUNCTION(BindRaw) {
 
 JHANDLER_FUNCTION(BindUser) {
   JHANDLER_CHECK_THIS(object);
-  // JHANDLER_CHECK_ARGS(1, number);
+  JHANDLER_CHECK_ARGS(1, number);
 
   const iotjs_jval_t* jblehcisocket = JHANDLER_GET_THIS(object);
 
   iotjs_blehcisocket_t* blehcisocket =
       iotjs_blehcisocket_instance_from_jval(jblehcisocket);
 
-  iotjs_blehcisocket_bindUser(blehcisocket, 0);
+  int devId = JHANDLER_GET_ARG(0, number);
+  int* pDevId = &devId;
 
-  // iotjs_jhandler_return_null(jhandler);
+  int ret = iotjs_blehcisocket_bindUser(blehcisocket, pDevId);
+
+  iotjs_jhandler_return_number(jhandler, ret);
 }
 
 
 JHANDLER_FUNCTION(BindControl) {
   JHANDLER_CHECK_THIS(object);
-  // JHANDLER_CHECK_ARGS(1, number);
+  JHANDLER_CHECK_ARGS(0);
 
   const iotjs_jval_t* jblehcisocket = JHANDLER_GET_THIS(object);
 
@@ -121,43 +145,45 @@ JHANDLER_FUNCTION(BindControl) {
 
   iotjs_blehcisocket_bindControl(blehcisocket);
 
-  // iotjs_jhandler_return_null(jhandler);
+  iotjs_jhandler_return_undefined(jhandler);
 }
 
 
 JHANDLER_FUNCTION(IsDevUp) {
   JHANDLER_CHECK_THIS(object);
-  // JHANDLER_CHECK_ARGS(1, number);
+  JHANDLER_CHECK_ARGS(0);
 
   const iotjs_jval_t* jblehcisocket = JHANDLER_GET_THIS(object);
 
   iotjs_blehcisocket_t* blehcisocket =
       iotjs_blehcisocket_instance_from_jval(jblehcisocket);
 
-  iotjs_blehcisocket_isDevUp(blehcisocket);
+  bool ret = iotjs_blehcisocket_isDevUp(blehcisocket);
 
-  // iotjs_jhandler_return_null(jhandler);
+  iotjs_jhandler_return_boolean(jhandler, ret);
 }
 
 
 JHANDLER_FUNCTION(SetFilter) {
   JHANDLER_CHECK_THIS(object);
-  // JHANDLER_CHECK_ARGS(1, number);
+  JHANDLER_CHECK_ARGS(1, object);
 
   const iotjs_jval_t* jblehcisocket = JHANDLER_GET_THIS(object);
-
   iotjs_blehcisocket_t* blehcisocket =
       iotjs_blehcisocket_instance_from_jval(jblehcisocket);
+  iotjs_bufferwrap_t* buffer =
+      iotjs_bufferwrap_from_jbuffer(JHANDLER_GET_ARG(0, object));
 
-  iotjs_blehcisocket_setFilter(blehcisocket, 0, 0);
+  iotjs_blehcisocket_setFilter(blehcisocket, iotjs_bufferwrap_buffer(buffer),
+                               iotjs_bufferwrap_length(buffer));
 
-  // iotjs_jhandler_return_null(jhandler);
+  iotjs_jhandler_return_undefined(jhandler);
 }
 
 
 JHANDLER_FUNCTION(Stop) {
   JHANDLER_CHECK_THIS(object);
-  // JHANDLER_CHECK_ARGS(1, number);
+  JHANDLER_CHECK_ARGS(0);
 
   const iotjs_jval_t* jblehcisocket = JHANDLER_GET_THIS(object);
 
@@ -166,27 +192,30 @@ JHANDLER_FUNCTION(Stop) {
 
   iotjs_blehcisocket_stop(blehcisocket);
 
-  // iotjs_jhandler_return_null(jhandler);
+  iotjs_jhandler_return_undefined(jhandler);
 }
 
 
 JHANDLER_FUNCTION(Write) {
   JHANDLER_CHECK_THIS(object);
-  // JHANDLER_CHECK_ARGS(1, number);
+  JHANDLER_CHECK_ARGS(1, object);
 
   const iotjs_jval_t* jblehcisocket = JHANDLER_GET_THIS(object);
-
   iotjs_blehcisocket_t* blehcisocket =
       iotjs_blehcisocket_instance_from_jval(jblehcisocket);
+  iotjs_bufferwrap_t* buffer =
+      iotjs_bufferwrap_from_jbuffer(JHANDLER_GET_ARG(0, object));
 
-  iotjs_blehcisocket_write(blehcisocket, 0, 0);
+  iotjs_blehcisocket_write(blehcisocket, iotjs_bufferwrap_buffer(buffer),
+                           iotjs_bufferwrap_length(buffer));
 
-  // iotjs_jhandler_return_null(jhandler);
+  iotjs_jhandler_return_undefined(jhandler);
 }
+
 
 JHANDLER_FUNCTION(BleHciSocketCons) {
   JHANDLER_CHECK_THIS(object);
-  // JHANDLER_CHECK_ARGS(1, number);
+  JHANDLER_CHECK_ARGS(0);
 
   // Create object
   const iotjs_jval_t* jblehcisocket = JHANDLER_GET_THIS(object);

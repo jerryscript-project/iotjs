@@ -91,6 +91,7 @@ function testsets() {
         'assert_fail1.js',
         'assert_fail2.js',
         'assert_fail3.js',
+        'fs_callbacks_called.js',
         'process_exit1.js',
         'process_exit2.js',
         'process_exitcode1.js',

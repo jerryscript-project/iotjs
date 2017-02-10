@@ -218,6 +218,8 @@ Driver.prototype.finish = function() {
   if (this.results.fail > 0 || this.results.timeout > 0) {
     originalExit(1);
   }
+
+  originalExit(0);
 };
 
 var driver = new Driver();
@@ -227,6 +229,7 @@ process.exit = function(code) {
   // this function is called when the following happens.
   // 1. the test case is finished normally.
   // 2. assertion inside the callback function is failed.
+  var should_fail = driver.runner.attr.fail;
   try {
     process.emitExit(code);
   } catch(e) {
@@ -234,7 +237,7 @@ process.exit = function(code) {
     // this procedure is executed.
     process.removeAllListeners('exit');
 
-    if (driver.runner.attr.fail) {
+    if (should_fail) {
       driver.runner.finish('pass');
     } else {
       console.error(e);
@@ -243,7 +246,9 @@ process.exit = function(code) {
   } finally {
     process.removeAllListeners('exit');
 
-    if (code != 0) {
+    if (code != 0 && !should_fail) {
+      driver.runner.finish('fail');
+    } else if (code == 0 && should_fail) {
       driver.runner.finish('fail');
     } else {
       driver.runner.finish('pass');

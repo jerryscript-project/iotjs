@@ -266,7 +266,8 @@ def js2c(buildtype, no_snapshot, js_modules, js_dumper):
     fout_c.write(FOOTER2)
 
     global MAGIC_STRING_SET
-    for idx, magic_string in enumerate(sorted(MAGIC_STRING_SET)):
+    sorted_magic_strings = sorted(MAGIC_STRING_SET, key=lambda x: (len(x), x))
+    for idx, magic_string in enumerate(sorted_magic_strings):
         if not isinstance(magic_string, str):
             magic = magic_string.decode('utf-8')
         else:

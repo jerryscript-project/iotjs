@@ -73,16 +73,25 @@ JHANDLER_FUNCTION(Start) {
 
 JHANDLER_FUNCTION(BindRaw) {
   JHANDLER_CHECK_THIS(object);
-  // JHANDLER_CHECK_ARGS(1, number);
+  JHANDLER_CHECK(ge(iotjs_jhandler_get_arg_length(jhandler), 1));
 
   const iotjs_jval_t* jblehcisocket = JHANDLER_GET_THIS(object);
 
   iotjs_blehcisocket_t* blehcisocket =
       iotjs_blehcisocket_instance_from_jval(jblehcisocket);
 
-  iotjs_blehcisocket_bindRaw(blehcisocket, 0);
+  int devId = 0;
+  int* pDevId = NULL;
 
-  // iotjs_jhandler_return_null(jhandler);
+  const iotjs_jval_t* raw = iotjs_jhandler_get_arg(jhandler, 0);
+  if (iotjs_jval_is_number(raw)) {
+    devId = iotjs_jval_as_number(raw);
+    pDevId = &devId;
+  }
+
+  int ret = iotjs_blehcisocket_bindRaw(blehcisocket, pDevId);
+
+  iotjs_jhandler_return_number(jhandler, ret);
 }
 
 

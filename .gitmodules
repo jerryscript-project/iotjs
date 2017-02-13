@@ -6,4 +6,5 @@
 	url = https://github.com/Samsung/http-parser.git
 [submodule "deps/libtuv"]
 	path = deps/libtuv
-	url = https://github.com/Samsung/libtuv.git
+	url = https://github.com/pmarcinkiew/libtuv.git
+	branch = rpi2_build

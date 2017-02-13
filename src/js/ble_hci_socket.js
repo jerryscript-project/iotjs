@@ -36,7 +36,7 @@
 
 var events = require('events');
 
-var BluetoothHciSocket= process.binding(process.binding.ble_hci_socket);
+var BluetoothHciSocket= process.binding(process.binding.blehcisocket);
 
 inherits(BluetoothHciSocket, events.EventEmitter);
 

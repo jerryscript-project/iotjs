@@ -185,7 +185,7 @@ iotjs_module_t.prototype.compile = function() {
 
   var source = process.readSource(self.filename);
   var fn = process.compile(source);
-  fn.call(self, self.exports, requireForThis, self);
+  fn.call(self.exports, self.exports, requireForThis, self);
 };
 
 

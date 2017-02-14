@@ -87,7 +87,7 @@ def init_option():
                         default=platform.arch())
 
     parser.add_argument('--target-os',
-                        choices=['linux', 'darwin', 'osx', 'nuttx'],
+                        choices=['linux', 'darwin', 'osx', 'nuttx', 'tizen'],
                         default=platform.os())
 
     parser.add_argument('--target-board', default='')
@@ -462,7 +462,7 @@ def build_libjerry(option):
         if option.target_arch == 'arm':
             cmake_opt.append('-DEXTERNAL_CMAKE_SYSTEM_PROCESSOR=arm')
 
-    if option.target_os == 'linux':
+    if option.target_os == 'linux' or option.target_os == 'tizen':
         cmake_opt.append('-DJERRY_LIBC=OFF')
         cmake_opt.append('-DJERRY_LIBM=OFF')
 
@@ -550,7 +550,7 @@ def build_libhttpparser(option):
     if option.target_os == 'nuttx':
         cmake_opt.append('-DNUTTX_HOME=' + option.nuttx_home)
         cmake_opt.append('-DOS=NUTTX')
-    if option.target_os == 'linux':
+    if option.target_os == 'linux' or option.target_os == 'tizen':
         cmake_opt.append('-DOS=LINUX')
 
     # inflate cmake option.

@@ -24,6 +24,7 @@ var TCP = process.binding(process.binding.tcp);
 
 function createTCP() {
   var tcp = new TCP();
+
   return tcp;
 }
 
@@ -107,11 +108,9 @@ Socket.prototype.connect = function() {
     hints: 0
   };
 
-  if (!util.isNumber(port) || port < 0 || port > 65535)
-    throw new RangeError('port should be >= 0 and < 65536: ' + options.port);
+  if (!util.isNumber(port) || port < 0 || port > 65535)    {throw new RangeError('port should be >= 0 and < 65536: ' + options.port);}
 
-  if (dnsopts.family !== 0 && dnsopts.family !== 4 && dnsopts.family !== 6)
-    throw new RangeError('port should be 4 or 6: ' + dnsopts.family);
+  if (dnsopts.family !== 0 && dnsopts.family !== 4 && dnsopts.family !== 6)    {throw new RangeError('port should be 4 or 6: ' + dnsopts.family);}
 
   self._host = host;
   dns.lookup(host, dnsopts, function(err, ip, family) {
@@ -212,7 +211,7 @@ Socket.prototype.destroySoon = function() {
   } else {
     self.once('finish', self.destroy);
   }
-}
+};
 
 
 Socket.prototype.setKeepAlive = function(enable, delay) {
@@ -231,9 +230,10 @@ Socket.prototype.address = function() {
   if (!this._sockname) {
     var out = {};
     var err = this._handle.getsockname(out);
-    if (err) return {};  // FIXME(bnoordhuis) Throw?
+    if (err) {return {};}  // FIXME(bnoordhuis) Throw?
     this._sockname = out;
   }
+
   return this._sockname;
 };
 
@@ -310,7 +310,7 @@ function resetSocketTimeout(socket) {
       clearSocketTimeout(socket);
     }, socket._timeout);
   }
-};
+}
 
 
 function clearSocketTimeout(socket) {
@@ -318,7 +318,7 @@ function clearSocketTimeout(socket) {
     clearTimeout(socket._timer);
     socket._timer = null;
   }
-};
+}
 
 
 function emitError(socket, err) {
@@ -377,6 +377,7 @@ function onread(socket, nread, isEOF, buffer) {
   } else if (nread > 0) {
     if (process.platform  != 'nuttx') {
       stream.Readable.prototype.push.call(socket, buffer);
+
       return;
     }
 
@@ -411,7 +412,7 @@ function onSocketFinish() {
     return self.destroy();
   } else {
     // Readable stream alive, shutdown only outgoing stream.
-    var err = self._handle.shutdown(function() {
+    self._handle.shutdown(function() {
       if (self._readableState.ended) {
         self.destroy();
       }
@@ -430,7 +431,6 @@ function onSocketEnd() {
     this.destroySoon();
   }
 }
-
 
 
 function Server(options, connectionListener) {
@@ -473,6 +473,7 @@ Server.prototype.listen = function() {
   var port = options.port;
   var host = util.isString(options.host) ? options.host : '0.0.0.0';
   var backlog = util.isNumber(options.backlog) ? options.backlog : 511;
+  var err;
 
   if (!util.isNumber(port)) {
     throw new Error('invalid argument - need port number');
@@ -489,9 +490,10 @@ Server.prototype.listen = function() {
   }
 
   // bind port
-  var err = self._handle.bind(host, port);
+  err = self._handle.bind(host, port);
   if (err) {
     self._handle.close();
+
     return err;
   }
 
@@ -500,10 +502,11 @@ Server.prototype.listen = function() {
   self._handle.createTCP = createTCP;
   self._handle.owner = self;
 
-  var err = self._handle.listen(backlog);
+  err = self._handle.listen(backlog);
 
   if (err) {
     self._handle.close();
+
     return err;
   }
 
@@ -519,7 +522,9 @@ Server.prototype.address = function() {
   if (this._handle && this._handle.getsockname) {
     var out = {};
     this._handle.getsockname(out);
+
     // TODO(bnoordhuis) Check err and throw?
+
     return out;
   }
 
@@ -542,6 +547,7 @@ Server.prototype.close = function(callback) {
     this._handle = null;
   }
   this._emitCloseIfDrained();
+
   return this;
 };
 
@@ -571,6 +577,7 @@ function onconnection(status, clientHandle) {
 
   if (status) {
     server.emit('error', new Error('accept error: ' + status));
+
     return;
   }
 
@@ -639,6 +646,7 @@ exports.createServer = function(options, callback) {
 exports.connect = exports.createConnection = function() {
   var args = normalizeConnectArgs(arguments);
   var socket = new Socket(args[0]);
+
   return Socket.prototype.connect.apply(socket, args);
 };
 

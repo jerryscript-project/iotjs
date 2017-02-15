@@ -19,18 +19,14 @@ var util = require('util');
 
 
 function checkInt(buffer, value, offset, ext, max, min) {
-  if (!(buffer instanceof Buffer))
-    throw new TypeError('buffer must be a Buffer instance');
-  if (value > max || value < min)
-    throw new TypeError('value is out of bounds');
-  if (offset + ext > buffer.length)
-    throw new RangeError('index out of range');
+  if (!(buffer instanceof Buffer))    {throw new TypeError('buffer must be a Buffer instance');}
+  if (value > max || value < min)    {throw new TypeError('value is out of bounds');}
+  if (offset + ext > buffer.length)    {throw new RangeError('index out of range');}
 }
 
 
 function checkOffset(offset, ext, length) {
-  if (offset + ext > length)
-    throw new RangeError('index out of range');
+  if (offset + ext > length)    {throw new RangeError('index out of range');}
 }
 
 
@@ -60,13 +56,13 @@ function Buffer(subject, encoding) {
   if (util.isString(subject)) {
     if (!util.isUndefined(encoding) && util.isString(encoding)) {
       switch (encoding) {
-        case 'hex':
-          if (this._builtin.hexWrite(subject, 0, this.length) != this.length) {
-            throw new TypeError('Invalid hex string');
-          }
-          break;
-        default:
-          this.write(subject);
+      case 'hex':
+        if (this._builtin.hexWrite(subject, 0, this.length) != this.length) {
+          throw new TypeError('Invalid hex string');
+        }
+        break;
+      default:
+        this.write(subject);
       }
     } else {
       this.write(subject);
@@ -87,10 +83,11 @@ Buffer.byteLength = function(str, encoding) {
 
   if (!util.isUndefined(encoding) && util.isString(encoding)) {
     switch (encoding) {
-      case 'hex':
-        return len >>> 1;
+    case 'hex':
+      return len >>> 1;
     }
   }
+
   return len;
 };
 
@@ -102,7 +99,8 @@ Buffer.concat = function(list) {
   }
 
   var length = 0;
-  for (var i = 0; i < list.length; ++i) {
+  var i;
+  for (i = 0; i < list.length; ++i) {
     if (!util.isBuffer(list[i])) {
       throw new TypeError('Bad arguments: Buffer.concat([Buffer])');
     }
@@ -111,7 +109,7 @@ Buffer.concat = function(list) {
 
   var buffer = new Buffer(length);
   var pos = 0;
-  for (var i = 0; i < list.length; ++i) {
+  for (i = 0; i < list.length; ++i) {
     list[i].copy(buffer, pos);
     pos += list[i].length;
   }
@@ -216,8 +214,8 @@ Buffer.prototype.slice = function(start, end) {
 // * start - default to 0
 // * end - default to buff.length
 Buffer.prototype.toString = function(start, end) {
-  if (util.isString(start) && start === "hex" && util.isUndefined(end)) {
-      return this._builtin.toHexString();
+  if (util.isString(start) && start === 'hex' && util.isUndefined(end)) {
+    return this._builtin.toHexString();
   }
   start = util.isUndefined(start) ? 0 : ~~start;
   end = util.isUndefined(end) ? this.length : ~~end;
@@ -232,9 +230,9 @@ Buffer.prototype.toString = function(start, end) {
 Buffer.prototype.writeUInt8 = function(value, offset, noAssert) {
   value = +value;
   offset = offset >>> 0;
-  if (!noAssert)
-    checkInt(this, value, offset, 1, 0xff, 0);
+  if (!noAssert)    {checkInt(this, value, offset, 1, 0xff, 0);}
   this._builtin.writeUInt8(value & 0xff, offset);
+
   return offset + 1;
 };
 
@@ -245,10 +243,10 @@ Buffer.prototype.writeUInt8 = function(value, offset, noAssert) {
 Buffer.prototype.writeUInt16LE = function(value, offset, noAssert) {
   value = +value;
   offset = offset >>> 0;
-  if (!noAssert)
-    checkInt(this, value, offset, 2, 0xffff, 0);
+  if (!noAssert)    {checkInt(this, value, offset, 2, 0xffff, 0);}
   this._builtin.writeUInt8(value & 0xff, offset);
   this._builtin.writeUInt8((value >>> 8) & 0xff, offset + 1);
+
   return offset + 2;
 };
 
@@ -259,12 +257,12 @@ Buffer.prototype.writeUInt16LE = function(value, offset, noAssert) {
 Buffer.prototype.writeUInt32LE = function(value, offset, noAssert) {
   value = +value;
   offset = offset >>> 0;
-  if (!noAssert)
-    checkInt(this, value, offset, 4, 0xffffffff, 0);
+  if (!noAssert)    {checkInt(this, value, offset, 4, 0xffffffff, 0);}
   this._builtin.writeUInt8((value >>> 24) & 0xff, offset + 3);
   this._builtin.writeUInt8((value >>> 16) & 0xff, offset + 2);
   this._builtin.writeUInt8((value >>> 8) & 0xff, offset + 1);
   this._builtin.writeUInt8(value & 0xff, offset);
+
   return offset + 4;
 };
 
@@ -274,8 +272,8 @@ Buffer.prototype.writeUInt32LE = function(value, offset, noAssert) {
 // [2] buff.readUInt8(offset, noAssert)
 Buffer.prototype.readUInt8 = function(offset, noAssert) {
   offset = offset >>> 0;
-  if (!noAssert)
-    checkOffset(offset, 1, this.length);
+  if (!noAssert)    {checkOffset(offset, 1, this.length);}
+
   return this._builtin.readUInt8(offset);
 };
 
@@ -285,9 +283,9 @@ Buffer.prototype.readUInt8 = function(offset, noAssert) {
 // [2] buff.readInt8(offset, noAssert)
 Buffer.prototype.readInt8 = function(offset, noAssert) {
   offset = offset >>> 0;
-  if (!noAssert)
-    checkOffset(offset, 1, this.length);
+  if (!noAssert)    {checkOffset(offset, 1, this.length);}
   var val = this._builtin.readUInt8(offset);
+
   return !(val & 0x80) ? val : (0xff - val + 1) * -1;
 };
 
@@ -297,8 +295,8 @@ Buffer.prototype.readInt8 = function(offset, noAssert) {
 // [2] buff.readUInt16LE(offset, noAssert)
 Buffer.prototype.readUInt16LE = function(offset, noAssert) {
   offset = offset >>> 0;
-  if (!noAssert)
-    checkOffset(offset, 2, this.length);
+  if (!noAssert)    {checkOffset(offset, 2, this.length);}
+
   return this._builtin.readUInt8(offset) |
          (this._builtin.readUInt8(offset + 1) << 8);
 };
@@ -312,6 +310,7 @@ Buffer.prototype.fill = function(value) {
       this._builtin.writeUInt8(value, i);
     }
   }
+
   return this;
 };
 

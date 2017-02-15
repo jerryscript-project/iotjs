@@ -36,9 +36,6 @@
 
 var debug = console.log; // requir('debug')('ble_mgmt');
 
-var events = require('events');
-var util = require('util');
-
 var BluetoothHciSocket = require('ble_hci_socket');
 
 var LTK_INFO_SIZE = 36;

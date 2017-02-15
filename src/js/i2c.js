@@ -87,10 +87,9 @@ function I2C(address, options, callback) {
 
   this.open(this.options.device, (function(_this) {
     return function(err) {
-      if(!err) {
+      if (!err) {
         return _this.setAddress(_this.address, callback);
-      }
-      else {
+      }      else {
         throw err;
       }
     };
@@ -105,9 +104,10 @@ I2C.prototype.scan = function(callback) {
   return this._i2c.scan(function(err, data) {
     return process.nextTick(function() {
       var result = [];
-      for(var i = 0; i < data.length; i++) {
-        if(data[i] == 1) result.push(i);
+      for (var i = 0; i < data.length; i++) {
+        if (data[i] == 1) {result.push(i);}
       }
+
       return callback(err, result);
     });
   });
@@ -137,6 +137,7 @@ I2C.prototype.close = function() {
 
 I2C.prototype.write = function(array, callback) {
   this.setAddress(this.address);
+
   return this._i2c.write(array, function(err) {
     return process.nextTick(function() {
       return callback(err);
@@ -146,6 +147,7 @@ I2C.prototype.write = function(array, callback) {
 
 I2C.prototype.writeByte = function(byte, callback) {
   this.setAddress(this.address);
+
   return this._i2c.writeByte(byte, function(err) {
     return process.nextTick(function() {
       return callback(err);
@@ -155,6 +157,7 @@ I2C.prototype.writeByte = function(byte, callback) {
 
 I2C.prototype.writeBytes = function(cmd, array, callback) {
   this.setAddress(this.address);
+
   return this._i2c.writeBlock(cmd, array, function(err) {
     return process.nextTick(function() {
       return callback(err);
@@ -164,6 +167,7 @@ I2C.prototype.writeBytes = function(cmd, array, callback) {
 
 I2C.prototype.read = function(len, callback) {
   this.setAddress(this.address);
+
   return this._i2c.read(len, function(err, data) {
     return process.nextTick(function() {
       return callback(err, data);
@@ -173,6 +177,7 @@ I2C.prototype.read = function(len, callback) {
 
 I2C.prototype.readByte = function(callback) {
   this.setAddress(this.address);
+
   return this._i2c.readByte(function(err, data) {
     return process.nextTick(function() {
       return callback(err, data);
@@ -182,6 +187,7 @@ I2C.prototype.readByte = function(callback) {
 
 I2C.prototype.readBytes = function(cmd, len, callback) {
   this.setAddress(this.address);
+
   return this._i2c.readBlock(cmd, len, 0, function(err, resArray) {
     return process.nextTick(function() {
       return callback(err, resArray);

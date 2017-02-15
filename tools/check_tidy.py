@@ -152,7 +152,7 @@ def check_tidy(src_dir):
     allowed_exts = ['.c', '.h', '.js', '.py', '.sh', '.cmake']
     allowed_files = ['CMakeLists.txt']
     clang_format_exts = ['.c', '.h']
-    skip_dirs = ['deps', 'build', '.git']
+    skip_dirs = ['deps', 'build', '.git', 'node_modules']
     skip_files = ['check_signed_off.sh', '__init__.py',
                   'iotjs_js.c', 'iotjs_js.h', 'iotjs_string_ext.inl.h',
                   'ble.js',
@@ -165,6 +165,7 @@ def check_tidy(src_dir):
                   'ble_hci_socket_bindings.js',
                   'ble_characteristic.js',
                   'test_ble_setservices.js',
+                  '.eslintrc.js',
                   ]
 
     style = StyleChecker()

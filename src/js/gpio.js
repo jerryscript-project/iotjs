@@ -16,11 +16,6 @@
 var gpio = process.binding(process.binding.gpio);
 var eventEmiter = require('events').EventEmitter;
 var util = require('util');
-var assert  = require('assert');
-
-
-var dev_open = false;
-
 
 function GpioError(code, operation, message) {
   this.name = 'GpioError';
@@ -31,22 +26,22 @@ function GpioError(code, operation, message) {
 
 util.inherits(GpioError, Error);
 
-
 function CreateGpioError(operation, errno) {
   if (errno == 0) {
     return null;
   }
 
   switch (errno) {
-    case gpio.kGpioErrInitialize:
-      return new GpioError(errno, operation, 'Failed to initialize GPIO');
-    case gpio.kGpioErrNotInitialized:
-      return new GpioError(errno, operation, 'GPIO not initialized');
-    case gpio.kGpioErrWrongUse:
-      return new GpioError(errno, operation, 'Wrong use of GPIO API');
-    case gpio.kGpioErrSys:
-      return new GpioError(errno, operation, 'System error');
+  case gpio.kGpioErrInitialize:
+    return new GpioError(errno, operation, 'Failed to initialize GPIO');
+  case gpio.kGpioErrNotInitialized:
+    return new GpioError(errno, operation, 'GPIO not initialized');
+  case gpio.kGpioErrWrongUse:
+    return new GpioError(errno, operation, 'Wrong use of GPIO API');
+  case gpio.kGpioErrSys:
+    return new GpioError(errno, operation, 'System error');
   }
+
   return new GpioError(errno, operation, 'Unknown error');
 }
 
@@ -290,9 +285,9 @@ GPIO.prototype.read = function(pinNumber, callback) {
 
 function convertDirection(direction) {
   switch (direction) {
-    case 'in': return gpio.kGpioDirectionIn;
-    case 'out': return gpio.kGpioDirectionOut;
-    case 'none': return gpio.kGpioDirectionNone;
+  case 'in': return gpio.kGpioDirectionIn;
+  case 'out': return gpio.kGpioDirectionOut;
+  case 'none': return gpio.kGpioDirectionNone;
   }
   throw new TypeError('Bad arguments - direction');
 }
@@ -300,13 +295,13 @@ function convertDirection(direction) {
 
 function convertMode(mode) {
   switch (mode) {
-    case 'pullup': return gpio.kGpioModePullup;
-    case 'pulldn':
-    case 'pulldown': return gpio.kGpioModePulldown;
-    case 'float': return gpio.kGpioModeFloat;
-    case 'pushpull': return gpio.kGpioModePushpull;
-    case 'opendrain': return gpio.kGpioModeOpendrain;
-    case 'none': return gpio.kGpioModeNone;
+  case 'pullup': return gpio.kGpioModePullup;
+  case 'pulldn':
+  case 'pulldown': return gpio.kGpioModePulldown;
+  case 'float': return gpio.kGpioModeFloat;
+  case 'pushpull': return gpio.kGpioModePushpull;
+  case 'opendrain': return gpio.kGpioModeOpendrain;
+  case 'none': return gpio.kGpioModeNone;
   }
   throw new TypeError('bad arguments - mode');
 }

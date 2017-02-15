@@ -34,13 +34,12 @@
  * SOFTWARE.
  */
 
-/*jshint loopfunc: true */
-
 var debug = console.log; //requir('debug')('ble_hci_socket_gatt');
 
 var events = require('events');
 var util = require('util');
 
+/* eslint-disable no-unused-vars */
 var ATT_OP_ERROR                    = 0x01;
 var ATT_OP_MTU_REQ                  = 0x02;
 var ATT_OP_MTU_RESP                 = 0x03;
@@ -97,6 +96,7 @@ var ATT_ECODE_UNSUPP_GRP_TYPE       = 0x10;
 var ATT_ECODE_INSUFF_RESOURCES      = 0x11;
 
 var ATT_CID = 0x0004;
+/* eslint-enable no-unused-vars */
 
 var Gatt = function() {
   this.maxMtu = 256;
@@ -279,7 +279,7 @@ Gatt.prototype.setServices = function(services) {
     handle = this._handles[i];
 
     debugHandles[i] = {};
-    for(j in handle) {
+    for (j in handle) {
       if (Buffer.isBuffer(handle[j])) {
         debugHandles[i][j] = handle[j] ? 'Buffer(\'' + handle[j].toString('hex') + '\', \'hex\')' : null;
       } else if (j !== 'attribute') {
@@ -336,54 +336,54 @@ Gatt.prototype.handleRequest = function(request) {
   var requestType = request.readUInt8(0); //buf[0];
   var response = null;
 
-  switch(requestType) {
-    case ATT_OP_MTU_REQ:
-      response = this.handleMtuRequest(request);
-      break;
+  switch (requestType) {
+  case ATT_OP_MTU_REQ:
+    response = this.handleMtuRequest(request);
+    break;
 
-    case ATT_OP_FIND_INFO_REQ:
-      response = this.handleFindInfoRequest(request);
-      break;
+  case ATT_OP_FIND_INFO_REQ:
+    response = this.handleFindInfoRequest(request);
+    break;
 
-    case ATT_OP_FIND_BY_TYPE_REQ:
-      response = this.handleFindByTypeRequest(request);
-      break;
+  case ATT_OP_FIND_BY_TYPE_REQ:
+    response = this.handleFindByTypeRequest(request);
+    break;
 
-    case ATT_OP_READ_BY_TYPE_REQ:
-      response = this.handleReadByTypeRequest(request);
-      break;
+  case ATT_OP_READ_BY_TYPE_REQ:
+    response = this.handleReadByTypeRequest(request);
+    break;
 
-    case ATT_OP_READ_REQ:
-    case ATT_OP_READ_BLOB_REQ:
-      response = this.handleReadOrReadBlobRequest(request);
-      break;
+  case ATT_OP_READ_REQ:
+  case ATT_OP_READ_BLOB_REQ:
+    response = this.handleReadOrReadBlobRequest(request);
+    break;
 
-    case ATT_OP_READ_BY_GROUP_REQ:
-      response = this.handleReadByGroupRequest(request);
-      break;
+  case ATT_OP_READ_BY_GROUP_REQ:
+    response = this.handleReadByGroupRequest(request);
+    break;
 
-    case ATT_OP_WRITE_REQ:
-    case ATT_OP_WRITE_CMD:
-      response = this.handleWriteRequestOrCommand(request);
-      break;
+  case ATT_OP_WRITE_REQ:
+  case ATT_OP_WRITE_CMD:
+    response = this.handleWriteRequestOrCommand(request);
+    break;
 
-    case ATT_OP_PREP_WRITE_REQ:
-      response = this.handlePrepareWriteRequest(request);
-      break;
+  case ATT_OP_PREP_WRITE_REQ:
+    response = this.handlePrepareWriteRequest(request);
+    break;
 
-    case ATT_OP_EXEC_WRITE_REQ:
-      response = this.handleExecuteWriteRequest(request);
-      break;
+  case ATT_OP_EXEC_WRITE_REQ:
+    response = this.handleExecuteWriteRequest(request);
+    break;
 
-    case ATT_OP_HANDLE_CNF:
-      response = this.handleConfirmation(request);
-      break;
+  case ATT_OP_HANDLE_CNF:
+    response = this.handleConfirmation(request);
+    break;
 
-    default:
-    case ATT_OP_READ_MULTI_REQ:
-    case ATT_OP_SIGNED_WRITE_CMD:
-      response = this.errorResponse(requestType, 0x0000, ATT_ECODE_REQ_NOT_SUPP);
-      break;
+  default:
+  case ATT_OP_READ_MULTI_REQ:
+  case ATT_OP_SIGNED_WRITE_CMD:
+    response = this.errorResponse(requestType, 0x0000, ATT_ECODE_REQ_NOT_SUPP);
+    break;
   }
 
   if (response) {
@@ -423,7 +423,7 @@ Gatt.prototype.handleFindInfoRequest = function(request) {
   var infos = [];
   var uuid = null;
 
-  for (i = startHandle; i <= endHandle; i++) {
+  for (var i = startHandle; i <= endHandle; i++) {
     var handle = this._handles[i];
 
     if (!handle) {
@@ -758,6 +758,8 @@ Gatt.prototype.handleReadOrReadBlobRequest = function(request) {
 
   var handle = this._handles[valueHandle];
 
+  var i;
+
   if (handle) {
     var result = null;
     var data = null;
@@ -1077,7 +1079,7 @@ Gatt.prototype.handleExecuteWriteRequest = function(request) {
   return response;
 };
 
-Gatt.prototype.handleConfirmation = function(request) {
+Gatt.prototype.handleConfirmation = function(/* request */) {
   if (this._lastIndicatedAttribute) {
     if (this._lastIndicatedAttribute.emit) {
       this._lastIndicatedAttribute.emit('indicate');

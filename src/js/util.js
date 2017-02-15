@@ -68,15 +68,16 @@ function inherits(ctor, superCtor) {
       configurable: true
     }
   });
-};
+}
 
 
 function format(s) {
   if (!isString(s)) {
     var arrs = [];
-    for (var i = 0; i < arguments.length; ++i) {
-        arrs.push(formatValue(arguments[i]));
+    for (var idx = 0; idx < arguments.length; ++idx) {
+      arrs.push(formatValue(arguments[idx]));
     }
+
     return arrs.join(' ');
   }
 
@@ -90,15 +91,15 @@ function format(s) {
       return m;
     }
     switch (m) {
-      case '%s': return String(args[i++]);
-      case '%d': return Number(args[i++]);
-      case '%j': return '[JSON object]';
-      default: return m;
+    case '%s': return String(args[i++]);
+    case '%d': return Number(args[i++]);
+    case '%j': return '[JSON object]';
+    default: return m;
     }
   });
 
   while (i < args.length) {
-      str += ' ' + args[i++].toString();
+    str += ' ' + args[i++].toString();
   }
 
   return str;
@@ -116,11 +117,10 @@ function formatValue(v) {
 
 
 function errnoException(err, syscall, original) {
-  var errname = "error"; // uv.errname(err);
+  var errname = 'error'; // uv.errname(err);
   var message = syscall + ' ' + errname;
 
-  if (original)
-    message += ' ' + original;
+  if (original)    {message += ' ' + original;}
 
   var e = new Error(message);
   e.code = errname;
@@ -128,7 +128,7 @@ function errnoException(err, syscall, original) {
   e.syscall = syscall;
 
   return e;
-};
+}
 
 
 function exceptionWithHostPort(err, syscall, address, port, additional) {
@@ -150,7 +150,7 @@ function exceptionWithHostPort(err, syscall, address, port, additional) {
   }
 
   return ex;
-};
+}
 
 
 exports.isNull = isNull;

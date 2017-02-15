@@ -19,6 +19,7 @@ nbproject
 *~
 core
 vgcore.*
+node_modules
 **.orig
 **.directory
 **.patch

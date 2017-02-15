@@ -17,7 +17,6 @@
 var stream = require('stream');
 var util = require('util');
 var Stream = stream.Stream;
-var Duplex = stream.Duplex;
 
 var defaultHighWaterMark = 128;
 
@@ -104,9 +103,9 @@ Writable.prototype.write = function(chunk, callback) {
 
 // This function object never to be called. concrete stream should override
 // this method.
-Writable.prototype._write = function(chunk, callback, onwrite) {
+Writable.prototype._write = function(/* chunk, callback, onwrite */) {
   throw new Error('unreachable');
-}
+};
 
 
 Writable.prototype.end = function(chunk, callback) {
@@ -144,7 +143,7 @@ Writable.prototype._readyToWrite = function() {
 
 
 // A chunk of data has been written down to stream.
-Writable.prototype._onwrite = function(status) {
+Writable.prototype._onwrite = function(/* status */) {
   var state = this._writableState;
 
   state.length -= state.writingLength;

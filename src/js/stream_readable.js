@@ -38,7 +38,7 @@ function ReadableState(options) {
 
   // become `true` just before emit 'end' event.
   this.endEmitted = false;
-};
+}
 
 
 function Readable(options) {
@@ -49,7 +49,7 @@ function Readable(options) {
   this._readableState = new ReadableState(options);
 
   Stream.call(this);
-};
+}
 
 util.inherits(Readable, Stream);
 
@@ -83,6 +83,7 @@ Readable.prototype.on = function(ev, cb) {
   if (ev === 'data') {
     this.resume();
   }
+
   return res;
 };
 
@@ -98,6 +99,7 @@ Readable.prototype.pause = function() {
     state.flowing = false;
     this.emit('pause');
   }
+
   return this;
 };
 
@@ -110,6 +112,7 @@ Readable.prototype.resume = function() {
       emitData(this, readBuffer(this));
     }
   }
+
   return this;
 };
 
@@ -165,7 +168,7 @@ function readBuffer(stream, n) {
   }
 
   return res;
-};
+}
 
 
 function emitEnd(stream) {
@@ -178,12 +181,12 @@ function emitEnd(stream) {
     state.endEmitted = true;
     stream.emit('end');
   }
-};
+}
 
 
 function emitReadable(stream) {
   stream.emit('readable');
-};
+}
 
 
 function emitData(stream, data) {
@@ -195,12 +198,12 @@ function emitData(stream, data) {
   if (state.ended && state.length == 0) {
     emitEnd(stream);
   }
-};
+}
 
 
 function emitError(stream, er) {
   stream.emit('error', er);
-};
+}
 
 
 function onEof(stream) {
@@ -211,7 +214,7 @@ function onEof(stream) {
   if (state.length == 0) {
     emitEnd(stream);
   }
-};
+}
 
 
 module.exports = Readable;

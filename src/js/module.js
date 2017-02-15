@@ -17,43 +17,44 @@
 var Native = require('native');
 var fs = Native.require('fs');
 
-function iotjs_module_t(id, parent) {
+function IotjsModule(id, parent) {
   this.id = id;
   this.exports = {};
   this.filename = null;
   this.parent = parent;
-};
+}
 
-module.exports = iotjs_module_t;
+module.exports = IotjsModule;
 
 
-iotjs_module_t.cache = {};
-iotjs_module_t.wrapper = Native.wrapper;
-iotjs_module_t.wrap = Native.wrap;
+IotjsModule.cache = {};
+IotjsModule.wrapper = Native.wrapper;
+IotjsModule.wrap = Native.wrap;
 
 
 var cwd;
-try { cwd = process.cwd(); } catch (e) { }
+try { cwd = process.cwd(); } catch (e) { cwd = null; }
 
-var moduledirs = [""]
-if(cwd){
-  moduledirs.push(cwd + "/");
-  moduledirs.push(cwd + "/node_modules/");
+var moduledirs = [''];
+if (cwd){
+  moduledirs.push(cwd + '/');
+  moduledirs.push(cwd + '/node_modules/');
 }
-if(process.env.HOME){
-  moduledirs.push(process.env.HOME + "/node_modules/");
+if (process.env.HOME){
+  moduledirs.push(process.env.HOME + '/node_modules/');
 }
-if(process.env.NODE_PATH){
-  moduledirs.push(process.env.NODE_PATH + "/node_modules/")
+if (process.env.NODE_PATH){
+  moduledirs.push(process.env.NODE_PATH + '/node_modules/');
 }
 
-iotjs_module_t.concatdir = function(a, b){
+IotjsModule.concatdir = function(a, b){
   var rlist = [];
-  for(var i = 0; i< a.length ; i++) {
+  var i;
+  for (i = 0; i< a.length ; i++) {
     rlist.push(a[i]);
   }
 
-  for(var i = 0; i< b.length ; i++) {
+  for (i = 0; i< b.length ; i++) {
     rlist.push(b[i]);
   }
 
@@ -61,50 +62,51 @@ iotjs_module_t.concatdir = function(a, b){
 };
 
 
-iotjs_module_t.resolveDirectories = function(id, parent) {
+IotjsModule.resolveDirectories = function(id, parent) {
   var dirs = moduledirs;
-  if(parent) {
-    if(!parent.dirs){
+  if (parent) {
+    if (!parent.dirs){
       parent.dirs = [];
     }
-    dirs = iotjs_module_t.concatdir(parent.dirs, dirs);
+    dirs = IotjsModule.concatdir(parent.dirs, dirs);
   }
+
   return dirs;
 };
 
 
-iotjs_module_t.resolveFilepath = function(id, directories) {
+IotjsModule.resolveFilepath = function(id, directories) {
 
-  for(var i = 0; i<directories.length ; i++) {
+  for (var i = 0; i<directories.length ; i++) {
     var dir = directories[i];
     // 1. 'id'
-    var filepath = iotjs_module_t.tryPath(dir+id);
+    var filepath = IotjsModule.tryPath(dir+id);
 
-    if(filepath){
+    if (filepath){
       return filepath;
     }
 
     // 2. 'id.js'
-    filepath = iotjs_module_t.tryPath(dir+id+'.js');
+    filepath = IotjsModule.tryPath(dir+id+'.js');
 
-    if(filepath){
+    if (filepath){
       return filepath;
     }
 
     // 3. package path /node_modules/id
     var packagepath = dir + id;
-    var jsonpath = packagepath + "/package.json";
-    filepath = iotjs_module_t.tryPath(jsonpath);
-    if(filepath){
+    var jsonpath = packagepath + '/package.json';
+    filepath = IotjsModule.tryPath(jsonpath);
+    if (filepath){
       var pkgSrc = process.readSource(jsonpath);
       var pkgMainFile = JSON.parse(pkgSrc).main;
-      filepath = iotjs_module_t.tryPath(packagepath + "/" + pkgMainFile);
-      if(filepath){
+      filepath = IotjsModule.tryPath(packagepath + '/' + pkgMainFile);
+      if (filepath){
         return filepath;
       }
       // index.js
-      filepath = iotjs_module_t.tryPath(packagepath + "/" + "index.js");
-      if(filepath){
+      filepath = IotjsModule.tryPath(packagepath + '/' + 'index.js');
+      if (filepath){
         return filepath;
       }
     }
@@ -115,14 +117,14 @@ iotjs_module_t.resolveFilepath = function(id, directories) {
 };
 
 
-iotjs_module_t.resolveModPath = function(id, parent) {
+IotjsModule.resolveModPath = function(id, parent) {
 
   // 0. resolve Directory for lookup
-  var directories = iotjs_module_t.resolveDirectories(id, parent);
+  var directories = IotjsModule.resolveDirectories(id, parent);
 
-  var filepath = iotjs_module_t.resolveFilepath(id, directories);
+  var filepath = IotjsModule.resolveFilepath(id, directories);
 
-  if(filepath){
+  if (filepath){
     return filepath;
   }
 
@@ -130,34 +132,34 @@ iotjs_module_t.resolveModPath = function(id, parent) {
 };
 
 
-iotjs_module_t.tryPath = function(path) {
-  var stats = iotjs_module_t.statPath(path);
-  if(stats && !stats.isDirectory()) {
+IotjsModule.tryPath = function(path) {
+  var stats = IotjsModule.statPath(path);
+  if (stats && !stats.isDirectory()) {
     return path;
-  }
-  else {
+  }  else {
     return false;
   }
 };
 
 
-iotjs_module_t.statPath = function(path) {
+IotjsModule.statPath = function(path) {
   try {
     return fs.statSync(path);
-  } catch (ex) {}
-  return false;
+  } catch (ex) {
+    return false;
+  }
 };
 
 
-iotjs_module_t.load = function(id, parent, isMain) {
-  if(process.native_sources[id]){
+IotjsModule.load = function(id, parent /*, isMain */) {
+  if (process.native_sources[id]){
     return Native.require(id);
   }
-  var module = new iotjs_module_t(id, parent);
+  var module = new IotjsModule(id, parent);
 
-  var modPath = iotjs_module_t.resolveModPath(module.id, module.parent);
+  var modPath = IotjsModule.resolveModPath(module.id, module.parent);
 
-  var cachedModule = iotjs_module_t.cache[modPath];
+  var cachedModule = IotjsModule.cache[modPath];
   if (cachedModule) {
     return cachedModule.exports;
   }
@@ -166,21 +168,20 @@ iotjs_module_t.load = function(id, parent, isMain) {
     module.filename = modPath;
     module.SetModuleDirs(modPath);
     module.compile();
-  }
-  else {
+  }  else {
     throw new Error('No module found');
   }
 
-  iotjs_module_t.cache[modPath] = module;
+  IotjsModule.cache[modPath] = module;
 
   return module.exports;
 };
 
 
-iotjs_module_t.prototype.compile = function() {
+IotjsModule.prototype.compile = function() {
   var self = this;
   var requireForThis = function(path) {
-      return self.require(path);
+    return self.require(path);
   };
 
   var source = process.readSource(self.filename);
@@ -189,33 +190,31 @@ iotjs_module_t.prototype.compile = function() {
 };
 
 
-iotjs_module_t.runMain = function(){
-  iotjs_module_t.load(process.argv[1], null, true);
+IotjsModule.runMain = function(){
+  IotjsModule.load(process.argv[1], null, true);
   process._onNextTick();
 };
 
 
-
-iotjs_module_t.prototype.SetModuleDirs = function(filepath)
-{
+IotjsModule.prototype.SetModuleDirs = function(filepath){
   // At next require, search module from parent's directory
-  var dir = "";
+  var dir = '';
   var i;
-  for(i = filepath.length-1;i>=0 ; i--) {
-    if(filepath[i] == '/'){
+  for (i = filepath.length-1;i>=0 ; i--) {
+    if (filepath[i] == '/'){
       break;
     }
   }
 
   // save filepath[0] to filepath[i]
   // e.g. /home/foo/main.js ->  /home/foo/
-  for(;i>=0 ; i--) {
+  for (;i>=0 ; i--) {
     dir = filepath[i] + dir;
   }
   this.dirs = [dir];
 };
 
 
-iotjs_module_t.prototype.require = function(id) {
-  return iotjs_module_t.load(id, this);
+IotjsModule.prototype.require = function(id) {
+  return IotjsModule.load(id, this);
 };

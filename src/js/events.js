@@ -19,7 +19,7 @@ var util = require('util');
 
 function EventEmitter() {
   this._events = {};
-};
+}
 
 module.exports.EventEmitter = EventEmitter;
 
@@ -35,22 +35,24 @@ EventEmitter.prototype.emit = function(type) {
     if (err instanceof Error) {
       throw err;
     } else {
-      throw Error("Uncaught 'error' event");
+      throw Error('Uncaught \'error\' event');
     }
-    return false;
   }
 
   var listeners = this._events[type];
+  var i;
+
   if (util.isArray(listeners)) {
     listeners = listeners.slice();
     var len = arguments.length;
     var args = new Array(len - 1);
-    for (var i = 1; i < len; ++i) {
+    for (i = 1; i < len; ++i) {
       args[i - 1] = arguments[i];
     }
-    for (var i = 0; i < listeners.length; ++i) {
+    for (i = 0; i < listeners.length; ++i) {
       listeners[i].apply(this, args);
     }
+
     return true;
   }
 

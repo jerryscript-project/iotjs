@@ -34,8 +34,6 @@
  * SOFTWARE.
  */
 
-var debug = console.log; //requir('debug')('ble_hci_socket_smp');
-
 var events = require('events');
 var util = require('util');
 
@@ -115,12 +113,12 @@ Smp.prototype.onAclStreamEncryptChange = function(encrypted) {
 };
 
 Smp.prototype.onAclStreamLtkNegReply = function() {
-    this.write(new Buffer([
-      SMP_PAIRING_FAILED,
-      SMP_UNSPECIFIED
-    ]));
+  this.write(new Buffer([
+    SMP_PAIRING_FAILED,
+    SMP_UNSPECIFIED
+  ]));
 
-    this.emit('fail');
+  this.emit('fail');
 };
 
 Smp.prototype.onAclStreamEnd = function() {
@@ -187,7 +185,7 @@ Smp.prototype.handlePairingRandom = function(data) {
   }
 };
 
-Smp.prototype.handlePairingFailed = function(data) {
+Smp.prototype.handlePairingFailed = function(/* data */) {
   this.emit('fail');
 };
 

@@ -35,6 +35,7 @@ function checkOptionArgs(options) {
   if (!util.isUndefined(mode)) {
     if (mode < 0 || mode > 3) {
       result.message = 'Bad arguments - mode';
+
       return result;
     }
   }
@@ -43,6 +44,7 @@ function checkOptionArgs(options) {
   if (!util.isUndefined(cs)) {
     if (cs != 0 && cs != 1) {
       result.message = 'Bad arguments - mode';
+
       return result;
     }
   }
@@ -51,6 +53,7 @@ function checkOptionArgs(options) {
   if (!util.isUndefined(bitsPerWord)) {
     if (bitsPerWord != 8 && bitsPerWord != 9) {
       result.message = 'Bad arguments - bitsPerWord';
+
       return result;
     }
   }
@@ -59,6 +62,7 @@ function checkOptionArgs(options) {
   if (!util.isUndefined(bitOrder)) {
     if (bitOrder != 0 && bitOrder != 1) {
       result.message = 'Bad arguments - bitOrder';
+
       return result;
     }
   }
@@ -66,10 +70,12 @@ function checkOptionArgs(options) {
   var loopback = options.loopback;
   if (!util.isUndefined(loopback) && !util.isBoolean(loopback)) {
     result.message = 'Bad arguments - loopback';
+
     return result;
   }
 
   result.result = true;
+
   return result;
 }
 

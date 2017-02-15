@@ -25,6 +25,7 @@ function dnsException(err, syscall, hostname) {
   if (hostname) {
     ex.hostname = hostname;
   }
+
   return ex;
 }
 
@@ -56,8 +57,7 @@ exports.lookup = function lookup(hostname, options, callback) {
         'invalid argument: options must be either an object or number');
   }
 
-  if (family !== 0 && family !== 4 && family !== 6)
-    throw new TypeError('invalid argument: family must be 4 or 6');
+  if (family !== 0 && family !== 4 && family !== 6)    {throw new TypeError('invalid argument: family must be 4 or 6');}
 
   var err = dnsBuiltin.getaddrinfo(
       hostname,
@@ -68,8 +68,10 @@ exports.lookup = function lookup(hostname, options, callback) {
         if (err) {
           errObj = dnsException(err, 'getaddrinfo', hostname);
         }
+
         return callback(errObj, address, family);
       });
+
   return err;
 };
 

@@ -531,6 +531,49 @@ def build_libhttpparser(options):
     copy_build_target('libhttpparser.a', build_home, options.build_libs)
 
 
+def build_libmbedtls(options):
+    print_progress('Build libmbedtls')
+
+    # Check if nuttx - nuttx doesn't support mbedtls
+    if options.target_os == 'nuttx':
+        return
+
+    # Check if mbedtls submodule exists.
+    if not fs.exists(path.MBEDTLS_ROOT):
+        ex.fail('libmbedtls submodule does not exists!')
+
+    # Move working directory to mbedtls build directory.
+    build_home = fs.join(options.build_root, 'deps', 'mbedtls')
+
+    # Set mbedtls cmake option.
+    cmake_opt = [
+        '-B%s' % build_home,
+        '-H%s' % path.MBEDTLS_ROOT,
+        "-DCMAKE_TOOLCHAIN_FILE='%s'" % options.cmake_toolchain_file,
+        '-DUSE_SHARED_MBEDTLS_LIBRARY=On',
+        '-DBUILDTYPE=%s' % options.buildtype.capitalize(),
+    ]
+
+    # Add common cmake options.
+    cmake_opt.extend(build_cmake_args(options))
+
+    # Run cmake.
+    ex.check_run_cmd('cmake', cmake_opt)
+
+    run_make(options, build_home)
+
+    # Output
+    targets = [
+        'libmbedx509.a',
+        'libmbedtls.a',
+        'libmbedcrypto.a',
+    ]
+
+    output = fs.join(build_home, 'library')
+    for target in targets:
+        copy_build_target(target, output, options.build_libs)
+
+
 def analyze_module_dependency(options):
     print_progress('Analyze module dependency')
 
@@ -715,6 +758,7 @@ if __name__ == '__main__':
         build_host_jerry(options)
     build_libjerry(options)
     build_libhttpparser(options)
+    build_libmbedtls(options)
 
     # Run js2c
     js2c(options.buildtype, options.no_snapshot, options.js_modules,

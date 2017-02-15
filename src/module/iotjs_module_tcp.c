@@ -639,7 +639,7 @@ JHANDLER_FUNCTION(GetSockeName) {
 }
 
 iotjs_jval_t InitTcp() {
-  iotjs_jval_t tcp = iotjs_jval_create_function(TCP);
+  iotjs_jval_t tcp = iotjs_jval_create_function_with_dispatch(TCP);
 
   iotjs_jval_t prototype = iotjs_jval_create_object();
   iotjs_jval_set_property_jval(&tcp, "prototype", &prototype);

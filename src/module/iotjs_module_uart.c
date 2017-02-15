@@ -295,7 +295,7 @@ JHANDLER_FUNCTION(Write) {
 
 
 iotjs_jval_t InitUart() {
-  iotjs_jval_t jUartCons = iotjs_jval_create_function(UartCons);
+  iotjs_jval_t jUartCons = iotjs_jval_create_function_with_dispatch(UartCons);
 
   iotjs_jval_t prototype = iotjs_jval_create_object();
 

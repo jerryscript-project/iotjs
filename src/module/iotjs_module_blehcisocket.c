@@ -227,7 +227,8 @@ JHANDLER_FUNCTION(BleHciSocketCons) {
 
 
 iotjs_jval_t InitBlehcisocket() {
-  iotjs_jval_t jblehcisocketCons = iotjs_jval_create_function(BleHciSocketCons);
+  iotjs_jval_t jblehcisocketCons =
+      iotjs_jval_create_function_with_dispatch(BleHciSocketCons);
 
   iotjs_jval_t prototype = iotjs_jval_create_object();
 

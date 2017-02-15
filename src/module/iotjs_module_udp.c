@@ -474,7 +474,7 @@ JHANDLER_FUNCTION(Unref) {
 
 
 iotjs_jval_t InitUdp() {
-  iotjs_jval_t udp = iotjs_jval_create_function(UDP);
+  iotjs_jval_t udp = iotjs_jval_create_function_with_dispatch(UDP);
 
   iotjs_jval_t prototype = iotjs_jval_create_object();
   iotjs_jval_set_property_jval(&udp, "prototype", &prototype);

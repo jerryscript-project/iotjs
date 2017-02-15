@@ -409,7 +409,7 @@ JHANDLER_FUNCTION(Unexport) {
 
 
 iotjs_jval_t InitSpi() {
-  iotjs_jval_t jSpiCons = iotjs_jval_create_function(SpiCons);
+  iotjs_jval_t jSpiCons = iotjs_jval_create_function_with_dispatch(SpiCons);
 
   iotjs_jval_t prototype = iotjs_jval_create_object();
 

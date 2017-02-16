@@ -1,4 +1,4 @@
-# Copyright 2015-present Samsung Electronics Co., Ltd. and other contributors
+# Copyright 2017 Samsung Electronics Co., Ltd. and other contributors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,14 +14,6 @@
 
 cmake_minimum_required(VERSION 2.8)
 
-project(IOTJS C)
-
-set(IOTJS_VERSION_MAJOR 0)
-set(IOTJS_VERSION_MINOR 1)
-
-include(cmake/config.cmake)
-include(cmake/libtuv.cmake)
-include(cmake/jerry.cmake)
-include(cmake/http-parser.cmake)
-include(cmake/libcoap.cmake)
-include(cmake/iotjs.cmake)
+set(LIBCOAP_ROOT ${DEP_ROOT}/libcoap)
+set(LIBCOAP_INCDIR ${LIBCOAP_ROOT}/include/coap)
+set(LIBCOAP_LIB ${LIB_ROOT}/libcoap-1.a)

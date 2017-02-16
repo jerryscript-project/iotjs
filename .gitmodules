@@ -7,3 +7,6 @@
 [submodule "deps/libtuv"]
 	path = deps/libtuv
 	url = https://github.com/Samsung/libtuv.git
+[submodule "deps/libcoap"]
+	path = deps/libcoap
+	url = https://github.com/obgm/libcoap.git

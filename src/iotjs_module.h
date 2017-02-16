@@ -52,7 +52,8 @@ typedef iotjs_jval_t (*register_func)();
   E(F, TCP, Tcp, tcp)                            \
   E(F, TIMER, Timer, timer)                      \
   E(F, UART, Uart, uart)                         \
-  E(F, UDP, Udp, udp)
+  E(F, UDP, Udp, udp)                            \
+  E(F, COAP, Coap, coap)
 
 #define ENUMDEF_MODULE_LIST(upper, Camel, lower) MODULE_##upper,
 

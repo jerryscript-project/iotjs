@@ -36,6 +36,7 @@ set(CFLAGS_COMMON "${CFLAGS_COMMON} -Wall -Wextra -Werror")
 set(CFLAGS_COMMON "${CFLAGS_COMMON} -Wno-unused-parameter")
 set(CFLAGS_COMMON "${CFLAGS_COMMON} -Wno-unused-variable")
 set(CFLAGS_COMMON "${CFLAGS_COMMON} -Wno-missing-field-initializers")
+set(CFLAGS_COMMON "${CFLAGS_COMMON} -DWITH_POSIX")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99")
 
 set(IOTJS_CFLAGS "${IOTJS_CFLAGS} ${CFLAGS_COMMON}")

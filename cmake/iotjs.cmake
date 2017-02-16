@@ -22,6 +22,9 @@ foreach(module ${IOTJS_MODULES_ALL})
     string(SUBSTRING ${IOTJS_MODULENAME} 13 -1 IOTJS_MODULENAME)
     string(TOUPPER ${IOTJS_MODULENAME} IOTJS_MODULENAME)
     set(IOTJS_CFLAGS "${IOTJS_CFLAGS} -DENABLE_MODULE_${IOTJS_MODULENAME}=0")
+    if($(module) MATCHES "coap")
+        set(${ENABLE_LIBCOAP} "ON")
+    endif()
 endforeach()
 
 # System Configuration
@@ -90,6 +93,11 @@ set(LIB_IOTJS_INCDIR ${EXTERNAL_INCLUDE_DIR}
                      ${LIBTUV_INCDIR}
                      ${HTTPPARSER_INCDIR})
 
+if(${ENABLE_LIBCOAP} MATCHES "ON")
+    set(LIB_IOTJS_INCDIR ${LIB_IOTJS_INCDIR}
+                         ${LIBCOAP_INCDIR})
+endif()
+
 add_custom_target(targetLibIoTjs)
 
 function(BuildLibIoTjs)
@@ -110,6 +118,18 @@ set(BIN_IOTJS_CFLAGS ${IOTJS_CFLAGS_STR})
 set(BIN_IOTJS_LINK_FLAGS ${IOTJS_LINK_FLAGS_STR})
 set(BIN_IOTJS_INCDIR ${LIB_IOTJS_INCDIR})
 
+
+set(LIB_IOTJS_LINK ${JERRY_LIB}
+                   ${LIBTUV_LIB}
+                   ${HTTPPARSER_LIB}
+                   ${EXTERNAL_STATIC_LIB}
+                   ${EXTERNAL_SHARED_LIB})
+
+if(${ENABLE_LIBCOAP} MATCHES "ON")
+  set(LIB_IOTJS_LINK ${LIB_IOTJS_LINK}
+                     ${LIBCOAP_LIB})
+endif()
+
 function(BuildIoTjs)
   set(targetName iotjs)
 
@@ -119,8 +139,7 @@ function(BuildIoTjs)
   set_property(TARGET ${targetName}
                PROPERTY LINK_FLAGS ${BIN_IOTJS_LINK_FLAGS})
   target_include_directories(${targetName} PRIVATE ${BIN_IOTJS_INCDIR})
-  target_link_libraries(${targetName} libiotjs ${JERRY_LIB} ${LIBTUV_LIB}
-    ${HTTPPARSER_LIB} ${EXTERNAL_STATIC_LIB} ${EXTERNAL_SHARED_LIB})
+  target_link_libraries(${targetName} libiotjs ${LIB_IOTJS_LINK})
   add_dependencies(targetLibIoTjs ${targetName})
 
 endfunction()
@@ -134,8 +153,7 @@ function(BuildIoTjsLib)
   set_property(TARGET ${targetName}
                PROPERTY LINK_FLAGS ${BIN_IOTJS_LINK_FLAGS})
   target_include_directories(${targetName} PRIVATE ${BIN_IOTJS_INCDIR})
-  target_link_libraries(${targetName} libiotjs ${JERRY_LIB} ${LIBTUV_LIB}
-    ${HTTPPARSER_LIB} ${EXTERNAL_STATIC_LIB} ${EXTERNAL_SHARED_LIB})
+  target_link_libraries(${targetName} libiotjs ${LIB_IOTJS_LINK})
   add_dependencies(targetLibIoTjs ${targetName})
 endfunction()
 

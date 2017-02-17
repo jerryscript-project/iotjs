@@ -18,9 +18,6 @@
 # And this file also generates magic string list in src/iotjs_string_ext.inl.h
 # file to reduce JerryScript heap usage.
 
-import sys
-import glob
-import os
 import re
 import subprocess
 import struct
@@ -29,18 +26,11 @@ from common_py.system.filesystem import FileSystem as fs
 from common_py import path
 
 
-def writeLine(fo, content, indent=0):
-    buf = '  ' * indent
-    buf += content
-    buf += '\n'
-    fo.write(buf)
-
-
 def regroup(l, n):
     return [l[i:i+n] for i in range(0, len(l), n)]
 
 
-def removeComments(code):
+def remove_comments(code):
     pattern = r'(\".*?\"|\'.*?\')|(/\*.*?\*/|//[^\r\n]*$)'
     regex = re.compile(pattern, re.MULTILINE | re.DOTALL)
 
@@ -53,11 +43,11 @@ def removeComments(code):
     return regex.sub(_replacer, code)
 
 
-def removeWhitespaces(code):
+def remove_whitespaces(code):
     return re.sub('\n+', '\n', re.sub('\n +', '\n', code))
 
 
-def parseLiterals(code):
+def parse_literals(code):
     JERRY_SNAPSHOT_VERSION = 6
 
     literals = set()
@@ -74,7 +64,7 @@ def parseLiterals(code):
         code_ptr = code_ptr + 2
         if length == 0:
             continue
-        if (length < 32):
+        if length < 32:
             item = struct.unpack('%ds' % length,
                                  code[code_ptr : code_ptr + length])
             literals.add(item[0])
@@ -115,18 +105,27 @@ HEADER2 = '''#include <stdio.h>
 #include "iotjs_js.h"
 '''
 
-FOOTER2 = '''
+EMPTY_LINE = '\n'
+
+MAGIC_STRINGS_HEADER = '#define JERRY_MAGIC_STRING_ITEMS \\\n'
+
+
+MODULE_VARIABLES_H = '''
+extern const char {NAME}_n[];
+extern const char {NAME}_s[];
+extern const int {NAME}_l;
 '''
 
-HEADER3 = '''
-#define JERRY_MAGIC_STRING_ITEMS \\
-  \\
+MODULE_VARIABLES_C = '''
+#define SIZE_{NAME_UPPER} {SIZE}
+const int {NAME}_l = SIZE_{NAME_UPPER};
+const char {NAME}_n[] = "{NAME}";
+const char {NAME}_s[] = {{
+{CODE}
+}};
 '''
 
-FOOTER3 = '''
-'''
-
-NATIVE_STRUCT1 = '''
+NATIVE_STRUCT_H = '''
 typedef struct {
   const char* name;
   const void* code;
@@ -136,14 +135,12 @@ typedef struct {
 extern const iotjs_js_module natives[];
 '''
 
-NATIVE_STRUCT2 = '''
-const iotjs_js_module natives[] = {
+NATIVE_STRUCT_C = '''
+const iotjs_js_module natives[] = {{
+{MODULES}
+}};
 '''
 
-DUMPER = ''
-NO_SNAPSHOT = True
-BUILDTYPE = 'debug'
-MAGIC_STRING_SET = { b'process' }
 
 def hex_format(ch):
     if isinstance(ch, str):
@@ -151,130 +148,121 @@ def hex_format(ch):
 
     return "0x{:02x}".format(ch)
 
-def printJSContents(fout_c, name, indent = 0):
 
-    global DUMPER
-    global NO_SNAPSHOT
-    global BUILDTYPE
-    global MAGIC_STRING_SET
+def format_code(code, indent):
+    lines = []
+    # convert all characters to hex format
+    converted_code = map(hex_format, code)
+    # 10 hex number per line
+    for line in regroup(", ".join(converted_code), 10 * 6):
+        lines.append(('  ' * indent) + line.strip())
 
+    return "\n".join(lines)
+
+
+def get_snapshot_contents(module_name, snapshot_generator):
+    """ Convert the given module with the snapshot generator
+        and return the resulting bytes.
+    """
+    js_path = fs.join(path.SRC_ROOT, 'js', module_name + '.js')
+    wrapped_path = js_path + ".wrapped"
+    snapshot_path = js_path + ".snapshot"
+
+    with open(wrapped_path, 'w') as fwrapped, open(js_path, "r") as fmodule:
+        if module_name != "iotjs":
+            fwrapped.write("(function(exports, require, module) {\n")
+
+        fwrapped.write(fmodule.read())
+
+        if module_name != "iotjs":
+            fwrapped.write("});\n")
+
+    ret = subprocess.call([snapshot_generator,
+                           "--save-snapshot-for-eval",
+                           snapshot_path,
+                           wrapped_path])
+    if ret != 0:
+        msg = "Failed to dump %s: - %d" % (js_path, ret)
+        print("%s%s%s" % ("\033[1;31m", msg, "\033[0m"))
+        exit(1)
+
+    with open(snapshot_path, 'rb') as snapshot:
+        code = snapshot.read()
+
+    fs.remove(wrapped_path)
+    fs.remove(snapshot_path)
+
+    return code
+
+
+def get_js_contents(name, is_debug_mode=False):
+    """ Read the contents of the given js module. """
     js_path = fs.join(path.SRC_ROOT, 'js', name + '.js')
+    with open(js_path, "r") as f:
+         code = f.read()
 
-    if NO_SNAPSHOT is True:
-        code = open(js_path, 'r').read() + '\0'
-
-        # minimize code when release mode
-        if BUILDTYPE != 'debug':
-            code = removeComments(code)
-            code = removeWhitespaces(code)
-
-        for line in regroup(code, 10):
-            buf = ', '.join(map(lambda ch: str(ord(ch)), line))
-            if line[-1] != '\0':
-                buf += ','
-            writeLine(fout_c, buf, indent)
-
-        length = len(code) - 1
-
-    else:
-        fmodule = open(js_path, 'r')
-        module = fmodule.read()
-        fmodule.close()
-
-        fmodule_wrapped = open(js_path + '.wrapped', 'w')
-        if name != 'iotjs':
-            # fmodule_wrapped.write ("(function (a, b, c) {\n")
-            fmodule_wrapped.write(
-                "(function(exports, require, module) {\n")
-
-        fmodule_wrapped.write(module)
-
-        if name != 'iotjs':
-            fmodule_wrapped.write("});\n")
-            # fmodule_wrapped.write ("wwwwrap(a, b, c); });\n")
-        fmodule_wrapped.close()
-
-        ret = subprocess.call([DUMPER,
-                               '--save-snapshot-for-eval',
-                               js_path + '.snapshot',
-                               js_path + '.wrapped'])
-        if ret != 0:
-            msg = 'Failed to dump ' + js_path + (": - %d]" % (ret))
-            print("%s%s%s" % ("\033[1;31m", msg, "\033[0m"))
-            exit(1)
-
-        code = open(js_path + '.snapshot', 'rb').read()
-
-        fs.remove(js_path + '.wrapped')
-        fs.remove(js_path + '.snapshot')
-
-        for line in regroup(code, 8):
-            buf = ', '.join(map(hex_format, line))
-            buf += ','
-            writeLine(fout_c, buf, indent)
-
-        length = len(code)
-
-        MAGIC_STRING_SET = MAGIC_STRING_SET | parseLiterals(code)
-
-    return length
+    # minimize code when in release mode
+    if not is_debug_mode:
+        code = removeComments(code)
+        code = removeWhitespaces(code)
+    return code
 
 
 def js2c(buildtype, no_snapshot, js_modules, js_dumper):
-    global DUMPER
-    DUMPER = js_dumper
+    is_debug_mode = buildtype == "debug"
+    magic_string_set = { b'process' }
 
-    global NO_SNAPSHOT
-    NO_SNAPSHOT = no_snapshot
+    # generate the code for the modules
+    with open(fs.join(path.SRC_ROOT, 'iotjs_js.h'), 'w') as fout_h, \
+         open(fs.join(path.SRC_ROOT, 'iotjs_js.c'), 'w') as fout_c:
 
-    global BUILDTYPE
-    BUILDTYPE = buildtype
+        fout_h.write(LICENSE)
+        fout_h.write(HEADER1)
+        fout_c.write(LICENSE)
+        fout_c.write(HEADER2)
 
-    fout_h = open(fs.join(path.SRC_ROOT, 'iotjs_js.h'), 'w')
-    fout_c = open(fs.join(path.SRC_ROOT, 'iotjs_js.c'), 'w')
-    fout_magic_str = open(fs.join(path.SRC_ROOT, 'iotjs_string_ext.inl.h'), 'w')
+        for name in sorted(js_modules):
+            if no_snapshot:
+                code = get_js_contents(name, is_debug_mode)
+            else:
+                code = get_snapshot_contents(name, js_dumper)
+                magic_string_set |= parse_literals(code)
 
-    fout_h.write(LICENSE)
-    fout_h.write(HEADER1)
-    fout_c.write(LICENSE)
-    fout_c.write(HEADER2)
-    fout_magic_str.write(LICENSE)
-    fout_magic_str.write(HEADER3)
+            code_string = format_code(code, 1)
 
-    for name in sorted(js_modules):
-        writeLine(fout_h, 'extern const char ' + name + '_n[];')
-        writeLine(fout_h, 'extern const char ' + name + '_s[];')
-        writeLine(fout_h, 'extern const int ' + name + '_l;')
+            fout_h.write(MODULE_VARIABLES_H.format(NAME=name))
+            fout_c.write(MODULE_VARIABLES_C.format(NAME=name,
+                                                   NAME_UPPER=name.upper(),
+                                                   SIZE=len(code),
+                                                   CODE=code_string))
 
-        writeLine(fout_c, 'const char ' + name + '_n[] = "' + name + '";')
-        writeLine(fout_c, 'const char ' + name + '_s[] = {')
-        length = printJSContents(fout_c, name, 1)
-        writeLine(fout_c, '};');
-        writeLine(fout_c, '#define SIZE_%s %d' % (name.upper(), length))
-        writeLine(fout_c, 'const int %s_l = SIZE_%s;' % (name, name.upper()))
+        fout_h.write(NATIVE_STRUCT_H)
+        fout_h.write(FOOTER1)
 
-    fout_h.write(NATIVE_STRUCT1)
-    fout_c.write(NATIVE_STRUCT2)
+        modules_struct = [
+            '  {{ {0}_n, {0}_s, SIZE_{1} }},'.format(name, name.upper())
+            for name in sorted(js_modules)
+        ]
+        modules_struct.append('  { NULL, NULL, 0 }')
 
-    for name in sorted(js_modules):
-        writeLine(fout_c,
-                  '{ %s_n, %s_s, SIZE_%s },' % (name, name, name.upper()), 1)
-    writeLine(fout_c, '{ NULL, NULL, 0 }', 1)
-    writeLine(fout_c, '};')
+        fout_c.write(NATIVE_STRUCT_C.format(MODULES="\n".join(modules_struct)))
+        fout_c.write(EMPTY_LINE)
 
-    fout_h.write(FOOTER1)
-    fout_c.write(FOOTER2)
+    # Write out the external magic strings
+    magic_str_path = fs.join(path.SRC_ROOT, 'iotjs_string_ext.inl.h')
+    with open(magic_str_path, 'w') as fout_magic_str:
+        fout_magic_str.write(LICENSE)
+        fout_magic_str.write(MAGIC_STRINGS_HEADER)
 
-    global MAGIC_STRING_SET
-    sorted_magic_strings = sorted(MAGIC_STRING_SET, key=lambda x: (len(x), x))
-    for idx, magic_string in enumerate(sorted_magic_strings):
-        if not isinstance(magic_string, str):
-            magic = magic_string.decode('utf-8')
-        else:
-            magic = magic_string
-        magic_text = repr(magic)[1:-1]
+        sorted_strings = sorted(magic_string_set, key=lambda x: (len(x), x))
+        for idx, magic_string in enumerate(sorted_strings):
+            if not isinstance(magic_string, str):
+                magic = magic_string.decode('utf-8')
+            else:
+                magic = magic_string
+            magic_text = repr(magic)[1:-1]
 
-        fout_magic_str.write('  MAGICSTR_EX_DEF(MAGIC_STR_%d, "%s") \\\n'
-                             % (idx, magic_text))
-
-    fout_magic_str.write(FOOTER3)
+            fout_magic_str.write('  MAGICSTR_EX_DEF(MAGIC_STR_%d, "%s") \\\n'
+                                 % (idx, magic_text))
+        # an empty line is required to avoid compile warning
+        fout_magic_str.write(EMPTY_LINE)

@@ -26,7 +26,7 @@ endforeach()
 
 # System Configuration
 set(IOTJS_PLATFORM_SRC "")
-if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+if(${CMAKE_SYSTEM_NAME} MATCHES "Linux|Tizen")
     list(APPEND IOTJS_PLATFORM_SRC ${SRC_ROOT}/platform/iotjs_*-linux.c)
 endif()
 

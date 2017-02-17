@@ -223,7 +223,7 @@ iotjs_string_t iotjs_jval_as_string(const iotjs_jval_t* jval) {
   jerry_size_t size = jerry_get_string_size(_this->value);
 
   if (size == 0)
-    return iotjs_string_create("");
+    return iotjs_string_create();
 
   char* buffer = iotjs_buffer_allocate(size + 1);
   jerry_char_t* jerry_buffer = (jerry_char_t*)(buffer);

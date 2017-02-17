@@ -38,17 +38,15 @@ static iotjs_jval_t WrapEval(const char* source, size_t length, bool* throws) {
   int len0 = strlen(wrapper[0]);
   int len1 = strlen(wrapper[1]);
 
-  iotjs_string_t code = iotjs_string_create("");
-  iotjs_string_reserve(&code, len0 + length + len1);
-  iotjs_string_append(&code, wrapper[0], len0);
-  iotjs_string_append(&code, source, length);
-  iotjs_string_append(&code, wrapper[1], len1);
+  uint32_t buffer_length = len0 + len1 + length;
+  char* buffer = iotjs_buffer_allocate(buffer_length);
+  memcpy(buffer, wrapper[0], len0);
+  memcpy(buffer + len0, source, length);
+  memcpy(buffer + len0 + length, wrapper[1], len1);
 
-  iotjs_jval_t res =
-      iotjs_jhelper_eval(iotjs_string_data(&code), iotjs_string_size(&code),
-                         false, throws);
+  iotjs_jval_t res = iotjs_jhelper_eval(buffer, buffer_length, false, throws);
 
-  iotjs_string_destroy(&code);
+  iotjs_buffer_release(buffer);
 
   return res;
 }

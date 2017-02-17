@@ -458,12 +458,16 @@ JHANDLER_FUNCTION(ToHexString) {
   int length = iotjs_bufferwrap_length(buffer_wrap);
   const char* data = iotjs_bufferwrap_buffer(buffer_wrap);
 
-  iotjs_string_t str = iotjs_string_create("");
-  iotjs_string_reserve(&str, length * 2);
+  char* buffer = iotjs_buffer_allocate(length * 2);
+  iotjs_string_t str = iotjs_string_create_with_buffer(buffer, length * 2);
+
   for (int i = 0; i < length; i++) {
-    iotjs_string_append(&str, &"0123456789abcdef"[data[i] >> 4 & 0xF], 1);
-    iotjs_string_append(&str, &"0123456789abcdef"[data[i] >> 0 & 0xF], 1);
+    memcpy(buffer, &"0123456789abcdef"[data[i] >> 4 & 0xF], 1);
+    buffer++;
+    memcpy(buffer, &"0123456789abcdef"[data[i] >> 0 & 0xF], 1);
+    buffer++;
   }
+
   iotjs_jhandler_return_string(jhandler, &str);
   iotjs_string_destroy(&str);
 }

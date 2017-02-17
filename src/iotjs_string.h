@@ -18,8 +18,8 @@
 
 
 typedef struct {
-  unsigned size;
-  unsigned cap;
+  unsigned short size;
+  unsigned short cap;
   char* data;
 } IOTJS_VALIDATED_STRUCT(iotjs_string_t);
 

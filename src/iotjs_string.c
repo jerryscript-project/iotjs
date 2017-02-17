@@ -18,6 +18,7 @@
 #include "iotjs_string.h"
 #include "iotjs_util.h"
 
+#include <limits.h>
 #include <string.h>
 
 
@@ -35,8 +36,9 @@ iotjs_string_t iotjs_string_create_with_size(const char* data, unsigned size) {
 
   IOTJS_ASSERT(data != NULL);
   IOTJS_ASSERT(strnlen(data, size) == size); // forbidden due to ambiguity
+  IOTJS_ASSERT(size < USHRT_MAX);
 
-  _this->size = _this->cap = size;
+  _this->size = _this->cap = (unsigned short)size;
 
   if (size > 0) {
     _this->data = iotjs_buffer_allocate(size + 1);
@@ -55,8 +57,9 @@ iotjs_string_t iotjs_string_create_with_buffer(char* buffer, unsigned size) {
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_string_t, &str);
 
   IOTJS_ASSERT(buffer != NULL);
+  IOTJS_ASSERT(size < USHRT_MAX);
 
-  _this->size = _this->cap = size;
+  _this->size = _this->cap = (unsigned short)size;
   _this->data = buffer;
 
   return str;
@@ -77,6 +80,7 @@ void iotjs_string_reserve(iotjs_string_t* str, unsigned capacity) {
 
   if (_this->cap >= capacity)
     return;
+  IOTJS_ASSERT(capacity < USHRT_MAX);
 
   if (_this->cap == 0) {
     IOTJS_ASSERT(_this->data == iotjs_empty_string);
@@ -84,7 +88,7 @@ void iotjs_string_reserve(iotjs_string_t* str, unsigned capacity) {
   } else {
     _this->data = iotjs_buffer_reallocate(_this->data, capacity + 1);
   }
-  _this->cap = capacity;
+  _this->cap = (unsigned short)capacity;
 }
 
 
@@ -121,26 +125,32 @@ void iotjs_string_append(iotjs_string_t* str, const char* data, int size) {
     return;
   }
 
+  IOTJS_ASSERT(size + _this->size < (int)USHRT_MAX);
+
+
   if (_this->cap == 0) {
     // No buffer was allocated.
     IOTJS_ASSERT(_this->size == 0);
     IOTJS_ASSERT(_this->data == iotjs_empty_string);
-    _this->cap = _this->size = size;
+    _this->cap = _this->size = (unsigned short)size;
     _this->data = iotjs_buffer_allocate(_this->cap + 1);
-    strncpy(_this->data, data, _this->size);
-  } else if (_this->cap >= _this->size + size) {
+    memcpy(_this->data, data, _this->size + 1);
+  } else if (_this->cap >= _this->size + (unsigned short)size) {
     // Have enough capacity to append data.
-    strncpy(_this->data + _this->size, data, size);
-    _this->size += size;
+    memcpy(_this->data + _this->size, data, size + 1);
+    _this->size += (unsigned short)size;
   } else {
     // Lack of capacity, calculate next capacity.
-    while (_this->cap < _this->size + size) {
-      _this->cap *= kCapacityIncreaseFactor;
+    unsigned tmpcap = _this->cap;
+    while (tmpcap < _this->size + (unsigned)size) {
+      tmpcap *= kCapacityIncreaseFactor;
     }
+    IOTJS_ASSERT(tmpcap < USHRT_MAX);
+    _this->cap = (unsigned short)tmpcap;
     // Reallocate buffer and copy data.
     _this->data = iotjs_buffer_reallocate(_this->data, _this->cap + 1);
-    strncpy(_this->data + _this->size, data, size);
-    _this->size += size;
+    memcpy(_this->data + _this->size, data, size + 1);
+    _this->size += (unsigned short)size;
   }
   _this->data[_this->size] = 0;
 }

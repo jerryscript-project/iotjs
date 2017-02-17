@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import print_function
 
 import argparse
 import sys
@@ -102,10 +103,10 @@ def build_nuttx(nuttx_root, buildtype):
         if code == 0:
             return True
         else:
-            print 'Failed to build nuttx'
+            print('Failed to build nuttx')
             return False
     except OSError as err:
-        print 'Failed to build nuttx: %s' % err
+        print('Failed to build nuttx: %s' % err)
         return False
 
 

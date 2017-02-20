@@ -8,10 +8,7 @@ Coding Style Guideline
   * Naming
   * Comments
 * [Coding Style Guideline for Javascript](#coding-style-guideline-for-javascript)
-  * Javascript Language Rules
-  * Javascript Style Rules
-    * Naming
-    * Formatting
+  * [How to verify](#how-to-verify)
 * [Coding Style Guideline for Python](#coding-style-guideline-for-python)
 
 
@@ -159,48 +156,39 @@ Use either // or /* */ style comments. However, // style is much prefered.
 
 
 # Coding Style Guideline for Javascript
+**Due of JerryScript constraints only ES5 Javascript code is allowed.**
 
-This coding standard is based on [google javascript coding standard](https://google.github.io/styleguide/javascriptguide.xml)
+The Javascript code follows [AirBnB guideline](https://github.com/airbnb/javascript) in area of ES5 javascript code. This cover rules subset:
+* [Best practices](http://eslint.org/docs/rules/#best-practices)
 
-## Javascript Language Rules
+  Described in detail [here](https://github.com/airbnb/javascript/blob/master/packages/eslint-config-airbnb-base/rules/best-practices.js)
+* [Possible Errors](http://eslint.org/docs/rules/#possible-errors)
 
-### var
-Always declare variable before use.
+  Described in detail [here](https://github.com/airbnb/javascript/blob/master/packages/eslint-config-airbnb-base/rules/errors.js)
+* [Node.js and CommonJS](http://eslint.org/docs/rules/#nodejs-and-commonjs)
 
-### Semicolons
-Always use semicolons.
+  Described in detail [here](https://github.com/airbnb/javascript/blob/master/packages/eslint-config-airbnb-base/rules/node.js)
+* [Stylistic Issues](http://eslint.org/docs/rules/#stylistic-issues)
 
-### Function Declaration in blocks
-Do not declare functions within a block.
+  Described in detail [here](https://github.com/airbnb/javascript/blob/master/packages/eslint-config-airbnb-base/rules/style.js)
+* [Variables](http://eslint.org/docs/rules/#variables)
 
-### Wrapper objects of primitive types
-Do not use wrapper objects for primitive types.
+  Described in detail [here](https://github.com/airbnb/javascript/blob/master/packages/eslint-config-airbnb-base/rules/variables.js)
 
-### with
-Do not use `with` statement.
+## Exceptions
+Below there is a list of exceptions to above rules
+* [18.12](https://github.com/airbnb/javascript#whitespace--max-len) is changed to: 
+Lines should be no longer than 80 characters.
 
-### Modifying prototypes of builtin objects
-Do not modify prototypes of builtin objects
+## How to verify
+To verify code, please use ESLint with projects configuration (.eslintrc.js):
 
-## Javascript Style Rules
-
-### Naming
-Use lowerCamelCase for varible names and function names.
-
-    var myFirstVariable;
-    function myFirstFunction {
-      ...
-    }
-
-Use UpperCamelCase for constructor names
-
-    function MyConstructorFunction(input) {
-      this.variable = input;
-      ...
-    }
-
-### Formatting
-Follow C/C++ formatting above.
+```bash
+$ npm install
+$ npm run lint
+# or
+$ ./node_modules/.bin/eslint src/js
+```
 
 
 # Coding Style Guideline For Python

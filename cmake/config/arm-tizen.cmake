@@ -14,9 +14,19 @@
 
 include(CMakeForceCompiler)
 
-set(CMAKE_SYSTEM_NAME Tizen)
+set(CMAKE_SYSTEM_NAME Linux)
 set(CMAKE_SYSTEM_PROCESSOR armv7l)
 
-set(EXTERNAL_CMAKE_C_COMPILER arm-linux-gnueabi-gcc)
+# Only set the compiler if not provided already
+if(NOT "${CMAKE_C_COMPILER}" STREQUAL "")
+  find_program(COMPILER_PATH ${CMAKE_C_COMPILER})
+  if(COMPILER_PATH STREQUAL "")
+    message(WARNING "Command ${CMAKE_C_COMPILER} not found")
+    unset(CMAKE_C_COMPILER)
+  endif()
+  unset(COMPILER_PATH)
+endif()
 
-CMAKE_FORCE_C_COMPILER(${EXTERNAL_CMAKE_C_COMPILER} GNU)
+if("${CMAKE_C_COMPILER}" STREQUAL "")
+  set(CMAKE_C_COMPILER arm-linux-gnueabi-gcc)
+endif()

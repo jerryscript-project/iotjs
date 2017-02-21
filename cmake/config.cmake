@@ -14,6 +14,17 @@
 
 cmake_minimum_required(VERSION 2.8)
 
+if(NOT "CROSS_COMPILE" STREQUAL "")
+  if(EXISTS ${CROSS_COMPILE}-gcc)
+    set(CMAKE_C_COMPILER ${CROSS_COMPILE}gcc)
+    message(STATUS "Setting CMAKE_C_COMPILER to ${CROSS_COMPILE}gcc")
+  else()
+    message(ERROR "CROSS_COMPILE set and ${CROSS_COMPILE}gcc does not exist")
+  endif()
+else()
+  message(STATUS "CROSS_COMPILE not set")
+endif()
+
 set(CC ${CMAKE_C_COMPILER})
 
 
@@ -44,8 +55,8 @@ if(${CFG_SYS_NAME} STREQUAL "DARWIN")
   message(fatal "Darwin not ready")
 endif()
 
-
-if(${CFG_SYS_PROCESSOR} STREQUAL "ARM")
+string(SUBSTRING ${CFG_SYS_PROCESSOR} 0 3 ARCH_PREFIX)
+if(${ARCH_PREFIX} STREQUAL "ARM")
   set(PLATFORM_ARCH "arm")
 elseif(${CFG_SYS_PROCESSOR} MATCHES "I686|X86|X86_64")
   set(PLATFORM_ARCH "x86")

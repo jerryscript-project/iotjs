@@ -133,7 +133,14 @@ for test in option.test:
             build(buildtype, ['--target-arch=arm',
                               '--target-board=rpi2'] + include_module)
 
+    elif test == "artik10":
+        for buildtype in option.buildtype:
+            build(buildtype, ['--target-arch=arm',
+                              '--target-os=tizen',
+                              '--target-board=artik10'] + include_module)
+
     elif test == "nuttx":
+        current_dir = os.getcwd()
         for buildtype in option.buildtype:
             nuttx_root=fs.join(path.PROJECT_ROOT, 'deps', 'nuttx')
             setup_nuttx_root(nuttx_root)
@@ -145,6 +152,7 @@ for test in option.test:
                               '--jerry-heaplimit=78'] + include_module)
             if not build_nuttx(nuttx_root, buildtype):
                 ex.fail('nuttx ' + buildtype + ' build failed')
+            fs.chdir(current_dir)
 
     elif test == "misc":
 

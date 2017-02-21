@@ -93,11 +93,17 @@ def init_options():
         help='Specify the target os: %(choices)s (default: %(default)s)')
 
     parser.add_argument('--target-board',
-        choices=['none', 'stm32f4dis', 'rpi2'], default='none',
+        choices=['none', 'artik10', 'stm32f4dis', 'rpi2'], default='none',
         help='Specify the targeted board (if needed): '
              '%(choices)s (default: %(default)s)')
-    parser.add_argument('--nuttx-home', default=None,
-        help='Specify the NuttX base directory (required for NuttiX build)')
+    parser.add_argument('--nuttx-home', default=None, dest='sysroot',
+        help='Specify the NuttX base directory (required for NuttX build)')
+
+    parser.add_argument('--cross-compile', dest='cross_compile',
+        action='store', help='Specify the cross compilation toolkit prefix.')
+    parser.add_argument('--sysroot', action='store',
+        help='The location of the development tree root directory (sysroot).'
+        'Must be compatible with used toolchain.')
 
     parser.add_argument('--cmake-param',
         action='append', default=[],
@@ -190,19 +196,19 @@ def adjust_options(options):
     # First fix some option inconsistencies
     if options.target_os == 'nuttx':
         options.buildlib = True
-        if not options.nuttx_home:
-            ex.fail('--nuttx-home needed for nuttx target')
+        if not options.sysroot:
+            ex.fail('--sysroot needed for nuttx target')
 
-        options.nuttx_home = fs.abspath(options.nuttx_home)
-        if not fs.exists(options.nuttx_home):
-            ex.fail('--nuttx-home %s does not exists' % options.nuttx_home)
+        options.sysroot = fs.abspath(options.sysroot)
+        if not fs.exists(options.sysroot):
+            ex.fail('Nuttx sysroot %s does not exist' % options.sysroot)
 
     if options.target_arch == 'x86':
         options.target_arch = 'i686'
     if options.target_arch == 'x64':
         options.target_arch = 'x86_64'
 
-    if options.target_board == 'rpi2':
+    if options.target_board in ['rpi2', 'artik10']:
         options.no_check_valgrind = True
     elif options.target_board == 'none':
         options.target_board = None
@@ -293,11 +299,10 @@ def build_cmake_args(options, for_jerry=False):
 
     # external include dir
     include_dirs = []
-    if options.target_os == 'nuttx':
-        include_dirs.append('%s/include' % options.nuttx_home)
+    if options.target_os == 'nuttx' and options.sysroot:
+        include_dirs.append('%s/include' % options.sysroot)
         if options.target_board == 'stm32f4dis':
-            include_dirs.append('%s/arch/arm/src/stm32' % options.nuttx_home)
-
+            include_dirs.append('%s/arch/arm/src/stm32' % options.sysroot)
     include_dirs.extend(options.external_include_dir)
     cmake_args.append("-DEXTERNAL_INCLUDE_DIR='%s'" % (' '.join(include_dirs)))
 
@@ -355,8 +360,12 @@ def build_tuv(options):
         '-DBUILDAPIEMULTESTER=NO',
     ]
 
-    if options.target_os == 'nuttx':
-        cmake_opt.append("-DTARGET_SYSTEMROOT='%s'" % options.nuttx_home)
+    if options.cross_compile:
+        cmake_opt.append("-DCROSS_COMPILE='%s'" % options.cross_compile)
+
+    if options.sysroot:
+        cmake_opt.append("-DTARGET_SYSTEMROOT='%s'" % options.sysroot)
+        cmake_opt.append("-DSYSROOT='%s'" % options.sysroot)
 
     if options.target_board:
         cmake_opt.append("-DTARGET_BOARD='%s'" % options.target_board)
@@ -432,7 +441,7 @@ def build_libjerry(options):
 
     if options.target_os == 'nuttx':
         cmake_opt.append("-DEXTERNAL_LIBC_INTERFACE='%s'" %
-                         fs.join(options.nuttx_home, 'include'))
+                         fs.join(options.sysroot, 'include'))
         if options.target_arch == 'arm':
             cmake_opt.append('-DEXTERNAL_CMAKE_SYSTEM_PROCESSOR=arm')
 
@@ -506,7 +515,7 @@ def build_libhttpparser(options):
     ]
 
     if options.target_os == 'nuttx':
-        cmake_opt.append("-DNUTTX_HOME='%s'" % options.nuttx_home)
+        cmake_opt.append("-DNUTTX_HOME='%s'" % options.sysroot)
         cmake_opt.append('-DOS=NUTTX')
 
     if options.target_os in ['linux', 'tizen']:
@@ -610,7 +619,7 @@ def build_iotjs(options):
         options.compile_flag.append('-DENABLE_SNAPSHOT')
 
     if options.target_os == 'nuttx':
-        cmake_opt.append("-DNUTTX_HOME='%s'" % options.nuttx_home)
+        cmake_opt.append("-DNUTTX_HOME='%s'" % options.sysroot)
 
     # --build-lib
     if options.buildlib:

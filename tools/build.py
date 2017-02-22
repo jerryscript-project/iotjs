@@ -574,6 +574,10 @@ def analyze_module_dependency(options):
         with open(js_module_path) as module:
             content = module.read()
 
+        # Pretend to ignore comments in JavaScript
+        re_js_comments = "\/\/.*|\/\*.*\*\/";
+        content = re.sub(re_js_comments, "", content)
+
         re_js_module = 'require\([\'\"](.*?)[\'\"]\)'
         for js_module in re.findall(re_js_module, content):
             if js_module in options.iotjs_exclude_module:

@@ -22,6 +22,8 @@
 #include "iotjs_exception.h"
 #include "iotjs_reqwrap.h"
 
+#undef JHANDLER_FUNCTION
+#define JHANDLER_FUNCTION(name) static void name(iotjs_jhandler_t* jhandler)
 
 iotjs_fs_reqwrap_t* iotjs_fs_reqwrap_create(const iotjs_jval_t* jcallback) {
   iotjs_fs_reqwrap_t* fs_reqwrap = IOTJS_ALLOC(iotjs_fs_reqwrap_t);

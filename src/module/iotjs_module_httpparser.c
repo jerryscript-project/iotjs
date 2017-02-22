@@ -461,7 +461,8 @@ JHANDLER_FUNCTION(HTTPParserCons) {
 iotjs_jval_t InitHttpparser() {
   iotjs_jval_t httpparser = iotjs_jval_create_object();
 
-  iotjs_jval_t jParserCons = iotjs_jval_create_function(HTTPParserCons);
+  iotjs_jval_t jParserCons =
+      iotjs_jval_create_function_with_dispatch(HTTPParserCons);
   iotjs_jval_set_property_jval(&httpparser, "HTTPParser", &jParserCons);
 
   iotjs_jval_set_property_number(&jParserCons, "REQUEST", HTTP_REQUEST);

@@ -483,10 +483,11 @@ JHANDLER_FUNCTION(ByteLength) {
 
 
 iotjs_jval_t InitBuffer() {
-  iotjs_jval_t buffer = iotjs_jval_create_function(Buffer);
+  iotjs_jval_t buffer = iotjs_jval_create_function_with_dispatch(Buffer);
 
   iotjs_jval_t prototype = iotjs_jval_create_object();
-  iotjs_jval_t byte_length = iotjs_jval_create_function(ByteLength);
+  iotjs_jval_t byte_length =
+      iotjs_jval_create_function_with_dispatch(ByteLength);
 
   iotjs_jval_set_property_jval(&buffer, "prototype", &prototype);
   iotjs_jval_set_property_jval(&buffer, "byteLength", &byte_length);

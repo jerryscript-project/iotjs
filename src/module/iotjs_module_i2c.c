@@ -440,7 +440,7 @@ JHANDLER_FUNCTION(ReadBlock) {
 
 
 iotjs_jval_t InitI2c() {
-  iotjs_jval_t jI2cCons = iotjs_jval_create_function(I2cCons);
+  iotjs_jval_t jI2cCons = iotjs_jval_create_function_with_dispatch(I2cCons);
 
   iotjs_jval_t prototype = iotjs_jval_create_object();
 

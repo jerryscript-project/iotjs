@@ -267,11 +267,11 @@ static jerry_value_t iotjs_jval_as_raw(const iotjs_jval_t* jval) {
 
 
 void iotjs_jval_set_method(const iotjs_jval_t* jobj, const char* name,
-                           JHandlerType handler) {
+                           iotjs_native_handler_t handler) {
   const IOTJS_VALIDATED_STRUCT_METHOD(iotjs_jval_t, jobj);
   IOTJS_ASSERT(iotjs_jval_is_object(jobj));
 
-  iotjs_jval_t jfunc = iotjs_jval_create_function(handler);
+  iotjs_jval_t jfunc = iotjs_jval_create_function_with_dispatch(handler);
   iotjs_jval_set_property_jval(jobj, name, &jfunc);
   iotjs_jval_destroy(&jfunc);
 }
@@ -749,6 +749,37 @@ void iotjs_jhandler_throw(iotjs_jhandler_t* jhandler, const iotjs_jval_t* err) {
 #ifndef NDEBUG
   _this->finished = true;
 #endif
+}
+
+
+static jerry_value_t iotjs_native_dispatch_function(
+    const jerry_value_t jfunc, const jerry_value_t jthis,
+    const jerry_value_t jargv[], const JRawLengthType jargc) {
+  uintptr_t target_function_ptr = 0x0;
+  if (!jerry_get_object_native_handle(jfunc, &target_function_ptr)) {
+    const jerry_char_t* jmsg = (const jerry_char_t*)("Internal dispatch error");
+    return jerry_create_error((jerry_error_t)IOTJS_ERROR_COMMON, jmsg);
+  }
+
+  IOTJS_ASSERT(target_function_ptr != 0x0);
+
+  iotjs_jhandler_t jhandler;
+  iotjs_jhandler_initialize(&jhandler, jfunc, jthis, jargv, jargc);
+
+  ((iotjs_native_handler_t)target_function_ptr)(&jhandler);
+
+  jerry_value_t ret_val = jhandler.unsafe.jret.unsafe.value;
+  iotjs_jhandler_destroy(&jhandler);
+  return ret_val;
+}
+
+
+iotjs_jval_t iotjs_jval_create_function_with_dispatch(
+    iotjs_native_handler_t handler) {
+  iotjs_jval_t jfunc =
+      iotjs_jval_create_function(iotjs_native_dispatch_function);
+  iotjs_jval_set_object_native_handle(&jfunc, (uintptr_t)handler, NULL);
+  return jfunc;
 }
 
 

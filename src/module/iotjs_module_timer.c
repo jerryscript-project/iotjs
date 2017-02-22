@@ -162,7 +162,7 @@ JHANDLER_FUNCTION(Timer) {
 
 
 iotjs_jval_t InitTimer() {
-  iotjs_jval_t timer = iotjs_jval_create_function(Timer);
+  iotjs_jval_t timer = iotjs_jval_create_function_with_dispatch(Timer);
 
   iotjs_jval_t prototype = iotjs_jval_create_object();
   iotjs_jval_set_property_jval(&timer, "prototype", &prototype);

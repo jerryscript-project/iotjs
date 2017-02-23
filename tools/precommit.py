@@ -42,6 +42,8 @@ def parse_option():
          epilog='If no arguments are given, runs full test.')
     parser.add_argument('--test', choices=TESTS, action='append')
     parser.add_argument('--buildtype', choices=BUILDTYPES, action='append')
+    parser.add_argument('--buildoptions', action='store', default='',
+                        help='A comma separated list of extra buildoptions')
 
     option = parser.parse_args(sys.argv[1:])
     if option.test is None:
@@ -122,7 +124,7 @@ def setup_tizen_root(tizen_root):
 
 def build(buildtype, args=[]):
     fs.chdir(path.PROJECT_ROOT)
-    ex.check_run_cmd('./tools/build.py', args + ['--buildtype=' + buildtype])
+    ex.check_run_cmd('./tools/build.py', ['--buildtype=' + buildtype] + args)
 
 
 option = parse_option()
@@ -133,15 +135,20 @@ if len(config['module']['exclude']) > 0 :
 else:
     include_module = []
 
+build_args = []
+
+if option.buildoptions:
+    build_args.extend(option.buildoptions.split(','))
+
 for test in option.test:
     if test == "host":
         for buildtype in option.buildtype:
-            build(buildtype, include_module)
+            build(buildtype, include_module + build_args)
 
     elif test == "rpi2":
         for buildtype in option.buildtype:
-            build(buildtype, ['--target-arch=arm',
-                              '--target-board=rpi2'] + include_module)
+            build(buildtype, ['--target-arch=arm', '--target-board=rpi2']
+                              + include_module + build_args)
 
     elif test == "artik10":
         for buildtype in option.buildtype:
@@ -151,7 +158,7 @@ for test in option.test:
                               '--target-os=tizen',
                               '--target-board=artik10',
                               '--compile-flag=--sysroot=' + tizen_root
-                              ] + include_module)
+                              ] + include_module + build_args)
 
     elif test == "nuttx":
         current_dir = os.getcwd()
@@ -163,7 +170,9 @@ for test in option.test:
                               '--target-os=nuttx',
                               '--nuttx-home=' + fs.join(nuttx_root, 'nuttx'),
                               '--target-board=stm32f4dis',
-                              '--jerry-heaplimit=78'] + include_module)
+                              '--jerry-heaplimit=78']
+                              + include_module + build_args)
+
             if not build_nuttx(nuttx_root, buildtype):
                 ex.fail('nuttx ' + buildtype + ' build failed')
             fs.chdir(current_dir)
@@ -178,6 +187,8 @@ for test in option.test:
         if not check_tidy(path.PROJECT_ROOT):
             ex.fail("Failed tidy check")
 
-        build("debug")
-        build("debug", ['--no-snapshot', '--jerry-lto'] + include_module)
-        build("debug", ['--iotjs-minimal-profile'])
+        build("debug", build_args)
+        build("debug", ['--no-snapshot', '--jerry-lto']
+                       + include_module + build_args)
+
+        build("debug", ['--iotjs-minimal-profile'] + build_args)

@@ -8,6 +8,7 @@ before_install:
   - if [[ "$INSTALL_ARM_DEPS" == "yes" ]]; then tools/apt-get-install-arm.sh; fi
   - if [[ "$INSTALL_NUTTX_DEPS" == "yes" ]]; then tools/apt-get-install-nuttx.sh; fi
   - if [[ "$INSTALL_TIZEN_DEPS" == "yes" ]]; then . tools/apt-get-install-tizen.sh; fi
+  - if [[ "$INSTALL_TRAVIS_I686_DEPS" == "yes" ]]; then tools/apt-get-install-travis-i686.sh; fi
   - tools/apt-get-install-deps.sh
 
 install:
@@ -15,9 +16,32 @@ install:
 script: "tools/precommit.py $OPTS"
 
 env:
-  - OPTS="--test=host --buildtype=release"
-  - OPTS="--test=host --buildtype=debug"
+  - OPTS="--test=host"
   - OPTS="--test=rpi2" INSTALL_ARM_DEPS=yes
   - OPTS="--test=nuttx" INSTALL_NUTTX_DEPS=yes
   - OPTS="--test=artik10" INSTALL_TIZEN_DEPS=yes
   - OPTS="--test=misc"
+
+matrix:
+  include:
+    - compiler: gcc-4.9
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - gcc-4.9
+            - gcc-4.9-multilib
+      env: OPTS="--test=host --buildtype=debug --buildoptions=--target-arch=i686,--compile-flag=-fsanitize=address,--compile-flag=-fno-omit-frame-pointer,--compile-flag=-fno-common,--jerry-cmake-param=-DJERRY_LIBC=OFF,--jerry-cmake-param=-DFEATURE_SYSTEM_ALLOCATOR=ON,--no-snapshot,--no-check-valgrind" INSTALL_TRAVIS_I686_DEPS=yes ASAN_OPTIONS=detect_stack_use_after_return=1:check_initialization_order=true:strict_init_order=true
+    - compiler: gcc-4.9
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - gcc-4.9
+            - gcc-4.9-multilib
+      env: OPTS="--test=host --buildtype=debug --buildoptions=--target-arch=i686,--compile-flag=-fsanitize=undefined,--compile-flag=-fno-omit-frame-pointer,--compile-flag=-fno-common,--jerry-cmake-param=-DJERRY_LIBC=OFF,--jerry-cmake-param=-DFEATURE_SYSTEM_ALLOCATOR=ON,--no-snapshot,--no-check-valgrind" INSTALL_TRAVIS_I686_DEPS=yes UBSAN_OPTIONS=print_stacktrace=1
+  allow_failures:
+    - compiler: gcc-4.9
+  fast_finish: true

@@ -731,12 +731,13 @@ if __name__ == '__main__':
     # Run tests
     if not options.no_check_test:
         print_progress('Run tests')
-        # Run check test when target is host.
-        if options.host_tuple != options.target_tuple:
-            print("Skip unit tests - target is not host\n")
-        elif options.buildlib:
+        if options.buildlib:
             print("Skip unit tests - build target is library\n")
+        elif (options.host_tuple == options.target_tuple or
+              (options.host_tuple == 'x86_64-linux' and
+               options.target_tuple == 'i686-linux')):
+             run_checktest(options)
         else:
-            run_checktest(options)
+            print("Skip unit tests - target-host pair is not allowed\n")
 
     print("\n%sIoT.js Build Succeeded!!%s\n" % (ex._TERM_GREEN, ex._TERM_EMPTY))

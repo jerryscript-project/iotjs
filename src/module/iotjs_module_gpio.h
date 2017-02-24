@@ -24,8 +24,7 @@
 
 
 typedef enum {
-  kGpioDirectionNone = 0,
-  kGpioDirectionIn,
+  kGpioDirectionIn = 0,
   kGpioDirectionOut,
 } GpioDirection;
 
@@ -41,68 +40,61 @@ typedef enum {
 
 
 typedef enum {
-  kGpioErrOk = 0,
-  kGpioErrInitialize = -1,
-  kGpioErrNotInitialized = -2,
-  kGpioErrWrongUse = -98,
-  kGpioErrSys = -99,
-} GpioError;
-
-
-typedef enum {
-  kGpioOpInitize,
-  kGpioOpRelease,
   kGpioOpOpen,
   kGpioOpWrite,
   kGpioOpRead,
+  kGpioOpClose,
 } GpioOp;
 
 
 typedef struct {
-  uint32_t pin;
   bool value;
-  GpioDirection dir;
-  GpioMode mode; // only for set pin
-  GpioError result;
+  ssize_t result;
   GpioOp op;
 } iotjs_gpio_reqdata_t;
+
+
+// This Gpio class provides interfaces for GPIO operation.
+typedef struct {
+  iotjs_jobjectwrap_t jobjectwrap;
+  uint32_t pin;
+  GpioDirection direction;
+  GpioMode mode;
+} IOTJS_VALIDATED_STRUCT(iotjs_gpio_t);
 
 
 typedef struct {
   iotjs_reqwrap_t reqwrap;
   uv_work_t req;
   iotjs_gpio_reqdata_t req_data;
+  iotjs_gpio_t* gpio_instance;
 } IOTJS_VALIDATED_STRUCT(iotjs_gpio_reqwrap_t);
 
+
 #define THIS iotjs_gpio_reqwrap_t* gpio_reqwrap
-iotjs_gpio_reqwrap_t* iotjs_gpio_reqwrap_create(const iotjs_jval_t* jcallback,
-                                                GpioOp op);
-void iotjs_gpio_reqwrap_dispatched(THIS);
-uv_work_t* iotjs_gpio_reqwrap_req(THIS);
-const iotjs_jval_t* iotjs_gpio_reqwrap_jcallback(THIS);
+
 iotjs_gpio_reqwrap_t* iotjs_gpio_reqwrap_from_request(uv_work_t* req);
 iotjs_gpio_reqdata_t* iotjs_gpio_reqwrap_data(THIS);
+
+iotjs_gpio_t* iotjs_gpio_instance_from_reqwrap(THIS);
+iotjs_gpio_t* iotjs_gpio_instance_from_jval(const iotjs_jval_t* jgpio);
+
 #undef THIS
 
 
-// This Gpio class provides interfaces for GPIO operation.
-typedef struct {
-  iotjs_jobjectwrap_t jobjectwrap;
-  bool initialized;
-} IOTJS_VALIDATED_STRUCT(iotjs_gpio_t);
-
-iotjs_gpio_t* iotjs_gpio_create(const iotjs_jval_t* jgpio);
-const iotjs_jval_t* iotjs_gpio_get_jgpio();
-iotjs_gpio_t* iotjs_gpio_get_instance();
-bool iotjs_gpio_initialized();
-void iotjs_gpio_set_initialized(iotjs_gpio_t* gpio, bool initialized);
+#define GPIO_WORKER_INIT()                                                    \
+  iotjs_gpio_reqwrap_t* req_wrap = iotjs_gpio_reqwrap_from_request(work_req); \
+  iotjs_gpio_reqdata_t* req_data = iotjs_gpio_reqwrap_data(req_wrap);         \
+  iotjs_gpio_t* gpio = iotjs_gpio_instance_from_reqwrap(req_wrap);            \
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_gpio_t, gpio);
 
 
-void InitializeGpioWorker(uv_work_t* work_req);
-void ReleaseGpioWorker(uv_work_t* work_req);
-void OpenGpioWorker(uv_work_t* work_req);
-void WriteGpioWorker(uv_work_t* work_req);
-void ReadGpioWorker(uv_work_t* work_req);
-
+void iotjs_gpio_open_worker(uv_work_t* work_req);
+void iotjs_gpio_write_worker(uv_work_t* work_req);
+void iotjs_gpio_read_worker(uv_work_t* work_req);
+void iotjs_gpio_close_worker(uv_work_t* work_req);
+bool iotjs_gpio_write(int32_t pin, bool value);
+int iotjs_gpio_read(int32_t pin);
+bool iotjs_gpio_close(int32_t pin);
 
 #endif /* IOTJS_MODULE_GPIO_H */

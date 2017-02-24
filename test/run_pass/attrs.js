@@ -102,6 +102,10 @@
       skip: ['nuttx'],
       reason: "not implemented for nuttx"
     },
+    'test_gpio1.js': {
+      skip: ['all'],
+      reason: "need hardware"
+    },
     'test_gpio2.js': {
       skip: ['all'],
       reason: "need user input"

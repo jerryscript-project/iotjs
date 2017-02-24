@@ -575,6 +575,14 @@ void iotjs_jargs_append_string(iotjs_jargs_t* jargs, const iotjs_string_t* x) {
 }
 
 
+void iotjs_jargs_append_error(iotjs_jargs_t* jargs, const char* msg) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_jargs_t, jargs);
+  iotjs_jval_t error = iotjs_jval_create_error(msg);
+  iotjs_jargs_append_jval(jargs, &error);
+  iotjs_jval_destroy(&error);
+}
+
+
 void iotjs_jargs_append_string_raw(iotjs_jargs_t* jargs, const char* x) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_jargs_t, jargs);
   iotjs_jval_t jval = iotjs_jval_create_string_raw(x);

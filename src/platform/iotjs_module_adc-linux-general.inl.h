@@ -44,7 +44,7 @@ void iotjs_adc_export_worker(uv_work_t* work_req) {
   DDDLOG("ADC %s()", __func__);
 
   // Check if ADC interface exits.
-  if (DeviceCheckPath(ADC_INTERFACE)) {
+  if (iotjs_systemio_check_path(ADC_INTERFACE)) {
     req_data->result = kAdcErrOk;
   } else {
     req_data->result = kAdcErrExport;
@@ -61,7 +61,7 @@ void iotjs_adc_read_worker(uv_work_t* work_req) {
   snprintf(value_path, sizeof(value_path), ADC_PIN_FORMAT, pin);
 
   char buffer[ADC_VALUE_BUFFER_SIZE];
-  if (DeviceOpenReadClose(value_path, buffer, sizeof(buffer))) {
+  if (iotjs_systemio_open_read_close(value_path, buffer, sizeof(buffer))) {
     req_data->result = kAdcErrOk;
     req_data->value = atoi(buffer);
   } else {

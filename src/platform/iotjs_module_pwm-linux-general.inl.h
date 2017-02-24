@@ -93,7 +93,7 @@ static bool doSetPeriod(iotjs_pwm_reqdata_t* req_data) {
       DDLOG("PWM SetPeriod - path: %s, value: %fs", devicePath, 1.E-9 * value);
       char buf[PWM_VALUE_BUFFER_SIZE];
       if (snprintf(buf, sizeof(buf), "%d", value) > 0) {
-        result = DeviceOpenWriteClose(devicePath, buf);
+        result = iotjs_systemio_open_write_close(devicePath, buf);
       }
       free(devicePath);
     }
@@ -123,7 +123,7 @@ bool SetPwmDutyCycle(iotjs_pwm_reqdata_t* req_data) {
       char buf[PWM_VALUE_BUFFER_SIZE];
       snprintf(buf, sizeof(buf), "%d", dutyCycleValue);
 
-      result = DeviceOpenWriteClose(devicePath, buf);
+      result = iotjs_systemio_open_write_close(devicePath, buf);
       free(devicePath);
     }
   }
@@ -148,7 +148,7 @@ void ExportWorker(uv_work_t* work_req) {
 
 
   // See if the PWM is already opened.
-  if (!DeviceCheckPath(path)) {
+  if (!iotjs_systemio_check_path(path)) {
     // Write exporting PWM path
     char export_path[PWM_PATH_BUFFER_SIZE] = { 0 };
     snprintf(export_path, PWM_PATH_BUFFER_SIZE - 1, PWM_EXPORT,
@@ -157,8 +157,8 @@ void ExportWorker(uv_work_t* work_req) {
     const char* created_files[] = { PWM_PIN_DUTYCYCLE, PWM_PIN_PERIOD,
                                     PWM_PIN_ENABlE };
     int created_files_length = sizeof(created_files) / sizeof(created_files[0]);
-    if (!DeviceExport(export_path, req_data->pin, path, created_files,
-                      created_files_length)) {
+    if (!iotjs_systemio_device_open(export_path, req_data->pin, path,
+                                    created_files, created_files_length)) {
       req_data->result = kPwmErrExport;
       return;
     }
@@ -239,7 +239,7 @@ void SetEnableWorker(uv_work_t* work_req) {
 
   char value[4];
   snprintf(value, sizeof(value), "%d", req_data->enable);
-  if (!DeviceOpenWriteClose(path, value)) {
+  if (!iotjs_systemio_open_write_close(path, value)) {
     req_data->result = kPwmErrWrite;
     return;
   }
@@ -262,13 +262,13 @@ void UnexportWorker(uv_work_t* work_req) {
   const char* export_path;
   int32_t chip_number = PWM_DEFAULT_CHIP_NUMBER;
 
-  if (DeviceCheckPath(path)) {
+  if (iotjs_systemio_check_path(path)) {
     // Write exporting pin path
     char unexport_path[PWM_PATH_BUFFER_SIZE] = { 0 };
     snprintf(unexport_path, PWM_PATH_BUFFER_SIZE - 1, PWM_UNEXPORT,
              chip_number);
 
-    DeviceUnexport(unexport_path, req_data->pin);
+    iotjs_systemio_device_close(unexport_path, req_data->pin);
   }
 
   DDDLOG("Pwm Unexport - path: %s", path);

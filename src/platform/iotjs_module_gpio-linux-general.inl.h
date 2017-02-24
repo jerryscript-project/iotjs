@@ -20,7 +20,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 
 #include "iotjs_systemio-linux.h"
 #include "module/iotjs_module_gpio.h"
@@ -49,168 +48,131 @@
 //  https://www.kernel.org/doc/Documentation/gpio/sysfs.txt
 
 
-// Unexport GPIO pin.
-bool UnexportPin(int32_t pin) {
-  DDDLOG("GPIO UnexportPin() - path: %s", GPIO_PIN_FORMAT_UNEXPORT);
-
-  char buff[GPIO_PIN_BUFFER_SIZE] = { 0 };
-  snprintf(buff, GPIO_PIN_BUFFER_SIZE - 1, "%d", pin);
-
-  if (!DeviceOpenWriteClose(GPIO_PIN_FORMAT_UNEXPORT, buff)) {
-    return false;
-  }
-
-  return true;
-}
-
-
-bool SetPinDirection(int32_t pin, GpioDirection direction) {
+static bool gpio_set_direction(int32_t pin, GpioDirection direction) {
   IOTJS_ASSERT(direction == kGpioDirectionIn || direction == kGpioDirectionOut);
 
-  char direction_path[GPIO_PATH_BUFFER_SIZE] = { 0 };
-  snprintf(direction_path, GPIO_PATH_BUFFER_SIZE - 1, GPIO_PIN_FORMAT_DIRECTION,
+  char direction_path[GPIO_PATH_BUFFER_SIZE];
+  snprintf(direction_path, GPIO_PATH_BUFFER_SIZE, GPIO_PIN_FORMAT_DIRECTION,
            pin);
 
-  char buffer[4] = { 0 };
-  if (direction == kGpioDirectionIn) {
-    strcpy(buffer, "in");
-  } else {
-    strcpy(buffer, "out");
-  }
+  const char* buffer = (direction == kGpioDirectionIn) ? "in" : "out";
 
-  DDDLOG("GPIO SetPinDirection() - path: %s, dir: %s", direction_path, buffer);
+  DDDLOG("%s - path: %s, dir: %s", __func__, direction_path, buffer);
 
-  return DeviceOpenWriteClose(direction_path, buffer);
+  return iotjs_systemio_open_write_close(direction_path, buffer);
 }
 
 
 // FIXME: Implement SetPinMode()
-bool SetPinMode(int32_t pin, GpioMode mode) {
-  IOTJS_ASSERT(mode != kGpioModeNone && mode != kGpioModeOpendrain);
-
+static bool gpio_set_mode(int32_t pin, GpioMode mode) {
   return true;
 }
 
 
-#define GPIO_WORKER_INIT_TEMPLATE(initialized)                                \
-  IOTJS_ASSERT(iotjs_gpio_initialized() == initialized);                      \
-  iotjs_gpio_reqwrap_t* req_wrap = iotjs_gpio_reqwrap_from_request(work_req); \
-  iotjs_gpio_reqdata_t* req_data = iotjs_gpio_reqwrap_data(req_wrap);
+bool iotjs_gpio_write(int32_t pin, bool value) {
+  char value_path[GPIO_PATH_BUFFER_SIZE];
+  snprintf(value_path, GPIO_PATH_BUFFER_SIZE, GPIO_PIN_FORMAT_VALUE, pin);
 
+  const char* buffer = value ? "1" : "0";
 
-void InitializeGpioWorker(uv_work_t* work_req) {
-  GPIO_WORKER_INIT_TEMPLATE(false);
-  DDDLOG("GPIO InitializeGpioWorker()");
+  DDDLOG("%s - pin: %d, value: %d", __func__, pin, value);
 
-  // Check if GPIO interface exits.
-  if (DeviceCheckPath(GPIO_INTERFACE)) {
-    req_data->result = kGpioErrOk;
-  } else {
-    req_data->result = kGpioErrInitialize;
-  }
+  return iotjs_systemio_open_write_close(value_path, buffer);
 }
 
 
-void ReleaseGpioWorker(uv_work_t* work_req) {
-  GPIO_WORKER_INIT_TEMPLATE(true);
-  DDDLOG("GPIO ReleaseGpioWorker()");
-
-  req_data->result = kGpioErrOk;
-
-  const iotjs_environment_t* env = iotjs_environment_get();
-  uv_loop_t* loop = iotjs_environment_loop(env);
-
-  int pin_number;
-  static uv_fs_t scandir_req;
-  uv_dirent_t dent;
-
-  uv_fs_scandir(loop, &scandir_req, GPIO_INTERFACE, 0, NULL);
-
-  while (UV_EOF != uv_fs_scandir_next(&scandir_req, &dent)) {
-    if (sscanf(dent.name, GPIO_PIN_INTERFACE, &pin_number) == 1) {
-      if (!UnexportPin(pin_number)) {
-        req_data->result = kGpioErrSys;
-      }
-    }
-  }
-}
-
-
-void OpenGpioWorker(uv_work_t* work_req) {
-  GPIO_WORKER_INIT_TEMPLATE(true);
-  uint32_t pin = req_data->pin;
-  DDDLOG("Gpio OpenGpioWorker() - pin: %d, dir: %d, mode: %d", req_data->pin,
-         req_data->dir, req_data->mode);
-
-  if (req_data->dir == kGpioDirectionNone) {
-    // Unexport GPIO pin.
-    if (!UnexportPin(req_data->pin)) {
-      req_data->result = kGpioErrSys;
-      return;
-    }
-  } else {
-    // Export GPIO pin.
-    char exported_path[GPIO_PATH_BUFFER_SIZE] = { 0 };
-    snprintf(exported_path, GPIO_PATH_BUFFER_SIZE - 1, GPIO_PIN_FORMAT, pin);
-
-    const char* created_files[] = { GPIO_DIRECTION, GPIO_EDGE, GPIO_VALUE };
-    int created_files_length = sizeof(created_files) / sizeof(created_files[0]);
-
-    if (!DeviceExport(GPIO_PIN_FORMAT_EXPORT, pin, exported_path, created_files,
-                      created_files_length)) {
-      req_data->result = kGpioErrSys;
-      return;
-    }
-    // Set direction.
-    if (!SetPinDirection(pin, req_data->dir)) {
-      req_data->result = kGpioErrSys;
-      return;
-    }
-    // Set mode.
-    if (!SetPinMode(pin, req_data->mode)) {
-      req_data->result = kGpioErrSys;
-      return;
-    }
-  }
-
-  req_data->result = kGpioErrOk;
-}
-
-
-void WriteGpioWorker(uv_work_t* work_req) {
-  GPIO_WORKER_INIT_TEMPLATE(true);
-  DDDLOG("Gpio WriteGpioWorker() - pin: %d, value: %d", req_data->pin,
-         req_data->value);
-
-  char value_path[GPIO_PATH_BUFFER_SIZE] = { 0 };
-  snprintf(value_path, GPIO_PATH_BUFFER_SIZE - 1, GPIO_PIN_FORMAT_VALUE,
-           req_data->pin);
-
-  char buffer[2] = { 0 };
-  buffer[0] = req_data->value ? '1' : '0';
-
-  if (DeviceOpenWriteClose(value_path, buffer)) {
-    req_data->result = kGpioErrOk;
-  } else {
-    req_data->result = kGpioErrSys;
-  }
-}
-
-
-void ReadGpioWorker(uv_work_t* work_req) {
-  GPIO_WORKER_INIT_TEMPLATE(true);
-  uint32_t pin = req_data->pin;
-  DDDLOG("Gpio ReadGpioWorker() - pin: %d", pin);
-
-  char value_path[GPIO_PATH_BUFFER_SIZE] = { 0 };
-  snprintf(value_path, GPIO_PATH_BUFFER_SIZE - 1, GPIO_PIN_FORMAT_VALUE, pin);
-
+int iotjs_gpio_read(int32_t pin) {
   char buffer[GPIO_VALUE_BUFFER_SIZE];
-  if (DeviceOpenReadClose(value_path, buffer, GPIO_VALUE_BUFFER_SIZE - 1)) {
-    req_data->result = kGpioErrOk;
-    req_data->value = atoi(buffer) ? true : false;
+  char value_path[GPIO_PATH_BUFFER_SIZE];
+  snprintf(value_path, GPIO_PATH_BUFFER_SIZE, GPIO_PIN_FORMAT_VALUE, pin);
+
+  if (!iotjs_systemio_open_read_close(value_path, buffer,
+                                      GPIO_VALUE_BUFFER_SIZE - 1)) {
+    return -1;
+  }
+
+  return atoi(buffer);
+}
+
+
+bool iotjs_gpio_close(int32_t pin) {
+  char buff[GPIO_PIN_BUFFER_SIZE];
+  snprintf(buff, GPIO_PIN_BUFFER_SIZE, "%d", pin);
+
+  return iotjs_systemio_open_write_close(GPIO_PIN_FORMAT_UNEXPORT, buff);
+}
+
+
+void iotjs_gpio_open_worker(uv_work_t* work_req) {
+  GPIO_WORKER_INIT();
+
+  DDDLOG("%s - pin: %d, dir: %d, mode: %d", __func__, _this->pin,
+         _this->direction, _this->mode);
+
+  // Open GPIO pin.
+  char exported_path[GPIO_PATH_BUFFER_SIZE];
+  snprintf(exported_path, GPIO_PATH_BUFFER_SIZE, GPIO_PIN_FORMAT, _this->pin);
+
+  const char* created_files[] = { GPIO_DIRECTION, GPIO_EDGE, GPIO_VALUE };
+  int created_files_length = sizeof(created_files) / sizeof(created_files[0]);
+
+  if (!iotjs_systemio_device_open(GPIO_PIN_FORMAT_EXPORT, _this->pin,
+                                  exported_path, created_files,
+                                  created_files_length)) {
+    req_data->result = -1;
+    return;
+  }
+  // Set direction.
+  if (!gpio_set_direction(_this->pin, _this->direction)) {
+    req_data->result = -1;
+    return;
+  }
+  // Set mode.
+  if (!gpio_set_mode(_this->pin, _this->mode)) {
+    req_data->result = -1;
+    return;
+  }
+
+  req_data->result = 0;
+}
+
+
+void iotjs_gpio_write_worker(uv_work_t* work_req) {
+  GPIO_WORKER_INIT();
+  DDDLOG("%s - pin: %d, value: %d", __func__, _this->pin, req_data->value);
+
+  bool result = iotjs_gpio_write(_this->pin, req_data->value);
+
+  if (result) {
+    req_data->result = 0;
   } else {
-    req_data->result = kGpioErrSys;
+    req_data->result = -1;
+  }
+}
+
+
+void iotjs_gpio_read_worker(uv_work_t* work_req) {
+  GPIO_WORKER_INIT();
+  DDDLOG("%s - pin: %d", __func__, _this->pin);
+
+  int result = iotjs_gpio_read(_this->pin);
+  if (result >= 0) {
+    req_data->result = 0;
+    req_data->value = (bool)result;
+  } else {
+    req_data->result = -1;
+  }
+}
+
+
+void iotjs_gpio_close_worker(uv_work_t* work_req) {
+  GPIO_WORKER_INIT();
+  DDDLOG("%s - pin : %d", __func__, _this->pin);
+
+  if (iotjs_gpio_close(_this->pin)) {
+    req_data->result = 0;
+  } else {
+    req_data->result = -1;
   }
 }
 

@@ -21,10 +21,10 @@
 
 
 // Checks if given directory exists.
-bool DeviceCheckPath(const char* path) {
+bool iotjs_systemio_check_path(const char* path) {
   const iotjs_environment_t* env = iotjs_environment_get();
 
-  DDDLOG("DeviceCheckPath() - path: %s", path);
+  DDDLOG("%s - path: %s", __func__, path);
 
   // stat for the path.
   uv_fs_t fs_req;
@@ -36,44 +36,44 @@ bool DeviceCheckPath(const char* path) {
     return false;
   }
 
-  DDDLOG("DeviceCheckPath() - path exist");
+  DDDLOG("%s - path exist", __func__);
 
   return true;
 }
 
 
-bool DeviceOpenWriteClose(const char* path, char* value) {
+bool iotjs_systemio_open_write_close(const char* path, const char* value) {
   const iotjs_environment_t* env = iotjs_environment_get();
   uv_loop_t* loop = iotjs_environment_loop(env);
 
-  DDDLOG("DeviceOpenWriteClose() - path %s, value: %s", path, value);
+  DDDLOG("%s - path %s, value: %s", __func__, path, value);
 
-  // Open file.
+  // Open file
   uv_fs_t fs_req;
   int fd = uv_fs_open(loop, &fs_req, path, O_WRONLY, 0666, NULL);
   uv_fs_req_cleanup(&fs_req);
   if (fd < 0) {
-    DDLOG("DeviceOpenWriteClose() - open %s failed: %d", path, fd);
+    DDLOG("%s - open %s failed: %d", __func__, path, fd);
     return false;
   }
 
-  // Write value.
-  uv_buf_t uvbuf = uv_buf_init(value, strlen(value));
+  // Write value
+  // We remove const because `uv_buf_init` requires char* for only reading case.
+  uv_buf_t uvbuf = uv_buf_init((char*)value, strlen(value));
   int write_err = uv_fs_write(loop, &fs_req, fd, &uvbuf, 1, 0, NULL);
   uv_fs_req_cleanup(&fs_req);
 
-  // Close file.
+  // Close file
   int close_err = uv_fs_close(loop, &fs_req, fd, NULL);
   uv_fs_req_cleanup(&fs_req);
 
   if (write_err < 0) {
-    DDLOG("DeviceOpenWriteClose() - write %s %s failed: %d", path, value,
-          write_err);
+    DDLOG("%s - write %s %s failed: %d", __func__, path, value, write_err);
     return false;
   }
 
   if (close_err < 0) {
-    DDLOG("DeviceOpenWriteClose() - close failed: %d", close_err);
+    DDLOG("%s - close failed: %d", __func__, close_err);
     return false;
   }
 
@@ -81,39 +81,40 @@ bool DeviceOpenWriteClose(const char* path, char* value) {
 }
 
 
-bool DeviceOpenReadClose(const char* path, char* buffer, int buffer_len) {
+bool iotjs_systemio_open_read_close(const char* path, char* buffer,
+                                    int buffer_len) {
   const iotjs_environment_t* env = iotjs_environment_get();
   uv_loop_t* loop = iotjs_environment_loop(env);
 
-  DDDLOG("DeviceOpenReadClose() - path %s", path);
+  DDDLOG("%s - path %s", __func__, path);
 
-  // Open file.
+  // Open file
   uv_fs_t fs_open_req;
   int fd = uv_fs_open(loop, &fs_open_req, path, O_RDONLY, 0666, NULL);
   uv_fs_req_cleanup(&fs_open_req);
   if (fd < 0) {
-    DDLOG("DeviceOpenReadClose() - open %s failed: %d", path, fd);
+    DDLOG("%s - open %s failed: %d", __func__, path, fd);
     return false;
   }
 
-  // Write value.
+  // Read value
   uv_fs_t fs_write_req;
   uv_buf_t uvbuf = uv_buf_init(buffer, buffer_len);
   int err = uv_fs_read(loop, &fs_write_req, fd, &uvbuf, 1, 0, NULL);
   uv_fs_req_cleanup(&fs_write_req);
   if (err < 0) {
-    DDLOG("DeviceOpenReadClose() - read failed: %d", err);
+    DDLOG("%s - read failed: %d", __func__, err);
     return false;
   }
 
-  DDDLOG("DeviceOpenReadClose() - read value: %s", buffer);
+  DDDLOG("%s - read value: %s", __func__, buffer);
 
-  // Close file.
+  // Close file
   uv_fs_t fs_close_req;
   err = uv_fs_close(loop, &fs_close_req, fd, NULL);
   uv_fs_req_cleanup(&fs_close_req);
   if (err < 0) {
-    DDLOG("DeviceOpenReadClose() - close failed: %d", err);
+    DDLOG("%s - close failed: %d", __func__, err);
     return false;
   }
 
@@ -121,21 +122,23 @@ bool DeviceOpenReadClose(const char* path, char* buffer, int buffer_len) {
 }
 
 
-// Export.
-bool DeviceExport(const char* export_path, int value, const char* exported_path,
-                  const char** created_files, int created_files_length) {
+// Device Open
+bool iotjs_systemio_device_open(const char* export_path, int value,
+                                const char* exported_path,
+                                const char** created_files,
+                                int created_files_length) {
   // Be already exported
-  if (DeviceCheckPath(exported_path)) {
+  if (iotjs_systemio_check_path(exported_path)) {
     return true;
   }
 
-  DDLOG("DeviceExport() - path: %s", export_path);
+  DDLOG("%s - path: %s", __func__, export_path);
 
   // Write export pin.
   char buff[DEVICE_IO_PIN_BUFFER_SIZE] = { 0 };
   snprintf(buff, DEVICE_IO_PIN_BUFFER_SIZE - 1, "%d", value);
 
-  if (!DeviceOpenWriteClose(export_path, buff)) {
+  if (!iotjs_systemio_open_write_close(export_path, buff)) {
     return false;
   }
 
@@ -146,7 +149,7 @@ bool DeviceExport(const char* export_path, int value, const char* exported_path,
   char path[DEVICE_IO_PATH_BUFFER_SIZE] = { 0 };
   char check_format[DEVICE_IO_PATH_BUFFER_SIZE] = { 0 };
 
-  while (!DeviceCheckPath(exported_path) && count < count_limit) {
+  while (!iotjs_systemio_check_path(exported_path) && count < count_limit) {
     usleep(100 * 1000); // sleep 100 miliseconds.
     count++;
   }
@@ -158,9 +161,10 @@ bool DeviceExport(const char* export_path, int value, const char* exported_path,
     snprintf(path, DEVICE_IO_PATH_BUFFER_SIZE - 1, check_format,
              created_files[i]);
 
-    DDLOG("DeviceExport() - created file: %s", path);
+    DDLOG("%s - created file: %s", __func__, path);
 
-    while (!DeviceOpenReadClose(path, buffer, DEVICE_IO_PIN_BUFFER_SIZE) &&
+    while (!iotjs_systemio_open_read_close(path, buffer,
+                                           DEVICE_IO_PIN_BUFFER_SIZE) &&
            count < count_limit) {
       usleep(100 * 1000); // sleep 100 miliseconds.
       count++;
@@ -173,14 +177,14 @@ bool DeviceExport(const char* export_path, int value, const char* exported_path,
 }
 
 
-// Unexport.
-bool DeviceUnexport(const char* export_path, int value) {
-  DDDLOG("Device Unexport() - path: %s", export_path);
+// Device close
+bool iotjs_systemio_device_close(const char* export_path, int value) {
+  DDDLOG("%s - path: %s", __func__, export_path);
 
-  char buff[DEVICE_IO_PIN_BUFFER_SIZE] = { 0 };
+  char buff[DEVICE_IO_PIN_BUFFER_SIZE];
   snprintf(buff, DEVICE_IO_PIN_BUFFER_SIZE - 1, "%d", value);
 
-  if (!DeviceOpenWriteClose(export_path, buff)) {
+  if (!iotjs_systemio_open_write_close(export_path, buff)) {
     return false;
   }
 

@@ -19,25 +19,30 @@
 #include "module/iotjs_module_gpio.h"
 
 
-void InitializeGpioWorker(uv_work_t* work_req) {
+void iotjs_gpio_open_worker(uv_work_t* work_req) {
   IOTJS_ASSERT(!"Not implemented");
 }
 
-void ReleaseGpioWorker(uv_work_t* work_req) {
+void iotjs_gpio_write_worker(uv_work_t* work_req) {
   IOTJS_ASSERT(!"Not implemented");
 }
 
-void OpenGpioWorker(uv_work_t* work_req) {
+void iotjs_gpio_read_worker(uv_work_t* work_req) {
   IOTJS_ASSERT(!"Not implemented");
 }
 
-void WriteGpioWorker(uv_work_t* work_req) {
+void iotjs_gpio_close_worker(uv_work_t* work_req) {
   IOTJS_ASSERT(!"Not implemented");
 }
 
-void ReadGpioWorker(uv_work_t* work_req) {
+bool iotjs_gpio_write(uv_work_t* work_req) {
   IOTJS_ASSERT(!"Not implemented");
+  return false;
 }
 
+int iotjs_gpio_read(uv_work_t* work_req) {
+  IOTJS_ASSERT(!"Not implemented");
+  return -1;
+}
 
 #endif /* IOTJS_MODULE_GPIO_ARM_NUTTX_GENERAL_INL_H */

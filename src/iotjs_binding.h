@@ -159,6 +159,8 @@ void iotjs_jargs_append_bool(iotjs_jargs_t* jargs, bool x);
 void iotjs_jargs_append_number(iotjs_jargs_t* jargs, double x);
 void iotjs_jargs_append_string(iotjs_jargs_t* jargs, const iotjs_string_t* x);
 void iotjs_jargs_append_string_raw(iotjs_jargs_t* jargs, const char* x);
+void iotjs_jargs_append_error(iotjs_jargs_t* jargs, const char* msg);
+
 
 void iotjs_jargs_replace(iotjs_jargs_t* jargs, uint16_t index,
                          const iotjs_jval_t* x);

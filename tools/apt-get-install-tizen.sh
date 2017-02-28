@@ -14,6 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-sudo apt-get update -q
-sudo apt-get install -q -y \
-    g++-arm-linux-gnueabi libc6-dev-armel-cross
+wget https://releases.linaro.org/components/\
+toolchain/binaries/4.9-2017.01/arm-linux-gnueabi/\
+gcc-linaro-4.9.4-2017.01-x86_64_arm-linux-gnueabi.tar.xz
+tar Jxf gcc-linaro-4.9.4-2017.01-x86_64_arm-linux-gnueabi.tar.xz
+mv gcc-linaro-4.9.4-2017.01-x86_64_arm-linux-gnueabi arm-linux-gnueabi
+export PATH=$(pwd)/arm-linux-gnueabi/bin:$PATH
+arm-linux-gnueabi-gcc --version

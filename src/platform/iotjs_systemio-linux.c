@@ -17,7 +17,6 @@
 #include <uv.h>
 #include <unistd.h>
 
-#include "iotjs_def.h"
 #include "iotjs_systemio-linux.h"
 
 

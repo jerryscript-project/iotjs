@@ -109,7 +109,7 @@ static bool iotjs_run(const iotjs_jval_t* process) {
 }
 
 
-static bool iotjs_start(iotjs_environment_t* env) {
+static void iotjs_start(iotjs_environment_t* env) {
   // Initialize commonly used jerry values
   iotjs_binding_initialize();
 
@@ -152,8 +152,6 @@ static bool iotjs_start(iotjs_environment_t* env) {
 
   // Release commonly used jerry values.
   iotjs_binding_finalize();
-
-  return true;
 }
 
 
@@ -188,10 +186,7 @@ int iotjs_entry(int argc, char** argv) {
   }
 
   // Start IoT.js
-  if (!iotjs_start(env)) {
-    DLOG("iotjs_start failed");
-    return 1;
-  }
+  iotjs_start(env);
 
   // close uv loop.
   // uv_stop(iotjs_environment_loop(env));

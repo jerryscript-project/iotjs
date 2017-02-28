@@ -203,8 +203,8 @@ def get_js_contents(name, is_debug_mode=False):
 
     # minimize code when in release mode
     if not is_debug_mode:
-        code = removeComments(code)
-        code = removeWhitespaces(code)
+        code = remove_comments(code)
+        code = remove_whitespaces(code)
     return code
 
 

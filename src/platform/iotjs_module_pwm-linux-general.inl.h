@@ -192,8 +192,8 @@ void SetEnableWorker(uv_work_t* work_req) {
 
   strcat(path, PWM_PIN_ENABlE);
 
-  char value[2] = { 0 };
-  snprintf(value, 1, "%d", req_data->enable);
+  char value[4];
+  snprintf(value, sizeof(value), "%d", req_data->enable);
   if (!DeviceOpenWriteClose(path, value)) {
     req_data->result = kPwmErrWrite;
     return;

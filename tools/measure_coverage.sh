@@ -14,6 +14,29 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+function print_dep
+{
+  echo "The following dependencies are required:"
+  echo "    sudo apt install lcov gcc-multilib"
+  echo ""
+}
+
+function print_nvm_dep
+{
+  echo "The nvm (node version manager) is required to install node and npm."
+  echo "Use the following command to install nvm:"
+  echo "    curl \
+https://raw.githubusercontent.com/creationix/nvm/v0.33.1/install.sh | bash"
+  echo ""
+}
+
+function print_npm_dep
+{
+  echo "The following node dependencies are required: "
+  echo "    npm install babel-cli nyc babel-plugin-istanbul"
+  echo ""
+}
+
 if [ "$#" -gt "0" ] && ( [ "$1" == "-h" ] || [ "$1" == "--help" ] ); then
     echo "Measure JavaScript and C coverage and create a html report"
     echo "out of the results"
@@ -30,37 +53,36 @@ if [ "$#" -gt "0" ] && ( [ "$1" == "-h" ] || [ "$1" == "--help" ] ); then
     echo "respectively. The reports can be viewed by opening the 'index.html'"
     echo "file in a web browser of your choice."
     echo ""
-    echo "Running the script will require some additional dependencies:"
-    echo "    sudo apt install npm lcov nodejs gcc-multilib"
-    echo "    npm install --save-dev babel-cli nyc babel-plugin-istanbul"
+    echo "Running the script will require some additional dependencies."
     echo ""
-    echo "    Note: nodejs version > 4.0.0 is required"
-    echo "    On older distros, you'll have to update your nodejs package with"
-    echo "    'curl -sL https://deb.nodesource.com/setup_4.x | sudo -E bash -'"
-    echo "    before installing node."
-    echo ""
+    print_dep
+    print_nvm_dep
+    print_npm_dep
     exit 0
 fi
 
 tools_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 iotjs_root=$(readlink -f "$tools_dir/..")
 
-dpkg -l npm >> /dev/null 2>&1 && \
-dpkg -l lcov >> /dev/null 2>&1 && \
-dpkg -l gcc-multilib >> /dev/null 2>&1 && \
-dpkg -l nodejs >> /dev/null 2>&1 && \
-test "$(nodejs -v)" \> "v4.0.0"
+test -e ~/.nvm
 
 if [ "$?" -ne "0" ]; then
-    echo "Please install all required dependencies"
-    echo "    sudo apt install npm lcov nodejs gcc-multilib"
-    echo "    npm install --save-dev babel-cli nyc babel-plugin-istanbul"
-    echo ""
-    echo "Note: nodejs version > 4.0.0 is required"
-    echo "    On older distros, you'll have to update your nodejs package with"
-    echo "    'curl -sL https://deb.nodesource.com/setup_4.x | sudo -E bash -'"
-    echo "    before installing node."
-    echo ""
+    print_nvm_dep
+    exit 1
+fi
+
+# Make available the nvm command.
+. ~/.nvm/nvm.sh
+. ~/.profile
+
+# Istanbul and babel require node version > 4.0.
+nvm install 4.0
+
+dpkg -l lcov >> /dev/null 2>&1 && \
+dpkg -l gcc-multilib >> /dev/null 2>&1
+
+if [ "$?" -ne "0" ]; then
+    print_dep
     exit 1
 fi
 
@@ -77,10 +99,7 @@ if [ "$#" -gt "0" ]; then
     test -e $path/.bin/babel
 
     if [ "$?" -ne "0" ]; then
-        echo "The specified node_modules directory does not provide the"
-        echo "required dependencies, you may need to install them."
-        echo ""
-        echo "    npm install --save-dev babel-cli nyc babel-plugin-istanbul"
+        print_npm_dep
         exit 1
     fi
 
@@ -90,11 +109,7 @@ else
     test -e $modules_dir/.bin/babel
 
     if [ "$?" -ne "0" ]; then
-        echo "Could not find the node_modules directory, please specify it"
-        echo "as an argument, or install the node dependencies if you"
-        echo "haven't already."
-        echo ""
-        echo "    npm install --save-dev babel-cli nyc babel-plugin-istanbul"
+        print_npm_dep
         exit 1
     fi
 fi
@@ -102,8 +117,8 @@ fi
 cd $iotjs_root
 
 # Transpile JS files to provide line counters
-/usr/bin/nodejs $modules_dir/.bin/babel \
-    --plugins="babel-plugin-istanbul" src/js/ --out-dir src/cover_js/
+$modules_dir/.bin/babel --plugins="babel-plugin-istanbul" \
+    src/js/ --out-dir src/cover_js/
 
 # Backup original module files, and replace them with the transpiled files
 mv src/js src/orig_js
@@ -123,7 +138,7 @@ rm -rf src/js
 mv src/orig_js src/js
 
 # Generate js coverage report
-/usr/bin/nodejs $modules_dir/.bin/nyc report --reporter=lcov \
+$modules_dir/.bin/nyc report --reporter=lcov \
     --report-dir=coverage --temp-directory=.coverage_output
 rm -rf .coverage_output
 

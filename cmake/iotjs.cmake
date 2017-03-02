@@ -40,6 +40,7 @@ if(DEFINED CMAKE_TARGET_BOARD)
 endif()
 
 # Module Configuration - enable only selected modules and board
+set(IOTJS_MISSING_MODULES)
 set(IOTJS_MODULE_SRC "")
 separate_arguments(IOTJS_MODULES)
 set(PLATFORM_SRC "${SRC_ROOT}/platform/${PLATFORM_DESCRIPT}/iotjs_module")
@@ -52,24 +53,37 @@ foreach(module ${IOTJS_MODULES})
 
     set(MODULE_STEM "${PLATFORM_SRC}_${module}-")
     # src/platform/arm-linux/iotjs_module-
+    unset(HAVE_MODULE_IMPL)
 
     if(DEFINED BOARD_DESCRIPT)
       set(BOARD_MODULE_SRC
           "${MODULE_STEM}${PLATFORM_DESCRIPT}-${BOARD_DESCRIPT}.c")
       if(EXISTS "${BOARD_MODULE_SRC}")
         list(APPEND IOTJS_MODULE_SRC ${BOARD_MODULE_SRC})
+        set(HAVE_MODULE_IMPL "yes")
+        message(STATUS "Board ${module} module found: ${BOARD_MODULE_SRC}")
       endif()
-    else()
+    endif()
+
+    if("${HAVE_MODULE_IMPL}" STREQUAL "")
       set(SYSTEM_MODULE_SRC "${MODULE_STEM}${PLATFORM_DESCRIPT}.c")
       if(EXISTS "${SYSTEM_MODULE_SRC}")
         list(APPEND IOTJS_MODULE_SRC ${SYSTEM_MODULE_SRC})
+        message(STATUS "Generic module ${module} added: ${SYSTEM_MODULE_SRC}")
+      else()
+        list(APPEND IOTJS_MISSING_MODULES ${module})
       endif()
     endif()
     string(TOUPPER ${module} module)
     set(IOTJS_CFLAGS "${IOTJS_CFLAGS} -UENABLE_MODULE_${module}")
     set(IOTJS_CFLAGS "${IOTJS_CFLAGS} -DENABLE_MODULE_${module}=1")
 endforeach()
-
+if(NOT "${IOTJS_MISSING_MODULES}" STREQUAL "")
+  list(SORT IOTJS_MISSING_MODULES)
+  string(REPLACE ";" " " IOTJS_MISSING_MODULES "${IOTJS_MISSING_MODULES}")
+  message(WARNING "Missing configured module implementations for: "
+          "${IOTJS_MISSING_MODULES}")
+endif()
 
 
 file(GLOB LIB_IOTJS_SRC ${SRC_ROOT}/*.c

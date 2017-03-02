@@ -14,7 +14,7 @@
 
 cmake_minimum_required(VERSION 2.8)
 
-if(NOT "CROSS_COMPILE" STREQUAL "")
+if(NOT "${CROSS_COMPILE}" STREQUAL "")
   if(EXISTS ${CROSS_COMPILE}-gcc)
     set(CMAKE_C_COMPILER ${CROSS_COMPILE}gcc)
     message(STATUS "Setting CMAKE_C_COMPILER to ${CROSS_COMPILE}gcc")

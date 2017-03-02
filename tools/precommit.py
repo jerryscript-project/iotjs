@@ -26,7 +26,7 @@ from common_py.system.executor import Executor as ex
 from common_py.system.platform import Platform
 from check_tidy import check_tidy
 
-TESTS=['host', 'rpi2', 'nuttx', 'misc'] # TODO: support darwin
+TESTS=['host', 'rpi2', 'nuttx', 'misc', 'artik10'] # TODO: support darwin
 BUILDTYPES=['debug', 'release']
 
 def get_config():
@@ -109,6 +109,16 @@ def build_nuttx(nuttx_root, buildtype):
         print('Failed to build nuttx: %s' % err)
         return False
 
+def setup_tizen_root(tizen_root):
+    if fs.exists(tizen_root):
+        fs.chdir(tizen_root)
+        ex.check_run_cmd('git', ['pull'])
+        fs.chdir(path.PROJECT_ROOT)
+    else:
+        ex.check_run_cmd('git', ['clone',
+            'https://github.com/pmarcinkiew/tizen3.0_rootstrap.git',
+            tizen_root])
+
 
 def build(buildtype, args=[]):
     fs.chdir(path.PROJECT_ROOT)
@@ -135,9 +145,13 @@ for test in option.test:
 
     elif test == "artik10":
         for buildtype in option.buildtype:
+            tizen_root = fs.join(path.PROJECT_ROOT, 'deps', 'tizen')
+            setup_tizen_root(tizen_root)
             build(buildtype, ['--target-arch=arm',
                               '--target-os=tizen',
-                              '--target-board=artik10'] + include_module)
+                              '--target-board=artik10',
+                              '--compile-flag=--sysroot=' + tizen_root
+                              ] + include_module)
 
     elif test == "nuttx":
         current_dir = os.getcwd()

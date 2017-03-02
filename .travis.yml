@@ -7,6 +7,7 @@ sudo: required
 before_install:
   - if [[ "$INSTALL_ARM_DEPS" == "yes" ]]; then tools/apt-get-install-arm.sh; fi
   - if [[ "$INSTALL_NUTTX_DEPS" == "yes" ]]; then tools/apt-get-install-nuttx.sh; fi
+  - if [[ "$INSTALL_TIZEN_DEPS" == "yes" ]]; then . tools/apt-get-install-tizen.sh; fi
   - tools/apt-get-install-deps.sh
 
 install:
@@ -18,4 +19,5 @@ env:
   - OPTS="--test=host --buildtype=debug"
   - OPTS="--test=rpi2" INSTALL_ARM_DEPS=yes
   - OPTS="--test=nuttx" INSTALL_NUTTX_DEPS=yes
+  - OPTS="--test=artik10" INSTALL_TIZEN_DEPS=yes
   - OPTS="--test=misc"

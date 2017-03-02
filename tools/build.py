@@ -219,6 +219,11 @@ def adjust_options(options):
     # Then add calculated options
     options.host_tuple = '%s-%s' % (platform.arch(), platform.os())
     options.target_tuple = '%s-%s' % (options.target_arch, options.target_os)
+    arch_for_iotjs = 'arm' if options.target_arch[0:3] == 'arm' else \
+        options.target_arch
+    os_for_iotjs = 'linux' if options.target_os == 'tizen' else \
+        options.target_os
+    options.target_tuple_for_iotjs = '%s-%s' % (arch_for_iotjs, os_for_iotjs)
 
     options.host_build_root = fs.join(path.PROJECT_ROOT,
                                      options.builddir,
@@ -612,7 +617,7 @@ def build_iotjs(options):
         "-DCMAKE_TOOLCHAIN_FILE='%s'" % options.cmake_toolchain_file,
         '-DCMAKE_BUILD_TYPE=%s' % options.buildtype.capitalize(),
         '-DTARGET_OS=%s' % options.target_os,
-        '-DPLATFORM_DESCRIPT=%s' % options.target_tuple,
+        '-DPLATFORM_DESCRIPT=%s' % options.target_tuple_for_iotjs,
     ]
 
     # IoT.js module list
@@ -717,6 +722,7 @@ if __name__ == '__main__':
     build_libhttpparser(options)
 
     # Run js2c
+    print("Building js library: %s" % (", ".join(options.js_modules)))
     js2c(options.buildtype, options.no_snapshot, options.js_modules,
          fs.join(options.host_build_bins, 'jerry'))
 

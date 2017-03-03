@@ -80,6 +80,8 @@ Driver.prototype.config = function() {
     "a file name where the driver leaves output");
   parser.addOption('skip-module', "", "",
     "a module list to skip test of specific modules");
+  parser.addOption('output-coverage', "yes|no", "no",
+    "output coverage information");
 
   var options = parser.parse();
 
@@ -215,7 +217,17 @@ Driver.prototype.finish = function() {
     this.results.timeout, this.logger.status.timeout);
   this.logger.message('SKIP : ' + this.results.skip, this.logger.status.skip);
 
-  if (this.results.fail > 0 || this.results.timeout > 0) {
+  if (this.options["output-coverage"] == "yes"
+      && typeof __coverage__ !== "undefined") {
+    data = JSON.stringify(__coverage__);
+
+    if (!fs.existsSync("../.coverage_output/")) {
+        fs.mkdirSync("../.coverage_output/");
+    }
+
+    fs.writeFileSync("../.coverage_output/js_coverage.data", Buffer(data));
+  }
+  else if (this.results.fail > 0 || this.results.timeout > 0) {
     originalExit(1);
   }
 

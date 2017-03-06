@@ -16,9 +16,17 @@
 
 var adc = require('adc');
 var assert = require('assert');
-var stm32fPin = require('pin').STM32F4DIS;
+var testPin = null;
 
-var adc0 = new adc(stm32fPin.ADC1_3, function(err) {
+if (process.platform === 'linux') {
+  testPin = 0;
+} else if (process.platform === 'nuttx') {
+  testPin = require('pin').STM32F4DIS;
+} else {
+  assert.fail();
+}
+
+var adc0 = new adc(0, function(err) {
   console.log('ADC initialized');
 
   if (err) {

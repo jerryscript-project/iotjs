@@ -43,8 +43,8 @@ typedef enum {
 
 typedef struct {
   int32_t pin;
-  int32_t duty_cycle;
-  int32_t period;
+  double duty_cycle;
+  double period;
   bool enable;
 
   PwmError result;

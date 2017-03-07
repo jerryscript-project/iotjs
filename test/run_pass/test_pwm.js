@@ -16,72 +16,76 @@
 
 var assert = require('assert');
 var pwm = require('pwm');
-var option = {
-  period: 1000000,
-  dutyCycle: 25
+
+var pwmOptions = {
 };
 
-var callback = function (err) {
+var periodOptions = {
+  dutyCycle: 0.5,
+  // The platform PWM is tested on (artik10/tizen 3.0) has an upper limit
+  // of 75.2 Hz of PWM0 frequency.
+  //values: [0.2, 0.4, 0.6, 0.8, 1]
+  values: [ 0.5 ]
+};
+
+var dutyOptions = {
+  period: 0.5,
+  values: [ 0, 0.1, 0.5, 0.9, 1 ]
+};
+
+var testCb = function (err) {
   if (err) {
     assert.fail();
   }
 };
 
-var pwm0 = new pwm(0, option, function (err) {
+var pwm0 = new pwm(0, pwmOptions, function (err) {
   console.log('PWM initialized');
 
   if (err) {
+    console.log('Have an error: ' + err.message);
     assert.fail();
   }
 
-  pwm0.setEnable(1, callback);
-
-  test1();
+  pwm0.setEnable(1, testCb);
+  testPeriods(pwm0, periodOptions, testCb);
 });
 
-function test1() {
-  var maxCnt = 3,
-    loopCnt = maxCnt,
-    dutyCycle;
+function testPeriods(pwm, options, callback) {
+  console.log('PWM: period test start ');
+  var idx = 0;
+  var period = options.values[idx++];
+  pwm.setPeriod(period, callback);
+  pwm.setDutyCycle(options.dutyCycle, callback);
 
-  console.log('test1 start');
-  var test1Loop = setInterval(function () {
-    loopCnt--;
-
-    dutyCycle = (option.dutyCycle * (maxCnt - loopCnt));
-    pwm0.setDutyCycle(dutyCycle, callback);
-
-    console.log('Duty-Cycle : %d', dutyCycle);
-
-    if (loopCnt <= 0) {
-      clearInterval(test1Loop);
-      console.log('test1 complete');
-      test2();
+  var loop = setInterval(function () {
+    if (idx == options.values.length) {
+      clearInterval(loop);
+      console.log('PWM period test complete');
+      testDutyCycles(pwm, callback);
+    } else {
+      period = options.values[idx++];
+      console.log("Period(%d)", period);
+      pwm.setPeriod(period, callback);
     }
   }, 1000);
 }
 
-function test2() {
-  var maxCnt = 3,
-    loopCnt = maxCnt,
-    period;
+function testDutyCycles(pwm, callback) {
+  var options = dutyOptions;
 
-  option.period = 500000;
-  option.dutyCycle = 25;
-  pwm0.setDutyCycle(option.dutyCycle, callback);
+  console.log('PWM: duty cycle test start');
+  pwm.setPeriod(options.period, callback);
 
-  console.log('test2 start');
-  var test2Loop = setInterval(function () {
-    loopCnt--;
+  var idx = 0;
+  var loop = setInterval(function () {
+    console.log('Duty cycle %d', options.values[idx]);
+    pwm.setDutyCycle(options.values[idx], callback);
 
-    period = (option.period * (maxCnt - loopCnt));
-    pwm0.setPeriod(period, callback);
-
-    console.log('Period : %d', period);
-
-    if (loopCnt <= 0) {
-      clearInterval(test2Loop);
-      console.log('test2 complete');
+    if (++idx == options.values.length) {
+      clearInterval(loop);
+      pwm.setEnable(0, callback);
+      console.log('PWM duty cycle test complete');
     }
   }, 1000);
 }

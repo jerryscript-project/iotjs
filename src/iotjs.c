@@ -20,9 +20,9 @@
 #include "iotjs_js.h"
 #include "iotjs_string_ext.h"
 
-#include "jerry-api.h"
 #include "jerry-port-default.h"
 #include "jerry-port.h"
+#include "jerryscript.h"
 
 #include <stdio.h>
 #include <string.h>

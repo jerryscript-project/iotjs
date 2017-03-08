@@ -17,7 +17,7 @@
 #define IOTJS_BINDING_H
 
 #include "iotjs_util.h"
-#include "jerry-api.h"
+#include "jerryscript.h"
 
 #include <stdio.h>
 

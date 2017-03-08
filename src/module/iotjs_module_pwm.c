@@ -28,6 +28,8 @@ iotjs_pwm_reqwrap_t* iotjs_pwm_reqwrap_create(const iotjs_jval_t* jcallback,
   iotjs_reqwrap_initialize(&_this->reqwrap, jcallback, (uv_req_t*)&_this->req);
 
   _this->req_data.op = op;
+  _this->req_data.period = -1;
+  _this->req_data.duty_cycle = 0;
 
   return pwm_reqwrap;
 }
@@ -74,16 +76,18 @@ void iotjs_pwm_set_pwmdata(iotjs_jhandler_t* jhandler, THIS) {
   req_data->pin = JHANDLER_GET_ARG(0, number);
 
   const iotjs_jval_t* joptions = JHANDLER_GET_ARG(1, object);
-  iotjs_jval_t jperiod = iotjs_jval_get_property(joptions, "period");
-  if (iotjs_jval_is_number(&jperiod))
-    req_data->period = iotjs_jval_as_number(&jperiod);
+  if (joptions && iotjs_jval_is_object(joptions)) {
+    iotjs_jval_t jperiod = iotjs_jval_get_property(joptions, "period");
+    if (iotjs_jval_is_number(&jperiod))
+      req_data->period = iotjs_jval_as_number(&jperiod);
 
-  iotjs_jval_t jduty_cycle = iotjs_jval_get_property(joptions, "dutyCycle");
-  if (iotjs_jval_is_number(&jduty_cycle))
-    req_data->duty_cycle = iotjs_jval_as_number(&jduty_cycle);
+    iotjs_jval_t jduty_cycle = iotjs_jval_get_property(joptions, "dutyCycle");
+    if (iotjs_jval_is_number(&jduty_cycle))
+      req_data->duty_cycle = iotjs_jval_as_number(&jduty_cycle);
 
-  iotjs_jval_destroy(&jperiod);
-  iotjs_jval_destroy(&jduty_cycle);
+    iotjs_jval_destroy(&jperiod);
+    iotjs_jval_destroy(&jduty_cycle);
+  }
 }
 
 #undef THIS

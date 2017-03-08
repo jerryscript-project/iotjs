@@ -33,6 +33,9 @@ function isNumber(arg) {
   return typeof arg === 'number';
 }
 
+function isFinite(arg) {
+  return (arg == 0) || (arg != arg / 2);
+}
 
 function isBoolean(arg) {
   return typeof arg === 'boolean';
@@ -160,6 +163,7 @@ exports.isNumber = isNumber;
 exports.isBoolean = isBoolean;
 exports.isString = isString;
 exports.isObject = isObject;
+exports.isFinite = isFinite;
 exports.isFunction = isFunction;
 exports.isBuffer = isBuffer;
 exports.isArray = Array.isArray;

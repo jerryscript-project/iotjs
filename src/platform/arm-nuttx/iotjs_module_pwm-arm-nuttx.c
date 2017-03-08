@@ -51,9 +51,17 @@ static bool iotjs_pwm_set_options(int timer, iotjs_pwm_reqdata_t* req_data) {
   char path[PWM_DEVICE_PATH_BUFFER_SIZE] = { 0 };
   iotjs_pwm_get_path(path, timer);
 
-  info.frequency = req_data->period;
-  info.duty = (req_data->duty_cycle > 100) ? 100 : req_data->duty_cycle;
-  info.duty = ((uint32_t)info.duty << 16) / 100; // 16bit timer
+  // Clamp so that the value inverted fits into uint32
+  if (req_data->period < 2.33E-10)
+    req_data->period = 2.33E-10;
+  info.frequency = (uint32_t)(1.0 / req_data->period);
+
+  double duty_value = req_data->duty_cycle * (1 << 16); // 16 bit timer
+  if (duty_value > 0xffff)
+    duty_value = 0xffff;
+  else if (duty_value < 1)
+    duty_value = 1;
+  info.duty = (ub16_t)duty_value;
 
   DDLOG("PWM Set Options - path: %s, frequency: %d, duty: %d", path,
         info.frequency, info.duty);
@@ -117,7 +125,15 @@ void ExportWorker(uv_work_t* work_req) {
 
 
 void SetPeriodWorker(uv_work_t* work_req) {
-  IOTJS_ASSERT(!"Not implemented");
+  PWM_WORKER_INIT_TEMPLATE;
+
+  uint32_t timer = SYSIO_GET_TIMER(req_data->pin);
+
+  if (!iotjs_pwm_set_options(timer, req_data)) {
+    req_data->result = kPwmErrWrite;
+  }
+
+  req_data->result = kPwmErrOk;
 }
 
 

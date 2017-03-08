@@ -8,8 +8,8 @@ The following shows PWM module APIs available for each platform.
 
 |  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | Nuttx<br/>(STM32F4-Discovery) |
 | :---: | :---: | :---: | :---: |
-| pwm.setPeriod | O | O | X |
-| pwm.setFrequency | O | X | O |
+| pwm.setPeriod | O | O | O |
+| pwm.setFrequency | O | O | O |
 | pwm.setDutyCycle | O | O | O |
 | pwm.setEnable | O | O | O |
 | pwm.unexport | O | O | O |
@@ -30,17 +30,14 @@ The following shows PWM module APIs available for each platform.
 Create PWM object.
 
 `options` is an object specifying following information:
-* `period: Number (positive integer)`
-* `frequency: Number (positive integer)`
-* `dutyCycle: Number (percentage: between 0 and 100)`
-
-`frequency` is not supported in Linux.
-`period` is not supported in Nuttx.
+* `period: Number (seconds, positive integer)`
+* `frequency: Number (Hz, positive integer)`
+* `dutyCycle: Number (between 0 and 1)`
 
 For example,
 ```javascript
 var pwm = require('pwm');
-var pwm0 = new pwm(0, {period: 10000, dutyCycle: 50}, function() {
+var pwm0 = new pwm(0, {period: 0.1, dutyCycle: 0.5}, function() {
   pwm0.setEnable(1);
 });
 ```
@@ -48,10 +45,10 @@ var pwm0 = new pwm(0, {period: 10000, dutyCycle: 50}, function() {
 ### Methods
 
 #### pwm.setPeriod(period[, callback])
-* `period: Number (positive integer)`
+* `period: Number (seconds, positive integer)`
 * `callback: Function(err: PwmError | null)`
 
-Sets period that is the duration of one cycle in a repeating signal. It is given in nanoseconds.
+Sets period that is the duration of one cycle in a repeating signal. It is given in seconds.
 
 `callback` will be called after period is set.
 
@@ -59,21 +56,19 @@ This function is not supported in Nuttx.
 
 
 #### pwm.setFrequency(frequency[, callback])
-* `frequency: Number (positive integer)`
+* `frequency: Number (Hz, positive integer)`
 * `callback: Function(err: PwmError | null)`
 
 Sets frequency that is a measurement of how often repeating signal per unit time.
 
 `callback` will be called after frequency is set.
 
-This function is not supported in Linux.
-
 
 #### pwm.setDutyCycle(dutyCycle[, callback])
-* `dutyCycle: Number (percentage: between 0 and 100)`
+* `dutyCycle: Number (between 0 and 1)`
 * `callback: Function(err: PwmError | null)`
 
-Sets duty cycle that is the ratio of pulse width in one period. It is given in percentage.
+Sets duty cycle that is the ratio of pulse width in one period.
 
 `callback` will be called after duty-cycle is set.
 

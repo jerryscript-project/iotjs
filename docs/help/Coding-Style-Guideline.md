@@ -19,7 +19,12 @@ Coding Style Guideline
 
 Our coding style guideline is based on [google c++ coding standard](https://google.github.io/styleguide/cppguide.html),
 but modified due to some difference between C and C++.
-When this guideline is ambiguous, just follow the result of running `./tools/check_tidy.py`
+When this guideline is ambiguous, just follow the result of running `./tools/check_tidy.py`.
+
+Here are `./tools/check_tidy.py` options:
+```
+--autoedit: Automatically edit the detected clang format errors. No diffs will be displayed.
+```
 
 ## Validated Struct
 Use [Validated Struct](../devs/Inside-IoT.js-Validated-Struct.md) whenever possible, for encapsulation and validity check.

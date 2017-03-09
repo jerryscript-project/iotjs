@@ -208,7 +208,7 @@ def get_js_contents(name, is_debug_mode=False):
     return code
 
 
-def js2c(buildtype, no_snapshot, js_modules, js_dumper):
+def js2c(buildtype, no_snapshot, js_modules, js_dumper, verbose=False):
     is_debug_mode = buildtype == "debug"
     magic_string_set = { b'process' }
 
@@ -222,6 +222,9 @@ def js2c(buildtype, no_snapshot, js_modules, js_dumper):
         fout_c.write(HEADER2)
 
         for name in sorted(js_modules):
+            if verbose:
+                print('Processing module: %s' % name)
+
             if no_snapshot:
                 code = get_js_contents(name, is_debug_mode)
             else:
@@ -266,3 +269,32 @@ def js2c(buildtype, no_snapshot, js_modules, js_dumper):
                                  % (idx, magic_text))
         # an empty line is required to avoid compile warning
         fout_magic_str.write(EMPTY_LINE)
+
+
+if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('--buildtype',
+        choices=['debug', 'release'], default='debug',
+        help='Specify the build type: %(choices)s (default: %(default)s)')
+    parser.add_argument('--modules', required=True,
+        help='List of JS modules to process. Format: <module>,<module2>,...')
+    parser.add_argument('--snapshot-generator', default=None,
+        help='Executable to use for generating snapshots from the JS files. '
+             'If not specified the JS files will be directly processed.')
+    parser.add_argument('-v', '--verbose', default=False,
+        help='Enable verbose output.')
+
+    options = parser.parse_args()
+
+    if not options.snapshot_generator:
+        print('Converting JS modules to C arrays (no snapshot)')
+        no_snapshot = True
+    else:
+        print('Using "%s" as snapshot generator' % options.snapshot_generator)
+        no_snapshot = False
+
+    modules = options.modules.replace(',', ' ').split()
+    js2c(options.buildtype, no_snapshot, modules, options.snapshot_generator,
+         options.verbose)

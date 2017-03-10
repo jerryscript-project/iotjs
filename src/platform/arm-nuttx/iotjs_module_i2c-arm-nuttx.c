@@ -35,11 +35,6 @@ void I2cSetAddress(iotjs_i2c_t* i2c, uint8_t address) {
   iotjs_i2c_reqdata_t* req_data = iotjs_i2c_reqwrap_data(req_wrap);
 
 
-void ScanWorker(uv_work_t* work_req) {
-  IOTJS_ASSERT(!"Not implemented");
-}
-
-
 void OpenWorker(uv_work_t* work_req) {
   I2C_WORKER_INIT_TEMPLATE;
   iotjs_i2c_t* i2c = iotjs_i2c_instance_from_reqwrap(req_wrap);

@@ -27,7 +27,6 @@
 
 typedef enum {
   kI2cOpSetAddress,
-  kI2cOpScan,
   kI2cOpOpen,
   kI2cOpClose,
   kI2cOpWrite,
@@ -99,7 +98,6 @@ iotjs_i2c_t* iotjs_i2c_instance_from_reqwrap(THIS);
 
 
 void I2cSetAddress(iotjs_i2c_t* i2c, uint8_t address);
-void ScanWorker(uv_work_t* work_req);
 void OpenWorker(uv_work_t* work_req);
 void I2cClose(iotjs_i2c_t* i2c);
 void WriteWorker(uv_work_t* work_req);

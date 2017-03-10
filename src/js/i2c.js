@@ -43,173 +43,131 @@
  * Some functions are translated from coffee script(i2c.coffee) in 'node-i2c'.
  */
 
-var EventEmiter = require('events').EventEmitter;
 var util = require('util');
-var assert  = require('assert');
 var i2c = process.binding(process.binding.i2c);
 
-function I2C(address, options, callback) {
+function I2C() {
   if (!(this instanceof I2C)) {
-    return new I2C(address, options);
+    return new I2C();
+  }
+};
+
+I2C.prototype.open = function(configurable, callback) {
+  var i2c_bus = new I2CBus(configurable, callback);
+  return i2c_bus;
+};
+
+function I2CBus(configurable, callback) {
+  if (util.isObject(configurable)) {
+    if (process.platform === 'linux') {
+      if (!util.isString(configurable.device)) {
+        throw new TypeError('Bad configurable - device: String');
+      }
+    } else if (process.platform === 'nuttx') {
+      if (!util.isNumber(configurable.device)) {
+        throw new TypeError('Bad configurable - device: Number');
+      }
+    }
+
+    if (!util.isNumber(configurable.address)) {
+      throw new TypeError('Bad configurable - address: Number');
+    }
+
+    this.address = configurable.address;
+
+    this.i2c = new i2c(configurable.device, (function(_this) {
+      return function(err) {
+        if (!err) {
+          _this.setAddress(configurable.address);
+        }
+        util.isFunction(callback) && callback(err);
+      };
+    })(this));
+  }
+};
+
+I2CBus.prototype.close = function() {
+  this.i2c.close();
+};
+
+
+I2CBus.prototype.setAddress = function(address, callback) {
+  if (!util.isNumber(address)) {
+    throw new TypeError('Bad argument - address: Number');
   }
 
-  if (util.isUndefined(address)) {
-    address = 0x23; // Default device I2C address
-  }
-
-  if (util.isUndefined(options)) {
-    options = {};
-  }
-
-  assert(util.isObject(options));
-
-  if (util.isUndefined(options.device)){
-    options.device = '/dev/i2c-1';
-  }
-
-  this._i2c = null;
   this.address = address;
-  this.options = options;
+  this.i2c.setAddress(this.address);
 
-  EventEmiter.call(this);
-
-  process.on('exit', (function(_this) {
-    return function() {
-      return _this.close();
-    };
-  })(this));
-
-  this.on('data', (function(_this) {
-    return function(data) {
-      return _this.history.push(data);
-    };
-  })(this));
-
-  this.open(this.options.device, (function(_this) {
-    return function(err) {
-      if(!err) {
-        return _this.setAddress(_this.address, callback);
-      }
-      else {
-        throw err;
-      }
-    };
-  })(this));
-}
-
-util.inherits(I2C, EventEmiter);
-
-I2C.prototype.history = [];
-
-I2C.prototype.scan = function(callback) {
-  return this._i2c.scan(function(err, data) {
-    return process.nextTick(function() {
-      var result = [];
-      for(var i = 0; i < data.length; i++) {
-        if(data[i] == 1) result.push(i);
-      }
-      return callback(err, result);
-    });
-  });
+  util.isFunction(callback) && callback();
 };
 
-I2C.prototype.setAddress = function(address, callback) {
-  this._i2c.setAddress(address);
-
-  callback && callback();
-
-  return this.address = address;
-};
-
-I2C.prototype.open = function(device, callback) {
-  if (util.isNull(this._i2c)) {
-    this._i2c = new i2c(device, function(err) {
-      return process.nextTick(function() {
-        return callback(err);
-      });
-    });
+I2CBus.prototype.write = function(array, callback) {
+  if (!util.isArray(array)) {
+    throw new TypeError('Bad argument - array: Array');
   }
-};
 
-I2C.prototype.close = function() {
-  return this._i2c.close();
-};
-
-I2C.prototype.write = function(array, callback) {
   this.setAddress(this.address);
-  return this._i2c.write(array, function(err) {
-    return process.nextTick(function() {
-      return callback(err);
-    });
+  this.i2c.write(array, function(err) {
+    util.isFunction(callback) && callback(err);
   });
 };
 
-I2C.prototype.writeByte = function(byte, callback) {
-  this.setAddress(this.address);
-  return this._i2c.writeByte(byte, function(err) {
-    return process.nextTick(function() {
-      return callback(err);
-    });
-  });
-};
-
-I2C.prototype.writeBytes = function(cmd, array, callback) {
-  this.setAddress(this.address);
-  return this._i2c.writeBlock(cmd, array, function(err) {
-    return process.nextTick(function() {
-      return callback(err);
-    });
-  });
-};
-
-I2C.prototype.read = function(len, callback) {
-  this.setAddress(this.address);
-  return this._i2c.read(len, function(err, data) {
-    return process.nextTick(function() {
-      return callback(err, data);
-    });
-  });
-};
-
-I2C.prototype.readByte = function(callback) {
-  this.setAddress(this.address);
-  return this._i2c.readByte(function(err, data) {
-    return process.nextTick(function() {
-      return callback(err, data);
-    });
-  });
-};
-
-I2C.prototype.readBytes = function(cmd, len, callback) {
-  this.setAddress(this.address);
-  return this._i2c.readBlock(cmd, len, 0, function(err, resArray) {
-    return process.nextTick(function() {
-      return callback(err, resArray);
-    });
-  });
-};
-
-I2C.prototype.stream = function(cmd, len, delay) {
-  if (util.isNull(delay)) {
-    delay = 100;
+I2CBus.prototype.writeByte = function(byte, callback) {
+  if (!util.isNumber(byte)) {
+    throw new TypeError('Bad argument - byte: Number');
   }
+
   this.setAddress(this.address);
-  this._i2c.readBlock(cmd, len, delay, (function(_this) {
-    return function(err, data) {
-      if (err) {
-        _this.emit('error', err);
-      } else {
-        _this.emit('data', {
-          address: _this.address,
-          data: data,
-          cmd: cmd,
-          length: len,
-          timestamp: Date.now()
-        });
-        _this.stream(cmd, len, delay);
-      }
-    };
-  })(this));
+  this.i2c.writeByte(byte, function(err) {
+    util.isFunction(callback) && callback(err);
+  });
+};
+
+I2CBus.prototype.writeBytes = function(cmd, array, callback) {
+  if (!util.isNumber(cmd)) {
+    throw new TypeError('Bad argument - cmd: Number');
+  }
+  if (!util.isArray(array)) {
+    throw new TypeError('Bad argument - array: Array');
+  }
+
+  this.setAddress(this.address);
+  this.i2c.writeBlock(cmd, array, function(err) {
+    util.isFunction(callback) && callback(err);
+  });
+};
+
+I2CBus.prototype.read = function(length, callback) {
+  if (!util.isNumber(length)) {
+    throw new TypeError('Bad argument - length: Number');
+  }
+
+  this.setAddress(this.address);
+  this.i2c.read(length, function(err, data) {
+    util.isFunction(callback) && callback(err, data);
+  });
+};
+
+I2CBus.prototype.readByte = function(callback) {
+  this.setAddress(this.address);
+  this.i2c.readByte(function(err, data) {
+    util.isFunction(callback) && callback(err, data);
+  });
+};
+
+I2CBus.prototype.readBytes = function(cmd, length, callback) {
+  if (!util.isNumber(cmd)) {
+    throw new TypeError('Bad argument - cmd: Number');
+  }
+  if (!util.isNumber(length)) {
+    throw new TypeError('Bad argument - length: Number');
+  }
+
+  this.setAddress(this.address);
+  this.i2c.readBlock(cmd, length, 0, function(err, resArray) {
+    util.isFunction(callback) && callback(err, resArray);
+  });
 };
 
 module.exports = I2C;

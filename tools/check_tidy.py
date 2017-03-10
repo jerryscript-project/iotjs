@@ -15,6 +15,8 @@
 # limitations under the License.
 
 from __future__ import print_function
+
+import argparse
 import fileinput
 import functools
 import os
@@ -26,6 +28,16 @@ from distutils import spawn
 from check_license import CheckLicenser
 from common_py.system.filesystem import FileSystem as fs
 from common_py.system.executor import Executor as ex
+
+
+def parse_option():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--autoedit', action='store_true', default=False,
+        help='Automatically edit the detected clang format errors.'
+        'No diffs will be displayed')
+
+    option = parser.parse_args()
+    return option
 
 
 class StyleChecker(object):
@@ -77,11 +89,11 @@ class StyleChecker(object):
 
 class ClangFormat(object):
 
-    def __init__(self, extensions, skip_files=None):
+    def __init__(self, extensions, skip_files=None, options=None):
         self.diffs = []
         self._extensions = extensions
         self._skip_files = skip_files
-
+        self._options = options
         self._check_clang_format("clang-format-3.8")
 
     def _check_clang_format(self, base):
@@ -111,14 +123,18 @@ class ClangFormat(object):
             return
 
         for file in filter(self.is_checked_by_clang, files):
+            args = ['-style=file', file]
+            if self._options and self._options.autoedit:
+                args.append('-i')
             output = ex.run_cmd_output(self._clang_format,
-                                       ['-style=file', file],
+                                       args,
                                        quiet=True)
 
-            with tempfile.NamedTemporaryFile() as temp:
-                temp.write(output)
-                temp.flush() # just to be really safe
-                self._diff(file, temp.name)
+            if output:
+                with tempfile.NamedTemporaryFile() as temp:
+                    temp.write(output)
+                    temp.flush() # just to be really safe
+                    self._diff(file, temp.name)
 
     def _diff(self, original, formatted):
         try:
@@ -148,7 +164,7 @@ class FileFilter(object):
         return ext in self._allowed_exts
 
 
-def check_tidy(src_dir):
+def check_tidy(src_dir, options=None):
     allowed_exts = ['.c', '.h', '.js', '.py', '.sh', '.cmake']
     allowed_files = ['CMakeLists.txt']
     clang_format_exts = ['.c', '.h']
@@ -168,7 +184,7 @@ def check_tidy(src_dir):
                   ]
 
     style = StyleChecker()
-    clang = ClangFormat(clang_format_exts, skip_files)
+    clang = ClangFormat(clang_format_exts, skip_files, options)
 
     file_filter = FileFilter(allowed_exts, allowed_files, skip_files)
     files = fs.files_under(src_dir, skip_dirs, file_filter)
@@ -182,7 +198,7 @@ def check_tidy(src_dir):
         print()
 
     if style.error_count:
-        print("Detected stype problems:")
+        print("Detected style problems:")
         print("\n".join(style.errors))
         print()
 
@@ -199,6 +215,8 @@ def check_tidy(src_dir):
     return total_errors == 0
 
 
+
 if __name__ == '__main__':
     from common_py import path
-    check_tidy(path.PROJECT_ROOT)
+    options = parse_option()
+    check_tidy(path.PROJECT_ROOT, options)

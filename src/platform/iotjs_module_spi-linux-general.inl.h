@@ -22,6 +22,7 @@
 #include <sys/ioctl.h>
 
 #include "iotjs_def.h"
+#include "iotjs_systemio-linux.h"
 #include "module/iotjs_module_buffer.h"
 #include "module/iotjs_module_spi.h"
 
@@ -29,12 +30,7 @@
 #define ADC_DEVICE_PATH_BUFFER_SIZE 16
 
 
-#define SPI_WORKER_INIT_TEMPLATE                                            \
-  iotjs_spi_reqwrap_t* req_wrap = iotjs_spi_reqwrap_from_request(work_req); \
-  iotjs_spi_reqdata_t* req_data = iotjs_spi_reqwrap_data(req_wrap);
-
-
-bool iotjs_spi_set_options(iotjs_spi_t* spi, uint32_t selected_option) {
+static bool iotjs_spi_set_configuration(iotjs_spi_t* spi) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_spi_t, spi);
 
   int fd = _this->device_fd;
@@ -43,57 +39,49 @@ bool iotjs_spi_set_options(iotjs_spi_t* spi, uint32_t selected_option) {
   }
 
   uint8_t data;
-  if ((selected_option & kSpiOptionMode) ||
-      (selected_option & kSpiOptionLoopback) ||
-      (selected_option & kSpiOptionChipSelect)) {
-    switch (_this->mode) {
-      case kSpiMode_0:
-        data = SPI_MODE_0;
-        break;
-      case kSpiMode_1:
-        data = SPI_MODE_1;
-        break;
-      case kSpiMode_2:
-        data = SPI_MODE_2;
-        break;
-      case kSpiMode_3:
-        data = SPI_MODE_3;
-        break;
-      default:
-        data = SPI_MODE_0;
-    }
 
-    if (_this->loopback) {
-      data |= SPI_LOOP;
-    }
-
-    if (_this->chip_select == kSpiCsHigh) {
-      data |= SPI_CS_HIGH;
-    }
-
-    if (ioctl(fd, SPI_IOC_WR_MODE, &_this->mode) < 0) {
-      return false;
-    }
+  switch (_this->mode) {
+    case kSpiMode_0:
+      data = SPI_MODE_0;
+      break;
+    case kSpiMode_1:
+      data = SPI_MODE_1;
+      break;
+    case kSpiMode_2:
+      data = SPI_MODE_2;
+      break;
+    case kSpiMode_3:
+      data = SPI_MODE_3;
+      break;
+    default:
+      data = SPI_MODE_0;
+  }
+  if (_this->loopback) {
+    data |= SPI_LOOP;
   }
 
-  if ((selected_option & kSpiOptionBitOrder) &&
-      _this->bit_order == kSpiOrderLsb) {
+  if (_this->chip_select == kSpiCsHigh) {
+    data |= SPI_CS_HIGH;
+  }
+
+  if (ioctl(fd, SPI_IOC_WR_MODE, &_this->mode) < 0) {
+    return false;
+  }
+
+
+  if (_this->bit_order == kSpiOrderLsb) {
     data = 1;
     if (ioctl(fd, SPI_IOC_WR_LSB_FIRST, &data) < 0) {
       return false;
     }
   }
 
-  if ((selected_option & kSpiOptionBitsPerWord)) {
-    if (ioctl(fd, SPI_IOC_WR_BITS_PER_WORD, &_this->bits_per_word) < 0) {
-      return false;
-    }
+  if (ioctl(fd, SPI_IOC_WR_BITS_PER_WORD, &_this->bits_per_word) < 0) {
+    return false;
   }
 
-  if ((selected_option & kSpiOptionMaxSpeed)) {
-    if (ioctl(fd, SPI_IOC_WR_MAX_SPEED_HZ, &_this->max_speed) < 0) {
-      return false;
-    }
+  if (ioctl(fd, SPI_IOC_WR_MAX_SPEED_HZ, &_this->max_speed) < 0) {
+    return false;
   }
 
   DDLOG(
@@ -106,43 +94,8 @@ bool iotjs_spi_set_options(iotjs_spi_t* spi, uint32_t selected_option) {
 }
 
 
-void iotjs_spi_export_worker(uv_work_t* work_req) {
-  SPI_WORKER_INIT_TEMPLATE;
-
-  // Set device driver path
-  int32_t pin = req_data->pin;
-
-  char path[ADC_DEVICE_PATH_BUFFER_SIZE] = { 0 };
-  snprintf(path, ADC_DEVICE_PATH_BUFFER_SIZE - 1, ADC_DEVICE_PATH_FORMAT,
-           SPI_GET_DEVICE_NUMBER(pin), SPI_GET_CS_NUMBER(pin));
-
-  // Open file
-  const iotjs_environment_t* env = iotjs_environment_get();
-  uv_loop_t* loop = iotjs_environment_loop(env);
-
-  uv_fs_t open_req;
-  int result = uv_fs_open(loop, &open_req, path, O_RDONLY, 0666, NULL);
-  uv_fs_req_cleanup(&open_req);
-  if (result < 0) {
-    req_data->result = kSpiErrExport;
-  }
-
-  iotjs_spi_set_device_fd(req_data->spi_instance, open_req.result);
-
-  // Set options
-  if (!iotjs_spi_set_options(req_data->spi_instance,
-                             req_data->selected_option)) {
-    req_data->result = kSpiErrExport;
-    return;
-  }
-
-  req_data->result = kSpiErrOk;
-}
-
-
-void iotjs_spi_transfer_worker(uv_work_t* work_req) {
-  SPI_WORKER_INIT_TEMPLATE;
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_spi_t, req_data->spi_instance);
+bool iotjs_spi_transfer(iotjs_spi_t* spi) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_spi_t, spi);
 
   struct spi_ioc_transfer data = {.tx_buf = (unsigned long)_this->tx_buf_data,
                                   .rx_buf = (unsigned long)_this->rx_buf_data,
@@ -154,20 +107,17 @@ void iotjs_spi_transfer_worker(uv_work_t* work_req) {
   // Transfer data
   int err = ioctl(_this->device_fd, SPI_IOC_MESSAGE(1), &data);
   if (err < 1) {
-    DDLOG("SPI transfer worker - transfer failed: %d", err);
-    req_data->result = kSpiErrTransfer;
-    return;
+    DDLOG("%s - transfer failed: %d", __func__, err);
+    return false;
   }
 
-  req_data->result = kSpiErrOk;
+  return true;
 }
 
 
-void iotjs_spi_unexport_worker(uv_work_t* work_req) {
-  SPI_WORKER_INIT_TEMPLATE;
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_spi_t, req_data->spi_instance);
+bool iotjs_spi_close(iotjs_spi_t* spi) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_spi_t, spi);
 
-  // Close file
   if (_this->device_fd >= 0) {
     const iotjs_environment_t* env = iotjs_environment_get();
     uv_loop_t* loop = iotjs_environment_loop(env);
@@ -176,14 +126,43 @@ void iotjs_spi_unexport_worker(uv_work_t* work_req) {
     int err = uv_fs_close(loop, &fs_close_req, _this->device_fd, NULL);
     uv_fs_req_cleanup(&fs_close_req);
     if (err < 0) {
-      DDLOG("SPI unexport worker - close failed: %d", err);
-      req_data->result = kSpiErrUnexport;
-      return;
+      DDLOG("%s - close failed: %d", __func__, err);
+      return false;
     }
     _this->device_fd = -1;
   }
 
-  req_data->result = kSpiErrOk;
+  return true;
+}
+
+
+void iotjs_spi_open_worker(uv_work_t* work_req) {
+  SPI_WORKER_INIT;
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_spi_t, spi);
+
+  const char* device_path = iotjs_string_data(&_this->device);
+  if (iotjs_systemio_check_path(device_path)) {
+    // Open file
+    const iotjs_environment_t* env = iotjs_environment_get();
+    uv_loop_t* loop = iotjs_environment_loop(env);
+
+    uv_fs_t open_req;
+    int result = uv_fs_open(loop, &open_req, device_path, O_RDONLY, 0666, NULL);
+    uv_fs_req_cleanup(&open_req);
+    if (result < 0) {
+      req_data->result = false;
+    }
+    _this->device_fd = open_req.result;
+
+    // Set options
+    if (!iotjs_spi_set_configuration(spi)) {
+      req_data->result = false;
+      return;
+    }
+    req_data->result = true;
+  } else {
+    req_data->result = false;
+  }
 }
 
 

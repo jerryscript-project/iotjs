@@ -105,7 +105,7 @@ GpioPin.prototype.write = function(value, callback) {
   var self = this;
 
   if (util.isNull(this._binding)) {
-    return;
+    throw new Error('GPIO pin is not opened');
   }
 
   if (!util.isNumber(value) && !util.isBoolean(value)) {
@@ -120,7 +120,7 @@ GpioPin.prototype.write = function(value, callback) {
 // gpio.writeSync(value)
 GpioPin.prototype.writeSync = function(value) {
   if (util.isNull(this._binding)) {
-    return;
+    throw new Error('GPIO pin is not opened');
   }
 
   if (!util.isNumber(value) && !util.isBoolean(value)) {

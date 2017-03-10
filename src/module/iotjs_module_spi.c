@@ -26,13 +26,13 @@
 static void iotjs_spi_destroy(iotjs_spi_t* spi);
 
 
-iotjs_spi_t* iotjs_spi_create(const iotjs_jval_t* jspi) {
+static iotjs_spi_t* iotjs_spi_create(const iotjs_jval_t* jspi) {
   iotjs_spi_t* spi = IOTJS_ALLOC(iotjs_spi_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_spi_t, spi);
   iotjs_jobjectwrap_initialize(&_this->jobjectwrap, jspi,
                                (JFreeHandlerType)iotjs_spi_destroy);
 
-  _this->device_fd = -1;
+  _this->device = iotjs_string_create("");
 
   return spi;
 }
@@ -41,30 +41,23 @@ iotjs_spi_t* iotjs_spi_create(const iotjs_jval_t* jspi) {
 static void iotjs_spi_destroy(iotjs_spi_t* spi) {
   IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_spi_t, spi);
   iotjs_jobjectwrap_destroy(&_this->jobjectwrap);
+  iotjs_string_destroy(&_this->device);
   IOTJS_RELEASE(spi);
 }
 
 
-iotjs_spi_t* iotjs_spi_get_instance(const iotjs_jval_t* jspi) {
-  uintptr_t handle = iotjs_jval_get_object_native_handle(jspi);
-  return (iotjs_spi_t*)(handle);
-}
-
-
-/*
- * SPI worker reqwrap function
- */
 #define THIS iotjs_spi_reqwrap_t* spi_reqwrap
 
-iotjs_spi_reqwrap_t* iotjs_spi_reqwrap_create(const iotjs_jval_t* jcallback,
-                                              SpiOp op) {
+
+static iotjs_spi_reqwrap_t* iotjs_spi_reqwrap_create(
+    const iotjs_jval_t* jcallback, const iotjs_jval_t* jspi, SpiOp op) {
   iotjs_spi_reqwrap_t* spi_reqwrap = IOTJS_ALLOC(iotjs_spi_reqwrap_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_spi_reqwrap_t, spi_reqwrap);
 
   iotjs_reqwrap_initialize(&_this->reqwrap, jcallback, (uv_req_t*)&_this->req);
 
   _this->req_data.op = op;
-  _this->req_data.selected_option = -1;
+  _this->spi_instance = iotjs_spi_instance_from_jval(jspi);
 
   return spi_reqwrap;
 }
@@ -77,19 +70,19 @@ static void iotjs_spi_reqwrap_destroy(THIS) {
 }
 
 
-void iotjs_spi_reqwrap_dispatched(THIS) {
+static void iotjs_spi_reqwrap_dispatched(THIS) {
   IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_spi_reqwrap_t, spi_reqwrap);
   iotjs_spi_reqwrap_destroy(spi_reqwrap);
 }
 
 
-uv_work_t* iotjs_spi_reqwrap_req(THIS) {
+static uv_work_t* iotjs_spi_reqwrap_req(THIS) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_spi_reqwrap_t, spi_reqwrap);
   return &_this->req;
 }
 
 
-const iotjs_jval_t* iotjs_spi_reqwrap_jcallback(THIS) {
+static const iotjs_jval_t* iotjs_spi_reqwrap_jcallback(THIS) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_spi_reqwrap_t, spi_reqwrap);
   return iotjs_reqwrap_jcallback(&_this->reqwrap);
 }
@@ -105,19 +98,20 @@ iotjs_spi_reqdata_t* iotjs_spi_reqwrap_data(THIS) {
   return &_this->req_data;
 }
 
+
+iotjs_spi_t* iotjs_spi_instance_from_jval(const iotjs_jval_t* jspi) {
+  uintptr_t handle = iotjs_jval_get_object_native_handle(jspi);
+  return (iotjs_spi_t*)handle;
+}
+
+
+iotjs_spi_t* iotjs_spi_instance_from_reqwrap(THIS) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_spi_reqwrap_t, spi_reqwrap);
+  return _this->spi_instance;
+}
+
+
 #undef THIS
-
-
-void iotjs_spi_set_device_fd(iotjs_spi_t* spi, int32_t fd) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_spi_t, spi);
-  _this->device_fd = fd;
-}
-
-
-int32_t iotjs_spi_get_device_fd(iotjs_spi_t* spi) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_spi_t, spi);
-  return _this->device_fd;
-}
 
 
 static int iotjs_spi_get_array_data(char** buf, const iotjs_jval_t* jarray) {
@@ -181,80 +175,96 @@ static void iotjs_spi_release_buffer(iotjs_spi_t* spi) {
 }
 
 
-static uint32_t iotjs_spi_check_options(iotjs_spi_t* spi,
+static void iotjs_spi_set_configuration(iotjs_spi_t* spi,
                                         const iotjs_jval_t* joptions) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_spi_t, spi);
-  uint32_t selected_option = 0;
 
-#define SPI_CHECK_OPTIONS(option_name, optionName, OptionName, set_value, \
-                          type)                                           \
-  do {                                                                    \
-    iotjs_jval_t j##option_name =                                         \
-        iotjs_jval_get_property(joptions, #optionName);                   \
-    if (!iotjs_jval_is_undefined(&j##option_name)) {                      \
-      if (iotjs_jval_is_number(&j##option_name)) {                        \
-        set_value = (type)iotjs_jval_as_number(&j##option_name);          \
-      } else if (iotjs_jval_is_boolean(&j##option_name)) {                \
-        set_value = iotjs_jval_as_boolean(&j##option_name);               \
-      } else {                                                            \
-        return -1;                                                        \
-      }                                                                   \
-      selected_option |= kSpiOption##OptionName;                          \
-    }                                                                     \
-    iotjs_jval_destroy(&j##option_name);                                  \
-  } while (0);
+  iotjs_jval_t jdevice = iotjs_jval_get_property(joptions, "device");
+  _this->device = iotjs_jval_as_string(&jdevice);
+  iotjs_jval_destroy(&jdevice);
 
-  SPI_CHECK_OPTIONS(mode, mode, Mode, _this->mode, SpiMode);
-  SPI_CHECK_OPTIONS(chip_select, chipSelect, ChipSelect, _this->chip_select,
-                    SpiChipSelect);
-  SPI_CHECK_OPTIONS(max_speed, maxSpeed, MaxSpeed, _this->max_speed, uint32_t);
-  SPI_CHECK_OPTIONS(bits_per_word, bitsPerWord, BitsPerWord,
-                    _this->bits_per_word, uint8_t);
-  SPI_CHECK_OPTIONS(bit_order, bitOrder, BitOrder, _this->bit_order, uint8_t);
-  SPI_CHECK_OPTIONS(loopback, loopback, Loopback, _this->loopback, bool);
+  iotjs_jval_t jmode = iotjs_jval_get_property(joptions, "mode");
+  _this->mode = (SpiMode)iotjs_jval_as_number(&jmode);
+  iotjs_jval_destroy(&jmode);
 
-#undef SPI_CHECK_OPTIONS
+  iotjs_jval_t jchip_select = iotjs_jval_get_property(joptions, "chipSelect");
+  _this->chip_select = (SpiChipSelect)iotjs_jval_as_number(&jchip_select);
+  iotjs_jval_destroy(&jchip_select);
 
-  return selected_option;
-}
+  iotjs_jval_t jmax_speed = iotjs_jval_get_property(joptions, "maxSpeed");
+  _this->max_speed = iotjs_jval_as_number(&jmax_speed);
+  iotjs_jval_destroy(&jmax_speed);
 
+  iotjs_jval_t jbits_per_word =
+      iotjs_jval_get_property(joptions, "bitsPerWord");
+  _this->bits_per_word = (SpiOrder)iotjs_jval_as_number(&jbits_per_word);
+  iotjs_jval_destroy(&jbits_per_word);
 
-static void iotjs_spi_append_error(iotjs_jargs_t* jargs, const char* msg) {
-  iotjs_jval_t error = iotjs_jval_create_error(msg);
-  iotjs_jargs_append_jval(jargs, &error);
-  iotjs_jval_destroy(&error);
+  iotjs_jval_t jbit_order = iotjs_jval_get_property(joptions, "bitOrder");
+  _this->bit_order = (SpiOrder)iotjs_jval_as_number(&jbit_order);
+  iotjs_jval_destroy(&jbit_order);
+
+  iotjs_jval_t jloopback = iotjs_jval_get_property(joptions, "loopback");
+  _this->loopback = iotjs_jval_as_boolean(&jloopback);
+  iotjs_jval_destroy(&jloopback);
 }
 
 
 /*
- * SPI worker callback function
+ * SPI worker function
  */
-void iotjs_spi_after_work(uv_work_t* work_req, int status) {
+static void iotjs_spi_transfer_worker(uv_work_t* work_req) {
+  SPI_WORKER_INIT;
+
+  if (!iotjs_spi_transfer(spi)) {
+    req_data->result = false;
+    return;
+  }
+
+  req_data->result = true;
+}
+
+
+static void iotjs_spi_close_worker(uv_work_t* work_req) {
+  SPI_WORKER_INIT;
+
+  if (!iotjs_spi_close(spi)) {
+    req_data->result = false;
+    return;
+  }
+
+  req_data->result = true;
+}
+
+
+static void iotjs_spi_after_work(uv_work_t* work_req, int status) {
   iotjs_spi_reqwrap_t* req_wrap = iotjs_spi_reqwrap_from_request(work_req);
   iotjs_spi_reqdata_t* req_data = iotjs_spi_reqwrap_data(req_wrap);
-  iotjs_spi_t* spi = req_data->spi_instance;
-
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_spi_t, spi);
+  iotjs_spi_t* spi = iotjs_spi_instance_from_reqwrap(req_wrap);
 
   iotjs_jargs_t jargs = iotjs_jargs_create(2);
-  SpiError result = req_data->result;
+
+  bool result = req_data->result;
 
   if (status) {
-    iotjs_spi_append_error(&jargs, "System error");
+    iotjs_jargs_append_error(&jargs, "System error");
   } else {
     switch (req_data->op) {
-      case kSpiOpExport:
-        if (result == kSpiErrExport) {
-          iotjs_spi_append_error(&jargs, "Failed to export SPI device");
+      case kSpiOpOpen:
+        if (!result) {
+          iotjs_jargs_append_error(&jargs, "Failed to export SPI device");
         } else {
           iotjs_jargs_append_null(&jargs);
         }
         break;
       case kSpiOpTransfer:
-        if (result == kSpiErrTransfer) {
-          iotjs_spi_append_error(&jargs, "Cannot transfer from SPI device");
+
+        if (!result) {
+          iotjs_jargs_append_error(&jargs, "Cannot transfer from SPI device");
         } else {
           iotjs_jargs_append_null(&jargs);
+
+          IOTJS_VALIDATED_STRUCT_METHOD(iotjs_spi_t, spi);
 
           // Append read data
           iotjs_jval_t result =
@@ -264,9 +274,9 @@ void iotjs_spi_after_work(uv_work_t* work_req, int status) {
         }
         iotjs_spi_release_buffer(spi);
         break;
-      case kSpiOpUnexport:
-        if (result == kSpiErrUnexport) {
-          iotjs_spi_append_error(&jargs, "Failed to unexport SPI device");
+      case kSpiOpClose:
+        if (!result) {
+          iotjs_jargs_append_error(&jargs, "Failed to unexport SPI device");
         } else {
           iotjs_jargs_append_null(&jargs);
         }
@@ -287,140 +297,155 @@ void iotjs_spi_after_work(uv_work_t* work_req, int status) {
 }
 
 
-#define SPI_ASYNC(op)                                                        \
-  do {                                                                       \
-    uv_loop_t* loop = iotjs_environment_loop(iotjs_environment_get());       \
-    uv_work_t* req = iotjs_spi_reqwrap_req(req_wrap);                        \
-    uv_queue_work(loop, req, iotjs_spi_##op##_worker, iotjs_spi_after_work); \
+iotjs_spi_t* iotjs_spi_get_instance(const iotjs_jval_t* jspi) {
+  uintptr_t handle = iotjs_jval_get_object_native_handle(jspi);
+  return (iotjs_spi_t*)(handle);
+}
+
+
+#define SPI_ASYNC(call, jthis, jcallback, op)                                  \
+  do {                                                                         \
+    uv_loop_t* loop = iotjs_environment_loop(iotjs_environment_get());         \
+    iotjs_spi_reqwrap_t* req_wrap =                                            \
+        iotjs_spi_reqwrap_create(jcallback, jthis, op);                        \
+    uv_work_t* req = iotjs_spi_reqwrap_req(req_wrap);                          \
+    uv_queue_work(loop, req, iotjs_spi_##call##_worker, iotjs_spi_after_work); \
   } while (0)
 
 
-JHANDLER_FUNCTION(SpiCons) {
+JHANDLER_FUNCTION(SpiConstructor) {
   JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARGS(4, number, number, object, function);
+  JHANDLER_CHECK_ARGS(2, object, function);
 
   // Create SPI object
   const iotjs_jval_t* jspi = JHANDLER_GET_THIS(object);
   iotjs_spi_t* spi = iotjs_spi_create(jspi);
   IOTJS_ASSERT(spi == iotjs_spi_get_instance(jspi));
 
-  // Create reqwrap
-  const iotjs_jval_t* jcallback = JHANDLER_GET_ARG(3, function);
-  iotjs_spi_reqwrap_t* req_wrap =
-      iotjs_spi_reqwrap_create(jcallback, kSpiOpExport);
+  // Set configuration
+  const iotjs_jval_t* jconfiguration = JHANDLER_GET_ARG(0, object);
+  iotjs_spi_set_configuration(spi, jconfiguration);
 
-  iotjs_spi_reqdata_t* req_data = iotjs_spi_reqwrap_data(req_wrap);
-  int32_t device_number = JHANDLER_GET_ARG(0, number);
-  int32_t cs_number = JHANDLER_GET_ARG(1, number);
-
-  req_data->pin = SPI_DEVICE_NUMBER(device_number) | SPI_CS_NUMBER(cs_number);
-  req_data->spi_instance = spi;
-
-  // Check and set options
-  const iotjs_jval_t* joptions = JHANDLER_GET_ARG(2, object);
-  req_data->selected_option = iotjs_spi_check_options(spi, joptions);
-
-  SPI_ASYNC(export);
+  const iotjs_jval_t* jcallback = JHANDLER_GET_ARG(1, function);
+  SPI_ASYNC(open, jspi, jcallback, kSpiOpOpen);
 }
 
 
 // FIXME: do not need transferArray if array buffer is implemented.
 JHANDLER_FUNCTION(TransferArray) {
   JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARGS(3, array, array, function);
+  JHANDLER_CHECK_ARGS(2, array, array);
+  JHANDLER_CHECK_ARG_IF_EXIST(2, function);
 
-  const iotjs_jval_t* jcallback = JHANDLER_GET_ARG(2, function);
-  iotjs_spi_reqwrap_t* req_wrap =
-      iotjs_spi_reqwrap_create(jcallback, kSpiOpTransfer);
-
-  iotjs_spi_reqdata_t* req_data = iotjs_spi_reqwrap_data(req_wrap);
+  const iotjs_jval_t* jcallback = JHANDLER_GET_ARG_IF_EXIST(2, function);
   const iotjs_jval_t* jspi = JHANDLER_GET_THIS(object);
   iotjs_spi_t* spi = iotjs_spi_get_instance(jspi);
-  req_data->spi_instance = spi;
 
   iotjs_spi_set_array_buffer(spi, JHANDLER_GET_ARG(0, array),
                              JHANDLER_GET_ARG(1, array));
 
-  SPI_ASYNC(transfer);
+  if (jcallback) {
+    SPI_ASYNC(transfer, jspi, jcallback, kSpiOpTransfer);
+  } else {
+    if (!iotjs_spi_transfer(spi)) {
+      JHANDLER_THROW(COMMON, "SPI Transfer Error");
+    } else {
+      IOTJS_VALIDATED_STRUCT_METHOD(iotjs_spi_t, spi);
 
-  iotjs_jhandler_return_null(jhandler);
+      iotjs_jval_t result =
+          iotjs_jval_create_byte_array(_this->buf_len, _this->rx_buf_data);
+      iotjs_jhandler_return_jval(jhandler, &result);
+      iotjs_jval_destroy(&result);
+    }
+  }
 }
 
 
 JHANDLER_FUNCTION(TransferBuffer) {
   JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARGS(3, object, object, function);
+  JHANDLER_CHECK_ARGS(2, object, object);
+  JHANDLER_CHECK_ARG_IF_EXIST(2, function);
 
-  const iotjs_jval_t* jcallback = JHANDLER_GET_ARG(2, function);
-  iotjs_spi_reqwrap_t* req_wrap =
-      iotjs_spi_reqwrap_create(jcallback, kSpiOpTransfer);
-
-  iotjs_spi_reqdata_t* req_data = iotjs_spi_reqwrap_data(req_wrap);
+  const iotjs_jval_t* jcallback = JHANDLER_GET_ARG_IF_EXIST(2, function);
   const iotjs_jval_t* jspi = JHANDLER_GET_THIS(object);
   iotjs_spi_t* spi = iotjs_spi_get_instance(jspi);
-  req_data->spi_instance = spi;
 
   iotjs_spi_set_buffer(spi, JHANDLER_GET_ARG(0, object),
                        JHANDLER_GET_ARG(1, object));
 
-  SPI_ASYNC(transfer);
+  if (jcallback) {
+    SPI_ASYNC(transfer, jspi, jcallback, kSpiOpTransfer);
+  } else {
+    if (!iotjs_spi_transfer(spi)) {
+      JHANDLER_THROW(COMMON, "SPI Transfer Error");
+    } else {
+      IOTJS_VALIDATED_STRUCT_METHOD(iotjs_spi_t, spi);
 
-  iotjs_jhandler_return_null(jhandler);
-}
-
-
-JHANDLER_FUNCTION(SetOption) {
-  JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARGS(1, object);
-
-  const iotjs_jval_t* jspi = JHANDLER_GET_THIS(object);
-  iotjs_spi_t* spi = iotjs_spi_get_instance(jspi);
-  const iotjs_jval_t* joptions = JHANDLER_GET_ARG(0, object);
-  uint32_t selected_option = iotjs_spi_check_options(spi, joptions);
-
-  if (!iotjs_spi_set_options(spi, selected_option)) {
-    iotjs_jval_t eobj = iotjs_jval_create_error("Cannot set options");
-    iotjs_jhandler_return_jval(jhandler, &eobj);
-    iotjs_jval_destroy(&eobj);
-    printf("hs\n");
-    return;
+      iotjs_jval_t result =
+          iotjs_jval_create_byte_array(_this->buf_len, _this->rx_buf_data);
+      iotjs_jhandler_return_jval(jhandler, &result);
+      iotjs_jval_destroy(&result);
+    }
   }
-  iotjs_jhandler_return_null(jhandler);
 }
 
 
-JHANDLER_FUNCTION(Unexport) {
+JHANDLER_FUNCTION(Close) {
   JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARGS(1, function);
+  JHANDLER_CHECK_ARG_IF_EXIST(1, function);
 
-  const iotjs_jval_t* jcallback = JHANDLER_GET_ARG(0, function);
-  iotjs_spi_reqwrap_t* req_wrap =
-      iotjs_spi_reqwrap_create(jcallback, kSpiOpUnexport);
-
-  iotjs_spi_reqdata_t* req_data = iotjs_spi_reqwrap_data(req_wrap);
+  const iotjs_jval_t* jcallback = JHANDLER_GET_ARG_IF_EXIST(0, function);
   const iotjs_jval_t* jspi = JHANDLER_GET_THIS(object);
   iotjs_spi_t* spi = iotjs_spi_get_instance(jspi);
-  req_data->spi_instance = spi;
 
-  SPI_ASYNC(unexport);
+  if (jcallback) {
+    SPI_ASYNC(close, jspi, jcallback, kSpiOpClose);
+  } else {
+    if (!iotjs_spi_close(spi)) {
+      JHANDLER_THROW(COMMON, "SPI Close Error");
+    }
+  }
 
   iotjs_jhandler_return_null(jhandler);
 }
 
 
 iotjs_jval_t InitSpi() {
-  iotjs_jval_t jSpiCons = iotjs_jval_create_function_with_dispatch(SpiCons);
+  iotjs_jval_t jspi = iotjs_jval_create_object();
+  iotjs_jval_t jspiConstructor =
+      iotjs_jval_create_function_with_dispatch(SpiConstructor);
+  iotjs_jval_set_property_jval(&jspi, "Spi", &jspiConstructor);
 
   iotjs_jval_t prototype = iotjs_jval_create_object();
-
   iotjs_jval_set_method(&prototype, "transferArray", TransferArray);
   iotjs_jval_set_method(&prototype, "transferBuffer", TransferBuffer);
-  iotjs_jval_set_method(&prototype, "setOption", SetOption);
-  iotjs_jval_set_method(&prototype, "unexport", Unexport);
-
-  iotjs_jval_set_property_jval(&jSpiCons, "prototype", &prototype);
-
+  iotjs_jval_set_method(&prototype, "close", Close);
+  iotjs_jval_set_property_jval(&jspiConstructor, "prototype", &prototype);
   iotjs_jval_destroy(&prototype);
+  iotjs_jval_destroy(&jspiConstructor);
 
-  return jSpiCons;
+  // SPI mode properties
+  iotjs_jval_t jmode = iotjs_jval_create_object();
+  iotjs_jval_set_property_number(&jmode, "0", kSpiMode_0);
+  iotjs_jval_set_property_number(&jmode, "1", kSpiMode_1);
+  iotjs_jval_set_property_number(&jmode, "2", kSpiMode_2);
+  iotjs_jval_set_property_number(&jmode, "3", kSpiMode_3);
+  iotjs_jval_set_property_jval(&jspi, "MODE", &jmode);
+  iotjs_jval_destroy(&jmode);
+
+  // SPI mode properties
+  iotjs_jval_t jcs = iotjs_jval_create_object();
+  iotjs_jval_set_property_number(&jcs, "NONE", kSpiCsNone);
+  iotjs_jval_set_property_number(&jcs, "HIGH", kSpiCsHigh);
+  iotjs_jval_set_property_jval(&jspi, "CHIPSELECT", &jcs);
+  iotjs_jval_destroy(&jcs);
+
+  // SPI order properties
+  iotjs_jval_t jbit_order = iotjs_jval_create_object();
+  iotjs_jval_set_property_number(&jbit_order, "MSB", kSpiOrderMsb);
+  iotjs_jval_set_property_number(&jbit_order, "LSB", kSpiOrderLsb);
+  iotjs_jval_set_property_jval(&jspi, "BITORDER", &jbit_order);
+  iotjs_jval_destroy(&jbit_order);
+
+  return jspi;
 }

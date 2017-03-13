@@ -36,11 +36,11 @@ iotjs_httpparserwrap_t* iotjs_httpparserwrap_create(const iotjs_jval_t* jparser,
   iotjs_jobjectwrap_initialize(&_this->jobjectwrap, jparser,
                                (JFreeHandlerType)iotjs_httpparserwrap_destroy);
 
-  _this->url = iotjs_string_create("");
-  _this->status_msg = iotjs_string_create("");
+  _this->url = iotjs_string_create();
+  _this->status_msg = iotjs_string_create();
   for (size_t i = 0; i < HEADER_MAX; i++) {
-    _this->fields[i] = iotjs_string_create("");
-    _this->values[i] = iotjs_string_create("");
+    _this->fields[i] = iotjs_string_create();
+    _this->values[i] = iotjs_string_create();
   }
 
   iotjs_httpparserwrap_initialize(httpparserwrap, type);

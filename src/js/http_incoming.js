@@ -46,6 +46,7 @@ exports.IncomingMessage = IncomingMessage;
 
 IncomingMessage.prototype.read = function(n) {
   this.read = stream.Readable.prototype.read;
+
   return this.read(n);
 };
 
@@ -63,7 +64,6 @@ IncomingMessage.prototype.addHeaders = function(headers) {
 
 
 IncomingMessage.prototype.setTimeout = function(ms, cb) {
-  if (cb)
-    this.once('timeout', cb);
+  if (cb)    {this.once('timeout', cb);}
   this.socket.setTimeout(ms, cb);
 };

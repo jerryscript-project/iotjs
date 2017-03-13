@@ -94,10 +94,7 @@ exports.setTimeout = function(callback, delay) {
 
 
 exports.clearTimeout = function(timeout) {
-  if (timeout && timeout.callback && (timeout instanceof Timeout))
-    timeout.close();
-  else
-    throw new Error('clearTimeout() - invalid timeout');
+  if (timeout && timeout.callback && (timeout instanceof Timeout))    {timeout.close();}  else    {throw new Error('clearTimeout() - invalid timeout');}
 };
 
 
@@ -129,8 +126,5 @@ exports.setInterval = function(callback, repeat) {
 
 
 exports.clearInterval = function(timeout) {
-  if (timeout && timeout.isrepeat)
-    timeout.close();
-  else
-    throw new Error('clearInterval() - invalid interval');
+  if (timeout && timeout.isrepeat)    {timeout.close();}  else    {throw new Error('clearInterval() - invalid interval');}
 };

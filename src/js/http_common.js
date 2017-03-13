@@ -13,13 +13,9 @@
  * limitations under the License.
  */
 
-var EventEmitter = require('events');
 var util = require('util');
 var HTTPParser = process.binding(process.binding.httpparser).HTTPParser;
 var IncomingMessage = require('http_incoming').IncomingMessage;
-var OutgoingMessage = require('http_outgoing').OutgoingMessage;
-var Buffer = require('buffer');
-
 
 
 var createHTTPParser = function() {
@@ -31,6 +27,7 @@ var createHTTPParser = function() {
   parser.OnHeadersComplete = parserOnHeadersComplete;
   parser.OnBody = parserOnBody;
   parser.OnMessageComplete = parserOnMessageComplete;
+
   return parser;
 };
 
@@ -62,7 +59,7 @@ function parserOnHeadersComplete(info) {
 
   if (!url) {
     url = parser._url;
-    parser.url = "";
+    parser.url = '';
   }
 
   if (!headers) {

@@ -41,7 +41,7 @@ var util = require('util');
 
 var Hci = require('ble_hci_socket_hci');
 
-var isLinux = (process.platform === 'linux');
+// TODO: var isLinux = (process.platform === 'linux');
 var isIntelEdison = false; // isLinux && (os.release().indexOf('edison') !== -1);
 var isYocto = false; //TODO isLinux && (os.release().indexOf('yocto') !== -1);
 

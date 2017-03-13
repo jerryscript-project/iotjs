@@ -16,9 +16,7 @@
 var util = require('util');
 var net = require('net');
 var HTTPParser = process.binding(process.binding.httpparser).HTTPParser;
-var IncomingMessage = require('http_incoming').IncomingMessage;
 var OutgoingMessage = require('http_outgoing').OutgoingMessage;
-var Buffer = require('buffer');
 var common = require('http_common');
 
 
@@ -108,8 +106,7 @@ function socketOnClose() {
       res.emit('close');
     });
     res.push(null);
-  }
-  else if (!req.res) {
+  }  else if (!req.res) {
     // socket closed before response starts.
     var err = new Error('socket hang up');
     req.emit('error', err);
@@ -125,7 +122,7 @@ function socketOnClose() {
 }
 
 
-function socketOnError(er) {
+function socketOnError(/* er */) {
   var socket = this;
   var parser = socket.parser;
 
@@ -175,16 +172,16 @@ function socketOnEnd() {
 }
 
 
-
 // This is called by parserOnHeadersComplete after response header is parsed.
 // TODO: keepalive support
-function parserOnIncomingClient(res, shouldKeepAlive) {
+function parserOnIncomingClient(res /*, shouldKeepAlive*/) {
   var socket = this.socket;
   var req = socket._httpMessage;
 
   if (req.res) {
     // server sent responses twice.
     socket.destroy();
+
     return;
   }
   req.res = res;
@@ -216,7 +213,7 @@ var responseOnEnd = function() {
 ClientRequest.prototype.setTimeout = function(ms, cb) {
   var self = this;
 
-  if (cb) self.once('timeout', cb);
+  if (cb) {self.once('timeout', cb);}
 
   var emitTimeout = function() {
     self.emit('timeout');

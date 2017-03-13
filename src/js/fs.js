@@ -62,13 +62,14 @@ fsBuiltin._createStat = function(stat) {
 fs.exists = function(path, callback) {
   if (!path || !path.length) {
     process.nextTick(function () {
-      if (callback) callback(false);
+      if (callback) {callback(false);}
     });
+
     return;
   }
 
-  var cb = function(err, stat) {
-    if (callback) callback(err ? false : true);
+  var cb = function(err /*, stat */) {
+    if (callback) {callback(err ? false : true);}
   };
 
   fsBuiltin.stat(checkArgString(path, 'path'),
@@ -83,6 +84,7 @@ fs.existsSync = function(path) {
 
   try {
     fsBuiltin.stat(checkArgString(path, 'path'));
+
     return true;
   } catch (e) {
     return false;
@@ -124,10 +126,11 @@ fs.closeSync = function(fd) {
 
 
 fs.open = function(path, flags, mode, callback) {
+  var cb = util.isFunction(callback) ? callback: mode;
   fsBuiltin.open(checkArgString(path, 'path'),
                  convertFlags(flags),
-                 convertMode(mode, 438),
-                 checkArgFunction(arguments[arguments.length - 1]), 'callback');
+                 convertMode(mode, 438), // Octal: 0666
+                 checkArgFunction(cb, 'callback'));
 };
 
 
@@ -158,6 +161,7 @@ fs.readSync = function(fd, buffer, offset, length, position) {
   if (util.isNullOrUndefined(position)) {
     position = -1;
   }
+
   return fsBuiltin.read(checkArgNumber(fd, 'fd'),
                         checkArgBuffer(buffer, 'buffer'),
                         checkArgNumber(offset, 'offset'),
@@ -246,7 +250,7 @@ fs.readFile = function(path, callback) {
     fs.close(fd, function(err) {
       return callback(err, Buffer.concat(buffers));
     });
-  }
+  };
 };
 
 
@@ -255,20 +259,22 @@ fs.readFileSync = function(path) {
 
   var fd = fs.openSync(path, 'r', 438);
   var buffers = [];
+  var buffer = new Buffer(1023);
+  var bytesRead;
 
-  while (true) {
+  do {
     try {
-      var buffer = new Buffer(1023);
-      var bytesRead = fs.readSync(fd, buffer, 0, 1023);
+      bytesRead = fs.readSync(fd, buffer, 0, 1023);
       if (bytesRead) {
         buffers.push(buffer.slice(0, bytesRead));
-      } else {
-        break;
       }
     } catch (e) {
+      // TODO: does silent fail is OK?
+      // We could read half of file and then return with invalid data.
       break;
     }
-  }
+  } while (bytesRead);
+
   fs.closeSync(fd);
 
   return Buffer.concat(buffers);
@@ -329,26 +335,25 @@ fs.writeFileSync = function(path, data) {
   var fd = fs.openSync(path, 'w');
   var len = data.length;
   var bytesWritten = 0;
+  var chunkSize;
 
-  while (true) {
-    try {
-      var tryN = (len - bytesWritten) >= 1024 ? 1023 : (len - bytesWritten);
-      var n = fs.writeSync(fd, data, bytesWritten, tryN, bytesWritten);
-      bytesWritten += n;
-      if (bytesWritten == len) {
-        break;
-      }
-    } catch (e) {
-      break;
+  try {
+    while (bytesWritten < len) {
+      chunkSize = (len - bytesWritten) > 1023 ? 1023 : (len - bytesWritten);
+      bytesWritten += fs.writeSync(fd, data, bytesWritten, chunkSize);
     }
+  } catch (e) {
+    // TODO: does silent fail is OK?
+    // We could write half of file and then return with invalid data.
   }
   fs.closeSync(fd);
+
   return bytesWritten;
 };
 
 
 fs.mkdir = function(path, mode, callback) {
-  if (util.isFunction(mode)) callback = mode;
+  if (util.isFunction(mode)) {callback = mode;}
   checkArgString(path, 'path');
   checkArgFunction(callback, 'callback');
   fsBuiltin.mkdir(path, convertMode(mode, 511), callback);
@@ -415,29 +420,29 @@ fs.readdirSync = function(path) {
 function convertFlags(flag) {
   if (util.isString(flag)) {
     switch (flag) {
-      case 'r': return O_RDONLY;
-      case 'rs':
-      case 'sr': return O_RDONLY | O_SYNC;
+    case 'r': return O_RDONLY;
+    case 'rs':
+    case 'sr': return O_RDONLY | O_SYNC;
 
-      case 'r+': return O_RDWR;
-      case 'rs+':
-      case 'sr+': return O_RDWR | O_SYNC;
+    case 'r+': return O_RDWR;
+    case 'rs+':
+    case 'sr+': return O_RDWR | O_SYNC;
 
-      case 'w': return O_TRUNC | O_CREAT | O_WRONLY;
-      case 'wx':
-      case 'xw': return O_TRUNC | O_CREAT | O_WRONLY | O_EXCL;
+    case 'w': return O_TRUNC | O_CREAT | O_WRONLY;
+    case 'wx':
+    case 'xw': return O_TRUNC | O_CREAT | O_WRONLY | O_EXCL;
 
-      case 'w+': return O_TRUNC | O_CREAT | O_RDWR;
-      case 'wx+':
-      case 'xw+': return O_TRUNC | O_CREAT | O_RDWR | O_EXCL;
+    case 'w+': return O_TRUNC | O_CREAT | O_RDWR;
+    case 'wx+':
+    case 'xw+': return O_TRUNC | O_CREAT | O_RDWR | O_EXCL;
 
-      case 'a': return O_APPEND | O_CREAT | O_WRONLY;
-      case 'ax':
-      case 'xa': return O_APPEND | O_CREAT | O_WRONLY | O_EXCL;
+    case 'a': return O_APPEND | O_CREAT | O_WRONLY;
+    case 'ax':
+    case 'xa': return O_APPEND | O_CREAT | O_WRONLY | O_EXCL;
 
-      case 'a+': return O_APPEND | O_CREAT | O_RDWR;
-      case 'ax+':
-      case 'xa+': return O_APPEND | O_CREAT | O_RDWR | O_EXCL;
+    case 'a+': return O_APPEND | O_CREAT | O_RDWR;
+    case 'ax+':
+    case 'xa+': return O_APPEND | O_CREAT | O_RDWR | O_EXCL;
     }
   }
   throw new TypeError('Bad argument: flags');
@@ -452,6 +457,7 @@ function convertMode(mode, def) {
   } else if (def) {
     return convertMode(def);
   }
+
   return undefined;
 }
 

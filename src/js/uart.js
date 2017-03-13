@@ -26,11 +26,12 @@ var defaultSettings = {
   autoOpen: true,
   baudRate: 9600,
   dataBits: 8,
-}
+};
 
 // UART(path[, options][, callback])
 function UART(path, options, callback) { //constructor
   var self = this;
+  var propname;
 
   if (!(this instanceof UART)) {
     return new UART(path, options, callback);
@@ -46,10 +47,10 @@ function UART(path, options, callback) { //constructor
   }
 
   var settings = {};
-  for (var propname in defaultSettings) {
+  for (propname in defaultSettings) {
     settings[propname] = defaultSettings[propname];
   }
-  for (var propname in options) {
+  for (propname in options) {
     settings[propname] = options[propname];
   }
 
@@ -60,11 +61,11 @@ function UART(path, options, callback) { //constructor
   }
 
   if (BAUDRATE.indexOf(settings.baudRate) === -1) {
-    throw new TypeError("Invalid 'baudRate': " + settings.baudRate);
+    throw new TypeError('Invalid \'baudRate\': ' + settings.baudRate);
   }
 
   if (DATABITS.indexOf(settings.dataBits) === -1) {
-    throw new TypeError("Invalid 'databits': " + settings.dataBits);
+    throw new TypeError('Invalid \'databits\': ' + settings.dataBits);
   }
 
   self._path = path;
@@ -73,8 +74,7 @@ function UART(path, options, callback) { //constructor
 
   process.on('exit', (function(_this) {
     return function() {
-      if (_this._closed == false)
-        return _this._uart.close();
+      if (_this._closed == false)        {return _this._uart.close();}
     };
   })(self));
 
@@ -94,12 +94,13 @@ UART.prototype.open = function(callback) {
       return callback(err);
     });
   });
-}
+};
 
 UART.prototype.close = function() {
   this._closed = true;
+
   return this._uart.close();
-}
+};
 
 UART.prototype.write = function(buffer, callback) {
   this._uart.write(buffer, function(err) {

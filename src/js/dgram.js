@@ -26,8 +26,7 @@ var BIND_STATE_BOUND = 2;
 var dns = null;
 
 function lookup(address, family, callback) {
-  if (!dns)
-    dns = require('dns');
+  if (!dns)    {dns = require('dns');}
 
   return dns.lookup(address, family, callback);
 }
@@ -42,6 +41,7 @@ function newHandle(type) {
   if (type == 'udp4') {
     var handle = new UDP();
     handle.lookup = lookup4;
+
     return handle;
   }
 
@@ -70,8 +70,7 @@ function Socket(type, listener) {
   // If true - UV_UDP_REUSEADDR flag will be set
   this._reuseAddr = options && options.reuseAddr;
 
-  if (util.isFunction(listener))
-    this.on('message', listener);
+  if (util.isFunction(listener))    {this.on('message', listener);}
 }
 util.inherits(Socket, EventEmitter);
 exports.Socket = Socket;
@@ -98,13 +97,11 @@ Socket.prototype.bind = function(port /*, address, callback*/) {
 
   self._healthCheck();
 
-  if (this._bindState != BIND_STATE_UNBOUND)
-    throw new Error('Socket is already bound');
+  if (this._bindState != BIND_STATE_UNBOUND)    {throw new Error('Socket is already bound');}
 
   this._bindState = BIND_STATE_BINDING;
 
-  if (util.isFunction(arguments[arguments.length - 1]))
-    self.once('listening', arguments[arguments.length - 1]);
+  if (util.isFunction(arguments[arguments.length - 1]))    {self.once('listening', arguments[arguments.length - 1]);}
 
   var address;
   if (util.isObject(port)) {
@@ -124,20 +121,21 @@ Socket.prototype.bind = function(port /*, address, callback*/) {
     if (err) {
       self._bindState = BIND_STATE_UNBOUND;
       self.emit('error', err);
+
       return;
     }
 
-    if (!self._handle)
-      return; // handle has been closed in the mean time
+    if (!self._handle)      {return;} // handle has been closed in the mean time
 
     self._handle._reuseAddr = self._reuseAddr;
 
-    var err = self._handle.bind(ip, port || 0);
-    if (err) {
-      var ex = util.exceptionWithHostPort(err, 'bind', ip, port);
+    var error = self._handle.bind(ip, port || 0);
+    if (error) {
+      var ex = util.exceptionWithHostPort(error, 'bind', ip, port);
       self.emit('error', ex);
       self._bindState = BIND_STATE_UNBOUND;
       // Todo: close?
+
       return;
     }
 
@@ -145,27 +143,22 @@ Socket.prototype.bind = function(port /*, address, callback*/) {
   });
 
   return self;
-}
+};
 
 
 // thin wrapper around `send`, here for compatibility with dgram_legacy.js
 Socket.prototype.sendto = function(buffer, offset, length, port, address,
                                    callback) {
-  if (!(util.isNumber(offset)) || !(util.isNumber(length)))
-    throw new Error('send takes offset and length as args 2 and 3');
+  if (!(util.isNumber(offset)) || !(util.isNumber(length)))    {throw new Error('send takes offset and length as args 2 and 3');}
 
-  if (!(util.isString(address)))
-    throw new Error(this.type + ' sockets must send to port, address');
+  if (!(util.isString(address)))    {throw new Error(this.type + ' sockets must send to port, address');}
 
   this.send(buffer, offset, length, port, address, callback);
 };
 
 
 function sliceBuffer(buffer, offset, length) {
-  if (util.isString(buffer))
-    buffer = new Buffer(buffer);
-  else if (!(util.isBuffer(buffer)))
-    throw new TypeError('First argument must be a buffer or string');
+  if (util.isString(buffer))    {buffer = new Buffer(buffer);}  else if (!(util.isBuffer(buffer)))    {throw new TypeError('First argument must be a buffer or string');}
 
   offset = offset >>> 0;
   length = length >>> 0;
@@ -179,12 +172,7 @@ function fixBufferList(list) {
 
   for (var i = 0, l = list.length; i < l; i++) {
     var buf = list[i];
-    if (util.isString(buf))
-      newlist[i] = new Buffer(buf);
-    else if (!(util.isBuffer(buf)))
-      return null;
-    else
-      newlist[i] = buf;
+    if (util.isString(buf))      {newlist[i] = new Buffer(buf);}    else if (!(util.isBuffer(buf)))      {return null;}    else      {newlist[i] = buf;}
   }
 
   return newlist;
@@ -199,6 +187,7 @@ function enqueue(self, toEnqueue) {
     self.once('listening', clearQueue);
   }
   self._queue.push(toEnqueue);
+
   return;
 }
 
@@ -208,8 +197,7 @@ function clearQueue() {
   this._queue = undefined;
 
   // Flush the send queue.
-  for (var i = 0; i < queue.length; i++)
-    queue[i]();
+  for (var i = 0; i < queue.length; i++)    {queue[i]();}
 }
 
 
@@ -246,26 +234,23 @@ Socket.prototype.send = function(buffer, offset, length, port, address,
   }
 
   port = port >>> 0;
-  if (port === 0 || port > 65535)
-    throw new RangeError('Port should be > 0 and < 65536');
+  if (port === 0 || port > 65535)    {throw new RangeError('Port should be > 0 and < 65536');}
 
   // Normalize callback so it's either a function or undefined but not anything
   // else.
-  if (!(util.isFunction(callback)))
-    callback = undefined;
+  if (!(util.isFunction(callback)))    {callback = undefined;}
 
   self._healthCheck();
 
-  if (self._bindState === BIND_STATE_UNBOUND)
-    self.bind(0, null);
+  if (self._bindState === BIND_STATE_UNBOUND)    {self.bind(0, null);}
 
-  if (list.length === 0)
-    list.push(new Buffer(0));
+  if (list.length === 0)    {list.push(new Buffer(0));}
 
   // If the socket hasn't been bound yet, push the outbound packet onto the
   // send queue and send after binding is complete.
   if (self._bindState !== BIND_STATE_BOUND) {
     enqueue(self, self.send.bind(self, list, port, address, callback));
+
     return;
   }
 
@@ -279,10 +264,12 @@ function doSend(ex, self, ip, list, address, port, callback) {
   if (ex) {
     if (util.isFunction(callback)) {
       callback(ex);
+
       return;
     }
 
     self.emit('error', ex);
+
     return;
   } else if (!self._handle) {
     return;
@@ -304,18 +291,18 @@ function doSend(ex, self, ip, list, address, port, callback) {
 
   if (err && callback) {
     // don't emit as error, dgram_legacy.js compatibility
-    var ex = exceptionWithHostPort(err, 'send', address, port);
-    process.nextTick(callback, ex);
+    var exArgs = util.exceptionWithHostPort(err, 'send', address, port);
+    process.nextTick(callback, exArgs);
   }
 }
 
 
 Socket.prototype.close = function(callback) {
-  if (util.isFunction(callback))
-    this.on('close', callback);
+  if (util.isFunction(callback))    {this.on('close', callback);}
 
   if (this._queue) {
     this._queue.push(this.close.bind(this));
+
     return this;
   }
 
@@ -422,14 +409,12 @@ Socket.prototype.dropMembership = function(multicastAddress,
 
 
 Socket.prototype._healthCheck = function() {
-  if (!this._handle)
-    throw new Error('Not running'); // error message from dgram_legacy.js
+  if (!this._handle)    {throw new Error('Not running');} // error message from dgram_legacy.js
 };
 
 
 Socket.prototype._stopReceiving = function() {
-  if (!this._receiving)
-    return;
+  if (!this._receiving)    {return;}
 
   this._handle.recvStop();
   this._receiving = false;
@@ -440,7 +425,7 @@ Socket.prototype._stopReceiving = function() {
 function onMessage(nread, handle, buf, rinfo) {
   var self = handle.owner;
   if (nread < 0) {
-    return self.emit('error', errnoException(nread, 'recvmsg'));
+    return self.emit('error', util.errnoException(nread, 'recvmsg'));
   }
 
   rinfo.size = buf.length; // compatibility
@@ -449,16 +434,14 @@ function onMessage(nread, handle, buf, rinfo) {
 
 
 Socket.prototype.ref = function() {
-  if (this._handle)
-    this._handle.ref();
+  if (this._handle)    {this._handle.ref();}
 
   return this;
 };
 
 
 Socket.prototype.unref = function() {
-  if (this._handle)
-    this._handle.unref();
+  if (this._handle)    {this._handle.unref();}
 
   return this;
 };

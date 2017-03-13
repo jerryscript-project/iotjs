@@ -13,13 +13,9 @@
  * limitations under the License.
  */
 
-var EventEmitter = require('events');
 var util = require('util');
 var net = require('net');
-var HTTPParser = process.binding(process.binding.httpparser).HTTPParser;
-var IncomingMessage = require('http_incoming').IncomingMessage;
 var OutgoingMessage = require('http_outgoing').OutgoingMessage;
-var Buffer = require('buffer');
 var common = require('http_common');
 
 // RFC 7231 (http://tools.ietf.org/html/rfc7231#page-49)
@@ -72,7 +68,7 @@ var STATUS_CODES = exports.STATUS_CODES = {
 function ServerResponse(req) {
   OutgoingMessage.call(this);
   // response to HEAD method has no body
-  if (req.method === 'HEAD') this._hasBody = false;
+  if (req.method === 'HEAD') {this._hasBody = false;}
 }
 
 util.inherits(ServerResponse, OutgoingMessage);
@@ -93,8 +89,7 @@ ServerResponse.prototype._implicitHeader = function() {
 ServerResponse.prototype.writeHead = function(statusCode, reason, obj) {
   if (util.isString(reason)) {
     this.statusMessage = reason;
-  }
-  else {
+  }  else {
     this.statusMessage = STATUS_CODES[statusCode] || 'unknown';
     obj = reason;
   }
@@ -115,7 +110,7 @@ ServerResponse.prototype.writeHead = function(statusCode, reason, obj) {
     if (util.isNullOrUndefined(this._headers)) {
       this._headers = {};
     }
-    for (key in Object.keys(obj)) {
+    for (var key in Object.keys(obj)) {
       this._headers[key] = obj[key];
     }
   }
@@ -197,11 +192,11 @@ function connectionListener(socket) {
   parser.incoming = null;
   socket.parser = parser;
 
-  socket.on("data", socketOnData);
-  socket.on("end", socketOnEnd);
-  socket.on("close", socketOnClose);
+  socket.on('data', socketOnData);
+  socket.on('end', socketOnEnd);
+  socket.on('close', socketOnClose);
   socket.on('timeout', socketOnTimeout);
-  socket.on("error", socketOnError);
+  socket.on('error', socketOnError);
 
   if (server.timeout) {
     socket.setTimeout(server.timeout);
@@ -228,6 +223,7 @@ function socketOnEnd() {
 
   if (ret instanceof Error) {
     socket.destroy();
+
     return;
   }
 
@@ -270,13 +266,13 @@ function socketOnError(err) {
   var socket = this;
   var server = socket._server;
 
-  server.emit("clientError", err, socket);
+  server.emit('clientError', err, socket);
 }
 
 
 // This is called by parserOnHeadersComplete after req header is parsed.
 // TODO: keepalive support
-function parserOnIncoming(req, shouldKeepAlive) {
+function parserOnIncoming(req /*, shouldKeepAlive */) {
   var socket = req.socket;
   var server = socket._server;
 

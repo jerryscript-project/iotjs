@@ -108,7 +108,7 @@ OutgoingMessage.prototype._send = function(chunk, encoding, callback) {
   }
 
   if (!this._sentHeader) {
-    chunk = this._header + "\r\n" + chunk;
+    chunk = this._header + '\r\n' + chunk;
     this._sentHeader = true;
   }
 
@@ -141,7 +141,7 @@ OutgoingMessage.prototype._storeHeader = function(statusLine) {
     keys = Object.keys(this._headers);
     for (var i=0; i<keys.length; i++) {
       var key = keys[i];
-      headerStr += key + ": " + this._headers[key] + '\r\n';
+      headerStr += key + ': ' + this._headers[key] + '\r\n';
     }
   }
 
@@ -176,13 +176,11 @@ OutgoingMessage.prototype.getHeader = function(name) {
 
 
 OutgoingMessage.prototype.setTimeout = function(ms, cb) {
-  if (cb)
-    this.once('timeout', cb);
+  if (cb)    {this.once('timeout', cb);}
 
   if (!this.socket) {
     this.once('socket', function(socket) {
-      socket.setTimeout(msecs);
+      socket.setTimeout(ms);
     });
-  } else
-    this.socket.setTimeout(msecs);
+  } else    {this.socket.setTimeout(ms);}
 };

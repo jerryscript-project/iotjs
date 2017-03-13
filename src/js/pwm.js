@@ -33,17 +33,18 @@ function CreatePwmError(operation, errno) {
   }
 
   switch (errno) {
-    case pwm.kPwmErrExport:
-      return new PwmError(errno, operation, 'Failed to export PWM');
-    case pwm.kPwmErrUnexport:
-      return new PwmError(errno, operation, 'Failed to unexport PWM');
-    case pwm.kPwmErrEnable:
-      return new PwmError(errno, operation, 'Failed to enable PWM');
-    case pwm.kPwmErrWrite:
-      return new PwmError(errno, operation, 'Failed to write value');
-    case pwm.kPwmErrSys:
-      return new PwmError(errno, operation, 'System error');
+  case pwm.kPwmErrExport:
+    return new PwmError(errno, operation, 'Failed to export PWM');
+  case pwm.kPwmErrUnexport:
+    return new PwmError(errno, operation, 'Failed to unexport PWM');
+  case pwm.kPwmErrEnable:
+    return new PwmError(errno, operation, 'Failed to enable PWM');
+  case pwm.kPwmErrWrite:
+    return new PwmError(errno, operation, 'Failed to write value');
+  case pwm.kPwmErrSys:
+    return new PwmError(errno, operation, 'System error');
   }
+
   return new PwmError(errno, operation, 'Unknown error');
 }
 

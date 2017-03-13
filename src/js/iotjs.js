@@ -29,7 +29,7 @@
     var module = Native.require('module');
 
     module.runMain();
-  };
+  }
 
 
   function initGlobal() {
@@ -39,27 +39,31 @@
     global.root = global;
     global.console = Native.require('console');
     global.Buffer = Native.require('buffer');
-  };
+  }
 
 
   function initTimers() {
     global.setTimeout = function() {
       var t = Native.require('timers');
+
       return t.setTimeout.apply(this, arguments);
     };
 
     global.setInterval = function() {
       var t = Native.require('timers');
+
       return t.setInterval.apply(this, arguments);
     };
 
     global.clearTimeout = function() {
       var t = Native.require('timers');
+
       return t.clearTimeout.apply(this, arguments);
     };
 
     global.clearInterval = function() {
       var t = Native.require('timers');
+
       return t.clearInterval.apply(this, arguments);
     };
   }
@@ -129,7 +133,7 @@
     }
   }
 
-
+  /* eslint-disable no-console */
   function initProcessUncaughtException() {
     process._onUncaughtExcecption = _onUncaughtExcecption;
     function _onUncaughtExcecption(error) {
@@ -150,7 +154,7 @@
       }
     }
   }
-
+  /* eslint-enable no-console */
 
   function initProcessExit() {
     process.exitCode = 0;
@@ -165,7 +169,7 @@
         }
         process.emit('exit', process.exitCode || 0);
       }
-    }
+    };
 
 
     process.exit = function(code) {
@@ -185,7 +189,7 @@
     this.id = id;
     this.filename = id + '.js';
     this.exports = {};
-  };
+  }
 
 
   Native.cache = {};

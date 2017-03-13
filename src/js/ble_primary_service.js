@@ -37,8 +37,6 @@
 var events = require('events');
 var util = require('util');
 
-var debug = console.log; //requir('debug')('ble_primary_service');
-
 var UuidUtil = require('ble_uuid_util');
 
 function PrimaryService(options) {

@@ -44,7 +44,7 @@ static void iotjs_uart_reqwrap_destroy(THIS) {
 
 
 void iotjs_uart_reqwrap_dispatched(THIS) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_uart_reqwrap_t, uart_reqwrap);
+  IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_uart_reqwrap_t, uart_reqwrap);
   iotjs_uart_reqwrap_destroy(uart_reqwrap);
 }
 

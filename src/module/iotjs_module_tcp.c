@@ -99,7 +99,8 @@ static void iotjs_connect_reqwrap_destroy(THIS) {
 
 
 void iotjs_connect_reqwrap_dispatched(THIS) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_connect_reqwrap_t, connect_reqwrap);
+  IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_connect_reqwrap_t,
+                                           connect_reqwrap);
   iotjs_connect_reqwrap_destroy(connect_reqwrap);
 }
 
@@ -141,7 +142,8 @@ static void iotjs_write_reqwrap_destroy(THIS) {
 
 
 void iotjs_write_reqwrap_dispatched(THIS) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_write_reqwrap_t, write_reqwrap);
+  IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_write_reqwrap_t,
+                                           write_reqwrap);
   iotjs_write_reqwrap_destroy(write_reqwrap);
 }
 
@@ -185,7 +187,8 @@ static void iotjs_shutdown_reqwrap_destroy(THIS) {
 
 
 void iotjs_shutdown_reqwrap_dispatched(THIS) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_shutdown_reqwrap_t, shutdown_reqwrap);
+  IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_shutdown_reqwrap_t,
+                                           shutdown_reqwrap);
   iotjs_shutdown_reqwrap_destroy(shutdown_reqwrap);
 }
 
@@ -210,6 +213,7 @@ JHANDLER_FUNCTION(TCP) {
 
   const iotjs_jval_t* jtcp = JHANDLER_GET_THIS(object);
   iotjs_tcpwrap_t* tcp_wrap = iotjs_tcpwrap_create(jtcp);
+  IOTJS_UNUSED(tcp_wrap);
 }
 
 

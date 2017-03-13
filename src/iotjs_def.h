@@ -79,6 +79,9 @@
 #define IOTJS_DECLARE_THIS(iotjs_classname_t, x) \
   iotjs_classname_t##_impl_t* _this = &(x)->unsafe;
 
+/* Avoid compiler warnings if needed. */
+#define IOTJS_UNUSED(x) ((void)(x))
+
 
 #ifdef NDEBUG
 
@@ -97,7 +100,10 @@
 #define IOTJS_VALIDATED_STRUCT_METHOD(iotjs_classname_t, x) \
   IOTJS_DECLARE_THIS(iotjs_classname_t, x);
 
-#else
+#define IOTJS_VALIDATABLE_STRUCT_DESTRUCTOR_VALIDATE(iotjs_classname_t, x)
+#define IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_classname_t, x)
+
+#else /* !NDEBUG */
 
 #define IOTJS_VALIDATED_STRUCT(iotjs_classname_t) \
   iotjs_classname_t##_impl_t;                     \
@@ -132,7 +138,15 @@
   IOTJS_DECLARE_THIS(iotjs_classname_t, x);                 \
   IOTJS_VALIDATE_FLAG(iotjs_classname_t, x);
 
-#endif
+#define IOTJS_VALIDATABLE_STRUCT_DESTRUCTOR_VALIDATE(iotjs_classname_t, x) \
+  IOTJS_VALIDATE_FLAG(iotjs_classname_t, x);                               \
+  (x)->flag_create = IOTJS_INVALID_MAGIC_SEQUENCE;                         \
+  iotjs_buffer_release((x)->valgrind_tracer);
+
+#define IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_classname_t, x) \
+  IOTJS_VALIDATE_FLAG(iotjs_classname_t, x);
+
+#endif /* NDEBUG */
 
 #include <uv.h>
 #include <assert.h>

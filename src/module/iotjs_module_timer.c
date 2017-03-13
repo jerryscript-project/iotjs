@@ -76,7 +76,7 @@ int iotjs_timerwrap_stop(iotjs_timerwrap_t* timerwrap) {
 
 
 static void iotjs_timerwrap_on_timeout(iotjs_timerwrap_t* timerwrap) {
-  const IOTJS_VALIDATED_STRUCT_METHOD(iotjs_timerwrap_t, timerwrap);
+  IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_timerwrap_t, timerwrap);
 
   // Call javascript timeout handler function.
   const iotjs_jval_t* jobject = iotjs_timerwrap_jobject(timerwrap);

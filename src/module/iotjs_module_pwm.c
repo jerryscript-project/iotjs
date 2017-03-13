@@ -43,7 +43,7 @@ static void iotjs_pwm_reqwrap_destroy(THIS) {
 
 
 void iotjs_pwm_reqwrap_dispatched(THIS) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_pwm_reqwrap_t, pwm_reqwrap);
+  IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_pwm_reqwrap_t, pwm_reqwrap);
   iotjs_pwm_reqwrap_destroy(pwm_reqwrap);
 }
 
@@ -125,8 +125,6 @@ iotjs_pwm_t* iotjs_pwm_get_instance() {
 
 
 void AfterPwmWork(uv_work_t* work_req, int status) {
-  iotjs_pwm_t* pwm = iotjs_pwm_get_instance();
-
   iotjs_pwm_reqwrap_t* req_wrap = iotjs_pwm_reqwrap_from_request(work_req);
   iotjs_pwm_reqdata_t* req_data = iotjs_pwm_reqwrap_data(req_wrap);
 

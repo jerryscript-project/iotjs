@@ -225,7 +225,8 @@ int iotjs_httpparserwrap_on_body(THIS, const char* at, size_t length) {
 
 
 int iotjs_httpparserwrap_on_message_complete(THIS) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_httpparserwrap_t, httpparserwrap);
+  IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_httpparserwrap_t,
+                                           httpparserwrap);
 
   const iotjs_jval_t* jobj = iotjs_httpparserwrap_jobject(httpparserwrap);
   iotjs_jval_t func = iotjs_jval_get_property(jobj, "OnMessageComplete");

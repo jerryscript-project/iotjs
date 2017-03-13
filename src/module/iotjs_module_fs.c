@@ -42,7 +42,7 @@ static void iotjs_fs_reqwrap_destroy(iotjs_fs_reqwrap_t* fs_reqwrap) {
 
 
 void iotjs_fs_reqwrap_dispatched(iotjs_fs_reqwrap_t* fs_reqwrap) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_fs_reqwrap_t, fs_reqwrap);
+  IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_fs_reqwrap_t, fs_reqwrap);
   iotjs_fs_reqwrap_destroy(fs_reqwrap);
 }
 

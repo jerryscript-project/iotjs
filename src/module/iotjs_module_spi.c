@@ -78,7 +78,7 @@ static void iotjs_spi_reqwrap_destroy(THIS) {
 
 
 void iotjs_spi_reqwrap_dispatched(THIS) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_spi_reqwrap_t, spi_reqwrap);
+  IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_spi_reqwrap_t, spi_reqwrap);
   iotjs_spi_reqwrap_destroy(spi_reqwrap);
 }
 

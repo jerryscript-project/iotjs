@@ -98,7 +98,7 @@ static void iotjs_send_reqwrap_destroy(THIS) {
 
 
 void iotjs_send_reqwrap_dispatched(THIS) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_send_reqwrap_t, send_reqwrap);
+  IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_send_reqwrap_t, send_reqwrap);
   iotjs_send_reqwrap_destroy(send_reqwrap);
 }
 
@@ -129,6 +129,7 @@ JHANDLER_FUNCTION(UDP) {
 
   const iotjs_jval_t* judp = JHANDLER_GET_THIS(object);
   iotjs_udpwrap_t* udp_wrap = iotjs_udpwrap_create(judp);
+  IOTJS_UNUSED(udp_wrap);
 }
 
 

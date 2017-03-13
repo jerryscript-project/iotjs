@@ -114,8 +114,7 @@ void iotjs_spi_export_worker(uv_work_t* work_req) {
 
   char path[ADC_DEVICE_PATH_BUFFER_SIZE] = { 0 };
   snprintf(path, ADC_DEVICE_PATH_BUFFER_SIZE - 1, ADC_DEVICE_PATH_FORMAT,
-           SPI_GET_DEVICE_NUMBER(req_data->pin),
-           SPI_GET_CS_NUMBER(req_data->pin));
+           SPI_GET_DEVICE_NUMBER(pin), SPI_GET_CS_NUMBER(pin));
 
   // Open file
   const iotjs_environment_t* env = iotjs_environment_get();

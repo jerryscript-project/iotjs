@@ -15,73 +15,64 @@
 
 
 var assert = require('assert');
-var gpio = require("gpio");
+var Gpio = require('gpio');
+var gpio = new Gpio();
 
-// mode : pullup (on-low, off-high), pulldn, float, pushpull, opendrain
-var LED_PIN_NUMBER = 0,
-    LED_PIN_MODE = "pushpull",
-    SWITCH_PIN_NUMBER = 14,
-    SWITCH_PIN_MODE = "pulldn";
+var ledGpio = null, switchGpio = null;
+var ledPin, switchPin, ledMode;
 
-var SWITCH_ON = true,
+var SWITCH_ON = false,
     LED_ON = true,
     LED_OFF = false;
 
-var openSwitch = false;
 var loopCnt = 0;
 
-gpio.initialize();
+if (process.platform === 'linux') {
+  ledPin = 10;
+  switchPin = 9;
+  ledMode = gpio.MODE.NONE;
+} else if (process.platform === 'nuttx') {
+  var pin = require('stm32f4dis').pin;
+  ledPin = pin.PA10;
+  switchPin = pin.PA8;
+  ledMode = gpio.MODE.PUSHPULL;
+} else {
+  assert.fail();
+}
 
-gpio.on('initialize', function() {
-  console.log('GPIO initialized');
-
-  gpio.open(LED_PIN_NUMBER, "out", LED_PIN_MODE);
-  gpio.open(SWITCH_PIN_NUMBER, "in", SWITCH_PIN_MODE);
+ledGpio = gpio.open({
+  pin: ledPin,
+  direction: gpio.DIRECTION.OUT,
+  mode: ledMode
+}, function() {
+  this.writeSync(LED_OFF);
 });
 
-gpio.on('open', function(pin, dir, mode) {
-  console.log('open complete - pin: %d, direction: %s, mode: %s',
-              pin, dir, mode);
-
-  if (pin === SWITCH_PIN_NUMBER) {
-    openSwitch = true;
-  }
-  else if (pin === LED_PIN_NUMBER) {
-    gpio.write(pin, LED_OFF);
-  }
-});
-
-gpio.on('release', function() {
-  console.log('released');
-});
-
-gpio.on('error', function(err) {
-  console.log(err);
+switchGpio = gpio.open({
+  pin: switchPin,
+  direction: gpio.DIRECTION.IN
 });
 
 var loop = setInterval(function() {
-  if (!openSwitch) {
+  if (!ledGpio || !switchGpio) {
     return;
   }
 
   if ((++loopCnt) == 10) {
-    // release gpio after 1000ms
-    setTimeout(function() {
-      gpio.release();
-    }, 1000);
-
     clearInterval(loop);
   }
 
-  gpio.read(SWITCH_PIN_NUMBER, function(err, value) {
+  switchGpio.read(function(err, value) {
     if (err) {
       clearInterval(loop);
+      assert.fail();
     }
 
     if (value === SWITCH_ON) {
-      gpio.write(LED_PIN_NUMBER, LED_ON)
+      console.log('led on');
+      ledGpio.writeSync(LED_ON);
     } else {
-      gpio.write(LED_PIN_NUMBER, LED_OFF);
+      ledGpio.writeSync(LED_OFF);
     }
   });
 }, 500);

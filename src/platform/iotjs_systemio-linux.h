@@ -22,16 +22,19 @@
 #define DEVICE_IO_PIN_BUFFER_SIZE 10
 
 
-bool DeviceCheckPath(const char* path);
+bool iotjs_systemio_check_path(const char* path);
 
-bool DeviceOpenWriteClose(const char* path, char* value);
+bool iotjs_systemio_open_write_close(const char* path, const char* value);
 
-bool DeviceOpenReadClose(const char* path, char* buffer, int buffer_len);
+bool iotjs_systemio_open_read_close(const char* path, char* buffer,
+                                    int buffer_len);
 
-bool DeviceExport(const char* export_path, int value, const char* exported_path,
-                  const char** created_files, int created_files_length);
+bool iotjs_systemio_device_open(const char* export_path, int value,
+                                const char* exported_path,
+                                const char** created_files,
+                                int created_files_length);
 
-bool DeviceUnexport(const char* export_path, int value);
+bool iotjs_systemio_device_close(const char* export_path, int value);
 
 
 #endif /* IOTJS_DEVICE_IO_LINUX_GENERAL_H */

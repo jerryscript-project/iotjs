@@ -25,95 +25,84 @@
 #define GPIO_CONFIG_OK 0
 
 
-uint32_t gpioDirection[3] = {
-  0, // none
+uint32_t gpioDirection[] = {
   GPIO_INPUT, GPIO_OUTPUT | GPIO_OUTPUT_SET | GPIO_FREQUENCY_DEFAULT,
 };
 
 
-uint32_t gpioMode[6] = {
+uint32_t gpioMode[] = {
   0, // none
   GPIO_PULLUP, GPIO_PULLDOWN, GPIO_FLOAT, GPIO_PUSHPULL, GPIO_OPENDRAIN,
 };
 
 
-#define GPIO_WORKER_INIT_TEMPLATE(initialized)                                \
-  IOTJS_ASSERT(iotjs_gpio_initialized() == initialized);                      \
-  iotjs_gpio_reqwrap_t* req_wrap = iotjs_gpio_reqwrap_from_request(work_req); \
-  iotjs_gpio_reqdata_t* req_data = iotjs_gpio_reqwrap_data(req_wrap);
+bool iotjs_gpio_write(int32_t pin, bool value) {
+  DDDLOG("%s - pin: %d, value: %d", __func__, pin, value);
+  stm32_gpiowrite(pin, value);
 
-
-void InitializeGpioWorker(uv_work_t* work_req) {
-  GPIO_WORKER_INIT_TEMPLATE(false);
-  DDDLOG("GPIO InitializeGpioWorker()");
-
-  stm32_gpioinit();
-
-  // always return OK
-  req_data->result = kGpioErrOk;
+  return true;
 }
 
 
-void ReleaseGpioWorker(uv_work_t* work_req) {
-  GPIO_WORKER_INIT_TEMPLATE(true);
-  DDDLOG("GPIO ReleaseGpioWorker()");
-
-  // always return OK
-  req_data->result = kGpioErrOk;
+int iotjs_gpio_read(int32_t pin) {
+  DDDLOG("%s - pin: %d", __func__, pin);
+  return stm32_gpioread(pin);
 }
 
 
-void OpenGpioWorker(uv_work_t* work_req) {
-  GPIO_WORKER_INIT_TEMPLATE(true);
-  DDDLOG("Gpio OpenGpioWorker() - pin: %d, dir: %d, mode: %d", req_data->pin,
-         req_data->dir, req_data->mode);
+bool iotjs_gpio_close(int32_t pin) {
+  DDDLOG("%s - pin: %d", __func__, pin);
+  iotjs_gpio_write(pin, 0);
+
+  return true;
+}
+
+
+void iotjs_gpio_open_worker(uv_work_t* work_req) {
+  GPIO_WORKER_INIT();
+  DDDLOG("%s - pin: %d, dir: %d, mode: %d", __func__, _this->pin,
+         _this->direction, _this->mode);
 
   uint32_t cfgset = 0;
 
-  if (req_data->dir == kGpioDirectionNone) {
-    cfgset = req_data->pin;
+  // Set pin direction and mode
+  cfgset = gpioDirection[_this->direction] | gpioMode[_this->mode] | _this->pin;
 
-    if (stm32_unconfiggpio(cfgset) != GPIO_CONFIG_OK) {
-      req_data->result = kGpioErrSys;
-      return;
-    }
-  } else {
-    // Set pin direction and mode
-    cfgset =
-        gpioDirection[req_data->dir] | gpioMode[req_data->mode] | req_data->pin;
-
-    if (stm32_configgpio(cfgset) != GPIO_CONFIG_OK) {
-      req_data->result = kGpioErrSys;
-      return;
-    }
+  if (stm32_configgpio(cfgset) != GPIO_CONFIG_OK) {
+    req_data->result = -1;
+    return;
   }
 
-  req_data->result = kGpioErrOk;
+  req_data->result = 0;
 }
 
 
-void WriteGpioWorker(uv_work_t* work_req) {
-  GPIO_WORKER_INIT_TEMPLATE(true);
-  DDDLOG("Gpio WriteGpioWorker() - pin: %d, value: %d", req_data->pin,
-         req_data->value);
+void iotjs_gpio_write_worker(uv_work_t* work_req) {
+  GPIO_WORKER_INIT();
+  DDDLOG("%s - pin: %d, value: %d", __func__, _this->pin, req_data->value);
 
-  bool value = req_data->value;
+  iotjs_gpio_write(_this->pin, req_data->value);
 
-  stm32_gpiowrite(req_data->pin, value);
-
-  // always return OK
-  req_data->result = kGpioErrOk;
+  req_data->result = 0;
 }
 
 
-void ReadGpioWorker(uv_work_t* work_req) {
-  GPIO_WORKER_INIT_TEMPLATE(true);
-  DDDLOG("Gpio ReadGpioWorker() - pin: %d", req_data->pin);
+void iotjs_gpio_read_worker(uv_work_t* work_req) {
+  GPIO_WORKER_INIT();
+  DDDLOG("%s - pin: %d", __func__, _this->pin);
 
-  // always return OK
-  req_data->result = kGpioErrOk;
-  req_data->value = stm32_gpioread(req_data->pin);
+  req_data->result = 0;
+  req_data->value = iotjs_gpio_read(_this->pin);
 }
 
+
+void iotjs_gpio_close_worker(uv_work_t* work_req) {
+  GPIO_WORKER_INIT();
+  DDDLOG("%s - pin: %d", __func__, _this->pin);
+
+  iotjs_gpio_close(_this->pin);
+
+  req_data->result = 0;
+}
 
 #endif /* IOTJS_MODULE_GPIO_ARM_NUTTX_STM32_INL_H */

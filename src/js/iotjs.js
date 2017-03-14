@@ -117,7 +117,7 @@
         try {
           callbacks[i]();
         } catch (e) {
-          process._onUncaughtExcecption(e);
+          process._onUncaughtException(e);
         }
       }
 
@@ -131,8 +131,8 @@
 
 
   function initProcessUncaughtException() {
-    process._onUncaughtExcecption = _onUncaughtExcecption;
-    function _onUncaughtExcecption(error) {
+    process._onUncaughtException = _onUncaughtException;
+    function _onUncaughtException(error) {
       var event = 'uncaughtException';
       if (process._events[event] && process._events[event].length > 0) {
         try {
@@ -173,7 +173,7 @@
         process.emitExit(code);
       } catch (e) {
         process.exitCode = 1;
-        process._onUncaughtExcecption(e);
+        process._onUncaughtException(e);
       } finally {
         process.doExit(process.exitCode || 0);
       }

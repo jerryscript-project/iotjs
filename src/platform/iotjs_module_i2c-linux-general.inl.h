@@ -186,41 +186,6 @@ void OpenWorker(uv_work_t* work_req) {
 }
 
 
-void ScanWorker(uv_work_t* work_req) {
-  I2C_WORKER_INIT_TEMPLATE;
-
-  int result;
-  req_data->buf_data = iotjs_buffer_allocate(I2C_MAX_ADDRESS);
-  req_data->buf_len = I2C_MAX_ADDRESS;
-
-  for (int i = 0; i < I2C_MAX_ADDRESS; i++) {
-    ioctl(fd, I2C_SLAVE_FORCE, i);
-
-    /* Test address responsiveness
-       The default probe method is a quick write, but it is known
-       to corrupt the 24RF08 EEPROMs due to a state machine bug,
-       and could also irreversibly write-protect some EEPROMs, so
-       for address ranges 0x30-0x37 and 0x50-0x5F, we use a byte
-       read instead. Also, some bus drivers don't implement
-       quick write, so we fallback to a byte read it that case
-       too. */
-    if ((i >= 0x30 && i <= 0x37) || (i >= 0x50 && i <= 0x5F)) {
-      result = I2cSmbusReadByte(fd);
-    } else {
-      result = I2cSmbusAccess(fd, I2C_SMBUS_WRITE, I2C_NOCMD, 0, NULL);
-    }
-
-    if (result >= 0) {
-      result = 1;
-    }
-
-    req_data->buf_data[i] = result;
-  }
-
-  ioctl(fd, I2C_SLAVE_FORCE, addr);
-}
-
-
 void I2cClose(iotjs_i2c_t* i2c) {
   if (fd > 0) {
     close(fd);

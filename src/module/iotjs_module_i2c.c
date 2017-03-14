@@ -139,18 +139,6 @@ void AfterI2CWork(uv_work_t* work_req, int status) {
         }
         break;
       }
-      case kI2cOpScan: {
-        iotjs_jargs_append_null(&jargs);
-        iotjs_jval_t result =
-            iotjs_jval_create_byte_array(req_data->buf_len, req_data->buf_data);
-        iotjs_jargs_append_jval(&jargs, &result);
-        iotjs_jval_destroy(&result);
-
-        if (req_data->buf_data != NULL) {
-          iotjs_buffer_release(req_data->buf_data);
-        }
-        break;
-      }
       case kI2cOpWrite:
       case kI2cOpWriteByte:
       case kI2cOpWriteBlock: {
@@ -296,22 +284,6 @@ JHANDLER_FUNCTION(SetAddress) {
 }
 
 
-JHANDLER_FUNCTION(Scan) {
-  JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARGS(1, function);
-
-  const iotjs_jval_t* jcallback = JHANDLER_GET_ARG(0, function);
-  const iotjs_jval_t* ji2c = JHANDLER_GET_THIS(object);
-
-  iotjs_i2c_reqwrap_t* req_wrap =
-      iotjs_i2c_reqwrap_create(jcallback, ji2c, kI2cOpScan);
-
-  I2C_ASYNC(Scan);
-
-  iotjs_jhandler_return_null(jhandler);
-}
-
-
 JHANDLER_FUNCTION(Close) {
   JHANDLER_CHECK_THIS(object);
   JHANDLER_CHECK_ARGS(0);
@@ -445,7 +417,6 @@ iotjs_jval_t InitI2c() {
   iotjs_jval_t prototype = iotjs_jval_create_object();
 
   iotjs_jval_set_method(&prototype, "setAddress", SetAddress);
-  iotjs_jval_set_method(&prototype, "scan", Scan);
   iotjs_jval_set_method(&prototype, "close", Close);
   iotjs_jval_set_method(&prototype, "write", Write);
   iotjs_jval_set_method(&prototype, "writeByte", WriteByte);

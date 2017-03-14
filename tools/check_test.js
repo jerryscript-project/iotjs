@@ -18,9 +18,6 @@ var Runner = require('test_runner').Runner;
 var Logger = require('common_js/logger').Logger;
 var OptionParser = require('common_js/option_parser').OptionParser;
 var util = require('common_js/util');
-// FIXME: After fs.readDirSync is implemented, this should be replaced.
-var testsets = require('test/testsets');
-
 var EventEmitter = require('events').EventEmitter;
 
 var root = 'test';
@@ -35,11 +32,11 @@ function Driver() {
   };
 
   this.emitter = new EventEmitter();
-  this.emitter.addListener('nextTest', function(driver, status, attr) {
+  this.emitter.addListener('nextTest', function(driver, status, test) {
     if (driver.runner) {
       driver.runner.cleanup();
     }
-    var filename = driver.filename();
+    var filename = test['name'];
 
     if (status == 'pass') {
       driver.results.pass++;
@@ -50,7 +47,7 @@ function Driver() {
     } else if (status == 'skip') {
       driver.results.skip++;
       driver.logger.message('SKIP : ' + filename +
-                   '   (reason : ' + attr.reason + ")", status);
+                   '   (reason : ' + test.reason + ")", status);
     } else if (status == 'timeout') {
       driver.results.timeout++;
       driver.logger.message('TIMEOUT : ' + filename, status);
@@ -108,7 +105,10 @@ Driver.prototype.config = function() {
 
   this.options = options;
 
-  this.tests = testsets();
+  var testfile = util.join(this.root, 'testsets.json');
+  var testsets = fs.readFileSync(testfile).toString();
+
+  this.tests = JSON.parse(testsets);
 
   this.dIdx = 0;
   this.dLength = Object.keys(this.tests).length;
@@ -117,25 +117,6 @@ Driver.prototype.config = function() {
 
   this.nextTestSet(skipped);
   return true;
-};
-
-Driver.prototype.getAttrs = function() {
-  var content = fs.readFileSync(util.absolutePath('attrs.js')).toString();
-  var attrs = eval(content);
-
-  var dirname = this.dirname();
-  if (dirname == 'run_fail') {
-    var files = this.tests[dirname];
-    for (var fIdx in files) {
-      var file = files[fIdx];
-      if (!attrs[file]) {
-        attrs[file] = {};
-      }
-      attrs[file].fail = true;
-    }
-  }
-
-  return attrs;
 };
 
 Driver.prototype.runNextTest = function() {
@@ -168,7 +149,7 @@ Driver.prototype.skipTestSet = function(filename) {
     var dir = this.tests[dirname];
     var fLength = dir.length;
     for (var fIdx = 0; fIdx < fLength; fIdx++) {
-      if (dir[fIdx] == filename) {
+      if (dir[fIdx]['name'] == filename) {
         this.fIdx = fIdx;
         this.dIdx = dIdx;
         return true;
@@ -187,7 +168,6 @@ Driver.prototype.nextTestSet = function(skipped) {
   var dirname = this.dirname();
   this.fLength = this.tests[dirname].length;
   process.chdir(util.absolutePath(dirname));
-  this.attrs = this.getAttrs();
   this.logger.message("\n");
   this.logger.message(">>>> " + dirname, "summary");
 };
@@ -196,15 +176,14 @@ Driver.prototype.dirname = function() {
   return Object.keys(this.tests)[this.dIdx]
 };
 
-Driver.prototype.filename = function() {
+Driver.prototype.currentTest = function() {
   var dirname = this.dirname();
-  var filename = this.tests[dirname][this.fIdx];
-  return filename;
+  return this.tests[dirname][this.fIdx];
 };
 
 Driver.prototype.test = function() {
-  var filename = this.filename();
-  var content =  fs.readFileSync(util.absolutePath(filename)).toString();
+  var test = this.currentTest();
+  var content = fs.readFileSync(util.absolutePath(test['name'])).toString();
   return content;
 };
 
@@ -241,7 +220,7 @@ process.exit = function(code) {
   // this function is called when the following happens.
   // 1. the test case is finished normally.
   // 2. assertion inside the callback function is failed.
-  var should_fail = driver.runner.attr.fail;
+  var should_fail = driver.runner.test['expected-failure'];
   try {
     process.emitExit(code);
   } catch(e) {

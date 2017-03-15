@@ -36,7 +36,8 @@ void iotjs_jobjectwrap_initialize(iotjs_jobjectwrap_t* jobjectwrap,
 
 
 void iotjs_jobjectwrap_destroy(iotjs_jobjectwrap_t* jobjectwrap) {
-  IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_jobjectwrap_t, jobjectwrap);
+  IOTJS_VALIDATABLE_STRUCT_DESTRUCTOR_VALIDATE(iotjs_jobjectwrap_t,
+                                               jobjectwrap);
   /* Do nothing on _this->jobject */
 }
 

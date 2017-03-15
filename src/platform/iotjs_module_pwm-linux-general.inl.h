@@ -259,7 +259,6 @@ void UnexportWorker(uv_work_t* work_req) {
     return;
   }
 
-  const char* export_path;
   int32_t chip_number = PWM_DEFAULT_CHIP_NUMBER;
 
   if (iotjs_systemio_check_path(path)) {

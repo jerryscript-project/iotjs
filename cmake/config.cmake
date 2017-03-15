@@ -34,7 +34,6 @@ set(CFLAGS_COMMON "${CFLAGS_COMMON} -g")
 set(CFLAGS_COMMON "${CFLAGS_COMMON} -Wl,-Map=iotjstuv.map")
 set(CFLAGS_COMMON "${CFLAGS_COMMON} -Wall -Wextra -Werror")
 set(CFLAGS_COMMON "${CFLAGS_COMMON} -Wno-unused-parameter")
-set(CFLAGS_COMMON "${CFLAGS_COMMON} -Wno-unused-variable")
 set(CFLAGS_COMMON "${CFLAGS_COMMON} -Wno-missing-field-initializers")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99")
 

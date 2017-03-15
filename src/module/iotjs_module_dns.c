@@ -43,8 +43,8 @@ static void iotjs_getaddrinfo_reqwrap_destroy(THIS) {
 
 
 void iotjs_getaddrinfo_reqwrap_dispatched(THIS) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_getaddrinfo_reqwrap_t,
-                                getaddrinfo_reqwrap);
+  IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_getaddrinfo_reqwrap_t,
+                                           getaddrinfo_reqwrap);
   iotjs_getaddrinfo_reqwrap_destroy(getaddrinfo_reqwrap);
 }
 
@@ -154,6 +154,7 @@ JHANDLER_FUNCTION(GetAddrInfo) {
 
   iotjs_make_callback(jcallback, iotjs_jval_get_undefined(), &args);
   iotjs_jargs_destroy(&args);
+  IOTJS_UNUSED(flags);
 #else
   iotjs_getaddrinfo_reqwrap_t* req_wrap =
       iotjs_getaddrinfo_reqwrap_create(jcallback);

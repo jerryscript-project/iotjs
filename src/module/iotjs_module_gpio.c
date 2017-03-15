@@ -64,7 +64,7 @@ static void iotjs_gpio_reqwrap_destroy(THIS) {
 
 
 static void iotjs_gpio_reqwrap_dispatched(THIS) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_gpio_reqwrap_t, gpio_reqwrap);
+  IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_gpio_reqwrap_t, gpio_reqwrap);
   iotjs_gpio_reqwrap_destroy(gpio_reqwrap);
 }
 

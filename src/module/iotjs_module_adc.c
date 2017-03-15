@@ -41,7 +41,7 @@ static void iotjs_adc_reqwrap_destroy(THIS) {
 
 
 void iotjs_adc_reqwrap_dispatched(THIS) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_adc_reqwrap_t, adc_reqwrap);
+  IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_adc_reqwrap_t, adc_reqwrap);
   iotjs_adc_reqwrap_destroy(adc_reqwrap);
 }
 
@@ -110,8 +110,6 @@ static void iotjs_adc_append_error(iotjs_jargs_t* jargs, const char* msg) {
 
 
 void iotjs_adc_after_work(uv_work_t* work_req, int status) {
-  iotjs_adc_t* adc = iotjs_adc_get_instance();
-
   iotjs_adc_reqwrap_t* req_wrap = iotjs_adc_reqwrap_from_request(work_req);
   iotjs_adc_reqdata_t* req_data = iotjs_adc_reqwrap_data(req_wrap);
 

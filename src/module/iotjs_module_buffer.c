@@ -82,7 +82,7 @@ iotjs_jval_t* iotjs_bufferwrap_jbuiltin(iotjs_bufferwrap_t* bufferwrap) {
 
 
 iotjs_jval_t iotjs_bufferwrap_jbuffer(iotjs_bufferwrap_t* bufferwrap) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_bufferwrap_t, bufferwrap);
+  IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_bufferwrap_t, bufferwrap);
   iotjs_jval_t* jbuiltin = iotjs_bufferwrap_jbuiltin(bufferwrap);
   return iotjs_jval_get_property(jbuiltin, "_buffer");
 }
@@ -191,7 +191,7 @@ size_t iotjs_bufferwrap_copy_internal(iotjs_bufferwrap_t* bufferwrap,
 
 size_t iotjs_bufferwrap_copy(iotjs_bufferwrap_t* bufferwrap, const char* src,
                              size_t len) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_bufferwrap_t, bufferwrap);
+  IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_bufferwrap_t, bufferwrap);
   return iotjs_bufferwrap_copy_internal(bufferwrap, src, 0, len, 0);
 }
 
@@ -227,6 +227,7 @@ JHANDLER_FUNCTION(Buffer) {
   iotjs_jval_set_property_jval(jbuiltin, "_buffer", jbuffer);
 
   iotjs_bufferwrap_t* buffer_wrap = iotjs_bufferwrap_create(jbuiltin, length);
+  IOTJS_UNUSED(buffer_wrap);
 }
 
 
@@ -366,7 +367,6 @@ JHANDLER_FUNCTION(ReadUInt8) {
   JHANDLER_CHECK_ARGS(1, number);
 
   int offset = JHANDLER_GET_ARG(0, number);
-  int length = 1;
 
   const iotjs_jval_t* jbuiltin = JHANDLER_GET_THIS(object);
 

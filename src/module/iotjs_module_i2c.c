@@ -50,7 +50,7 @@ static void iotjs_i2c_reqwrap_destroy(THIS) {
 
 
 void iotjs_i2c_reqwrap_dispatched(THIS) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_i2c_reqwrap_t, i2c_reqwrap);
+  IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_i2c_reqwrap_t, i2c_reqwrap);
   iotjs_i2c_reqwrap_destroy(i2c_reqwrap);
 }
 

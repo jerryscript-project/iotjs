@@ -49,6 +49,9 @@ TUV_ROOT = fs.join(DEPS_ROOT, 'libtuv')
 # Root directory for http-parser submodule.
 HTTPPARSER_ROOT = fs.join(DEPS_ROOT, 'http-parser')
 
+# Root directory for libtuv submodule.
+COAP_ROOT = fs.join(DEPS_ROOT, 'libcoap')
+
 # checktest
 CHECKTEST_PATH = fs.join(TOOLS_ROOT, 'check_test.js')
 

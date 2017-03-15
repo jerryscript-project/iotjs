@@ -82,6 +82,7 @@ def init_options():
     parser.add_argument('--clean', action='store_true', default=False,
         help='Clean build directory before build (default: %(default)s)')
 
+
     parser.add_argument('--target-arch',
         choices=['arm', 'x86', 'i686', 'x86_64', 'x64'],
         default=platform.arch(),
@@ -186,6 +187,10 @@ def init_options():
         action='store_true', default=False,
         help='Disable snapshot generation for IoT.js')
 
+    parser.add_argument('--coap-compiler', action='store')
+
+    parser.add_argument('--coap-host', action='store')
+
     options = parser.parse_args(argv)
     options.config = config
 
@@ -243,6 +248,8 @@ def adjust_options(options):
     options.cmake_toolchain_file = cmake_path % options.target_tuple
     options.host_cmake_toolchain_file = cmake_path % options.host_tuple
 
+    options.libcoap_output_path = fs.join(options.build_libs, 'libcoap-1.a')
+
 
 def print_build_option(options):
     print('=================================================')
@@ -250,7 +257,6 @@ def print_build_option(options):
     for opt in option_vars:
         print(' --%s: %s' % (opt, option_vars[opt]))
     print()
-
 
 def print_progress(msg):
     print('==> %s\n' % msg)
@@ -535,9 +541,47 @@ def build_libhttpparser(options):
     run_make(options, build_home)
     copy_build_target('libhttpparser.a', build_home, options.build_libs)
 
+def build_libcoap(options):
+    # Check if libtuv submodule exists.
+    if not fs.exists(path.COAP_ROOT):
+        ex.fail('libcoap submodule not exists!')
 
-def analyze_module_dependency(options):
-    print_progress('Analyze module dependency')
+    # Move working directory to libtuv build directory.
+    build_home = fs.join(options.build_root, 'deps', 'libcoap')
+    fs.maybe_make_directory(build_home)
+    cpres = os.system('cp -r ' + path.COAP_ROOT + '/* ' + build_home)
+    if not cpres == 0:
+        ex.fail('libcoap copy failed - target not produced.')
+    fs.chdir(build_home)
+
+    ex.check_run_cmd('./autogen.sh')
+
+    cmd = ''
+    if not options.coap_compiler is None:
+        cmd += 'CC=' + options.coap_compiler + ' '
+    cmd = './configure '
+    if not options.coap_host is None:
+        cmd += '--host=' + options.coap_host + ' '
+    cmd += '--disable-examples --disable-documentation'
+    configureres = os.system(cmd)
+    if not configureres == 0:
+        ex.fail('libcoap configure failed - target not produced.')
+    makeres = os.system('make')
+    if not makeres == 0:
+        ex.fail('libcoap make failed - target not produced.')
+
+    # libcoap output
+    output = fs.join(build_home, '.libs/libcoap-1.a')
+    if not fs.exists(output):
+        ex.fail('libcoap build failed - target not produced.')
+
+    # copy output to libs directory
+    fs.maybe_make_directory(options.build_libs)
+    fs.copy(output, options.libcoap_output_path)
+
+    return True
+
+def analyze_module_dependency(option):
 
     def print_warn(fmt, arg):
         print(fmt % arg)
@@ -603,6 +647,13 @@ def analyze_module_dependency(options):
     print('Building js modules: %s\nBuilding native modules: %s\n' \
           % (', '.join(js_modules), ', '.join(native_modules)))
 
+    global coap_enable
+    coap_enable = False
+    for native_module in native_modules:
+        if native_module == "coap":
+            coap_enable = True
+
+    return True
 
 def build_iotjs(options):
     print_progress('Build IoT.js')
@@ -626,6 +677,9 @@ def build_iotjs(options):
 
     if not options.no_snapshot:
         options.compile_flag.append('-DENABLE_SNAPSHOT')
+
+    if coap_enable:
+        cmake_opt.append('-DENABLE_LIBCOAP=ON')
 
     if options.target_os == 'nuttx':
         cmake_opt.append("-DNUTTX_HOME='%s'" % options.sysroot)
@@ -694,7 +748,6 @@ def run_checktest(options):
         if code != 0:
             ex.fail('Failed to pass unit tests in valgrind environment')
 
-
 if __name__ == '__main__':
     # Initialize build option object.
     options = init_options()
@@ -720,6 +773,12 @@ if __name__ == '__main__':
         build_host_jerry(options)
     build_libjerry(options)
     build_libhttpparser(options)
+
+    # build coap
+    if coap_enable:
+        print_progress('Build libcoap')
+        if not build_libcoap(options):
+            ex.fail('Failed to build libcoap')
 
     # Run js2c
     print("Building js library: %s" % (", ".join(options.js_modules)))

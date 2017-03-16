@@ -333,10 +333,16 @@ HTTP_CB(on_message_complete);
 
 
 const struct http_parser_settings settings = {
-  on_message_begin, on_url,
-  on_status,        on_header_field,
-  on_header_value,  on_headers_complete,
-  on_body,          on_message_complete,
+  on_message_begin,
+  on_url,
+  on_status,
+  on_header_field,
+  on_header_value,
+  on_headers_complete,
+  on_body,
+  on_message_complete,
+  NULL, /* on_chunk_header */
+  NULL, /* on_chunk_complete */
 };
 
 

@@ -37,11 +37,6 @@ static void iotjs_adc_get_path(char* buffer, int32_t number) {
 }
 
 
-#define ADC_WORKER_INIT_TEMPLATE                                            \
-  iotjs_adc_reqwrap_t* req_wrap = iotjs_adc_reqwrap_from_request(work_req); \
-  iotjs_adc_reqdata_t* req_data = iotjs_adc_reqwrap_data(req_wrap);
-
-
 static bool iotjs_adc_read_data(int32_t pin, struct adc_msg_s* msg) {
   int32_t adc_number = ADC_GET_NUMBER(pin);
   char path[ADC_DEVICE_PATH_BUFFER_SIZE] = { 0 };
@@ -79,48 +74,12 @@ static bool iotjs_adc_read_data(int32_t pin, struct adc_msg_s* msg) {
 }
 
 
-void iotjs_adc_export_worker(uv_work_t* work_req) {
-  ADC_WORKER_INIT_TEMPLATE;
-
-  int32_t pin = req_data->pin;
-  int32_t adc_number = ADC_GET_NUMBER(pin);
-  int32_t timer = SYSIO_GET_TIMER(pin);
-  struct adc_dev_s* adc = iotjs_adc_config_nuttx(adc_number, timer, pin);
-
-  char path[ADC_DEVICE_PATH_BUFFER_SIZE] = { 0 };
-  iotjs_adc_get_path(path, adc_number);
-
-  if (adc_register(path, adc) != 0) {
-    req_data->result = kAdcErrExport;
-    return;
-  }
-
-  DDLOG("ADC Export - path: %s, number: %d, timer: %d", path, adc_number,
-        timer);
-
-  req_data->result = kAdcErrOk;
-}
-
-
-void iotjs_adc_read_worker(uv_work_t* work_req) {
-  ADC_WORKER_INIT_TEMPLATE;
+int32_t iotjs_adc_read(iotjs_adc_t* adc) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_adc_t, adc);
 
   struct adc_msg_s msg;
 
-  if (!iotjs_adc_read_data(req_data->pin, &msg)) {
-    req_data->result = kAdcErrRead;
-    return;
-  }
-
-  req_data->value = msg.am_data;
-  req_data->result = kAdcErrOk;
-}
-
-
-int32_t iotjs_adc_read_sync(int32_t pin) {
-  struct adc_msg_s msg;
-
-  if (!iotjs_adc_read_data(pin, &msg)) {
+  if (!iotjs_adc_read_data(_this->pin, &msg)) {
     return -1;
   }
 
@@ -128,10 +87,10 @@ int32_t iotjs_adc_read_sync(int32_t pin) {
 }
 
 
-void iotjs_adc_unexport_worker(uv_work_t* work_req) {
-  ADC_WORKER_INIT_TEMPLATE;
+bool iotjs_adc_close(iotjs_adc_t* adc) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_adc_t, adc);
 
-  int32_t pin = req_data->pin;
+  int32_t pin = _this->pin;
   int32_t adc_number = ADC_GET_NUMBER(pin);
 
   char path[ADC_DEVICE_PATH_BUFFER_SIZE] = { 0 };
@@ -139,13 +98,36 @@ void iotjs_adc_unexport_worker(uv_work_t* work_req) {
 
   // Release driver
   if (unregister_driver(path) < 0) {
-    req_data->result = kAdcErrUnexport;
-    return;
+    return false;
   }
 
   iotjs_gpio_unconfig_nuttx(pin);
 
-  req_data->result = kAdcErrOk;
+  return true;
+}
+
+
+void iotjs_adc_open_worker(uv_work_t* work_req) {
+  ADC_WORKER_INIT;
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_adc_t, adc);
+
+  int32_t pin = _this->pin;
+  int32_t adc_number = ADC_GET_NUMBER(pin);
+  int32_t timer = SYSIO_GET_TIMER(pin);
+  struct adc_dev_s* adc_dev = iotjs_adc_config_nuttx(adc_number, timer, pin);
+
+  char path[ADC_DEVICE_PATH_BUFFER_SIZE] = { 0 };
+  iotjs_adc_get_path(path, adc_number);
+
+  if (adc_register(path, adc_dev) != 0) {
+    req_data->result = false;
+    return;
+  }
+
+  DDLOG("%s - path: %s, number: %d, timer: %d", __func__, path, adc_number,
+        timer);
+
+  req_data->result = true;
 }
 
 

@@ -9,7 +9,8 @@ before_install:
   - if [[ "$INSTALL_NUTTX_DEPS" == "yes" ]]; then tools/apt-get-install-nuttx.sh; fi
   - if [[ "$INSTALL_TIZEN_DEPS" == "yes" ]]; then . tools/apt-get-install-tizen.sh; fi
   - if [[ "$INSTALL_TRAVIS_I686_DEPS" == "yes" ]]; then tools/apt-get-install-travis-i686.sh; fi
-  - tools/apt-get-install-deps.sh
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then tools/apt-get-install-deps.sh; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then tools/brew-install-deps.sh; fi
 
 install:
 
@@ -24,6 +25,8 @@ env:
 
 matrix:
   include:
+    - os: osx
+      env: OPTS="--test=host"
     - compiler: gcc-4.9
       addons:
         apt:

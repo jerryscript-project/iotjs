@@ -208,6 +208,9 @@ def adjust_options(options):
     if options.target_arch == 'x64':
         options.target_arch = 'x86_64'
 
+    if options.target_os == 'darwin':
+        options.no_check_valgrind = True
+
     if options.target_board in ['rpi2', 'artik10']:
         options.no_check_valgrind = True
     elif options.target_board == 'none':
@@ -450,7 +453,7 @@ def build_libjerry(options):
         if options.target_arch == 'arm':
             cmake_opt.append('-DEXTERNAL_CMAKE_SYSTEM_PROCESSOR=arm')
 
-    if options.target_os in ['linux', 'tizen']:
+    if options.target_os in ['linux', 'tizen', 'darwin']:
         cmake_opt.append('-DJERRY_LIBC=OFF')
         cmake_opt.append('-DJERRY_LIBM=OFF')
 
@@ -525,6 +528,9 @@ def build_libhttpparser(options):
 
     if options.target_os in ['linux', 'tizen']:
         cmake_opt.append('-DOS=LINUX')
+
+    if options.target_os == 'darwin':
+        cmake_opt.append('-DOS=DARWIN')
 
     # Add common cmake options.
     cmake_opt.extend(build_cmake_args(options))

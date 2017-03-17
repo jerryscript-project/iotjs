@@ -61,6 +61,7 @@ var i2c = new I2C();
   * `device <String(linux)|Number(nuttx)>`, device path
   * `address <Number>`
  * `callback <Function(err: Error)>`
+ * Returns: `<I2CBus>`
 
 Get I2CBus object with configurable.
 

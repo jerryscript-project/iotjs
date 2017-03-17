@@ -1,5 +1,3 @@
-## Module: GPIO
-
 ### Platform Support
 
 The following shows GPIO module APIs available for each platform.
@@ -24,9 +22,9 @@ The following shows GPIO module APIs available for each platform.
     * [`DIRECTION`](#gpio-direction)
     * [`MODE`](#gpio-mode)
   * [Prototype methods](#gpio-prototype-methods)
-    * [`gpio.open(configurable[, callback])`](#gpio-open)
+    * [`gpio.open(configuration[, callback])`](#gpio-open)
 * [GPIOPin](#gpiopin)
-  * [Prototype methods](#gpiopin-properties)
+  * [Prototype methods](#gpiopin-prototype-methods)
     * [`gpiopin.write(value[, callback])`](#gpiopin-write)
     * [`gpiopin.writeSync(value)`](#gpiopin-write-sync)
     * [`gpiopin.read([callback])`](#gpiopin-read)
@@ -61,7 +59,7 @@ Returns a new GPIO object which can open all GPIO pins.
  * `OUT` - I/O output
 
 
-### `MODE` <a name="mode"></a>
+### `MODE` <a name="gpio-mode"></a>
  * `NONE` - none
  * `PULLUP` - pull-up (only mode is input)
  * `PULLDOWN` - pull-down (only mode is input)
@@ -79,6 +77,7 @@ Returns a new GPIO object which can open all GPIO pins.
    * `direction <GPIO.DIRECTION>`, direction of the pin, Default: `GPIO.DIRECTION.OUT`
    * `mode <GPIO.MODE>`, pin mode, Default: `GPIO.MODE.NONE`
  * `callback <Function(err: Error | null)>`
+ * Returns: `<GPIOPin>`
 
 Opens the specified GPIO pin and sets GPIO pin configuration.
 
@@ -156,7 +155,7 @@ gpio10.read(function(err, value) {
 
 
 ### `gpiopin.readSync()` <a name="gpiopin-read-sync"></a>
-* Return: `<Boolean>`
+* Returns: `<Boolean>`
 
 Returns a boolean value from a GPIO pin synchronously.
 
@@ -164,6 +163,7 @@ Returns a boolean value from a GPIO pin synchronously.
 ```js
 console.log('value:', gpio10.readSync());
 ```
+
 
 ### `gpiopin.close([callback])` <a name="gpiopin-close"></a>
 * `callback <Function(err: Error | null, value: Boolean)>`
@@ -174,13 +174,14 @@ Closes a GPIO pin asynchronously.
 
 **Example**
 ```js
-var value = gpio10.close(function(err) {
+gpio10.close(function(err) {
   if (err) {
     throw err;
   }
   console.log('gpio pin is closed');
 });
 ```
+
 
 ### `gpiopin.closeSync()` <a name="gpiopin-close-sync"></a>
 

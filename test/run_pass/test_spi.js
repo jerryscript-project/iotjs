@@ -14,49 +14,62 @@
  */
 
 var assert = require('assert');
-var spi = require('spi');
+var Spi = require('spi');
+
+var spi = new Spi();
 
 //  mcp3008 test
 var channel = 0;
-var spi0 = new spi(0, function() {
+var spi0 = spi.open({
+  device: '/dev/spidev0.0'
+}, function() {
   var mode = (8 + channel) << 4;
   var tx = [1, mode, 0];
   var rx = [0, 0, 0];
 
-  spi0.transfer(tx, rx, function(err, buf) {
-    assert.equal(err, null);
-    assert.equal(buf.length, 3);
+  spi0.transferSync(tx, rx);
+  console.log(((rx[1] & 0x03) << 8) + rx[2]);
 
-    var value = ((buf[1] & 0x03) << 8) + buf[2];
-    console.log(value);
+  setTimeout(function() {
+    spi0.transfer(tx, rx, function(err) {
+      assert.equal(err, null);
+      assert.equal(rx.length, 3);
 
-    spi0.unexport();
-  });
+      var value = ((rx[1] & 0x03) << 8) + rx[2];
+      console.log(value);
+
+      spi0.close();
+    });
+  }, 500);
 });
 
 // Buffer test
-var options = {
-  maxSpeed: 1000000,
-  mode: 1
-};
-
-var spi1 = new spi(0, function() {
+var spi1 = spi.open({device: '/dev/spidev0.0'}, function() {
   var data = 'Hello IoTjs';
   var tx = new Buffer(data);
   var rx = new Buffer(11);
 
-  spi1.setOption(options);
-  spi1.transfer(tx, rx, function(err, buf) {
-    assert.equal(err, null);
-    assert.equal(buf.length, 11);
+  this.transferSync(tx, rx);
+  var value = '';
+  for (var i = 0; i < 11; i++) {
+    value += String.fromCharCode(rx[i]);
+  }
+  console.log(value);
+  assert.equal(value, data);
 
-    var value = '';
-    for (var i = 0; i < 11; i++) {
-      value += String.fromCharCode(buf[i]);
-    }
-    console.log(value);
-    assert.equal(value, data);
+  setTimeout(function() {
+    spi1.transfer(tx, rx, function(err) {
+      assert.equal(err, null);
+      assert.equal(rx.length, 11);
 
-    spi1.unexport();
-  });
+      var value = '';
+      for (var i = 0; i < 11; i++) {
+        value += String.fromCharCode(rx[i]);
+      }
+      console.log(value);
+      assert.equal(value, data);
+
+      spi1.close();
+    });
+  }, 500);
 });

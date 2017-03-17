@@ -19,7 +19,18 @@
 #include "module/iotjs_module_spi.h"
 
 
-void iotjs_spi_export_worker(uv_work_t* work_req) {
+bool iotjs_spi_transfer(iotjs_spi_t* spi) {
+  IOTJS_ASSERT(!"Not implemented");
+  return false;
+}
+
+
+bool iotjs_spi_close(iotjs_spi_t* spi) {
+  IOTJS_ASSERT(!"Not implemented");
+  return false;
+}
+
+void iotjs_spi_open_worker(uv_work_t* work_req) {
   IOTJS_ASSERT(!"Not implemented");
 }
 
@@ -29,13 +40,7 @@ void iotjs_spi_transfer_worker(uv_work_t* work_req) {
 }
 
 
-bool iotjs_spi_set_options(iotjs_spi_t* spi, uint32_t selected_option) {
-  IOTJS_ASSERT(!"Not implemented");
-  return false;
-}
-
-
-void iotjs_spi_unexport_worker(uv_work_t* work_req) {
+void iotjs_spi_close_worker(uv_work_t* work_req) {
   IOTJS_ASSERT(!"Not implemented");
 }
 

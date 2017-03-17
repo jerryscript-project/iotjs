@@ -16,112 +16,129 @@
 var util = require('util');
 var spi = process.binding(process.binding.spi);
 
-var defaultOptions = {
-  mode : 0,
-  chipSelect : 0,
+var defaultConfiguration = {
+  mode : spi.MODE[0],
+  chipSelect : spi.CHIPSELECT.NONE,
   maxSpeed : 500000,
   bitsPerWord : 8,
-  bitOrder : 0,
+  bitOrder : spi.BITORDER.MSB,
   loopback : false
 };
 
-function checkOptionArgs(options) {
-  var result = {
-    result : false,
-    message : null
-  };
 
-  var mode = options.mode;
-  if (!util.isUndefined(mode)) {
-    if (mode < 0 || mode > 3) {
-      result.message = 'Bad arguments - mode';
-      return result;
-    }
+function Spi() {
+  if (!(this instanceof Spi)) {
+    return new Spi();
   }
-
-  var cs = options.chipSelect;
-  if (!util.isUndefined(cs)) {
-    if (cs != 0 && cs != 1) {
-      result.message = 'Bad arguments - mode';
-      return result;
-    }
-  }
-
-  var bitsPerWord = options.bitsPerWord;
-  if (!util.isUndefined(bitsPerWord)) {
-    if (bitsPerWord != 8 && bitsPerWord != 9) {
-      result.message = 'Bad arguments - bitsPerWord';
-      return result;
-    }
-  }
-
-  var bitOrder = options.bitOrder;
-  if (!util.isUndefined(bitOrder)) {
-    if (bitOrder != 0 && bitOrder != 1) {
-      result.message = 'Bad arguments - bitOrder';
-      return result;
-    }
-  }
-
-  var loopback = options.loopback;
-  if (!util.isUndefined(loopback) && !util.isBoolean(loopback)) {
-    result.message = 'Bad arguments - loopback';
-    return result;
-  }
-
-  result.result = true;
-  return result;
 }
 
-// SPI(pin[, options][, callback])
-function SPI(spiNumber, options, callback) {
+Spi.prototype.open = function(configuration, callback) {
+  return new SpiBus(configuration, callback);
+};
+
+Spi.prototype.MODE = spi.MODE;
+Spi.prototype.CHIPSELECT = spi.CHIPSELECT;
+Spi.prototype.BITORDER = spi.BITORDER;
+
+
+// SpiBus(configuration[, callback])
+function SpiBus(configuration, callback) {
   var self = this;
 
-  if (!(this instanceof SPI)) {
-    return new SPI(spiNumber, options, callback);
-  }
-
-  // Check arguments.
-  if (util.isObject(spiNumber)) {
-    self._device = spiNumber.device || 0;
-    self._cs = spiNumber.cs || 0;
-  } else if (util.isNumber(spiNumber)) {
-    self._device = spiNumber;
-    self._cs = 0;
-  } else {
-    throw new TypeError('Bad arguments - spiNumber');
-  }
-
-  if (util.isFunction(options)) {
-    callback = options;
-  }
-  if (util.isObject(options)) {
-    var checkResult = checkOptionArgs(options);
-    if (checkResult.result == null) {
-      throw new Error(checkResult.message);
+  // validate device
+  if (util.isObject(configuration)) {
+    if (!util.isString(configuration.device)) {
+      throw new TypeError('Bad configuration - device is mandatory and String');
     }
   } else {
-    options = {};
+    throw new TypeError('Bad arguments - configuration should be Object');
   }
 
-  // Copy default options
-  self._options = {};
-  for (var name in defaultOptions) {
-    if (defaultOptions.hasOwnProperty(name)) {
-      self._options[name] = util.isUndefined(options[name]) ?
-        defaultOptions[name] : options[name];
+  // validate mode
+  var mode = configuration.mode;
+  if (!util.isUndefined(mode)) {
+    if (mode !== spi.MODE[0] && mode !== spi.MODE[1] &&
+        mode !== spi.MODE[2] && mode !== spi.MODE[3]) {
+      throw new TypeError(
+        'Bad arguments - mode should be MODE[0], [1], [2] or [3]');
     }
+  } else {
+    configuration.mode = defaultConfiguration.mode;
   }
 
-  var afterCallback = function(err) {
-    util.isFunction(callback) && callback(err);
-  };
+  // validate chip-select
+  var chipSelect = configuration.chipSelect;
+  if (!util.isUndefined(chipSelect)) {
+    if (chipSelect != spi.CHIPSELECT.NONE &&
+        chipSelect != spi.CHIPSELECT.HIGH) {
+      throw new TypeError(
+        'Bad arguments - chipSelect should be CHIPSELECT.NONE or HIGH');
+    }
+  } else {
+    configuration.chipSelect = defaultConfiguration.chipSelect;
+  }
 
-  self._spi = new spi(self._device, self._cs, self._options, afterCallback);
+  // validate max speed
+  if (!util.isUndefined(configuration.maxSpeed)) {
+    if (!util.isNumber(configuration.maxSpeed)) {
+      throw new TypeError('Bad arguments - maxSpeed should be Number');
+    }
+  } else {
+    configuration.maxSpeed = defaultConfiguration.maxSpeed
+  }
+
+  // validate bits per word
+  var bitsPerWord = configuration.bitsPerWord;
+  if (!util.isUndefined(bitsPerWord)) {
+    if (bitsPerWord != 8 && bitsPerWord != 9) {
+      throw new TypeError('Bad arguments - bitsPerWord should be 8 or 9');
+    }
+  } else {
+    configuration.bitsPerWord = defaultConfiguration.bitsPerWord;
+  }
+
+  // validate bit order
+  var bitOrder = configuration.bitOrder;
+  if (!util.isUndefined(bitOrder)) {
+    if (bitOrder != spi.BITORDER.MSB && bitOrder != spi.BITORDER.LSB) {
+      throw new TypeError(
+        'Bad arguments - bitOrder should be BITORDER.MSB or LSB');
+    }
+  } else {
+    configuration.bitOrder = defaultConfiguration.bitOrder;
+  }
+
+  // validate loopback
+  var loopback = configuration.loopback;
+  if (!util.isUndefined(loopback)) {
+    if (!util.isBoolean(loopback)) {
+      throw new TypeError('Bad arguments - loopback should be Boolean');
+    }
+  } else {
+    configuration.loopback = defaultConfiguration.loopback;
+  }
+
+  this._binding = new spi.Spi(configuration, function(err) {
+   util.isFunction(callback) && callback.call(self, err);
+  });
+
+  process.on('exit', (function(self) {
+   return function() {
+     if (!util.isNull(self._binding)) {
+       self.closeSync();
+     }
+   };
+  })(this));
 }
 
-// spi.transfer(txBuffer, rxBuffer[, callback])
-SPI.prototype.transfer = function(txBuffer, rxBuffer, callback) {
+// spibus.transfer(txBuffer, rxBuffer[, callback])
+SpiBus.prototype.transfer = function(txBuffer, rxBuffer, callback) {
+  var self = this;
+
+  if (util.isNull(this._binding)) {
+    throw new Error('SPI bus is not opened');
+  }
+
   if (util.isUndefined(txBuffer.length) || util.isUndefined(rxBuffer.length)
       || txBuffer.length <= 0 || rxBuffer.length <= 0
       || txBuffer.length != rxBuffer.length) {
@@ -134,94 +151,69 @@ SPI.prototype.transfer = function(txBuffer, rxBuffer, callback) {
       rxBuffer[i] = buffer[i];
     }
 
-    util.isFunction(callback) && callback(err, buffer);
+    util.isFunction(callback) && callback.call(self, err);
   };
 
   if (util.isArray(txBuffer) && util.isArray(rxBuffer)) {
-    this._spi.transferArray(txBuffer, rxBuffer, afterCallback);
+    this._binding.transferArray(txBuffer, rxBuffer, afterCallback);
   } else if (util.isBuffer(txBuffer) && util.isBuffer(rxBuffer)) {
-    this._spi.transferBuffer(txBuffer, rxBuffer, afterCallback);
+    this._binding.transferBuffer(txBuffer, rxBuffer, afterCallback);
   } else {
-    throw new TypeError('Bad arguments - buffer');
+    throw new TypeError('Bad arguments - buffer should be Array or Buffer');
   }
 };
 
-// spi.write(txBuffer[, callback])
-SPI.prototype.write = function(txBuffer, callback) {
-  if (util.isUndefined(txBuffer) || txBuffer.length <= 0) {
+// spibus.transferSync(txBuffer, rxBuffer)
+SpiBus.prototype.transferSync = function(txBuffer, rxBuffer) {
+  if (util.isNull(this._binding)) {
+    throw new Error('SPI bus is not opened');
+  }
+
+  if (util.isUndefined(txBuffer.length) || util.isUndefined(rxBuffer.length)
+    || txBuffer.length <= 0 || rxBuffer.length <= 0
+    || txBuffer.length != rxBuffer.length) {
     throw new Error('Bad arguments - buffer length');
   }
 
-  var afterCallback = function(err, buffer) {
-    util.isFunction(callback) && callback(err, buffer);
-  };
-
-  var rxBuffer = null;
-  if (util.isArray(txBuffer)) {
-    rxBuffer = new Array(txBuffer.length);
-    this._spi.transferArray(txBuffer, rxBuffer, afterCallback);
-  } else if (util.isBuffer(txBuffer)) {
-    rxBuffer = new Buffer(txBuffer.length);
-    this._spi.transferBuffer(txBuffer, rxBuffer, afterCallback);
+  var data = null;
+  if (util.isArray(txBuffer) && util.isArray(rxBuffer)) {
+    data = this._binding.transferArray(txBuffer, rxBuffer);
+  } else if (util.isBuffer(txBuffer) && util.isBuffer(rxBuffer)) {
+    data = this._binding.transferBuffer(txBuffer, rxBuffer);
   } else {
-    throw new TypeError('Bad arguments - buffer');
+    throw new TypeError('Bad arguments - buffer should be Array or Buffer');
   }
-};
 
-// spi.read(rxBuffer[, callback])
-SPI.prototype.read = function(rxBuffer, callback) {
-  if (util.isUndefined(rxBuffer) || rxBuffer.length <= 0) {
-    throw new Error('Bad arguments - buffer length');
-  }
-  var rxLength = rxBuffer.length;
-  var afterCallback = function(err, buffer) {
-    for (var i = 0; i < rxLength; i++) {
-      rxBuffer[i] = buffer[i];
+  if (data !== null && (util.isArray(data) || util.isBuffer(data)) &&
+    data.length === rxBuffer.length) {
+    for (var i = 0; i < rxBuffer.length; i++) {
+      rxBuffer[i] = data[i];
     }
-
-    util.isFunction(callback) && callback(err, buffer);
-  };
-
-  var txBuffer = null;
-  if (util.isArray(rxBuffer)) {
-    txBuffer = new Array(rxBuffer.length);
-    this._spi.transferArray(txBuffer, rxBuffer, afterCallback);
-  } else if (util.isBuffer(rxBuffer)) {
-    txBuffer = new Buffer(rxBuffer.length);
-    this._spi.transferBuffer(txBuffer, rxBuffer, afterCallback);
   } else {
-    throw new TypeError('Bad arguments - buffer');
+    throw new Error('Spi Transfer Error');
   }
 };
 
-// spi.setOption(options)
-SPI.prototype.setOption = function(options) {
-  if (!util.isObject(options)) {
-    throw new TypeError('Bad arguments - options');
+// spi.close([callback])
+SpiBus.prototype.close = function(callback) {
+  var self = this;
+
+  if (util.isNull(this._binding)) {
+    throw new Error('SPI bus is not opened');
   }
 
-  var checkResult = checkOptionArgs(options);
-  if (!checkResult.result) {
-    throw new Error(checkResult.message);
-  }
-
-  for (var name in options) {
-    if (options.hasOwnProperty(name) && !util.isUndefined(options[name])) {
-      this._options[name] = options[name];
-    }
-  }
-
-  var err = this._spi.setOption(options);
-  if (err) {
-    throw err;
-  }
-};
-
-// spi.unexport([callback])
-SPI.prototype.unexport = function(callback) {
-  return this._spi.unexport(function(err) {
-    util.isFunction(callback) && callback(err);
+  return this._binding.close(function(err) {
+    util.isFunction(callback) && callback.call(self, err);
   });
 };
 
-module.exports = SPI;
+// spibus.closeSync()
+SpiBus.prototype.closeSync = function() {
+  if (util.isNull(this._binding)) {
+    throw new Error('SPI bus is not opened');
+  }
+
+  return this._binding.close();
+};
+
+module.exports = Spi;

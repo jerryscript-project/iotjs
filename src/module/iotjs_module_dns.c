@@ -159,7 +159,8 @@ JHANDLER_FUNCTION(GetAddrInfo) {
   iotjs_getaddrinfo_reqwrap_t* req_wrap =
       iotjs_getaddrinfo_reqwrap_create(jcallback);
 
-  struct addrinfo hints = { 0 };
+  static const struct addrinfo empty_hints;
+  struct addrinfo hints = empty_hints;
   hints.ai_family = family;
   hints.ai_socktype = SOCK_STREAM;
   hints.ai_flags = flags;

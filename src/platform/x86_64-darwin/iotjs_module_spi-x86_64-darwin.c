@@ -19,12 +19,8 @@
 #include "module/iotjs_module_spi.h"
 #include "iotjs_module_unimplemented.inl.h"
 
-void iotjs_spi_export_worker(uv_work_t* work_req) IOTJS_MODULE_UNIMPLEMENTED();
-void iotjs_spi_transfer_worker(uv_work_t* work_req)
-    IOTJS_MODULE_UNIMPLEMENTED();
-bool iotjs_spi_set_options(iotjs_spi_t* spi, uint32_t selected_option)
-    IOTJS_MODULE_UNIMPLEMENTED(false);
-void iotjs_spi_unexport_worker(uv_work_t* work_req)
-    IOTJS_MODULE_UNIMPLEMENTED();
+bool iotjs_spi_transfer(iotjs_spi_t* spi) IOTJS_MODULE_UNIMPLEMENTED(false);
+bool iotjs_spi_close(iotjs_spi_t* spi) IOTJS_MODULE_UNIMPLEMENTED(false);
+void iotjs_spi_open_worker(uv_work_t* work_req) IOTJS_MODULE_UNIMPLEMENTED();
 
 #endif // __APPLE__

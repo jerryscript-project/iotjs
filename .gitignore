@@ -33,3 +33,4 @@ TAGS
 
 # config files
 *.config
+!build.config

@@ -64,16 +64,6 @@ iotjs_httpparserwrap_t* iotjs_httpparserwrap_create(const iotjs_jval_t* jparser,
                                                     http_parser_type type);
 
 void iotjs_httpparserwrap_initialize(THIS, http_parser_type type);
-
-int iotjs_httpparserwrap_on_message_begin(THIS);
-int iotjs_httpparserwrap_on_url(THIS, const char* at, size_t length);
-int iotjs_httpparserwrap_on_status(THIS, const char* at, size_t length);
-int iotjs_httpparserwrap_on_header_field(THIS, const char* at, size_t length);
-int iotjs_httpparserwrap_on_header_value(THIS, const char* at, size_t length);
-int iotjs_httpparserwrap_on_headers_complete(THIS);
-int iotjs_httpparserwrap_on_body(THIS, const char* at, size_t length);
-int iotjs_httpparserwrap_on_message_complete(THIS);
-
 iotjs_jval_t iotjs_httpparserwrap_make_header(THIS);
 
 void iotjs_httpparserwrap_flush(THIS);

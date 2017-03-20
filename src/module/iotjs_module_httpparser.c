@@ -393,9 +393,9 @@ JHANDLER_FUNCTION(Execute) {
 
 
   const iotjs_jval_t* jbuffer = JHANDLER_GET_ARG(0, object);
-  iotjs_bufferwrap_t* buffer = iotjs_bufferwrap_from_jbuffer(jbuffer);
-  char* buf_data = iotjs_bufferwrap_buffer(buffer);
-  int buf_len = iotjs_bufferwrap_length(buffer);
+  iotjs_bufferwrap_t* buffer_wrap = iotjs_bufferwrap_from_jbuffer(jbuffer);
+  char* buf_data = iotjs_bufferwrap_buffer(buffer_wrap);
+  int buf_len = iotjs_bufferwrap_length(buffer_wrap);
   JHANDLER_CHECK(buf_data != NULL);
   JHANDLER_CHECK(buf_len > 0);
 

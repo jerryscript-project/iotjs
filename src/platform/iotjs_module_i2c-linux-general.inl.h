@@ -89,8 +89,8 @@ typedef struct I2cSmbusIoctlDataStruct {
 } I2cSmbusIoctlData;
 
 
-int fd;
-uint8_t addr;
+static int current_fd;
+static uint8_t addr;
 
 
 int I2cSmbusAccess(int fd, uint8_t read_write, uint8_t command, int size,
@@ -169,16 +169,16 @@ int I2cSmbusReadI2cBlockData(int fd, uint8_t command, uint8_t* values,
 
 void I2cSetAddress(iotjs_i2c_t* i2c, uint8_t address) {
   addr = address;
-  ioctl(fd, I2C_SLAVE_FORCE, addr);
+  ioctl(current_fd, I2C_SLAVE_FORCE, addr);
 }
 
 
 void OpenWorker(uv_work_t* work_req) {
   I2C_WORKER_INIT_TEMPLATE;
 
-  fd = open(iotjs_string_data(&req_data->device), O_RDWR);
+  current_fd = open(iotjs_string_data(&req_data->device), O_RDWR);
 
-  if (fd == -1) {
+  if (current_fd == -1) {
     req_data->error = kI2cErrOpen;
   } else {
     req_data->error = kI2cErrOk;
@@ -187,8 +187,8 @@ void OpenWorker(uv_work_t* work_req) {
 
 
 void I2cClose(iotjs_i2c_t* i2c) {
-  if (fd > 0) {
-    close(fd);
+  if (current_fd > 0) {
+    close(current_fd);
   }
 }
 
@@ -199,7 +199,7 @@ void WriteWorker(uv_work_t* work_req) {
   uint8_t len = req_data->buf_len;
   char* data = req_data->buf_data;
 
-  if (write(fd, data, len) != len) {
+  if (write(current_fd, data, len) != len) {
     req_data->error = kI2cErrWrite;
   }
 
@@ -212,7 +212,7 @@ void WriteWorker(uv_work_t* work_req) {
 void WriteByteWorker(uv_work_t* work_req) {
   I2C_WORKER_INIT_TEMPLATE;
 
-  if (I2cSmbusWriteByte(fd, req_data->byte) == -1) {
+  if (I2cSmbusWriteByte(current_fd, req_data->byte) == -1) {
     req_data->error = kI2cErrWrite;
   }
 }
@@ -225,7 +225,7 @@ void WriteBlockWorker(uv_work_t* work_req) {
   uint8_t len = req_data->buf_len;
   uint8_t* data = (uint8_t*)(req_data->buf_data);
 
-  if (I2cSmbusWriteI2cBlockData(fd, cmd, data, len) == -1) {
+  if (I2cSmbusWriteI2cBlockData(current_fd, cmd, data, len) == -1) {
     req_data->error = kI2cErrWrite;
   }
 
@@ -241,7 +241,7 @@ void ReadWorker(uv_work_t* work_req) {
   uint8_t len = req_data->buf_len;
   req_data->buf_data = iotjs_buffer_allocate(len);
 
-  if (read(fd, req_data->buf_data, len) != len) {
+  if (read(current_fd, req_data->buf_data, len) != len) {
     req_data->error = kI2cErrRead;
   }
 }
@@ -250,7 +250,7 @@ void ReadWorker(uv_work_t* work_req) {
 void ReadByteWorker(uv_work_t* work_req) {
   I2C_WORKER_INIT_TEMPLATE;
 
-  int result = I2cSmbusReadByte(fd);
+  int result = I2cSmbusReadByte(current_fd);
   if (result == -1) {
     req_data->error = kI2cErrRead;
   } else {
@@ -266,7 +266,7 @@ void ReadBlockWorker(uv_work_t* work_req) {
   uint8_t len = req_data->buf_len;
   uint8_t data[I2C_SMBUS_BLOCK_MAX + 2];
 
-  if (I2cSmbusReadI2cBlockData(fd, cmd, data, len) != len) {
+  if (I2cSmbusReadI2cBlockData(current_fd, cmd, data, len) != len) {
     req_data->error = kI2cErrReadBlock;
   }
 

@@ -33,7 +33,7 @@ string(TOUPPER ${CMAKE_SYSTEM_PROCESSOR} CFG_SYS_PROCESSOR)
 
 # common compile flags
 set(CFLAGS_COMMON "${CFLAGS_COMMON} -g")
-set(CFLAGS_COMMON "${CFLAGS_COMMON} -Wall -Wextra -Werror")
+set(CFLAGS_COMMON "${CFLAGS_COMMON} -Wall -Wextra -Werror -Wshadow")
 set(CFLAGS_COMMON "${CFLAGS_COMMON} -Wno-unused-parameter")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99")
 

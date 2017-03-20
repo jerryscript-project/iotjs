@@ -48,7 +48,16 @@ $ brew install gcc-arm-none-eabi libusb minicom
 
 ### 2. Build NuttX (For the first time)
 
-Currently we checked that NuttX with commit id ** 419fd6e ** works well. To generate headers which are required to build IoT.js, for the first time, you need to build NuttX at least once. This time nuttx build will be failed. But don't worry at this time. After one execution, you don't need this sequence any more.
+To generate headers which are required to build IoT.js, for the first time, you need to build NuttX at least once. This time nuttx build will be failed. But don't worry at this time. After one execution, you don't need this sequence any more.
+
+#### Supported Nuttx version
+|Repository|Tag Name|
+|----------|:------:|
+| nuttx | nuttx-7.19 |
+| app | nuttx-7.19 |
+
+We only guarantee that the specified version will work well. It is recommended to check out with the specified tag from a git repository.
+
 
 #### Follow the instruction
 * [STM32F4-discovery](../../targets/nuttx-stm32f4/README.md)

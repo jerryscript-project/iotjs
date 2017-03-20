@@ -26,7 +26,7 @@ from common_py.system.executor import Executor as ex
 from common_py.system.platform import Platform
 from check_tidy import check_tidy
 
-TESTS=['host', 'rpi2', 'nuttx', 'misc', 'artik10'] # TODO: support darwin
+TESTS=['host', 'rpi2', 'nuttx', 'misc', 'artik10']
 BUILDTYPES=['debug', 'release']
 
 def get_config():

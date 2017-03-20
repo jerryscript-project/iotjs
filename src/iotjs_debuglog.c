@@ -30,10 +30,10 @@ void init_debug_settings() {
   const char* dbglevel = NULL;
   const char* dbglogfile = NULL;
 
-#if defined(__linux__)
+#if defined(__linux__) || defined(__APPLE__)
   dbglevel = getenv("IOTJS_DEBUG_LEVEL");
   dbglogfile = getenv("IOTJS_DEBUG_LOGFILE");
-#endif // defined(__linux__)
+#endif // defined(__linux__) || defined(__APPLE__)
   if (dbglevel) {
     iotjs_debug_level = atoi(dbglevel);
     if (iotjs_debug_level < 0)

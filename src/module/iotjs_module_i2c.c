@@ -31,7 +31,7 @@ iotjs_i2c_reqwrap_t* iotjs_i2c_reqwrap_create(const iotjs_jval_t* jcallback,
   iotjs_reqwrap_initialize(&_this->reqwrap, jcallback, (uv_req_t*)&_this->req);
 
   _this->req_data.op = op;
-#if defined(__linux__)
+#if defined(__linux__) || defined(__APPLE__)
   _this->req_data.device = iotjs_string_create("");
 #endif
   _this->i2c_data = iotjs_i2c_instance_from_jval(ji2c);
@@ -42,7 +42,7 @@ iotjs_i2c_reqwrap_t* iotjs_i2c_reqwrap_create(const iotjs_jval_t* jcallback,
 static void iotjs_i2c_reqwrap_destroy(THIS) {
   IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_i2c_reqwrap_t, i2c_reqwrap);
   iotjs_reqwrap_destroy(&_this->reqwrap);
-#if defined(__linux__)
+#if defined(__linux__) || defined(__APPLE__)
   iotjs_string_destroy(&_this->req_data.device);
 #endif
   IOTJS_RELEASE(i2c_reqwrap);
@@ -242,7 +242,7 @@ static void GetI2cArray(const iotjs_jval_t* jarray,
 
 JHANDLER_FUNCTION(I2cCons) {
   JHANDLER_CHECK_THIS(object);
-#if defined(__linux__)
+#if defined(__linux__) || defined(__APPLE__)
   JHANDLER_CHECK_ARGS(2, string, function);
   iotjs_string_t device = JHANDLER_GET_ARG(0, string);
 #elif defined(__NUTTX__)
@@ -262,7 +262,7 @@ JHANDLER_FUNCTION(I2cCons) {
       iotjs_i2c_reqwrap_create(jcallback, ji2c, kI2cOpOpen);
 
   iotjs_i2c_reqdata_t* req_data = iotjs_i2c_reqwrap_data(req_wrap);
-#if defined(__linux__)
+#if defined(__linux__) || defined(__APPLE__)
   iotjs_string_append(&req_data->device, iotjs_string_data(&device),
                       iotjs_string_size(&device));
 #elif defined(__NUTTX__)

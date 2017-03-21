@@ -373,11 +373,11 @@ static void OnConnection(uv_stream_t* handle, int status) {
                               iotjs_jargs_get_empty());
     IOTJS_ASSERT(iotjs_jval_is_object(&jclient_tcp));
 
-    iotjs_tcpwrap_t* tcp_wrap =
+    iotjs_tcpwrap_t* tcp_wrap_client =
         (iotjs_tcpwrap_t*)(iotjs_jval_get_object_native_handle(&jclient_tcp));
 
     uv_stream_t* client_handle =
-        (uv_stream_t*)(iotjs_tcpwrap_tcp_handle(tcp_wrap));
+        (uv_stream_t*)(iotjs_tcpwrap_tcp_handle(tcp_wrap_client));
 
     int err = uv_accept(handle, client_handle);
     if (err) {

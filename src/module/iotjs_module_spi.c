@@ -267,10 +267,10 @@ static void iotjs_spi_after_work(uv_work_t* work_req, int status) {
           IOTJS_VALIDATED_STRUCT_METHOD(iotjs_spi_t, spi);
 
           // Append read data
-          iotjs_jval_t result =
+          iotjs_jval_t result_data =
               iotjs_jval_create_byte_array(_this->buf_len, _this->rx_buf_data);
-          iotjs_jargs_append_jval(&jargs, &result);
-          iotjs_jval_destroy(&result);
+          iotjs_jargs_append_jval(&jargs, &result_data);
+          iotjs_jval_destroy(&result_data);
         }
         iotjs_spi_release_buffer(spi);
         break;

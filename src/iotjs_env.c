@@ -20,7 +20,7 @@
 #include <string.h>
 
 
-static iotjs_environment_t env;
+static iotjs_environment_t current_env;
 static bool initialized = false;
 
 
@@ -40,10 +40,10 @@ static void iotjs_environment_destroy(iotjs_environment_t* env);
  */
 const iotjs_environment_t* iotjs_environment_get() {
   if (!initialized) {
-    iotjs_environment_initialize(&env);
+    iotjs_environment_initialize(&current_env);
     initialized = true;
   }
-  return &env;
+  return &current_env;
 }
 
 
@@ -52,7 +52,7 @@ const iotjs_environment_t* iotjs_environment_get() {
  */
 void iotjs_environment_release() {
   if (initialized) {
-    iotjs_environment_destroy(&env);
+    iotjs_environment_destroy(&current_env);
     initialized = false;
   }
 }

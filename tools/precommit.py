@@ -28,6 +28,7 @@ from check_tidy import check_tidy
 
 TESTS=['host', 'rpi2', 'nuttx', 'misc', 'artik10']
 BUILDTYPES=['debug', 'release']
+NUTTXTAG = 'nuttx-7.19'
 
 def get_config():
     config_path = path.BUILD_CONFIG_PATH
@@ -57,20 +58,19 @@ def setup_nuttx_root(nuttx_root):
     # Step 1
     fs.maybe_make_directory(nuttx_root)
     fs.chdir(nuttx_root)
-    if fs.exists('nuttx'):
-        fs.chdir('nuttx')
-        ex.check_run_cmd('git', ['pull'])
-        fs.chdir('..')
-    else:
+    if not fs.exists('nuttx'):
         ex.check_run_cmd('git', ['clone',
                                  'https://bitbucket.org/nuttx/nuttx.git'])
-    if fs.exists('apps'):
-        fs.chdir('apps')
-        ex.check_run_cmd('git', ['pull'])
-        fs.chdir('..')
-    else:
+    fs.chdir('nuttx')
+    ex.check_run_cmd('git', ['checkout', NUTTXTAG])
+    fs.chdir('..')
+
+    if not fs.exists('apps'):
         ex.check_run_cmd('git', ['clone',
                                  'https://bitbucket.org/nuttx/apps.git'])
+    fs.chdir('apps')
+    ex.check_run_cmd('git', ['checkout', NUTTXTAG])
+    fs.chdir('..')
 
     # Step 2
     fs.maybe_make_directory(fs.join(nuttx_root, 'apps', 'system', 'iotjs'))

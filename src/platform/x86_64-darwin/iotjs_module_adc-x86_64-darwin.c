@@ -19,10 +19,8 @@
 #include "module/iotjs_module_adc.h"
 #include "iotjs_module_unimplemented.inl.h"
 
-void iotjs_adc_export_worker(uv_work_t* work_req) IOTJS_MODULE_UNIMPLEMENTED();
-void iotjs_adc_read_worker(uv_work_t* work_req) IOTJS_MODULE_UNIMPLEMENTED();
-int32_t iotjs_adc_read_sync(int32_t pin) IOTJS_MODULE_UNIMPLEMENTED(0);
-void iotjs_adc_unexport_worker(uv_work_t* work_req)
-    IOTJS_MODULE_UNIMPLEMENTED();
+int32_t iotjs_adc_read(iotjs_adc_t* adc) IOTJS_MODULE_UNIMPLEMENTED(-1);
+bool iotjs_adc_close(iotjs_adc_t* adc) IOTJS_MODULE_UNIMPLEMENTED(0);
+void iotjs_adc_open_worker(uv_work_t* work_req) IOTJS_MODULE_UNIMPLEMENTED();
 
 #endif // __APPLE__

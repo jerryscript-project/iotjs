@@ -17,12 +17,14 @@
 #ifndef IOTJS_MODULE_UART_LINUX_GENERAL_INL_H
 #define IOTJS_MODULE_UART_LINUX_GENERAL_INL_H
 
+#include <errno.h>
+#include <fcntl.h>
 #include <termios.h>
+#include <unistd.h>
+#include "module/iotjs_module_uart.h"
 
-#include "iotjs_module_uart-posix-general.inl.h"
 
-
-int toBaudConstant(int baudRate) {
+static int baud_to_constant(int baudRate) {
   switch (baudRate) {
     case 0:
       return B0;
@@ -67,7 +69,7 @@ int toBaudConstant(int baudRate) {
 }
 
 
-int toDataBitsConstant(int dataBits) {
+static int databits_to_constant(int dataBits) {
   switch (dataBits) {
     case 8:
       return CS8;
@@ -82,51 +84,55 @@ int toDataBitsConstant(int dataBits) {
 }
 
 
-void OpenWorkerUart(uv_work_t* work_req) {
-  UART_WORKER_INIT_TEMPLATE;
+void iotjs_uart_open_worker(uv_work_t* work_req) {
+  UART_WORKER_INIT;
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_uart_t, uart);
 
-  int fd =
-      open(iotjs_string_data(&req_data->path), O_RDWR | O_NOCTTY | O_NDELAY);
-
-  if (fd == -1) {
-    req_data->error = kUartErrOpen;
+  int fd = open(iotjs_string_data(&_this->device_path),
+                O_RDWR | O_NOCTTY | O_NDELAY);
+  if (fd < 0) {
+    req_data->result = false;
     return;
-  } else {
-    req_data->error = kUartErrOk;
   }
 
   struct termios options;
   tcgetattr(fd, &options);
   options.c_cflag = CLOCAL | CREAD;
-  options.c_cflag |= toBaudConstant(req_data->baudRate);
-  options.c_cflag |= toDataBitsConstant(req_data->dataBits);
+  options.c_cflag |= baud_to_constant(_this->baud_rate);
+  options.c_cflag |= databits_to_constant(_this->data_bits);
   options.c_iflag = IGNPAR;
   options.c_oflag = 0;
   options.c_lflag = 0;
   tcflush(fd, TCIFLUSH);
   tcsetattr(fd, TCSANOW, &options);
 
-  iotjs_uart_set_device_fd(req_data->uart_instance, fd);
-  uv_poll_t* poll_handle = iotjs_uart_get_poll_handle(req_data->uart_instance);
+  _this->device_fd = fd;
+  uv_poll_t* poll_handle = &_this->poll_handle;
 
   uv_loop_t* loop = iotjs_environment_loop(iotjs_environment_get());
   uv_poll_init(loop, poll_handle, fd);
-  poll_handle->data = req_data->uart_instance;
-  uv_poll_start(poll_handle, UV_READABLE, read_cb);
+  poll_handle->data = uart;
+  uv_poll_start(poll_handle, UV_READABLE, iotjs_uart_read_cb);
+
+  req_data->result = true;
 }
 
 
-void WriteWorkerUart(uv_work_t* work_req) {
-  UART_WORKER_INIT_TEMPLATE;
+bool iotjs_uart_write(iotjs_uart_t* uart) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_uart_t, uart);
   int bytesWritten = 0;
   unsigned offset = 0;
-  int fd = iotjs_uart_get_device_fd(req_data->uart_instance);
+  int fd = _this->device_fd;
+  const char* buf_data = iotjs_string_data(&_this->buf_data);
+
+  DDDLOG("%s - data: %s", __func__, buf_data);
 
   do {
     errno = 0;
-    bytesWritten =
-        write(fd, req_data->buf_data + offset, req_data->buf_len - offset);
+    bytesWritten = write(fd, buf_data + offset, _this->buf_len - offset);
     tcdrain(fd);
+
+    DDDLOG("%s - size: %d", __func__, _this->buf_len - offset);
 
     if (bytesWritten != -1) {
       offset += bytesWritten;
@@ -137,10 +143,11 @@ void WriteWorkerUart(uv_work_t* work_req) {
       continue;
     }
 
-    req_data->error = kUartErrWrite;
-    return;
+    return false;
 
-  } while (req_data->buf_len > offset);
+  } while (_this->buf_len > offset);
+
+  return true;
 }
 
 

@@ -14,19 +14,20 @@
  */
 
 var assert = require('assert');
-var uart = require('uart');
+var Uart = require('uart');
 
-var device = '/dev/ttyUSB0';
-var options = {
+var uart = new Uart();
+
+var configuration = {
+  device: '/dev/ttyUSB0',
   baudRate: 115200,
-  dataBits: 8,
-  autoOpen: true,
-}
+  dataBits: 8
+};
 
 var read = 0;
 var write = 0;
 
-var serial = new uart(device, options, function(err){
+var serial = uart.open(configuration, function(err){
   assert.equal(err, null);
   console.log('open done');
 
@@ -35,18 +36,21 @@ var serial = new uart(device, options, function(err){
     read = 1;
 
     if (read && write) {
-      serial.close();
+      serial.closeSync();
+      console.log('close done');
     }
   });
 
+  serial.writeSync("Hello IoT.js.\n\r");
 
-  serial.write("Hello there?\n", function(err) {
+  serial.write("Hello there?\n\r", function(err) {
     assert.equal(err, null);
     console.log('write done');
     write = 1;
 
     if (read && write) {
-      serial.close();
+      serial.closeSync();
+      console.log('close done');
     }
   });
 });

@@ -30,7 +30,7 @@ You can see the list of API from [IoT.js API Reference](../api/IoT.js-API-refere
 
 # Javascript Binding
 
-Many modern Javascript Engines come with [embedding API](#embedding-api) to provide functionality for compiling and executing Javascript program, accessing Javascript object and its value, handling errors, managing lifecyles of objects and so on. 
+Many modern Javascript Engines come with [embedding API](#embedding-api) to provide functionality for compiling and executing Javascript program, accessing Javascript object and its value, handling errors, managing lifecyles of objects and so on.
 
 You can think of Javascript binding layer as an interface between upper layer (IoT.js core) and  underlying Javascript engine.
 Although IoT.js only supports JerryScript for now, there will be a chance that we extend supporting Javascript engine (such as [Duktape](http://duktape.org/) or [V8](https://code.google.com/p/v8/)) in the future.
@@ -165,7 +165,7 @@ The process of IoT.js can be summarized as follow:
 1. Initialize JerryScript engine.
 2. Execute empty script
  * Create initial Javascript context.
-3. Initialize builtin modules. 
+3. Initialize builtin modules.
  * Create builin modules including ['process'](../api/IoT.js-API-Process.md).
 4. Evaluate ['iotjs.js'](../../src/js/iotjs.js).
  * Generate entry function.
@@ -182,7 +182,7 @@ The process of IoT.js can be summarized as follow:
 The list of builtin objects can be found at `MAP_MODULE_LIST` macro in ['iotjs_module.h'](../../src/iotjs_module.h).
 
 Because methods of builtin modules are implemented as [native handler](#native-handler),
-are able to access underlying system using libuv, C/C++ library, and system call.
+are able to access underlying system using libuv, C library, and system call.
 Also, builtin modules could be used for optimizing performance of CPU bound routine or reduce binary size.
 
 Builtin modules are initialized during [intializing step of IoT.js](#life-cycle-of-iotjs) and released just before program terminates.

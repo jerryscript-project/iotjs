@@ -16,4 +16,4 @@
 
 sudo apt-get update -q
 sudo apt-get install -q -y \
-    g++-arm-linux-gnueabihf libc6-dev-armhf-cross
+    gcc-arm-linux-gnueabihf libc6-dev-armhf-cross

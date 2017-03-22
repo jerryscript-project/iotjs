@@ -13,6 +13,6 @@ Welcome to the IoT.js!
 <br>
 
 
-### [Getting Started](Getting-Started) - Developer guide
-### [Getting Involved](Getting-involved)
+### [Getting Started](help/Getting-Started.md) - Developer guide
+### [Getting Involved](help/Getting-involved.md)
 ### Roadmap(TBD)

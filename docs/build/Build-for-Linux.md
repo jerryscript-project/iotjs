@@ -32,7 +32,7 @@ You need to install some packages to build IoT.js, as follows;
 sudo apt-get install gyp cmake build-essential valgrind
 ```
 
-gcc/g++ compiler 4.8 or higher versions are required to compile. If you don't know how to do it, you can get some help from [how-to-install-gcc-4-8](http://askubuntu.com/questions/271388/how-to-install-gcc-4-8) or google.
+gcc compiler 4.8 or higher versions are required to compile. If you don't know how to do it, you can get some help from [how-to-install-gcc-4-8](http://askubuntu.com/questions/271388/how-to-install-gcc-4-8) or google.
 
 ### 1. Get the sources
 

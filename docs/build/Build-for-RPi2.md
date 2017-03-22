@@ -78,7 +78,7 @@ Reboot your Raspberry Pi.
 Install arm linux cross compiler.
 
 ``` bash
-sudo apt-get install gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf
+sudo apt-get install gcc-arm-linux-gnueabihf
 ```
 
 ##### macOS
@@ -87,20 +87,16 @@ Install arm linux cross compiler via [this site](http://www.welzels.de/blog/en/a
 
 The default location for arm linux compiler toolchain is **"/usr/local/linaro/arm-linux-gnueabihf-raspbian"**.
 
-Then you need to locate c_compiler and cxx_compiler.
+Then you need to locate c_compiler.
 In **"./cmake/config/arm-linux.cmake"**,
 ``` cmake
 SET(EXTERNAL_CMAKE_C_COMPILER
     /usr/local/linaro/arm-linux-gnueabihf-raspbian/bin/arm-linux-gnueabihf-gcc)
-SET(EXTERNAL_CMAKE_CXX_COMPILER
-    /usr/local/linaro/arm-linux-gnueabihf-raspbian/bin/arm-linux-gnueabihf-g++)
 ```
 In **"./deps/libtuv/cmake/config/config_arm-linux.cmake"**,
 ``` cmake
 SET(CMAKE_C_COMPILER
     /usr/local/linaro/arm-linux-gnueabihf-raspbian/bin/arm-linux-gnueabihf-gcc)
-SET(CMAKE_CXX_COMPILER
-    /usr/local/linaro/arm-linux-gnueabihf-raspbian/bin/arm-linux-gnueabihf-g++)
 ```
 
 #### Build IoT.js (Cross compile)

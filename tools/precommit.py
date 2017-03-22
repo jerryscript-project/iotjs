@@ -91,25 +91,15 @@ def setup_nuttx_root(nuttx_root):
             '.config')
 
 
-def build_nuttx(nuttx_root, buildtype):
+def build_nuttx(nuttx_root, buildtype, maketarget):
     fs.chdir(fs.join(nuttx_root, 'nuttx'))
-    try:
-        code = 0
-        if buildtype == "release":
-            code = ex.run_cmd('make',
-                              ['IOTJS_ROOT_DIR=' + path.PROJECT_ROOT, 'R=1'])
-        else:
-            code = ex.run_cmd('make',
-                              ['IOTJS_ROOT_DIR=' + path.PROJECT_ROOT, 'R=0'])
+    if buildtype == "release":
+        rflag = 'R=1'
+    else:
+        rflag = 'R=0'
+    ex.check_run_cmd('make',
+                     [maketarget, 'IOTJS_ROOT_DIR=' + path.PROJECT_ROOT, rflag])
 
-        if code == 0:
-            return True
-        else:
-            print('Failed to build nuttx')
-            return False
-    except OSError as err:
-        print('Failed to build nuttx: %s' % err)
-        return False
 
 def setup_tizen_root(tizen_root):
     if fs.exists(tizen_root):
@@ -165,16 +155,14 @@ for test in option.test:
         for buildtype in option.buildtype:
             nuttx_root=fs.join(path.PROJECT_ROOT, 'deps', 'nuttx')
             setup_nuttx_root(nuttx_root)
-            build_nuttx(nuttx_root, buildtype)
+            build_nuttx(nuttx_root, buildtype, 'context')
             build(buildtype, ['--target-arch=arm',
                               '--target-os=nuttx',
                               '--nuttx-home=' + fs.join(nuttx_root, 'nuttx'),
                               '--target-board=stm32f4dis',
                               '--jerry-heaplimit=78']
                               + include_module + build_args)
-
-            if not build_nuttx(nuttx_root, buildtype):
-                ex.fail('nuttx ' + buildtype + ' build failed')
+            build_nuttx(nuttx_root, buildtype, 'all')
             fs.chdir(current_dir)
 
     elif test == "misc":

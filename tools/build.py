@@ -28,6 +28,7 @@ import re
 import os
 
 from js2c import js2c
+from module_analyzer import resolve_modules, analyze_module_dependency
 from common_py import path
 from common_py.system.filesystem import FileSystem as fs
 from common_py.system.executor import Executor as ex
@@ -542,74 +543,6 @@ def build_libhttpparser(options):
     copy_build_target('libhttpparser.a', build_home, options.build_libs)
 
 
-def analyze_module_dependency(options):
-    print_progress('Analyze module dependency')
-
-    def print_warn(fmt, arg):
-        print(fmt % arg)
-        ex.fail('Failed to analyze module dependency')
-
-    for name in options.config['module']['always']:
-        if not name in options.iotjs_include_module:
-            options.iotjs_include_module.add(name)
-
-    if not options.iotjs_minimal_profile:
-        for name in options.config['module']['include']:
-            if name in options.config['module']['exclude']:
-                print_warn('Cannot have duplicate module "%s" ', name)
-            if not name in options.iotjs_include_module:
-                options.iotjs_include_module.add(name)
-
-    for name in options.iotjs_exclude_module:
-        if name in options.config['module']['always']:
-            print_warn('Cannot exclude always module "%s"', name)
-        if name in options.iotjs_include_module:
-            options.iotjs_include_module.remove(name)
-
-    for name in options.config['module']['exclude']:
-        if (not name in options.iotjs_exclude_module and
-            not name in options.iotjs_include_module):
-            options.iotjs_exclude_module.add(name)
-
-    analyze_queue = set(options.iotjs_include_module)
-
-    js_modules = { 'iotjs', 'native' }
-    native_modules = { 'process' }
-    while len(analyze_queue) != 0:
-        item = analyze_queue.pop()
-        js_modules.add(item)
-        js_module_path = fs.join(path.PROJECT_ROOT,
-                               'src', 'js', item + '.js')
-        if not fs.exists(js_module_path):
-            print_warn('Cannot read file "%s" ', js_module_path)
-        with open(js_module_path) as module:
-            content = module.read()
-
-        # Pretend to ignore comments in JavaScript
-        re_js_comments = "\/\/.*|\/\*.*\*\/";
-        content = re.sub(re_js_comments, "", content)
-
-        re_js_module = 'require\([\'\"](.*?)[\'\"]\)'
-        for js_module in re.findall(re_js_module, content):
-            if js_module in options.iotjs_exclude_module:
-                print_warn('Cannot exclude "%s" since "%s" requires it',
-                           (js_module, item))
-            if js_module not in js_modules:
-                analyze_queue.add(js_module)
-
-        re_native_module = 'process.binding\(process.binding.(.*?)\)'
-        for native_module in re.findall(re_native_module, content):
-            native_modules.add(native_module)
-
-    js_modules.remove('native')
-
-    options.js_modules = js_modules
-    options.native_modules = native_modules
-
-    print('Building js modules: %s\nBuilding native modules: %s\n' \
-          % (', '.join(js_modules), ', '.join(native_modules)))
-
-
 def build_iotjs(options):
     print_progress('Build IoT.js')
 
@@ -673,6 +606,20 @@ def build_iotjs(options):
     copy_build_target(src_name, build_home, dst_dir, dst_name)
 
 
+def process_modules(options):
+    print_progress('Analyze modules')
+
+    includes, excludes = resolve_modules(options)
+    modules = analyze_module_dependency(includes, excludes)
+
+    print('Selected js modules: %s' % ', '.join(modules['js']))
+    print('Selected native modules: %s' % ', '.join(modules['native']))
+
+    options.js_modules = modules['js']
+    options.native_modules = modules['native']
+    options.iotjs_exclude_module = excludes
+
+
 def run_checktest(options):
     checktest_quiet = 'yes'
     if os.getenv('TRAVIS') == "true":
@@ -714,7 +661,7 @@ if __name__ == '__main__':
 
     create_build_directories(options)
 
-    analyze_module_dependency(options)
+    process_modules(options)
 
     # Perform init-submodule.
     if not options.no_init_submodule:

@@ -159,6 +159,7 @@
 #include "iotjs_binding_helper.h"
 #include "iotjs_debuglog.h"
 #include "iotjs_env.h"
+#include "iotjs_magic_strings.h"
 #include "iotjs_module.h"
 #include "iotjs_string.h"
 #include "iotjs_util.h"

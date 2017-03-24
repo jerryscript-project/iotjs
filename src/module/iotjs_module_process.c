@@ -172,7 +172,8 @@ JHANDLER_FUNCTION(InitArgv) {
 
   // process.argv
   const iotjs_jval_t* thisObj = JHANDLER_GET_THIS(object);
-  iotjs_jval_t jargv = iotjs_jval_get_property(thisObj, "argv");
+  iotjs_jval_t jargv =
+      iotjs_jval_get_property(thisObj, IOTJS_MAGIC_STRING_ARGV);
 
   int argc = iotjs_environment_argc(env);
 
@@ -221,11 +222,12 @@ static void SetProcessEnv(iotjs_jval_t* process) {
 #endif
 
   iotjs_jval_t env = iotjs_jval_create_object();
-  iotjs_jval_set_property_string_raw(&env, "HOME", homedir);
-  iotjs_jval_set_property_string_raw(&env, "NODE_PATH", nodepath);
-  iotjs_jval_set_property_string_raw(&env, "IOTJS_ENV", iotjsenv);
+  iotjs_jval_set_property_string_raw(&env, IOTJS_MAGIC_STRING_HOME, homedir);
+  iotjs_jval_set_property_string_raw(&env, IOTJS_MAGIC_STRING_NODE_PATH,
+                                     nodepath);
+  iotjs_jval_set_property_string_raw(&env, IOTJS_MAGIC_STRING_ENV, iotjsenv);
 
-  iotjs_jval_set_property_jval(process, "env", &env);
+  iotjs_jval_set_property_jval(process, IOTJS_MAGIC_STRING_ENV, &env);
 
   iotjs_jval_destroy(&env);
 }
@@ -234,9 +236,10 @@ static void SetProcessEnv(iotjs_jval_t* process) {
 static void SetProcessIotjs(iotjs_jval_t* process) {
   // IoT.js specific
   iotjs_jval_t iotjs = iotjs_jval_create_object();
-  iotjs_jval_set_property_jval(process, "iotjs", &iotjs);
+  iotjs_jval_set_property_jval(process, IOTJS_MAGIC_STRING_IOTJS, &iotjs);
 
-  iotjs_jval_set_property_string_raw(&iotjs, "board", TOSTRING(TARGET_BOARD));
+  iotjs_jval_set_property_string_raw(&iotjs, IOTJS_MAGIC_STRING_BOARD,
+                                     TOSTRING(TARGET_BOARD));
   iotjs_jval_destroy(&iotjs);
 }
 
@@ -244,33 +247,38 @@ static void SetProcessIotjs(iotjs_jval_t* process) {
 iotjs_jval_t InitProcess() {
   iotjs_jval_t process = iotjs_jval_create_object();
 
-  iotjs_jval_set_method(&process, "binding", Binding);
-  iotjs_jval_set_method(&process, "compile", Compile);
-  iotjs_jval_set_method(&process, "compileNativePtr", CompileNativePtr);
-  iotjs_jval_set_method(&process, "readSource", ReadSource);
-  iotjs_jval_set_method(&process, "cwd", Cwd);
-  iotjs_jval_set_method(&process, "chdir", Chdir);
-  iotjs_jval_set_method(&process, "doExit", DoExit);
-  iotjs_jval_set_method(&process, "_initArgv", InitArgv);
+  iotjs_jval_set_method(&process, IOTJS_MAGIC_STRING_BINDING, Binding);
+  iotjs_jval_set_method(&process, IOTJS_MAGIC_STRING_COMPILE, Compile);
+  iotjs_jval_set_method(&process, IOTJS_MAGIC_STRING_COMPILENATIVEPTR,
+                        CompileNativePtr);
+  iotjs_jval_set_method(&process, IOTJS_MAGIC_STRING_READSOURCE, ReadSource);
+  iotjs_jval_set_method(&process, IOTJS_MAGIC_STRING_CWD, Cwd);
+  iotjs_jval_set_method(&process, IOTJS_MAGIC_STRING_CHDIR, Chdir);
+  iotjs_jval_set_method(&process, IOTJS_MAGIC_STRING_DOEXIT, DoExit);
+  iotjs_jval_set_method(&process, IOTJS_MAGIC_STRING__INITARGV, InitArgv);
   SetProcessEnv(&process);
 
   // process.native_sources
   iotjs_jval_t native_sources = iotjs_jval_create_object();
   SetNativeSources(&native_sources);
-  iotjs_jval_set_property_jval(&process, "native_sources", &native_sources);
+  iotjs_jval_set_property_jval(&process, IOTJS_MAGIC_STRING_NATIVE_SOURCES,
+                               &native_sources);
   iotjs_jval_destroy(&native_sources);
 
   // process.platform
-  iotjs_jval_set_property_string_raw(&process, "platform", TARGET_OS);
+  iotjs_jval_set_property_string_raw(&process, IOTJS_MAGIC_STRING_PLATFORM,
+                                     TARGET_OS);
 
   // process.arch
-  iotjs_jval_set_property_string_raw(&process, "arch", TARGET_ARCH);
+  iotjs_jval_set_property_string_raw(&process, IOTJS_MAGIC_STRING_ARCH,
+                                     TARGET_ARCH);
 
   // Set iotjs
   SetProcessIotjs(&process);
 
   // Binding module id.
-  iotjs_jval_t jbinding = iotjs_jval_get_property(&process, "binding");
+  iotjs_jval_t jbinding =
+      iotjs_jval_get_property(&process, IOTJS_MAGIC_STRING_BINDING);
 
 #define ENUMDEF_MODULE_LIST(upper, Camel, lower) \
   iotjs_jval_set_property_number(&jbinding, #lower, MODULE_##upper);

@@ -164,15 +164,18 @@ static void gpio_set_configurable(iotjs_gpio_t* gpio,
                                   const iotjs_jval_t* jconfigurable) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_gpio_t, gpio);
 
-  iotjs_jval_t jpin = iotjs_jval_get_property(jconfigurable, "pin");
+  iotjs_jval_t jpin =
+      iotjs_jval_get_property(jconfigurable, IOTJS_MAGIC_STRING_PIN);
   _this->pin = iotjs_jval_as_number(&jpin);
   iotjs_jval_destroy(&jpin);
 
-  iotjs_jval_t jdirection = iotjs_jval_get_property(jconfigurable, "direction");
+  iotjs_jval_t jdirection =
+      iotjs_jval_get_property(jconfigurable, IOTJS_MAGIC_STRING_DIRECTION);
   _this->direction = (GpioDirection)iotjs_jval_as_number(&jdirection);
   iotjs_jval_destroy(&jdirection);
 
-  iotjs_jval_t jmode = iotjs_jval_get_property(jconfigurable, "mode");
+  iotjs_jval_t jmode =
+      iotjs_jval_get_property(jconfigurable, IOTJS_MAGIC_STRING_MODE);
   _this->mode = (GpioMode)iotjs_jval_as_number(&jmode);
   iotjs_jval_destroy(&jmode);
 }
@@ -323,35 +326,46 @@ iotjs_jval_t InitGpio() {
   iotjs_jval_t jgpio = iotjs_jval_create_object();
   iotjs_jval_t jgpioConstructor =
       iotjs_jval_create_function_with_dispatch(GpioConstructor);
-  iotjs_jval_set_property_jval(&jgpio, "Gpio", &jgpioConstructor);
+  iotjs_jval_set_property_jval(&jgpio, IOTJS_MAGIC_STRING_GPIO,
+                               &jgpioConstructor);
 
   iotjs_jval_t jprototype = iotjs_jval_create_object();
-  iotjs_jval_set_method(&jprototype, "write", Write);
-  iotjs_jval_set_method(&jprototype, "writeSync", WriteSync);
-  iotjs_jval_set_method(&jprototype, "read", Read);
-  iotjs_jval_set_method(&jprototype, "readSync", ReadSync);
-  iotjs_jval_set_method(&jprototype, "close", Close);
-  iotjs_jval_set_method(&jprototype, "closeSync", CloseSync);
-  iotjs_jval_set_property_jval(&jgpioConstructor, "prototype", &jprototype);
+  iotjs_jval_set_method(&jprototype, IOTJS_MAGIC_STRING_WRITE, Write);
+  iotjs_jval_set_method(&jprototype, IOTJS_MAGIC_STRING_WRITESYNC, WriteSync);
+  iotjs_jval_set_method(&jprototype, IOTJS_MAGIC_STRING_READ, Read);
+  iotjs_jval_set_method(&jprototype, IOTJS_MAGIC_STRING_READSYNC, ReadSync);
+  iotjs_jval_set_method(&jprototype, IOTJS_MAGIC_STRING_CLOSE, Close);
+  iotjs_jval_set_method(&jprototype, IOTJS_MAGIC_STRING_CLOSESYNC, CloseSync);
+  iotjs_jval_set_property_jval(&jgpioConstructor, IOTJS_MAGIC_STRING_PROTOTYPE,
+                               &jprototype);
   iotjs_jval_destroy(&jprototype);
   iotjs_jval_destroy(&jgpioConstructor);
 
   // GPIO direction properties
   iotjs_jval_t jdirection = iotjs_jval_create_object();
-  iotjs_jval_set_property_number(&jdirection, "IN", kGpioDirectionIn);
-  iotjs_jval_set_property_number(&jdirection, "OUT", kGpioDirectionOut);
-  iotjs_jval_set_property_jval(&jgpio, "DIRECTION", &jdirection);
+  iotjs_jval_set_property_number(&jdirection, IOTJS_MAGIC_STRING_IN,
+                                 kGpioDirectionIn);
+  iotjs_jval_set_property_number(&jdirection, IOTJS_MAGIC_STRING_OUT,
+                                 kGpioDirectionOut);
+  iotjs_jval_set_property_jval(&jgpio, IOTJS_MAGIC_STRING_DIRECTION_U,
+                               &jdirection);
   iotjs_jval_destroy(&jdirection);
 
   // GPIO mode properties
   iotjs_jval_t jmode = iotjs_jval_create_object();
-  iotjs_jval_set_property_number(&jmode, "NONE", kGpioModeNone);
-  iotjs_jval_set_property_number(&jmode, "PULLUP", kGpioModePullup);
-  iotjs_jval_set_property_number(&jmode, "PULLDOWN", kGpioModePulldown);
-  iotjs_jval_set_property_number(&jmode, "FLOAT", kGpioModeFloat);
-  iotjs_jval_set_property_number(&jmode, "PUSHPULL", kGpioModePushpull);
-  iotjs_jval_set_property_number(&jmode, "OPENDRAIN", kGpioModeOpendrain);
-  iotjs_jval_set_property_jval(&jgpio, "MODE", &jmode);
+  iotjs_jval_set_property_number(&jmode, IOTJS_MAGIC_STRING_NONE,
+                                 kGpioModeNone);
+  iotjs_jval_set_property_number(&jmode, IOTJS_MAGIC_STRING_PULLUP,
+                                 kGpioModePullup);
+  iotjs_jval_set_property_number(&jmode, IOTJS_MAGIC_STRING_PULLDOWN,
+                                 kGpioModePulldown);
+  iotjs_jval_set_property_number(&jmode, IOTJS_MAGIC_STRING_FLOAT,
+                                 kGpioModeFloat);
+  iotjs_jval_set_property_number(&jmode, IOTJS_MAGIC_STRING_PUSHPULL,
+                                 kGpioModePushpull);
+  iotjs_jval_set_property_number(&jmode, IOTJS_MAGIC_STRING_OPENDRAIN,
+                                 kGpioModeOpendrain);
+  iotjs_jval_set_property_jval(&jgpio, IOTJS_MAGIC_STRING_MODE_U, &jmode);
   iotjs_jval_destroy(&jmode);
 
   return jgpio;

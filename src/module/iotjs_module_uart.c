@@ -267,9 +267,12 @@ JHANDLER_FUNCTION(UartConstructor) {
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG(2, function);
 
   // set configuration
-  iotjs_jval_t jdevice = iotjs_jval_get_property(jconfiguration, "device");
-  iotjs_jval_t jbaud_rate = iotjs_jval_get_property(jconfiguration, "baudRate");
-  iotjs_jval_t jdata_bits = iotjs_jval_get_property(jconfiguration, "dataBits");
+  iotjs_jval_t jdevice =
+      iotjs_jval_get_property(jconfiguration, IOTJS_MAGIC_STRING_DEVICE);
+  iotjs_jval_t jbaud_rate =
+      iotjs_jval_get_property(jconfiguration, IOTJS_MAGIC_STRING_BAUDRATE);
+  iotjs_jval_t jdata_bits =
+      iotjs_jval_get_property(jconfiguration, IOTJS_MAGIC_STRING_DATABITS);
 
   _this->device_path = iotjs_jval_as_string(&jdevice);
   _this->baud_rate = iotjs_jval_as_number(&jbaud_rate);
@@ -344,10 +347,11 @@ iotjs_jval_t InitUart() {
 
   iotjs_jval_t prototype = iotjs_jval_create_object();
 
-  iotjs_jval_set_method(&prototype, "write", Write);
-  iotjs_jval_set_method(&prototype, "close", Close);
+  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_WRITE, Write);
+  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_CLOSE, Close);
 
-  iotjs_jval_set_property_jval(&juart_constructor, "prototype", &prototype);
+  iotjs_jval_set_property_jval(&juart_constructor, IOTJS_MAGIC_STRING_PROTOTYPE,
+                               &prototype);
 
   iotjs_jval_destroy(&prototype);
 

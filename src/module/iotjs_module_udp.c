@@ -143,7 +143,8 @@ JHANDLER_FUNCTION(Bind) {
   iotjs_string_t address = JHANDLER_GET_ARG(0, string);
   const int port = JHANDLER_GET_ARG(1, number);
   const iotjs_jval_t* this_obj = JHANDLER_GET_THIS(object);
-  iotjs_jval_t reuse_addr = iotjs_jval_get_property(this_obj, "_reuseAddr");
+  iotjs_jval_t reuse_addr =
+      iotjs_jval_get_property(this_obj, IOTJS_MAGIC_STRING__REUSEADDR);
   IOTJS_ASSERT(iotjs_jval_is_boolean(&reuse_addr) ||
                iotjs_jval_is_undefined(&reuse_addr));
 
@@ -193,7 +194,8 @@ static void OnRecv(uv_udp_t* handle, ssize_t nread, const uv_buf_t* buf,
   IOTJS_ASSERT(iotjs_jval_is_object(judp));
 
   // onmessage callback
-  iotjs_jval_t jonmessage = iotjs_jval_get_property(judp, "onmessage");
+  iotjs_jval_t jonmessage =
+      iotjs_jval_get_property(judp, IOTJS_MAGIC_STRING_ONMESSAGE);
   IOTJS_ASSERT(iotjs_jval_is_function(&jonmessage));
 
   iotjs_jargs_t jargs = iotjs_jargs_create(4);
@@ -478,23 +480,28 @@ iotjs_jval_t InitUdp() {
   iotjs_jval_t udp = iotjs_jval_create_function_with_dispatch(UDP);
 
   iotjs_jval_t prototype = iotjs_jval_create_object();
-  iotjs_jval_set_property_jval(&udp, "prototype", &prototype);
+  iotjs_jval_set_property_jval(&udp, IOTJS_MAGIC_STRING_PROTOTYPE, &prototype);
 
-  iotjs_jval_set_method(&prototype, "bind", Bind);
-  iotjs_jval_set_method(&prototype, "recvStart", RecvStart);
-  iotjs_jval_set_method(&prototype, "recvStop", RecvStop);
-  iotjs_jval_set_method(&prototype, "send", Send);
-  iotjs_jval_set_method(&prototype, "close", Close);
-  iotjs_jval_set_method(&prototype, "getsockname", GetSockeName);
-  iotjs_jval_set_method(&prototype, "setBroadcast", SetBroadcast);
-  iotjs_jval_set_method(&prototype, "setTTL", SetTTL);
-  iotjs_jval_set_method(&prototype, "setMulticastTTL", SetMulticastTTL);
-  iotjs_jval_set_method(&prototype, "setMulticastLoopback",
+  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_BIND, Bind);
+  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_RECVSTART, RecvStart);
+  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_RECVSTOP, RecvStop);
+  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_SEND, Send);
+  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_CLOSE, Close);
+  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_GETSOCKNAME,
+                        GetSockeName);
+  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_SETBROADCAST,
+                        SetBroadcast);
+  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_SETTTL, SetTTL);
+  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_SETMULTICASTTTL,
+                        SetMulticastTTL);
+  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_SETMULTICASTLOOPBACK,
                         SetMulticastLoopback);
-  iotjs_jval_set_method(&prototype, "addMembership", AddMembership);
-  iotjs_jval_set_method(&prototype, "dropMembership", DropMembership);
-  iotjs_jval_set_method(&prototype, "ref", Ref);
-  iotjs_jval_set_method(&prototype, "unref", Unref);
+  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_ADDMEMBERSHIP,
+                        AddMembership);
+  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_DROPMEMBERSHIP,
+                        DropMembership);
+  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_REF, Ref);
+  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_UNREF, Unref);
 
   iotjs_jval_destroy(&prototype);
 

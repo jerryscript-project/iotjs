@@ -77,11 +77,13 @@ void iotjs_pwm_set_pwmdata(iotjs_jhandler_t* jhandler, THIS) {
 
   const iotjs_jval_t* joptions = JHANDLER_GET_ARG(1, object);
   if (joptions && iotjs_jval_is_object(joptions)) {
-    iotjs_jval_t jperiod = iotjs_jval_get_property(joptions, "period");
+    iotjs_jval_t jperiod =
+        iotjs_jval_get_property(joptions, IOTJS_MAGIC_STRING_PERIOD);
     if (iotjs_jval_is_number(&jperiod))
       req_data->period = iotjs_jval_as_number(&jperiod);
 
-    iotjs_jval_t jduty_cycle = iotjs_jval_get_property(joptions, "dutyCycle");
+    iotjs_jval_t jduty_cycle =
+        iotjs_jval_get_property(joptions, IOTJS_MAGIC_STRING_DUTYCYCLE);
     if (iotjs_jval_is_number(&jduty_cycle))
       req_data->duty_cycle = iotjs_jval_as_number(&jduty_cycle);
 
@@ -268,12 +270,12 @@ JHANDLER_FUNCTION(Unexport) {
 iotjs_jval_t InitPwm() {
   iotjs_jval_t jpwm = iotjs_jval_create_object();
 
-  iotjs_jval_set_method(&jpwm, "export", Export);
-  iotjs_jval_set_method(&jpwm, "setPeriod", SetPeriod);
-  iotjs_jval_set_method(&jpwm, "setFrequency", SetFrequency);
-  iotjs_jval_set_method(&jpwm, "setDutyCycle", SetDutyCycle);
-  iotjs_jval_set_method(&jpwm, "setEnable", SetEnable);
-  iotjs_jval_set_method(&jpwm, "unexport", Unexport);
+  iotjs_jval_set_method(&jpwm, IOTJS_MAGIC_STRING_EXPORT, Export);
+  iotjs_jval_set_method(&jpwm, IOTJS_MAGIC_STRING_SETPERIOD, SetPeriod);
+  iotjs_jval_set_method(&jpwm, IOTJS_MAGIC_STRING_SETFREQUENCY, SetFrequency);
+  iotjs_jval_set_method(&jpwm, IOTJS_MAGIC_STRING_SETDUTYCYCLE, SetDutyCycle);
+  iotjs_jval_set_method(&jpwm, IOTJS_MAGIC_STRING_SETENABLE, SetEnable);
+  iotjs_jval_set_method(&jpwm, IOTJS_MAGIC_STRING_UNEXPORT, Unexport);
 
 
 #define SET_PWM_CONSTANT(object, constant)                       \

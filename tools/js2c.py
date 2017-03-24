@@ -210,7 +210,14 @@ def get_js_contents(name, is_debug_mode=False):
 
 def js2c(buildtype, no_snapshot, js_modules, js_dumper, verbose=False):
     is_debug_mode = buildtype == "debug"
-    magic_string_set = { b'process' }
+    magic_string_set = set()
+
+    str_const_regex = re.compile('^#define IOTJS_MAGIC_STRING_\w+\s+"(\w+)"$')
+    with open(fs.join(path.SRC_ROOT, 'iotjs_magic_strings.h'), 'r') as fin_h:
+        for line in fin_h:
+            result = str_const_regex.search(line)
+            if result:
+                magic_string_set.add(result.group(1))
 
     # generate the code for the modules
     with open(fs.join(path.SRC_ROOT, 'iotjs_js.h'), 'w') as fout_h, \

@@ -216,7 +216,8 @@ static void GetI2cArray(const iotjs_jval_t* jarray,
                         iotjs_i2c_reqdata_t* req_data) {
   // FIXME
   // Need to implement a function to get array info from iotjs_jval_t Array.
-  iotjs_jval_t jlength = iotjs_jval_get_property(jarray, "length");
+  iotjs_jval_t jlength =
+      iotjs_jval_get_property(jarray, IOTJS_MAGIC_STRING_LENGTH);
   IOTJS_ASSERT(!iotjs_jval_is_undefined(&jlength));
 
   req_data->buf_len = iotjs_jval_as_number(&jlength);
@@ -416,16 +417,17 @@ iotjs_jval_t InitI2c() {
 
   iotjs_jval_t prototype = iotjs_jval_create_object();
 
-  iotjs_jval_set_method(&prototype, "setAddress", SetAddress);
-  iotjs_jval_set_method(&prototype, "close", Close);
-  iotjs_jval_set_method(&prototype, "write", Write);
-  iotjs_jval_set_method(&prototype, "writeByte", WriteByte);
-  iotjs_jval_set_method(&prototype, "writeBlock", WriteBlock);
-  iotjs_jval_set_method(&prototype, "read", Read);
-  iotjs_jval_set_method(&prototype, "readByte", ReadByte);
-  iotjs_jval_set_method(&prototype, "readBlock", ReadBlock);
+  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_SETADDRESS, SetAddress);
+  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_CLOSE, Close);
+  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_WRITE, Write);
+  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_WRITEBYTE, WriteByte);
+  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_WRITEBLOCK, WriteBlock);
+  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_READ, Read);
+  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_READBYTE, ReadByte);
+  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_READBLOCK, ReadBlock);
 
-  iotjs_jval_set_property_jval(&jI2cCons, "prototype", &prototype);
+  iotjs_jval_set_property_jval(&jI2cCons, IOTJS_MAGIC_STRING_PROTOTYPE,
+                               &prototype);
 
   iotjs_jval_destroy(&prototype);
 

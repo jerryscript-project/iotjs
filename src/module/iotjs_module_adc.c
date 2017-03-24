@@ -162,12 +162,14 @@ static void iotjs_adc_set_configuration(iotjs_adc_t* adc,
                                         const iotjs_jval_t* jconfiguration) {
 #if defined(__linux__)
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_adc_t, adc);
-  iotjs_jval_t jdevice = iotjs_jval_get_property(jconfiguration, "device");
+  iotjs_jval_t jdevice =
+      iotjs_jval_get_property(jconfiguration, IOTJS_MAGIC_STRING_DEVICE);
   _this->device = iotjs_jval_as_string(&jdevice);
   iotjs_jval_destroy(&jdevice);
 #elif defined(__NUTTX__)
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_adc_t, adc);
-  iotjs_jval_t jpin = iotjs_jval_get_property(jconfiguration, "pin");
+  iotjs_jval_t jpin =
+      iotjs_jval_get_property(jconfiguration, IOTJS_MAGIC_STRING_PIN);
   _this->pin = iotjs_jval_as_number(&jpin);
   iotjs_jval_destroy(&jpin);
 #endif
@@ -272,12 +274,13 @@ iotjs_jval_t InitAdc() {
   iotjs_jval_t jadc = iotjs_jval_create_object();
   iotjs_jval_t jadcConstructor =
       iotjs_jval_create_function_with_dispatch(AdcConstructor);
-  iotjs_jval_set_property_jval(&jadc, "Adc", &jadcConstructor);
+  iotjs_jval_set_property_jval(&jadc, IOTJS_MAGIC_STRING_ADC, &jadcConstructor);
 
   iotjs_jval_t jprototype = iotjs_jval_create_object();
-  iotjs_jval_set_method(&jprototype, "read", Read);
-  iotjs_jval_set_method(&jprototype, "close", Close);
-  iotjs_jval_set_property_jval(&jadcConstructor, "prototype", &jprototype);
+  iotjs_jval_set_method(&jprototype, IOTJS_MAGIC_STRING_READ, Read);
+  iotjs_jval_set_method(&jprototype, IOTJS_MAGIC_STRING_CLOSE, Close);
+  iotjs_jval_set_property_jval(&jadcConstructor, IOTJS_MAGIC_STRING_PROTOTYPE,
+                               &jprototype);
 
   iotjs_jval_destroy(&jprototype);
   iotjs_jval_destroy(&jadcConstructor);

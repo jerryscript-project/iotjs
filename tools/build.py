@@ -185,6 +185,9 @@ def init_options():
     parser.add_argument('--no-snapshot',
         action='store_true', default=False,
         help='Disable snapshot generation for IoT.js')
+    parser.add_argument('-e', '--experimental',
+        action='store_true', default=False,
+        help='Enable to build experimental features')
 
     options = parser.parse_args(argv)
     options.config = config
@@ -653,6 +656,10 @@ def build_iotjs(options):
     shared_libs.extend(options.config['shared_libs']['os'][options.target_os])
     cmake_opt.append("-DEXTERNAL_SHARED_LIB='%s'" % (' '.join(shared_libs)))
 
+    # --experimental
+    if options.experimental:
+        options.compile_flag.append('-DEXPERIMENTAL')
+
     # Add common cmake options.
     cmake_opt.extend(build_cmake_args(options))
 
@@ -684,6 +691,10 @@ def run_checktest(options):
     if options.iotjs_exclude_module:
         skip_module = ','.join(options.iotjs_exclude_module)
         build_args.append('skip-module=' + skip_module)
+
+    # experimental
+    if options.experimental:
+        build_args.append('experimental=' + 'yes');
 
     fs.chdir(path.PROJECT_ROOT)
     code = ex.run_cmd(iotjs, [path.CHECKTEST_PATH] + build_args)

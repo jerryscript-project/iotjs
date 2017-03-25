@@ -81,7 +81,8 @@ Runner.prototype.checkSkipModule = function() {
 Runner.prototype.run = function() {
   var skip = this.test['skip'];
   if (skip) {
-    if ((skip.indexOf('all') >= 0) || (skip.indexOf(this.driver.os) >= 0)) {
+    if ((skip.indexOf('all') >= 0) || (skip.indexOf(this.driver.os) >= 0)
+      || (skip.indexOf(this.driver.stability) >= 0)) {
       this.finish('skip');
       return;
     }

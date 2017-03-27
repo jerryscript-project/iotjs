@@ -68,7 +68,8 @@ iotjs_bufferwrap_t* iotjs_bufferwrap_from_jbuiltin(
 
 iotjs_bufferwrap_t* iotjs_bufferwrap_from_jbuffer(const iotjs_jval_t* jbuffer) {
   IOTJS_ASSERT(iotjs_jval_is_object(jbuffer));
-  iotjs_jval_t jbuiltin = iotjs_jval_get_property(jbuffer, "_builtin");
+  iotjs_jval_t jbuiltin =
+      iotjs_jval_get_property(jbuffer, IOTJS_MAGIC_STRING__BUILTIN);
   iotjs_bufferwrap_t* buffer = iotjs_bufferwrap_from_jbuiltin(&jbuiltin);
   iotjs_jval_destroy(&jbuiltin);
   return buffer;
@@ -84,7 +85,7 @@ iotjs_jval_t* iotjs_bufferwrap_jbuiltin(iotjs_bufferwrap_t* bufferwrap) {
 iotjs_jval_t iotjs_bufferwrap_jbuffer(iotjs_bufferwrap_t* bufferwrap) {
   IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_bufferwrap_t, bufferwrap);
   iotjs_jval_t* jbuiltin = iotjs_bufferwrap_jbuiltin(bufferwrap);
-  return iotjs_jval_get_property(jbuiltin, "_buffer");
+  return iotjs_jval_get_property(jbuiltin, IOTJS_MAGIC_STRING__BUFFER);
 }
 
 
@@ -98,7 +99,8 @@ size_t iotjs_bufferwrap_length(iotjs_bufferwrap_t* bufferwrap) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_bufferwrap_t, bufferwrap);
 #ifndef NDEBUG
   iotjs_jval_t jbuf = iotjs_bufferwrap_jbuffer(bufferwrap);
-  iotjs_jval_t jlength = iotjs_jval_get_property(&jbuf, "length");
+  iotjs_jval_t jlength =
+      iotjs_jval_get_property(&jbuf, IOTJS_MAGIC_STRING_LENGTH);
   size_t length = iotjs_jval_as_number(&jlength);
   IOTJS_ASSERT(length == _this->length);
   iotjs_jval_destroy(&jbuf);
@@ -199,7 +201,8 @@ size_t iotjs_bufferwrap_copy(iotjs_bufferwrap_t* bufferwrap, const char* src,
 iotjs_jval_t iotjs_bufferwrap_create_buffer(size_t len) {
   iotjs_jval_t* jglobal = iotjs_jval_get_global_object();
 
-  iotjs_jval_t jbuffer = iotjs_jval_get_property(jglobal, "Buffer");
+  iotjs_jval_t jbuffer =
+      iotjs_jval_get_property(jglobal, IOTJS_MAGIC_STRING_BUFFER);
   IOTJS_ASSERT(iotjs_jval_is_function(&jbuffer));
 
   iotjs_jargs_t jargs = iotjs_jargs_create(1);
@@ -224,7 +227,7 @@ JHANDLER_FUNCTION(Buffer) {
   const iotjs_jval_t* jbuffer = JHANDLER_GET_ARG(0, object);
   int length = JHANDLER_GET_ARG(1, number);
 
-  iotjs_jval_set_property_jval(jbuiltin, "_buffer", jbuffer);
+  iotjs_jval_set_property_jval(jbuiltin, IOTJS_MAGIC_STRING__BUFFER, jbuffer);
 
   iotjs_bufferwrap_t* buffer_wrap = iotjs_bufferwrap_create(jbuiltin, length);
   IOTJS_UNUSED(buffer_wrap);
@@ -493,18 +496,21 @@ iotjs_jval_t InitBuffer() {
   iotjs_jval_t byte_length =
       iotjs_jval_create_function_with_dispatch(ByteLength);
 
-  iotjs_jval_set_property_jval(&buffer, "prototype", &prototype);
-  iotjs_jval_set_property_jval(&buffer, "byteLength", &byte_length);
+  iotjs_jval_set_property_jval(&buffer, IOTJS_MAGIC_STRING_PROTOTYPE,
+                               &prototype);
+  iotjs_jval_set_property_jval(&buffer, IOTJS_MAGIC_STRING_BYTELENGTH,
+                               &byte_length);
 
-  iotjs_jval_set_method(&prototype, "compare", Compare);
-  iotjs_jval_set_method(&prototype, "copy", Copy);
-  iotjs_jval_set_method(&prototype, "write", Write);
-  iotjs_jval_set_method(&prototype, "hexWrite", HexWrite);
-  iotjs_jval_set_method(&prototype, "writeUInt8", WriteUInt8);
-  iotjs_jval_set_method(&prototype, "readUInt8", ReadUInt8);
-  iotjs_jval_set_method(&prototype, "slice", Slice);
-  iotjs_jval_set_method(&prototype, "toString", ToString);
-  iotjs_jval_set_method(&prototype, "toHexString", ToHexString);
+  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_COMPARE, Compare);
+  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_COPY, Copy);
+  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_WRITE, Write);
+  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_HEXWRITE, HexWrite);
+  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_WRITEUINT8, WriteUInt8);
+  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_READUINT8, ReadUInt8);
+  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_SLICE, Slice);
+  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_TOSTRING, ToString);
+  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_TOHEXSTRING,
+                        ToHexString);
 
   iotjs_jval_destroy(&prototype);
   iotjs_jval_destroy(&byte_length);

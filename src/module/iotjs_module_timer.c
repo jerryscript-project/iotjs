@@ -80,7 +80,8 @@ static void iotjs_timerwrap_on_timeout(iotjs_timerwrap_t* timerwrap) {
 
   // Call javascript timeout handler function.
   const iotjs_jval_t* jobject = iotjs_timerwrap_jobject(timerwrap);
-  iotjs_jval_t jcallback = iotjs_jval_get_property(jobject, "handleTimeout");
+  iotjs_jval_t jcallback =
+      iotjs_jval_get_property(jobject, IOTJS_MAGIC_STRING_HANDLETIMEOUT);
   iotjs_make_callback(&jcallback, jobject, iotjs_jargs_get_empty());
   iotjs_jval_destroy(&jcallback);
 }
@@ -165,10 +166,11 @@ iotjs_jval_t InitTimer() {
   iotjs_jval_t timer = iotjs_jval_create_function_with_dispatch(Timer);
 
   iotjs_jval_t prototype = iotjs_jval_create_object();
-  iotjs_jval_set_property_jval(&timer, "prototype", &prototype);
+  iotjs_jval_set_property_jval(&timer, IOTJS_MAGIC_STRING_PROTOTYPE,
+                               &prototype);
 
-  iotjs_jval_set_method(&prototype, "start", Start);
-  iotjs_jval_set_method(&prototype, "stop", Stop);
+  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_START, Start);
+  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_STOP, Stop);
 
   iotjs_jval_destroy(&prototype);
 

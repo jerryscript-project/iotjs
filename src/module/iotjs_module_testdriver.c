@@ -32,7 +32,8 @@ JHANDLER_FUNCTION(IsAliveExceptFor) {
   } else {
     JHANDLER_CHECK(iotjs_jval_is_object(arg0));
 
-    iotjs_jval_t jtimer = iotjs_jval_get_property(arg0, "handler");
+    iotjs_jval_t jtimer =
+        iotjs_jval_get_property(arg0, IOTJS_MAGIC_STRING_HANDLER);
 
     iotjs_timerwrap_t* timer_wrap = iotjs_timerwrap_from_jobject(&jtimer);
     iotjs_jval_destroy(&jtimer);
@@ -63,7 +64,8 @@ JHANDLER_FUNCTION(IsAliveExceptFor) {
 
 iotjs_jval_t InitTestdriver() {
   iotjs_jval_t testdriver = iotjs_jval_create_object();
-  iotjs_jval_set_method(&testdriver, "isAliveExceptFor", IsAliveExceptFor);
+  iotjs_jval_set_method(&testdriver, IOTJS_MAGIC_STRING_ISALIVEEXCEPTFOR,
+                        IsAliveExceptFor);
 
   return testdriver;
 }

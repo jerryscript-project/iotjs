@@ -315,7 +315,8 @@ JHANDLER_FUNCTION(Write) {
 iotjs_jval_t MakeStatObject(uv_stat_t* statbuf) {
   const iotjs_jval_t* fs = iotjs_module_get(MODULE_FS);
 
-  iotjs_jval_t create_stat = iotjs_jval_get_property(fs, "_createStat");
+  iotjs_jval_t create_stat =
+      iotjs_jval_get_property(fs, IOTJS_MAGIC_STRING__CREATESTAT);
   IOTJS_ASSERT(iotjs_jval_is_function(&create_stat));
 
   iotjs_jval_t jstat = iotjs_jval_create_object();
@@ -476,16 +477,16 @@ JHANDLER_FUNCTION(ReadDir) {
 iotjs_jval_t InitFs() {
   iotjs_jval_t fs = iotjs_jval_create_object();
 
-  iotjs_jval_set_method(&fs, "close", Close);
-  iotjs_jval_set_method(&fs, "open", Open);
-  iotjs_jval_set_method(&fs, "read", Read);
-  iotjs_jval_set_method(&fs, "write", Write);
-  iotjs_jval_set_method(&fs, "stat", Stat);
-  iotjs_jval_set_method(&fs, "mkdir", MkDir);
-  iotjs_jval_set_method(&fs, "rmdir", RmDir);
-  iotjs_jval_set_method(&fs, "unlink", Unlink);
-  iotjs_jval_set_method(&fs, "rename", Rename);
-  iotjs_jval_set_method(&fs, "readdir", ReadDir);
+  iotjs_jval_set_method(&fs, IOTJS_MAGIC_STRING_CLOSE, Close);
+  iotjs_jval_set_method(&fs, IOTJS_MAGIC_STRING_OPEN, Open);
+  iotjs_jval_set_method(&fs, IOTJS_MAGIC_STRING_READ, Read);
+  iotjs_jval_set_method(&fs, IOTJS_MAGIC_STRING_WRITE, Write);
+  iotjs_jval_set_method(&fs, IOTJS_MAGIC_STRING_STAT, Stat);
+  iotjs_jval_set_method(&fs, IOTJS_MAGIC_STRING_MKDIR, MkDir);
+  iotjs_jval_set_method(&fs, IOTJS_MAGIC_STRING_RMDIR, RmDir);
+  iotjs_jval_set_method(&fs, IOTJS_MAGIC_STRING_UNLINK, Unlink);
+  iotjs_jval_set_method(&fs, IOTJS_MAGIC_STRING_RENAME, Rename);
+  iotjs_jval_set_method(&fs, IOTJS_MAGIC_STRING_READDIR, ReadDir);
 
   return fs;
 }

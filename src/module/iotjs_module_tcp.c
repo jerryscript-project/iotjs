@@ -229,7 +229,8 @@ void AfterClose(uv_handle_t* handle) {
   const iotjs_jval_t* jtcp = iotjs_handlewrap_jobject(wrap);
 
   // callback function.
-  iotjs_jval_t jcallback = iotjs_jval_get_property(jtcp, "onclose");
+  iotjs_jval_t jcallback =
+      iotjs_jval_get_property(jtcp, IOTJS_MAGIC_STRING_ONCLOSE);
   if (iotjs_jval_is_function(&jcallback)) {
     iotjs_make_callback(&jcallback, iotjs_jval_get_undefined(),
                         iotjs_jargs_get_empty());
@@ -354,7 +355,8 @@ static void OnConnection(uv_stream_t* handle, int status) {
   const iotjs_jval_t* jtcp = iotjs_tcpwrap_jobject(tcp_wrap);
 
   // `onconnection` callback.
-  iotjs_jval_t jonconnection = iotjs_jval_get_property(jtcp, "onconnection");
+  iotjs_jval_t jonconnection =
+      iotjs_jval_get_property(jtcp, IOTJS_MAGIC_STRING_ONCONNECTION);
   IOTJS_ASSERT(iotjs_jval_is_function(&jonconnection));
 
   // The callback takes two parameter
@@ -365,7 +367,8 @@ static void OnConnection(uv_stream_t* handle, int status) {
 
   if (status == 0) {
     // Create client socket handle wrapper.
-    iotjs_jval_t jcreate_tcp = iotjs_jval_get_property(jtcp, "createTCP");
+    iotjs_jval_t jcreate_tcp =
+        iotjs_jval_get_property(jtcp, IOTJS_MAGIC_STRING_CREATETCP);
     IOTJS_ASSERT(iotjs_jval_is_function(&jcreate_tcp));
 
     iotjs_jval_t jclient_tcp =
@@ -484,11 +487,13 @@ void OnRead(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
   const iotjs_jval_t* jtcp = iotjs_tcpwrap_jobject(tcp_wrap);
 
   // socket object
-  iotjs_jval_t jsocket = iotjs_jval_get_property(jtcp, "owner");
+  iotjs_jval_t jsocket =
+      iotjs_jval_get_property(jtcp, IOTJS_MAGIC_STRING_OWNER);
   IOTJS_ASSERT(iotjs_jval_is_object(&jsocket));
 
   // onread callback
-  iotjs_jval_t jonread = iotjs_jval_get_property(jtcp, "onread");
+  iotjs_jval_t jonread =
+      iotjs_jval_get_property(jtcp, IOTJS_MAGIC_STRING_ONREAD);
   IOTJS_ASSERT(iotjs_jval_is_function(&jonread));
 
   iotjs_jargs_t jargs = iotjs_jargs_create(4);
@@ -612,9 +617,10 @@ void AddressToJS(const iotjs_jval_t* obj, const sockaddr* addr) {
       a6 = (const sockaddr_in6*)(addr);
       uv_inet_ntop(AF_INET6, &a6->sin6_addr, ip, sizeof ip);
       port = ntohs(a6->sin6_port);
-      iotjs_jval_set_property_string_raw(obj, "address", ip);
-      iotjs_jval_set_property_string_raw(obj, "family", "IPv6");
-      iotjs_jval_set_property_number(obj, "port", port);
+      iotjs_jval_set_property_string_raw(obj, IOTJS_MAGIC_STRING_ADDRESS, ip);
+      iotjs_jval_set_property_string_raw(obj, IOTJS_MAGIC_STRING_FAMILY,
+                                         IOTJS_MAGIC_STRING_IPV6);
+      iotjs_jval_set_property_number(obj, IOTJS_MAGIC_STRING_PORT, port);
       break;
     }
 
@@ -622,14 +628,15 @@ void AddressToJS(const iotjs_jval_t* obj, const sockaddr* addr) {
       a4 = (const sockaddr_in*)(addr);
       uv_inet_ntop(AF_INET, &a4->sin_addr, ip, sizeof ip);
       port = ntohs(a4->sin_port);
-      iotjs_jval_set_property_string_raw(obj, "address", ip);
-      iotjs_jval_set_property_string_raw(obj, "family", "IPv4");
-      iotjs_jval_set_property_number(obj, "port", port);
+      iotjs_jval_set_property_string_raw(obj, IOTJS_MAGIC_STRING_ADDRESS, ip);
+      iotjs_jval_set_property_string_raw(obj, IOTJS_MAGIC_STRING_FAMILY,
+                                         IOTJS_MAGIC_STRING_IPV4);
+      iotjs_jval_set_property_number(obj, IOTJS_MAGIC_STRING_PORT, port);
       break;
     }
 
     default: {
-      iotjs_jval_set_property_string_raw(obj, "address", "");
+      iotjs_jval_set_property_string_raw(obj, IOTJS_MAGIC_STRING_ADDRESS, "");
       break;
     }
   }
@@ -646,18 +653,20 @@ iotjs_jval_t InitTcp() {
   iotjs_jval_t tcp = iotjs_jval_create_function_with_dispatch(TCP);
 
   iotjs_jval_t prototype = iotjs_jval_create_object();
-  iotjs_jval_set_property_jval(&tcp, "prototype", &prototype);
+  iotjs_jval_set_property_jval(&tcp, IOTJS_MAGIC_STRING_PROTOTYPE, &prototype);
 
-  iotjs_jval_set_method(&prototype, "open", Open);
-  iotjs_jval_set_method(&prototype, "close", Close);
-  iotjs_jval_set_method(&prototype, "connect", Connect);
-  iotjs_jval_set_method(&prototype, "bind", Bind);
-  iotjs_jval_set_method(&prototype, "listen", Listen);
-  iotjs_jval_set_method(&prototype, "write", Write);
-  iotjs_jval_set_method(&prototype, "readStart", ReadStart);
-  iotjs_jval_set_method(&prototype, "shutdown", Shutdown);
-  iotjs_jval_set_method(&prototype, "setKeepAlive", SetKeepAlive);
-  iotjs_jval_set_method(&prototype, "getsockname", GetSockeName);
+  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_OPEN, Open);
+  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_CLOSE, Close);
+  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_CONNECT, Connect);
+  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_BIND, Bind);
+  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_LISTEN, Listen);
+  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_WRITE, Write);
+  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_READSTART, ReadStart);
+  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_SHUTDOWN, Shutdown);
+  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_SETKEEPALIVE,
+                        SetKeepAlive);
+  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_GETSOCKNAME,
+                        GetSockeName);
 
   iotjs_jval_destroy(&prototype);
 

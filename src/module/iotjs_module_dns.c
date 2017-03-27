@@ -190,7 +190,7 @@ JHANDLER_FUNCTION(GetAddrInfo) {
 iotjs_jval_t InitDns() {
   iotjs_jval_t dns = iotjs_jval_create_object();
 
-  iotjs_jval_set_method(&dns, "getaddrinfo", GetAddrInfo);
+  iotjs_jval_set_method(&dns, IOTJS_MAGIC_STRING_GETADDRINFO, GetAddrInfo);
   SET_CONSTANT(&dns, AI_ADDRCONFIG);
   SET_CONSTANT(&dns, AI_V4MAPPED);
 

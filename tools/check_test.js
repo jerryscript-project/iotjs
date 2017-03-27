@@ -79,6 +79,8 @@ Driver.prototype.config = function() {
     "a module list to skip test of specific modules");
   parser.addOption('output-coverage', "yes|no", "no",
     "output coverage information");
+  parser.addOption('experimental', "yes|no", "no",
+    "a flag that indicates if tests for experimental are needed");
 
   var options = parser.parse();
 
@@ -99,6 +101,13 @@ Driver.prototype.config = function() {
   var skipModule = options['skip-module'];
   if (skipModule) {
     this.skipModule = skipModule.split(',');
+  }
+
+  var experimental = options['experimental'];
+  if (experimental == 'no') {
+    this.stability = 'stable';
+  } else {
+    this.stability = 'experimental';
   }
 
   this.logger = new Logger(path);

@@ -198,7 +198,7 @@ void SetNativeSources(iotjs_jval_t* native_sources) {
 
 
 static void SetProcessEnv(iotjs_jval_t* process) {
-  const char *homedir, *nodepath;
+  const char *homedir, *nodepath, *iotjsenv;
 
   homedir = getenv("HOME");
   if (homedir == NULL) {
@@ -214,9 +214,16 @@ static void SetProcessEnv(iotjs_jval_t* process) {
 #endif
   }
 
+#if defined(EXPERIMENTAL)
+  iotjsenv = "experimental";
+#else
+  iotjsenv = "";
+#endif
+
   iotjs_jval_t env = iotjs_jval_create_object();
   iotjs_jval_set_property_string_raw(&env, "HOME", homedir);
   iotjs_jval_set_property_string_raw(&env, "NODE_PATH", nodepath);
+  iotjs_jval_set_property_string_raw(&env, "IOTJS_ENV", iotjsenv);
 
   iotjs_jval_set_property_jval(process, "env", &env);
 

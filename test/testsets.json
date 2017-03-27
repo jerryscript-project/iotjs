@@ -15,6 +15,8 @@
     { "name": "test_dgram_multicast_set_multicast_loop.js", "skip": ["all"], "reason": "need to setup test environment" },
     { "name": "test_dns.js", "skip": ["nuttx"], "reason": "not implemented for nuttx" },
     { "name": "test_events.js", "skip": ["nuttx"], "reason": "not implemented for nuttx" },
+    { "name": "test_experimental_off.js", "skip": ["experimental"], "reason": "needed if testing stablity is set with stable" },
+    { "name": "test_experimental_on.js", "skip": ["stable"], "reason": "needed if testing stablity is set with experimental" },
     { "name": "test_exit.js", "skip": ["all"], "reason": "driver can not run with test which checks out process.exit events" },
     { "name": "test_fs_exists.js", "skip": ["nuttx"], "reason": "not implemented for nuttx" },
     { "name": "test_fs_existssync.js", "skip": ["nuttx"], "reason": "not implemented for nuttx" },

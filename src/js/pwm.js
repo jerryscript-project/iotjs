@@ -17,79 +17,67 @@ var util = require('util');
 var pwm = process.binding(process.binding.pwm);
 
 
-function PwmError(code, operation, message) {
-  this.name = 'PwmError';
-  this.code = code;
-  this.operation = operation;
-  this.message = operation + ': ' + message;
+function Pwm() {
+  if (!(this instanceof Pwm)) {
+    return new Pwm();
+  }
 }
 
-util.inherits(PwmError, Error);
+Pwm.prototype.open = function(configuration, callback) {
+  return new PwmPin(configuration, callback);
+};
 
 
-function CreatePwmError(operation, errno) {
-  if (errno == pwm.kPwmErrOk) {
-    return null;
-  }
-
-  switch (errno) {
-    case pwm.kPwmErrExport:
-      return new PwmError(errno, operation, 'Failed to export PWM');
-    case pwm.kPwmErrUnexport:
-      return new PwmError(errno, operation, 'Failed to unexport PWM');
-    case pwm.kPwmErrEnable:
-      return new PwmError(errno, operation, 'Failed to enable PWM');
-    case pwm.kPwmErrWrite:
-      return new PwmError(errno, operation, 'Failed to write value');
-    case pwm.kPwmErrSys:
-      return new PwmError(errno, operation, 'System error');
-  }
-  return new PwmError(errno, operation, 'Unknown error');
-}
-
-
-// PWM(pin[, options][, callback])
-function PWM(pin, options, callback) {
+function PwmPin(configuration, callback) {
   var self = this;
+  self._configuration = {};
 
-  if (!(this instanceof PWM)) {
-    return new PWM(pin, options, callback);
-  }
-
-  if (!util.isNumber(pin)) {
-    throw new TypeError('pin is not a number(' + typeof(pin) + ')');
-  }
-
-  self._options = {};
-  self._pin = pin;
-
-  // Check arguments.
-  if (util.isFunction(options)) {
-    callback = options;
-  } else if (util.isObject(options)) {
-    var dutyCycle = options.dutyCycle;
-    var period = options.period;
-    if (!util.isNumber(period) && util.isNumber(options.frequency)) {
-      period = 1.0 / options.frequency;
+  if (util.isObject(configuration)) {
+    if (process.platform === 'linux') {
+      if (util.isNumber(configuration.chip)) {
+        self._configuration.chip = configuration.chip
+      } else {
+        self._configuration.chip = 0;
+      }
     }
 
-    if (util.isNumber(dutyCycle) && dutyCycle >= 0.0 && dutyCycle <= 1.0 &&
-        util.isNumber(period) && util.isFinite(period) && period > 0) {
-      self._options.dutyCycle = dutyCycle;
-      self._options.period = period;
+    if (!util.isNumber(configuration.pin)) {
+      throw new TypeError(
+        'Bad configuration - pin is mandatory and should be Number');
+    } else {
+      self._configuration.pin = configuration.pin;
     }
+  } else {
+    throw new TypeError('Bad arguments - configuration should be Object')
   }
 
-  pwm.export(self._pin, self._options, function(err) {
-    var errObj = CreatePwmError('PWM()', err);
+  // validate configuration
+  var dutyCycle = configuration.dutyCycle;
+  var period = configuration.period;
+  if (!util.isNumber(period) && util.isNumber(configuration.frequency)) {
+    period = 1.0 / configuration.frequency;
+  }
 
-    if (util.isFunction(callback)) {
-      callback(errObj);
-    }
+  if (util.isNumber(dutyCycle) && dutyCycle >= 0.0 && dutyCycle <= 1.0 &&
+    util.isNumber(period) && util.isFinite(period) && period > 0) {
+    self._configuration.dutyCycle = dutyCycle;
+    self._configuration.period = period;
+  }
+
+  this._binding = new pwm(self._configuration, function(err) {
+    util.isFunction(callback) && callback.call(self, err);
   });
+
+  process.on('exit', (function(self) {
+    return function() {
+      if (!util.isNull(self._binding)) {
+        self.closeSync();
+      }
+    };
+  })(this));
 }
 
-PWM.prototype._validatePeriod = function(period) {
+PwmPin.prototype._validatePeriod = function(period) {
   if (!util.isNumber(period)) {
     throw new TypeError('Period is not a number(' + typeof(period) + ')');
   } else if (period < 0) {
@@ -98,7 +86,17 @@ PWM.prototype._validatePeriod = function(period) {
   return true;
 };
 
-PWM.prototype._validateDutyCycle = function(dutyCycle) {
+PwmPin.prototype._validateFrequency = function(frequency) {
+  if (!util.isNumber(frequency)) {
+    throw new TypeError('Frequency is not a number(' +
+      typeof(frequency) + ')');
+  } else if (frequency <= 0) {
+    throw RangeError('Nonpositivie frequency of ' + frequency);
+  }
+  return true;
+};
+
+PwmPin.prototype._validateDutyCycle = function(dutyCycle) {
   if (!util.isNumber(dutyCycle)) {
     throw TypeError('DutyCycle is not a number(' + typeof(dutyCycle) + ')');
   } else if (dutyCycle < 0.0 || dutyCycle > 1.0) {
@@ -107,91 +105,126 @@ PWM.prototype._validateDutyCycle = function(dutyCycle) {
   return true;
 };
 
-PWM.prototype._validateOptions = function() {
-  return util.isNumber(this._options.period) &&
-    util.isNumber(this._options.dutyCycle);
-};
+PwmPin.prototype.setPeriod = function(period, callback) {
+  var self = this;
 
-PWM.prototype._doSetPeriod = function(callback) {
-  if (this._validateOptions()) {
-    return pwm.setPeriod(this._pin, this._options, function(err) {
-      var errObj = CreatePwmError('setPeriod()', err);
+  if (util.isNull(this._binding)) {
+    throw new Error('Pwm pin is not opened');
+  }
 
-      if (util.isFunction(callback)) {
-        callback(errObj);
-      }
-    });
-  } else return false;
-};
-
-// pwm.setPeriod(period[, callback])
-PWM.prototype.setPeriod = function(period, callback) {
-  // Check arguments.
   if (this._validatePeriod(period)) {
-    this._options.period = period;
-    return this._doSetPeriod(callback);
-  }
-};
-
-// pwm.setFrequency(frequency[, callback])
-PWM.prototype.setFrequency = function(frequency, callback) {
-  if (util.isNumber(frequency)) {
-    if (frequency > 0) {
-      return this.setPeriod(1.0 / frequency, callback);
-    } else {
-      throw RangeError('Nonpositivie frequency of ' + frequency);
-    }
-  } else {
-    throw new TypeError('Frequency is not a number(' +
-                        typeof(frequency) + ')');
-  }
-};
-
-PWM.prototype._doSetDutyCycle = function(callback) {
-  if (this._validateOptions()) {
-    return pwm.setDutyCycle(this._pin, this._options, function(err) {
-      var errObj = CreatePwmError('setDutyCycle()', err);
-
-      if (util.isFunction(callback)) {
-        callback(errObj);
-      }
+    this._binding.setPeriod(period, function(err) {
+      util.isFunction(callback) && callback.call(self, err);
     });
-  } else return false;
+  }
 };
-// pwm.setDutyCycle(dutyCycle[, callback])
-PWM.prototype.setDutyCycle = function(dutyCycle, callback) {
+
+PwmPin.prototype.setPeriodSync = function(period) {
+  if (util.isNull(this._binding)) {
+    throw new Error('Pwm pin is not opened');
+  }
+
+  if (this._validatePeriod(period)) {
+    this._binding.setPeriod(period);
+  }
+};
+
+PwmPin.prototype.setFrequency = function(frequency, callback) {
+  var self = this;
+
+  if (util.isNull(this._binding)) {
+    throw new Error('Pwm pin is not opened');
+  }
+
+  if (this._validateFrequency(frequency)) {
+    this._binding.setPeriod(1.0 / frequency, function(err) {
+      util.isFunction(callback) && callback.call(self, err);
+    });
+  }
+};
+
+PwmPin.prototype.setFrequencySync = function(frequency) {
+  if (util.isNull(this._binding)) {
+    throw new Error('Pwm pin is not opened');
+  }
+
+  if (this._validateFrequency(frequency)) {
+    this._binding.setPeriod(1.0 / frequency);
+  }
+};
+
+PwmPin.prototype.setDutyCycle = function(dutyCycle, callback) {
+  var self = this;
+
+  if (util.isNull(this._binding)) {
+    throw new Error('Pwm pin is not opened');
+  }
+
   // Check arguments.
   if (this._validateDutyCycle(dutyCycle)) {
-    this._options.dutyCycle = dutyCycle;
-    return this._doSetDutyCycle(callback);
+    this._binding.setDutyCycle(dutyCycle, function(err) {
+      util.isFunction(callback) && callback.call(self, err);
+    });
   }
 };
 
-// pwm.setEnable(enable[, callback])
-PWM.prototype.setEnable = function(enable, callback) {
+PwmPin.prototype.setDutyCycleSync = function(dutyCycle) {
+  if (util.isNull(this._binding)) {
+    throw new Error('Pwm pin is not opened');
+  }
+
+  // Check arguments.
+  if (this._validateDutyCycle(dutyCycle)) {
+    this._binding.setDutyCycle(dutyCycle);
+  }
+};
+
+PwmPin.prototype.setEnable = function(enable, callback) {
+  var self = this;
+
+  if (util.isNull(this._binding)) {
+    throw new Error('Pwm pin is not opened');
+  }
+
   // Check arguments.
   if (!util.isNumber(enable) && !util.isBoolean(enable)) {
     throw new TypeError('enable is of type ' + typeof(enable));
   }
 
-  return pwm.setEnable(this._pin, !!enable, function(err) {
-    var errObj = CreatePwmError('setEnable()', err);
-
-    if (util.isFunction(callback)) {
-      callback(errObj);
-    }
+  this._binding.setEnable(!!enable, function(err) {
+    util.isFunction(callback) && callback.call(self, err);
   });
 };
 
-// pwm.unexport([callback])
-PWM.prototype.unexport = function(callback) {
-  return pwm.unexport(this._pin, function(err) {
-    var errObj = CreatePwmError('unexport()', err);
+PwmPin.prototype.setEnableSync = function(enable) {
+  if (util.isNull(this._binding)) {
+    throw new Error('Pwm pin is not opened');
+  }
 
-    if (util.isFunction(callback)) {
-      callback(errObj);
-    }
+  // Check arguments.
+  if (!util.isNumber(enable) && !util.isBoolean(enable)) {
+    throw new TypeError('enable is of type ' + typeof(enable));
+  }
+
+  this._binding.setEnable(!!enable);
+};
+
+PwmPin.prototype.close = function(callback) {
+  if (util.isNull(this._binding)) {
+    throw new Error('Pwm pin is not opened');
+  }
+
+  this._binding.close(function(err) {
+    util.isFunction(callback) && callback.call(self, err);
   });
 };
 
-module.exports = PWM;
+PwmPin.prototype.closeSync = function() {
+  if (util.isNull(this._binding)) {
+    throw new Error('Pwm pin is not opened');
+  }
+
+  this._binding.close();
+};
+
+module.exports = Pwm;

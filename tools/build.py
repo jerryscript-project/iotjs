@@ -64,8 +64,7 @@ def init_options():
                     argv.append('--%s=%s' % (opt_key, val))
 
     # Apply command line argument to argv.
-    argv = argv + ([arg for arg in sys.argv[1:]
-                    if not arg.startswith('--config=')])
+    argv = argv + sys.argv[1:]
 
     # Prepare argument parser.
     parser = argparse.ArgumentParser()
@@ -81,6 +80,10 @@ def init_options():
 
     parser.add_argument('--clean', action='store_true', default=False,
         help='Clean build directory before build (default: %(default)s)')
+
+    parser.add_argument('--config', default=path.BUILD_CONFIG_PATH,
+        help='Specify the config file (default: %(default)s)',
+        dest='config_path')
 
     parser.add_argument('--target-arch',
         choices=['arm', 'x86', 'i686', 'x86_64', 'x64'],

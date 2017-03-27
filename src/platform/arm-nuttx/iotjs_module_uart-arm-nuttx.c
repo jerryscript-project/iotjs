@@ -16,42 +16,47 @@
 #if defined(__NUTTX__)
 
 
-#include "../iotjs_module_uart-posix-general.inl.h"
+#include "module/iotjs_module_uart.h"
 
 
-void OpenWorkerUart(uv_work_t* work_req) {
-  UART_WORKER_INIT_TEMPLATE;
+void iotjs_uart_open_worker(uv_work_t* work_req) {
+  UART_WORKER_INIT;
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_uart_t, uart);
 
-  int fd =
-      open(iotjs_string_data(&req_data->path), O_RDWR | O_NOCTTY | O_NDELAY);
+  int fd = open(iotjs_string_data(&_this->device_path),
+                O_RDWR | O_NOCTTY | O_NDELAY);
 
-  if (fd == -1) {
-    req_data->error = kUartErrOpen;
+  if (fd < 0) {
+    req_data->result = false;
     return;
-  } else {
-    req_data->error = kUartErrOk;
   }
 
-  iotjs_uart_set_device_fd(req_data->uart_instance, fd);
-  uv_poll_t* poll_handle = iotjs_uart_get_poll_handle(req_data->uart_instance);
+  _this->device_fd = fd;
+  uv_poll_t* poll_handle = &_this->poll_handle;
 
   uv_loop_t* loop = iotjs_environment_loop(iotjs_environment_get());
   uv_poll_init(loop, poll_handle, fd);
-  poll_handle->data = req_data->uart_instance;
-  uv_poll_start(poll_handle, UV_READABLE, read_cb);
+  poll_handle->data = uart;
+  uv_poll_start(poll_handle, UV_READABLE, iotjs_uart_read_cb);
+
+  req_data->result = true;
 }
 
 
-void WriteWorkerUart(uv_work_t* work_req) {
-  UART_WORKER_INIT_TEMPLATE;
+bool iotjs_uart_write(iotjs_uart_t* uart) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_uart_t, uart);
   int bytesWritten = 0;
   unsigned offset = 0;
-  int fd = iotjs_uart_get_device_fd(req_data->uart_instance);
+  int fd = _this->device_fd;
+  const char* buf_data = iotjs_string_data(&_this->buf_data);
+
+  DDDLOG("%s - data: %s", __func__, buf_data);
 
   do {
     errno = 0;
-    bytesWritten =
-        write(fd, req_data->buf_data + offset, req_data->buf_len - offset);
+    bytesWritten = write(fd, buf_data + offset, _this->buf_len - offset);
+
+    DDDLOG("%s - size: %d", __func__, _this->buf_len - offset);
 
     if (bytesWritten != -1) {
       offset += bytesWritten;
@@ -62,10 +67,11 @@ void WriteWorkerUart(uv_work_t* work_req) {
       continue;
     }
 
-    req_data->error = kUartErrWrite;
-    return;
+    return false;
 
-  } while (req_data->buf_len > offset);
+  } while (_this->buf_len > offset);
+
+  return true;
 }
 
 

@@ -19,8 +19,7 @@
 #include "module/iotjs_module_uart.h"
 #include "iotjs_module_unimplemented.inl.h"
 
-void OpenWorkerUart(uv_work_t* work_req) IOTJS_MODULE_UNIMPLEMENTED();
-void UartClose(iotjs_uart_t* uart) IOTJS_MODULE_UNIMPLEMENTED();
-void WriteWorkerUart(uv_work_t* work_req) IOTJS_MODULE_UNIMPLEMENTED();
+void iotjs_uart_open_worker(uv_work_t* work_req) IOTJS_MODULE_UNIMPLEMENTED();
+bool iotjs_uart_write(iotjs_uart_t* uart) IOTJS_MODULE_UNIMPLEMENTED(false);
 
 #endif // __APPLE__

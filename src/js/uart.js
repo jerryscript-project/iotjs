@@ -22,91 +22,112 @@ var BAUDRATE = [0, 50, 75, 110, 134, 150, 200, 300, 600, 1200, 1800, 2400
                 , 4800, 9600, 19200, 38400, 57600, 115200, 230400];
 var DATABITS = [5, 6, 7, 8];
 
-var defaultSettings = {
-  autoOpen: true,
+var defaultConfiguration = {
   baudRate: 9600,
-  dataBits: 8,
+  dataBits: 8
+};
+
+
+function Uart() {
+  if (!(this instanceof Uart)) {
+    return new Uart();
+  }
 }
 
-// UART(path[, options][, callback])
-function UART(path, options, callback) { //constructor
+Uart.prototype.open = function(configuration, callback) {
+  return new UartPort(configuration, callback);
+};
+
+
+function UartPort(configuration, callback) { //constructor
   var self = this;
 
-  if (!(this instanceof UART)) {
-    return new UART(path, options, callback);
+  if (util.isObject(configuration)) {
+    if (!util.isString(configuration.device)) {
+      throw new TypeError(
+        'Bad configuration - device is mandatory and should be String');
+    }
+  } else {
+    throw new TypeError('Bad arguments - configuration should be Object');
   }
 
-  if (util.isFunction(options)) {
-    callback = options;
-    options = {};
+  // validate baud rate
+  if (!util.isUndefined(configuration.baudRate)) {
+    if (BAUDRATE.indexOf(configuration.baudRate) === -1) {
+      throw new TypeError("Invalid 'baudRate': " + configuration.baudRate);
+    }
+  } else {
+    configuration.baudRate = defaultConfiguration.baudRate;
   }
 
-  if (util.isUndefined(options)) {
-    options = {};
-  }
-
-  var settings = {};
-  for (var propname in defaultSettings) {
-    settings[propname] = defaultSettings[propname];
-  }
-  for (var propname in options) {
-    settings[propname] = options[propname];
+  // validate data bits
+  if (!util.isUndefined(configuration.dataBits)) {
+    if (DATABITS.indexOf(configuration.dataBits) === -1) {
+      throw new TypeError("Invalid 'databits': " + configuration.dataBits);
+    }
+  } else {
+    configuration.dataBits = defaultConfiguration.dataBits;
   }
 
   EventEmitter.call(this);
 
-  if (!path) {
-    throw new TypeError('No path specified');
-  }
-
-  if (BAUDRATE.indexOf(settings.baudRate) === -1) {
-    throw new TypeError("Invalid 'baudRate': " + settings.baudRate);
-  }
-
-  if (DATABITS.indexOf(settings.dataBits) === -1) {
-    throw new TypeError("Invalid 'databits': " + settings.dataBits);
-  }
-
-  self._path = path;
-  self._options = settings;
-  self._closed = true;
-
-  process.on('exit', (function(_this) {
-    return function() {
-      if (_this._closed == false)
-        return _this._uart.close();
-    };
-  })(self));
-
-  self._uart = new uart(this);
-
-  if (settings.autoOpen) {
-    this.open(callback);
-  }
-}
-
-util.inherits(UART, EventEmitter);
-
-UART.prototype.open = function(callback) {
-  this._closed = false;
-  this._uart.open(this._path, this._options, function (err) {
-    return process.nextTick(function() {
-      return callback(err);
-    });
+  this._binding = new uart(configuration, this, function(err) {
+    util.isFunction(callback) && callback.call(self, err);
   });
+
+  process.on('exit', (function(self) {
+    return function() {
+      if (!util.isNull(self._binding)) {
+        self.closeSync();
+      }
+    };
+  })(this));
 }
 
-UART.prototype.close = function() {
-  this._closed = true;
-  return this._uart.close();
-}
+util.inherits(UartPort, EventEmitter);
 
-UART.prototype.write = function(buffer, callback) {
-  this._uart.write(buffer, function(err) {
-    return process.nextTick(function() {
-      return callback(err);
-    });
+UartPort.prototype.write = function(buffer, callback) {
+  var self = this;
+
+  if (util.isNull(this._binding)) {
+    throw new Error('UART port is not opened');
+  }
+
+  this._binding.write(buffer, function(err) {
+    util.isFunction(callback) && callback.call(self, err);
   });
 };
 
-module.exports = UART;
+UartPort.prototype.writeSync = function(buffer) {
+  var self = this;
+
+  if (util.isNull(this._binding)) {
+    throw new Error('UART port is not opened');
+  }
+
+  this._binding.write(buffer);
+};
+
+UartPort.prototype.close = function(callback) {
+  var self = this;
+
+  if (util.isNull(this._binding)) {
+    throw new Error('UART port is not opened');
+  }
+
+  this._binding.close(function(err) {
+    util.isFunction(callback) && callback.call(self, err, value);
+  });
+  this._binding = null;
+};
+
+UartPort.prototype.closeSync = function() {
+  if (util.isNull(this._binding)) {
+    throw new Error('UART port is not opened');
+  }
+
+  this._binding.close();
+  this._binding = null;
+};
+
+module.exports = Uart;

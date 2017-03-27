@@ -21,66 +21,63 @@
 #include "iotjs_objectwrap.h"
 #include "iotjs_reqwrap.h"
 
+
+#define UART_WRITE_BUFFER_SIZE 512
+
+
 typedef enum {
   kUartOpOpen,
   kUartOpClose,
   kUartOpWrite,
 } UartOp;
 
-typedef enum {
-  kUartErrOk = 0,
-  kUartErrOpen = -1,
-  kUartErrWrite = -2,
-} UartError;
 
 typedef struct {
   iotjs_jobjectwrap_t jobjectwrap;
-  iotjs_jval_t jthis;
+  iotjs_jval_t jemitter_this;
   int device_fd;
+  int baud_rate;
+  uint8_t data_bits;
+  iotjs_string_t device_path;
+  iotjs_string_t buf_data;
+  unsigned buf_len;
   uv_poll_t poll_handle;
 } IOTJS_VALIDATED_STRUCT(iotjs_uart_t);
 
-typedef struct {
-  iotjs_string_t path;
-  int baudRate;
-  uint8_t dataBits;
-  char* buf_data;
-  unsigned buf_len;
-  iotjs_uart_t* uart_instance;
 
+typedef struct {
   UartOp op;
-  UartError error;
+  bool result;
 } iotjs_uart_reqdata_t;
+
 
 typedef struct {
   iotjs_reqwrap_t reqwrap;
   uv_work_t req;
   iotjs_uart_reqdata_t req_data;
+  iotjs_uart_t* uart_instance;
 } IOTJS_VALIDATED_STRUCT(iotjs_uart_reqwrap_t);
 
 #define THIS iotjs_uart_reqwrap_t* uart_reqwrap
-iotjs_uart_reqwrap_t* iotjs_uart_reqwrap_create(const iotjs_jval_t* jcallback,
-                                                UartOp op);
-void iotjs_uart_reqwrap_dispatched(THIS);
-uv_work_t* iotjs_uart_reqwrap_req(THIS);
-const iotjs_jval_t* iotjs_uart_reqwrap_jcallback(THIS);
+
 iotjs_uart_reqwrap_t* iotjs_uart_reqwrap_from_request(uv_work_t* req);
 iotjs_uart_reqdata_t* iotjs_uart_reqwrap_data(THIS);
+
+iotjs_uart_t* iotjs_uart_instance_from_reqwrap(THIS);
+iotjs_uart_t* iotjs_uart_instance_from_jval(const iotjs_jval_t* juart);
+
 #undef THIS
 
-void iotjs_uart_set_device_fd(iotjs_uart_t* uart, int fd);
-int iotjs_uart_get_device_fd(iotjs_uart_t* uart);
-iotjs_jval_t* iotjs_uart_get_jthis(iotjs_uart_t* uart);
-uv_poll_t* iotjs_uart_get_poll_handle(iotjs_uart_t* uart);
 
-iotjs_uart_t* iotjs_uart_create(const iotjs_jval_t* juart);
-const iotjs_jval_t* iotjs_uart_get_juart();
-iotjs_uart_t* iotjs_uart_get_instance(const iotjs_jval_t* juart);
+#define UART_WORKER_INIT                                                      \
+  iotjs_uart_reqwrap_t* req_wrap = iotjs_uart_reqwrap_from_request(work_req); \
+  iotjs_uart_reqdata_t* req_data = iotjs_uart_reqwrap_data(req_wrap);         \
+  iotjs_uart_t* uart = iotjs_uart_instance_from_reqwrap(req_wrap);
 
-void iotjs_uart_onread(iotjs_jval_t* jthis, char* buf);
 
-void OpenWorkerUart(uv_work_t* work_req);
-void UartClose(iotjs_uart_t* uart);
-void WriteWorkerUart(uv_work_t* work_req);
+void iotjs_uart_read_cb(uv_poll_t* req, int status, int events);
+
+void iotjs_uart_open_worker(uv_work_t* work_req);
+bool iotjs_uart_write(iotjs_uart_t* uart);
 
 #endif /* IOTJS_MODULE_UART_H */

@@ -97,11 +97,24 @@ separate_arguments(EXTERNAL_STATIC_LIB)
 separate_arguments(EXTERNAL_SHARED_LIB)
 
 set(LIB_IOTJS_CFLAGS ${IOTJS_CFLAGS_STR})
+
+# Nuttx doesn't support MBEDTLS
+# see conversation here: https://github.com/Samsung/iotjs/pull/630
+set(REAL_LIBMBEDTLS_INCDIR "")
+set(REAL_LIBMBEDTLS_LIB "")
+set(LOWER_SYSTEM_NAME "")
+string(TOLOWER ${CMAKE_SYSTEM_NAME} LOWER_SYSTEM_NAME)
+if(NOT ${LOWER_SYSTEM_NAME} MATCHES "nuttx")
+  set(REAL_LIBMBEDTLS_INCDIR ${LIBMBEDTLS_INCDIR})
+  set(REAL_LIBMBEDTLS_LIB ${LIBMBEDTLS_LIB})
+endif()
+
 set(LIB_IOTJS_INCDIR ${EXTERNAL_INCLUDE_DIR}
                      ${INC_ROOT}
                      ${SRC_ROOT}
                      ${JERRY_INCDIR}
                      ${LIBTUV_INCDIR}
+                     ${REAL_LIBMBEDTLS_INCDIR}
                      ${HTTPPARSER_INCDIR})
 
 add_custom_target(targetLibIoTjs)
@@ -134,7 +147,8 @@ function(BuildIoTjs)
                PROPERTY LINK_FLAGS ${BIN_IOTJS_LINK_FLAGS})
   target_include_directories(${targetName} PRIVATE ${BIN_IOTJS_INCDIR})
   target_link_libraries(${targetName} libiotjs ${JERRY_LIB} ${LIBTUV_LIB}
-    ${HTTPPARSER_LIB} ${EXTERNAL_STATIC_LIB} ${EXTERNAL_SHARED_LIB})
+    ${REAL_LIBMBEDTLS_LIB} ${HTTPPARSER_LIB} ${EXTERNAL_STATIC_LIB}
+    ${EXTERNAL_SHARED_LIB})
   add_dependencies(targetLibIoTjs ${targetName})
 
 endfunction()
@@ -149,7 +163,8 @@ function(BuildIoTjsLib)
                PROPERTY LINK_FLAGS ${BIN_IOTJS_LINK_FLAGS})
   target_include_directories(${targetName} PRIVATE ${BIN_IOTJS_INCDIR})
   target_link_libraries(${targetName} libiotjs ${JERRY_LIB} ${LIBTUV_LIB}
-    ${HTTPPARSER_LIB} ${EXTERNAL_STATIC_LIB} ${EXTERNAL_SHARED_LIB})
+    ${REAL_LIBMBEDTLS_LIB} ${HTTPPARSER_LIB} ${EXTERNAL_STATIC_LIB}
+    ${EXTERNAL_SHARED_LIB})
   add_dependencies(targetLibIoTjs ${targetName})
 endfunction()
 

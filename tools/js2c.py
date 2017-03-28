@@ -47,6 +47,13 @@ def remove_whitespaces(code):
     return re.sub('\n+', '\n', re.sub('\n +', '\n', code))
 
 
+def force_str(string):
+    if not isinstance(string, str):
+        return string.decode('utf-8')
+    else:
+        return string
+
+
 def parse_literals(code):
     JERRY_SNAPSHOT_VERSION = 6
 
@@ -67,7 +74,7 @@ def parse_literals(code):
         if length < 32:
             item = struct.unpack('%ds' % length,
                                  code[code_ptr : code_ptr + length])
-            literals.add(item[0])
+            literals.add(force_str(item[0]))
         code_ptr = code_ptr + length + (length % 2)
 
     return literals
@@ -266,11 +273,7 @@ def js2c(buildtype, no_snapshot, js_modules, js_dumper, verbose=False):
 
         sorted_strings = sorted(magic_string_set, key=lambda x: (len(x), x))
         for idx, magic_string in enumerate(sorted_strings):
-            if not isinstance(magic_string, str):
-                magic = magic_string.decode('utf-8')
-            else:
-                magic = magic_string
-            magic_text = repr(magic)[1:-1]
+            magic_text = repr(magic_string)[1:-1]
 
             fout_magic_str.write('  MAGICSTR_EX_DEF(MAGIC_STR_%d, "%s") \\\n'
                                  % (idx, magic_text))

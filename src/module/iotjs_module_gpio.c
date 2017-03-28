@@ -143,6 +143,7 @@ void iotjs_gpio_after_worker(uv_work_t* work_req, int status) {
           iotjs_jargs_append_error(&jargs, "GPIO Close Error");
         } else {
           iotjs_jargs_append_null(&jargs);
+          iotjs_jargs_append_bool(&jargs, req_data->value);
         }
         break;
       default:

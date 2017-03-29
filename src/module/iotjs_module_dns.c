@@ -76,15 +76,18 @@ static void AfterGetAddrInfo(uv_getaddrinfo_t* req, int status,
 
   if (status == 0) {
     char ip[INET6_ADDRSTRLEN];
+    int family;
     const char* addr;
 
     // Only first address is used
     if (res->ai_family == AF_INET) {
       struct sockaddr_in* sockaddr = (struct sockaddr_in*)(res->ai_addr);
       addr = (char*)(&(sockaddr->sin_addr));
+      family = 4;
     } else {
       struct sockaddr_in6* sockaddr = (struct sockaddr_in6*)(res->ai_addr);
       addr = (char*)(&(sockaddr->sin6_addr));
+      family = 6;
     }
 
     int err = uv_inet_ntop(res->ai_family, addr, ip, INET6_ADDRSTRLEN);
@@ -93,6 +96,7 @@ static void AfterGetAddrInfo(uv_getaddrinfo_t* req, int status,
     }
 
     iotjs_jargs_append_string_raw(&args, ip);
+    iotjs_jargs_append_number(&args, family);
   }
 
   uv_freeaddrinfo(res);

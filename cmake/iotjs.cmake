@@ -14,147 +14,270 @@
 
 cmake_minimum_required(VERSION 2.8)
 
-# Module Configuration - listup all possible modules
-file(GLOB IOTJS_MODULES_ALL ${CMAKE_SOURCE_DIR}/src/module/*.c)
-separate_arguments(IOTJS_MODULES_ALL)
-foreach(module ${IOTJS_MODULES_ALL})
-    get_filename_component(IOTJS_MODULENAME ${module} NAME_WE)
-    string(SUBSTRING ${IOTJS_MODULENAME} 13 -1 IOTJS_MODULENAME)
-    string(TOUPPER ${IOTJS_MODULENAME} IOTJS_MODULENAME)
-    set(IOTJS_CFLAGS "${IOTJS_CFLAGS} -DENABLE_MODULE_${IOTJS_MODULENAME}=0")
-endforeach()
+set(IOTJS_SOURCE_DIR ${ROOT_DIR}/src)
+
+function(find_value RESULT VALUE VALUE_TRUE VALUE_FALSE)
+  list(FIND ARGN ${VALUE} idx)
+  if(${idx} GREATER -1)
+    set(${RESULT} ${VALUE_TRUE} PARENT_SCOPE)
+  else()
+    set(${RESULT} ${VALUE_FALSE} PARENT_SCOPE)
+  endif()
+endfunction(find_value)
 
 # System Configuration
-set(IOTJS_PLATFORM_SRC "")
-if(${CMAKE_SYSTEM_NAME} MATCHES "Linux|Tizen")
-    list(APPEND IOTJS_PLATFORM_SRC ${SRC_ROOT}/platform/iotjs_*-linux.c)
+set(IOTJS_PLATFORM_SRC)
+if("${CMAKE_SYSTEM_NAME}" MATCHES "Linux|Tizen")
+  file(GLOB IOTJS_PLATFORM_LINUX_SRC
+       ${IOTJS_SOURCE_DIR}/platform/iotjs_*-linux.c)
+  list(APPEND IOTJS_PLATFORM_SRC ${IOTJS_PLATFORM_LINUX_SRC})
+  # in case of Tizen force the platform to Linux
+  string(REGEX REPLACE "tizen$" "linux"
+         PLATFORM_DESCRIPTOR "${PLATFORM_DESCRIPTOR}")
 endif()
 
 # Board Configuration (not module)
-if(DEFINED CMAKE_TARGET_BOARD)
-    set(BOARD_DESCRIPT "")
-    string(TOLOWER ${CMAKE_TARGET_BOARD} BOARD_DESCRIPT)
-    set(PLATFORM_SRC ${SRC_ROOT}/platform/${PLATFORM_DESCRIPT})
-    set(PLATFORM_SRC ${PLATFORM_SRC}/iotjs_[^module]*${BOARD_DESCRIPT}.c)
-    list(APPEND IOTJS_PLATFORM_SRC ${PLATFORM_SRC})
+if(DEFINED TARGET_BOARD)
+  string(TOLOWER "${TARGET_BOARD}" BOARD_DESCRIPTOR)
+
+  if("${BOARD_DESCRIPTOR}" STREQUAL "stm32f4dis")
+    set(BOARD_DESCRIPTOR stm32)
+  endif()
+
+  set(BOARD_SRC ${IOTJS_SOURCE_DIR}/platform/${PLATFORM_DESCRIPTOR})
+  set(BOARD_SRC ${BOARD_SRC}/iotjs_[^module]*${BOARD_DESCRIPTOR}.c)
+  file(GLOB IOTJS_BOARD_SRC ${BOARD_SRC})
+  list(APPEND IOTJS_PLATFORM_SRC ${IOTJS_BOARD_SRC})
 endif()
 
-# Module Configuration - enable only selected modules and board
-set(IOTJS_MISSING_MODULES)
-set(IOTJS_MODULE_SRC "")
-separate_arguments(IOTJS_MODULES)
-set(PLATFORM_SRC "${SRC_ROOT}/platform/${PLATFORM_DESCRIPT}/iotjs_module")
-foreach(module ${IOTJS_MODULES})
-    list(APPEND IOTJS_MODULE_SRC ${SRC_ROOT}/module/iotjs_module_${module}.c)
-    set(MODULE_SRC "${PLATFORM_SRC}_${module}-${PLATFORM_DESCRIPT}.c")
-    if(EXISTS "${MODULE_SRC}")
-        list(APPEND IOTJS_MODULE_SRC ${MODULE_SRC})
-    endif()
+# Run js/native module analyzer
+if(ENABLE_MINIMAL)
+    set(MODULE_ANALYZER_ARGS --iotjs-minimal-profile)
+endif()
 
-    set(MODULE_STEM "${PLATFORM_SRC}_${module}-")
-    # src/platform/arm-linux/iotjs_module-
-    unset(HAVE_MODULE_IMPL)
+execute_process(
+  COMMAND python ${ROOT_DIR}/tools/module_analyzer.py
+          --mode cmake-dump
+          --iotjs-include-module "${IOTJS_INCLUDE_MODULE}"
+          --iotjs-exclude-module "${IOTJS_EXCLUDE_MODULE}"
+          ${MODULE_ANALYZER_ARGS}
+  RESULT_VARIABLE MODULE_ANALYZER_RETURN_CODE
+  ERROR_VARIABLE MODULE_ANALYZER_OUTPUT_ERR
+  OUTPUT_VARIABLE MODULE_ANALYZER_OUTPUT
+)
 
-    if(DEFINED BOARD_DESCRIPT)
-      set(BOARD_MODULE_SRC
-          "${MODULE_STEM}${PLATFORM_DESCRIPT}-${BOARD_DESCRIPT}.c")
-      if(EXISTS "${BOARD_MODULE_SRC}")
-        list(APPEND IOTJS_MODULE_SRC ${BOARD_MODULE_SRC})
-        set(HAVE_MODULE_IMPL "yes")
-        message(STATUS "Board ${module} module found: ${BOARD_MODULE_SRC}")
-      endif()
-    endif()
+if(MODULE_ANALYZER_RETURN_CODE)
+  message(FATAL_ERROR
+    "Error during module analyzer execution (${MODULE_ANALYZER_RETURN_CODE}): "
+    "${MODULE_ANALYZER_OUTPUT}"
+    "${MODULE_ANALYZER_OUTPUT_ERR}")
+endif()
 
-    if("${HAVE_MODULE_IMPL}" STREQUAL "")
-      set(SYSTEM_MODULE_SRC "${MODULE_STEM}${PLATFORM_DESCRIPT}.c")
-      if(EXISTS "${SYSTEM_MODULE_SRC}")
-        list(APPEND IOTJS_MODULE_SRC ${SYSTEM_MODULE_SRC})
-        message(STATUS "Generic module ${module} added: ${SYSTEM_MODULE_SRC}")
-      else()
-        list(APPEND IOTJS_MISSING_MODULES ${module})
-      endif()
-    endif()
-    string(TOUPPER ${module} module)
-    set(IOTJS_CFLAGS "${IOTJS_CFLAGS} -UENABLE_MODULE_${module}")
-    set(IOTJS_CFLAGS "${IOTJS_CFLAGS} -DENABLE_MODULE_${module}=1")
+if(VERBOSE)
+  message("Module analyzer:\n${MODULE_ANALYZER_OUTPUT}")
+endif()
+
+function(get_variable_value OUTPUT_VAR VAR_NAME STRING_DATA)
+  string(REGEX MATCHALL "${VAR_NAME}=[a-zA-Z;_0-9-]+" LINE "${STRING_DATA}")
+  string(REPLACE "${VAR_NAME}=" "" VAR_VALUE "${LINE}")
+  string(STRIP "${VAR_VALUE}" VAR_VALUE)
+  separate_arguments(VAR_VALUE)
+  set(${OUTPUT_VAR} ${VAR_VALUE} PARENT_SCOPE)
+endfunction(get_variable_value)
+
+get_variable_value(IOTJS_NATIVE_MODULES
+  "IOTJS_NATIVE_MODULES" "${MODULE_ANALYZER_OUTPUT}")
+get_variable_value(IOTJS_JS_MODULES
+  "IOTJS_JS_MODULES" "${MODULE_ANALYZER_OUTPUT}")
+
+# Run js2c
+set(JS2C_RUN_MODE "release")
+if("${CMAKE_BUILD_TYPE}" STREQUAL "debug")
+  set(JS2C_RUN_MODE "debug")
+endif()
+
+if(ENABLE_SNAPSHOT)
+  set(JS2C_SNAPSHOT_ARG --snapshot-generator=${JERRY_HOST})
+  set(IOTJS_CFLAGS ${IOTJS_CFLAGS} -DENABLE_SNAPSHOT)
+endif()
+
+add_custom_command(
+  OUTPUT ${IOTJS_SOURCE_DIR}/iotjs_js.c ${IOTJS_SOURCE_DIR}/iotjs_js.h
+  COMMAND python ${ROOT_DIR}/tools/js2c.py
+  ARGS --buildtype=${JS2C_RUN_MODE}
+       --modules '${IOTJS_JS_MODULES}'
+       ${JS2C_SNAPSHOT_ARG}
+  DEPENDS ${ROOT_DIR}/tools/js2c.py
+          jerry
+          ${IOTJS_SOURCE_DIR}/js/*.js
+)
+
+# Module Configuration - listup all possible native C modules
+set(IOTJS_MODULES_ENABLED)
+set(IOTJS_MODULES_DISABLED)
+# List all modules and mark them as disabled by default
+file(GLOB IOTJS_MODULES_ALL_SRC ${IOTJS_SOURCE_DIR}/module/*.c)
+foreach(module ${IOTJS_MODULES_ALL_SRC})
+  ## iotjs_module_adc.c -> ADC
+  get_filename_component(IOTJS_MODULENAME ${module} NAME_WE)
+  string(SUBSTRING ${IOTJS_MODULENAME} 13 -1 IOTJS_MODULENAME)
+  string(TOUPPER ${IOTJS_MODULENAME} IOTJS_MODULENAME)
+  list(APPEND IOTJS_MODULES_DISABLED ${IOTJS_MODULENAME})
 endforeach()
-if(NOT "${IOTJS_MISSING_MODULES}" STREQUAL "")
-  list(SORT IOTJS_MISSING_MODULES)
-  string(REPLACE ";" " " IOTJS_MISSING_MODULES "${IOTJS_MISSING_MODULES}")
-  message(WARNING "Missing configured module implementations for: "
-          "${IOTJS_MISSING_MODULES}")
-endif()
 
+# Module Configuration - enable only selected modules and add board support
+set(IOTJS_PLATFORM_SUPPORT)
+set(IOTJS_BOARD_SUPPORT)
+set(IOTJS_MODULES_SRC)
+set(PLATFORM_SRC
+  ${IOTJS_SOURCE_DIR}/platform/${PLATFORM_DESCRIPTOR}/iotjs_module)
+foreach(module ${IOTJS_NATIVE_MODULES})
+  string(TOUPPER ${module} MODULE)
+  # check if there is a native file for the module
+  set(BASE_MODULE_SRC ${IOTJS_SOURCE_DIR}/module/iotjs_module_${module}.c)
+  if(EXISTS "${BASE_MODULE_SRC}")
+    list(APPEND IOTJS_MODULE_SRC ${BASE_MODULE_SRC})
+  endif()
 
-file(GLOB LIB_IOTJS_SRC ${SRC_ROOT}/*.c
-                        ${IOTJS_MODULE_SRC}
-                        ${IOTJS_PLATFORM_SRC})
+  # check if there is an extra platform support code for the module
+  # PLATFORM_DESCRIPTOR is <arch>-<os>  (eg.: x86_64-linux)
+  # ../platform/<arch>-<os>/iotjs_module_<module> ...
+  set(PLATFORM_MODULE_BASE ${PLATFORM_SRC}_${module}-${PLATFORM_DESCRIPTOR})
+  set(PLATFORM_MODULE_SRC ${PLATFORM_MODULE_BASE}.c)
+  if(VERBOSE)
+    message("Checking platform file: ${PLATFORM_MODULE_SRC}")
+  endif()
+  if(EXISTS "${PLATFORM_MODULE_SRC}")
+    list(APPEND IOTJS_MODULE_SRC ${PLATFORM_MODULE_SRC})
+    list(APPEND IOTJS_PLATFORM_SUPPORT ${MODULE})
+  endif()
 
-string(REPLACE ";" " " IOTJS_CFLAGS_STR "${IOTJS_CFLAGS}")
-string(REPLACE ";" " " IOTJS_LINK_FLAGS_STR "${IOTJS_LINK_FLAGS}")
+  # check if there is an extra board support code for the module
+  # BOARD_DESCRIPTOR is eg.: stm32
+  if(DEFINED BOARD_DESCRIPTOR)
+    set(BOARD_MODULE_SRC "${PLATFORM_MODULE_BASE}-${BOARD_DESCRIPTOR}.c")
+    if(VERBOSE)
+      message("Checking module file: ${BOARD_MODULE_SRC}")
+    endif()
+    if(EXISTS "${BOARD_MODULE_SRC}")
+      list(APPEND IOTJS_MODULE_SRC ${BOARD_MODULE_SRC})
+      list(APPEND IOTJS_MODULE_SUPPORT ${MODULE})
+    endif()
+  endif()
+  string(TOUPPER ${module} module)
+
+  list(APPEND IOTJS_MODULES_ENABLED ${module})
+  list(REMOVE_ITEM IOTJS_MODULES_DISABLED ${module})
+endforeach()
+
+# Build the module enable defines and print out the module configurations
+message("Native module configuration:")
+set(IOTJS_MODULES_ALL ${IOTJS_MODULES_ENABLED} ${IOTJS_MODULES_DISABLED})
+list(SORT IOTJS_MODULES_ALL)
+foreach(module ${IOTJS_MODULES_ALL})
+  find_value(MODULE_ENABLED "${module}" 1 0 ${IOTJS_MODULES_ENABLED})
+  list(APPEND IOTJS_CFLAGS "-DENABLE_MODULE_${module}=${MODULE_ENABLED}")
+
+  if(MODULE_ENABLED)
+    find_value(PLATFORM_SUPPORT "${module}" "found" "NOT found"
+               ${IOTJS_PLATFORM_SUPPORT})
+    if(DEFINED BOARD_DESCRIPTOR)
+      find_value(BOARD_SUPPORT "${module}" "found" "NOT found"
+        ${IOTJS_BOARD_SUPPORT})
+      set(BOARD_SUPPORT_STR "[Board support: ${BOARD_SUPPORT}]")
+    else()
+      set(BOARD_SUPPORT_STR "")
+    endif()
+
+    message(STATUS "${module}: ON "
+            "[Platform support: ${PLATFORM_SUPPORT}]"
+            "${BOARD_SUPPORT_STR}")
+  else()
+    message(STATUS "${module}: OFF")
+  endif()
+endforeach()
+
+# List the enabled js modules
+message("Enabled JS modules:")
+foreach(module ${IOTJS_JS_MODULES})
+  message(STATUS "${module}")
+endforeach()
+
+# Print out some configs
+message("IoT.js configured with:")
+message(STATUS "CMAKE_BUILD_TYPE         ${CMAKE_BUILD_TYPE}")
+message(STATUS "CMAKE_C_FLAGS            ${CMAKE_C_FLAGS}")
+message(STATUS "PLATFORM_DESCRIPTOR      ${PLATFORM_DESCRIPTOR}")
+message(STATUS "TARGET_OS                ${TARGET_OS}")
+message(STATUS "TARGET_SYSTEMROOT        ${TARGET_SYSTEMROOT}")
+message(STATUS "TARGET_BOARD             ${TARGET_BOARD}")
+message(STATUS "BUILD_LIB_ONLY           ${BUILD_LIB_ONLY}")
+message(STATUS "ENABLE_LTO               ${ENABLE_LTO}")
+message(STATUS "ENABLE_SNAPSHOT          ${ENABLE_SNAPSHOT}")
+message(STATUS "ENABLE_MINIMAL           ${ENABLE_MINIMAL}")
+message(STATUS "IOTJS_INCLUDE_MODULE     ${IOTJS_INCLUDE_MODULE}")
+message(STATUS "IOTJS_EXCLUDE_MODULE     ${IOTJS_EXCLUDE_MODULE}")
+message(STATUS "IOTJS_C_FLAGS            ${IOTJS_C_FLAGS}")
+message(STATUS "IOTJS_LINK_FLAGS         ${IOTJS_LINK_FLAGS}")
+
+# Collect all sources into LIB_IOTJS_SRC
+file(GLOB LIB_IOTJS_SRC ${IOTJS_SOURCE_DIR}/*.c)
+list(APPEND LIB_IOTJS_SRC
+  ${IOTJS_SOURCE_DIR}/iotjs_js.c
+  ${IOTJS_SOURCE_DIR}/iotjs_js.h
+  ${IOTJS_MODULE_SRC}
+  ${IOTJS_PLATFORM_SRC}
+)
+
 separate_arguments(EXTERNAL_INCLUDE_DIR)
 separate_arguments(EXTERNAL_STATIC_LIB)
 separate_arguments(EXTERNAL_SHARED_LIB)
 
-set(LIB_IOTJS_CFLAGS ${IOTJS_CFLAGS_STR})
-set(LIB_IOTJS_INCDIR ${EXTERNAL_INCLUDE_DIR}
-                     ${INC_ROOT}
-                     ${SRC_ROOT}
-                     ${JERRY_INCDIR}
-                     ${LIBTUV_INCDIR}
-                     ${HTTPPARSER_INCDIR})
+set(IOTJS_INCLUDE_DIRS
+  ${EXTERNAL_INCLUDE_DIR}
+  ${ROOT_DIR}/include
+  ${IOTJS_SOURCE_DIR}
+  ${JERRY_PORT_DIR}
+  ${JERRY_INCLUDE_DIR}
+  ${HTTPPARSER_INCLUDE_DIR}
+  ${TUV_INCLUDE_DIR}
+)
 
-add_custom_target(targetLibIoTjs)
+set(IOTJS_CFLAGS ${IOTJS_CFLAGS} ${CFLAGS_COMMON})
 
-function(BuildLibIoTjs)
-  set(targetName libiotjs)
+# Configure the libiotjs.a
+set(TARGET_LIB_IOTJS libiotjs)
+add_library(${TARGET_LIB_IOTJS} STATIC ${LIB_IOTJS_SRC})
+set_target_properties(${TARGET_LIB_IOTJS} PROPERTIES
+  COMPILE_OPTIONS "${IOTJS_CFLAGS}"
+  OUTPUT_NAME iotjs
+  ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+)
+target_include_directories(${TARGET_LIB_IOTJS} PRIVATE ${IOTJS_INCLUDE_DIRS})
+target_link_libraries(${TARGET_LIB_IOTJS}
+  ${JERRY_LIBS}
+  ${TUV_LIBS}
+  libhttp-parser
+  ${EXTERNAL_STATIC_LIB}
+  ${EXTERNAL_SHARED_LIB}
+)
 
-  add_library(${targetName} STATIC ${LIB_IOTJS_SRC})
-  set_property(TARGET ${targetName}
-               PROPERTY COMPILE_FLAGS ${LIB_IOTJS_CFLAGS})
-  target_include_directories(${targetName} PRIVATE ${LIB_IOTJS_INCDIR})
-endfunction()
+if(NOT BUILD_LIB_ONLY)
 
-BuildLibIoTjs()
+  if("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
+    set(IOTJS_LINK_FLAGS "-Xlinker -map -Xlinker iotjs.map")
+  else()
+    set(IOTJS_LINK_FLAGS "-Xlinker -Map -Xlinker iotjs.map")
+  endif()
 
-
-set(SRC_MAIN ${ROOT}/iotjs_linux.c)
-
-set(BIN_IOTJS_CFLAGS ${IOTJS_CFLAGS_STR})
-set(BIN_IOTJS_LINK_FLAGS ${IOTJS_LINK_FLAGS_STR})
-set(BIN_IOTJS_INCDIR ${LIB_IOTJS_INCDIR})
-
-function(BuildIoTjs)
-  set(targetName iotjs)
-
-  add_executable(${targetName} ${SRC_MAIN})
-  set_property(TARGET ${targetName}
-               PROPERTY COMPILE_FLAGS ${BIN_IOTJS_CFLAGS})
-  set_property(TARGET ${targetName}
-               PROPERTY LINK_FLAGS ${BIN_IOTJS_LINK_FLAGS})
-  target_include_directories(${targetName} PRIVATE ${BIN_IOTJS_INCDIR})
-  target_link_libraries(${targetName} libiotjs ${JERRY_LIB} ${LIBTUV_LIB}
-    ${HTTPPARSER_LIB} ${EXTERNAL_STATIC_LIB} ${EXTERNAL_SHARED_LIB})
-  add_dependencies(targetLibIoTjs ${targetName})
-
-endfunction()
-
-function(BuildIoTjsLib)
-  set(targetName iotjs)
-
-  add_library(${targetName} ${SRC_MAIN})
-  set_property(TARGET ${targetName}
-               PROPERTY COMPILE_FLAGS ${BIN_IOTJS_CFLAGS})
-  set_property(TARGET ${targetName}
-               PROPERTY LINK_FLAGS ${BIN_IOTJS_LINK_FLAGS})
-  target_include_directories(${targetName} PRIVATE ${BIN_IOTJS_INCDIR})
-  target_link_libraries(${targetName} libiotjs ${JERRY_LIB} ${LIBTUV_LIB}
-    ${HTTPPARSER_LIB} ${EXTERNAL_STATIC_LIB} ${EXTERNAL_SHARED_LIB})
-  add_dependencies(targetLibIoTjs ${targetName})
-endfunction()
-
-if(${BUILD_TO_LIB})
-  BuildIoTjsLib()
-else()
-  BuildIoTjs()
+  # Configure the iotjs executable
+  set(TARGET_IOTJS iotjs)
+  add_executable(${TARGET_IOTJS} ${ROOT_DIR}/iotjs_linux.c)
+  set_target_properties(${TARGET_IOTJS} PROPERTIES
+    COMPILE_OPTIONS "${IOTJS_CFLAGS}"
+    LINK_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${IOTJS_LINK_FLAGS}"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+  )
+  target_include_directories(${TARGET_IOTJS} PRIVATE ${IOTJS_INCLUDE_DIRS})
+  target_link_libraries(${TARGET_IOTJS} ${TARGET_LIB_IOTJS})
 endif()

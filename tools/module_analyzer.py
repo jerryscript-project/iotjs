@@ -171,6 +171,7 @@ def _load_options(argv):
     with open(config_path, 'rb') as f:
         config = json.loads(f.read().decode('ascii'))
 
+    loaded_argv = []
     for opt_key, opt_value in config['build_option'].items():
         if opt_key not in allowed_options:
             continue # ignore any option that is not for us

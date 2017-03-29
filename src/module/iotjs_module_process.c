@@ -208,7 +208,7 @@ static void SetProcessEnv(iotjs_jval_t* process) {
 
   nodepath = getenv("NODE_PATH");
   if (nodepath == NULL) {
-#if defined(__NUTTX__)
+#if defined(__NUTTX__) || defined(__TIZENRT__)
     nodepath = "/mnt/sdcard";
 #else
     nodepath = "";

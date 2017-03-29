@@ -65,7 +65,7 @@ const iotjs_jval_t* iotjs_getaddrinfo_reqwrap_jcallback(THIS) {
 #undef THIS
 
 
-#if !defined(__NUTTX__)
+#if !defined(__NUTTX__) && !defined(__TIZENRT__)
 static void AfterGetAddrInfo(uv_getaddrinfo_t* req, int status,
                              struct addrinfo* res) {
   iotjs_getaddrinfo_reqwrap_t* req_wrap =
@@ -129,7 +129,7 @@ JHANDLER_FUNCTION(GetAddrInfo) {
     return;
   }
 
-#if defined(__NUTTX__)
+#if defined(__NUTTX__) || defined(__TIZENRT__)
   iotjs_jargs_t args = iotjs_jargs_create(3);
   int err = 0;
   char ip[INET6_ADDRSTRLEN];

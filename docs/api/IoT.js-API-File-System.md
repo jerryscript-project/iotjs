@@ -195,7 +195,8 @@ Renames `oldPath` to `newPath` synchronously.
 
 * `path: String` - file path that the `data` will be written
 * `data: Buffer` - buffer that contains data
-* `options: Object` - options for the operation
+* `options: Object` - options for the operation.
+ * `flag: String`, Default: `w` - file open flag.
 * `callback: Function(err)` - callback function
  * `err: Error`
 
@@ -206,7 +207,8 @@ Writes entire `data` to the file specified by `path` asynchronously.
 
 * `path: String` - file path that the `data` will be written
 * `data: Buffer` - buffer that contains data
-* `options: Object` - options for the operation
+* `options: Object` - options for the operation.
+ * `flag: String`, Default: `w` - file open flag.
 
 Writes entire `data` to the file specified by `path` synchronously.
 

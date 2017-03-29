@@ -166,7 +166,7 @@ console.log('value:', gpio10.readSync());
 
 
 ### `gpiopin.close([callback])` <a name="gpiopin-close"></a>
-* `callback <Function(err: Error | null, value: Boolean)>`
+* `callback <Function(err: Error | null)>`
 
 Closes a GPIO pin asynchronously.
 

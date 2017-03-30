@@ -55,29 +55,29 @@ Returns a new GPIO object which can open all GPIO pins.
 
 
 ### `DIRECTION`<a name="gpio-direction"></a>
- * `IN` - I/O input
- * `OUT` - I/O output
+* `IN` - I/O input
+* `OUT` - I/O output
 
 
 ### `MODE` <a name="gpio-mode"></a>
- * `NONE` - none
- * `PULLUP` - pull-up (only mode is input)
- * `PULLDOWN` - pull-down (only mode is input)
- * `FLOAT` - float (only mode is output)
- * `PUSHPULL` - push-pull (only mode is output)
- * `OPENDRAIN` - open drain (only mode is output)
+* `NONE` - none
+* `PULLUP` - pull-up (only mode is input)
+* `PULLDOWN` - pull-down (only mode is input)
+* `FLOAT` - float (only mode is output)
+* `PUSHPULL` - push-pull (only mode is output)
+* `OPENDRAIN` - open drain (only mode is output)
 
 
 ## Prototype methods <a name="gpio-prototype-methods"></a>
 
 
 ### `gpio.open(configuration[, callback])` <a name="gpio-open"></a>
- * `configuration <Object>`
-   * `pin <Number>`, pin number to configure, mandatory configuration
-   * `direction <GPIO.DIRECTION>`, direction of the pin, Default: `GPIO.DIRECTION.OUT`
-   * `mode <GPIO.MODE>`, pin mode, Default: `GPIO.MODE.NONE`
- * `callback <Function(err: Error | null)>`
- * Returns: `<GPIOPin>`
+* `configuration <Object>`
+  * `pin <Number>`, pin number to configure, mandatory configuration
+  * `direction <GPIO.DIRECTION>`, direction of the pin, Default: `GPIO.DIRECTION.OUT`
+  * `mode <GPIO.MODE>`, pin mode, Default: `GPIO.MODE.NONE`
+* `callback <Function(err: Error | null)>`
+* Returns: `<GPIOPin>`
 
 Opens the specified GPIO pin and sets GPIO pin configuration.
 
@@ -166,7 +166,7 @@ console.log('value:', gpio10.readSync());
 
 
 ### `gpiopin.close([callback])` <a name="gpiopin-close"></a>
-* `callback <Function(err: Error | null, value: Boolean)>`
+* `callback <Function(err: Error | null)>`
 
 Closes a GPIO pin asynchronously.
 

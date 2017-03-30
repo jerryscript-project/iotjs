@@ -85,7 +85,6 @@ iotjs_spi_reqwrap_t* iotjs_spi_reqwrap_from_request(uv_work_t* req);
 iotjs_spi_reqdata_t* iotjs_spi_reqwrap_data(THIS);
 
 iotjs_spi_t* iotjs_spi_instance_from_reqwrap(THIS);
-iotjs_spi_t* iotjs_spi_instance_from_jval(const iotjs_jval_t* jspi);
 
 #undef THIS
 

@@ -24,6 +24,7 @@
  * SPI instance function
  */
 static void iotjs_spi_destroy(iotjs_spi_t* spi);
+static iotjs_spi_t* iotjs_spi_instance_from_jval(const iotjs_jval_t* jspi);
 
 
 static iotjs_spi_t* iotjs_spi_create(const iotjs_jval_t* jspi) {
@@ -88,6 +89,12 @@ static const iotjs_jval_t* iotjs_spi_reqwrap_jcallback(THIS) {
 }
 
 
+static iotjs_spi_t* iotjs_spi_instance_from_jval(const iotjs_jval_t* jspi) {
+  uintptr_t handle = iotjs_jval_get_object_native_handle(jspi);
+  return (iotjs_spi_t*)handle;
+}
+
+
 iotjs_spi_reqwrap_t* iotjs_spi_reqwrap_from_request(uv_work_t* req) {
   return (iotjs_spi_reqwrap_t*)(iotjs_reqwrap_from_request((uv_req_t*)req));
 }
@@ -96,12 +103,6 @@ iotjs_spi_reqwrap_t* iotjs_spi_reqwrap_from_request(uv_work_t* req) {
 iotjs_spi_reqdata_t* iotjs_spi_reqwrap_data(THIS) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_spi_reqwrap_t, spi_reqwrap);
   return &_this->req_data;
-}
-
-
-iotjs_spi_t* iotjs_spi_instance_from_jval(const iotjs_jval_t* jspi) {
-  uintptr_t handle = iotjs_jval_get_object_native_handle(jspi);
-  return (iotjs_spi_t*)handle;
 }
 
 
@@ -399,7 +400,7 @@ JHANDLER_FUNCTION(TransferBuffer) {
 
 JHANDLER_FUNCTION(Close) {
   JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARG_IF_EXIST(1, function);
+  JHANDLER_CHECK_ARG_IF_EXIST(0, function);
 
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG_IF_EXIST(0, function);
   const iotjs_jval_t* jspi = JHANDLER_GET_THIS(object);

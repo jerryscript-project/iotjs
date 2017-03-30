@@ -51,6 +51,8 @@ dtoverlay=pwm-2chan,pin=18,func=2,pin2=19,func2=2
 
 For more information about overlays, refer to [README](https://github.com/raspberrypi/linux/blob/rpi-4.9.y/arch/arm/boot/dts/overlays/README).
 
+* Note that it is necessary to have root privileges in order to run PWM module.
+
 #### Enable the UART interface
 
 To use UART module, the UART interface must be enabled.

@@ -27,44 +27,32 @@
 
 #define PWM_DEVICE_PATH_FORMAT "/dev/pwm%d"
 #define PWM_DEVICE_PATH_BUFFER_SIZE 12
-#define PWM_MAX_PINNO 17
 
 
-static int pwm_handler[PWM_MAX_PINNO];
+static bool iotjs_pwm_set_options(iotjs_pwm_t* pwm) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_pwm_t, pwm);
 
-
-static void iotjs_pwm_get_path(char* buffer, int timer) {
-  // Create PWM device path
-  snprintf(buffer, PWM_DEVICE_PATH_BUFFER_SIZE - 1, PWM_DEVICE_PATH_FORMAT,
-           timer);
-}
-
-
-static bool iotjs_pwm_set_options(int timer, iotjs_pwm_reqdata_t* req_data) {
-  int fd = pwm_handler[timer];
+  int fd = _this->device_fd;
   if (fd < 0) {
-    DDLOG("PWM - file open failed");
+    DDLOG("%s - file open failed", __func__);
     return false;
   }
 
   struct pwm_info_s info;
-  char path[PWM_DEVICE_PATH_BUFFER_SIZE] = { 0 };
-  iotjs_pwm_get_path(path, timer);
 
   // Clamp so that the value inverted fits into uint32
-  if (req_data->period < 2.33E-10)
-    req_data->period = 2.33E-10;
-  info.frequency = (uint32_t)(1.0 / req_data->period);
+  if (_this->period < 2.33E-10)
+    _this->period = 2.33E-10;
+  info.frequency = (uint32_t)(1.0 / _this->period);
 
-  double duty_value = req_data->duty_cycle * (1 << 16); // 16 bit timer
+  double duty_value = _this->duty_cycle * (1 << 16); // 16 bit timer
   if (duty_value > 0xffff)
     duty_value = 0xffff;
   else if (duty_value < 1)
     duty_value = 1;
   info.duty = (ub16_t)duty_value;
 
-  DDLOG("PWM Set Options - path: %s, frequency: %d, duty: %d", path,
-        info.frequency, info.duty);
+  DDDLOG("%s - frequency: %d, duty: %d", __func__, info.frequency, info.duty);
 
   // Set Pwm info
   if (ioctl(fd, PWMIOC_SETCHARACTERISTICS, (unsigned long)((uintptr_t)&info)) <
@@ -76,149 +64,110 @@ static bool iotjs_pwm_set_options(int timer, iotjs_pwm_reqdata_t* req_data) {
 }
 
 
-void iotjs_pwm_initialize() {
-  memset(pwm_handler, 0xFF, PWM_MAX_PINNO * sizeof(int));
-}
+void iotjs_pwm_open_worker(uv_work_t* work_req) {
+  PWM_WORKER_INIT;
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_pwm_t, pwm);
 
-
-#define PWM_WORKER_INIT_TEMPLATE                                            \
-  iotjs_pwm_reqwrap_t* req_wrap = iotjs_pwm_reqwrap_from_request(work_req); \
-  iotjs_pwm_reqdata_t* req_data = iotjs_pwm_reqwrap_data(req_wrap);
-
-
-void ExportWorker(uv_work_t* work_req) {
-  PWM_WORKER_INIT_TEMPLATE;
-
-  uint32_t pin = req_data->pin;
-  uint32_t timer = SYSIO_GET_TIMER(pin);
+  uint32_t timer = SYSIO_GET_TIMER(_this->pin);
   char path[PWM_DEVICE_PATH_BUFFER_SIZE] = { 0 };
-  iotjs_pwm_get_path(path, timer);
-  struct pwm_lowerhalf_s* pwm = iotjs_pwm_config_nuttx(timer, pin);
 
-  DDLOG("PWM Export - path: %s, timer: %d\n", path, timer);
+  if (snprintf(path, PWM_DEVICE_PATH_BUFFER_SIZE, PWM_DEVICE_PATH_FORMAT,
+               timer) < 0) {
+    req_data->result = false;
+    return;
+  }
 
-  if (pwm_register(path, pwm) != 0) {
-    req_data->result = kPwmErrExport;
+  struct pwm_lowerhalf_s* pwm_lowerhalf =
+      iotjs_pwm_config_nuttx(timer, _this->pin);
+
+  DDDLOG("%s - path: %s, timer: %d\n", __func__, path, timer);
+
+  if (pwm_register(path, pwm_lowerhalf) != 0) {
+    req_data->result = false;
     return;
   }
 
   // File open
-  pwm_handler[timer] = open(path, O_RDONLY);
-  if (pwm_handler[timer] < 0) {
-    req_data->result = kPwmErrExport;
+  _this->device_fd = open(path, O_RDONLY);
+  if (_this->device_fd < 0) {
+    DDLOG("%s - file open failed", __func__);
+    req_data->result = false;
     return;
   }
 
-  // Set options
-  if (req_data->period < 0)
-    req_data->period = 1;
-
-  if (req_data->duty_cycle < 0)
-    req_data->duty_cycle = 1;
-
-  if (!iotjs_pwm_set_options(timer, req_data)) {
-    req_data->result = kPwmErrWrite;
+  if (!iotjs_pwm_set_options(pwm)) {
+    req_data->result = false;
   }
 
-  req_data->result = kPwmErrOk;
+  req_data->result = true;
 }
 
 
-void SetPeriodWorker(uv_work_t* work_req) {
-  PWM_WORKER_INIT_TEMPLATE;
-
-  uint32_t timer = SYSIO_GET_TIMER(req_data->pin);
-
-  if (!iotjs_pwm_set_options(timer, req_data)) {
-    req_data->result = kPwmErrWrite;
-  }
-
-  req_data->result = kPwmErrOk;
+bool iotjs_pwm_set_period(iotjs_pwm_t* pwm) {
+  return iotjs_pwm_set_options(pwm);
 }
 
 
-void SetFrequencyWorker(uv_work_t* work_req) {
-  PWM_WORKER_INIT_TEMPLATE;
-
-  uint32_t timer = SYSIO_GET_TIMER(req_data->pin);
-
-  if (!iotjs_pwm_set_options(timer, req_data)) {
-    req_data->result = kPwmErrWrite;
-  }
-
-  req_data->result = kPwmErrOk;
+bool iotjs_pwm_set_dutycycle(iotjs_pwm_t* pwm) {
+  return iotjs_pwm_set_options(pwm);
 }
 
 
-void SetDutyCycleWorker(uv_work_t* work_req) {
-  PWM_WORKER_INIT_TEMPLATE;
+bool iotjs_pwm_set_enable(iotjs_pwm_t* pwm) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_pwm_t, pwm);
 
-  uint32_t timer = SYSIO_GET_TIMER(req_data->pin);
-
-  if (!iotjs_pwm_set_options(timer, req_data)) {
-    req_data->result = kPwmErrWrite;
-  }
-
-  req_data->result = kPwmErrOk;
-}
-
-
-void SetEnableWorker(uv_work_t* work_req) {
-  PWM_WORKER_INIT_TEMPLATE;
-
-  uint32_t timer = SYSIO_GET_TIMER(req_data->pin);
-  int fd = pwm_handler[timer];
+  int fd = _this->device_fd;
   if (fd < 0) {
-    DDLOG("PWM - file open failed");
-    req_data->result = kPwmErrWrite;
-    return;
+    DDLOG("%s - file open failed", __func__);
+    return false;
   }
 
-  DDLOG("PWM setEnable - timer: %d, enable: %d", timer, req_data->enable);
+  DDDLOG("%s - enable: %d", __func__, _this->enable);
 
   int ret;
-  if (req_data->enable) {
+  if (_this->enable) {
     ret = ioctl(fd, PWMIOC_START, 0);
   } else {
     ret = ioctl(fd, PWMIOC_STOP, 0);
   }
 
   if (ret < 0) {
-    DDLOG("PWM - setEnable failed - timer: %d", timer);
-    req_data->result = kPwmErrWrite;
-    return;
+    DDLOG("%s - setEnable failed", __func__);
+    return false;
   }
 
-  req_data->result = kPwmErrOk;
+  return true;
 }
 
 
-void UnexportWorker(uv_work_t* work_req) {
-  PWM_WORKER_INIT_TEMPLATE;
+bool iotjs_pwm_close(iotjs_pwm_t* pwm) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_pwm_t, pwm);
 
-  uint32_t timer = SYSIO_GET_TIMER(req_data->pin);
-  int fd = pwm_handler[timer];
+  int fd = _this->device_fd;
   if (fd < 0) {
-    DDLOG("PWM - file not opened");
-    req_data->result = kPwmErrWrite;
-    return;
+    DDLOG("%s - file not opened", __func__);
+    return false;
   }
 
-  DDLOG("PWM unexport - timer: %d", timer);
+  DDDLOG("%s", __func__);
 
   // Close file
   close(fd);
-  pwm_handler[timer] = -1;
+  _this->device_fd = -1;
 
+  uint32_t timer = SYSIO_GET_TIMER(_this->pin);
   char path[PWM_DEVICE_PATH_BUFFER_SIZE] = { 0 };
-  iotjs_pwm_get_path(path, timer);
+  if (snprintf(path, PWM_DEVICE_PATH_BUFFER_SIZE - 1, PWM_DEVICE_PATH_FORMAT,
+               timer) < 0) {
+    return false;
+  }
 
   // Release driver
   unregister_driver(path);
 
-  iotjs_gpio_unconfig_nuttx(req_data->pin);
+  iotjs_gpio_unconfig_nuttx(_this->pin);
 
-  req_data->result = kPwmErrOk;
+  return true;
 }
 
 

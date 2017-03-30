@@ -63,7 +63,6 @@ iotjs_adc_reqwrap_t* iotjs_adc_reqwrap_from_request(uv_work_t* req);
 iotjs_adc_reqdata_t* iotjs_adc_reqwrap_data(THIS);
 
 iotjs_adc_t* iotjs_adc_instance_from_reqwrap(THIS);
-iotjs_adc_t* iotjs_adc_instance_from_jval(const iotjs_jval_t* jadc);
 
 #undef THIS
 

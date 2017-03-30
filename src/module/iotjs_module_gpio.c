@@ -22,6 +22,7 @@
 
 
 static void iotjs_gpio_destroy(iotjs_gpio_t* gpio);
+static iotjs_gpio_t* iotjs_gpio_instance_from_jval(const iotjs_jval_t* jgpio);
 
 
 static iotjs_gpio_t* iotjs_gpio_create(const iotjs_jval_t* jgpio) {
@@ -81,6 +82,12 @@ static const iotjs_jval_t* iotjs_gpio_reqwrap_jcallback(THIS) {
 }
 
 
+static iotjs_gpio_t* iotjs_gpio_instance_from_jval(const iotjs_jval_t* jgpio) {
+  uintptr_t handle = iotjs_jval_get_object_native_handle(jgpio);
+  return (iotjs_gpio_t*)handle;
+}
+
+
 iotjs_gpio_reqwrap_t* iotjs_gpio_reqwrap_from_request(uv_work_t* req) {
   return (iotjs_gpio_reqwrap_t*)(iotjs_reqwrap_from_request((uv_req_t*)req));
 }
@@ -89,12 +96,6 @@ iotjs_gpio_reqwrap_t* iotjs_gpio_reqwrap_from_request(uv_work_t* req) {
 iotjs_gpio_reqdata_t* iotjs_gpio_reqwrap_data(THIS) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_gpio_reqwrap_t, gpio_reqwrap);
   return &_this->req_data;
-}
-
-
-iotjs_gpio_t* iotjs_gpio_instance_from_jval(const iotjs_jval_t* jgpio) {
-  uintptr_t handle = iotjs_jval_get_object_native_handle(jgpio);
-  return (iotjs_gpio_t*)handle;
 }
 
 

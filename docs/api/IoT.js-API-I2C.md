@@ -40,7 +40,7 @@ The I2C class supports the I2C protocol. I2C bus has two signals - SDA and SCL.
 ## Constructor <a name="constructor"></a>
 
 
-### new I2C()
+### `new I2C()` <a name="new-i2c"></a>
 
 Create I2C object.
 
@@ -56,14 +56,14 @@ var i2c = new I2C();
 ## Prototype Methods <a name="i2c-prototype-methods"></a>
 
 
-### `i2c.open(configurable[, callback])` <a name="i2c-open"></a>
- * `configurable <Object>`, configuration for open I2CBus
+### `i2c.open(configuration[, callback])` <a name="i2c-open"></a>
+* `configuration <Object>`, configuration for open I2CBus
   * `device <String(linux)|Number(nuttx)>`, device path
   * `address <Number>`
- * `callback <Function(err: Error)>`
- * Returns: `<I2CBus>`
+* `callback <Function(err: Error)>`
+* Returns: `<I2CBus>`
 
-Get I2CBus object with configurable.
+Get I2CBus object with configuration.
 
 **Example**
 
@@ -86,8 +86,8 @@ var i2c_bus = i2c.open({device: '/dev/i2c-1', address: 0x23}, function(err) {
 
 
 ### `i2cbus.read(length[, callback])` <a name="i2cbus-read"></a>
- * `length <Number>`, the number of bytes.
- * `callback <Function(err: Error, res: Array)>`, `res` contains an array of bytes.
+* `length <Number>`, the number of bytes.
+* `callback <Function(err: Error, res: Array)>`, `res` contains an array of bytes.
 
 Read bytes from I2C device.
 
@@ -108,7 +108,7 @@ i2c_bus.read(2, function(err, res) {
 
 
 ### `i2cbus.readByte([callback])` <a name="i2cbus-readbyte"></a>
- * `callback <Function(err: Error, res: Array)>`, `res` contains an array of bytes.
+* `callback <Function(err: Error, res: Array)>`, `res` contains an array of bytes.
 
 Read one byte from I2C device.
 
@@ -129,9 +129,9 @@ i2c_bus.readByte(function(err, res) {
 
 
 ### `i2cbus.readBytes(cmd, length[, callback])` <a name="i2cbus-readbytes"></a>
- * `command <Number>`
- * `length <Number>`, the number of bytes
- * `callback <Function(err: Error, res: Array)>`, `res` contains an array of bytes.
+* `command <Number>`
+* `length <Number>`, the number of bytes
+* `callback <Function(err: Error, res: Array)>`, `res` contains an array of bytes.
 
 Read bytes from I2C device with command.
 
@@ -152,8 +152,8 @@ i2c_bus.readBytes(0x20, 2, function(err, res) {
 
 
 ### `i2cbus.write(array[, callback])` <a name="i2cbus-write"></a>
- * `bytes <Array>`, an array of numbers
- * `callback <Function(err: Error)>`
+* `bytes <Array>`, an array of numbers
+* `callback <Function(err: Error)>`
 
 Write bytes to I2C device.
 

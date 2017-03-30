@@ -77,7 +77,6 @@ iotjs_gpio_reqwrap_t* iotjs_gpio_reqwrap_from_request(uv_work_t* req);
 iotjs_gpio_reqdata_t* iotjs_gpio_reqwrap_data(THIS);
 
 iotjs_gpio_t* iotjs_gpio_instance_from_reqwrap(THIS);
-iotjs_gpio_t* iotjs_gpio_instance_from_jval(const iotjs_jval_t* jgpio);
 
 #undef THIS
 

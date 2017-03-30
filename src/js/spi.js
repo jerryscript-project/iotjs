@@ -41,7 +41,6 @@ Spi.prototype.CHIPSELECT = spi.CHIPSELECT;
 Spi.prototype.BITORDER = spi.BITORDER;
 
 
-// SpiBus(configuration[, callback])
 function SpiBus(configuration, callback) {
   var self = this;
 
@@ -131,7 +130,6 @@ function SpiBus(configuration, callback) {
   })(this));
 }
 
-// spibus.transfer(txBuffer, rxBuffer[, callback])
 SpiBus.prototype.transfer = function(txBuffer, rxBuffer, callback) {
   var self = this;
 
@@ -163,7 +161,6 @@ SpiBus.prototype.transfer = function(txBuffer, rxBuffer, callback) {
   }
 };
 
-// spibus.transferSync(txBuffer, rxBuffer)
 SpiBus.prototype.transferSync = function(txBuffer, rxBuffer) {
   if (util.isNull(this._binding)) {
     throw new Error('SPI bus is not opened');
@@ -194,7 +191,6 @@ SpiBus.prototype.transferSync = function(txBuffer, rxBuffer) {
   }
 };
 
-// spi.close([callback])
 SpiBus.prototype.close = function(callback) {
   var self = this;
 
@@ -207,7 +203,6 @@ SpiBus.prototype.close = function(callback) {
   });
 };
 
-// spibus.closeSync()
 SpiBus.prototype.closeSync = function() {
   if (util.isNull(this._binding)) {
     throw new Error('SPI bus is not opened');

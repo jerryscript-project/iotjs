@@ -64,7 +64,6 @@ iotjs_uart_reqwrap_t* iotjs_uart_reqwrap_from_request(uv_work_t* req);
 iotjs_uart_reqdata_t* iotjs_uart_reqwrap_data(THIS);
 
 iotjs_uart_t* iotjs_uart_instance_from_reqwrap(THIS);
-iotjs_uart_t* iotjs_uart_instance_from_jval(const iotjs_jval_t* juart);
 
 #undef THIS
 

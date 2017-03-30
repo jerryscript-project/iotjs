@@ -154,7 +154,7 @@ GpioPin.prototype.close = function(callback) {
     throw new Error('GPIO pin is not opened');
   }
 
-  this._binding.close(function(err) {
+  this._binding.close(function(err, value) {
     util.isFunction(callback) && callback.call(self, err, value);
   });
 

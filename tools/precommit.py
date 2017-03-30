@@ -26,7 +26,7 @@ from common_py.system.executor import Executor as ex
 from common_py.system.platform import Platform
 from check_tidy import check_tidy
 
-TESTS=['host', 'rpi2', 'nuttx', 'misc', 'artik10']
+TESTS=['host', 'rpi2', 'nuttx', 'misc', 'artik10', 'coverity']
 BUILDTYPES=['debug', 'release']
 NUTTXTAG = 'nuttx-7.19'
 
@@ -180,3 +180,6 @@ for test in option.test:
                        + include_module + build_args)
 
         build("debug", ['--iotjs-minimal-profile'] + build_args)
+
+    elif test == "coverity":
+        build("debug", include_module + build_args)

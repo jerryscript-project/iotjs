@@ -2,6 +2,7 @@
 [![Join the chat at https://gitter.im/Samsung/iotjs](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/Samsung/iotjs?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![License](https://img.shields.io/badge/licence-Apache%202.0-brightgreen.svg?style=flat)](LICENSE)
 [![Build Status](https://travis-ci.org/Samsung/iotjs.svg?branch=master)](https://travis-ci.org/Samsung/iotjs)
+[![Coverity Scan Build Status](https://img.shields.io/coverity/scan/12140.svg)](https://scan.coverity.com/projects/samsung-iotjs)
 
 You can find project details on our [project page](http://samsung.github.io/iotjs/) and [wiki](https://github.com/Samsung/iotjs/wiki).
 

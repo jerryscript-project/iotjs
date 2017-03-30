@@ -17,16 +17,31 @@ install:
 script: "tools/precommit.py $OPTS"
 
 env:
-  - OPTS="--test=host"
-  - OPTS="--test=rpi2" INSTALL_ARM_DEPS=yes
-  - OPTS="--test=nuttx" INSTALL_NUTTX_DEPS=yes
-  - OPTS="--test=artik10" INSTALL_TIZEN_DEPS=yes
-  - OPTS="--test=misc"
+  global:
+    - secure: "lUGzoKK/Yn4/OmpqLQALrIgfY9mQWE51deUawPrCO87UQ2GknfQ4BvwY3UT5QY0XnztPBP1+vRQ2qxbiAU7VWicp280sXDnh0FeuZD14FcE9l0FczraL12reoLu+gY5HWFfbkZncmcBsZkxDEYxhkM14FJU8fxyqGQW2ypJNz+gUGP+8r40Re5J3WjcddCQNe5IG8U+M9B4YeDHhN2QspLdN5pkgn56XtdGa3+qbecO2NpjJG5ltM9j1tTuo/Dg22DxrIFVfeFSFKUj4nfMrgPo5LevRsC/lfaBSCsj751eqrxRcQRh2hkpiIJ7mEBs2LL1EH9O6Mbj+eRh8BvIYqTB85VPNFc43sLWk14apcSVBrxJE5j3kP9sAsOD9Y5JynnkeuxYyISrkywwoX2uxsmCzIfGbwsv5VLToQzrqWlGYrHOAmVXNi8561dLfsWwxxFUjdqkZr1Kgc8UfnBEcBUtSiKCHS86/YUUbBJGkEkjDUS0GiqhFY4bXLQCR7EX4qDX3m6p7Mnh4NVUolpnSmyeYE/MjmqQ+7PJsPLL3EcIYmJ7dtW3mZ3yE2NyaFD0Pym9+TiuCCXRtrNVK1M3Kya64KNv+HbhjT/fTCgXLSeyDmJOKVAqugRlDo3b1KGR1LI0AfegzSA6mEC4e9JLjYiSnHPMUahzgLt8oU0hNFRY="
+  matrix:
+    - OPTS="--test=host"
+    - OPTS="--test=rpi2" INSTALL_ARM_DEPS=yes
+    - OPTS="--test=nuttx" INSTALL_NUTTX_DEPS=yes
+    - OPTS="--test=artik10" INSTALL_TIZEN_DEPS=yes
+    - OPTS="--test=misc"
 
 matrix:
   include:
     - os: osx
       env: OPTS="--test=host"
+    - os: linux
+      before_install:
+        - tools/apt-get-install-deps.sh
+        - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
+      addons:
+        coverity_scan:
+          project:
+            name: "Samsung/iotjs"
+            description: "Platform for Internet of Things with JavaScript"
+          build_command: "tools/precommit.py --test=coverity"
+          branch_pattern: master
+      env: OPTS="--test=coverity"
     - compiler: gcc-4.9
       addons:
         apt:

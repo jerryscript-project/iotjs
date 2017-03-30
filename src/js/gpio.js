@@ -155,7 +155,7 @@ GpioPin.prototype.close = function(callback) {
   }
 
   this._binding.close(function(err) {
-    util.isFunction(callback) && callback.call(self, err, value);
+    util.isFunction(callback) && callback.call(self, err);
   });
 
   this._binding = null;

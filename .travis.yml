@@ -39,6 +39,7 @@ matrix:
           project:
             name: "Samsung/iotjs"
             description: "Platform for Internet of Things with JavaScript"
+          notification_email: duddlf.choi@samsung.com
           build_command: "tools/precommit.py --test=coverity"
           branch_pattern: master
       env: OPTS="--test=coverity"

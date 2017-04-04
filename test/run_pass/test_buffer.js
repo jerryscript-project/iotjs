@@ -140,4 +140,6 @@ assert.equal(buff16.readInt8(1), 13);
 assert.equal(buff16.readInt8(2), 13);
 assert.equal(buff16.readInt8(3), 13);
 
-assert.equal(Buffer(new Array()).toString(),'');
+assert.equal(Buffer(new Array()).toString(), '');
+assert.equal(new Buffer(1).readUInt8(1, true), 0);
+assert.equal(new Buffer(1).readUInt16LE({}, true), 0);

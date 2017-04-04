@@ -40,8 +40,11 @@ RUN_FAIL_DIR = fs.join(TEST_ROOT, 'run_fail')
 
 RESOURCE_DIR = fs.join(TEST_ROOT, 'resources')
 
-# Root directory for jerry script submodule.
+# Root directory for JerryScript submodule.
 JERRY_ROOT = fs.join(DEPS_ROOT, 'jerry')
+
+# Root directory of JerryScript profiles.
+JERRY_PROFILE_ROOT = fs.join(JERRY_ROOT, 'jerry-core', 'profiles')
 
 # Root directory for libtuv submodule.
 TUV_ROOT = fs.join(DEPS_ROOT, 'libtuv')

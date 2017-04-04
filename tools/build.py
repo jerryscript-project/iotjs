@@ -167,13 +167,17 @@ def init_options():
         help='Specify the name of the JerryScript heap section')
     parser.add_argument('--jerry-heaplimit',
         type=int, default=config['build_option']['jerry-heaplimit'],
-        help='Sepcify the size of the JerryScript max heap size '
+        help='Specify the size of the JerryScript max heap size '
              '(default: %(default)s)')
 
     parser.add_argument('--jerry-memstat',
         action='store_true', default=False,
         help='Enable JerryScript heap statistics')
 
+    parser.add_argument('--jerry-profile',
+        choices=['es5.1', 'es2015-subset'], default='es5.1',
+        help='Specify the profile for JerryScript: %(choices)s'
+             ' (default: %(default)s)')
     parser.add_argument('--no-init-submodule',
         action='store_true', default=False,
         help='Disable initialization of git submodules')
@@ -252,6 +256,10 @@ def adjust_options(options):
     cmake_path = fs.join(path.PROJECT_ROOT, 'cmake', 'config', '%s.cmake')
     options.cmake_toolchain_file = cmake_path % options.target_tuple
     options.host_cmake_toolchain_file = cmake_path % options.host_tuple
+
+    # Specify the file of JerryScript profile
+    options.jerry_profile = fs.join(path.JERRY_PROFILE_ROOT,
+                                    options.jerry_profile + '.profile')
 
 
 def print_build_option(options):
@@ -414,7 +422,7 @@ def build_host_jerry(options):
         "-DCMAKE_TOOLCHAIN_FILE='%s'" % options.host_cmake_toolchain_file,
         # Turn off LTO for jerry bin to save build time.
         '-DENABLE_LTO=OFF',
-
+        "-DFEATURE_PROFILE='%s'" % options.jerry_profile,
     ]
 
     if options.buildtype == 'debug':
@@ -448,6 +456,7 @@ def build_libjerry(options):
         '-B%s' % build_home,
         '-H%s' % path.JERRY_ROOT,
         '-DCMAKE_TOOLCHAIN_FILE=%s' % options.cmake_toolchain_file,
+        "-DFEATURE_PROFILE='%s'" % options.jerry_profile,
     ]
 
     if options.buildtype == 'debug':

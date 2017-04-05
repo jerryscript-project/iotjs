@@ -1,0 +1,3 @@
+config ENTRY_IOTJS
+	bool "iotjs application"
+	depends on SYSTEM_IOTJS

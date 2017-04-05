@@ -92,13 +92,13 @@ def init_options():
         help='Specify the target architecture: '
              '%(choices)s (default: %(default)s)')
     parser.add_argument('--target-os',
-        choices=['linux', 'darwin', 'osx', 'nuttx', 'tizen'],
+        choices=['linux', 'darwin', 'osx', 'nuttx', 'tizen', 'tizenrt'],
         default=platform.os(),
         help='Specify the target os: %(choices)s (default: %(default)s)')
 
     parser.add_argument('--target-board',
-        choices=['none', 'artik10', 'stm32f4dis', 'rpi2'], default='none',
-        help='Specify the targeted board (if needed): '
+        choices=['none', 'artik10', 'stm32f4dis', 'rpi2', 'artik05x'],
+        default='none', help='Specify the targeted board (if needed): '
              '%(choices)s (default: %(default)s)')
     parser.add_argument('--nuttx-home', default=None, dest='sysroot',
         help='Specify the NuttX base directory (required for NuttX build)')
@@ -205,7 +205,7 @@ def init_options():
 
 def adjust_options(options):
     # First fix some option inconsistencies
-    if options.target_os == 'nuttx':
+    if options.target_os in ['nuttx', 'tizenrt']:
         options.buildlib = True
         if not options.sysroot:
             ex.fail('--sysroot needed for nuttx target')
@@ -222,7 +222,7 @@ def adjust_options(options):
     if options.target_os == 'darwin':
         options.no_check_valgrind = True
 
-    if options.target_board in ['rpi2', 'artik10']:
+    if options.target_board in ['rpi2', 'artik10', 'artik05x']:
         options.no_check_valgrind = True
     elif options.target_board == 'none':
         options.target_board = None
@@ -322,7 +322,7 @@ def build_cmake_args(options, for_jerry=False):
 
     # external include dir
     include_dirs = []
-    if options.target_os == 'nuttx' and options.sysroot:
+    if options.target_os in ['nuttx', 'tizenrt'] and options.sysroot:
         include_dirs.append('%s/include' % options.sysroot)
         if options.target_board == 'stm32f4dis':
             include_dirs.append('%s/arch/arm/src/stm32' % options.sysroot)
@@ -463,7 +463,7 @@ def build_libjerry(options):
         cmake_opt.append('-DCMAKE_BUILD_TYPE=Debug')
         cmake_opt.append('-DFEATURE_ERROR_MESSAGES=On')
 
-    if options.target_os == 'nuttx':
+    if options.target_os in ['nuttx', 'tizenrt']:
         cmake_opt.append("-DEXTERNAL_LIBC_INTERFACE='%s'" %
                          fs.join(options.sysroot, 'include'))
         if options.target_arch == 'arm':
@@ -472,6 +472,10 @@ def build_libjerry(options):
     if options.target_os in ['linux', 'tizen', 'darwin']:
         cmake_opt.append('-DJERRY_LIBC=OFF')
         cmake_opt.append('-DJERRY_LIBM=OFF')
+
+    if options.target_os in ['tizenrt']:
+        cmake_opt.append('-DJERRY_LIBC=OFF')
+        cmake_opt.append('-DJERRY_LIBM=ON')
 
     # --jerry-heaplimit
     if options.jerry_heaplimit:
@@ -538,8 +542,10 @@ def build_libhttpparser(options):
         '-DBUILDTYPE=%s' % options.buildtype.capitalize(),
     ]
 
-    if options.target_os == 'nuttx':
+    if options.target_os in ['nuttx', 'tizenrt']:
         cmake_opt.append("-DNUTTX_HOME='%s'" % options.sysroot)
+
+    if options.target_os in ['nuttx', 'tizenrt']:
         cmake_opt.append('-DOS=NUTTX')
 
     if options.target_os in ['linux', 'tizen']:

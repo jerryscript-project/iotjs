@@ -19,7 +19,7 @@
 
 
 #ifndef IOTJS_MAX_READ_BUFFER_SIZE
-#ifdef __NUTTX__
+#if defined(__NUTTX__) || defined(__TIZENRT__)
 #define IOTJS_MAX_READ_BUFFER_SIZE 1023
 #define IOTJS_MAX_PATH_SIZE 120
 #else
@@ -55,6 +55,8 @@
 #define TARGET_OS "nuttx"
 #elif defined(__APPLE__)
 #define TARGET_OS "darwin"
+#elif defined(__TIZENRT__)
+#define TARGET_OS "tizenrt"
 #else
 #define TARGET_OS "unknown"
 #endif

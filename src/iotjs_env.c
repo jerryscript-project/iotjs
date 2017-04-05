@@ -116,6 +116,8 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
       _this->config.memstat = true;
     } else if (!strcmp(argv[i], "--show-opcodes")) {
       _this->config.show_opcode = true;
+    } else if (!strcmp(argv[i], "--start-debug-server")) {
+      _this->config.debugger = true;
     } else {
       fprintf(stderr, "unknown command line argument %s\n", argv[i]);
       return false;

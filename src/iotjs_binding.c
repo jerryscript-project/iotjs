@@ -459,11 +459,22 @@ iotjs_jval_t iotjs_jhelper_call_ok(const iotjs_jval_t* jfunc,
 }
 
 
-iotjs_jval_t iotjs_jhelper_eval(const char* data, size_t size, bool strict_mode,
+iotjs_jval_t iotjs_jhelper_eval(const char* name, size_t name_len,
+                                const char* data, size_t size, bool strict_mode,
                                 bool* throws) {
-  jerry_value_t res = jerry_eval((const jerry_char_t*)data, size, strict_mode);
+  jerry_value_t res =
+      jerry_parse_named_resource((const jerry_char_t*)name, name_len,
+                                 (const jerry_char_t*)data, size, strict_mode);
 
   *throws = jerry_value_has_error_flag(res);
+
+  if (!*throws) {
+    jerry_value_t func = res;
+    res = jerry_run(func);
+    jerry_release_value(func);
+
+    *throws = jerry_value_has_error_flag(res);
+  }
 
   jerry_value_clear_error_flag(&res);
 

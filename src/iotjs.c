@@ -22,6 +22,7 @@
 
 #include "jerry-port-default.h"
 #include "jerry-port.h"
+#include "jerryscript-debugger.h"
 #include "jerryscript.h"
 
 #include <stdio.h>
@@ -45,8 +46,16 @@ static bool iotjs_jerry_initialize(const iotjs_environment_t* env) {
     jerry_port_default_set_log_level(JERRY_LOG_LEVEL_DEBUG);
   }
 
+  if (iotjs_environment_config(env)->debugger) {
+    jerry_flag |= JERRY_INIT_DEBUGGER;
+  }
+
   // Initialize jerry.
   jerry_init((jerry_init_flag_t)jerry_flag);
+
+  if (iotjs_environment_config(env)->debugger) {
+    jerry_debugger_continue();
+  }
 
   // Set magic strings.
   iotjs_register_jerry_magic_string();
@@ -82,7 +91,8 @@ static bool iotjs_run(const iotjs_jval_t* process) {
   // Evaluating 'iotjs.js' returns a function.
   bool throws;
 #ifndef ENABLE_SNAPSHOT
-  iotjs_jval_t jmain = iotjs_jhelper_eval(iotjs_s, iotjs_l, false, &throws);
+  iotjs_jval_t jmain = iotjs_jhelper_eval("iotjs.js", strlen("iotjs.js"),
+                                          iotjs_s, iotjs_l, false, &throws);
 #else
   iotjs_jval_t jmain = iotjs_jhelper_exec_snapshot(iotjs_s, iotjs_l, &throws);
 #endif

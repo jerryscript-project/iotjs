@@ -22,6 +22,7 @@
 typedef struct {
   bool memstat;
   bool show_opcode;
+  bool debugger;
 } Config;
 
 typedef enum {

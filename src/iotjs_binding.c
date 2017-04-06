@@ -47,7 +47,13 @@ iotjs_jval_t iotjs_jval_create_string(const iotjs_string_t* v) {
   const jerry_char_t* data = (const jerry_char_t*)(iotjs_string_data(v));
   jerry_size_t size = iotjs_string_size(v);
 
-  _this->value = jerry_create_string_sz(data, size);
+  if (jerry_is_valid_utf8_string(data, size)) {
+    _this->value = jerry_create_string_sz_from_utf8(data, size);
+  } else {
+    _this->value =
+        jerry_create_error(JERRY_ERROR_TYPE,
+                           (const jerry_char_t*)"Invalid UTF-8 string");
+  }
 
   return jval;
 }

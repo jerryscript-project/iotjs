@@ -67,7 +67,7 @@ ASRCS =
 CSRCS =
 CXXSRCS =
 MAINSRC = iotjs_main.cxx
-LIBS = libhttpparser.a libiotjs.a libjerrycore.a libtuv.a libjerry-libm.a libjerry-libc.a
+LIBS = libhttpparser.a libiotjs.a libjerry-core.a libtuv.a libjerry-libm.a libjerry-libc.a
 
 AOBJS = $(ASRCS:.S=$(OBJEXT))
 COBJS = $(CSRCS:.c=$(OBJEXT))
@@ -138,11 +138,7 @@ $(CXXOBJS) $(MAINOBJ): %$(OBJEXT): %.cxx
 	$(call COMPILEXX, $<, $@)
 
 copylibs :
-	cp $(IOTJS_ROOT_DIR)/build/arm-nuttx/$(BUILD_TYPE)/lib/lib* .
-	make -C $(IOTJS_ROOT_DIR)/build/arm-nuttx/$(BUILD_TYPE)/deps/jerry jerry-libm
-	make -C $(IOTJS_ROOT_DIR)/build/arm-nuttx/$(BUILD_TYPE)/deps/jerry jerry-libc
-	cp $(IOTJS_ROOT_DIR)/build/arm-nuttx/$(BUILD_TYPE)/deps/jerry/lib/libjerry-libc.a .
-	cp $(IOTJS_ROOT_DIR)/build/arm-nuttx/$(BUILD_TYPE)/deps/jerry/lib/libjerry-libm.a .
+	cp $(IOTJS_ROOT_DIR)/build/arm-nuttx/$(BUILD_TYPE)/lib/lib*.a .
 
 $(LIBS) : copylibs
 	$(firstword $(AR)) x $@

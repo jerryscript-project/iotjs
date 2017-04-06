@@ -14,6 +14,42 @@
 
 cmake_minimum_required(VERSION 2.8)
 
-set(LIBTUV_ROOT ${DEP_ROOT}/libtuv)
-set(LIBTUV_INCDIR ${LIBTUV_ROOT}/include)
-set(LIBTUV_LIB ${LIB_ROOT}/libtuv.a)
+# Configure external libtuv
+set(DEPS_TUV deps/libtuv)
+set(DEPS_TUV_SRC ${ROOT_DIR}/${DEPS_TUV})
+
+set(DEPS_TUV_TOOLCHAIN
+  ${DEPS_TUV_SRC}/cmake/config/config_${PLATFORM_DESCRIPTOR}.cmake)
+message(STATUS "libtuv toolchain file: ${DEPS_TUV_TOOLCHAIN}")
+ExternalProject_Add(libtuv
+  PREFIX ${DEPS_TUV}
+  SOURCE_DIR ${DEPS_TUV_SRC}
+  BUILD_IN_SOURCE 0
+  BINARY_DIR ${DEPS_TUV}
+  INSTALL_COMMAND
+    ${CMAKE_COMMAND} -E copy
+    ${CMAKE_BINARY_DIR}/${DEPS_TUV}/lib/libtuv.a
+    ${CMAKE_BINARY_DIR}/lib/
+  CMAKE_ARGS
+    -DCMAKE_TOOLCHAIN_FILE=${DEPS_TUV_TOOLCHAIN}
+    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+    -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
+    -DTARGET_PLATFORM=${PLATFORM_DESCRIPTOR}
+    -DLIBTUV_CUSTOM_LIB_OUT=lib
+    -DBUILDTESTER=NO
+    -DBUILDAPIEMULTESTER=NO
+    -DTARGET_SYSTEMROOT=${TARGET_SYSTEMROOT}
+    -DTARGET_BOARD=${TARGET_BOARD}
+)
+add_library(tuv STATIC IMPORTED)
+add_dependencies(tuv libtuv)
+set_property(TARGET tuv PROPERTY
+  IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/lib/libtuv.a)
+set_property(DIRECTORY APPEND PROPERTY
+  ADDITIONAL_MAKE_CLEAN_FILES ${CMAKE_BINARY_DIR}/lib/libtuv.a)
+set(TUV_INCLUDE_DIR ${DEPS_TUV_SRC}/include)
+set(TUV_LIBS tuv)
+
+if("${TARGET_OS}" STREQUAL "LINUX")
+  list(APPEND TUV_LIBS pthread)
+endif()

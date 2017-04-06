@@ -19,8 +19,55 @@ project(IOTJS C)
 set(IOTJS_VERSION_MAJOR 0)
 set(IOTJS_VERSION_MINOR 1)
 
-include(cmake/config.cmake)
-include(cmake/libtuv.cmake)
+# Do a few default checks
+if(NOT DEFINED PLATFORM_DESCRIPTOR)
+  message(FATAL_ERROR "No PLATFORM_DESCRIPTOR specified (format: <arch>-<os>)")
+endif()
+
+string(REPLACE "-" ";" PLATFORM_ARGS ${PLATFORM_DESCRIPTOR})
+if(NOT DEFINED TARGET_OS)
+  list(GET PLATFORM_ARGS 1 TARGET_OS)
+  message(
+    "TARGET_OS not specified, using '${TARGET_OS}' from PLATFORM_DESCRIPTOR")
+endif()
+string(TOUPPER "${TARGET_OS}" TARGET_OS)
+
+if(NOT CMAKE_BUILD_TYPE)
+  message("CMAKE_BUILD_TYPE was not set! Configuring for Debug build!")
+  set(CMAKE_BUILD_TYPE Debug)
+endif()
+
+if(NOT DEFINED BUILD_LIB_ONLY)
+  set(BUILD_LIB_ONLY OFF)
+endif()
+
+if(NOT DEFINED ENABLE_SNAPSHOT)
+  message("Snapshot mode force enabled")
+  set(ENABLE_SNAPSHOT ON)
+endif()
+
+if(NOT DEFINED ENABLE_LTO)
+  message("LTO force disabled")
+  set(ENABLE_LTO OFF)
+endif()
+
+set(ROOT_DIR ${CMAKE_SOURCE_DIR})
+
+# Common compile flags
+set(CFLAGS_COMMON
+  -Wall
+  -Wextra
+  -Werror
+  -Wno-unused-parameter
+  -std=gnu99
+)
+
+include(ExternalProject)
+
+# Include external projects
 include(cmake/jerry.cmake)
 include(cmake/http-parser.cmake)
+include(cmake/libtuv.cmake)
+
 include(cmake/iotjs.cmake)
+

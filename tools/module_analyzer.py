@@ -30,7 +30,14 @@ def resolve_modules(options):
     # Load the modules which are always enabled and the include/exclude sets
     build_modules_always = set(options.config['module']['always'])
     build_modules_includes = set(options.config['module']['include'])
-    build_modules_excludes = set(options.config['module']['exclude'])
+    build_modules_excludes = set(options.config['module']['exclude']['all'])
+
+    if options.target_os:
+        system_os = options.target_os
+        if system_os == 'tizen':
+            system_os = 'linux'
+        build_modules_excludes |= set(
+            options.config['module']['exclude'][system_os])
 
     # By default the target included modules are:
     #  - always module set from the build config
@@ -199,6 +206,7 @@ def _load_options(argv):
 
     options = parser.parse_args(loaded_argv)
     options.config = config
+    options.target_os = config['build_option']['target-os']
 
     return options
 

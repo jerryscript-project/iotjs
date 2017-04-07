@@ -41,7 +41,7 @@ The following shows PWM module APIs available for each platform.
 ### `pin` <a name="pin"></a>
 * On Linux, `pin` is a pwm number which is 0 or 1.
 * On Nuttx, you have to know pin name. The pin name is defined in target board module. For more module information, please see below list.
-  * [STM32F4-discovery](../../targets/nuttx-stm32f4/Stm32f4dis.md#pwm-pin)
+  * [STM32F4-discovery](../targets/nuttx/stm32f4dis/IoT.js-API-Stm32f4dis.md#pwm-pin)
 
 
 ## Class: PWM <a name="pwm"></a>

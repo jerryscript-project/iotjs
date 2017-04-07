@@ -25,28 +25,25 @@ function(find_value RESULT VALUE VALUE_TRUE VALUE_FALSE)
   endif()
 endfunction(find_value)
 
-# System Configuration
-set(IOTJS_PLATFORM_SRC)
-if("${CMAKE_SYSTEM_NAME}" MATCHES "Linux|Tizen")
-  file(GLOB IOTJS_PLATFORM_LINUX_SRC
-       ${IOTJS_SOURCE_DIR}/platform/iotjs_*-linux.c)
-  list(APPEND IOTJS_PLATFORM_SRC ${IOTJS_PLATFORM_LINUX_SRC})
-  # in case of Tizen force the platform to Linux
-  string(REGEX REPLACE "tizen$" "linux"
-         PLATFORM_DESCRIPTOR "${PLATFORM_DESCRIPTOR}")
+# System Configuration (not module)
+string(TOLOWER ${CMAKE_SYSTEM_NAME} IOTJS_SYSTEM_OS)
+set(PLATFORM_OS_DIR
+    ${IOTJS_SOURCE_DIR}/platform/${IOTJS_SYSTEM_OS})
+file(GLOB IOTJS_PLATFORM_SRC ${PLATFORM_OS_DIR}/iotjs_*.c)
+file(GLOB PLATFORM_MODULE_SRC ${PLATFORM_OS_DIR}/iotjs_module_*.c)
+if (IOTJS_PLATFORM_SRC AND PLATFORM_MODULE_SRC)
+  list(REMOVE_ITEM IOTJS_PLATFORM_SRC ${PLATFORM_MODULE_SRC})
 endif()
 
 # Board Configuration (not module)
-if(DEFINED TARGET_BOARD)
-  string(TOLOWER "${TARGET_BOARD}" BOARD_DESCRIPTOR)
-
-  if("${BOARD_DESCRIPTOR}" STREQUAL "stm32f4dis")
-    set(BOARD_DESCRIPTOR stm32)
+if(NOT "${TARGET_BOARD}" STREQUAL "None")
+  set(PLATFORM_BOARD_DIR
+      ${PLATFORM_OS_DIR}/${TARGET_BOARD})
+  file(GLOB IOTJS_BOARD_SRC ${PLATFORM_BOARD_DIR}/iotjs_*.c)
+  file(GLOB PLATFORM_MODULE_SRC ${PLATFORM_BOARD_DIR}/iotjs_module_*.c)
+  if (IOTJS_BOARD_SRC AND PLATFORM_MODULE_SRC)
+    list(REMOVE_ITEM IOTJS_BOARD_SRC ${PLATFORM_MODULE_SRC})
   endif()
-
-  set(BOARD_SRC ${IOTJS_SOURCE_DIR}/platform/${PLATFORM_DESCRIPTOR})
-  set(BOARD_SRC ${BOARD_SRC}/iotjs_[^module]*${BOARD_DESCRIPTOR}.c)
-  file(GLOB IOTJS_BOARD_SRC ${BOARD_SRC})
   list(APPEND IOTJS_PLATFORM_SRC ${IOTJS_BOARD_SRC})
 endif()
 
@@ -116,7 +113,7 @@ add_custom_command(
 set(IOTJS_MODULES_ENABLED)
 set(IOTJS_MODULES_DISABLED)
 # List all modules and mark them as disabled by default
-file(GLOB IOTJS_MODULES_ALL_SRC ${IOTJS_SOURCE_DIR}/module/*.c)
+file(GLOB IOTJS_MODULES_ALL_SRC ${IOTJS_SOURCE_DIR}/modules/*.c)
 foreach(module ${IOTJS_MODULES_ALL_SRC})
   ## iotjs_module_adc.c -> ADC
   get_filename_component(IOTJS_MODULENAME ${module} NAME_WE)
@@ -134,42 +131,39 @@ set(PLATFORM_SRC
 foreach(module ${IOTJS_NATIVE_MODULES})
   string(TOUPPER ${module} MODULE)
   # check if there is a native file for the module
-  set(BASE_MODULE_SRC ${IOTJS_SOURCE_DIR}/module/iotjs_module_${module}.c)
+  set(BASE_MODULE_SRC ${IOTJS_SOURCE_DIR}/modules/iotjs_module_${module}.c)
   if(EXISTS "${BASE_MODULE_SRC}")
     list(APPEND IOTJS_MODULE_SRC ${BASE_MODULE_SRC})
   endif()
 
-  # check if there is an extra platform support code for the module
-  # PLATFORM_DESCRIPTOR is <arch>-<os>  (eg.: x86_64-linux)
-  # ../platform/<arch>-<os>/iotjs_module_<module> ...
-  set(PLATFORM_MODULE_BASE ${PLATFORM_SRC}_${module}-${PLATFORM_DESCRIPTOR})
-  set(PLATFORM_MODULE_SRC ${PLATFORM_MODULE_BASE}.c)
-  if(VERBOSE)
-    message("Checking platform file: ${PLATFORM_MODULE_SRC}")
-  endif()
-  if(EXISTS "${PLATFORM_MODULE_SRC}")
-    list(APPEND IOTJS_MODULE_SRC ${PLATFORM_MODULE_SRC})
-    list(APPEND IOTJS_PLATFORM_SUPPORT ${MODULE})
-  endif()
-
-  # check if there is an extra board support code for the module
-  # BOARD_DESCRIPTOR is eg.: stm32
-  if(DEFINED BOARD_DESCRIPTOR)
-    set(BOARD_MODULE_SRC "${PLATFORM_MODULE_BASE}-${BOARD_DESCRIPTOR}.c")
-    if(VERBOSE)
-      message("Checking module file: ${BOARD_MODULE_SRC}")
-    endif()
-    if(EXISTS "${BOARD_MODULE_SRC}")
-      list(APPEND IOTJS_MODULE_SRC ${BOARD_MODULE_SRC})
-      list(APPEND IOTJS_MODULE_SUPPORT ${MODULE})
+  # first, check if there is the module in <os>/<board>
+  set(ADD_MODULE_RESULT FALSE)
+  if(NOT "${TARGET_BOARD}" STREQUAL "None")
+    set(PLATFORM_MODULE_SRC ${PLATFORM_BOARD_DIR}/iotjs_module_${module})
+    set(PLATFORM_MODULE_SRC
+        ${PLATFORM_MODULE_SRC}-${IOTJS_SYSTEM_OS}-${TARGET_BOARD}.c)
+    if(EXISTS "${PLATFORM_MODULE_SRC}")
+      list(APPEND IOTJS_MODULE_SRC ${PLATFORM_MODULE_SRC})
+      list(APPEND IOTJS_BOARD_SUPPORT ${MODULE})
+      set(${ADD_MODULE_RESULT} TRUE)
+    else()
+      set(${ADD_MODULE_RESULT} FALSE)
     endif()
   endif()
-  string(TOUPPER ${module} module)
 
-  list(APPEND IOTJS_MODULES_ENABLED ${module})
-  list(REMOVE_ITEM IOTJS_MODULES_DISABLED ${module})
+  # if the module is not in <os>/<board>, look in <os>
+  if(NOT ${ADD_MODULE_RESULT})
+    set(PLATFORM_MODULE_SRC
+        ${PLATFORM_OS_DIR}/iotjs_module_${module}-${IOTJS_SYSTEM_OS}.c)
+    if(EXISTS "${PLATFORM_MODULE_SRC}")
+      list(APPEND IOTJS_MODULE_SRC ${PLATFORM_MODULE_SRC})
+      list(APPEND IOTJS_PLATFORM_SUPPORT ${MODULE})
+    endif()
+  endif()
+
+  list(APPEND IOTJS_MODULES_ENABLED ${MODULE})
+  list(REMOVE_ITEM IOTJS_MODULES_DISABLED ${MODULE})
 endforeach()
-
 # Build the module enable defines and print out the module configurations
 message("Native module configuration:")
 set(IOTJS_MODULES_ALL ${IOTJS_MODULES_ENABLED} ${IOTJS_MODULES_DISABLED})
@@ -181,7 +175,7 @@ foreach(module ${IOTJS_MODULES_ALL})
   if(MODULE_ENABLED)
     find_value(PLATFORM_SUPPORT "${module}" "found" "NOT found"
                ${IOTJS_PLATFORM_SUPPORT})
-    if(DEFINED BOARD_DESCRIPTOR)
+    if(DEFINED TARGET_BOARD)
       find_value(BOARD_SUPPORT "${module}" "found" "NOT found"
         ${IOTJS_BOARD_SUPPORT})
       set(BOARD_SUPPORT_STR "[Board support: ${BOARD_SUPPORT}]")

@@ -64,7 +64,8 @@
     { "name": "test_uncaught1.js", "uncaught": true },
     { "name": "test_uncaught2.js", "uncaught": true },
     { "name": "test_uncaught_error1.js", "uncaught": true },
-    { "name": "test_uncaught_error2.js", "uncaught": true }
+    { "name": "test_uncaught_error2.js", "uncaught": true },
+    { "name": "test_util.js" }
   ],
   "run_pass/issue": [
     { "name": "issue-133.js" },

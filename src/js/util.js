@@ -101,7 +101,7 @@ function format(s) {
   });
 
   while (i < args.length) {
-      str += ' ' + args[i++].toString();
+      str += ' ' + formatValue(args[i++]);
   }
 
   return str;

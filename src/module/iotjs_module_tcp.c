@@ -604,6 +604,13 @@ JHANDLER_FUNCTION(SetKeepAlive) {
   iotjs_jhandler_return_number(jhandler, err);
 }
 
+JHANDLER_FUNCTION(ErrName) {
+  JHANDLER_CHECK_THIS(object);
+  JHANDLER_CHECK_ARGS(1, number);
+
+  int errorcode = JHANDLER_GET_ARG(0, number);
+  iotjs_jhandler_return_string_raw(jhandler, uv_err_name(errorcode));
+}
 
 // used in iotjs_module_udp.cpp
 void AddressToJS(const iotjs_jval_t* obj, const sockaddr* addr) {
@@ -653,7 +660,10 @@ iotjs_jval_t InitTcp() {
   iotjs_jval_t tcp = iotjs_jval_create_function_with_dispatch(TCP);
 
   iotjs_jval_t prototype = iotjs_jval_create_object();
+  iotjs_jval_t errname = iotjs_jval_create_function_with_dispatch(ErrName);
+
   iotjs_jval_set_property_jval(&tcp, IOTJS_MAGIC_STRING_PROTOTYPE, &prototype);
+  iotjs_jval_set_property_jval(&tcp, IOTJS_MAGIC_STRING_ERRNAME, &errname);
 
   iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_OPEN, Open);
   iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_CLOSE, Close);
@@ -669,6 +679,7 @@ iotjs_jval_t InitTcp() {
                         GetSockeName);
 
   iotjs_jval_destroy(&prototype);
+  iotjs_jval_destroy(&errname);
 
   return tcp;
 }

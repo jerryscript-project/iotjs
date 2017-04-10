@@ -274,7 +274,8 @@ function connect(socket, ip, port) {
       socket.emit('connect');
     } else {
       socket.destroy();
-      emitError(socket, new Error('connect failed - status: ' + status));
+      emitError(socket, new Error('connect failed - status: ' +
+        TCP.errname(status)));
     }
   };
 
@@ -570,7 +571,7 @@ function onconnection(status, clientHandle) {
   var server = this.owner;
 
   if (status) {
-    server.emit('error', new Error('accept error: ' + status));
+    server.emit('error', new Error('accept error: ' + TCP.errname(status)));
     return;
   }
 

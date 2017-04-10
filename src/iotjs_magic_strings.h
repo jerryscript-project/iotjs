@@ -65,6 +65,7 @@
 #define IOTJS_MAGIC_STRING_EMIT "emit"
 #define IOTJS_MAGIC_STRING_EMITEXIT "emitExit"
 #define IOTJS_MAGIC_STRING_ENV "env"
+#define IOTJS_MAGIC_STRING_ERRNAME "errname"
 #define IOTJS_MAGIC_STRING_EXECUTE "execute"
 #define IOTJS_MAGIC_STRING_EXPORT "export"
 #define IOTJS_MAGIC_STRING_FAMILY "family"

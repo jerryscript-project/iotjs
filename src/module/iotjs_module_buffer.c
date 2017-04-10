@@ -376,7 +376,7 @@ JHANDLER_FUNCTION(ReadUInt8) {
   iotjs_bufferwrap_t* buffer_wrap = iotjs_bufferwrap_from_jbuiltin(jbuiltin);
 
   size_t buffer_length = iotjs_bufferwrap_length(buffer_wrap);
-  offset = bound_range(offset, 0, buffer_length);
+  offset = bound_range(offset, 0, buffer_length - 1);
 
   char* buffer = iotjs_bufferwrap_buffer(buffer_wrap);
 

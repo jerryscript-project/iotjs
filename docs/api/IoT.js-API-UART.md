@@ -13,7 +13,7 @@ The following shows uart module APIs available for each platform.
 
 ## Contents
   * [UART](#uart)
-    * [Constructor](#constructor)
+    * [Constructor](#uart-constructor)
       * [`new UART()`](#new-uart)
     * [Prototype Methods](#uart-prototype-methods)
       * [`uart.open(configurable[, callback])`](#uart-open)
@@ -43,8 +43,8 @@ Returns a new UART object which can open UART port.
 ### `uart.open(configuration[, callback])` <a name="uart-open"></a>
 * `configuration <Object>`
   * `device <String>`, mandatory configuration
-  * `baudRate: Number (Default value is 9600)`
-  * `dataBits: Number (Default value is 8)`
+  * `baudRate <Number> (Default value is 9600)`
+  * `dataBits <Number> (Default value is 8)`
 * `callback <Function(err: Error | null)>`
 * Returns: `<UARTPort>`
 
@@ -78,8 +78,8 @@ var serial = uart.open(configuration, function(err) {
 
 
 ### `uartport.write(data[, callback])` <a name="uartport-write"></a>
-* `data: String`
-* `callback: Function(err: Error | null)`
+* `data <String>`
+* `callback <Function(err: Error | null)>`
 
 Writes data to UART device asynchronously.
 
@@ -94,7 +94,7 @@ serial.write("Hello?", function(err) {
 ```
 
 ### `uartport.writeSync(data)` <a name="uartport-write-sync"></a>
-* `data: String`
+* `data <String>`
 
 Writes data to UART device synchronously.
 
@@ -106,7 +106,7 @@ serial.close();
 
 
 ### `uartport.close([callback])` <a name="uartport-close"></a>
-* `callback: Function(err: Error | null)`
+* `callback <Function(err: Error | null)>`
 
 Closes UART device asynchronously.
 
@@ -120,7 +120,7 @@ Closes UART device synchronously.
 
 
 ### `'data'`
-* `callback: Function(data)`
+* `callback <Function(data)>`
 
  `data` is a string from sender
 

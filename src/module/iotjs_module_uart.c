@@ -21,6 +21,7 @@
 
 
 static void iotjs_uart_destroy(iotjs_uart_t* uart);
+static iotjs_uart_t* iotjs_uart_instance_from_jval(const iotjs_jval_t* juart);
 
 
 static iotjs_uart_t* iotjs_uart_create(const iotjs_jval_t* juart) {
@@ -85,6 +86,12 @@ static const iotjs_jval_t* iotjs_uart_reqwrap_jcallback(THIS) {
 }
 
 
+static iotjs_uart_t* iotjs_uart_instance_from_jval(const iotjs_jval_t* juart) {
+  iotjs_jobjectwrap_t* jobjectwrap = iotjs_jobjectwrap_from_jobject(juart);
+  return (iotjs_uart_t*)jobjectwrap;
+}
+
+
 iotjs_uart_reqwrap_t* iotjs_uart_reqwrap_from_request(uv_work_t* req) {
   return (iotjs_uart_reqwrap_t*)(iotjs_reqwrap_from_request((uv_req_t*)req));
 }
@@ -93,12 +100,6 @@ iotjs_uart_reqwrap_t* iotjs_uart_reqwrap_from_request(uv_work_t* req) {
 iotjs_uart_reqdata_t* iotjs_uart_reqwrap_data(THIS) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_uart_reqwrap_t, uart_reqwrap);
   return &_this->req_data;
-}
-
-
-iotjs_uart_t* iotjs_uart_instance_from_jval(const iotjs_jval_t* juart) {
-  iotjs_jobjectwrap_t* jobjectwrap = iotjs_jobjectwrap_from_jobject(juart);
-  return (iotjs_uart_t*)jobjectwrap;
 }
 
 

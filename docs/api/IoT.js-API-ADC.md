@@ -66,10 +66,13 @@ var adc0 = adc.open({
 ```
 
 
+## Class: ADCPin <a name="adcpin"></a>
+
+
 ## Prototype methods <a name="adcpin-prototype-methods"></a>
 
 
-### `adc.read([callback])` <a name="adcpin-read"></a>
+### `adcpin.read([callback])` <a name="adcpin-read"></a>
 * `callback <Function(err: Error | null, value: Number)>`
 
 Reads the analog value from pin asynchronously.
@@ -87,7 +90,7 @@ adc0.read(function(err, value) {
 ```
 
 
-### `adc.readSync()` <a name="adcpin-read-sync"></a>
+### `adcpin.readSync()` <a name="adcpin-read-sync"></a>
 * Return: `<Number>`, analog value
 
 Reads the analog value from pin synchronously.
@@ -99,7 +102,7 @@ console.log('value:', value);
 ```
 
 
-### `adc.close([callback])` <a name="adcpin-close"></a>
+### `adcpin.close([callback])` <a name="adcpin-close"></a>
 * `callback <Function(err: Error | null)>`
 
 Closes ADC pin asynchronously. This function must be called after the work of ADC finished.
@@ -116,7 +119,7 @@ adc0.clsoe(function(err) {
 ```
 
 
-### `adc.closeSync()` <a name="adcpin-close-sync"></a>
+### `adcpin.closeSync()` <a name="adcpin-close-sync"></a>
 
 Closes ADC pin synchronously. This function must be called after the work of ADC finished.
 

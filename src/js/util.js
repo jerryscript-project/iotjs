@@ -95,7 +95,12 @@ function format(s) {
     switch (m) {
       case '%s': return String(args[i++]);
       case '%d': return Number(args[i++]);
-      case '%j': return '[JSON object]';
+      case '%j':
+        try {
+          return JSON.stringify(args[i++]);
+        } catch (_) {
+          return '[Circular]';
+        }
       default: return m;
     }
   });

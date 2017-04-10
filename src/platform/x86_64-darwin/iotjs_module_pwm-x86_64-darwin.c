@@ -19,12 +19,11 @@
 #include "module/iotjs_module_pwm.h"
 #include "iotjs_module_unimplemented.inl.h"
 
-void iotjs_pwm_initialize() IOTJS_MODULE_UNIMPLEMENTED();
-void ExportWorker(uv_work_t* work_req) IOTJS_MODULE_UNIMPLEMENTED();
-void SetPeriodWorker(uv_work_t* work_req) IOTJS_MODULE_UNIMPLEMENTED();
-void SetFrequencyWorker(uv_work_t* work_req) IOTJS_MODULE_UNIMPLEMENTED();
-void SetDutyCycleWorker(uv_work_t* work_req) IOTJS_MODULE_UNIMPLEMENTED();
-void SetEnableWorker(uv_work_t* work_req) IOTJS_MODULE_UNIMPLEMENTED();
-void UnexportWorker(uv_work_t* work_req) IOTJS_MODULE_UNIMPLEMENTED();
+void iotjs_pwm_open_worker(uv_work_t* work_req) IOTJS_MODULE_UNIMPLEMENTED();
+bool iotjs_pwm_set_period(iotjs_pwm_t* pwm) IOTJS_MODULE_UNIMPLEMENTED(false);
+bool iotjs_pwm_set_dutycycle(iotjs_pwm_t* pwm)
+    IOTJS_MODULE_UNIMPLEMENTED(false);
+bool iotjs_pwm_set_enable(iotjs_pwm_t* pwm) IOTJS_MODULE_UNIMPLEMENTED(false);
+bool iotjs_pwm_close(iotjs_pwm_t* pwm) IOTJS_MODULE_UNIMPLEMENTED(false);
 
 #endif // __APPLE__

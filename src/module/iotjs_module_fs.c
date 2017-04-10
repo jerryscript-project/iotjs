@@ -174,6 +174,16 @@ static void AfterSync(uv_fs_t* req, int err, const char* syscall_name,
 }
 
 
+static inline bool IsWithinBounds(size_t off, size_t len, size_t max) {
+  if (off > max)
+    return false;
+
+  if (max - off < len)
+    return false;
+
+  return true;
+}
+
 #define FS_ASYNC(env, syscall, pcallback, ...)                                \
   iotjs_fs_reqwrap_t* req_wrap = iotjs_fs_reqwrap_create(pcallback);          \
   uv_fs_t* fs_req = iotjs_fs_reqwrap_req(req_wrap);                           \
@@ -243,14 +253,14 @@ JHANDLER_FUNCTION(Read) {
 
   int fd = JHANDLER_GET_ARG(0, number);
   const iotjs_jval_t* jbuffer = JHANDLER_GET_ARG(1, object);
-  int offset = JHANDLER_GET_ARG(2, number);
-  int length = JHANDLER_GET_ARG(3, number);
+  size_t offset = JHANDLER_GET_ARG(2, number);
+  size_t length = JHANDLER_GET_ARG(3, number);
   int position = JHANDLER_GET_ARG(4, number);
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG_IF_EXIST(5, function);
 
   iotjs_bufferwrap_t* buffer_wrap = iotjs_bufferwrap_from_jbuffer(jbuffer);
   char* data = iotjs_bufferwrap_buffer(buffer_wrap);
-  int data_length = iotjs_bufferwrap_length(buffer_wrap);
+  size_t data_length = iotjs_bufferwrap_length(buffer_wrap);
   JHANDLER_CHECK(data != NULL);
   JHANDLER_CHECK(data_length > 0);
 
@@ -258,7 +268,7 @@ JHANDLER_FUNCTION(Read) {
     JHANDLER_THROW(RANGE, "offset out of bound");
     return;
   }
-  if (offset + length > data_length) {
+  if (!IsWithinBounds(offset, length, data_length)) {
     JHANDLER_THROW(RANGE, "length out of bound");
     return;
   }
@@ -282,14 +292,14 @@ JHANDLER_FUNCTION(Write) {
 
   int fd = JHANDLER_GET_ARG(0, number);
   const iotjs_jval_t* jbuffer = JHANDLER_GET_ARG(1, object);
-  int offset = JHANDLER_GET_ARG(2, number);
-  int length = JHANDLER_GET_ARG(3, number);
+  size_t offset = JHANDLER_GET_ARG(2, number);
+  size_t length = JHANDLER_GET_ARG(3, number);
   int position = JHANDLER_GET_ARG(4, number);
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG_IF_EXIST(5, function);
 
   iotjs_bufferwrap_t* buffer_wrap = iotjs_bufferwrap_from_jbuffer(jbuffer);
   char* data = iotjs_bufferwrap_buffer(buffer_wrap);
-  int data_length = iotjs_bufferwrap_length(buffer_wrap);
+  size_t data_length = iotjs_bufferwrap_length(buffer_wrap);
   JHANDLER_CHECK(data != NULL);
   JHANDLER_CHECK(data_length > 0);
 
@@ -297,7 +307,7 @@ JHANDLER_FUNCTION(Write) {
     JHANDLER_THROW(RANGE, "offset out of bound");
     return;
   }
-  if (offset + length > data_length) {
+  if (!IsWithinBounds(offset, length, data_length)) {
     JHANDLER_THROW(RANGE, "length out of bound");
     return;
   }

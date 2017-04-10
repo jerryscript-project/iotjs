@@ -34,6 +34,7 @@ The following shows spi module APIs available for each platform.
 
 ## Constructor <a name="spi-constructor"></a>
 
+
 ### `new SPI()` <a name="spi-new"></a>
 
 Returns a new SPI object which can open SPI bus.
@@ -43,27 +44,27 @@ Returns a new SPI object which can open SPI bus.
 
 
 ### `MODE`<a name="spi-mode"></a>
- * `0` - Clock Polarity(0), Clock Phase(0), Clock Edge(1)
- * `1` - Clock Polarity(0), Clock Phase(1), Clock Edge(0)
- * `2` - Clock Polarity(1), Clock Phase(0), Clock Edge(1)
- * `3` - Clock Polarity(1), Clock Phase(1), Clock Edge(0)
+* `0` - Clock Polarity(0), Clock Phase(0), Clock Edge(1)
+* `1` - Clock Polarity(0), Clock Phase(1), Clock Edge(0)
+* `2` - Clock Polarity(1), Clock Phase(0), Clock Edge(1)
+* `3` - Clock Polarity(1), Clock Phase(1), Clock Edge(0)
 
 
 ### `CHIPSELECT`<a name="spi-chipselect"></a>
- * `NONE`
- * `HIGH` - chip select active high
+* `NONE`
+* `HIGH` - chip select active high
 
 
 ### `BITORDER`<a name="spi-bitorder"></a>
- * `MSB` - most significant bit
- * `LSB` - least significant bit
+* `MSB` - most significant bit
+* `LSB` - least significant bit
 
 
 ## Prototype methods <a name="spi-prototype-methods"></a>
 
 
 ### `spi.open(configuration[, callback])` <a name="spi-open"></a>
- * `configuration <Object>`
+* `configuration <Object>`
   * `device <String>`, the specified path for `spidev`
   * `mode <SPI.MODE>`, the combinations of polarity and phases, Default: `SPI.MODE[0]`
   * `chipSelect <SPI.CHIPSELECT>`, Default: `SPI.CHIPSELECT.NONE`
@@ -71,8 +72,8 @@ Returns a new SPI object which can open SPI bus.
   * `bitsPerWord <Number>`, bits per word to send, should be 8 or 9, Default: `8`
   * `bitOrder <SPI.bitORDER>`, Default: `SPI.BITORDER.MSB`
   * `loopback <Boolean>`, Default: `false`
- * `callback <Function(err: Error | null)>`
- * Returns: `<SPIBus>`
+* `callback <Function(err: Error | null)>`
+* Returns: `<SPIBus>`
 
 Opens SPI device with the specified configuration.
 
@@ -123,7 +124,6 @@ spi0.transfer(tx, rx, function(err) {
 ### `spibus.transferSync(txBuffer, rxBuffer)` <a name="spibus-transfer-sync"></a>
 * `txBuffer <Array | Buffer>`
 * `rxBuffer <Array | Buffer>`
-* `callback: Function(err, buffer)`
 
 Writes and reads data from SPI device synchronously.
 `txBuffer` and `rxBuffer` must have equal length.
@@ -141,8 +141,8 @@ console.log(value);
 ```
 
 
-### `spi.close([callback])` <a name="spibus-close"></a>
-* `callback: Function`
+### `spibus.close([callback])` <a name="spibus-close"></a>
+* `callback <Function(err: Error | null)>`
 
 Closes SPI device asynchronously.
 
@@ -159,8 +159,7 @@ spi0.close(function(err) {
 ```
 
 
-### `spi.closeSync()` <a name="spibus-close-sync"></a>
-* `callback: Function`
+### `spibus.closeSync()` <a name="spibus-close-sync"></a>
 
 Closes SPI device synchronously.
 

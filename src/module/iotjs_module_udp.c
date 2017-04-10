@@ -368,7 +368,7 @@ JHANDLER_FUNCTION(GetSockeName) {
 
 
 JHANDLER_FUNCTION(SetBroadcast) {
-#if !defined(__NUTTX__)
+#if !defined(__NUTTX__) && !defined(__TIZENRT__)
   IOTJS_UV_SET_SOCKOPT(uv_udp_set_broadcast);
 #else
   IOTJS_ASSERT(!"Not implemented");
@@ -379,7 +379,7 @@ JHANDLER_FUNCTION(SetBroadcast) {
 
 
 JHANDLER_FUNCTION(SetTTL) {
-#if !defined(__NUTTX__)
+#if !defined(__NUTTX__) && !defined(__TIZENRT__)
   IOTJS_UV_SET_SOCKOPT(uv_udp_set_ttl);
 #else
   IOTJS_ASSERT(!"Not implemented");
@@ -390,7 +390,7 @@ JHANDLER_FUNCTION(SetTTL) {
 
 
 JHANDLER_FUNCTION(SetMulticastTTL) {
-#if !defined(__NUTTX__)
+#if !defined(__NUTTX__) && !defined(__TIZENRT__)
   IOTJS_UV_SET_SOCKOPT(uv_udp_set_multicast_ttl);
 #else
   IOTJS_ASSERT(!"Not implemented");
@@ -401,7 +401,7 @@ JHANDLER_FUNCTION(SetMulticastTTL) {
 
 
 JHANDLER_FUNCTION(SetMulticastLoopback) {
-#if !defined(__NUTTX__)
+#if !defined(__NUTTX__) && !defined(__TIZENRT__)
   IOTJS_UV_SET_SOCKOPT(uv_udp_set_multicast_loop);
 #else
   IOTJS_ASSERT(!"Not implemented");
@@ -414,7 +414,7 @@ JHANDLER_FUNCTION(SetMulticastLoopback) {
 
 
 void SetMembership(iotjs_jhandler_t* jhandler, uv_membership membership) {
-#if !defined(__NUTTX__)
+#if !defined(__NUTTX__) && !defined(__TIZENRT__)
   JHANDLER_CHECK_THIS(object);
   JHANDLER_CHECK_ARGS_1(string);
 

@@ -33,7 +33,7 @@ iotjs_string_t iotjs_file_read(const char* path) {
 
   char* buffer = iotjs_buffer_allocate(len + 1);
 
-#if defined(__NUTTX__)
+#if defined(__NUTTX__) || defined(__TIZENRT__)
   char* ptr = buffer;
   unsigned nread = 0;
   unsigned read = 0;

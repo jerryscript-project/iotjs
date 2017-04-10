@@ -89,6 +89,11 @@ fs.close(-1, function(err) {
   }
 });
 
+var buffer = new Buffer(10);
+// expect length out of bound
+assert.throws(function () { fs.readSync(5, buffer, 0, 20); }, RangeError);
+// expect offset out of bound
+assert.throws(function () { fs.readSync(5, buffer, -1, 20); }, RangeError);
 
 process.on('exit', function() {
   assert.equal(fs_async_normal_ok, true);

@@ -23,31 +23,37 @@
 
 
 typedef enum {
-  kPwmOpExport,
+  kPwmOpOpen,
   kPwmOpSetDutyCycle,
   kPwmOpSetPeriod,
   kPwmOpSetFrequency,
   kPwmOpSetEnable,
-  kPwmOpUnexport,
+  kPwmOpClose,
 } PwmOp;
-
-typedef enum {
-  kPwmErrOk = 0,
-  kPwmErrExport = -1,
-  kPwmErrUnexport = -2,
-  kPwmErrEnable = -3,
-  kPwmErrWrite = -4,
-  kPwmErrSys = -5,
-} PwmError;
 
 
 typedef struct {
-  int32_t pin;
+  iotjs_jobjectwrap_t jobjectwrap;
+
+#if defined(__linux__)
+  int chip;
+  iotjs_string_t device;
+#elif defined(__NUTTX__)
+  int device_fd;
+#endif
+  int pin;
   double duty_cycle;
   double period;
   bool enable;
+} IOTJS_VALIDATED_STRUCT(iotjs_pwm_t);
 
-  PwmError result;
+
+typedef bool (*pwm_func_ptr)(iotjs_pwm_t*);
+
+
+typedef struct {
+  pwm_func_ptr caller;
+  bool result;
   PwmOp op;
 } iotjs_pwm_reqdata_t;
 
@@ -56,36 +62,32 @@ typedef struct {
   iotjs_reqwrap_t reqwrap;
   uv_work_t req;
   iotjs_pwm_reqdata_t req_data;
+  iotjs_pwm_t* pwm_instance;
 } IOTJS_VALIDATED_STRUCT(iotjs_pwm_reqwrap_t);
 
 
 #define THIS iotjs_pwm_reqwrap_t* pwm_reqwrap
-iotjs_pwm_reqwrap_t* iotjs_pwm_reqwrap_create(const iotjs_jval_t* jcallback,
-                                              PwmOp op);
-void iotjs_pwm_reqwrap_dispatched(THIS);
-uv_work_t* iotjs_pwm_reqwrap_req(THIS);
-const iotjs_jval_t* iotjs_pwm_reqwrap_jcallback(THIS);
+
 iotjs_pwm_reqwrap_t* iotjs_pwm_reqwrap_from_request(uv_work_t* req);
 iotjs_pwm_reqdata_t* iotjs_pwm_reqwrap_data(THIS);
+
+iotjs_pwm_t* iotjs_pwm_instance_from_reqwrap(THIS);
+
 #undef THIS
 
 
-// This Pwm class provides interfaces for PWM operation.
-typedef struct {
-  iotjs_jobjectwrap_t jobjectwrap;
-} IOTJS_VALIDATED_STRUCT(iotjs_pwm_t);
+#define PWM_WORKER_INIT                                                     \
+  iotjs_pwm_reqwrap_t* req_wrap = iotjs_pwm_reqwrap_from_request(work_req); \
+  iotjs_pwm_reqdata_t* req_data = iotjs_pwm_reqwrap_data(req_wrap);         \
+  iotjs_pwm_t* pwm = iotjs_pwm_instance_from_reqwrap(req_wrap);
 
-iotjs_pwm_t* iotjs_pwm_create(const iotjs_jval_t* jpwm);
-const iotjs_jval_t* iotjs_pwm_get_jpwm();
-iotjs_pwm_t* iotjs_pwm_get_instance();
-void iotjs_pwm_initialize();
 
-void ExportWorker(uv_work_t* work_req);
-void SetPeriodWorker(uv_work_t* work_req);
-void SetFrequencyWorker(uv_work_t* work_req);
-void SetDutyCycleWorker(uv_work_t* work_req);
-void SetEnableWorker(uv_work_t* work_req);
-void UnexportWorker(uv_work_t* work_req);
+void iotjs_pwm_open_worker(uv_work_t* work_req);
+
+bool iotjs_pwm_set_period(iotjs_pwm_t* pwm);
+bool iotjs_pwm_set_dutycycle(iotjs_pwm_t* pwm);
+bool iotjs_pwm_set_enable(iotjs_pwm_t* pwm);
+bool iotjs_pwm_close(iotjs_pwm_t* pwm);
 
 
 #endif /* IOTJS_MODULE_PWM_H */

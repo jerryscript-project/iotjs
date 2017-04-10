@@ -15,10 +15,19 @@
 
 
 var assert = require('assert');
-var pwm = require('pwm');
+var Pwm = require('pwm');
 
-var pwmOptions = {
-};
+var pwm = new Pwm();
+
+var configuration = {};
+
+if (process.platform === 'linux') {
+  configuration.pin = 0;
+} else if (process.platform === 'nuttx') {
+  configuration.pin = require('stm32f4dis').pin.PWM1.CH1_1;
+} else {
+  assert.fail();
+}
 
 var periodOptions = {
   dutyCycle: 0.5,
@@ -39,7 +48,7 @@ var testCb = function (err) {
   }
 };
 
-var pwm0 = new pwm(0, pwmOptions, function (err) {
+var pwm0 = pwm.open(configuration, function (err) {
   console.log('PWM initialized');
 
   if (err) {
@@ -48,18 +57,21 @@ var pwm0 = new pwm(0, pwmOptions, function (err) {
   }
 
   pwm0.setEnable(1, testCb);
-  testPeriods(pwm0, periodOptions, testCb);
+  testPeriods(pwm0, testCb);
 });
 
-function testPeriods(pwm, options, callback) {
+function testPeriods(pwm, callback) {
+  var options = periodOptions;
   console.log('PWM: period test start ');
   var idx = 0;
   var period = options.values[idx++];
-  pwm.setPeriod(period, callback);
-  pwm.setDutyCycle(options.dutyCycle, callback);
+  console.log("Period(%d)", period);
+  pwm.setFrequency(1.0 / period, callback);
+  pwm.setDutyCycleSync(options.dutyCycle);
 
   var loop = setInterval(function () {
     if (idx == options.values.length) {
+      pwm.setPeriodSync(options.values[0]);
       clearInterval(loop);
       console.log('PWM period test complete');
       testDutyCycles(pwm, callback);
@@ -75,7 +87,7 @@ function testDutyCycles(pwm, callback) {
   var options = dutyOptions;
 
   console.log('PWM: duty cycle test start');
-  pwm.setPeriod(options.period, callback);
+  pwm.setFrequencySync(1.0 / options.period);
 
   var idx = 0;
   var loop = setInterval(function () {
@@ -84,7 +96,7 @@ function testDutyCycles(pwm, callback) {
 
     if (++idx == options.values.length) {
       clearInterval(loop);
-      pwm.setEnable(0, callback);
+      pwm.setEnableSync(0);
       console.log('PWM duty cycle test complete');
     }
   }, 1000);

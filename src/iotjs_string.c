@@ -36,11 +36,10 @@ iotjs_string_t iotjs_string_create_with_size(const char* data, uint32_t size) {
   iotjs_string_t str;
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_string_t, &str);
 
-  IOTJS_ASSERT(data != NULL);
-
   _this->size = size;
 
   if (size > 0) {
+    IOTJS_ASSERT(data != NULL);
     _this->data = iotjs_buffer_allocate(size);
     memcpy(_this->data, data, size);
   } else {
@@ -55,10 +54,14 @@ iotjs_string_t iotjs_string_create_with_buffer(char* buffer, uint32_t size) {
   iotjs_string_t str;
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_string_t, &str);
 
-  IOTJS_ASSERT(buffer != NULL);
-
   _this->size = size;
-  _this->data = buffer;
+
+  if (size > 0) {
+    IOTJS_ASSERT(buffer != NULL);
+    _this->data = buffer;
+  } else {
+    _this->data = NULL;
+  }
 
   return str;
 }

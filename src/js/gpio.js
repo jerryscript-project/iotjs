@@ -38,7 +38,6 @@ Gpio.prototype.DIRECTION = gpio.DIRECTION;
 Gpio.prototype.MODE = gpio.MODE;
 
 
-// new GpioPin(configuration[, callback])
 function GpioPin(configuration, callback) {
   var self = this;
 
@@ -100,7 +99,6 @@ function GpioPin(configuration, callback) {
   })(this));
 }
 
-// gpio.write(value[, callback])
 GpioPin.prototype.write = function(value, callback) {
   var self = this;
 
@@ -117,7 +115,6 @@ GpioPin.prototype.write = function(value, callback) {
   });
 };
 
-// gpio.writeSync(value)
 GpioPin.prototype.writeSync = function(value) {
   if (util.isNull(this._binding)) {
     throw new Error('GPIO pin is not opened');
@@ -130,7 +127,6 @@ GpioPin.prototype.writeSync = function(value) {
   this._binding.writeSync(!!value);
 };
 
-// gpio.read([callback])
 GpioPin.prototype.read = function(callback) {
   var self = this;
 
@@ -143,7 +139,6 @@ GpioPin.prototype.read = function(callback) {
   });
 };
 
-// gpio.readSync()
 GpioPin.prototype.readSync = function() {
   if (util.isNull(this._binding)) {
     throw new Error('GPIO pin is not opened');
@@ -152,7 +147,6 @@ GpioPin.prototype.readSync = function() {
   return this._binding.readSync();
 };
 
-// gpio.close([callback])
 GpioPin.prototype.close = function(callback) {
   var self = this;
 
@@ -161,13 +155,12 @@ GpioPin.prototype.close = function(callback) {
   }
 
   this._binding.close(function(err) {
-    util.isFunction(callback) && callback.call(self, err, value);
+    util.isFunction(callback) && callback.call(self, err);
   });
 
   this._binding = null;
 };
 
-// gpio.closeSync()
 GpioPin.prototype.closeSync = function() {
   if (util.isNull(this._binding)) {
     throw new Error('GPIO pin is not opened');

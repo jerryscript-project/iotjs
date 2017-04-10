@@ -42,6 +42,11 @@ class Executor(object):
         exit(1)
 
     @staticmethod
+    def warn(msg):
+        print("%s%s%s" % (Executor._TERM_YELLOW, msg, Executor._TERM_EMPTY))
+        print()
+
+    @staticmethod
     def run_cmd(cmd, args=[], quiet=False):
         if not quiet:
             Executor.print_cmd_line(cmd, args)

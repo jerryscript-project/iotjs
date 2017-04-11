@@ -104,6 +104,10 @@ int main(int argc, FAR char *argv[])
 int iotjs_main(int argc, char *argv[])
 #endif
 {
+  return iotjs(argc, argv);
+}
+
+int iotjs_register_cmd() {
   tash_cmdlist_install(iotjs_cmds);
   return 0;
 }

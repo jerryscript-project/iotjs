@@ -15,6 +15,7 @@
 
 #include "iotjs_def.h"
 #include "iotjs_js.h"
+#include "jerryscript-debugger.h"
 
 #include <stdlib.h>
 
@@ -31,8 +32,9 @@ JHANDLER_FUNCTION(Binding) {
 }
 
 
-static iotjs_jval_t WrapEval(const char* source, size_t length, bool* throws) {
-  static const char* wrapper[2] = { "(function(exports, require, module) {\n",
+static iotjs_jval_t WrapEval(const char* name, size_t name_len,
+                             const char* source, size_t length, bool* throws) {
+  static const char* wrapper[2] = { "(function(exports, require, module) {",
                                     "\n});\n" };
 
   int len0 = strlen(wrapper[0]);
@@ -44,7 +46,8 @@ static iotjs_jval_t WrapEval(const char* source, size_t length, bool* throws) {
   memcpy(buffer + len0, source, length);
   memcpy(buffer + len0 + length, wrapper[1], len1);
 
-  iotjs_jval_t res = iotjs_jhelper_eval(buffer, buffer_length, false, throws);
+  iotjs_jval_t res =
+      iotjs_jhelper_eval(name, name_len, buffer, buffer_length, false, throws);
 
   iotjs_buffer_release(buffer);
 
@@ -53,13 +56,22 @@ static iotjs_jval_t WrapEval(const char* source, size_t length, bool* throws) {
 
 
 JHANDLER_FUNCTION(Compile) {
-  JHANDLER_CHECK_ARGS(1, string);
+  JHANDLER_CHECK_ARGS(2, string, string);
 
-  iotjs_string_t source = JHANDLER_GET_ARG(0, string);
+  iotjs_string_t file = JHANDLER_GET_ARG(0, string);
+  iotjs_string_t source = JHANDLER_GET_ARG(1, string);
+
+  const char* filename = iotjs_string_data(&file);
+  const iotjs_environment_t* env = iotjs_environment_get();
+
+  if (iotjs_environment_config(env)->debugger) {
+    jerry_debugger_stop();
+  }
 
   bool throws;
   iotjs_jval_t jres =
-      WrapEval(iotjs_string_data(&source), iotjs_string_size(&source), &throws);
+      WrapEval(filename, strlen(filename), iotjs_string_data(&source),
+               iotjs_string_size(&source), &throws);
 
   if (!throws) {
     iotjs_jhandler_return_jval(jhandler, &jres);
@@ -67,6 +79,7 @@ JHANDLER_FUNCTION(Compile) {
     iotjs_jhandler_throw(jhandler, &jres);
   }
 
+  iotjs_string_destroy(&file);
   iotjs_string_destroy(&source);
   iotjs_jval_destroy(&jres);
 }
@@ -76,17 +89,16 @@ JHANDLER_FUNCTION(CompileNativePtr) {
   JHANDLER_CHECK_ARGS(1, string);
 
   iotjs_string_t id = JHANDLER_GET_ARG(0, string);
+  const char* name = iotjs_string_data(&id);
 
   int i = 0;
   while (natives[i].name != NULL) {
-    if (!strcmp(natives[i].name, iotjs_string_data(&id))) {
+    if (!strcmp(natives[i].name, name)) {
       break;
     }
 
     i++;
   }
-
-  iotjs_string_destroy(&id);
 
   if (natives[i].name != NULL) {
     bool throws;
@@ -95,7 +107,8 @@ JHANDLER_FUNCTION(CompileNativePtr) {
                                                     natives[i].length, &throws);
 #else
     iotjs_jval_t jres =
-        WrapEval((const char*)natives[i].code, natives[i].length, &throws);
+        WrapEval(name, iotjs_string_size(&id), (const char*)natives[i].code,
+                 natives[i].length, &throws);
 #endif
 
     if (!throws) {
@@ -109,6 +122,8 @@ JHANDLER_FUNCTION(CompileNativePtr) {
     iotjs_jhandler_throw(jhandler, &jerror);
     iotjs_jval_destroy(&jerror);
   }
+
+  iotjs_string_destroy(&id);
 }
 
 

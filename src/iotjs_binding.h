@@ -179,7 +179,8 @@ iotjs_jval_t iotjs_jhelper_call_ok(const iotjs_jval_t* jfunc,
                                    const iotjs_jargs_t* jargs);
 
 // Evaluates javascript source file.
-iotjs_jval_t iotjs_jhelper_eval(const char* data, size_t size, bool strict_mode,
+iotjs_jval_t iotjs_jhelper_eval(const char* name, size_t name_len,
+                                const char* data, size_t size, bool strict_mode,
                                 bool* throws);
 #ifdef ENABLE_SNAPSHOT
 // Evaluates javascript snapshot.

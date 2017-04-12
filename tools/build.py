@@ -174,6 +174,12 @@ def init_options():
         choices=['es5.1', 'es2015-subset'], default='es5.1',
         help='Specify the profile for JerryScript: %(choices)s'
              ' (default: %(default)s)')
+    parser.add_argument('--jerry-debugger',
+        action='store_true', default=False,
+        help='Enable JerryScript-debugger')
+    parser.add_argument('--jerry-debugger-port',
+        type=int, default=5001,
+        help='Specify the port of JerryScript-debugger (default: %(default)s)')
     parser.add_argument('--no-init-submodule',
         action='store_true', default=False,
         help='Disable initialization of git submodules')
@@ -371,6 +377,12 @@ def build_iotjs(options):
     if options.jerry_heap_section:
         cmake_opt.append("-DJERRY_HEAP_SECTION_ATTR='%s'" %
                          options.jerry_heap_section)
+
+    # --jerry-debugger
+    if options.jerry_debugger:
+        cmake_opt.append('-DFEATURE_DEBUGGER=ON')
+        cmake_opt.append('-DFEATURE_DEBUGGER_PORT=%d' %
+                          options.jerry_debugger_port)
 
     # --cmake-param
     cmake_opt.extend(options.cmake_param)

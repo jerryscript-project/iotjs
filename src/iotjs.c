@@ -78,32 +78,20 @@ static void iotjs_jerry_release() {
 }
 
 
-static bool iotjs_run(const iotjs_jval_t* process) {
+static bool iotjs_run() {
   // Evaluating 'iotjs.js' returns a function.
-  bool throws;
+  bool throws = false;
 #ifndef ENABLE_SNAPSHOT
   iotjs_jval_t jmain = iotjs_jhelper_eval(iotjs_s, iotjs_l, false, &throws);
 #else
   iotjs_jval_t jmain = iotjs_jhelper_exec_snapshot(iotjs_s, iotjs_l, &throws);
 #endif
-  IOTJS_ASSERT(!throws);
-
-  // Run the entry function passing process builtin.
-  // The entry function will continue initializing process module, global, and
-  // other native modules, and finally load and run application.
-  iotjs_jargs_t args = iotjs_jargs_create(1);
-  iotjs_jargs_append_jval(&args, process);
-
-  const iotjs_jval_t* global = iotjs_jval_get_global_object();
-  iotjs_jval_t jmain_res = iotjs_jhelper_call(&jmain, global, &args, &throws);
-
-  iotjs_jargs_destroy(&args);
-  iotjs_jval_destroy(&jmain);
 
   if (throws) {
-    iotjs_uncaught_exception(&jmain_res);
+    iotjs_uncaught_exception(&jmain);
   }
-  iotjs_jval_destroy(&jmain_res);
+
+  iotjs_jval_destroy(&jmain);
 
   return !throws;
 }
@@ -128,7 +116,9 @@ static bool iotjs_start(iotjs_environment_t* env) {
   // load and call iotjs.js
   iotjs_environment_go_state_running_main(env);
 
-  iotjs_run(process);
+  iotjs_jval_set_property_jval(global, "process", process);
+
+  iotjs_run();
 
   // Run event loop.
   iotjs_environment_go_state_running_loop(env);

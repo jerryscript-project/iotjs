@@ -20,8 +20,8 @@
 var fs = require('fs');
 var assert = require('assert');
 
-var file1 = "../resources/rename.txt";
-var file2 = "../resources/rename.txt.async";
+var file1 = "resources/rename.txt";
+var file2 = "resources/rename.txt.async";
 
 fs.rename(file1, file2, function(err) {
   assert.equal(err, null);

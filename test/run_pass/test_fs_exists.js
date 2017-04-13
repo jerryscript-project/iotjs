@@ -17,7 +17,7 @@ var fs = require('fs');
 var assert = require('assert');
 
 {
-  var filePath = "../resources/tobeornottobe.txt";
+  var filePath = "resources/tobeornottobe.txt";
 
   fs.exists(filePath, function(exists) {
     assert.equal(exists, true);
@@ -25,7 +25,7 @@ var assert = require('assert');
 }
 
 {
-  var filePath = "../resources/empty.txt";
+  var filePath = "resources/empty.txt";
 
   fs.exists(filePath, function(exists) {
     assert.equal(exists, false);

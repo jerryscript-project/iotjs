@@ -19,8 +19,8 @@ var fs = require('fs');
 var assert = require('assert');
 
 
-var srcFilePath = "../resources/test1.txt";
-var dstFilePath = "../tmp/test_fs1.txt";
+var srcFilePath = "resources/test1.txt";
+var dstFilePath = "tmp/test_fs1.txt";
 
 try {
   var fd1 = fs.openSync(srcFilePath, 'r');

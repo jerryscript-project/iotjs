@@ -20,7 +20,7 @@ env:
   global:
     - secure: "lUGzoKK/Yn4/OmpqLQALrIgfY9mQWE51deUawPrCO87UQ2GknfQ4BvwY3UT5QY0XnztPBP1+vRQ2qxbiAU7VWicp280sXDnh0FeuZD14FcE9l0FczraL12reoLu+gY5HWFfbkZncmcBsZkxDEYxhkM14FJU8fxyqGQW2ypJNz+gUGP+8r40Re5J3WjcddCQNe5IG8U+M9B4YeDHhN2QspLdN5pkgn56XtdGa3+qbecO2NpjJG5ltM9j1tTuo/Dg22DxrIFVfeFSFKUj4nfMrgPo5LevRsC/lfaBSCsj751eqrxRcQRh2hkpiIJ7mEBs2LL1EH9O6Mbj+eRh8BvIYqTB85VPNFc43sLWk14apcSVBrxJE5j3kP9sAsOD9Y5JynnkeuxYyISrkywwoX2uxsmCzIfGbwsv5VLToQzrqWlGYrHOAmVXNi8561dLfsWwxxFUjdqkZr1Kgc8UfnBEcBUtSiKCHS86/YUUbBJGkEkjDUS0GiqhFY4bXLQCR7EX4qDX3m6p7Mnh4NVUolpnSmyeYE/MjmqQ+7PJsPLL3EcIYmJ7dtW3mZ3yE2NyaFD0Pym9+TiuCCXRtrNVK1M3Kya64KNv+HbhjT/fTCgXLSeyDmJOKVAqugRlDo3b1KGR1LI0AfegzSA6mEC4e9JLjYiSnHPMUahzgLt8oU0hNFRY="
   matrix:
-    - OPTS="--test=host"
+    - OPTS="--test=host-linux"
     - OPTS="--test=rpi2" INSTALL_ARM_DEPS=yes
     - OPTS="--test=nuttx" INSTALL_NUTTX_DEPS=yes
     - OPTS="--test=artik10" INSTALL_TIZEN_DEPS=yes
@@ -29,7 +29,7 @@ env:
 matrix:
   include:
     - os: osx
-      env: OPTS="--test=host"
+      env: OPTS="--test=host-darwin"
     - os: linux
       before_install:
         - tools/apt-get-install-deps.sh
@@ -51,7 +51,7 @@ matrix:
           packages:
             - gcc-4.9
             - gcc-4.9-multilib
-      env: OPTS="--test=host --buildtype=debug --buildoptions=--target-arch=i686,--compile-flag=-fsanitize=address,--compile-flag=-fno-omit-frame-pointer,--compile-flag=-fno-common,--jerry-cmake-param=-DJERRY_LIBC=OFF,--jerry-cmake-param=-DFEATURE_SYSTEM_ALLOCATOR=ON,--no-snapshot,--no-check-valgrind" INSTALL_TRAVIS_I686_DEPS=yes ASAN_OPTIONS=detect_stack_use_after_return=1:check_initialization_order=true:strict_init_order=true
+      env: OPTS="--test=host-linux --buildtype=debug --buildoptions=--target-arch=i686,--compile-flag=-fsanitize=address,--compile-flag=-fno-omit-frame-pointer,--compile-flag=-fno-common,--jerry-cmake-param=-DJERRY_LIBC=OFF,--jerry-cmake-param=-DFEATURE_SYSTEM_ALLOCATOR=ON,--no-snapshot,--no-check-valgrind" INSTALL_TRAVIS_I686_DEPS=yes ASAN_OPTIONS=detect_stack_use_after_return=1:check_initialization_order=true:strict_init_order=true
     - compiler: gcc-4.9
       addons:
         apt:
@@ -60,7 +60,7 @@ matrix:
           packages:
             - gcc-4.9
             - gcc-4.9-multilib
-      env: OPTS="--test=host --buildtype=debug --buildoptions=--target-arch=i686,--compile-flag=-fsanitize=undefined,--compile-flag=-fno-omit-frame-pointer,--compile-flag=-fno-common,--jerry-cmake-param=-DJERRY_LIBC=OFF,--jerry-cmake-param=-DFEATURE_SYSTEM_ALLOCATOR=ON,--no-snapshot,--no-check-valgrind" INSTALL_TRAVIS_I686_DEPS=yes UBSAN_OPTIONS=print_stacktrace=1
+      env: OPTS="--test=host-linux --buildtype=debug --buildoptions=--target-arch=i686,--compile-flag=-fsanitize=undefined,--compile-flag=-fno-omit-frame-pointer,--compile-flag=-fno-common,--jerry-cmake-param=-DJERRY_LIBC=OFF,--jerry-cmake-param=-DFEATURE_SYSTEM_ALLOCATOR=ON,--no-snapshot,--no-check-valgrind" INSTALL_TRAVIS_I686_DEPS=yes UBSAN_OPTIONS=print_stacktrace=1
   allow_failures:
     - compiler: gcc-4.9
   fast_finish: true

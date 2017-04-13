@@ -27,7 +27,7 @@ The following shows ADC module APIs available for each platform.
 
 ## `pin` <a name="pin"></a>
 On Nuttx, you have to know pin number that is defined in target board module. For more module information, please see below list.
-  * [STM32F4-discovery](../../targets/nuttx-stm32f4/Stm32f4dis.md#adc-pin)
+  * [STM32F4-discovery](../targets/nuttx/stm32f4dis/IoT.js-API-Stm32f4dis.md#adc-pin)
 
 ## Class: ADC <a name="adc"></a>
 

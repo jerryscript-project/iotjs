@@ -26,7 +26,8 @@ from common_py.system.executor import Executor as ex
 from common_py.system.platform import Platform
 from check_tidy import check_tidy
 
-TESTS=['host', 'rpi2', 'nuttx', 'misc', 'artik10', 'coverity']
+TESTS=['host-linux', 'host-darwin', 'rpi2', 'nuttx', 'misc',
+       'artik10', 'coverity']
 BUILDTYPES=['debug', 'release']
 NUTTXTAG = 'nuttx-7.19'
 
@@ -75,8 +76,9 @@ def setup_nuttx_root(nuttx_root):
     # Step 2
     fs.maybe_make_directory(fs.join(nuttx_root, 'apps', 'system', 'iotjs'))
     for file in fs.listdir(fs.join(path.PROJECT_ROOT,
-                                   'targets', 'nuttx-stm32f4', 'app')):
-        fs.copy(fs.join(path.PROJECT_ROOT,'targets','nuttx-stm32f4','app',file),
+                                   'config', 'nuttx', 'stm32f4dis','app')):
+        fs.copy(fs.join(path.PROJECT_ROOT, 'config',
+                        'nuttx', 'stm32f4dis', 'app', file),
                 fs.join(nuttx_root, 'apps', 'system', 'iotjs'))
 
     # Step 3
@@ -84,9 +86,9 @@ def setup_nuttx_root(nuttx_root):
     ex.check_run_cmd('./configure.sh', ['stm32f4discovery/usbnsh'])
     fs.chdir('..')
     fs.copy(fs.join(path.PROJECT_ROOT,
-                    'targets',
-                    'nuttx-stm32f4',
+                    'config',
                     'nuttx',
+                    'stm32f4dis',
                     '.config.travis'),
             '.config')
 
@@ -117,13 +119,27 @@ def build(buildtype, args=[]):
     ex.check_run_cmd('./tools/build.py', ['--buildtype=' + buildtype] + args)
 
 
+def get_os_dependency_exclude_module(exclude_module):
+    os_dependency_module = {}
+    all_module = set(exclude_module['all'])
+    for os_name in exclude_module.keys():
+        if not os_name == 'all':
+            os_dependency_module[os_name] = \
+              list(all_module | set(exclude_module[os_name]))
+    return os_dependency_module
+
+
 option = parse_option()
 config = get_config()
-if len(config['module']['exclude']) > 0 :
-    include_module = ','.join(config['module']['exclude'])
-    include_module = ['--iotjs-include-module=' + include_module]
-else:
-    include_module = []
+os_dependency_module = \
+    get_os_dependency_exclude_module(config['module']['exclude'])
+
+# Excluded modules are also included in the build test.
+# Travis will test all implemented modules.
+for os_name in os_dependency_module:
+    if os_dependency_module[os_name]:
+        os_dependency_module[os_name] = \
+        ['--iotjs-include-module=' + ','.join(os_dependency_module[os_name])]
 
 build_args = []
 
@@ -131,14 +147,18 @@ if option.buildoptions:
     build_args.extend(option.buildoptions.split(','))
 
 for test in option.test:
-    if test == "host":
+    if test == "host-linux":
         for buildtype in option.buildtype:
-            build(buildtype, include_module + build_args)
+            build(buildtype, os_dependency_module['linux'] + build_args)
+
+    if test == "host-darwin":
+        for buildtype in option.buildtype:
+            build(buildtype, os_dependency_module['darwin'] + build_args)
 
     elif test == "rpi2":
         for buildtype in option.buildtype:
             build(buildtype, ['--target-arch=arm', '--target-board=rpi2']
-                              + include_module + build_args)
+                              + os_dependency_module['linux'] + build_args)
 
     elif test == "artik10":
         for buildtype in option.buildtype:
@@ -148,7 +168,7 @@ for test in option.test:
                               '--target-os=tizen',
                               '--target-board=artik10',
                               '--compile-flag=--sysroot=' + tizen_root
-                              ] + include_module + build_args)
+                              ] + os_dependency_module['linux'] + build_args)
 
     elif test == "nuttx":
         current_dir = os.getcwd()
@@ -161,7 +181,7 @@ for test in option.test:
                               '--nuttx-home=' + fs.join(nuttx_root, 'nuttx'),
                               '--target-board=stm32f4dis',
                               '--jerry-heaplimit=78']
-                              + include_module + build_args)
+                              + os_dependency_module['nuttx'] + build_args)
             build_nuttx(nuttx_root, buildtype, 'all')
             fs.chdir(current_dir)
 
@@ -177,9 +197,9 @@ for test in option.test:
 
         build("debug", build_args)
         build("debug", ['--no-snapshot', '--jerry-lto']
-                       + include_module + build_args)
+                       + os_dependency_module['linux'] + build_args)
 
         build("debug", ['--iotjs-minimal-profile'] + build_args)
 
     elif test == "coverity":
-        build("debug", include_module + build_args)
+        build("debug", os_dependency_module['linux'] + build_args)

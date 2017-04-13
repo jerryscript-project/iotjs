@@ -37,7 +37,7 @@ The following shows GPIO module APIs available for each platform.
 
 * On Linux, pin number is logical number starts from 1. Thus logical pin number *k* is not necessarily bound to physical pin number *k* in your board.
 * On Nuttx, you have to know pin number. The pin number is defined in target board module. For more module information, please see below list.
-  * [STM32F4-discovery](../../targets/nuttx-stm32f4/Stm32f4dis.md#gpio-pin)
+  * [STM32F4-discovery](../targets/nuttx/stm32f4dis/IoT.js-API-Stm32f4dis.md#gpio-pin)
 
 
 ## Class: GPIO <a name="gpio"></a>

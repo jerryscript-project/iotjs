@@ -1,0 +1,180 @@
+/* Copyright 2015-present Samsung Electronics Co., Ltd. and other contributors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#ifndef IOTJS_MODULE_GPIO_LINUX_GENERAL_INL_H
+#define IOTJS_MODULE_GPIO_LINUX_GENERAL_INL_H
+
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "iotjs_systemio-linux.h"
+#include "modules/iotjs_module_gpio.h"
+
+
+#define GPIO_INTERFACE "/sys/class/gpio/"
+#define GPIO_EXPORT "export"
+#define GPIO_UNEXPORT "unexport"
+#define GPIO_DIRECTION "direction"
+#define GPIO_EDGE "edge"
+#define GPIO_VALUE "value"
+#define GPIO_PIN_INTERFACE "gpio%d/"
+#define GPIO_PIN_FORMAT_EXPORT GPIO_INTERFACE "export"
+#define GPIO_PIN_FORMAT_UNEXPORT GPIO_INTERFACE "unexport"
+#define GPIO_PIN_FORMAT GPIO_INTERFACE GPIO_PIN_INTERFACE
+#define GPIO_PIN_FORMAT_DIRECTION GPIO_PIN_FORMAT GPIO_DIRECTION
+#define GPIO_PIN_FORMAT_EDGE GPIO_PIN_FORMAT GPIO_EDGE
+#define GPIO_PIN_FORMAT_VALUE GPIO_PIN_FORMAT GPIO_VALUE
+
+#define GPIO_PATH_BUFFER_SIZE DEVICE_IO_PATH_BUFFER_SIZE
+#define GPIO_PIN_BUFFER_SIZE DEVICE_IO_PIN_BUFFER_SIZE
+#define GPIO_VALUE_BUFFER_SIZE 10
+
+
+// Implementation used here are based on:
+//  https://www.kernel.org/doc/Documentation/gpio/sysfs.txt
+
+
+static bool gpio_set_direction(int32_t pin, GpioDirection direction) {
+  IOTJS_ASSERT(direction == kGpioDirectionIn || direction == kGpioDirectionOut);
+
+  char direction_path[GPIO_PATH_BUFFER_SIZE];
+  snprintf(direction_path, GPIO_PATH_BUFFER_SIZE, GPIO_PIN_FORMAT_DIRECTION,
+           pin);
+
+  const char* buffer = (direction == kGpioDirectionIn) ? "in" : "out";
+
+  DDDLOG("%s - path: %s, dir: %s", __func__, direction_path, buffer);
+
+  return iotjs_systemio_open_write_close(direction_path, buffer);
+}
+
+
+// FIXME: Implement SetPinMode()
+static bool gpio_set_mode(int32_t pin, GpioMode mode) {
+  return true;
+}
+
+
+bool iotjs_gpio_write(int32_t pin, bool value) {
+  char value_path[GPIO_PATH_BUFFER_SIZE];
+  snprintf(value_path, GPIO_PATH_BUFFER_SIZE, GPIO_PIN_FORMAT_VALUE, pin);
+
+  const char* buffer = value ? "1" : "0";
+
+  DDDLOG("%s - pin: %d, value: %d", __func__, pin, value);
+
+  return iotjs_systemio_open_write_close(value_path, buffer);
+}
+
+
+int iotjs_gpio_read(int32_t pin) {
+  char buffer[GPIO_VALUE_BUFFER_SIZE];
+  char value_path[GPIO_PATH_BUFFER_SIZE];
+  snprintf(value_path, GPIO_PATH_BUFFER_SIZE, GPIO_PIN_FORMAT_VALUE, pin);
+
+  if (!iotjs_systemio_open_read_close(value_path, buffer,
+                                      GPIO_VALUE_BUFFER_SIZE - 1)) {
+    return -1;
+  }
+
+  return atoi(buffer);
+}
+
+
+bool iotjs_gpio_close(int32_t pin) {
+  char buff[GPIO_PIN_BUFFER_SIZE];
+  snprintf(buff, GPIO_PIN_BUFFER_SIZE, "%d", pin);
+
+  return iotjs_systemio_open_write_close(GPIO_PIN_FORMAT_UNEXPORT, buff);
+}
+
+
+void iotjs_gpio_open_worker(uv_work_t* work_req) {
+  GPIO_WORKER_INIT();
+
+  DDDLOG("%s - pin: %d, dir: %d, mode: %d", __func__, _this->pin,
+         _this->direction, _this->mode);
+
+  // Open GPIO pin.
+  char exported_path[GPIO_PATH_BUFFER_SIZE];
+  snprintf(exported_path, GPIO_PATH_BUFFER_SIZE, GPIO_PIN_FORMAT, _this->pin);
+
+  const char* created_files[] = { GPIO_DIRECTION, GPIO_EDGE, GPIO_VALUE };
+  int created_files_length = sizeof(created_files) / sizeof(created_files[0]);
+
+  if (!iotjs_systemio_device_open(GPIO_PIN_FORMAT_EXPORT, _this->pin,
+                                  exported_path, created_files,
+                                  created_files_length)) {
+    req_data->result = -1;
+    return;
+  }
+  // Set direction.
+  if (!gpio_set_direction(_this->pin, _this->direction)) {
+    req_data->result = -1;
+    return;
+  }
+  // Set mode.
+  if (!gpio_set_mode(_this->pin, _this->mode)) {
+    req_data->result = -1;
+    return;
+  }
+
+  req_data->result = 0;
+}
+
+
+void iotjs_gpio_write_worker(uv_work_t* work_req) {
+  GPIO_WORKER_INIT();
+  DDDLOG("%s - pin: %d, value: %d", __func__, _this->pin, req_data->value);
+
+  bool result = iotjs_gpio_write(_this->pin, req_data->value);
+
+  if (result) {
+    req_data->result = 0;
+  } else {
+    req_data->result = -1;
+  }
+}
+
+
+void iotjs_gpio_read_worker(uv_work_t* work_req) {
+  GPIO_WORKER_INIT();
+  DDDLOG("%s - pin: %d", __func__, _this->pin);
+
+  int result = iotjs_gpio_read(_this->pin);
+  if (result >= 0) {
+    req_data->result = 0;
+    req_data->value = (bool)result;
+  } else {
+    req_data->result = -1;
+  }
+}
+
+
+void iotjs_gpio_close_worker(uv_work_t* work_req) {
+  GPIO_WORKER_INIT();
+  DDDLOG("%s - pin : %d", __func__, _this->pin);
+
+  if (iotjs_gpio_close(_this->pin)) {
+    req_data->result = 0;
+  } else {
+    req_data->result = -1;
+  }
+}
+
+
+#endif /* IOTJS_MODULE_GPIO_LINUX_GENERAL_INL_H */

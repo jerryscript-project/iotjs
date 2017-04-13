@@ -60,7 +60,7 @@ We only guarantee that the specified version will work well. It is recommended t
 
 
 #### Follow the instruction
-* [STM32F4-discovery](../../targets/nuttx-stm32f4/README.md)
+* [STM32F4-discovery](../targets/nuttx/stm32f4dis/README.md)
 
 
 ### 3. Build IoT.js for NuttX
@@ -93,7 +93,7 @@ libhttpparser.a libiotjs.a libjerrycore.a libtuv.a
 This time make command for NuttX has to be successful unlike above.
 
 #### Follow the instruction
-* [STM32F4-discovery](../../targets/nuttx-stm32f4/README.md)
+* [STM32F4-discovery](../targets/nuttx/stm32f4dis/README.md)
 
 ### 5. Run IoT.js
 

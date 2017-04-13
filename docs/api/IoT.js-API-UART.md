@@ -49,7 +49,7 @@ Returns a new UART object which can open UART port.
 * Returns: `<UARTPort>`
 
 On Nuttx, you can set the properties of `configuration` only on Nuttx config. `Device Drivers -> Serial Driver Support -> U[S]ART(N) Configuration` will help. And if you want to get information about `device`, please see below list.
-  * [STM32F4-discovery](../../targets/nuttx-stm32f4/Stm32f4dis.md#uart)
+  * [STM32F4-discovery](../targets/nuttx/stm32f4dis/IoT.js-API-Stm32f4dis.md#uart)
 
 Opens UART port with the specified configuration. Following methods can be called with UARTPort object.
 

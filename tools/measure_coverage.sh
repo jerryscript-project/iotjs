@@ -131,7 +131,7 @@ tools/build.py --jerry-cmake-param="-DFEATURE_SYSTEM_ALLOCATOR=ON" \
     --target-arch=x86 --compile-flag="-coverage" --no-snapshot --no-check-test
 
 # Run tests
-build/i686-linux/debug/iotjs/iotjs tools/check_test.js -- output-coverage=yes
+build/i686-linux/debug/bin/iotjs tools/check_test.js -- output-coverage=yes
 
 # Revert to original module files
 rm -rf src/js
@@ -146,7 +146,7 @@ rm -rf coverage/js
 mv coverage/lcov-report coverage/js
 
 # Generate c coverage report
-lcov -t "c-coverage" -o ".c-coverage.info" -c -d build/i686-linux/debug/iotjs/
+lcov -t "c_coverage" -o ".c-coverage.info" -c -d build/i686-linux/debug/
 genhtml -o coverage/c .c-coverage.info
 rm .c-coverage.info
 

@@ -19,7 +19,7 @@ var fs = require('fs');
 var assert = require('assert');
 
 
-var fileName = "../resources/greeting.txt";
+var fileName = "resources/greeting.txt";
 
 
 // test sync open & close.

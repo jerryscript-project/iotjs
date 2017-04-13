@@ -25,9 +25,9 @@ function unlink(path) {
 }
 
 {
-  var root = "../resources/test_dir";
-  var sub1 = "../resources/test_dir/file1";
-  var sub2 = "../resources/test_dir/file2";
+  var root = "resources/test_dir";
+  var sub1 = "resources/test_dir/file1";
+  var sub2 = "resources/test_dir/file2";
 
   unlink(sub1);
   unlink(sub2);

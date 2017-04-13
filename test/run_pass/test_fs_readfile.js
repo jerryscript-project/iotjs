@@ -17,7 +17,7 @@
 var fs = require('fs');
 var assert = require('assert');
 
-var filePath = "../resources/tobeornottobe.txt";
+var filePath = "resources/tobeornottobe.txt";
 
 fs.readFile(filePath, function(err, data) {
   assert.equal(err, null);

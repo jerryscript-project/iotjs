@@ -15,8 +15,8 @@
 
 var assert = require('assert');
 
-var module_cache = require('require1/module_cache.js');
+var module_cache = require('run_pass/require1/module_cache.js');
 module_cache.i = 100;
-module_cache = require('require1/module_cache.js');
+module_cache = require('run_pass/require1/module_cache.js');
 
 assert.equal(module_cache.i, 100);

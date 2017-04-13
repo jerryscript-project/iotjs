@@ -20,8 +20,8 @@
 var fs = require('fs');
 var assert = require('assert');
 
-var file1 = "../resources/tobeornottobe.txt";
-var file2 = "../resources/tobeornottobe_async.txt";
+var file1 = "resources/tobeornottobe.txt";
+var file2 = "resources/tobeornottobe_async.txt";
 
 fs.readFile(file1, function(err, buf1) {
   assert.equal(err, null);

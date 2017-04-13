@@ -133,7 +133,6 @@ Driver.prototype.runNextTest = function() {
     this.finish();
   } else {
     if (this.fIdx == this.fLength) {
-      process.chdir(this.root);
       this.dIdx++;
       if (this.dIdx == this.dLength) {
         this.finish();
@@ -176,7 +175,6 @@ Driver.prototype.nextTestSet = function(skipped) {
 
   var dirname = this.dirname();
   this.fLength = this.tests[dirname].length;
-  process.chdir(util.absolutePath(dirname));
   this.logger.message("\n");
   this.logger.message(">>>> " + dirname, "summary");
 };
@@ -192,8 +190,10 @@ Driver.prototype.currentTest = function() {
 
 Driver.prototype.test = function() {
   var test = this.currentTest();
-  var content = fs.readFileSync(util.absolutePath(test['name'])).toString();
-  return content;
+  var dirname = this.dirname();
+  var testfile = util.absolutePath(util.join(dirname, test['name']));
+
+  return fs.readFileSync(testfile).toString();
 };
 
 Driver.prototype.finish = function() {

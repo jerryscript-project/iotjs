@@ -13,8 +13,6 @@
  * limitations under the License.
  */
 
-#ifndef IOTJS_MODULE_GPIO_ARM_NUTTX_STM32_INL_H
-#define IOTJS_MODULE_GPIO_ARM_NUTTX_STM32_INL_H
 
 #include "modules/iotjs_module_gpio.h"
 #include "stm32_gpio.h"
@@ -36,30 +34,35 @@ uint32_t gpioMode[] = {
 };
 
 
-bool iotjs_gpio_write(int32_t pin, bool value) {
-  DDDLOG("%s - pin: %d, value: %d", __func__, pin, value);
-  stm32_gpiowrite(pin, value);
+bool iotjs_gpio_write(iotjs_gpio_t* gpio, bool value) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_gpio_t, gpio);
+
+  DDDLOG("%s - pin: %d, value: %d", __func__, _this->pin, value);
+  stm32_gpiowrite(_this->pin, value);
 
   return true;
 }
 
 
-int iotjs_gpio_read(int32_t pin) {
-  DDDLOG("%s - pin: %d", __func__, pin);
-  return stm32_gpioread(pin);
+int iotjs_gpio_read(iotjs_gpio_t* gpio) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_gpio_t, gpio);
+
+  DDDLOG("%s - pin: %d", __func__, _this->pin);
+  return stm32_gpioread(_this->pin);
 }
 
 
-bool iotjs_gpio_close(int32_t pin) {
-  DDDLOG("%s - pin: %d", __func__, pin);
-  iotjs_gpio_write(pin, 0);
+bool iotjs_gpio_close(iotjs_gpio_t* gpio) {
+  iotjs_gpio_write(gpio, 0);
 
   return true;
 }
 
 
 void iotjs_gpio_open_worker(uv_work_t* work_req) {
-  GPIO_WORKER_INIT();
+  GPIO_WORKER_INIT;
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_gpio_t, gpio);
+
   DDDLOG("%s - pin: %d, dir: %d, mode: %d", __func__, _this->pin,
          _this->direction, _this->mode);
 
@@ -69,40 +72,9 @@ void iotjs_gpio_open_worker(uv_work_t* work_req) {
   cfgset = gpioDirection[_this->direction] | gpioMode[_this->mode] | _this->pin;
 
   if (stm32_configgpio(cfgset) != GPIO_CONFIG_OK) {
-    req_data->result = -1;
+    req_data->result = false;
     return;
   }
 
-  req_data->result = 0;
+  req_data->result = true;
 }
-
-
-void iotjs_gpio_write_worker(uv_work_t* work_req) {
-  GPIO_WORKER_INIT();
-  DDDLOG("%s - pin: %d, value: %d", __func__, _this->pin, req_data->value);
-
-  iotjs_gpio_write(_this->pin, req_data->value);
-
-  req_data->result = 0;
-}
-
-
-void iotjs_gpio_read_worker(uv_work_t* work_req) {
-  GPIO_WORKER_INIT();
-  DDDLOG("%s - pin: %d", __func__, _this->pin);
-
-  req_data->result = 0;
-  req_data->value = iotjs_gpio_read(_this->pin);
-}
-
-
-void iotjs_gpio_close_worker(uv_work_t* work_req) {
-  GPIO_WORKER_INIT();
-  DDDLOG("%s - pin: %d", __func__, _this->pin);
-
-  iotjs_gpio_close(_this->pin);
-
-  req_data->result = 0;
-}
-
-#endif /* IOTJS_MODULE_GPIO_ARM_NUTTX_STM32_INL_H */

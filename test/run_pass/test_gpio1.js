@@ -29,6 +29,9 @@ if (process.platform === 'linux') {
 } else if (process.platform === 'nuttx') {
   pin = require('stm32f4dis').pin.PA10;
   mode = gpio.MODE.PUSHPULL;
+} else if(process.platform === 'tizenrt') {
+  pin = 41;
+  mode = gpio.MODE.NONE;
 } else {
   assert.fail();
 }
@@ -45,11 +48,13 @@ function test1() {
   assert.notEqual(gpio.DIRECTION.IN, undefined);
   assert.notEqual(gpio.DIRECTION.OUT, undefined);
   assert.notEqual(gpio.MODE.NONE, undefined);
-  assert.notEqual(gpio.MODE.PULLUP, undefined);
-  assert.notEqual(gpio.MODE.PULLDOWN, undefined);
-  assert.notEqual(gpio.MODE.FLOAT, undefined);
-  assert.notEqual(gpio.MODE.PUSHPULL, undefined);
-  assert.notEqual(gpio.MODE.OPENDRAIN, undefined);
+  if (process.platform === 'nuttx') {
+    assert.notEqual(gpio.MODE.PULLUP, undefined);
+    assert.notEqual(gpio.MODE.PULLDOWN, undefined);
+    assert.notEqual(gpio.MODE.FLOAT, undefined);
+    assert.notEqual(gpio.MODE.PUSHPULL, undefined);
+    assert.notEqual(gpio.MODE.OPENDRAIN, undefined);
+  }
 }
 
 // turn on LED for 3000ms

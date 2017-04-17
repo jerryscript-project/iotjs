@@ -20,13 +20,13 @@
 void iotjs_handlewrap_initialize(iotjs_handlewrap_t* handlewrap,
                                  const iotjs_jval_t* jobject,
                                  uv_handle_t* handle,
-                                 JFreeHandlerType jfreehandler) {
+                                 JNativeInfoType native_info) {
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_handlewrap_t, handlewrap);
 
   // Increase ref count of Javascript object to guarantee it is alive until the
   // handle has closed.
   iotjs_jval_t jobjectref = iotjs_jval_create_copied(jobject);
-  iotjs_jobjectwrap_initialize(&_this->jobjectwrap, &jobjectref, jfreehandler);
+  iotjs_jobjectwrap_initialize(&_this->jobjectwrap, &jobjectref, native_info);
 
   _this->handle = handle;
   _this->on_close_cb = NULL;

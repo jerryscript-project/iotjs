@@ -22,13 +22,13 @@
 
 static void iotjs_uart_destroy(iotjs_uart_t* uart);
 static iotjs_uart_t* iotjs_uart_instance_from_jval(const iotjs_jval_t* juart);
+IOTJS_DEFINE_NATIVE_HANDLE_INFO(uart);
 
 
 static iotjs_uart_t* iotjs_uart_create(const iotjs_jval_t* juart) {
   iotjs_uart_t* uart = IOTJS_ALLOC(iotjs_uart_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_uart_t, uart);
-  iotjs_jobjectwrap_initialize(&_this->jobjectwrap, juart,
-                               (JFreeHandlerType)iotjs_uart_destroy);
+  iotjs_jobjectwrap_initialize(&_this->jobjectwrap, juart, &uart_native_info);
 
   _this->device_fd = -1;
 

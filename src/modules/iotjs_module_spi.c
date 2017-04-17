@@ -25,13 +25,13 @@
  */
 static void iotjs_spi_destroy(iotjs_spi_t* spi);
 static iotjs_spi_t* iotjs_spi_instance_from_jval(const iotjs_jval_t* jspi);
+IOTJS_DEFINE_NATIVE_HANDLE_INFO(spi);
 
 
 static iotjs_spi_t* iotjs_spi_create(const iotjs_jval_t* jspi) {
   iotjs_spi_t* spi = IOTJS_ALLOC(iotjs_spi_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_spi_t, spi);
-  iotjs_jobjectwrap_initialize(&_this->jobjectwrap, jspi,
-                               (JFreeHandlerType)iotjs_spi_destroy);
+  iotjs_jobjectwrap_initialize(&_this->jobjectwrap, jspi, &spi_native_info);
 
   _this->device = iotjs_string_create("");
 

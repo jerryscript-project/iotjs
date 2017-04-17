@@ -365,11 +365,11 @@ iotjs_jval_t iotjs_jval_get_property(const iotjs_jval_t* jobj,
 
 void iotjs_jval_set_object_native_handle(const iotjs_jval_t* jobj,
                                          uintptr_t ptr,
-                                         JFreeHandlerType free_handler) {
+                                         JNativeInfoType native_info) {
   const IOTJS_VALIDATED_STRUCT_METHOD(iotjs_jval_t, jobj);
   IOTJS_ASSERT(iotjs_jval_is_object(jobj));
 
-  jerry_set_object_native_handle(_this->value, ptr, free_handler);
+  jerry_set_object_native_pointer(_this->value, (void*)ptr, native_info);
 }
 
 
@@ -377,8 +377,9 @@ uintptr_t iotjs_jval_get_object_native_handle(const iotjs_jval_t* jobj) {
   const IOTJS_VALIDATED_STRUCT_METHOD(iotjs_jval_t, jobj);
   IOTJS_ASSERT(iotjs_jval_is_object(jobj));
 
-  uintptr_t ptr;
-  jerry_get_object_native_handle(_this->value, &ptr);
+  uintptr_t ptr = 0x0;
+  JNativeInfoType out_info;
+  jerry_get_object_native_pointer(_this->value, (void**)&ptr, &out_info);
   return ptr;
 }
 
@@ -781,7 +782,10 @@ static jerry_value_t iotjs_native_dispatch_function(
     const jerry_value_t jfunc, const jerry_value_t jthis,
     const jerry_value_t jargv[], const JRawLengthType jargc) {
   uintptr_t target_function_ptr = 0x0;
-  if (!jerry_get_object_native_handle(jfunc, &target_function_ptr)) {
+  JNativeInfoType out_info;
+
+  if (!jerry_get_object_native_pointer(jfunc, (void**)&target_function_ptr,
+                                       &out_info)) {
     const jerry_char_t* jmsg = (const jerry_char_t*)("Internal dispatch error");
     return jerry_create_error((jerry_error_t)IOTJS_ERROR_COMMON, jmsg);
   }

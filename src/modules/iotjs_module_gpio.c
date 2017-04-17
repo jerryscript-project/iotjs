@@ -23,13 +23,13 @@
 
 static void iotjs_gpio_destroy(iotjs_gpio_t* gpio);
 static iotjs_gpio_t* iotjs_gpio_instance_from_jval(const iotjs_jval_t* jgpio);
+IOTJS_DEFINE_NATIVE_HANDLE_INFO(gpio);
 
 
 static iotjs_gpio_t* iotjs_gpio_create(const iotjs_jval_t* jgpio) {
   iotjs_gpio_t* gpio = IOTJS_ALLOC(iotjs_gpio_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_gpio_t, gpio);
-  iotjs_jobjectwrap_initialize(&_this->jobjectwrap, jgpio,
-                               (JFreeHandlerType)iotjs_gpio_destroy);
+  iotjs_jobjectwrap_initialize(&_this->jobjectwrap, jgpio, &gpio_native_info);
   return gpio;
 }
 

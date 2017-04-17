@@ -28,7 +28,7 @@ typedef struct {
 
 void iotjs_jobjectwrap_initialize(iotjs_jobjectwrap_t* jobjectwrap,
                                   const iotjs_jval_t* jobject,
-                                  JFreeHandlerType jfreehandler);
+                                  JNativeInfoType native_info);
 
 void iotjs_jobjectwrap_destroy(iotjs_jobjectwrap_t* jobjectwrap);
 
@@ -36,5 +36,9 @@ iotjs_jval_t* iotjs_jobjectwrap_jobject(iotjs_jobjectwrap_t* jobjectwrap);
 iotjs_jobjectwrap_t* iotjs_jobjectwrap_from_jobject(
     const iotjs_jval_t* jobject);
 
+#define IOTJS_DEFINE_NATIVE_HANDLE_INFO(module)                              \
+  static const jerry_object_native_info_t module##_native_info = {           \
+    .free_cb = (jerry_object_native_free_callback_t)iotjs_##module##_destroy \
+  }
 
 #endif /* IOTJS_OBJECTWRAP_H */

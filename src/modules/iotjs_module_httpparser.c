@@ -26,6 +26,7 @@
 
 
 static void iotjs_httpparserwrap_destroy(THIS);
+IOTJS_DEFINE_NATIVE_HANDLE_INFO(httpparserwrap);
 
 
 iotjs_httpparserwrap_t* iotjs_httpparserwrap_create(const iotjs_jval_t* jparser,
@@ -34,7 +35,7 @@ iotjs_httpparserwrap_t* iotjs_httpparserwrap_create(const iotjs_jval_t* jparser,
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_httpparserwrap_t, httpparserwrap);
 
   iotjs_jobjectwrap_initialize(&_this->jobjectwrap, jparser,
-                               (JFreeHandlerType)iotjs_httpparserwrap_destroy);
+                               &httpparserwrap_native_info);
 
   _this->url = iotjs_string_create();
   _this->status_msg = iotjs_string_create();

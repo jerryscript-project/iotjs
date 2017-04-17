@@ -57,9 +57,7 @@
 #include <setjmp.h>
 #include <stdio.h>
 
-/****************************************************************************
- * Public Functions
- ****************************************************************************/
+#define USE_IOTJS_THREAD 1
 
 /**
  * Compiler built-in setjmp function.
@@ -87,6 +85,59 @@ void longjmp(jmp_buf buf, int value) {
 int iotjs_entry(int argc, char *argv[]);
 int tuv_cleanup(void);
 
+
+#if USE_IOTJS_THREAD
+struct iotjs_thread_arg {
+  int argc;
+  char **argv;
+};
+
+pthread_addr_t iotjs_thread(void *thread_arg) {
+  struct iotjs_thread_arg *arg = thread_arg;
+  int ret = 0;
+
+  ret = iotjs_entry(arg->argc, arg->argv);
+  tuv_cleanup();
+
+  sleep(1);
+  printf("iotjs thread end\n");
+  return NULL;
+}
+
+int iotjs(int argc, char *argv[]) {
+  pthread_attr_t attr;
+  int status;
+  struct sched_param sparam;
+  pthread_t tid;
+  struct iotjs_thread_arg arg;
+
+  status = pthread_attr_init(&attr);
+  if (status != 0) {
+    printf("fail to initialize iotjs thread\n");
+    return -1;
+  }
+
+  sparam.sched_priority = CONFIG_IOTJS_PRIORITY;
+  status = pthread_attr_setschedparam(&attr, &sparam);
+  status = pthread_attr_setschedpolicy(&attr, SCHED_RR);
+  status = pthread_attr_setstacksize(&attr, CONFIG_IOTJS_STACKSIZE);
+
+  arg.argc = argc;
+  arg.argv = argv;
+
+  status = pthread_create(&tid, &attr, iotjs_thread, &arg);
+  if (status < 0) {
+    printf("fail to start iotjs thread\n");
+    return -1;
+  }
+  pthread_setname_np(tid, "iotjs_thread");
+  pthread_join(tid, NULL);
+
+  return 0;
+}
+
+#else
+
 static int iotjs(int argc, char *argv[]) {
   int ret = 0;
   ret = iotjs_entry(argc, argv);
@@ -94,9 +145,7 @@ static int iotjs(int argc, char *argv[]) {
   return ret;
 }
 
-const static tash_cmdlist_t iotjs_cmds[] = { { "iotjs", iotjs,
-                                               TASH_EXECMD_SYNC },
-                                             { 0, 0, 0 } };
+#endif
 
 #ifdef CONFIG_BUILD_KERNEL
 int main(int argc, FAR char *argv[])
@@ -108,6 +157,6 @@ int iotjs_main(int argc, char *argv[])
 }
 
 int iotjs_register_cmd() {
-  tash_cmdlist_install(iotjs_cmds);
+  tash_cmd_install("iotjs", iotjs, TASH_EXECMD_SYNC);
   return 0;
 }

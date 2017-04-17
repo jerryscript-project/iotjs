@@ -9,7 +9,7 @@ config SYSTEM_IOTJS
   ---help---
     Enable IoT.js platform
 
-if IOTJS
+if SYSTEM_IOTJS
 
 config IOTJS_PRIORITY
   int "IoT.js task priority"
@@ -17,7 +17,7 @@ config IOTJS_PRIORITY
 
 config IOTJS_STACKSIZE
   int "IoT.js stack size"
-  default 16384
+  default 32768
 
 endif
 

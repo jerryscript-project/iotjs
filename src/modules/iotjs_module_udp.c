@@ -24,6 +24,7 @@
 
 
 static void iotjs_udpwrap_destroy(iotjs_udpwrap_t* udpwrap);
+IOTJS_DEFINE_NATIVE_HANDLE_INFO(udpwrap);
 
 
 iotjs_udpwrap_t* iotjs_udpwrap_create(const iotjs_jval_t* judp) {
@@ -32,7 +33,7 @@ iotjs_udpwrap_t* iotjs_udpwrap_create(const iotjs_jval_t* judp) {
 
   iotjs_handlewrap_initialize(&_this->handlewrap, judp,
                               (uv_handle_t*)(&_this->handle),
-                              (JFreeHandlerType)iotjs_udpwrap_destroy);
+                              &udpwrap_native_info);
 
   const iotjs_environment_t* env = iotjs_environment_get();
   uv_udp_init(iotjs_environment_loop(env), &_this->handle);

@@ -19,6 +19,7 @@
 
 static void iotjs_timerwrap_destroy(iotjs_timerwrap_t* timerwrap);
 static void iotjs_timerwrap_on_timeout(iotjs_timerwrap_t* timerwrap);
+IOTJS_DEFINE_NATIVE_HANDLE_INFO(timerwrap);
 
 
 iotjs_timerwrap_t* iotjs_timerwrap_create(const iotjs_jval_t* jtimer) {
@@ -27,7 +28,7 @@ iotjs_timerwrap_t* iotjs_timerwrap_create(const iotjs_jval_t* jtimer) {
 
   iotjs_handlewrap_initialize(&_this->handlewrap, jtimer,
                               (uv_handle_t*)(&_this->handle),
-                              (JFreeHandlerType)iotjs_timerwrap_destroy);
+                              &timerwrap_native_info);
 
   // Initialize timer handler.
   const iotjs_environment_t* env = iotjs_environment_get();

@@ -22,6 +22,10 @@
 #define THIS iotjs_i2c_reqwrap_t* i2c_reqwrap
 
 
+static void iotjs_i2c_destroy(iotjs_i2c_t* i2c);
+IOTJS_DEFINE_NATIVE_HANDLE_INFO(i2c);
+
+
 iotjs_i2c_reqwrap_t* iotjs_i2c_reqwrap_create(const iotjs_jval_t* jcallback,
                                               const iotjs_jval_t* ji2c,
                                               I2cOp op) {
@@ -86,9 +90,6 @@ iotjs_i2c_t* iotjs_i2c_instance_from_reqwrap(THIS) {
 #undef THIS
 
 
-static void iotjs_i2c_destroy(iotjs_i2c_t* i2c);
-
-
 iotjs_i2c_t* iotjs_i2c_create(const iotjs_jval_t* ji2c) {
   iotjs_i2c_t* i2c = IOTJS_ALLOC(iotjs_i2c_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_i2c_t, i2c);
@@ -97,8 +98,7 @@ iotjs_i2c_t* iotjs_i2c_create(const iotjs_jval_t* ji2c) {
   _this->i2c_master = NULL;
 #endif
 
-  iotjs_jobjectwrap_initialize(&_this->jobjectwrap, ji2c,
-                               (JFreeHandlerType)iotjs_i2c_destroy);
+  iotjs_jobjectwrap_initialize(&_this->jobjectwrap, ji2c, &i2c_native_info);
   return i2c;
 }
 

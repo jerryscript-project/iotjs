@@ -46,6 +46,7 @@
 
 
 static void iotjs_blehcisocket_destroy(THIS);
+IOTJS_DEFINE_NATIVE_HANDLE_INFO(blehcisocket);
 
 
 iotjs_blehcisocket_t* iotjs_blehcisocket_create(const iotjs_jval_t* jble) {
@@ -53,7 +54,7 @@ iotjs_blehcisocket_t* iotjs_blehcisocket_create(const iotjs_jval_t* jble) {
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_blehcisocket_t, blehcisocket);
 
   iotjs_jobjectwrap_initialize(&_this->jobjectwrap, jble,
-                               (JFreeHandlerType)iotjs_blehcisocket_destroy);
+                               &blehcisocket_native_info);
 
   iotjs_blehcisocket_initialize(blehcisocket);
 

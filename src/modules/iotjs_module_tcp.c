@@ -23,6 +23,7 @@
 
 
 static void iotjs_tcpwrap_destroy(iotjs_tcpwrap_t* tcpwrap);
+IOTJS_DEFINE_NATIVE_HANDLE_INFO(tcpwrap);
 
 
 iotjs_tcpwrap_t* iotjs_tcpwrap_create(const iotjs_jval_t* jtcp) {
@@ -31,7 +32,7 @@ iotjs_tcpwrap_t* iotjs_tcpwrap_create(const iotjs_jval_t* jtcp) {
 
   iotjs_handlewrap_initialize(&_this->handlewrap, jtcp,
                               (uv_handle_t*)(&_this->handle),
-                              (JFreeHandlerType)iotjs_tcpwrap_destroy);
+                              &tcpwrap_native_info);
 
   const iotjs_environment_t* env = iotjs_environment_get();
   uv_tcp_init(iotjs_environment_loop(env), &_this->handle);

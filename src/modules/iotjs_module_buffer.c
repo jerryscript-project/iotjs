@@ -21,6 +21,8 @@
 
 
 static void iotjs_bufferwrap_destroy(iotjs_bufferwrap_t* bufferwrap);
+IOTJS_DEFINE_NATIVE_HANDLE_INFO(bufferwrap);
+
 
 iotjs_bufferwrap_t* iotjs_bufferwrap_create(const iotjs_jval_t* jbuiltin,
                                             size_t length) {
@@ -28,7 +30,7 @@ iotjs_bufferwrap_t* iotjs_bufferwrap_create(const iotjs_jval_t* jbuiltin,
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_bufferwrap_t, bufferwrap);
 
   iotjs_jobjectwrap_initialize(&_this->jobjectwrap, jbuiltin,
-                               (JFreeHandlerType)iotjs_bufferwrap_destroy);
+                               &bufferwrap_native_info);
   if (length > 0) {
     _this->length = length;
     _this->buffer = iotjs_buffer_allocate(length);

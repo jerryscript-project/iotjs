@@ -20,13 +20,13 @@
 
 static void iotjs_pwm_destroy(iotjs_pwm_t* pwm);
 static iotjs_pwm_t* iotjs_pwm_instance_from_jval(const iotjs_jval_t* jpwm);
+IOTJS_DEFINE_NATIVE_HANDLE_INFO(pwm);
 
 
 static iotjs_pwm_t* iotjs_pwm_create(const iotjs_jval_t* jpwm) {
   iotjs_pwm_t* pwm = IOTJS_ALLOC(iotjs_pwm_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_pwm_t, pwm);
-  iotjs_jobjectwrap_initialize(&_this->jobjectwrap, jpwm,
-                               (JFreeHandlerType)iotjs_pwm_destroy);
+  iotjs_jobjectwrap_initialize(&_this->jobjectwrap, jpwm, &pwm_native_info);
 
   _this->period = -1;
   _this->duty_cycle = 0;

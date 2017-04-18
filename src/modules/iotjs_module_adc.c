@@ -19,14 +19,14 @@
 
 
 static void iotjs_adc_destroy(iotjs_adc_t* adc);
+IOTJS_DEFINE_NATIVE_HANDLE_INFO(adc);
 static iotjs_adc_t* iotjs_adc_instance_from_jval(const iotjs_jval_t* jadc);
 
 
 static iotjs_adc_t* iotjs_adc_create(const iotjs_jval_t* jadc) {
   iotjs_adc_t* adc = IOTJS_ALLOC(iotjs_adc_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_adc_t, adc);
-  iotjs_jobjectwrap_initialize(&_this->jobjectwrap, jadc,
-                               (JFreeHandlerType)iotjs_adc_destroy);
+  iotjs_jobjectwrap_initialize(&_this->jobjectwrap, jadc, &adc_native_info);
 
   return adc;
 }

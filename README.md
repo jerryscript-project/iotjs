@@ -6,7 +6,8 @@
 
 You can find project details on our [project page](http://samsung.github.io/iotjs/) and [wiki](https://github.com/Samsung/iotjs/wiki).
 
-IRC channel: #iotjs on [freenode](https://freenode.net)
+IRC channel: #iotjs on [freenode](https://freenode.net)  
+Mailing list: iotjs-dev@groups.io, you can subscribe [here](https://groups.io/g/iotjs-dev) and access the mailing list archive [here](https://groups.io/g/iotjs-dev/topics).
 
 ## Quick Start
 ### Getting the sources

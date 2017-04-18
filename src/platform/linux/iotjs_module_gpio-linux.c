@@ -13,9 +13,6 @@
  * limitations under the License.
  */
 
-#ifndef IOTJS_MODULE_GPIO_LINUX_GENERAL_INL_H
-#define IOTJS_MODULE_GPIO_LINUX_GENERAL_INL_H
-
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -69,22 +66,28 @@ static bool gpio_set_mode(int32_t pin, GpioMode mode) {
 }
 
 
-bool iotjs_gpio_write(int32_t pin, bool value) {
+bool iotjs_gpio_write(iotjs_gpio_t* gpio, bool value) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_gpio_t, gpio);
+
   char value_path[GPIO_PATH_BUFFER_SIZE];
-  snprintf(value_path, GPIO_PATH_BUFFER_SIZE, GPIO_PIN_FORMAT_VALUE, pin);
+  snprintf(value_path, GPIO_PATH_BUFFER_SIZE, GPIO_PIN_FORMAT_VALUE,
+           _this->pin);
 
   const char* buffer = value ? "1" : "0";
 
-  DDDLOG("%s - pin: %d, value: %d", __func__, pin, value);
+  DDDLOG("%s - pin: %d, value: %d", __func__, _this->pin, value);
 
   return iotjs_systemio_open_write_close(value_path, buffer);
 }
 
 
-int iotjs_gpio_read(int32_t pin) {
+int iotjs_gpio_read(iotjs_gpio_t* gpio) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_gpio_t, gpio);
+
   char buffer[GPIO_VALUE_BUFFER_SIZE];
   char value_path[GPIO_PATH_BUFFER_SIZE];
-  snprintf(value_path, GPIO_PATH_BUFFER_SIZE, GPIO_PIN_FORMAT_VALUE, pin);
+  snprintf(value_path, GPIO_PATH_BUFFER_SIZE, GPIO_PIN_FORMAT_VALUE,
+           _this->pin);
 
   if (!iotjs_systemio_open_read_close(value_path, buffer,
                                       GPIO_VALUE_BUFFER_SIZE - 1)) {
@@ -95,16 +98,19 @@ int iotjs_gpio_read(int32_t pin) {
 }
 
 
-bool iotjs_gpio_close(int32_t pin) {
+bool iotjs_gpio_close(iotjs_gpio_t* gpio) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_gpio_t, gpio);
+
   char buff[GPIO_PIN_BUFFER_SIZE];
-  snprintf(buff, GPIO_PIN_BUFFER_SIZE, "%d", pin);
+  snprintf(buff, GPIO_PIN_BUFFER_SIZE, "%d", _this->pin);
 
   return iotjs_systemio_open_write_close(GPIO_PIN_FORMAT_UNEXPORT, buff);
 }
 
 
 void iotjs_gpio_open_worker(uv_work_t* work_req) {
-  GPIO_WORKER_INIT();
+  GPIO_WORKER_INIT;
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_gpio_t, gpio);
 
   DDDLOG("%s - pin: %d, dir: %d, mode: %d", __func__, _this->pin,
          _this->direction, _this->mode);
@@ -119,62 +125,19 @@ void iotjs_gpio_open_worker(uv_work_t* work_req) {
   if (!iotjs_systemio_device_open(GPIO_PIN_FORMAT_EXPORT, _this->pin,
                                   exported_path, created_files,
                                   created_files_length)) {
-    req_data->result = -1;
+    req_data->result = false;
     return;
   }
   // Set direction.
   if (!gpio_set_direction(_this->pin, _this->direction)) {
-    req_data->result = -1;
+    req_data->result = false;
     return;
   }
   // Set mode.
   if (!gpio_set_mode(_this->pin, _this->mode)) {
-    req_data->result = -1;
+    req_data->result = false;
     return;
   }
 
-  req_data->result = 0;
+  req_data->result = true;
 }
-
-
-void iotjs_gpio_write_worker(uv_work_t* work_req) {
-  GPIO_WORKER_INIT();
-  DDDLOG("%s - pin: %d, value: %d", __func__, _this->pin, req_data->value);
-
-  bool result = iotjs_gpio_write(_this->pin, req_data->value);
-
-  if (result) {
-    req_data->result = 0;
-  } else {
-    req_data->result = -1;
-  }
-}
-
-
-void iotjs_gpio_read_worker(uv_work_t* work_req) {
-  GPIO_WORKER_INIT();
-  DDDLOG("%s - pin: %d", __func__, _this->pin);
-
-  int result = iotjs_gpio_read(_this->pin);
-  if (result >= 0) {
-    req_data->result = 0;
-    req_data->value = (bool)result;
-  } else {
-    req_data->result = -1;
-  }
-}
-
-
-void iotjs_gpio_close_worker(uv_work_t* work_req) {
-  GPIO_WORKER_INIT();
-  DDDLOG("%s - pin : %d", __func__, _this->pin);
-
-  if (iotjs_gpio_close(_this->pin)) {
-    req_data->result = 0;
-  } else {
-    req_data->result = -1;
-  }
-}
-
-
-#endif /* IOTJS_MODULE_GPIO_LINUX_GENERAL_INL_H */

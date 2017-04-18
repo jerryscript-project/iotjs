@@ -36,6 +36,10 @@ if (process.platform === 'linux') {
   ledPin = pin.PA10;
   switchPin = pin.PA8;
   ledMode = gpio.MODE.PUSHPULL;
+} else if(process.platform === 'tizenrt') {
+  ledPin = 41;
+  switchPin = 39;
+  ledMode = gpio.MODE.NONE;
 } else {
   assert.fail();
 }

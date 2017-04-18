@@ -62,28 +62,24 @@ function GpioPin(configuration, callback) {
   }
 
   // validate mode
-  if (process.platform === 'linux') {
-    configuration.mode = defaultConfiguration.mode;
-  } else if (process.platform === 'nuttx') {
-    var mode = configuration.mode;
-    if (!util.isUndefined(mode)) {
-      if (configuration.direction === gpio.DIRECTION.IN) {
-        if (mode !== gpio.MODE.NONE && mode !== gpio.MODE.PULLUP &&
-            mode !== gpio.MODE.PULLDOWN) {
-          throw new TypeError(
-            'Bad configuration - mode should be MODE.NONE, PULLUP or PULLDOWN');
-        }
-      } else if (configuration.direction === gpio.DIRECTION.OUT) {
-        if (mode !== gpio.MODE.NONE && mode !== gpio.MODE.FLOAT &&
-            mode !== gpio.MODE.PUSHPULL && mode !== gpio.MODE.OPENDRAIN) {
-          throw new TypeError(
-            'Bad configuration - ' +
-            'mode should be MODE.NONE, FLOAT, PUSHPULL or OPENDRAIN');
-        }
+  var mode = configuration.mode;
+  if (process.platform === 'nuttx' && !util.isUndefined(mode)) {
+    if (configuration.direction === gpio.DIRECTION.IN) {
+      if (mode !== gpio.MODE.NONE && mode !== gpio.MODE.PULLUP &&
+          mode !== gpio.MODE.PULLDOWN) {
+        throw new TypeError(
+          'Bad configuration - mode should be MODE.NONE, PULLUP or PULLDOWN');
       }
-    } else {
-      configuration.mode = defaultConfiguration.mode;
+    } else if (configuration.direction === gpio.DIRECTION.OUT) {
+      if (mode !== gpio.MODE.NONE && mode !== gpio.MODE.FLOAT &&
+          mode !== gpio.MODE.PUSHPULL && mode !== gpio.MODE.OPENDRAIN) {
+        throw new TypeError(
+          'Bad configuration - ' +
+          'mode should be MODE.NONE, FLOAT, PUSHPULL or OPENDRAIN');
+      }
     }
+  } else {
+    configuration.mode = defaultConfiguration.mode;
   }
 
   this._binding = new gpio.Gpio(configuration, function(err) {
@@ -124,7 +120,7 @@ GpioPin.prototype.writeSync = function(value) {
     throw new TypeError('Bad arguments - value should be Boolean');
   }
 
-  this._binding.writeSync(!!value);
+  this._binding.write(!!value);
 };
 
 GpioPin.prototype.read = function(callback) {
@@ -144,7 +140,7 @@ GpioPin.prototype.readSync = function() {
     throw new Error('GPIO pin is not opened');
   }
 
-  return this._binding.readSync();
+  return this._binding.read();
 };
 
 GpioPin.prototype.close = function(callback) {
@@ -166,7 +162,7 @@ GpioPin.prototype.closeSync = function() {
     throw new Error('GPIO pin is not opened');
   }
 
-  this._binding.closeSync();
+  this._binding.close();
 
   this._binding = null;
 };

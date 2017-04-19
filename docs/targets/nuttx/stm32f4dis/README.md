@@ -54,7 +54,7 @@ $ ./configure.sh stm32f4discovery/usbnsh
 Now you can configure nuttx like either of below. For convenience, we provide built-in configure file for you. (This configure file is equipped with modules specified as `always`. For `optional` modules, you might follow instructions below.)
 ```bash
 $ cd ..
-$ cp ../iotjs/targets/nuttx/stm32f4dis/.config.default .config
+$ cp ../iotjs/config/nuttx/stm32f4dis/.config.default .config
 ```
 
 Or if you want to configure yourself, you can follow guide below.
@@ -131,7 +131,7 @@ Followings are the options to set:
 #### 4. Build IoT.js for NuttX
 
 ##### Follow the instruction
-* [Build-for-NuttX](../../build/Build-for-NuttX.md)
+* [Build-for-NuttX](../../../build/Build-for-NuttX.md)
 
 #### 5. Build NuttX
 

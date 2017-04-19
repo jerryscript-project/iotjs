@@ -57,41 +57,20 @@ global.Buffer = Native.require('buffer');
 
 var timers = undefined;
 
-global.setTimeout = function() {
+var _timeoutHandler = function(mode) {
   if (timers == undefined) {
     timers = Native.require('timers');
   }
-
-  return timers.setTimeout.apply(this, arguments);
+  return timers[mode].apply(this, Array.prototype.slice.call(arguments, 1));
 }
 
+setTimeout = _timeoutHandler.bind(this, 'setTimeout');
+setInterval = _timeoutHandler.bind(this, 'setInterval');
+clearTimeout = _timeoutHandler.bind(this, 'clearTimeout');
+clearInterval = _timeoutHandler.bind(this, 'clearInterval');
 
-global.setInterval = function() {
-  if (timers == undefined) {
-    timers = Native.require('timers');
-  }
-
-  return timers.setInterval.apply(this, arguments);
-}
-
-
-global.clearTimeout = function() {
-  if (timers == undefined) {
-    timers = Native.require('timers');
-  }
-
-  return timers.clearTimeout.apply(this, arguments);
-}
-
-
-global.clearInterval = function() {
-  if (timers == undefined) {
-    timers = Native.require('timers');
-  }
-
-  return timers.clearInterval.apply(this, arguments);
-}
-
+// Make sure that it is not accessible elsewhere
+delete _timeoutHandler;
 
 // Initialize `process.argv`
 process.argv = [];

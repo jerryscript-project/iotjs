@@ -131,20 +131,13 @@ iotjs_module_t.resolveModPath = function(id, parent) {
 
 
 iotjs_module_t.tryPath = function(path) {
-  var stats = iotjs_module_t.statPath(path);
-  if(stats && !stats.isDirectory()) {
-    return path;
-  }
-  else {
-    return false;
-  }
-};
-
-
-iotjs_module_t.statPath = function(path) {
   try {
-    return fs.statSync(path);
+    var stats = fs.statSync(path);
+    if(stats && !stats.isDirectory()) {
+      return path;
+    }
   } catch (ex) {}
+
   return false;
 };
 

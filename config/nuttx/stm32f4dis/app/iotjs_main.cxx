@@ -54,7 +54,7 @@
 #include <nuttx/arch.h>
 
 #include <stdio.h>
-#include <setjmp.h>
+#include "setjmp.h"
 
 #ifdef CONFIG_IOTJS
 # if !defined(CONFIG_HAVE_CXX) || !defined(CONFIG_HAVE_CXXINITIALIZE)
@@ -66,32 +66,7 @@
  * Public Functions
  ****************************************************************************/
 
-/**
- * Compiler built-in setjmp function.
- *
- * @return 0 when called the first time
- *         1 when returns from a longjmp call
- */
 
-int
-setjmp (jmp_buf buf)
-{
-    return __builtin_setjmp (buf);
-} /* setjmp */
-
-/**
- * Compiler built-in longjmp function.
- *
- * Note:
- *   ignores value argument
- */
-
-void
-longjmp (jmp_buf buf, int value)
-{
-    /* Must be called with 1. */
-    __builtin_longjmp (buf, 1);
-} /* longjmp */
 
 extern "C" int iotjs_entry(int argc, char *argv[]);
 extern "C" int tuv_cleanup(void);

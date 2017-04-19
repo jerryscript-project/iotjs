@@ -223,7 +223,8 @@ Writes buffer to the file specified by fd synchronously.
 ### `fs.writeFile(path, data, [, options], callback)`
 * `path <String>` - file path that the `data` will be written
 * `data <Buffer>` - buffer that contains data
-* `options <Object>` - options for the operation
+* `options: Object` - options for the operation.
+ * `flag: String`, Default: `w` - file open flag.
 * `callback <Function(err: null | Error)>`
 
 Writes entire `data` to the file specified by `path` asynchronously.
@@ -240,7 +241,8 @@ fs.writeFile('test.txt', 'IoT.js', function(err) {
 ### `fs.writeFileSync(path, data, [, options])`
 * `path <String>` - file path that the `data` will be written
 * `data <Buffer>` - buffer that contains data
-* `options <Object>` - options for the operation
+* `options: Object` - options for the operation.
+ * `flag: String`, Default: `w` - file open flag.
 
 Writes entire `data` to the file specified by `path` synchronously.
 

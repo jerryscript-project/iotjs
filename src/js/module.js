@@ -198,20 +198,7 @@ iotjs_module_t.runMain = function(){
 
 iotjs_module_t.prototype.SetModuleDirs = function(filepath)
 {
-  // At next require, search module from parent's directory
-  var dir = "";
-  var i;
-  for(i = filepath.length-1;i>=0 ; i--) {
-    if(filepath[i] == '/'){
-      break;
-    }
-  }
-
-  // save filepath[0] to filepath[i]
-  // e.g. /home/foo/main.js ->  /home/foo/
-  for(;i>=0 ; i--) {
-    dir = filepath[i] + dir;
-  }
+  var dir = filepath.substring(0, filepath.lastIndexOf('/') + 1);
   this.dirs = [dir];
 };
 

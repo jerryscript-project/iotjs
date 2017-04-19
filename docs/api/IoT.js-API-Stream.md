@@ -27,14 +27,15 @@ The following shows stream module APIs available for each platform.
         - [`'close'`](#close)
         - [`'data'`](#data)
         - [`'end'`](#end)
+        - [`'error'`](#error)
         - [`'readable'`](#readable)
 - [Class: Stream.Writable](#class-streamwritable)
     - [Prototype Functions](#prototype-functions-1)
         - [`writable.end([chunk][, callback])`](#writableendchunk-callback)
         - [`writable.write(chunk[, callback])`](#writablewritechunk-callback)
-    - [Events](#events-write)
+    - [Events](#events-1)
         - [`'drain'`](#drain)
-        - [`'error'`](#error)
+        - [`'error'`](#error-1)
         - [`'finish'`](#finish)
 - [Class: Stream.Duplex](#class-streamduplex)
 
@@ -97,6 +98,12 @@ Readable stream emits this event when a chunk of data prepared to be read. This 
 
 This event is only fired when there will be no more data to read.
 
+### `'error'`
+* `callback Function(err)`
+* `err <Error>`
+
+Emitted if there were something wrong reading data.
+
 ### `'readable'`
 * `callback <Function()>`
 
@@ -120,7 +127,7 @@ Writable stream is abstraction for target that you can write data to.
 This method writes `chunk` of data to the underlying system, when the data is flush it calls back the `callback` function.
 If you can write right after calling this method, it will return `true`, otherwise, return `false`.
 
-## Events <a name="events-write"></a>
+## Events
 
 ### `'drain'`
 * `callback <Function()>`

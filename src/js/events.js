@@ -42,11 +42,7 @@ EventEmitter.prototype.emit = function(type) {
   var listeners = this._events[type];
   if (util.isArray(listeners)) {
     listeners = listeners.slice();
-    var len = arguments.length;
-    var args = new Array(len - 1);
-    for (var i = 1; i < len; ++i) {
-      args[i - 1] = arguments[i];
-    }
+    var args = Array.prototype.slice.call(arguments, 1);
     for (var i = 0; i < listeners.length; ++i) {
       listeners[i].apply(this, args);
     }

@@ -142,14 +142,13 @@ iotjs_module_t.load = function(id, parent, isMain) {
     return cachedModule.exports;
   }
 
-  if (modPath) {
-    module.filename = modPath;
-    module.SetModuleDirs(modPath);
-    module.compile();
-  }
-  else {
+  if (!modPath) {
     throw new Error('Module not found: ' + id);
   }
+
+  module.filename = modPath;
+  module.dirs = [modPath.substring(0, modPath.lastIndexOf('/') + 1)];
+  module.compile();
 
   iotjs_module_t.cache[modPath] = module;
 
@@ -173,15 +172,6 @@ iotjs_module_t.runMain = function(){
   iotjs_module_t.load(process.argv[1], null, true);
   process._onNextTick();
 };
-
-
-
-iotjs_module_t.prototype.SetModuleDirs = function(filepath)
-{
-  var dir = filepath.substring(0, filepath.lastIndexOf('/') + 1);
-  this.dirs = [dir];
-};
-
 
 iotjs_module_t.prototype.require = function(id) {
   return iotjs_module_t.load(id, this);

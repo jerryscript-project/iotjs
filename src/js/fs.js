@@ -19,17 +19,6 @@ var constants = require('constants');
 var util = require('util');
 var fsBuiltin = process.binding(process.binding.fs);
 
-
-var O_APPEND = constants.O_APPEND;
-var O_CREAT = constants.O_CREAT;
-var O_EXCL = constants.O_EXCL;
-var O_RDONLY = constants.O_RDONLY;
-var O_RDWR = constants.O_RDWR;
-var O_SYNC = constants.O_SYNC;
-var O_TRUNC = constants.O_TRUNC;
-var O_WRONLY = constants.O_WRONLY;
-
-
 fs.Stats = function(stat) {
   this.dev = stat.dev;
   this.mode = stat.mode;
@@ -413,6 +402,15 @@ fs.readdirSync = function(path) {
 
 
 function convertFlags(flag) {
+  var O_APPEND = constants.O_APPEND;
+  var O_CREAT = constants.O_CREAT;
+  var O_EXCL = constants.O_EXCL;
+  var O_RDONLY = constants.O_RDONLY;
+  var O_RDWR = constants.O_RDWR;
+  var O_SYNC = constants.O_SYNC;
+  var O_TRUNC = constants.O_TRUNC;
+  var O_WRONLY = constants.O_WRONLY;
+
   if (util.isString(flag)) {
     switch (flag) {
       case 'r': return O_RDONLY;

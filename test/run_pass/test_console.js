@@ -23,6 +23,7 @@ console.log(3+5*2);
 console.log([1, 2, 3]);
 console.log(1, 2, 3);
 console.log('a', 1, 'b', 2, 'c', 3);
+console.log("test", null, undefined);
 
 console.error("Hello IoT.js!!");
 console.error(1);

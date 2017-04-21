@@ -1,0 +1,16 @@
+# Site settings
+title: IoT.js
+#email: your-email@domain.com
+description: > # this means to ignore newlines until "baseurl:"
+  A framework for Internet of Things.
+# baseurl: "/iotjs" # the subpath of your site, e.g. /blog/
+# url: "http://iotjs.net/" # the base hostname & protocol for your site
+#twitter_username:
+#github_username:  samsung
+
+# Build settings
+highlighter: rouge
+
+markdown: kramdown
+kramdown:
+  input: GFM

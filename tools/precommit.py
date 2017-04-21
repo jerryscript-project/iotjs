@@ -190,6 +190,7 @@ for test in option.test:
         args = []
         if os.getenv('TRAVIS') != None:
             args = ['--travis']
+        fs.chdir(path.PROJECT_ROOT)
         ex.check_run_cmd('tools/check_signed_off.sh', args)
 
         if not check_tidy(path.PROJECT_ROOT):

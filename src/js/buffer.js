@@ -19,8 +19,6 @@ var util = require('util');
 
 
 function checkInt(buffer, value, offset, ext, max, min) {
-  if (!(buffer instanceof Buffer))
-    throw new TypeError('buffer must be a Buffer instance');
   if (value > max || value < min)
     throw new TypeError('value is out of bounds');
   if (offset + ext > buffer.length)

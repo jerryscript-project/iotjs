@@ -131,7 +131,6 @@ static unsigned hex2bin(char c) {
   if (c >= 'a' && c <= 'f')
     return 10 + (c - 'a');
 
-  IOTJS_ASSERT(!"Bad argument");
   return (unsigned)(-1);
 }
 

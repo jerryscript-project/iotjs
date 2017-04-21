@@ -168,7 +168,7 @@ iotjs_module_t.load = function(id, parent, isMain) {
     module.compile();
   }
   else {
-    throw new Error('No module found');
+    throw new Error('Module not found: ' + id);
   }
 
   iotjs_module_t.cache[modPath] = module;

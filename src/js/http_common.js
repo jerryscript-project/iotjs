@@ -67,8 +67,7 @@ function parserOnHeadersComplete(info) {
 
   if (!headers) {
     headers = parser._headers;
-    // FIXME: This should be impl. with Array
-    parser._headers = {};
+    parser._headers = [];
   }
 
 
@@ -111,23 +110,11 @@ function parserOnBody(buf, start, len) {
 }
 
 
-function AddHeader(dest, src) {
-  if (!dest.length) {
-    dest.length = 0;
-  }
-
-  for (var i=0;i<src.length;i++) {
-    dest[dest.length+i] = src[i];
-  }
-  dest.length = dest.length + src.length;
-}
-
-
 // This is called when http header is fragmented and
 // HTTPParser sends it to JS in separate pieces.
 function parserOnHeaders(headers, url) {
-  // FIXME: This should be impl. with Array.concat
-  AddHeader(this._headers, headers);
+  // push new header parts into existing array
+  this._headers.push.apply(this._headers, headers);
   if (url) {
     this._url += url;
   }

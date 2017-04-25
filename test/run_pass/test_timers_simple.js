@@ -19,6 +19,7 @@ var assert = require('assert');
 
 var timerACnt = 0;
 var timerBCnt = 0;
+var timerCCnt = 0;
 var timerSequence = '';
 
 var timerA = setTimeout(function() {
@@ -34,9 +35,18 @@ var timerB = setInterval(function() {
   }
 }, 300);
 
+var timerC = setInterval(function() {
+  timerSequence += 'C';
+  timerCCnt++;
+  if (timerCCnt > 10) {
+    clearInterval(timerC);
+  }
+}, 0);
+
 process.on('exit', function(code) {
   assert.equal(code, 0);
   assert.equal(timerACnt, 1);
   assert.equal(timerBCnt, 6);
-  assert.equal(timerSequence.length, 7);
+  assert.equal(timerCCnt, 11);
+  assert.equal(timerSequence.length, 18);
 });

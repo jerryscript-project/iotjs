@@ -44,16 +44,23 @@ dns.lookup('localhost', 4, function(err, ip, family) {
   assert.strictEqual(family, 4);
 });
 
+// Test without explicit options parameter.
+dns.lookup('localhost', function(err, ip, family) {
+  assert.equal(err, null);
+  assert.equal(isIPv4(ip), true);
+  assert.equal(ip, '127.0.0.1');
+});
+
 // Test with invalid hostname.
 dns.lookup('invalid', 4, function(err, ip, family) {
   assert.notEqual(err, null);
-  assert.equal(err.code, -3008);
+  assert.equal(err.code == -3008 || err.code == -3007, true);
 });
 
 // Test with empty hostname.
 dns.lookup('', 4, function(err, ip, family) {
   assert.notEqual(err, null);
-  assert.equal(err.code, -3008);
+  assert.equal(err.code == -3008 || err.code == -3007, true);
 });
 
 // Test with non string hostname.

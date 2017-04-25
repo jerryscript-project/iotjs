@@ -47,19 +47,6 @@ if(process.env.NODE_PATH){
   moduledirs.push(process.env.NODE_PATH + "/node_modules/")
 }
 
-iotjs_module_t.concatdir = function(a, b){
-  var rlist = [];
-  for(var i = 0; i< a.length ; i++) {
-    rlist.push(a[i]);
-  }
-
-  for(var i = 0; i< b.length ; i++) {
-    rlist.push(b[i]);
-  }
-
-  return rlist;
-};
-
 
 iotjs_module_t.resolveDirectories = function(id, parent) {
   var dirs = moduledirs;
@@ -67,7 +54,7 @@ iotjs_module_t.resolveDirectories = function(id, parent) {
     if(!parent.dirs){
       parent.dirs = [];
     }
-    dirs = iotjs_module_t.concatdir(parent.dirs, dirs);
+    dirs = parent.dirs.concat(dirs);
   }
   return dirs;
 };

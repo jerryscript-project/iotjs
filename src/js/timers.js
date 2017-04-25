@@ -128,9 +128,9 @@ exports.setInterval = function(callback, repeat) {
 };
 
 
-exports.clearInterval = function(timeout) {
-  if (timeout && timeout.isrepeat)
-    timeout.close();
+exports.clearInterval = function(interval) {
+  if (interval && interval.isrepeat)
+    interval.close();
   else
     throw new Error('clearInterval() - invalid interval');
 };

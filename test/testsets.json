@@ -39,7 +39,7 @@
     { "name": "test_module_cache.js", "skip": ["nuttx"], "reason": "not implemented for nuttx" },
     { "name": "test_net_1.js" },
     { "name": "test_net_2.js" },
-    { "name": "test_net_3.js", "timeout": 20, "skip": ["nuttx"], "reason": "requires too many socket descriptors and too large buffers" },
+    { "name": "test_net_3.js", "timeout": 100, "skip": ["nuttx"], "reason": "requires too many socket descriptors and too large buffers" },
     { "name": "test_net_4.js" },
     { "name": "test_net_5.js" },
     { "name": "test_net_6.js" },

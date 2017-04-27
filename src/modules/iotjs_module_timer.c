@@ -56,8 +56,8 @@ static void TimeoutHandler(uv_timer_t* handle) {
 }
 
 
-int iotjs_timerwrap_start(iotjs_timerwrap_t* timerwrap, int64_t timeout,
-                          int64_t repeat) {
+int iotjs_timerwrap_start(iotjs_timerwrap_t* timerwrap, uint64_t timeout,
+                          uint64_t repeat) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_timerwrap_t, timerwrap);
 
   // Start uv timer.
@@ -128,8 +128,8 @@ JHANDLER_FUNCTION(Start) {
   iotjs_timerwrap_t* timer_wrap = iotjs_timerwrap_from_jobject(jtimer);
 
   // parameters.
-  int64_t timeout = JHANDLER_GET_ARG(0, number);
-  int64_t repeat = JHANDLER_GET_ARG(1, number);
+  uint64_t timeout = JHANDLER_GET_ARG(0, number);
+  uint64_t repeat = JHANDLER_GET_ARG(1, number);
 
   // Start timer.
   int res = iotjs_timerwrap_start(timer_wrap, timeout, repeat);

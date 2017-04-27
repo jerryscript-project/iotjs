@@ -189,8 +189,7 @@ function connectionListener(socket) {
   // cf) In Node.js, freelist returns a new parser.
   // parser initialize
   var parser = common.createHTTPParser();
-  // FIXME: This should be impl. with Array
-  parser._headers = {};
+  parser._headers = [];
   parser._url = '';
 
   parser.onIncoming = parserOnIncoming;

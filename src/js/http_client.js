@@ -73,7 +73,7 @@ function setupConnection(req, socket) {
   req.connection = socket;
   parser.socket = socket;
   parser.incoming = null;
-  parser._headers = {};
+  parser._headers = [];
   req.parser = parser;
 
   socket.parser = parser;

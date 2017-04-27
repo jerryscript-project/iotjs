@@ -15,6 +15,8 @@
 
 var testdriver = require('testdriver');
 var console_wrapper = require('common_js/module/console');
+var builtin_modules =
+  Object.keys(process.native_sources).concat(Object.keys(process.binding));
 
 function Runner(driver) {
   process._exiting = false;
@@ -77,8 +79,39 @@ Runner.prototype.checkSkipModule = function() {
   return false;
 };
 
+Runner.prototype.checkSupportedModule = function() {
+  // Cut off the '.js' ending
+  var name = this.test['name'].slice(0, -3);
+
+  // test_mod_smt -> [test, mod, smt]
+  // test_modsmt -> [test, modsmt]
+  var parts = name.split('_');
+  if (parts[0] != 'test') {
+    // test filename does not start with 'test_' so we'll just
+    // assume we support it.
+    return true;
+  }
+
+  // The second part of the array contains the module
+  // which is under test
+  var tested_module = parts[1];
+  for (var i = 0; i < builtin_modules.length; i++) {
+    if (tested_module == builtin_modules[i]) {
+      return true;
+    }
+  }
+
+  // In any other case we do not support this js file.
+  return false;
+}
 
 Runner.prototype.run = function() {
+  if (!this.checkSupportedModule()) {
+    this.test.reason = 'unsupported module by iotjs build';
+    this.finish('skip');
+    return;
+  }
+
   var skip = this.test['skip'];
   if (skip) {
     if ((skip.indexOf('all') >= 0) || (skip.indexOf(this.driver.os) >= 0)

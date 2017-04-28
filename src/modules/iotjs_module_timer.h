@@ -36,8 +36,8 @@ uv_timer_t* iotjs_timerwrap_handle(iotjs_timerwrap_t* timerwrap);
 iotjs_jval_t* iotjs_timerwrap_jobject(iotjs_timerwrap_t* timerwrap);
 
 // Start timer.
-int iotjs_timerwrap_start(iotjs_timerwrap_t* timerwrap, int64_t timeout,
-                          int64_t repeat);
+int iotjs_timerwrap_start(iotjs_timerwrap_t* timerwrap, uint64_t timeout,
+                          uint64_t repeat);
 // Stop & close timer.
 int iotjs_timerwrap_stop(iotjs_timerwrap_t* timerwrap);
 

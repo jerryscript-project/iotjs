@@ -51,9 +51,9 @@ static char* generate_device_subpath(iotjs_string_t* device,
                                      const char* fileName) {
   char* devicePath = NULL;
   // Do not print anything, only calculate resulting string length.
-  int prefixSize = iotjs_string_size(device);
+  size_t prefixSize = iotjs_string_size(device);
   if (prefixSize > 0) {
-    int suffixSize = fileName ? strlen(fileName) : 0;
+    size_t suffixSize = fileName ? strlen(fileName) : 0;
     devicePath = iotjs_buffer_allocate(prefixSize + suffixSize + 1);
     if (devicePath) {
       // Do not need to check bounds, the buffer is of exact required size.

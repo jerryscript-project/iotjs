@@ -27,8 +27,9 @@ iotjs_string_t iotjs_file_read(const char* path) {
   IOTJS_ASSERT(file != NULL);
 
   fseek(file, 0, SEEK_END);
-  long len = ftell(file);
-  IOTJS_ASSERT(len >= 0);
+  long ftell_ret = ftell(file);
+  IOTJS_ASSERT(ftell_ret >= 0);
+  size_t len = (size_t)ftell_ret;
   fseek(file, 0, SEEK_SET);
 
   char* buffer = iotjs_buffer_allocate(len + 1);
@@ -45,7 +46,7 @@ iotjs_string_t iotjs_file_read(const char* path) {
 #else
   size_t read = fread(buffer, 1, len, file);
 #endif
-  IOTJS_ASSERT(read == (size_t)len);
+  IOTJS_ASSERT(read == len);
 
   *(buffer + len) = 0;
 
@@ -57,14 +58,14 @@ iotjs_string_t iotjs_file_read(const char* path) {
 }
 
 
-char* iotjs_buffer_allocate(unsigned size) {
+char* iotjs_buffer_allocate(size_t size) {
   char* buffer = (char*)(calloc(size, sizeof(char)));
   IOTJS_ASSERT(buffer != NULL);
   return buffer;
 }
 
 
-char* iotjs_buffer_reallocate(char* buffer, unsigned size) {
+char* iotjs_buffer_reallocate(char* buffer, size_t size) {
   IOTJS_ASSERT(buffer != NULL);
   return (char*)(realloc(buffer, size));
 }

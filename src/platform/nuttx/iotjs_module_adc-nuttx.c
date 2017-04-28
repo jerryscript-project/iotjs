@@ -37,7 +37,7 @@ static void iotjs_adc_get_path(char* buffer, int32_t number) {
 }
 
 
-static bool iotjs_adc_read_data(int32_t pin, struct adc_msg_s* msg) {
+static bool iotjs_adc_read_data(uint32_t pin, struct adc_msg_s* msg) {
   int32_t adc_number = ADC_GET_NUMBER(pin);
   char path[ADC_DEVICE_PATH_BUFFER_SIZE] = { 0 };
   iotjs_adc_get_path(path, adc_number);
@@ -90,7 +90,7 @@ int32_t iotjs_adc_read(iotjs_adc_t* adc) {
 bool iotjs_adc_close(iotjs_adc_t* adc) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_adc_t, adc);
 
-  int32_t pin = _this->pin;
+  uint32_t pin = _this->pin;
   int32_t adc_number = ADC_GET_NUMBER(pin);
 
   char path[ADC_DEVICE_PATH_BUFFER_SIZE] = { 0 };
@@ -111,7 +111,7 @@ void iotjs_adc_open_worker(uv_work_t* work_req) {
   ADC_WORKER_INIT;
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_adc_t, adc);
 
-  int32_t pin = _this->pin;
+  uint32_t pin = _this->pin;
   int32_t adc_number = ADC_GET_NUMBER(pin);
   int32_t timer = SYSIO_GET_TIMER(pin);
   struct adc_dev_s* adc_dev = iotjs_adc_config_nuttx(adc_number, timer, pin);

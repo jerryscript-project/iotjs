@@ -27,14 +27,14 @@ bool iotjs_systemio_check_path(const char* path);
 bool iotjs_systemio_open_write_close(const char* path, const char* value);
 
 bool iotjs_systemio_open_read_close(const char* path, char* buffer,
-                                    int buffer_len);
+                                    unsigned buffer_len);
 
-bool iotjs_systemio_device_open(const char* export_path, int value,
+bool iotjs_systemio_device_open(const char* export_path, uint32_t value,
                                 const char* exported_path,
                                 const char** created_files,
                                 int created_files_length);
 
-bool iotjs_systemio_device_close(const char* export_path, int value);
+bool iotjs_systemio_device_close(const char* export_path, uint32_t value);
 
 
 #endif /* IOTJS_DEVICE_IO_LINUX_GENERAL_H */

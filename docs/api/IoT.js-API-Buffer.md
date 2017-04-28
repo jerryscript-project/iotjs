@@ -263,10 +263,10 @@ console.log(buffer1.compare(buffer3)); // prints -1
 
 ### `buf.copy(targetBuffer[,targetStart[,sourceStart[,sourceEnd]]])`
 * `targetBuffer <Buffer>` - modified buffer
-* `targetStart <Number>` Default: `0`
-* `sourceStart <Number>` Default: `0`
-* `sourceEnd <Number>` Default: `buf.length`
-* Returns: `<integer>` - the number of bytes copied.
+* `targetStart <Integer>` Default: `0`
+* `sourceStart <Integer>` Default: `0`
+* `sourceEnd <Integer>` Default: `buf.length`
+* Returns: `<Integer>` - the number of bytes copied.
 
 Copy a sequence of bytes from `buf` buffer to `targetBuffer` buffer.
 The source byte range is specified by `sourceStart` and `sourceEnd`

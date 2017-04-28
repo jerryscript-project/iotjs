@@ -82,8 +82,7 @@ static void iotjs_environment_destroy(iotjs_environment_t* env) {
     // release command line argument strings.
     // _argv[0] and _argv[1] refer addresses in static memory space.
     // Others refer addresses in heap space that is need to be deallocated.
-    int i;
-    for (i = 2; i < _this->argc; ++i) {
+    for (uint32_t i = 2; i < _this->argc; ++i) {
       iotjs_buffer_release(_this->argv[i]);
     }
     iotjs_buffer_release((char*)_this->argv);
@@ -95,7 +94,8 @@ static void iotjs_environment_destroy(iotjs_environment_t* env) {
  * Parse command line arguments
  */
 bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
-                                                    int argc, char** argv) {
+                                                    uint32_t argc,
+                                                    char** argv) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_environment_t, env);
 
   // There must be at least two arguments.
@@ -106,7 +106,7 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
   }
 
   // Parse IoT.js command line arguments.
-  int i = 2;
+  uint32_t i = 2;
   while (i < argc) {
     if (!strcmp(argv[i], "--")) {
       ++i;
@@ -127,7 +127,7 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
 
   // Remaining arguments are for application.
   _this->argc = 2;
-  size_t buffer_size = (_this->argc + argc - i) * sizeof(char*);
+  size_t buffer_size = ((size_t)(_this->argc + argc - i)) * sizeof(char*);
   _this->argv = (char**)iotjs_buffer_allocate(buffer_size);
   _this->argv[0] = argv[0];
   _this->argv[1] = argv[1];
@@ -141,13 +141,14 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
   return true;
 }
 
-int iotjs_environment_argc(const iotjs_environment_t* env) {
+uint32_t iotjs_environment_argc(const iotjs_environment_t* env) {
   const IOTJS_VALIDATED_STRUCT_METHOD(iotjs_environment_t, env);
   return _this->argc;
 }
 
 
-const char* iotjs_environment_argv(const iotjs_environment_t* env, int idx) {
+const char* iotjs_environment_argv(const iotjs_environment_t* env,
+                                   uint32_t idx) {
   const IOTJS_VALIDATED_STRUCT_METHOD(iotjs_environment_t, env);
   return _this->argv[idx];
 }

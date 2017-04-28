@@ -61,7 +61,7 @@ bool iotjs_blehcisocket_isDevUp(THIS) {
 }
 
 
-void iotjs_blehcisocket_setFilter(THIS, char* data, int length) {
+void iotjs_blehcisocket_setFilter(THIS, char* data, size_t length) {
   IOTJS_ASSERT(!"Not implemented");
 }
 
@@ -76,7 +76,7 @@ void iotjs_blehcisocket_stop(THIS) {
 }
 
 
-void iotjs_blehcisocket_write(THIS, char* data, int length) {
+void iotjs_blehcisocket_write(THIS, char* data, size_t length) {
   IOTJS_ASSERT(!"Not implemented");
 }
 

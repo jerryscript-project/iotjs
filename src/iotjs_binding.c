@@ -461,8 +461,8 @@ iotjs_jval_t iotjs_jhelper_call_ok(const iotjs_jval_t* jfunc,
 
 
 iotjs_jval_t iotjs_jhelper_eval(const char* name, size_t name_len,
-                                const char* data, size_t size, bool strict_mode,
-                                bool* throws) {
+                                const uint8_t* data, size_t size,
+                                bool strict_mode, bool* throws) {
   jerry_value_t res =
       jerry_parse_named_resource((const jerry_char_t*)name, name_len,
                                  (const jerry_char_t*)data, size, strict_mode);

@@ -223,7 +223,7 @@ static void GetI2cArray(const iotjs_jval_t* jarray,
   req_data->buf_len = iotjs_jval_as_number(&jlength);
   req_data->buf_data = iotjs_buffer_allocate(req_data->buf_len);
 
-  for (int i = 0; i < req_data->buf_len; i++) {
+  for (uint8_t i = 0; i < req_data->buf_len; i++) {
     iotjs_jval_t jdata = iotjs_jval_get_property_by_index(jarray, i);
     req_data->buf_data[i] = iotjs_jval_as_number(&jdata);
     iotjs_jval_destroy(&jdata);
@@ -248,7 +248,7 @@ JHANDLER_FUNCTION(I2cCons) {
   iotjs_string_t device = JHANDLER_GET_ARG(0, string);
 #elif defined(__NUTTX__)
   JHANDLER_CHECK_ARGS(2, number, function);
-  uint32_t device = JHANDLER_GET_ARG(0, number);
+  int device = JHANDLER_GET_ARG(0, number);
 #endif
 
   // Create I2C object

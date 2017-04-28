@@ -41,7 +41,7 @@ typedef struct {
 #elif defined(__NUTTX__)
   int device_fd;
 #endif
-  int pin;
+  uint32_t pin;
   double duty_cycle;
   double period;
   bool enable;

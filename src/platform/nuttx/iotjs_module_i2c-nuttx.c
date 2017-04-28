@@ -114,7 +114,7 @@ void WriteBlockWorker(uv_work_t* work_req) {
   char* data = req_data->buf_data;
 
   // The first element of data array is command.
-  iotjs_buffer_reallocate(data, len + 1);
+  iotjs_buffer_reallocate(data, (size_t)(len + 1));
   memmove(data + 1, data, len * sizeof(char));
   data[0] = cmd;
 

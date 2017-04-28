@@ -120,10 +120,11 @@ static int iotjs_spi_get_array_data(char** buf, const iotjs_jval_t* jarray) {
       iotjs_jval_get_property(jarray, IOTJS_MAGIC_STRING_LENGTH);
   IOTJS_ASSERT(!iotjs_jval_is_undefined(&jlength));
 
-  int length = iotjs_jval_as_number(&jlength);
+  size_t length = iotjs_jval_as_number(&jlength);
+  IOTJS_ASSERT((int)length >= 0);
   *buf = iotjs_buffer_allocate(length);
 
-  for (int i = 0; i < length; i++) {
+  for (size_t i = 0; i < length; i++) {
     iotjs_jval_t jdata = iotjs_jval_get_property_by_index(jarray, i);
     (*buf)[i] = iotjs_jval_as_number(&jdata);
     iotjs_jval_destroy(&jdata);
@@ -131,7 +132,7 @@ static int iotjs_spi_get_array_data(char** buf, const iotjs_jval_t* jarray) {
 
   iotjs_jval_destroy(&jlength);
 
-  return length;
+  return (int)length;
 }
 
 

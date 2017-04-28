@@ -37,17 +37,17 @@ static iotjs_jval_t WrapEval(const char* name, size_t name_len,
   static const char* wrapper[2] = { "(function(exports, require, module) {",
                                     "\n});\n" };
 
-  int len0 = strlen(wrapper[0]);
-  int len1 = strlen(wrapper[1]);
+  size_t len0 = strlen(wrapper[0]);
+  size_t len1 = strlen(wrapper[1]);
 
-  uint32_t buffer_length = len0 + len1 + length;
+  size_t buffer_length = len0 + len1 + length;
   char* buffer = iotjs_buffer_allocate(buffer_length);
   memcpy(buffer, wrapper[0], len0);
   memcpy(buffer + len0, source, length);
   memcpy(buffer + len0 + length, wrapper[1], len1);
 
-  iotjs_jval_t res =
-      iotjs_jhelper_eval(name, name_len, buffer, buffer_length, false, throws);
+  iotjs_jval_t res = iotjs_jhelper_eval(name, name_len, (uint8_t*)buffer,
+                                        buffer_length, false, throws);
 
   iotjs_buffer_release(buffer);
 
@@ -190,9 +190,9 @@ JHANDLER_FUNCTION(InitArgv) {
   iotjs_jval_t jargv =
       iotjs_jval_get_property(thisObj, IOTJS_MAGIC_STRING_ARGV);
 
-  int argc = iotjs_environment_argc(env);
+  uint32_t argc = iotjs_environment_argc(env);
 
-  for (int i = 0; i < argc; ++i) {
+  for (uint32_t i = 0; i < argc; ++i) {
     const char* argvi = iotjs_environment_argv(env, i);
     iotjs_jval_t arg = iotjs_jval_create_string_raw(argvi);
     iotjs_jval_set_property_by_index(&jargv, i, &arg);

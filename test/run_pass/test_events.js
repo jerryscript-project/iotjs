@@ -37,6 +37,42 @@ emitter.emit('once');
 assert.equal(onceCnt, 1);
 
 
+{
+  var emit_test = new EventEmitter();
+  emit_test._events=false;
+  emit_test.emit();
+}
+{
+  var emit_test = new EventEmitter();
+  emit_test._events.error=false;
+  emit_test.emit(null);
+}
+{
+  var emit_test = new EventEmitter();
+  emit_test._events=false;
+  assert.throws(function() { emit_test.addListener(null, null); }, TypeError);
+}
+{
+  var emit_test = new EventEmitter();
+  emit_test._events=false;
+  emit_test.addListener('event', function() { });
+}
+{
+  var emit_test = new EventEmitter();
+  assert.throws(function() { emit_test.once(null, null); }, TypeError);
+}
+{
+  var emit_test = new EventEmitter();
+  assert.throws(function() {
+    emit_test.removeListener(null, null);
+  }, TypeError);
+}
+{
+  var emit_test = new EventEmitter();
+  emit_test._events = false;
+  emit_test.removeListener('rmtest', function() { });
+}
+
 emitter.once('once2', function() {
   onceCnt += 1;
   assert.equal(arguments.length, 14);

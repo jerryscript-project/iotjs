@@ -140,7 +140,7 @@ Readable.prototype.push = function(chunk, encoding) {
     } else {
       state.length += chunk.length;
       state.buffer.push(chunk);
-      emitReadable(this);
+      this.emit('readable');
     }
   }
 };
@@ -178,11 +178,6 @@ function emitEnd(stream) {
     state.endEmitted = true;
     stream.emit('end');
   }
-};
-
-
-function emitReadable(stream) {
-  stream.emit('readable');
 };
 
 

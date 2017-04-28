@@ -37,7 +37,6 @@ EventEmitter.prototype.emit = function(type) {
     } else {
       throw Error("Uncaught 'error' event");
     }
-    return false;
   }
 
   var listeners = this._events[type];

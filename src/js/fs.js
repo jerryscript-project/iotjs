@@ -101,17 +101,6 @@ fs.statSync = function(path) {
 };
 
 
-fs.fstat = function(fd, callback) {
-  fsBuiltin.fstat(checkArgNumber(fd, 'fd'),
-                  checkArgFunction(callback, 'callback'));
-};
-
-
-fs.fstatSync = function(fd) {
-  return fsBuiltin.fstat(checkArgNumber(fd, 'fd'));
-};
-
-
 fs.close = function(fd, callback) {
   fsBuiltin.close(checkArgNumber(fd, 'fd'),
                   checkArgFunction(callback, 'callback'));

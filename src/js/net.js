@@ -279,7 +279,11 @@ function connect(socket, ip, port) {
     }
   };
 
-  socket._handle.connect(ip, port, afterConnect);
+  var err = socket._handle.connect(ip, port, afterConnect);
+  if (err) {
+    emitError(socket, new Error('connect failed - status: ' +
+      TCP.errname(err)));
+  }
 }
 
 

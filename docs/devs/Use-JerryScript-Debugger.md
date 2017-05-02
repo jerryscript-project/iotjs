@@ -6,8 +6,7 @@ Detailed description about the debugger is available
 ### Enable debugger support in IoT.js
 
 To enable the debugger support under IoT.js, the `--jerry-debugger` option
-should be passed to the `tools/build.py`. This option will implicitly turn on
-the system libc in JerryScript-submodule. The server part of the debugger is
+should be passed to the `tools/build.py`. The server part of the debugger is
 intergrated into the binary of IoT.js.
 
 If you want to specify the port number of the debugger-server (default: 5001),

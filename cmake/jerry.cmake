@@ -29,8 +29,6 @@ ExternalProject_Add(hostjerry
     -DJERRY_CMDLINE_MINIMAL=OFF
     -DFEATURE_SNAPSHOT_SAVE=${ENABLE_SNAPSHOT}
     -DFEATURE_PROFILE=es5.1
-    -DFEATURE_DEBUGGER=${FEATURE_DEBUGGER}
-    -DFEATURE_DEBUGGER_PORT=${FEATURE_DEBUGGER_PORT}
 )
 add_executable(jerry IMPORTED)
 add_dependencies(jerry hostjerry)

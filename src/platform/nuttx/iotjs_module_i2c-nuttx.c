@@ -15,9 +15,9 @@
 
 #if defined(__NUTTX__)
 
+#include "iotjs_systemio-nuttx.h"
 
 #include "modules/iotjs_module_i2c.h"
-#include "iotjs_systemio-nuttx.h"
 
 
 #define I2C_DEFAULT_FREQUENCY 400000

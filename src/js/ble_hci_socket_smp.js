@@ -34,7 +34,7 @@
  * SOFTWARE.
  */
 
-var debug = console.log; //requir('debug')('ble_hci_socket_smp');
+var debug = console.log; // require('debug')('ble_hci_socket_smp');
 
 var events = require('events');
 var util = require('util');

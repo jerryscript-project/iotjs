@@ -34,7 +34,7 @@
  * SOFTWARE.
  */
 
-var debug = console.log; //requir('debug')('descriptor');
+var debug = console.log; // require('debug')('descriptor');
 
 var UuidUtil = require('ble_uuid_util');
 

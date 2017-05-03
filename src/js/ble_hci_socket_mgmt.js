@@ -34,7 +34,7 @@
  * SOFTWARE.
  */
 
-var debug = console.log; // requir('debug')('ble_mgmt');
+var debug = console.log; // require('debug')('ble_mgmt');
 
 var events = require('events');
 var util = require('util');

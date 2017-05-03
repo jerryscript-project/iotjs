@@ -34,7 +34,7 @@
  * SOFTWARE.
  */
 
-var debug = console.log; //requir('debug')('gap');
+var debug = console.log; // require('debug')('gap');
 
 var events = require('events');
 var util = require('util');

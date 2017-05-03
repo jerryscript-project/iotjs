@@ -36,7 +36,7 @@
 
 /*jshint loopfunc: true */
 
-var debug = console.log; //requir('debug')('ble_hci_socket_gatt');
+var debug = console.log; // require('debug')('ble_hci_socket_gatt');
 
 var events = require('events');
 var util = require('util');

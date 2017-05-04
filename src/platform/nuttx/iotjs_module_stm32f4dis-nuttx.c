@@ -17,9 +17,10 @@
 
 
 #include "iotjs_def.h"
-#include "modules/iotjs_module_stm32f4dis.h"
 #include "iotjs_systemio-nuttx.h"
 #include "stm32_gpio.h"
+
+#include "modules/iotjs_module_stm32f4dis.h"
 
 
 #if ENABLE_MODULE_ADC

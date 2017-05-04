@@ -17,12 +17,12 @@
 #ifndef IOTJS_MODULE_UART_LINUX_GENERAL_INL_H
 #define IOTJS_MODULE_UART_LINUX_GENERAL_INL_H
 
-#include "modules/iotjs_module_uart.h"
 #include <errno.h>
 #include <fcntl.h>
 #include <termios.h>
 #include <unistd.h>
 
+#include "modules/iotjs_module_uart.h"
 
 static int baud_to_constant(int baudRate) {
   switch (baudRate) {

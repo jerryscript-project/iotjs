@@ -47,5 +47,16 @@ function unlink(path) {
     fs.rmdir(root, function() {
       assert.equal(fs.existsSync(root), false);
     });
+
+    var root2 = "resources/test_dir2";
+
+    fs.mkdir(root2, 777, function(err){
+      assert.equal(err, null);
+      assert.equal(fs.existsSync(root2), true);
+
+      fs.rmdir(root2, function(){
+        assert.equal(fs.existsSync(root2), false);
+      });
+    });
   });
 }

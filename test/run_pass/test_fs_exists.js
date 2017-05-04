@@ -25,6 +25,22 @@ var assert = require('assert');
 }
 
 {
+  var filePath = "";
+
+  assert.doesNotThrow(function(){
+    fs.exists(filePath);
+  });
+}
+
+{
+  var filePath = "resources/tobeornottobe.txt";
+
+  assert.doesNotThrow(function(){
+    fs.exists(filePath);
+  });
+}
+
+{
   var filePath = "resources/empty.txt";
 
   fs.exists(filePath, function(exists) {

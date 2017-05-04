@@ -30,9 +30,13 @@ try {
 
   var fd2 = fs.openSync(dstFilePath, 'w');
   var bytes2 = fs.writeSync(fd2, buffer, 0, bytes1, 0);
+  var bytes4 = fs.writeSync(fd2, buffer, 0, bytes1, null);
+  var bytes5 = fs.writeSync(fd2, buffer, 0, bytes1, undefined);
   fs.closeSync(fd2);
 
   assert.equal(bytes1, bytes2);
+  assert.equal(bytes1, bytes4);
+  assert.equal(bytes1, bytes5);
 
   var fd3 = fs.openSync(srcFilePath, 'r');
   var bytes3 = fs.readSync(fd3, buffer, 0, buffer.length, 0);

@@ -158,14 +158,9 @@ iotjs_module_t.load = function(id, parent, isMain) {
 
 
 iotjs_module_t.prototype.compile = function() {
-  var self = this;
-  var requireForThis = function(path) {
-      return self.require(path);
-  };
-
-  var source = process.readSource(self.filename);
-  var fn = process.compile(self.filename, source);
-  fn.call(self.exports, self.exports, requireForThis, self);
+  var source = process.readSource(this.filename);
+  var fn = process.compile(this.filename, source);
+  fn.call(this.exports, this.exports, this.require.bind(this), this);
 };
 
 

@@ -213,3 +213,19 @@ eventSequence += "|";
 
 
 assert.equal(eventSequence, "112123123456677|7||88||123||");
+
+
+/* Test if an event listener for a once
+   call can be removed.
+ */
+var removableListenerCnt = 0;
+function removableListener() {
+  removableListenerCnt++;
+}
+
+emitter.once('onceRemove', removableListener);
+assert.equal(removableListenerCnt, 0);
+emitter.removeListener('onceRemove', removableListener);
+emitter.emit('onceRemove');
+assert.equal(removableListenerCnt, 0,
+    'a listener for a "once" typed evet should be removable');

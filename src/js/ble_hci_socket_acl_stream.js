@@ -34,7 +34,7 @@
  * SOFTWARE.
  */
 
-var debug = console.log; //requir('debug')('acl-att-stream');
+var debug = console.log; // require('debug')('acl-att-stream');
 
 var events = require('events');
 var util = require('util');

@@ -37,7 +37,7 @@
 var events = require('events');
 var util = require('util');
 
-var debug = console.log; //requir('debug')('ble_characteristic');
+var debug = console.log; // require('debug')('ble_characteristic');
 
 var UuidUtil = require('ble_uuid_util');
 

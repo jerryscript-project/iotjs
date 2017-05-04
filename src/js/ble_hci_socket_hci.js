@@ -34,7 +34,7 @@
  * SOFTWARE.
  */
 
-var debug = console.log; //requir('debug')('ble_hci');
+var debug = console.log; // require('debug')('ble_hci');
 
 var events = require('events');
 var util = require('util');

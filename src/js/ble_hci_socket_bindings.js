@@ -34,7 +34,7 @@
  * SOFTWARE.
  */
 
-var debug = console.log; //requir('debug')('ble_hci-socket_bindings');
+var debug = console.log; // require('debug')('ble_hci-socket_bindings');
 
 var events = require('events');
 var util = require('util');

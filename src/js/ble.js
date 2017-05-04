@@ -34,7 +34,7 @@
  * SOFTWARE.
  */
 
-var debug = console.log; //requir('debug')('ble');
+var debug = console.log; // require('debug')('ble');
 
 var events = require('events');
 var util = require('util');
@@ -50,9 +50,7 @@ var bindings = null;
 var platform = process.platform;
 
 if (platform === 'darwin') {
-  // `requir` is intentional errta  to avoid pre-build module dependency analyzer error
-  // The analyzer does not understand comment
-  // bindings = requir('./mac/bindings');
+  // bindings = require('./mac/bindings');
 } else if (platform === 'linux' || platform === 'win32' || platform === 'android') {
   bindings = require('ble_hci_socket_bindings');
 } else {

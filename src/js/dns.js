@@ -59,18 +59,19 @@ exports.lookup = function lookup(hostname, options, callback) {
   if (family !== 0 && family !== 4 && family !== 6)
     throw new TypeError('invalid argument: family must be 4 or 6');
 
-  var err = dnsBuiltin.getaddrinfo(
-      hostname,
-      family,
-      hints,
-      function(err, address, family) {
-        var errObj = null;
-        if (err) {
-          errObj = dnsException(err, 'getaddrinfo', hostname);
-        }
-        return callback(errObj, address, family);
-      });
-  return err;
+   process.nextTick(function() {
+     var err = dnsBuiltin.getaddrinfo(
+       hostname,
+       family,
+       hints,
+       function(err, address, family) {
+         var errObj = null;
+         if (err) {
+           errObj = dnsException(err, 'getaddrinfo', hostname);
+         }
+       callback(errObj, address, family);
+       });
+   });
 };
 
 

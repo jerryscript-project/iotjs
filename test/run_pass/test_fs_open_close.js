@@ -95,8 +95,53 @@ assert.throws(function () { fs.readSync(5, buffer, 0, 20); }, RangeError);
 // expect offset out of bound
 assert.throws(function () { fs.readSync(5, buffer, -1, 20); }, RangeError);
 
+var fs_async_normal_ok2 = false;
+fs.open(fileName, 'r', '4' ,function(err, fd) {
+  if (err) {
+    throw err;
+  } else {
+    fs.close(fd, function(err) {
+      if (err) {
+        throw err;
+      } else {
+        fs_async_normal_ok2 = true;
+      }
+    });
+  }
+});
+
 process.on('exit', function() {
   assert.equal(fs_async_normal_ok, true);
+  assert.equal(fs_async_normal_ok2, true);
   assert.equal(fs_async_open_not_exist_ok, true);
   assert.equal(fs_async_close_bad_fd_ok, true);
 });
+
+
+assert.throws (function() {
+   var fd = fs.openSync(null, 123);
+ }, TypeError);
+assert.throws (function() {
+  var fd = fs.openSync('run_pass/test_fs_stat.js', 'k');
+}, TypeError);
+assert.throws (function() {
+  var fd = fs.openSync('resources/test2.txt', null);
+}, TypeError);
+
+('rs sr r+ rs+ sr+ a a+')
+  .split(' ').forEach(function (flag){
+    assert.doesNotThrow(function (){
+      var fd = fs.openSync('resources/test2.txt', flag);
+      fs.closeSync(fd);
+    }, 'file could not be opened with ' + flag);
+  });
+
+('wx xw w+ wx+ xw+ ax+ xa+ ax xa')
+  .split(' ').forEach(function (flag){
+    assert.doesNotThrow(function(){
+      var file = 'resources/TEMP' + flag + '.txt';
+      var fd = fs.openSync(file, flag);
+      fs.unlinkSync(file);
+      fs.closeSync(fd);
+    }, 'file could not be opened with ' + flag);
+  });

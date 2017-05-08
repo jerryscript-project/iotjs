@@ -20,3 +20,16 @@ module_cache.i = 100;
 module_cache = require('run_pass/require1/module_cache.js');
 
 assert.equal(module_cache.i, 100);
+
+{
+  var test1 = require('run_pass/require1/node_modules/test_pkg');
+  var test2 = require('run_pass/require1/node_modules/test_index');
+}
+
+assert.throws(function() {
+  var test3 = require('run_pass/require1/babel-template');
+}, Error);
+
+assert.throws(function() {
+  var test4 = require('tmp');
+}, Error);

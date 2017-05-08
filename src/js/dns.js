@@ -59,19 +59,31 @@ exports.lookup = function lookup(hostname, options, callback) {
   if (family !== 0 && family !== 4 && family !== 6)
     throw new TypeError('invalid argument: family must be 4 or 6');
 
-   process.nextTick(function() {
-     var err = dnsBuiltin.getaddrinfo(
-       hostname,
-       family,
-       hints,
-       function(err, address, family) {
-         var errObj = null;
-         if (err) {
-           errObj = dnsException(err, 'getaddrinfo', hostname);
-         }
-       callback(errObj, address, family);
-       });
-   });
+  function getaddrinfo() {
+    var err = dnsBuiltin.getaddrinfo(
+      hostname,
+      family,
+      hints,
+      function(err, address, family) {
+        var errObj = null;
+        if (err) {
+          errObj = dnsException(err, 'getaddrinfo', hostname);
+        }
+        callback(errObj, address, family);
+      });
+      if (err) {
+        callback(dnsException(err, 'getaddrinfo', hostname), address, family);
+      }
+    }
+  if (process.platform != 'nuttx' && process.platform != 'tizenrt') {
+    getaddrinfo();
+  } else {
+    // dnsBuiltin.getaddrinfo is synchronous on these platforms.
+    // needs to be wrapped into an asynchronous call.
+    process.nextTick(function() {
+      getaddrinfo()
+    });
+  }
 };
 
 

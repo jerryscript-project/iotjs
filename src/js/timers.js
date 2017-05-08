@@ -64,8 +64,7 @@ Timeout.prototype.close = function() {
   }
 };
 
-
-exports.setTimeout = function(callback, delay) {
+function timeoutConfigurator(isrepeat, callback, delay) {
   if (!util.isFunction(callback)) {
     throw new TypeError('Bad arguments: callback must be a Function');
   }
@@ -78,59 +77,29 @@ exports.setTimeout = function(callback, delay) {
   var timeout = new Timeout(delay);
 
   // set timeout handler.
-  if (arguments.length <= 2) {
+  if (arguments.length <= 3) {
     timeout.callback = callback;
   } else {
-    var args = Array.prototype.slice.call(arguments, 2);
-    timeout.callback = function() {
-      callback.apply(timeout, args);
-    };
+    var args = Array.prototype.slice.call(arguments, 3);
+    args.splice(0, 0, timeout);
+    timeout.callback = callback.bind.apply(callback, args);
   }
-
+  timeout.isrepeat = isrepeat;
   timeout.activate();
 
   return timeout;
-};
+}
 
+exports.setTimeout = timeoutConfigurator.bind(undefined, false);
+exports.setInterval = timeoutConfigurator.bind(undefined, true);
 
-exports.clearTimeout = function(timeout) {
-  if (timeout && timeout.callback && (timeout instanceof Timeout))
+function clearTimeoutBase(timeoutType, timeout) {
+  if (timeout && (timeout instanceof Timeout)) {
     timeout.close();
-  else
-    throw new Error('clearTimeout() - invalid timeout');
-};
-
-
-exports.setInterval = function(callback, repeat) {
-  if (!util.isFunction(callback)) {
-    throw new TypeError('Bad arguments: callback must be a Function');
-  }
-
-  repeat *= 1;
-  if (repeat < 1 || repeat > TIMEOUT_MAX) {
-    repeat = 1;
-  }
-  var timeout = new Timeout(repeat);
-
-  // set interval timeout handler.
-  if (arguments.length <= 2) {
-    timeout.callback = callback;
   } else {
-    var args = Array.prototype.slice.call(arguments, 2);
-    timeout.callback = function() {
-      callback.apply(timeout, args);
-    };
+    throw new Error(timeoutType + '() - invalid timeout');
   }
-  timeout.isrepeat = true;
-  timeout.activate();
+}
 
-  return timeout;
-};
-
-
-exports.clearInterval = function(interval) {
-  if (interval && interval.isrepeat)
-    interval.close();
-  else
-    throw new Error('clearInterval() - invalid interval');
-};
+exports.clearTimeout = clearTimeoutBase.bind(undefined, 'clearTimeout');
+exports.clearInterval = clearTimeoutBase.bind(undefined, 'clearInterval');

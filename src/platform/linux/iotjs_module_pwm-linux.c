@@ -54,7 +54,7 @@ static char* generate_device_subpath(iotjs_string_t* device,
   int prefixSize = iotjs_string_size(device);
   if (prefixSize > 0) {
     int suffixSize = fileName ? strlen(fileName) : 0;
-    devicePath = malloc(prefixSize + suffixSize + 1);
+    devicePath = iotjs_buffer_allocate(prefixSize + suffixSize + 1);
     if (devicePath) {
       // Do not need to check bounds, the buffer is of exact required size.
       memcpy(devicePath, iotjs_string_data(device), prefixSize);

@@ -23,7 +23,6 @@
 
 typedef struct {
   iotjs_handlewrap_t handlewrap;
-  uv_timer_t handle;
 } IOTJS_VALIDATED_STRUCT(iotjs_timerwrap_t);
 
 

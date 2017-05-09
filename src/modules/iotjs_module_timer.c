@@ -24,15 +24,15 @@ IOTJS_DEFINE_NATIVE_HANDLE_INFO(timerwrap);
 
 iotjs_timerwrap_t* iotjs_timerwrap_create(const iotjs_jval_t* jtimer) {
   iotjs_timerwrap_t* timerwrap = IOTJS_ALLOC(iotjs_timerwrap_t);
+  uv_timer_t* uv_timer = IOTJS_ALLOC(uv_timer_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_timerwrap_t, timerwrap);
 
   iotjs_handlewrap_initialize(&_this->handlewrap, jtimer,
-                              (uv_handle_t*)(&_this->handle),
-                              &timerwrap_native_info);
+                              (uv_handle_t*)(uv_timer), &timerwrap_native_info);
 
   // Initialize timer handler.
   const iotjs_environment_t* env = iotjs_environment_get();
-  uv_timer_init(iotjs_environment_loop(env), &_this->handle);
+  uv_timer_init(iotjs_environment_loop(env), uv_timer);
 
   return timerwrap;
 }
@@ -45,6 +45,9 @@ static void iotjs_timerwrap_destroy(iotjs_timerwrap_t* timerwrap) {
   IOTJS_RELEASE(timerwrap);
 }
 
+static void TimoutHandlerDestroy(uv_handle_t* handle) {
+  IOTJS_RELEASE(handle);
+}
 
 // This function is called from uv when timeout expires.
 static void TimeoutHandler(uv_timer_t* handle) {
@@ -61,7 +64,9 @@ int iotjs_timerwrap_start(iotjs_timerwrap_t* timerwrap, uint64_t timeout,
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_timerwrap_t, timerwrap);
 
   // Start uv timer.
-  return uv_timer_start(&_this->handle, TimeoutHandler, timeout, repeat);
+  uv_timer_t* uv_timer =
+      (uv_timer_t*)iotjs_handlewrap_get_uv_handle(&_this->handlewrap);
+  return uv_timer_start(uv_timer, TimeoutHandler, timeout, repeat);
 }
 
 
@@ -69,7 +74,7 @@ int iotjs_timerwrap_stop(iotjs_timerwrap_t* timerwrap) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_timerwrap_t, timerwrap);
 
   if (!uv_is_closing(iotjs_handlewrap_get_uv_handle(&_this->handlewrap))) {
-    iotjs_handlewrap_close(&_this->handlewrap, NULL);
+    iotjs_handlewrap_close(&_this->handlewrap, TimoutHandlerDestroy);
   }
 
   return 0;
@@ -90,7 +95,7 @@ static void iotjs_timerwrap_on_timeout(iotjs_timerwrap_t* timerwrap) {
 
 uv_timer_t* iotjs_timerwrap_handle(iotjs_timerwrap_t* timerwrap) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_timerwrap_t, timerwrap);
-  return &_this->handle;
+  return (uv_timer_t*)iotjs_handlewrap_get_uv_handle(&_this->handlewrap);
 }
 
 

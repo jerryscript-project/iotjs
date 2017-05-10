@@ -39,9 +39,7 @@ exports.createHTTPParser = createHTTPParser;
 
 // This is called when parsing of incoming http msg done
 function parserOnMessageComplete() {
-
-  var parser = this;
-  var stream = parser.incoming;
+  var stream = this.incoming;
 
   if (stream) {
     stream.complete = true;
@@ -55,39 +53,37 @@ function parserOnMessageComplete() {
 
 // This is called when header part in http msg is parsed.
 function parserOnHeadersComplete(info) {
-
-  var parser = this;
   var headers = info.headers;
   var url = info.url;
 
   if (!url) {
-    url = parser._url;
-    parser.url = "";
+    url = this._url;
+    this.url = "";
   }
 
   if (!headers) {
-    headers = parser._headers;
-    parser._headers = [];
+    headers = this._headers;
+    this._headers = [];
   }
 
 
-  parser.incoming = new IncomingMessage(parser.socket);
-  parser.incoming.url = url;
+  this.incoming = new IncomingMessage(this.socket);
+  this.incoming.url = url;
 
   // add header fields of headers to incoming.headers
-  parser.incoming.addHeaders(headers);
+  this.incoming.addHeaders(headers);
 
   if (util.isNumber(info.method)) {
     // for server
-    parser.incoming.method = HTTPParser.methods[info.method];
+    this.incoming.method = HTTPParser.methods[info.method];
   } else {
     // for client
-    parser.incoming.statusCode = info.status;
-    parser.incoming.statusMessage = info.status_msg;
+    this.incoming.statusCode = info.status;
+    this.incoming.statusMessage = info.status_msg;
   }
 
   // For client side, if response to 'HEAD' request, we will skip parsing body
-  var skipBody = parser.onIncoming(parser.incoming, info.shouldkeepalive);
+  var skipBody = this.onIncoming(this.incoming, info.shouldkeepalive);
 
   return skipBody;
 }
@@ -96,9 +92,7 @@ function parserOnHeadersComplete(info) {
 // parserOnBody is called when HTTPParser parses http msg(incoming) and
 // get body part(buf from start at length of len)
 function parserOnBody(buf, start, len) {
-
-  var parser = this;
-  var stream = parser.incoming;
+  var stream = this.incoming;
 
   if (!stream) {
     return;

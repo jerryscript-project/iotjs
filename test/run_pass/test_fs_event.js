@@ -19,8 +19,8 @@ var fs = require('fs');
 var assert = require('assert');
 
 
-var srcFilePath = "resources/test1.txt";
-var dstFilePath = "tmp/test_fs2.txt";
+var srcFilePath = process.cwd() + "/resources/test1.txt";
+var dstFilePath = process.cwd() + "/tmp/test_fs2.txt";
 
 var data;
 

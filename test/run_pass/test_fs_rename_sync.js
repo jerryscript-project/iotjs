@@ -16,8 +16,8 @@
 var fs = require('fs');
 var assert = require('assert');
 
-var file1 = "resources/rename.txt";
-var file2 = "resources/rename.txt.sync";
+var file1 = process.cwd() + "/resources/rename.txt";
+var file2 = process.cwd() + "/resources/rename.txt.sync";
 
 fs.renameSync(file1, file2);
 assert.equal(fs.existsSync(file1), false);

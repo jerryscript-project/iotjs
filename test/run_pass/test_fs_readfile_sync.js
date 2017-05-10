@@ -17,7 +17,7 @@
 var fs = require('fs');
 var assert = require('assert');
 
-var filePath = "resources/tobeornottobe.txt";
+var filePath = process.cwd() + "/resources/tobeornottobe.txt";
 
 var data = fs.readFileSync(filePath);
 

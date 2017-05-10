@@ -17,7 +17,7 @@
 var fs = require('fs');
 
 try{ // fs.statSync throw ex for non-existing file
-  var statbuf1 = fs.statSync('../test');
+  var statbuf1 = fs.statSync(process.cwd() + '/../test');
   console.log("../test dev : " + statbuf1.dev);
   console.log("../test mode : " + statbuf1.mode);
   console.log("../test size : " + statbuf1.size);
@@ -33,24 +33,24 @@ catch(ex){}
 
 
 try{ // fs.statSync throw ex for non-existing file
-  var statbuf2 = fs.statSync('test_stat.js');
+  var statbuf2 = fs.statSync(process.cwd() + '/run_pass/test_stat.js');
 
-  console.log("test_stat.js dev : " + statbuf2.dev);
-  console.log("test_stat.js mode : " + statbuf2.mode);
-  console.log("test_stat.js size : " + statbuf2.size);
+  console.log("run_pass/test_stat.js dev : " + statbuf2.dev);
+  console.log("run_pass/test_stat.js mode : " + statbuf2.mode);
+  console.log("run_pass/test_stat.js size : " + statbuf2.size);
 
   if(statbuf2.isDirectory()){
-    console.log("test_stat.js is a directory");
+    console.log("run_pass/test_stat.js is a directory");
   }
   else {
-    console.log("test_stat.js is not a directory");
+    console.log("run_pass/test_stat.js is not a directory");
   }
 }
 catch(ex){}
 
 try{ // fs.statSync throw ex for non-existing file
   console.log("non-existing file(non_existing.js) statSync tried.");
-  var statbuf3 = fs.statSync('non_existing.js');
+  var statbuf3 = fs.statSync(process.cwd() + '/non_existing.js');
 }
 catch(ex){
   console.log("but, failed.");
@@ -64,16 +64,16 @@ function statcallback(err, statbuf) {
   }
 
   if(statbuf.isDirectory()){
-    console.log("async stat for test_stat.js is a directory");
+    console.log("async stat for run_pass/test_stat.js is a directory");
   }
   else {
-    console.log("async stat for test_stat.js is not a directory");
+    console.log("async stat for run_pass/test_stat.js is not a directory");
   }
 
 }
 
 try {
-  fs.stat('test_stat.js', statcallback);
+  fs.stat(process.cwd() + '/run_pass/test_stat.js', statcallback);
 }
 catch(ex) {
   console.log("stat async call error");

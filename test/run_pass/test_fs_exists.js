@@ -17,7 +17,7 @@ var fs = require('fs');
 var assert = require('assert');
 
 {
-  var filePath = "resources/tobeornottobe.txt";
+  var filePath = process.cwd() + "/resources/tobeornottobe.txt";
 
   fs.exists(filePath, function(exists) {
     assert.equal(exists, true);
@@ -33,7 +33,7 @@ var assert = require('assert');
 }
 
 {
-  var filePath = "resources/tobeornottobe.txt";
+  var filePath = process.cwd() + "/resources/tobeornottobe.txt";
 
   assert.doesNotThrow(function(){
     fs.exists(filePath);
@@ -41,7 +41,7 @@ var assert = require('assert');
 }
 
 {
-  var filePath = "resources/empty.txt";
+  var filePath = process.cwd() + "/resources/empty.txt";
 
   fs.exists(filePath, function(exists) {
     assert.equal(exists, false);

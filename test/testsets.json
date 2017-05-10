@@ -64,6 +64,7 @@
     { "name": "test_process_uncaught_simple.js", "uncaught": true },
     { "name": "test_pwm.js", "skip": ["all"], "reason": "need to setup test environment" },
     { "name": "test_spi.js", "skip": ["all"], "reason": "need to setup test environment" },
+    { "name": "test_stat.js", "skip": ["all"], "reason": "dynamically changing result" },
     { "name": "test_stream.js" },
     { "name": "test_timers_arguments.js" },
     { "name": "test_timers_error.js" },

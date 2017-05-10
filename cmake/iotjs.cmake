@@ -89,7 +89,7 @@ get_variable_value(IOTJS_JS_MODULES
 
 # Run js2c
 set(JS2C_RUN_MODE "release")
-if("${CMAKE_BUILD_TYPE}" STREQUAL "debug")
+if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
   set(JS2C_RUN_MODE "debug")
 endif()
 

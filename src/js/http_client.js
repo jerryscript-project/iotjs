@@ -185,7 +185,7 @@ function parserOnIncomingClient(res, shouldKeepAlive) {
   if (req.res) {
     // server sent responses twice.
     socket.destroy();
-    return;
+    return false;
   }
   req.res = res;
 

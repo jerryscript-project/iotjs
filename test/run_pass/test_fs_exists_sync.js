@@ -17,14 +17,14 @@ var fs = require('fs');
 var assert = require('assert');
 
 {
-  var filePath = "resources/tobeornottobe.txt";
+  var filePath = process.cwd() + "/resources/tobeornottobe.txt";
 
   var result = fs.existsSync(filePath);
   assert.equal(result, true);
 }
 
 {
-  var filePath = "resources/empty.txt";
+  var filePath = process.cwd() + "/resources/empty.txt";
 
   var result = fs.existsSync(filePath);
   assert.equal(result, false);

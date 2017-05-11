@@ -25,9 +25,9 @@ function unlink(path) {
 }
 
 {
-  var root = "resources/test_dir";
-  var sub1 = "resources/test_dir/file1";
-  var sub2 = "resources/test_dir/file2";
+  var root = process.cwd() + "/resources/test_dir";
+  var sub1 = process.cwd() + "/resources/test_dir/file1";
+  var sub2 = process.cwd() + "/resources/test_dir/file2";
 
   unlink(sub1);
   unlink(sub2);
@@ -48,7 +48,7 @@ function unlink(path) {
       assert.equal(fs.existsSync(root), false);
     });
 
-    var root2 = "resources/test_dir2";
+    var root2 = process.cwd() + "/resources/test_dir2";
 
     fs.mkdir(root2, 777, function(err){
       assert.equal(err, null);

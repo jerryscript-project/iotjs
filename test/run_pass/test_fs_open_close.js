@@ -19,7 +19,7 @@ var fs = require('fs');
 var assert = require('assert');
 
 
-var fileName = "resources/greeting.txt";
+var fileName = process.cwd() + "/resources/greeting.txt";
 
 
 // test sync open & close.
@@ -122,16 +122,16 @@ assert.throws (function() {
    var fd = fs.openSync(null, 123);
  }, TypeError);
 assert.throws (function() {
-  var fd = fs.openSync('run_pass/test_fs_stat.js', 'k');
+  var fd = fs.openSync(process.cwd() + '/run_pass/test_fs_stat.js', 'k');
 }, TypeError);
 assert.throws (function() {
-  var fd = fs.openSync('resources/test2.txt', null);
+  var fd = fs.openSync(process.cwd() + '/resources/test2.txt', null);
 }, TypeError);
 
 ('rs sr r+ rs+ sr+ a a+')
   .split(' ').forEach(function (flag){
     assert.doesNotThrow(function (){
-      var fd = fs.openSync('resources/test2.txt', flag);
+      var fd = fs.openSync(process.cwd() + '/resources/test2.txt', flag);
       fs.closeSync(fd);
     }, 'file could not be opened with ' + flag);
   });
@@ -139,7 +139,7 @@ assert.throws (function() {
 ('wx xw w+ wx+ xw+ ax+ xa+ ax xa')
   .split(' ').forEach(function (flag){
     assert.doesNotThrow(function(){
-      var file = 'resources/TEMP' + flag + '.txt';
+      var file = process.cwd() + '/resources/TEMP' + flag + '.txt';
       var fd = fs.openSync(file, flag);
       fs.unlinkSync(file);
       fs.closeSync(fd);

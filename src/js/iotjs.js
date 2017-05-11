@@ -55,22 +55,21 @@ Native.prototype.compile = function() {
 global.console = Native.require('console');
 global.Buffer = Native.require('buffer');
 
-var timers = undefined;
+(function() {
+  var timers = undefined;
 
-var _timeoutHandler = function(mode) {
-  if (timers == undefined) {
-    timers = Native.require('timers');
+  var _timeoutHandler = function(mode) {
+    if (timers == undefined) {
+      timers = Native.require('timers');
+    }
+    return timers[mode].apply(this, Array.prototype.slice.call(arguments, 1));
   }
-  return timers[mode].apply(this, Array.prototype.slice.call(arguments, 1));
-}
 
-setTimeout = _timeoutHandler.bind(this, 'setTimeout');
-setInterval = _timeoutHandler.bind(this, 'setInterval');
-clearTimeout = _timeoutHandler.bind(this, 'clearTimeout');
-clearInterval = _timeoutHandler.bind(this, 'clearInterval');
-
-// Make sure that it is not accessible elsewhere
-delete _timeoutHandler;
+  global.setTimeout = _timeoutHandler.bind(this, 'setTimeout');
+  global.setInterval = _timeoutHandler.bind(this, 'setInterval');
+  global.clearTimeout = _timeoutHandler.bind(this, 'clearTimeout');
+  global.clearInterval = _timeoutHandler.bind(this, 'clearInterval');
+})();
 
 // Initialize `process.argv`
 process.argv = [];

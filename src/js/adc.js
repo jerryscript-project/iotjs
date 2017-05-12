@@ -24,84 +24,91 @@ function Adc() {
 }
 
 Adc.prototype.open = function(configuration, callback) {
-  return new AdcPin(configuration, callback);
+  return adcPinOpen(configuration, callback);
 };
 
 
-function AdcPin(configuration, callback) {
-  var self = this;
+function adcPinOpen(configuration, callback) {
+  var _binding = null;
 
-  if (util.isObject(configuration)) {
-    if (process.platform === 'linux') {
-      if (!util.isString(configuration.device)) {
-        throw new TypeError(
-          'Bad configuration - device is mandatory and should be String');
+  function AdcPin(configuration, callback) {
+    var self = this;
+
+    if (util.isObject(configuration)) {
+      if (process.platform === 'linux') {
+        if (!util.isString(configuration.device)) {
+          throw new TypeError(
+            'Bad configuration - device is mandatory and should be String');
+        }
+      } else if (process.platform === 'nuttx') {
+        if (!util.isNumber(configuration.pin)) {
+          throw new TypeError(
+            'Bad configuration - pin is mandatory and should be Number');
+        }
       }
-    } else if (process.platform === 'nuttx') {
-      if (!util.isNumber(configuration.pin)) {
-        throw new TypeError(
-          'Bad configuration - pin is mandatory and should be Number');
-      }
+    } else {
+      throw new TypeError('Bad arguments - configuration should be Object')
     }
-  } else {
-    throw new TypeError('Bad arguments - configuration should be Object')
+
+    _binding = new adc.Adc(configuration, function(err) {
+      util.isFunction(callback) && callback.call(self, err);
+    });
+
+    process.on('exit', (function(self) {
+      return function() {
+        if (!util.isNull(_binding)) {
+          self.closeSync();
+        }
+      };
+    })(this));
   }
 
-  this._binding = new adc.Adc(configuration, function(err) {
-    util.isFunction(callback) && callback.call(self, err);
-  });
+  AdcPin.prototype.read = function(callback) {
+    var self = this;
 
-  process.on('exit', (function(self) {
-    return function() {
-      if (!util.isNull(self._binding)) {
-        self.closeSync();
-      }
-    };
-  })(this));
+    if (util.isNull(_binding)) {
+      throw new Error('ADC pin is not opened');
+    }
+
+    _binding.read(function(err, value) {
+      util.isFunction(callback) && callback.call(self, err, value);
+    });
+  };
+
+  AdcPin.prototype.readSync = function() {
+    if (util.isNull(_binding)) {
+      throw new Error('ADC pin is not opened');
+    }
+
+    return _binding.read();
+  };
+
+  AdcPin.prototype.close = function(callback) {
+    var self = this;
+
+    if (util.isNull(_binding)) {
+      throw new Error('ADC pin is not opened');
+    }
+
+    _binding.close(function(err) {
+      util.isFunction(callback) && callback.call(self, err);
+    });
+
+    _binding = null;
+  };
+
+  AdcPin.prototype.closeSync = function() {
+    if (util.isNull(_binding)) {
+      throw new Error('ADC pin is not opened');
+    }
+
+    _binding.close();
+
+    _binding = null;
+  };
+
+  return new AdcPin(configuration, callback);
 }
 
-AdcPin.prototype.read = function(callback) {
-  var self = this;
-
-  if (util.isNull(this._binding)) {
-    throw new Error('ADC pin is not opened');
-  }
-
-  this._binding.read(function(err, value) {
-    util.isFunction(callback) && callback.call(self, err, value);
-  });
-};
-
-AdcPin.prototype.readSync = function() {
-  if (util.isNull(this._binding)) {
-    throw new Error('ADC pin is not opened');
-  }
-
-  return this._binding.read();
-};
-
-AdcPin.prototype.close = function(callback) {
-  var self = this;
-
-  if (util.isNull(this._binding)) {
-    throw new Error('ADC pin is not opened');
-  }
-
-  this._binding.close(function(err) {
-    util.isFunction(callback) && callback.call(self, err);
-  });
-
-  this._binding = null;
-};
-
-AdcPin.prototype.closeSync = function() {
-  if (util.isNull(this._binding)) {
-    throw new Error('ADC pin is not opened');
-  }
-
-  this._binding.close();
-
-  this._binding = null;
-};
 
 module.exports = Adc;

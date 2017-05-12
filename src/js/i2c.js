@@ -50,124 +50,130 @@ function I2C() {
   if (!(this instanceof I2C)) {
     return new I2C();
   }
-};
+}
 
 I2C.prototype.open = function(configurable, callback) {
-  var i2c_bus = new I2CBus(configurable, callback);
-  return i2c_bus;
+  return i2cBusOpen(configurable, callback);
 };
 
-function I2CBus(configurable, callback) {
-  if (util.isObject(configurable)) {
-    if (process.platform === 'linux') {
-      if (!util.isString(configurable.device)) {
-        throw new TypeError('Bad configurable - device: String');
-      }
-    } else if (process.platform === 'nuttx') {
-      if (!util.isNumber(configurable.device)) {
-        throw new TypeError('Bad configurable - device: Number');
-      }
-    }
 
-    if (!util.isNumber(configurable.address)) {
-      throw new TypeError('Bad configurable - address: Number');
-    }
+function i2cBusOpen(configurable, callback) {
+  var _binding = null;
 
-    this.address = configurable.address;
-
-    this.i2c = new i2c(configurable.device, (function(_this) {
-      return function(err) {
-        if (!err) {
-          _this.setAddress(configurable.address);
+  function I2CBus(configurable, callback) {
+    if (util.isObject(configurable)) {
+      if (process.platform === 'linux') {
+        if (!util.isString(configurable.device)) {
+          throw new TypeError('Bad configurable - device: String');
         }
-        util.isFunction(callback) && callback(err);
-      };
-    })(this));
-  }
-};
+      } else if (process.platform === 'nuttx') {
+        if (!util.isNumber(configurable.device)) {
+          throw new TypeError('Bad configurable - device: Number');
+        }
+      }
 
-I2CBus.prototype.close = function() {
-  this.i2c.close();
-};
+      if (!util.isNumber(configurable.address)) {
+        throw new TypeError('Bad configurable - address: Number');
+      }
 
+      this.address = configurable.address;
 
-I2CBus.prototype.setAddress = function(address, callback) {
-  if (!util.isNumber(address)) {
-    throw new TypeError('Bad argument - address: Number');
-  }
-
-  this.address = address;
-  this.i2c.setAddress(this.address);
-
-  util.isFunction(callback) && callback();
-};
-
-I2CBus.prototype.write = function(array, callback) {
-  if (!util.isArray(array)) {
-    throw new TypeError('Bad argument - array: Array');
+      _binding = new i2c(configurable.device, (function(_this) {
+        return function(err) {
+          if (!err) {
+            _this.setAddress(configurable.address);
+          }
+          util.isFunction(callback) && callback(err);
+        };
+      })(this));
+    }
   }
 
-  this.setAddress(this.address);
-  this.i2c.write(array, function(err) {
-    util.isFunction(callback) && callback(err);
-  });
-};
+  I2CBus.prototype.close = function() {
+    _binding.close();
+  };
 
-I2CBus.prototype.writeByte = function(byte, callback) {
-  if (!util.isNumber(byte)) {
-    throw new TypeError('Bad argument - byte: Number');
-  }
+  I2CBus.prototype.setAddress = function(address, callback) {
+    if (!util.isNumber(address)) {
+      throw new TypeError('Bad argument - address: Number');
+    }
 
-  this.setAddress(this.address);
-  this.i2c.writeByte(byte, function(err) {
-    util.isFunction(callback) && callback(err);
-  });
-};
+    this.address = address;
+    _binding.setAddress(this.address);
 
-I2CBus.prototype.writeBytes = function(cmd, array, callback) {
-  if (!util.isNumber(cmd)) {
-    throw new TypeError('Bad argument - cmd: Number');
-  }
-  if (!util.isArray(array)) {
-    throw new TypeError('Bad argument - array: Array');
-  }
+    util.isFunction(callback) && callback();
+  };
 
-  this.setAddress(this.address);
-  this.i2c.writeBlock(cmd, array, function(err) {
-    util.isFunction(callback) && callback(err);
-  });
-};
+  I2CBus.prototype.write = function(array, callback) {
+    if (!util.isArray(array)) {
+      throw new TypeError('Bad argument - array: Array');
+    }
 
-I2CBus.prototype.read = function(length, callback) {
-  if (!util.isNumber(length)) {
-    throw new TypeError('Bad argument - length: Number');
-  }
+    this.setAddress(this.address);
+    _binding.write(array, function(err) {
+      util.isFunction(callback) && callback(err);
+    });
+  };
 
-  this.setAddress(this.address);
-  this.i2c.read(length, function(err, data) {
-    util.isFunction(callback) && callback(err, data);
-  });
-};
+  I2CBus.prototype.writeByte = function(byte, callback) {
+    if (!util.isNumber(byte)) {
+      throw new TypeError('Bad argument - byte: Number');
+    }
 
-I2CBus.prototype.readByte = function(callback) {
-  this.setAddress(this.address);
-  this.i2c.readByte(function(err, data) {
-    util.isFunction(callback) && callback(err, data);
-  });
-};
+    this.setAddress(this.address);
+    _binding.writeByte(byte, function(err) {
+      util.isFunction(callback) && callback(err);
+    });
+  };
 
-I2CBus.prototype.readBytes = function(cmd, length, callback) {
-  if (!util.isNumber(cmd)) {
-    throw new TypeError('Bad argument - cmd: Number');
-  }
-  if (!util.isNumber(length)) {
-    throw new TypeError('Bad argument - length: Number');
-  }
+  I2CBus.prototype.writeBytes = function(cmd, array, callback) {
+    if (!util.isNumber(cmd)) {
+      throw new TypeError('Bad argument - cmd: Number');
+    }
+    if (!util.isArray(array)) {
+      throw new TypeError('Bad argument - array: Array');
+    }
 
-  this.setAddress(this.address);
-  this.i2c.readBlock(cmd, length, 0, function(err, resArray) {
-    util.isFunction(callback) && callback(err, resArray);
-  });
-};
+    this.setAddress(this.address);
+    _binding.writeBlock(cmd, array, function(err) {
+      util.isFunction(callback) && callback(err);
+    });
+  };
+
+  I2CBus.prototype.read = function(length, callback) {
+    if (!util.isNumber(length)) {
+      throw new TypeError('Bad argument - length: Number');
+    }
+
+    this.setAddress(this.address);
+    _binding.read(length, function(err, data) {
+      util.isFunction(callback) && callback(err, data);
+    });
+  };
+
+  I2CBus.prototype.readByte = function(callback) {
+    this.setAddress(this.address);
+    _binding.readByte(function(err, data) {
+      util.isFunction(callback) && callback(err, data);
+    });
+  };
+
+  I2CBus.prototype.readBytes = function(cmd, length, callback) {
+    if (!util.isNumber(cmd)) {
+      throw new TypeError('Bad argument - cmd: Number');
+    }
+    if (!util.isNumber(length)) {
+      throw new TypeError('Bad argument - length: Number');
+    }
+
+    this.setAddress(this.address);
+    _binding.readBlock(cmd, length, 0, function(err, resArray) {
+      util.isFunction(callback) && callback(err, resArray);
+    });
+  };
+
+  return new I2CBus(configurable, callback);
+}
+
 
 module.exports = I2C;

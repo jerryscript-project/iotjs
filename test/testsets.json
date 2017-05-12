@@ -69,6 +69,7 @@
     { "name": "test_stat.js", "skip": ["all"], "reason": "dynamically changing result" },
     { "name": "test_stream.js" },
     { "name": "test_stream_duplex.js"},
+    { "name": "test_stream_writable.js" },
     { "name": "test_timers_arguments.js" },
     { "name": "test_timers_error.js" },
     { "name": "test_timers_simple.js", "timeout": 10 },

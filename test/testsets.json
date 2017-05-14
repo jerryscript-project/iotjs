@@ -28,6 +28,8 @@
     { "name": "test_fs_rename.js" },
     { "name": "test_fs_rename_sync.js" },
     { "name": "test_fs_stat.js", "skip": ["nuttx"], "reason": "not implemented for nuttx" },
+    { "name": "test_fs_writefile.js" },
+    { "name": "test_fs_writefile_sync.js" },
     { "name": "test_fs_writefile_unlink.js" },
     { "name": "test_fs_writefile_unlink_sync.js" },
     { "name": "test_fs_event.js", "skip": ["nuttx"], "reason": "not implemented for nuttx" },

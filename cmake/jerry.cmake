@@ -44,7 +44,7 @@ macro(add_cmake_arg TARGET_ARG KEY)
 endmacro(add_cmake_arg)
 
 # Target libjerry
-set(JERRY_LIBS jerry-core)
+set(JERRY_LIBS jerry-core jerry-port-default)
 set(DEPS_LIB_JERRY_ARGS)
 
 # Configure the MinSizeRel as the default build type
@@ -57,7 +57,7 @@ endif()
 
 
 # use system libc/libm on Unix like targets
-if("${TARGET_OS}" STREQUAL "TIZENRT")
+if("${TARGET_OS}" MATCHES "TIZENRT")
   list(APPEND JERRY_LIBS jerry-libm)
   list(APPEND DEPS_LIB_JERRY_ARGS
     -DJERRY_LIBC=OFF
@@ -109,6 +109,7 @@ ExternalProject_Add(libjerry
     -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
     -DJERRY_CMDLINE=OFF
     -DJERRY_CMDLINE_MINIMAL=OFF
+    -DJERRY_PORT=ON
     -DFEATURE_SNAPSHOT_EXEC=${ENABLE_SNAPSHOT}
     -DFEATURE_SNAPSHOT_SAVE=OFF
     -DFEATURE_PROFILE=${FEATURE_PROFILE}
@@ -122,6 +123,7 @@ set_property(DIRECTORY APPEND PROPERTY
     ${CMAKE_BINARY_DIR}/lib/libjerry-core.a
     ${CMAKE_BINARY_DIR}/lib/libjerry-libm.a
     ${CMAKE_BINARY_DIR}/lib/libjerry-libc.a
+    ${CMAKE_BINARY_DIR}/lib/libjerry-port.a
 )
 
 # define external jerry-core target
@@ -142,5 +144,11 @@ add_dependencies(jerry-libm libjerry)
 set_property(TARGET jerry-libm PROPERTY
   IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/lib/libjerry-libm.a)
 
-set(JERRY_PORT_DIR ${DEPS_LIB_JERRY_SRC}/targets/default)
-set(JERRY_INCLUDE_DIR ${DEPS_LIB_JERRY}/jerry-core)
+# define external jerry-port-default target
+add_library(jerry-port-default STATIC IMPORTED)
+add_dependencies(jerry-port-default libjerry)
+set_property(TARGET jerry-port-default PROPERTY
+  IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/lib/libjerry-port-default.a)
+
+set(JERRY_PORT_DIR ${DEPS_LIB_JERRY_SRC}/jerry-port/default)
+set(JERRY_INCLUDE_DIR ${DEPS_LIB_JERRY}/jerry-core/include)

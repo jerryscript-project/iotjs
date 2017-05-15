@@ -91,7 +91,7 @@ function gpioPinOpen(configuration, callback) {
 
     process.on('exit', (function(self) {
       return function() {
-        if (!util.isNull(self._binding)) {
+        if (!util.isNull(_binding)) {
           self.closeSync();
         }
       };

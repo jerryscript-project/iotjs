@@ -67,7 +67,7 @@ ASRCS = setjmp.S
 CSRCS =
 CXXSRCS =
 MAINSRC = iotjs_main.cxx
-LIBS = libhttpparser.a libiotjs.a libjerry-core.a libtuv.a libjerry-libm.a libjerry-libc.a
+LIBS = libhttpparser.a libiotjs.a libjerry-core.a libtuv.a libjerry-libm.a libjerry-port-default.a libjerry-libc.a
 
 AOBJS = $(ASRCS:.S=$(OBJEXT))
 COBJS = $(CSRCS:.c=$(OBJEXT))

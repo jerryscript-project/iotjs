@@ -161,9 +161,7 @@ function writeAfterEnd(stream, callback) {
   var err = new Error('write after end');
   stream.emit('error', err);
   if (util.isFunction(callback)) {
-    process.nextTick(function(){
-      callback(err);
-    });
+    process.nextTick(callback.bind(undefined, err));
   }
 }
 
@@ -219,12 +217,8 @@ function doWrite(stream, chunk, callback) {
   state.writing = true;
   state.writingLength = chunk.length;
 
-  var afterWrite = function(status) {
-    stream._onwrite(status);
-  };
-
   // Write down the chunk data.
-  stream._write(chunk, callback, afterWrite);
+  stream._write(chunk, callback, stream._onwrite.bind(stream));
 }
 
 
@@ -250,9 +244,7 @@ function endWritable(stream, callback) {
 
   // If nothing left, emit finish event at next tick.
   if (!state.writing && state.buffer.length == 0) {
-    process.nextTick(function(){
-      emitFinish(stream);
-    });
+    process.nextTick(emitFinish.bind(undefined, stream));
   }
 }
 

@@ -9,6 +9,8 @@
         - [`http.createServer(requestListener)`](#httpcreateserverrequestlistener)
         - [`http.request(options[, callback])`](#httprequestoptions-callback)
         - [`http.get(options[, callback])`](#httpgetoptions-callback)
+    - [Module Properties](#module-properties)
+        - [`http.METHODS`](#httpmethods)
 - [Class: http.Server](#class-httpserver)
     - [Properties](#properties)
         - [`timeout`](#timeout)
@@ -22,6 +24,9 @@
         - [`'close'`](#close)
 - [Class: http.ClientRequest](#class-httpclientrequest)
     - [Events](#events-1)
+        - [`'close'`](#close-3)
+        - [`'error'`](#error)
+        - [`'finish'`](#finish-1)
         - [`'response'`](#response)
         - [`'socket'`](#socket)
     - [Prototype Functions](#prototype-functions-1)
@@ -81,6 +86,13 @@ IoT.js provides HTTP to support HTTP server and client enabling users to receive
 * Returns: `http.ClientRequest`
 
 Same as http.request except that `http.get` automatically call `req.end()` at the end.
+
+<a id="markdown-properties" name="module-properties"></a>
+## Module Properties
+
+<a id="markdown-httpmethods" name="httpmethods"></a>
+### `http.METHODS`
+A list of HTTP methods supported by the parser as `String` properties of an `Object`.
 
 <a id="markdown-class-httpserver" name="class-httpserver"></a>
 # Class: http.Server
@@ -145,13 +157,29 @@ This event is emitted when server is closed.
 
 
 
-
-
 <a id="markdown-class-httpclientrequest" name="class-httpclientrequest"></a>
 # Class: http.ClientRequest
 
 <a id="markdown-events-1" name="events-1"></a>
 ## Events
+
+
+<a id="markdown-close-3" name="close-3"></a>
+### `'close'`
+
+This event is fired when the underlying socket is closed.
+
+<a id="markdown-error" name="error"></a>
+### `'error'`
+* `callback Function(err)`
+* `err <Error>`
+
+Emitted if something went wrong with making or parsing the request.
+
+<a id="markdown-finish-1" name="finish-1"></a>
+### `'finish'`
+
+This event is emitted after all the data was sent, meaning header and body all finished sending.
 
 <a id="markdown-response" name="response"></a>
 ### `'response'`

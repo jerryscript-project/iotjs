@@ -45,7 +45,7 @@
 //  https://www.kernel.org/doc/Documentation/gpio/sysfs.txt
 
 
-static bool gpio_set_direction(int32_t pin, GpioDirection direction) {
+static bool gpio_set_direction(uint32_t pin, GpioDirection direction) {
   IOTJS_ASSERT(direction == kGpioDirectionIn || direction == kGpioDirectionOut);
 
   char direction_path[GPIO_PATH_BUFFER_SIZE];
@@ -61,7 +61,7 @@ static bool gpio_set_direction(int32_t pin, GpioDirection direction) {
 
 
 // FIXME: Implement SetPinMode()
-static bool gpio_set_mode(int32_t pin, GpioMode mode) {
+static bool gpio_set_mode(uint32_t pin, GpioMode mode) {
   return true;
 }
 

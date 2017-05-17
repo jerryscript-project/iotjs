@@ -32,7 +32,7 @@ iotjs_string_t iotjs_string_create() {
 }
 
 
-iotjs_string_t iotjs_string_create_with_size(const char* data, uint32_t size) {
+iotjs_string_t iotjs_string_create_with_size(const char* data, size_t size) {
   iotjs_string_t str;
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_string_t, &str);
 
@@ -50,7 +50,7 @@ iotjs_string_t iotjs_string_create_with_size(const char* data, uint32_t size) {
 }
 
 
-iotjs_string_t iotjs_string_create_with_buffer(char* buffer, uint32_t size) {
+iotjs_string_t iotjs_string_create_with_buffer(char* buffer, size_t size) {
   iotjs_string_t str;
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_string_t, &str);
 
@@ -95,7 +95,7 @@ void iotjs_string_make_empty(iotjs_string_t* str) {
 }
 
 
-void iotjs_string_append(iotjs_string_t* str, const char* data, uint32_t size) {
+void iotjs_string_append(iotjs_string_t* str, const char* data, size_t size) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_string_t, str);
 
   IOTJS_ASSERT(data != NULL);

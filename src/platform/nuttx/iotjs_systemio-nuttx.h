@@ -16,8 +16,9 @@
 #ifndef IOTJS_SYSTEMIO_ARM_NUTTX_H
 #define IOTJS_SYSTEMIO_ARM_NUTTX_H
 
+#include <stdint.h>
 
-void iotjs_gpio_unconfig_nuttx(int pin);
+void iotjs_gpio_unconfig_nuttx(uint32_t pin);
 
 
 #if ENABLE_MODULE_ADC || ENABLE_MODULE_PWM
@@ -40,7 +41,7 @@ void iotjs_gpio_unconfig_nuttx(int pin);
 #define ADC_NUMBER(n) ((n) << ADC_NUMBER_SHIFT)
 #define ADC_GET_NUMBER(n) (((n) >> ADC_NUMBER_SHIFT) & ADC_NUMBER_MASK)
 
-struct adc_dev_s* iotjs_adc_config_nuttx(int number, int timer, int pin);
+struct adc_dev_s* iotjs_adc_config_nuttx(int number, int timer, uint32_t pin);
 
 #endif /* ENABLE_MODULE_ADC */
 
@@ -59,7 +60,7 @@ int iotjs_i2c_unconfig_nuttx(struct i2c_master_s* i2c);
 
 #include <nuttx/drivers/pwm.h>
 
-struct pwm_lowerhalf_s* iotjs_pwm_config_nuttx(int timer, int pin);
+struct pwm_lowerhalf_s* iotjs_pwm_config_nuttx(int timer, uint32_t pin);
 
 #endif /* ENABLE_MODULE_PWM */
 

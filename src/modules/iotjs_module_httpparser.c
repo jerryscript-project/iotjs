@@ -311,7 +311,8 @@ void iotjs_httpparserwrap_flush(THIS) {
 }
 
 
-void iotjs_httpparserwrap_set_buf(THIS, iotjs_jval_t* jbuf, char* buf, int sz) {
+void iotjs_httpparserwrap_set_buf(THIS, iotjs_jval_t* jbuf, char* buf,
+                                  size_t sz) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_httpparserwrap_t, httpparserwrap);
   _this->cur_jbuf = jbuf;
   _this->cur_buf = buf;
@@ -379,7 +380,7 @@ JHANDLER_FUNCTION(Finish) {
   iotjs_httpparserwrap_t* parser = get_parser_wrap(jparser);
 
   http_parser* nativeparser = iotjs_httpparserwrap_parser(parser);
-  int rv = http_parser_execute(nativeparser, &settings, NULL, 0);
+  size_t rv = http_parser_execute(nativeparser, &settings, NULL, 0);
 
   if (rv != 0) {
     enum http_errno err = HTTP_PARSER_ERRNO(nativeparser);
@@ -405,7 +406,7 @@ JHANDLER_FUNCTION(Execute) {
   const iotjs_jval_t* jbuffer = JHANDLER_GET_ARG(0, object);
   iotjs_bufferwrap_t* buffer_wrap = iotjs_bufferwrap_from_jbuffer(jbuffer);
   char* buf_data = iotjs_bufferwrap_buffer(buffer_wrap);
-  int buf_len = iotjs_bufferwrap_length(buffer_wrap);
+  size_t buf_len = iotjs_bufferwrap_length(buffer_wrap);
   JHANDLER_CHECK(buf_data != NULL);
   JHANDLER_CHECK(buf_len > 0);
 
@@ -413,7 +414,8 @@ JHANDLER_FUNCTION(Execute) {
                                buf_len);
 
   http_parser* nativeparser = iotjs_httpparserwrap_parser(parser);
-  int nparsed = http_parser_execute(nativeparser, &settings, buf_data, buf_len);
+  size_t nparsed =
+      http_parser_execute(nativeparser, &settings, buf_data, buf_len);
 
   iotjs_httpparserwrap_set_buf(parser, NULL, NULL, 0);
 

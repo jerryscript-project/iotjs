@@ -62,6 +62,7 @@ set(CFLAGS_COMMON
   -Wextra
   -Werror
   -Wno-unused-parameter
+  -Wsign-conversion
   -std=gnu99
 )
 

@@ -50,7 +50,7 @@ typedef struct {
 #if defined(__linux__) || defined(__APPLE__)
   iotjs_string_t device;
 #elif defined(__NUTTX__)
-  uint32_t device;
+  int device;
 #endif
   char* buf_data;
   uint8_t buf_len;

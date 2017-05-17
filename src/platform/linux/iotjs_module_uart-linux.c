@@ -98,8 +98,8 @@ void iotjs_uart_open_worker(uv_work_t* work_req) {
   struct termios options;
   tcgetattr(fd, &options);
   options.c_cflag = CLOCAL | CREAD;
-  options.c_cflag |= baud_to_constant(_this->baud_rate);
-  options.c_cflag |= databits_to_constant(_this->data_bits);
+  options.c_cflag |= (tcflag_t)baud_to_constant(_this->baud_rate);
+  options.c_cflag |= (tcflag_t)databits_to_constant(_this->data_bits);
   options.c_iflag = IGNPAR;
   options.c_oflag = 0;
   options.c_lflag = 0;
@@ -135,7 +135,7 @@ bool iotjs_uart_write(iotjs_uart_t* uart) {
     DDDLOG("%s - size: %d", __func__, _this->buf_len - offset);
 
     if (bytesWritten != -1) {
-      offset += bytesWritten;
+      offset += (unsigned)bytesWritten;
       continue;
     }
 

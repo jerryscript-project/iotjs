@@ -35,7 +35,7 @@ typedef enum {
 
 typedef struct {
   // Number of application arguments including 'iotjs' and app name.
-  int argc;
+  uint32_t argc;
 
   // Application arguments list including 'iotjs' and app name.
   char** argv;
@@ -55,10 +55,11 @@ const iotjs_environment_t* iotjs_environment_get();
 void iotjs_environment_release();
 
 bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
-                                                    int argc, char** argv);
+                                                    uint32_t argc, char** argv);
 
-int iotjs_environment_argc(const iotjs_environment_t* env);
-const char* iotjs_environment_argv(const iotjs_environment_t* env, int idx);
+uint32_t iotjs_environment_argc(const iotjs_environment_t* env);
+const char* iotjs_environment_argv(const iotjs_environment_t* env,
+                                   uint32_t idx);
 
 uv_loop_t* iotjs_environment_loop(const iotjs_environment_t* env);
 void iotjs_environment_set_loop(iotjs_environment_t* env, uv_loop_t* loop);

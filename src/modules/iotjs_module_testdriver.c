@@ -44,8 +44,8 @@ JHANDLER_FUNCTION(IsAliveExceptFor) {
     bool ret = true;
     bool alive = !has_active_reqs && !has_closing_handler;
     if (alive) {
-      int active_handlers = loop->active_handles;
-      if (active_handlers == 1) {
+      unsigned int active_handlers = loop->active_handles;
+      if (active_handlers == 1u) {
         const uv_timer_t* timer_handle = iotjs_timerwrap_handle(timer_wrap);
         int timer_alive = uv_is_active((uv_handle_t*)timer_handle);
 

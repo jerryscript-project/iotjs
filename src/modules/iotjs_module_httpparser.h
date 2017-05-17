@@ -68,7 +68,8 @@ iotjs_jval_t iotjs_httpparserwrap_make_header(THIS);
 
 void iotjs_httpparserwrap_flush(THIS);
 
-void iotjs_httpparserwrap_set_buf(THIS, iotjs_jval_t* jbuf, char* buf, int sz);
+void iotjs_httpparserwrap_set_buf(THIS, iotjs_jval_t* jbuf, char* buf,
+                                  size_t sz);
 
 iotjs_jval_t* iotjs_httpparserwrap_jobject(THIS);
 http_parser* iotjs_httpparserwrap_parser(THIS);

@@ -149,7 +149,7 @@ JHANDLER_FUNCTION(Bind) {
   IOTJS_ASSERT(iotjs_jval_is_boolean(&reuse_addr) ||
                iotjs_jval_is_undefined(&reuse_addr));
 
-  int flags = false;
+  bool flags = false;
   if (!iotjs_jval_is_undefined(&reuse_addr)) {
     flags = iotjs_jval_as_boolean(&reuse_addr) ? UV_UDP_REUSEADDR : 0;
   }
@@ -160,7 +160,7 @@ JHANDLER_FUNCTION(Bind) {
 
   if (err == 0) {
     err = uv_udp_bind(iotjs_udpwrap_udp_handle(udp_wrap),
-                      (const sockaddr*)(&addr), flags);
+                      (const sockaddr*)(&addr), (flags ? 1 : 0));
   }
 
   iotjs_jhandler_return_number(jhandler, err);
@@ -212,10 +212,10 @@ static void OnRecv(uv_udp_t* handle, ssize_t nread, const uv_buf_t* buf,
     return;
   }
 
-  iotjs_jval_t jbuffer = iotjs_bufferwrap_create_buffer(nread);
+  iotjs_jval_t jbuffer = iotjs_bufferwrap_create_buffer((size_t)nread);
   iotjs_bufferwrap_t* buffer_wrap = iotjs_bufferwrap_from_jbuffer(&jbuffer);
 
-  iotjs_bufferwrap_copy(buffer_wrap, buf->base, nread);
+  iotjs_bufferwrap_copy(buffer_wrap, buf->base, (size_t)nread);
 
   iotjs_jargs_append_jval(&jargs, &jbuffer);
 
@@ -307,7 +307,7 @@ JHANDLER_FUNCTION(Send) {
 
   iotjs_bufferwrap_t* buffer_wrap = iotjs_bufferwrap_from_jbuffer(jbuffer);
   char* buffer = iotjs_bufferwrap_buffer(buffer_wrap);
-  int len = iotjs_bufferwrap_length(buffer_wrap);
+  size_t len = iotjs_bufferwrap_length(buffer_wrap);
 
   iotjs_send_reqwrap_t* req_wrap = iotjs_send_reqwrap_create(jcallback, len);
 

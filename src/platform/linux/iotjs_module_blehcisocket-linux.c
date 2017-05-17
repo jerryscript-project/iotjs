@@ -264,10 +264,11 @@ bool iotjs_blehcisocket_isDevUp(THIS) {
 }
 
 
-void iotjs_blehcisocket_setFilter(THIS, char* data, int length) {
+void iotjs_blehcisocket_setFilter(THIS, char* data, size_t length) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_blehcisocket_t, blehcisocket);
 
-  if (setsockopt(_this->_socket, SOL_HCI, HCI_FILTER, data, length) < 0) {
+  if (setsockopt(_this->_socket, SOL_HCI, HCI_FILTER, data, (socklen_t)length) <
+      0) {
     iotjs_blehcisocket_emitErrnoError(blehcisocket);
   }
 }
@@ -293,9 +294,10 @@ void iotjs_blehcisocket_poll(THIS) {
 
     iotjs_jargs_t jargs = iotjs_jargs_create(2);
     iotjs_jval_t str = iotjs_jval_create_string_raw("data");
-    iotjs_jval_t jbuf = iotjs_bufferwrap_create_buffer(length);
+    IOTJS_ASSERT(length >= 0);
+    iotjs_jval_t jbuf = iotjs_bufferwrap_create_buffer((size_t)length);
     iotjs_bufferwrap_t* buf_wrap = iotjs_bufferwrap_from_jbuffer(&jbuf);
-    iotjs_bufferwrap_copy(buf_wrap, data, length);
+    iotjs_bufferwrap_copy(buf_wrap, data, (size_t)length);
     iotjs_jargs_append_jval(&jargs, &str);
     iotjs_jargs_append_jval(&jargs, &jbuf);
     iotjs_jhelper_call_ok(&jemit, jhcisocket, &jargs);
@@ -315,7 +317,7 @@ void iotjs_blehcisocket_stop(THIS) {
 }
 
 
-void iotjs_blehcisocket_write(THIS, char* data, int length) {
+void iotjs_blehcisocket_write(THIS, char* data, size_t length) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_blehcisocket_t, blehcisocket);
 
   if (write(_this->_socket, data, length) < 0) {

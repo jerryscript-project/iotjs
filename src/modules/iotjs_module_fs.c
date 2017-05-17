@@ -83,7 +83,7 @@ static void AfterAsync(uv_fs_t* req) {
       case UV_FS_OPEN:
       case UV_FS_READ:
       case UV_FS_WRITE: {
-        iotjs_jargs_append_number(&jarg, req->result);
+        iotjs_jargs_append_number(&jarg, (double)req->result);
         break;
       }
       case UV_FS_SCANDIR: {

@@ -23,8 +23,8 @@
 // Return value should be released with iotjs_string_destroy()
 iotjs_string_t iotjs_file_read(const char* path);
 
-char* iotjs_buffer_allocate(unsigned size);
-char* iotjs_buffer_reallocate(char* buffer, unsigned size);
+char* iotjs_buffer_allocate(size_t size);
+char* iotjs_buffer_reallocate(char* buffer, size_t size);
 void iotjs_buffer_release(char* buff);
 
 #define IOTJS_ALLOC(type) /* Allocate (type)-sized, (type*)-typed memory */ \

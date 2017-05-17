@@ -70,10 +70,10 @@ int iotjs_blehcisocket_bindRaw(THIS, int* devId);
 int iotjs_blehcisocket_bindUser(THIS, int* devId);
 void iotjs_blehcisocket_bindControl(THIS);
 bool iotjs_blehcisocket_isDevUp(THIS);
-void iotjs_blehcisocket_setFilter(THIS, char* data, int length);
+void iotjs_blehcisocket_setFilter(THIS, char* data, size_t length);
 void iotjs_blehcisocket_poll(THIS);
 void iotjs_blehcisocket_stop(THIS);
-void iotjs_blehcisocket_write(THIS, char* data, int length);
+void iotjs_blehcisocket_write(THIS, char* data, size_t length);
 void iotjs_blehcisocket_emitErrnoError(THIS);
 int iotjs_blehcisocket_devIdFor(THIS, int* pDevId, bool isUp);
 void iotjs_blehcisocket_kernelDisconnectWorkArounds(THIS, int length,

@@ -109,6 +109,7 @@ FOOTER1 = '''
 '''
 
 HEADER2 = '''#include <stdio.h>
+#include <stdint.h>
 #include "iotjs_js.h"
 '''
 
@@ -119,15 +120,15 @@ MAGIC_STRINGS_HEADER = '#define JERRY_MAGIC_STRING_ITEMS \\\n'
 
 MODULE_VARIABLES_H = '''
 extern const char {NAME}_n[];
-extern const char {NAME}_s[];
-extern const int {NAME}_l;
+extern const uint8_t {NAME}_s[];
+extern const size_t {NAME}_l;
 '''
 
 MODULE_VARIABLES_C = '''
 #define SIZE_{NAME_UPPER} {SIZE}
-const int {NAME}_l = SIZE_{NAME_UPPER};
+const size_t {NAME}_l = SIZE_{NAME_UPPER};
 const char {NAME}_n[] = "{NAME}";
-const char {NAME}_s[] = {{
+const uint8_t {NAME}_s[] = {{
 {CODE}
 }};
 '''
@@ -136,7 +137,7 @@ NATIVE_STRUCT_H = '''
 typedef struct {
   const char* name;
   const void* code;
-  const int length;
+  const size_t length;
 } iotjs_js_module;
 
 extern const iotjs_js_module natives[];

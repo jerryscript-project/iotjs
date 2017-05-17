@@ -15,12 +15,13 @@
 
 #if defined(__NUTTX__) && TARGET_BOARD == STM32F4DIS
 
+#include <stdint.h>
 
 #include "../iotjs_systemio-nuttx.h"
 #include "stm32_gpio.h"
 
 
-void iotjs_gpio_unconfig_nuttx(int pin) {
+void iotjs_gpio_unconfig_nuttx(uint32_t pin) {
   stm32_unconfiggpio(pin);
 }
 
@@ -29,7 +30,7 @@ void iotjs_gpio_unconfig_nuttx(int pin) {
 
 #include "stm32_adc.h"
 
-struct adc_dev_s* iotjs_adc_config_nuttx(int number, int timer, int pin) {
+struct adc_dev_s* iotjs_adc_config_nuttx(int number, int timer, uint32_t pin) {
   stm32_configgpio(pin);
 
   uint8_t channel_list[1] = { timer };
@@ -59,7 +60,7 @@ int iotjs_i2c_unconfig_nuttx(struct i2c_master_s* i2c) {
 
 #include "stm32_pwm.h"
 
-struct pwm_lowerhalf_s* iotjs_pwm_config_nuttx(int timer, int pin) {
+struct pwm_lowerhalf_s* iotjs_pwm_config_nuttx(int timer, uint32_t pin) {
   // Set alternative function
   stm32_configgpio(pin);
 

@@ -59,7 +59,7 @@ bool iotjs_uart_write(iotjs_uart_t* uart) {
     DDDLOG("%s - size: %d", __func__, _this->buf_len - offset);
 
     if (bytesWritten != -1) {
-      offset += bytesWritten;
+      offset += (unsigned)bytesWritten;
       continue;
     }
 

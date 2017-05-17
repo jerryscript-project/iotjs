@@ -68,7 +68,7 @@ void iotjs_pwm_open_worker(uv_work_t* work_req) {
   PWM_WORKER_INIT;
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_pwm_t, pwm);
 
-  uint32_t timer = SYSIO_GET_TIMER(_this->pin);
+  int timer = SYSIO_GET_TIMER(_this->pin);
   char path[PWM_DEVICE_PATH_BUFFER_SIZE] = { 0 };
 
   if (snprintf(path, PWM_DEVICE_PATH_BUFFER_SIZE, PWM_DEVICE_PATH_FORMAT,

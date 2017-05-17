@@ -82,7 +82,7 @@ bool iotjs_systemio_open_write_close(const char* path, const char* value) {
 
 
 bool iotjs_systemio_open_read_close(const char* path, char* buffer,
-                                    int buffer_len) {
+                                    unsigned buffer_len) {
   const iotjs_environment_t* env = iotjs_environment_get();
   uv_loop_t* loop = iotjs_environment_loop(env);
 
@@ -123,7 +123,7 @@ bool iotjs_systemio_open_read_close(const char* path, char* buffer,
 
 
 // Device Open
-bool iotjs_systemio_device_open(const char* export_path, int value,
+bool iotjs_systemio_device_open(const char* export_path, uint32_t value,
                                 const char* exported_path,
                                 const char** created_files,
                                 int created_files_length) {
@@ -178,7 +178,7 @@ bool iotjs_systemio_device_open(const char* export_path, int value,
 
 
 // Device close
-bool iotjs_systemio_device_close(const char* export_path, int value) {
+bool iotjs_systemio_device_close(const char* export_path, uint32_t value) {
   DDDLOG("%s - path: %s", __func__, export_path);
 
   char buff[DEVICE_IO_PIN_BUFFER_SIZE];

@@ -52,6 +52,8 @@
     { "name": "test_net_http_get.js", "timeout": 20, "skip": ["nuttx"], "reason": "not implemented for nuttx" },
     { "name": "test_net_http_response_twice.js", "timeout": 10, "skip": ["nuttx"], "reason": "not implemented for nuttx" },
     { "name": "test_net_http_status_codes.js", "timeout": 20, "skip": ["nuttx"], "reason": "not implemented for nuttx" },
+    { "name": "test_net_httpclient_error.js", "timeout": 10, "skip": ["nuttx"], "reason": "not implemented for nuttx" },
+    { "name": "test_net_httpclient_parse_error.js", "timeout": 10, "skip": ["nuttx"], "reason": "not implemented for nuttx" },
     { "name": "test_net_httpclient_timeout_1.js", "timeout": 10, "skip": ["nuttx"], "reason": "not implemented for nuttx" },
     { "name": "test_net_httpclient_timeout_2.js", "timeout": 15, "skip": ["nuttx"], "reason": "not implemented for nuttx" },
     { "name": "test_net_httpserver_timeout.js", "timeout": 10, "skip": ["nuttx"], "reason": "not implemented for nuttx" },

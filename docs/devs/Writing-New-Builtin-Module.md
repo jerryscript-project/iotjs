@@ -138,12 +138,15 @@ typedef struct {
   size_t length;
 } iotjs_bufferwrap_t;
 
+static void iotjs_bufferwrap_destroy(iotjs_bufferwrap_t* bufferwrap);
+IOTJS_DEFINE_NATIVE_HANDLE_INFO(bufferwrap);
+
 iotjs_bufferwrap_t* iotjs_bufferwrap_create(const iotjs_jval_t* jbuiltin,
                                             size_t length) {
   iotjs_bufferwrap_t* bufferwrap = IOTJS_ALLOC(iotjs_bufferwrap_t);
   iotjs_jobjectwrap_initialize(&_this->jobjectwrap,
                                jbuiltin,
-                               (JFreeHandlerType)iotjs_bufferwrap_destroy); /* Automatically called */
+                               &bufferwrap_native_info); /* Automatically called */
   ...
 }
 

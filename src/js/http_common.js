@@ -13,12 +13,10 @@
  * limitations under the License.
  */
 
-var EventEmitter = require('events');
 var util = require('util');
 var HTTPParser = process.binding(process.binding.httpparser).HTTPParser;
 var IncomingMessage = require('http_incoming').IncomingMessage;
 var OutgoingMessage = require('http_outgoing').OutgoingMessage;
-var Buffer = require('buffer');
 
 
 

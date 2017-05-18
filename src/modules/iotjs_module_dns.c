@@ -143,18 +143,18 @@ JHANDLER_FUNCTION(GetAddrInfo) {
     strcpy(ip, "127.0.0.1");
   } else {
     struct sockaddr_in addr;
-    int result = inet_pton(AF_INET, hostname_data, &(addr.sin_addr));
+    int result = inet_pton(family, hostname_data, &(addr.sin_addr));
 
     if (result != 1) {
       err = errno;
     } else {
-      inet_ntop(AF_INET, &(addr.sin_addr), ip, INET6_ADDRSTRLEN);
+      inet_ntop(family, &(addr.sin_addr), ip, INET6_ADDRSTRLEN);
     }
   }
 
   iotjs_jargs_append_number(&args, err);
   iotjs_jargs_append_string_raw(&args, ip);
-  iotjs_jargs_append_number(&args, family);
+  iotjs_jargs_append_number(&args, option);
 
   iotjs_make_callback(jcallback, iotjs_jval_get_undefined(), &args);
   iotjs_jargs_destroy(&args);

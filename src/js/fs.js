@@ -266,12 +266,12 @@ fs.readFileSync = function(path) {
 
 fs.writeFile = function(path, data, callback) {
   checkArgString(path);
-  checkArgBuffer(data);
   checkArgFunction(callback);
 
   var fd;
   var len;
   var bytesWritten;
+  var buffer = ensureBuffer(data);
 
   fs.open(path, 'w', function(err, _fd) {
     if (err) {
@@ -279,7 +279,7 @@ fs.writeFile = function(path, data, callback) {
     }
 
     fd = _fd;
-    len = data.length;
+    len = buffer.length;
     bytesWritten = 0;
 
     write();
@@ -287,7 +287,7 @@ fs.writeFile = function(path, data, callback) {
 
   var write = function() {
     var tryN = (len - bytesWritten) >= 1024 ? 1023 : (len - bytesWritten);
-    fs.write(fd, data, bytesWritten, tryN, bytesWritten, afterWrite);
+    fs.write(fd, buffer, bytesWritten, tryN, bytesWritten, afterWrite);
   };
 
   var afterWrite = function(err, n) {
@@ -298,7 +298,7 @@ fs.writeFile = function(path, data, callback) {
     }
 
     if (n <= 0 || bytesWritten + n == len) {
-      // End of data
+      // End of buffer
       fs.close(fd, function(err) {
         callback(err);
       });
@@ -313,16 +313,16 @@ fs.writeFile = function(path, data, callback) {
 
 fs.writeFileSync = function(path, data) {
   checkArgString(path);
-  checkArgBuffer(data);
 
+  var buffer = ensureBuffer(data);
   var fd = fs.openSync(path, 'w');
-  var len = data.length;
+  var len = buffer.length;
   var bytesWritten = 0;
 
   while (true) {
     try {
       var tryN = (len - bytesWritten) >= 1024 ? 1023 : (len - bytesWritten);
-      var n = fs.writeSync(fd, data, bytesWritten, tryN, bytesWritten);
+      var n = fs.writeSync(fd, buffer, bytesWritten, tryN, bytesWritten);
       bytesWritten += n;
       if (bytesWritten == len) {
         break;
@@ -451,6 +451,15 @@ function convertMode(mode, def) {
     return convertMode(def);
   }
   return undefined;
+}
+
+
+function ensureBuffer(data) {
+  if (util.isBuffer(data)) {
+    return data;
+  }
+
+  return new Buffer(data + ''); // coert to string and make it a buffer
 }
 
 

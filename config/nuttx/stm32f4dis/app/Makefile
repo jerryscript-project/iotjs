@@ -58,24 +58,23 @@ CONFIG_IOTJS_STACKSIZE ?= 16384
 # NSH sysinfo command
 
 APPNAME = iotjs
-IOTJS_ROOT_DIR = ../../../iotjs
+CFLAGS += -I$(IOTJS_ROOT_DIR)/deps/jerry/jerry-core/include
+CFLAGS += -I$(IOTJS_ROOT_DIR)/deps/jerry/jerry-ext/include
 PRIORITY = $(CONFIG_IOTJS_PRIORITY)
 STACKSIZE = $(CONFIG_IOTJS_STACKSIZE)
 HEAPSIZE = $(CONFIG_IOTJS_HEAPSIZE)
 
 ASRCS = setjmp.S
-CSRCS =
-CXXSRCS =
-MAINSRC = iotjs_main.cxx
-LIBS = libhttpparser.a libiotjs.a libjerry-core.a libtuv.a libjerry-libm.a libjerry-port-default.a libjerry-libc.a
+CSRCS = jerry_port.c
+MAINSRC = iotjs_main.c
+LIBS = libhttpparser.a libiotjs.a libjerry-core.a libtuv.a libjerry-libm.a
 
 AOBJS = $(ASRCS:.S=$(OBJEXT))
 COBJS = $(CSRCS:.c=$(OBJEXT))
-CXXOBJS = $(CXXSRCS:.cxx=$(OBJEXT))
-MAINOBJ = $(MAINSRC:.cxx=$(OBJEXT))
+MAINOBJ = $(MAINSRC:.c=$(OBJEXT))
 
-SRCS = $(ASRCS) $(CSRCS) $(CXXSRCS) $(MAINSRC)
-OBJS = $(AOBJS) $(COBJS) $(CXXOBJS)
+SRCS = $(ASRCS) $(CSRCS) $(MAINSRC)
+OBJS = $(AOBJS) $(COBJS)
 
 ifeq ($(R),1)
   BUILD_TYPE = release
@@ -115,27 +114,11 @@ VPATH =
 all: .built
 .PHONY: context depend clean distclean
 
-chkcxx:
-ifneq ($(CONFIG_HAVE_CXX),y)
-  @echo ""
-  @echo "In order to use this example, you toolchain must support must"
-  @echo ""
-  @echo "  (1) Explicitly select CONFIG_HAVE_CXX to build in C++ support"
-  @echo "  (2) Define CXX, CXXFLAGS, and COMPILEXX in the Make.defs file"
-  @echo "      of the configuration that you are using."
-  @echo ""
-  @exit 1
-endif
-
-
 $(AOBJS): %$(OBJEXT): %.S
 	$(call ASSEMBLE, $<, $@)
 
 $(COBJS): %$(OBJEXT): %.c
 	$(call COMPILE, $<, $@)
-
-$(CXXOBJS) $(MAINOBJ): %$(OBJEXT): %.cxx
-	$(call COMPILEXX, $<, $@)
 
 copylibs :
 	cp $(IOTJS_ROOT_DIR)/build/arm-nuttx/$(BUILD_TYPE)/lib/lib*.a .
@@ -143,7 +126,7 @@ copylibs :
 $(LIBS) : copylibs
 	$(firstword $(AR)) x $@
 
-.built: chkcxx $(LIBS) $(OBJS)
+.built: $(LIBS) $(OBJS)
 	$(eval OBJS += $(shell find . -name "*.obj"))
 	$(call ARCHIVE, $(BIN), $(OBJS))
 	$(Q) touch .built
@@ -175,7 +158,7 @@ endif
 # Create dependencies
 
 .depend: Makefile $(SRCS)
-	$(Q) $(MKDEP) $(ROOTDEPPATH) "$(CXX)" -- $(CXXFLAGS) -- $(SRCS) >Make.dep
+	$(Q) $(MKDEP) $(ROOTDEPPATH) "$(CC)" -- $(CFLAGS) -- $(SRCS) >Make.dep
 	$(Q) touch $@
 
 depend: .depend

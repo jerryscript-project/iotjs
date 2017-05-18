@@ -50,35 +50,26 @@
  * Included Files
  ****************************************************************************/
 
-#include <nuttx/config.h>
 #include <nuttx/arch.h>
+#include <nuttx/config.h>
 
 #include <stdio.h>
 #include "setjmp.h"
-
-#ifdef CONFIG_IOTJS
-# if !defined(CONFIG_HAVE_CXX) || !defined(CONFIG_HAVE_CXXINITIALIZE)
-#   error Need CONFIG_HAVE_CXX and CONFIG_HAVE_CXXINITIALIZE
-# endif
-#endif
 
 /****************************************************************************
  * Public Functions
  ****************************************************************************/
 
-
-
-extern "C" int iotjs_entry(int argc, char *argv[]);
-extern "C" int tuv_cleanup(void);
+extern int iotjs_entry(int argc, char *argv[]);
+extern int tuv_cleanup(void);
 
 #ifdef CONFIG_BUILD_KERNEL
-extern "C" int main(int argc, FAR char *argv[])
+extern int main(int argc, FAR char *argv[])
 #else
-extern "C" int iotjs_main(int argc, char *argv[])
+extern int iotjs_main(int argc, char *argv[])
 #endif
 {
   int ret = 0;
-  up_cxxinitialize();
   ret = iotjs_entry(argc, argv);
   tuv_cleanup();
   return ret;

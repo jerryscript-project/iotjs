@@ -21,7 +21,9 @@
 #include "iotjs_string_ext.h"
 
 #include "jerryscript-debugger.h"
+#ifndef __NUTTX__
 #include "jerryscript-port-default.h"
+#endif
 #include "jerryscript-port.h"
 #include "jerryscript.h"
 
@@ -38,12 +40,16 @@ static bool iotjs_jerry_initialize(const iotjs_environment_t* env) {
 
   if (iotjs_environment_config(env)->memstat) {
     jerry_flag |= JERRY_INIT_MEM_STATS;
+#ifndef __NUTTX__
     jerry_port_default_set_log_level(JERRY_LOG_LEVEL_DEBUG);
+#endif
   }
 
   if (iotjs_environment_config(env)->show_opcode) {
     jerry_flag |= JERRY_INIT_SHOW_OPCODES;
+#ifndef __NUTTX__
     jerry_port_default_set_log_level(JERRY_LOG_LEVEL_DEBUG);
+#endif
   }
 
   if (iotjs_environment_config(env)->debugger) {

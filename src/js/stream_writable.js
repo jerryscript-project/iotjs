@@ -37,8 +37,8 @@ function WritableState(options) {
 
   // high water mark.
   // The point where write() starts retuning false.
-  var hwm = options.highWaterMark;
-  this.highWaterMark = (hwm || hwm === 0) ? hwm : defaultHighWaterMark;
+  this.highWaterMark = (options && util.isNumber(options.highWaterMark)) ?
+    options.highWaterMark : defaultHighWaterMark;
 
   // 'true' if stream is ready to write.
   this.ready = false;

@@ -57,7 +57,7 @@ endif()
 
 
 # use system libc/libm on Unix like targets
-if("${TARGET_OS}" MATCHES "TIZENRT")
+if("${TARGET_OS}" MATCHES "TIZENRT|NUTTX")
   list(APPEND JERRY_LIBS jerry-libm)
   list(APPEND DEPS_LIB_JERRY_ARGS
     -DJERRY_LIBC=OFF
@@ -81,6 +81,13 @@ endif()
 # Add a few cmake options based on buildtype/external cmake defines
 if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
   list(APPEND DEPS_LIB_JERRY_ARGS -DFEATURE_ERROR_MESSAGES=ON)
+endif()
+
+# Nuttx is not using the default port implementation of JerryScript
+if("${TARGET_OS}" MATCHES "NUTTX")
+  list(APPEND DEPS_LIB_JERRY_ARGS -DJERRY_PORT_DEFAULT=OFF)
+else()
+  list(APPEND DEPS_LIB_JERRY_ARGS -DJERRY_PORT_DEFAULT=ON)
 endif()
 
 add_cmake_arg(DEPS_LIB_JERRY_ARGS ENABLE_LTO)
@@ -109,7 +116,6 @@ ExternalProject_Add(libjerry
     -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
     -DJERRY_CMDLINE=OFF
     -DJERRY_CMDLINE_MINIMAL=OFF
-    -DJERRY_PORT_DEFAULT=ON
     -DFEATURE_SNAPSHOT_EXEC=${ENABLE_SNAPSHOT}
     -DFEATURE_SNAPSHOT_SAVE=OFF
     -DFEATURE_PROFILE=${FEATURE_PROFILE}
@@ -123,7 +129,6 @@ set_property(DIRECTORY APPEND PROPERTY
     ${CMAKE_BINARY_DIR}/lib/libjerry-core.a
     ${CMAKE_BINARY_DIR}/lib/libjerry-libm.a
     ${CMAKE_BINARY_DIR}/lib/libjerry-libc.a
-    ${CMAKE_BINARY_DIR}/lib/libjerry-port.a
 )
 
 # define external jerry-core target
@@ -144,11 +149,19 @@ add_dependencies(jerry-libm libjerry)
 set_property(TARGET jerry-libm PROPERTY
   IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/lib/libjerry-libm.a)
 
-# define external jerry-port-default target
-add_library(jerry-port-default STATIC IMPORTED)
-add_dependencies(jerry-port-default libjerry)
-set_property(TARGET jerry-port-default PROPERTY
-  IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/lib/libjerry-port-default.a)
+if(NOT "${TARGET_OS}" MATCHES "NUTTX")
+  set_property(DIRECTORY APPEND PROPERTY
+    ADDITIONAL_MAKE_CLEAN_FILES
+      ${CMAKE_BINARY_DIR}/lib/libjerry-port.a
+  )
 
-set(JERRY_PORT_DIR ${DEPS_LIB_JERRY_SRC}/jerry-port/default)
+  # define external jerry-port-default target
+  add_library(jerry-port-default STATIC IMPORTED)
+  add_dependencies(jerry-port-default libjerry)
+  set_property(TARGET jerry-port-default PROPERTY
+    IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/lib/libjerry-port-default.a)
+
+  set(JERRY_PORT_DIR ${DEPS_LIB_JERRY_SRC}/jerry-port/default)
+endif()
+
 set(JERRY_INCLUDE_DIR ${DEPS_LIB_JERRY}/jerry-core/include)

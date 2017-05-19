@@ -115,12 +115,15 @@ Socket.prototype.connect = function() {
 
   self._host = host;
   dns.lookup(host, dnsopts, function(err, ip, family) {
+    if (self._socketState.destroyed) {
+      return;
+    }
     self.emit('lookup', err, ip, family);
 
     if (err) {
       process.nextTick(function() {
         self.emit('error', err);
-        self._destroy();
+        self.destroy();
       });
     } else {
       resetSocketTimeout(self);
@@ -497,6 +500,7 @@ Server.prototype.listen = function() {
   var err = self._handle.bind(host, port);
   if (err) {
     self._handle.close();
+    self._handle = null;
     return err;
   }
 
@@ -509,6 +513,7 @@ Server.prototype.listen = function() {
 
   if (err) {
     self._handle.close();
+    self._handle = null;
     return err;
   }
 

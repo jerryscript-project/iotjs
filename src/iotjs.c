@@ -146,6 +146,10 @@ static bool iotjs_start(iotjs_environment_t* env) {
     if (more == false) {
       more = uv_loop_alive(iotjs_environment_loop(env));
     }
+    jerry_value_t ret_val = jerry_run_all_enqueued_jobs();
+    if (jerry_value_has_error_flag(ret_val)) {
+      DLOG("jerry_run_all_enqueued_jobs() failed");
+    }
   } while (more);
 
   iotjs_environment_go_state_exiting(env);

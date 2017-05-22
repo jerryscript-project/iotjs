@@ -69,6 +69,7 @@
     { "name": "test_process_next_tick.js" },
     { "name": "test_process_uncaught_order.js", "uncaught": true },
     { "name": "test_process_uncaught_simple.js", "uncaught": true },
+    { "name": "test_promise.js", "skip": ["all"], "reason": "es2015 is off by default" },
     { "name": "test_pwm.js", "skip": ["all"], "reason": "need to setup test environment" },
     { "name": "test_spi.js", "skip": ["all"], "reason": "need to setup test environment" },
     { "name": "test_stat.js", "skip": ["all"], "reason": "dynamically changing result" },

@@ -138,7 +138,7 @@ Followings are the options to set:
 ```bash
 # assuming you are in iotjs-nuttx folder
 $ cd nuttx/
-$ make
+$ make IOTJS_ROOT_DIR=../iotjs
 ```
 For release version, you can type R=1 make on the command shell.
 

@@ -93,7 +93,7 @@
     { "name": "test_assert_equal.js", "expected-failure": true },
     { "name": "test_assert_fail.js", "expected-failure": true },
     { "name": "test_assert_notequal.js", "expected-failure": true },
-    { "name": "test_events_uncaught_error.js", "expected-failure": true },
+    { "name": "test_events_emit_error.js", "expected-failure": true },
     { "name": "test_fs_callbacks_called.js", "expected-failure": true },
     { "name": "test_iotjs_runtime_error.js", "expected-failure": true },
     { "name": "test_iotjs_syntax_error.js", "expected-failure": true },

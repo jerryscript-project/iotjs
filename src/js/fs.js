@@ -264,7 +264,10 @@ fs.readFileSync = function(path) {
 };
 
 
-fs.writeFile = function(path, data, callback) {
+fs.writeFile = function(path, data, options, callback) {
+  if (util.isFunction(options)) {
+    callback = options;
+  }
   checkArgString(path);
   checkArgFunction(callback);
 
@@ -272,8 +275,15 @@ fs.writeFile = function(path, data, callback) {
   var len;
   var bytesWritten;
   var buffer = ensureBuffer(data);
+  var flag = 'w';
+  if (util.isObject(options) && !util.isNullOrUndefined(options.flag)) {
+    var opt = options.flag;
+    if (opt === 'a') {
+      flag = opt;
+    }
+  }
 
-  fs.open(path, 'w', function(err, _fd) {
+  fs.open(path, flag, function(err, _fd) {
     if (err) {
       return callback(err);
     }
@@ -311,11 +321,19 @@ fs.writeFile = function(path, data, callback) {
 };
 
 
-fs.writeFileSync = function(path, data) {
+fs.writeFileSync = function(path, data, options) {
   checkArgString(path);
-
   var buffer = ensureBuffer(data);
-  var fd = fs.openSync(path, 'w');
+  checkArgBuffer(data);
+  var flag = 'w';
+  if (util.isObject(options) && !util.isNullOrUndefined(options.flag)) {
+    var opt = options.flag;
+    if (opt === 'a') {
+      flag = opt;
+    }
+  }
+
+  var fd = fs.openSync(path, flag);
   var len = buffer.length;
   var bytesWritten = 0;
 

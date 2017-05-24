@@ -32,6 +32,8 @@
     { "name": "test_fs_writefile_sync.js" },
     { "name": "test_fs_writefile_unlink.js" },
     { "name": "test_fs_writefile_unlink_sync.js" },
+    { "name": "test_fs_writefile_flag_unlink_sync.js" },
+    { "name": "test_fs_writefile_flag_unlink.js" },
     { "name": "test_fs_event.js", "skip": ["nuttx"], "reason": "not implemented for nuttx" },
     { "name": "test_fs_open_read.js", "skip": ["nuttx"], "reason": "not implemented for nuttx" },
     { "name": "test_fs_open_read_sync_1.js", "skip": ["nuttx"], "reason": "not implemented for nuttx" },

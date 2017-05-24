@@ -92,9 +92,10 @@ int iotjs_blehcisocket_devIdFor(THIS, int* pDevId, bool isUp) {
 }
 
 
-void iotjs_blehcisocket_kernelDisconnectWorkArounds(THIS, int length,
-                                                    char* data) {
+int iotjs_blehcisocket_kernelDisconnectWorkArounds(THIS, int length,
+                                                   char* data) {
   IOTJS_ASSERT(!"Not implemented");
+  return 0;
 }
 
 

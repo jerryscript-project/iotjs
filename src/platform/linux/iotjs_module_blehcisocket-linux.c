@@ -190,7 +190,10 @@ int iotjs_blehcisocket_bindRaw(THIS, int* devId) {
   _this->_devId = a.hci_dev;
   _this->_mode = HCI_CHANNEL_RAW;
 
-  bind(_this->_socket, (struct sockaddr*)&a, sizeof(a));
+  if (bind(_this->_socket, (struct sockaddr*)&a, sizeof(a)) < 0) {
+    DLOG("ERROR on binding: %s", strerror(errno));
+    return _this->_devId;
+  }
 
   // get the local address and address type
   memset(&di, 0x00, sizeof(di));
@@ -225,7 +228,9 @@ int iotjs_blehcisocket_bindUser(THIS, int* devId) {
   _this->_devId = a.hci_dev;
   _this->_mode = HCI_CHANNEL_USER;
 
-  bind(_this->_socket, (struct sockaddr*)&a, sizeof(a));
+  if (bind(_this->_socket, (struct sockaddr*)&a, sizeof(a)) < 0) {
+    DLOG("ERROR on binding: %s", strerror(errno));
+  }
 
   return _this->_devId;
 }
@@ -243,7 +248,9 @@ void iotjs_blehcisocket_bindControl(THIS) {
 
   _this->_mode = HCI_CHANNEL_CONTROL;
 
-  bind(_this->_socket, (struct sockaddr*)&a, sizeof(a));
+  if (bind(_this->_socket, (struct sockaddr*)&a, sizeof(a)) < 0) {
+    DLOG("ERROR on binding: %s", strerror(errno));
+  }
 }
 
 
@@ -284,8 +291,10 @@ void iotjs_blehcisocket_poll(THIS) {
 
   if (length > 0) {
     if (_this->_mode == HCI_CHANNEL_RAW) {
-      iotjs_blehcisocket_kernelDisconnectWorkArounds(blehcisocket, length,
-                                                     data);
+      if (iotjs_blehcisocket_kernelDisconnectWorkArounds(blehcisocket, length,
+                                                         data) < 0) {
+        return;
+      }
     }
 
     iotjs_jval_t* jhcisocket = iotjs_jobjectwrap_jobject(&_this->jobjectwrap);
@@ -384,8 +393,8 @@ int iotjs_blehcisocket_devIdFor(THIS, int* pDevId, bool isUp) {
 }
 
 
-void iotjs_blehcisocket_kernelDisconnectWorkArounds(THIS, int length,
-                                                    char* data) {
+int iotjs_blehcisocket_kernelDisconnectWorkArounds(THIS, int length,
+                                                   char* data) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_blehcisocket_t, blehcisocket);
 
   if (length == 22 && data[0] == 0x04 && data[1] == 0x3e && data[2] == 0x13 &&
@@ -405,12 +414,22 @@ void iotjs_blehcisocket_kernelDisconnectWorkArounds(THIS, int length,
 
     l2socket = socket(PF_BLUETOOTH, SOCK_SEQPACKET, BTPROTO_L2CAP);
 
+    if (l2socket < 0) {
+      DLOG("ERROR creating socket: %s", strerror(errno));
+      return -1;
+    }
+
     memset(&l2a, 0, sizeof(l2a));
     l2a.l2_family = AF_BLUETOOTH;
     l2a.l2_cid = l2cid;
     memcpy(&l2a.l2_bdaddr, _this->_address, sizeof(l2a.l2_bdaddr));
     l2a.l2_bdaddr_type = _this->_addressType;
-    bind(l2socket, (struct sockaddr*)&l2a, sizeof(l2a));
+
+    if (bind(l2socket, (struct sockaddr*)&l2a, sizeof(l2a)) < 0) {
+      DLOG("ERROR on binding: %s", strerror(errno));
+      close(l2socket);
+      return -1;
+    }
 
     memset(&l2a, 0, sizeof(l2a));
     l2a.l2_family = AF_BLUETOOTH;
@@ -418,7 +437,11 @@ void iotjs_blehcisocket_kernelDisconnectWorkArounds(THIS, int length,
     l2a.l2_cid = l2cid;
     l2a.l2_bdaddr_type = data[8] + 1;
 
-    connect(l2socket, (struct sockaddr*)&l2a, sizeof(l2a));
+    if (connect(l2socket, (struct sockaddr*)&l2a, sizeof(l2a)) < 0) {
+      DLOG("ERROR connecting socket: %s", strerror(errno));
+      close(l2socket);
+      return -1;
+    }
 
     _this->_l2sockets[handle] = l2socket;
     _this->_l2socketCount++;
@@ -431,6 +454,8 @@ void iotjs_blehcisocket_kernelDisconnectWorkArounds(THIS, int length,
       _this->_l2socketCount--;
     }
   }
+
+  return 0;
 }
 
 #undef THIS

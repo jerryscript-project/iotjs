@@ -16,7 +16,7 @@
     { "name": "test_dns.js", "skip": ["nuttx"], "reason": "not implemented for nuttx" },
     { "name": "test_dns_lookup.js", "skip": ["nuttx"], "reason": "not implemented for nuttx" },
     { "name": "test_events.js", "skip": ["nuttx"], "reason": "not implemented for nuttx" },
-    { "name": "test_events_emit_error.js", "uncaught": true },
+    { "name": "test_events_assert_emit_error.js", "uncaught": true },
     { "name": "test_events_uncaught_error.js", "uncaught": true },
     { "name": "test_fs_exists.js", "skip": ["nuttx"], "reason": "not implemented for nuttx" },
     { "name": "test_fs_exists_sync.js", "skip": ["nuttx"], "reason": "not implemented for nuttx" },

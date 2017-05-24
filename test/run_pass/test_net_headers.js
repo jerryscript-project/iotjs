@@ -29,6 +29,8 @@ var server = http.createServer(function (req, res) {
   });
 
   var endHandler = function () {
+    // this should return.
+    res.removeHeader('h1');
 
     res.setHeader('h1','h1');
     res.setHeader('h2','h2');
@@ -39,8 +41,13 @@ var server = http.createServer(function (req, res) {
     }
     // final res.headers = { 'h1' : 'h1', 'h3': 'h3prime' }
 
+    // Large header on response.
+    for (var i = 0; i < 500; i++) {
+      res.setHeader('h' + (5 + i), 'h' + (5 + i));
+    }
+
     res.end(function(){
-        server.close();
+      server.close();
     });
   };
 

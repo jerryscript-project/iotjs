@@ -14,6 +14,7 @@
  */
 
 var assert = require('assert');
+var Server = require('http_server').Server;
 var http = require('http');
 
 
@@ -176,6 +177,12 @@ finalReq.on('socket', function() {
 finalReq.write(finalMsg);
 finalReq.end();
 
+// Create server without requestListener.
+var server2 = http.createServer();
+
+// Create server instance without new keyword.
+var server3 = Server(function(request, response) {});
+
 process.on('exit', function() {
   assert.equal(responseCheck.length, 3);
   assert.equal(connectionEvent, 3);
@@ -183,4 +190,6 @@ process.on('exit', function() {
   assert.equal(requestEvent, 3);
   assert.equal(responseEvent, 3);
   assert.equal(socketEvent, 3);
+  assert.equal(server2 instanceof Server, true);
+  assert.equal(server3 instanceof Server, true);
 });

@@ -25,6 +25,7 @@ var server = http.createServer(function(req, res) {
 });
 
 server.listen(3003);
+
 server.setTimeout(100, function(socket) {
   timeouted = true;
   socket.destroy();

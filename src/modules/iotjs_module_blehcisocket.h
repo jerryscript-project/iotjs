@@ -76,8 +76,8 @@ void iotjs_blehcisocket_stop(THIS);
 void iotjs_blehcisocket_write(THIS, char* data, size_t length);
 void iotjs_blehcisocket_emitErrnoError(THIS);
 int iotjs_blehcisocket_devIdFor(THIS, int* pDevId, bool isUp);
-void iotjs_blehcisocket_kernelDisconnectWorkArounds(THIS, int length,
-                                                    char* data);
+int iotjs_blehcisocket_kernelDisconnectWorkArounds(THIS, int length,
+                                                   char* data);
 
 #undef THIS
 

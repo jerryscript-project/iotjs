@@ -111,7 +111,7 @@ Socket.prototype.connect = function() {
     throw new RangeError('port should be >= 0 and < 65536: ' + options.port);
 
   if (dnsopts.family !== 0 && dnsopts.family !== 4 && dnsopts.family !== 6)
-    throw new RangeError('port should be 4 or 6: ' + dnsopts.family);
+    throw new RangeError('family should be 4 or 6: ' + dnsopts.family);
 
   self._host = host;
   dns.lookup(host, dnsopts, function(err, ip, family) {

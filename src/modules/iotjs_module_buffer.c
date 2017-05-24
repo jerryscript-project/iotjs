@@ -330,7 +330,7 @@ JHANDLER_FUNCTION(Write) {
 JHANDLER_FUNCTION(WriteUInt8) {
   JHANDLER_CHECK_ARGS(2, number, number);
 
-  uint8_t src = (uint8_t)JHANDLER_GET_ARG(0, number);
+  const char src[] = { (char)JHANDLER_GET_ARG(0, number) };
   size_t length = 1;
 
   const iotjs_jval_t* jbuiltin = JHANDLER_GET_THIS(object);
@@ -343,8 +343,8 @@ JHANDLER_FUNCTION(WriteUInt8) {
   length = bound_range(length, 0, buffer_length - offset);
   length = bound_range(length, 0, 1);
 
-  size_t copied = iotjs_bufferwrap_copy_internal(buffer_wrap, (const char*)&src,
-                                                 0, length, offset);
+  size_t copied =
+      iotjs_bufferwrap_copy_internal(buffer_wrap, src, 0, length, offset);
 
   iotjs_jhandler_return_number(jhandler, copied);
 }

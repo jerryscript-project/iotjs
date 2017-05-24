@@ -14,9 +14,11 @@
  */
 
 
+#include <poll.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "iotjs_systemio-linux.h"
 #include "modules/iotjs_module_gpio.h"
@@ -45,6 +47,103 @@
 //  https://www.kernel.org/doc/Documentation/gpio/sysfs.txt
 
 
+static const char* gpio_edge_string[] = { "none", "rising", "falling", "both" };
+
+
+static int gpio_get_value_fd(iotjs_gpio_t* gpio) {
+  int fd;
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_gpio_t, gpio);
+
+  uv_mutex_lock(&_this->mutex);
+  fd = _this->value_fd;
+  uv_mutex_unlock(&_this->mutex);
+
+  return fd;
+}
+
+
+static void gpio_set_value_fd(iotjs_gpio_t* gpio, int fd) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_gpio_t, gpio);
+
+  uv_mutex_lock(&_this->mutex);
+  _this->value_fd = fd;
+  uv_mutex_unlock(&_this->mutex);
+}
+
+
+static void gpio_emit_change_event(iotjs_gpio_t* gpio) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_gpio_t, gpio);
+
+  iotjs_jval_t* jgpio = iotjs_jobjectwrap_jobject(&_this->jobjectwrap);
+  iotjs_jval_t jonChange = iotjs_jval_get_property(jgpio, "onChange");
+  IOTJS_ASSERT(iotjs_jval_is_function(&jonChange));
+
+  iotjs_jhelper_call_ok(&jonChange, jgpio, iotjs_jargs_get_empty());
+
+  iotjs_jval_destroy(&jonChange);
+}
+
+
+static bool gpio_clear_dummy_value(int fd) {
+  char buffer[1];
+
+  if (lseek(fd, 0, SEEK_SET) < 0) {
+    DLOG("GPIO Error in lseek");
+    return false;
+  }
+
+  if (read(fd, &buffer, 1) < 0) {
+    DLOG("GPIO Error in read");
+    return false;
+  }
+
+  return true;
+}
+
+
+static int gpio_edge_poll(struct pollfd* pollfd) {
+  int ret;
+
+  // Wait edge
+  if ((ret = poll(pollfd, 1, -1)) > 0) {
+    if (!gpio_clear_dummy_value(pollfd->fd))
+      return -1;
+  }
+
+  return ret;
+}
+
+
+static void gpio_edge_detection_cb(void* data) {
+  int fd;
+  iotjs_gpio_t* gpio = (iotjs_gpio_t*)data;
+  struct pollfd pollfd;
+
+  if ((fd = gpio_get_value_fd(gpio)) < 0) {
+    DLOG("GPIO Error: cannot start edge detection");
+    return;
+  }
+
+  memset(&pollfd, 0, sizeof(pollfd));
+  pollfd.fd = fd;
+  pollfd.events = POLLPRI | POLLERR;
+
+  if (!gpio_clear_dummy_value(fd))
+    return;
+
+  while (true) {
+    if ((fd = gpio_get_value_fd(gpio)) < 0)
+      return;
+
+    if (gpio_edge_poll(&pollfd) > 0) {
+      gpio_emit_change_event(gpio);
+    } else {
+      DLOG("GPIO Error on poll: %s", strerror(errno));
+    }
+  }
+}
+
+
 static bool gpio_set_direction(uint32_t pin, GpioDirection direction) {
   IOTJS_ASSERT(direction == kGpioDirectionIn || direction == kGpioDirectionOut);
 
@@ -62,6 +161,37 @@ static bool gpio_set_direction(uint32_t pin, GpioDirection direction) {
 
 // FIXME: Implement SetPinMode()
 static bool gpio_set_mode(uint32_t pin, GpioMode mode) {
+  return true;
+}
+
+
+static bool gpio_set_edge(iotjs_gpio_t* gpio) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_gpio_t, gpio);
+
+  char edge_path[GPIO_PATH_BUFFER_SIZE];
+  snprintf(edge_path, GPIO_PATH_BUFFER_SIZE, GPIO_PIN_FORMAT_EDGE, _this->pin);
+  iotjs_systemio_open_write_close(edge_path, gpio_edge_string[_this->edge]);
+
+  if (_this->direction == kGpioDirectionIn && _this->edge != kGpioEdgeNone) {
+    char value_path[GPIO_PATH_BUFFER_SIZE];
+    snprintf(value_path, GPIO_PATH_BUFFER_SIZE, GPIO_PIN_FORMAT_VALUE,
+             _this->pin);
+    if ((_this->value_fd = open(value_path, O_RDONLY)) < 0) {
+      DLOG("GPIO Error in open");
+      return false;
+    }
+
+    uv_mutex_init(&_this->mutex);
+
+    // Create edge detection thread
+    // When the GPIO pin is closed, thread is terminated.
+    if (uv_thread_create(&_this->thread, gpio_edge_detection_cb, (void*)gpio) <
+        0) {
+      DLOG("GPIO Error in uv_thread_create");
+    }
+    return false;
+  }
+
   return true;
 }
 
@@ -104,6 +234,9 @@ bool iotjs_gpio_close(iotjs_gpio_t* gpio) {
   char buff[GPIO_PIN_BUFFER_SIZE];
   snprintf(buff, GPIO_PIN_BUFFER_SIZE, "%d", _this->pin);
 
+  gpio_set_value_fd(gpio, -1);
+  close(_this->value_fd);
+
   return iotjs_systemio_open_write_close(GPIO_PIN_FORMAT_UNEXPORT, buff);
 }
 
@@ -128,13 +261,21 @@ void iotjs_gpio_open_worker(uv_work_t* work_req) {
     req_data->result = false;
     return;
   }
+
   // Set direction.
   if (!gpio_set_direction(_this->pin, _this->direction)) {
     req_data->result = false;
     return;
   }
+
   // Set mode.
   if (!gpio_set_mode(_this->pin, _this->mode)) {
+    req_data->result = false;
+    return;
+  }
+
+  // Set edge
+  if (!gpio_set_edge(gpio)) {
     req_data->result = false;
     return;
   }

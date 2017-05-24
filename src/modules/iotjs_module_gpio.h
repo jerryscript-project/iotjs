@@ -43,6 +43,14 @@ typedef enum {
 
 
 typedef enum {
+  kGpioEdgeNone = 0,
+  kGpioEdgeRising,
+  kGpioEdgeFalling,
+  kGpioEdgeBoth,
+} GpioEdge;
+
+
+typedef enum {
   kGpioOpOpen,
   kGpioOpWrite,
   kGpioOpRead,
@@ -63,7 +71,12 @@ typedef struct {
   uint32_t pin;
   GpioDirection direction;
   GpioMode mode;
-#if defined(__TIZENRT__)
+  GpioEdge edge;
+#if defined(__linux__)
+  int value_fd;
+  uv_thread_t thread;
+  uv_mutex_t mutex;
+#elif defined(__TIZENRT__)
   iotbus_gpio_context_h gpio_context;
 #endif
 } IOTJS_VALIDATED_STRUCT(iotjs_gpio_t);

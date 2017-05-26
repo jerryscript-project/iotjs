@@ -123,7 +123,11 @@ JHANDLER_FUNCTION(GetAddrInfo) {
 
   int family;
   if (option == 0) {
+#if defined(__NUTTX__) || defined(__TIZENRT__)
+    family = AF_INET;
+#else
     family = AF_UNSPEC;
+#endif
   } else if (option == 4) {
     family = AF_INET;
   } else if (option == 6) {

@@ -145,6 +145,7 @@ Socket.prototype.write = function(data, callback) {
 
 
 Socket.prototype._write = function(chunk, callback, afterWrite) {
+  assert(util.isBuffer(chunk));
   assert(util.isFunction(afterWrite));
 
   var self = this;

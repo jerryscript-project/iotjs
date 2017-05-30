@@ -1,10 +1,10 @@
 ### Overview
-IoT.js is built based on JerryScript(lightweight JavaScript engine) and libuv for asynchronous I/O event handling.
+IoT.js is built based on **JerryScript** (lightweight JavaScript engine) and **libtuv** for asynchronous I/O event handling.
 
 #### Source repositories
 * IoT.js: https://github.com/Samsung/iotjs.git
 * JerryScript: https://github.com/jerryscript-project/jerryscript.git
-* libuv: https://github.com/Samsung/libuv.git
+* libtuv: https://github.com/Samsung/libtuv.git
 
 ### Build script
 There is a script to help you build IoT.js called "[build.py](../../tools/build.py)" in source repository.
@@ -54,6 +54,7 @@ quiet=yes|no (default is yes)
 output-file
 skip-module
 output-coverage=yes|no (default is no)
+experimental=yes|no (default is no)
 ```
 
 To give options, please use two dashes '--' **once** before the option name as described in the following sections.
@@ -64,6 +65,7 @@ Options that may need explanations.
 * output-file: a file name where the driver leaves output.
 * skip-module: a module list to skip test of specific modules.
 * output-coverage: a flag that indicates wether coverage data should be written to disk
+* experimental: a flag that indicates if tests for experimental are needed
 
 ##### Options example
 
@@ -73,9 +75,10 @@ build/x86_64-linux/debug/bin/iotjs tools/check_test.js -- start-from=test_consol
 
 ##### To write a test case
 
-1. Write a test case inside test directory.
-2. List up a test case in **test/testsets.js**. (this procedure will be removed after ``fs.readDir[Sync]`` is implemented.)
-3. Set attributes on the test case if it needs in **attrs.js** where the directory of your test case belongs.
+Depend on the purpose of the test case (whether it's a positive or negative one), place it under `test/run_pass` or `test/run_fail` directory. The required external resources should be placed into `test/resources`.
+
+1. Write a test case and place it into the proper directory.
+2. List up the test case in [test/testsets.json](../../test/testsets.json), and set attributes (timeout, skip, ...) on the test case if it needs.
 
 #### Advanced Topics
 You can refer to [Writing new IoT.js builtin module](../devs/Writing-New-Builtin-Module.md) and [Optimization Tips](../devs/Optimization-Tips.md) pages for detailed information.

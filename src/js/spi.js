@@ -59,7 +59,7 @@ function spiBusOpen(configuration, callback) {
 
     // validate mode
     var mode = configuration.mode;
-    if (!util.isUndefined(mode)) {
+    if (mode !== undefined) {
       if (mode !== spi.MODE[0] && mode !== spi.MODE[1] &&
           mode !== spi.MODE[2] && mode !== spi.MODE[3]) {
         throw new TypeError(
@@ -71,7 +71,7 @@ function spiBusOpen(configuration, callback) {
 
     // validate chip-select
     var chipSelect = configuration.chipSelect;
-    if (!util.isUndefined(chipSelect)) {
+    if (chipSelect !== undefined) {
       if (chipSelect != spi.CHIPSELECT.NONE &&
           chipSelect != spi.CHIPSELECT.HIGH) {
         throw new TypeError(
@@ -82,7 +82,7 @@ function spiBusOpen(configuration, callback) {
     }
 
     // validate max speed
-    if (!util.isUndefined(configuration.maxSpeed)) {
+    if (configuration.maxSpeed !== undefined) {
       if (!util.isNumber(configuration.maxSpeed)) {
         throw new TypeError('Bad arguments - maxSpeed should be Number');
       }
@@ -92,7 +92,7 @@ function spiBusOpen(configuration, callback) {
 
     // validate bits per word
     var bitsPerWord = configuration.bitsPerWord;
-    if (!util.isUndefined(bitsPerWord)) {
+    if (bitsPerWord !== undefined) {
       if (bitsPerWord != 8 && bitsPerWord != 9) {
         throw new TypeError('Bad arguments - bitsPerWord should be 8 or 9');
       }
@@ -102,7 +102,7 @@ function spiBusOpen(configuration, callback) {
 
     // validate bit order
     var bitOrder = configuration.bitOrder;
-    if (!util.isUndefined(bitOrder)) {
+    if (bitOrder !== undefined) {
       if (bitOrder != spi.BITORDER.MSB && bitOrder != spi.BITORDER.LSB) {
         throw new TypeError(
           'Bad arguments - bitOrder should be BITORDER.MSB or LSB');
@@ -113,7 +113,7 @@ function spiBusOpen(configuration, callback) {
 
     // validate loopback
     var loopback = configuration.loopback;
-    if (!util.isUndefined(loopback)) {
+    if (loopback !== undefined) {
       if (!util.isBoolean(loopback)) {
         throw new TypeError('Bad arguments - loopback should be Boolean');
       }
@@ -141,7 +141,7 @@ function spiBusOpen(configuration, callback) {
       throw new Error('SPI bus is not opened');
     }
 
-    if (util.isUndefined(txBuffer.length) || util.isUndefined(rxBuffer.length)
+    if (txBuffer.length === undefined || rxBuffer.length === undefined
         || txBuffer.length <= 0 || rxBuffer.length <= 0
         || txBuffer.length != rxBuffer.length) {
       throw new Error('Bad arguments - buffer length');
@@ -170,7 +170,7 @@ function spiBusOpen(configuration, callback) {
       throw new Error('SPI bus is not opened');
     }
 
-    if (util.isUndefined(txBuffer.length) || util.isUndefined(rxBuffer.length)
+    if (txBuffer.length === undefined || rxBuffer.length === undefined
       || txBuffer.length <= 0 || rxBuffer.length <= 0
       || txBuffer.length != rxBuffer.length) {
       throw new Error('Bad arguments - buffer length');

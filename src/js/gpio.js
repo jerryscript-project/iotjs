@@ -57,7 +57,7 @@ function gpioPinOpen(configuration, callback) {
     }
 
     // validate direction
-    if (!util.isUndefined(configuration.direction)) {
+    if (configuration.direction !== undefined) {
       if (configuration.direction !== gpio.DIRECTION.IN &&
           configuration.direction !== gpio.DIRECTION.OUT) {
         throw new TypeError(
@@ -69,7 +69,7 @@ function gpioPinOpen(configuration, callback) {
 
     // validate mode
     var mode = configuration.mode;
-    if (process.platform === 'nuttx' && !util.isUndefined(mode)) {
+    if (process.platform === 'nuttx' && mode !== undefined) {
       if (configuration.direction === gpio.DIRECTION.IN) {
         if (mode !== gpio.MODE.NONE && mode !== gpio.MODE.PULLUP &&
             mode !== gpio.MODE.PULLDOWN) {
@@ -90,7 +90,7 @@ function gpioPinOpen(configuration, callback) {
 
     // validate edge
     var edge = configuration.edge;
-    if (!util.isUndefined(configuration.edge)) {
+    if (configuration.edge !== undefined) {
       if (edge !== gpio.EDGE.NONE && edge !== gpio.EDGE.RISING &&
           edge !== gpio.EDGE.FALLING && edge !== gpio.EDGE.BOTH) {
         throw new TypeError(

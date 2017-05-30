@@ -50,7 +50,7 @@ function Socket(options) {
     return new Socket(options);
   }
 
-  if (util.isUndefined(options)) {
+  if (options === undefined) {
     options = {};
   }
 

@@ -6,6 +6,8 @@
 /src/iotjs_js.c
 /src/iotjs_string_ext.inl.h
 /test/tmp/*
+node_modules
+npm-debug.log
 
 # IDE related files
 nbproject

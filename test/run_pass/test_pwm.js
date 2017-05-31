@@ -19,12 +19,17 @@ var Pwm = require('pwm');
 
 var pwm = new Pwm();
 
-var configuration = {};
+var configuration = {
+  period: 0.001,  // 1kHz
+  dutyCycle: 0.2  // 20%
+};
 
 if (process.platform === 'linux') {
   configuration.pin = 0;
 } else if (process.platform === 'nuttx') {
   configuration.pin = require('stm32f4dis').pin.PWM1.CH1_1;
+} else if (process.platform === 'tizenrt') {
+  configuration.pin = 0;
 } else {
   assert.fail();
 }

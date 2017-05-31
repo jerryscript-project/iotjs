@@ -13,13 +13,15 @@
  * limitations under the License.
  */
 
+var EventEmitter = require('events').EventEmitter;
 var gpio = process.binding(process.binding.gpio);
 var util = require('util');
 
 
 var defaultConfiguration = {
   direction: gpio.DIRECTION.OUT,
-  mode: gpio.MODE.NONE
+  mode: gpio.MODE.NONE,
+  edge: gpio.EDGE.NONE
 };
 
 
@@ -37,6 +39,7 @@ Gpio.prototype.DIRECTION = gpio.DIRECTION;
 
 Gpio.prototype.MODE = gpio.MODE;
 
+Gpio.prototype.EDGE = gpio.EDGE;
 
 function gpioPinOpen(configuration, callback) {
   var _binding = null;
@@ -85,9 +88,28 @@ function gpioPinOpen(configuration, callback) {
       configuration.mode = defaultConfiguration.mode;
     }
 
+    // validate edge
+    var edge = configuration.edge;
+    if (!util.isUndefined(configuration.edge)) {
+      if (edge !== gpio.EDGE.NONE && edge !== gpio.EDGE.RISING &&
+          edge !== gpio.EDGE.FALLING && edge !== gpio.EDGE.BOTH) {
+        throw new TypeError(
+          'Bad configuration - ' +
+          'edge should be EDGE.NONE, RISING, FALLING or BOTH');
+      }
+    } else {
+      configuration.edge = defaultConfiguration.edge;
+    }
+
+    EventEmitter.call(this);
+
     _binding = new gpio.Gpio(configuration, function(err) {
       util.isFunction(callback) && callback.call(self, err);
     });
+
+    _binding.onChange = function() {
+      self.emit('change');
+    };
 
     process.on('exit', (function(self) {
       return function() {
@@ -97,6 +119,8 @@ function gpioPinOpen(configuration, callback) {
       };
     })(this));
   }
+
+  util.inherits(GpioPin, EventEmitter);
 
   GpioPin.prototype.write = function(value, callback) {
     var self = this;

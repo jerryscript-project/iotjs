@@ -30,6 +30,9 @@ static iotjs_gpio_t* iotjs_gpio_create(const iotjs_jval_t* jgpio) {
   iotjs_gpio_t* gpio = IOTJS_ALLOC(iotjs_gpio_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_gpio_t, gpio);
   iotjs_jobjectwrap_initialize(&_this->jobjectwrap, jgpio, &gpio_native_info);
+#if defined(__linux__)
+  _this->value_fd = -1;
+#endif
   return gpio;
 }
 
@@ -217,6 +220,11 @@ static void gpio_set_configurable(iotjs_gpio_t* gpio,
       iotjs_jval_get_property(jconfigurable, IOTJS_MAGIC_STRING_MODE);
   _this->mode = (GpioMode)iotjs_jval_as_number(&jmode);
   iotjs_jval_destroy(&jmode);
+
+  iotjs_jval_t jedge =
+      iotjs_jval_get_property(jconfigurable, IOTJS_MAGIC_STRING_EDGE);
+  _this->edge = (GpioMode)iotjs_jval_as_number(&jedge);
+  iotjs_jval_destroy(&jedge);
 }
 
 
@@ -371,6 +379,18 @@ iotjs_jval_t InitGpio() {
   iotjs_jval_set_property_jval(&jgpio, IOTJS_MAGIC_STRING_MODE_U, &jmode);
   iotjs_jval_destroy(&jmode);
 
+  // GPIO edge properties
+  iotjs_jval_t jedge = iotjs_jval_create_object();
+  iotjs_jval_set_property_number(&jedge, IOTJS_MAGIC_STRING_NONE,
+                                 kGpioEdgeNone);
+  iotjs_jval_set_property_number(&jedge, IOTJS_MAGIC_STRING_RISING_U,
+                                 kGpioEdgeRising);
+  iotjs_jval_set_property_number(&jedge, IOTJS_MAGIC_STRING_FALLING_U,
+                                 kGpioEdgeFalling);
+  iotjs_jval_set_property_number(&jedge, IOTJS_MAGIC_STRING_BOTH_U,
+                                 kGpioEdgeBoth);
+  iotjs_jval_set_property_jval(&jgpio, IOTJS_MAGIC_STRING_EDGE_U, &jedge);
+  iotjs_jval_destroy(&jedge);
 
   return jgpio;
 }

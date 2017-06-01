@@ -77,6 +77,11 @@ build/x86_64-linux/debug/bin/iotjs tools/check_test.js -- start-from=test_consol
 
 Depend on the purpose of the test case (whether it's a positive or negative one), place it under `test/run_pass` or `test/run_fail` directory. The required external resources should be placed into `test/resources`.
 
+All test case files must be named in the following form `test_<module name>[_<functionallity].js` where `<module name>`
+should match one of the JS modules name in the IoT.js. If there is a test case which can not tied to a
+module (like some js features) then the `iotjs` name can be used as module name. It is important to
+correctly specify the module name as the test executor relies on that information.
+
 1. Write a test case and place it into the proper directory.
 2. List up the test case in [test/testsets.json](../../test/testsets.json), and set attributes (timeout, skip, ...) on the test case if it needs.
 

@@ -19,37 +19,7 @@ The following shows Buffer module APIs available for each platform.
 | buf.readUInt16LE | O | O | O |
 
 
-### Contents
-
-- [Class: Buffer](#class-buffer)
-    - [Constructor](#constructor)
-        - [`new Buffer(size)`](#new-buffersize)
-        - [`new Buffer(buffer)`](#new-bufferbuffer)
-        - [`new Buffer(str[, encoding]))`](#new-bufferstr-encoding)
-        - [`new Buffer(array)`](#new-bufferarray)
-    - [Class Functions](#class-functions)
-        - [`Buffer.byteLength(str[, encoding])`](#bufferbytelengthstr-encoding)
-        - [`Buffer.concat(list)`](#bufferconcatlist)
-        - [`Buffer.isBuffer(value)`](#bufferisbuffervalue)
-    - [Properties](#properties)
-        - [`buf.length`](#buflength)
-    - [Prototype Functions](#prototype-functions)
-        - [`buf.compare(otherBuffer)`](#bufcompareotherbuffer)
-        - [`buf.copy(targetBuffer[,targetStart[,sourceStart[,sourceEnd]]])`](#bufcopytargetbuffertargetstartsourcestartsourceend)
-        - [`buf.equals(otherBuffer)`](#bufequalsotherbuffer)
-        - [`buf.fill(value)`](#buffillvalue)
-        - [`buf.slice([start[,end]])`](#bufslicestartend)
-        - [`buf.toString([start[,end]])`](#buftostringstartend)
-        - [`buf.write(string[,offset[,length]])`](#bufwritestringoffsetlength)
-        - [`buf.writeUInt8(value, offset[, noAssert])`](#bufwriteuint8value-offset-noassert)
-        - [`buf.writeUInt16LE(value, offset[, noAssert])`](#bufwriteuint16levalue-offset-noassert)
-        - [`buf.writeUInt32LE(value, offset[, noAssert])`](#bufwriteuint32levalue-offset-noassert)
-        - [`buf.readInt8(offset[, noAssert])`](#bufreadint8offset-noassert)
-        - [`buf.readUInt8(offset[, noAssert])`](#bufreaduint8offset-noassert)
-        - [`buf.readUInt16LE(offset[, noAssert])`](#bufreaduint16leoffset-noassert)
-
-
-# Class: Buffer
+# Buffer
 
 Buffer class is a global type with various constructors and accessors.
 
@@ -57,11 +27,26 @@ IoT.js provides Buffer to manipulate binary data. Currently buffer has
 a pure ES5 compatible implementation, but this might be reworked to use
 UInt8Array in the future.
 
-## Constructor
+Examples:
+
+```js
+var Buffer = require('buffer');
+
+// Creates a zero-filled Buffer of length 10.
+var buf1 = Buffer(10);
+
+// Creates a Buffer containing [0x1, 0x2, 0x3].
+var buf2 = Buffer([1, 2, 3]);
+
+// Creates a Buffer containing UTF-8 bytes [0x74, 0xc3, 0xa9, 0x73, 0x74].
+var buf3 = Buffer('tést');
+```
+
+## Class: Buffer
 
 
-### `new Buffer(size)`
-* `size <Integer>` - size of the new buffer
+### new Buffer(size)
+* `size` {integer} Size of the new buffer.
 
 Creates a new buffer of `size` bytes and initialize its data to zero.
 
@@ -73,8 +58,8 @@ var Buffer = require('buffer');
 var buffer = new Buffer(5);
 ```
 
-### `new Buffer(buffer)`
-* `buffer <Buffer>` - source buffer
+### new Buffer(buffer)
+* `buffer` {Buffer} Source buffer.
 
 Creates a copy of an existing buffer. The buffer data is not shared
 between the two buffers.
@@ -89,9 +74,9 @@ var buffer2 = new Buffer(buffer1);
 ```
 
 
-### `new Buffer(str[, encoding]))`
-* `str <String>` - source string
-* `encoding <String>` - encoding format
+### new Buffer(str[, encoding])
+* `str` {string} Source string.
+* `encoding` {string} Encoding format.
 
 Creates a new buffer which contains the CESU-8 representation of
 the `str` string argument. If `encoding` optional argument is
@@ -105,19 +90,29 @@ and these pairs are converted to bytes.
 var Buffer = require('buffer');
 
 var buffer = new Buffer(String.fromCharCode(65))
-console.log(buffer); // prints 1
+
+// prints: 1
+console.log(buffer);
+
 var buffer = new Buffer(String.fromCharCode(128))
-console.log(buffer); // prints 2
+
+// prints: 2
+console.log(buffer);
+
 var buffer = new Buffer(String.fromCharCode(2048))
-console.log(buffer); // prints 3
+
+// prints: 3
+console.log(buffer);
 
 var buffer = new Buffer('4142', 'hex')
-console.log(buffer); // prints AB
+
+// prints: AB
+console.log(buffer);
 ```
 
 
-### `new Buffer(array)`
-* `array <Array>` - array of numbers
+### new Buffer(array)
+* `array` {Array} Array of numbers.
 
 Creates a new Buffer from an array of numbers. The
 numbers are converted to integers first and their modulo
@@ -127,21 +122,24 @@ numbers are converted to integers first and their modulo
 
 ```js
 var buffer = new Buffer([65, 256 + 65, 65 - 256, 65.1])
-console.log(buffer); // prints AAAA
+
+// prints: AAAA
+console.log(buffer);
 ```
 
 
-## Class Functions
+## Class Methods
 
 
-### `Buffer.byteLength(str[, encoding])`
-* `str <String>` - source string
-* `encoding <String>` - string encoding
-* Returns: `<Integer>` - byte length of source string
+### Class Method: Buffer.byteLength(str, encoding)
+
+* `str` {string} Source string.
+* `encoding` {string} String encoding.
+* Returns: {integer} Byte length of source string.
 
 Returns the byte length of a buffer representing the value
-of the `string` argument encoded with `encoding`. The
-effect is the same as:
+of the string argument encoded with encoding. The effect is
+the same as:
 
 ```js
 return new Buffer(str, encoding).length;
@@ -152,23 +150,23 @@ return new Buffer(str, encoding).length;
 ```js
 var Buffer = require('buffer');
 
-// prints 1
+// prints: 1
 console.log(Buffer.byteLength(String.fromCharCode(65)));
 
-// prints 2
+// prints: 2
 console.log(Buffer.byteLength(String.fromCharCode(128)));
 
-// prints 3
+// prints: 3
 console.log(Buffer.byteLength(String.fromCharCode(2048)));
 
-// prints 2
+// prints: 2
 console.log(Buffer.byteLength('4142', 'hex'));
 ```
 
 
-### `Buffer.concat(list)`
-* `list <Array>` - an array of `Buffer` objects
-* Returns: `<Buffer>` - concatenated buffer
+### Class Method: Buffer.concat(list)
+* `list` {Array} An array of `Buffer` objects.
+* Returns: {Buffer} Concatenated buffer.
 
 Returns the concatenation of the `Buffer` objects
 provided in the `list` array.
@@ -182,16 +180,17 @@ var buffer = Buffer.concat([ new Buffer('He'),
                              new Buffer('llo'),
                              new Buffer(' wo'),
                              new Buffer('rld') ])
-// prints Hello world
+
+// prints: Hello world
 console.log(buffer);
 ```
 
 
-### `Buffer.isBuffer(value)`
-* `value <any>`
-* Returns: `<Boolean>`
+### Class Method: Buffer.isBuffer(obj)
+* `obj` {Object}
+* Returns: {boolean}
 
-Returns `true` if `value` is an instance of `Buffer`. Returns
+Returns `true` if `obj` is an instance of `Buffer`. Returns
 `false` otherwise.
 
 **Example**
@@ -199,16 +198,19 @@ Returns `true` if `value` is an instance of `Buffer`. Returns
 ```js
 var Buffer = require('buffer');
 
-console.log(Buffer.isBuffer(new Buffer(1))); // prints true
-console.log(Buffer.isBuffer('str')); // prints false
+// prints: true
+console.log(Buffer.isBuffer(new Buffer(1)));
+
+// prints: false
+console.log(Buffer.isBuffer('str'));
 ```
 
 
 ## Properties
 
 
-### `buf.length`
-* `<Integer>` - length of the buffer
+### buf.length
+* {integer}
 
 Returns the capacity of the buffer in bytes. Note: when
 the buffer is converted to another type (e.g. String) the
@@ -221,19 +223,23 @@ this value.
 var Buffer = require('buffer');
 
 var buffer = new Buffer([0xc8, 0x80])
-console.log(buffer.length); // prints 2
+
+// prints: 2
+console.log(buffer.length);
 
 var str = buffer.toString();
-console.log(str.length); // prints 1
+
+// prints: 1
+console.log(str.length);
 ```
 
 
-## Prototype Functions
+## Prototype Methods
 
 
-### `buf.compare(otherBuffer)`
-* `otherBuffer <Buffer>` - the right-hand side of the comparison
-* Returns: `<Integer>`
+### buf.compare(otherBuffer)
+* `otherBuffer` {Buffer} The right-hand side of the comparison.
+* Returns: {integer}
 
 This function performs a lexicographic comparison between
 two buffers.
@@ -255,18 +261,23 @@ var buffer1 = new Buffer('AB');
 var buffer2 = new Buffer('A');
 var buffer3 = new Buffer('B');
 
-console.log(buffer1.compare(buffer1)); // prints 0
-console.log(buffer1.compare(buffer2)); // prints 1
-console.log(buffer1.compare(buffer3)); // prints -1
+// prints: 0
+console.log(buffer1.compare(buffer1));
+
+// prints: 1
+console.log(buffer1.compare(buffer2));
+
+// prints: -1
+console.log(buffer1.compare(buffer3));
 ```
 
 
-### `buf.copy(targetBuffer[,targetStart[,sourceStart[,sourceEnd]]])`
-* `targetBuffer <Buffer>` - modified buffer
-* `targetStart <Integer>` Default: `0`
-* `sourceStart <Integer>` Default: `0`
-* `sourceEnd <Integer>` Default: `buf.length`
-* Returns: `<Integer>` - the number of bytes copied.
+### buf.copy(targetBuffer[, targetStart[, sourceStart[, sourceEnd]]])
+* `targetBuffer` {Buffer} The buffer to be modified.
+* `targetStart` {Integer} **Default:** `0`
+* `sourceStart` {integer} **Default:** `0`
+* `sourceEnd` {integer} **Default:** `buf.length`
+* Returns: {integer} The number of bytes copied.
 
 Copy a sequence of bytes from `buf` buffer to `targetBuffer` buffer.
 The source byte range is specified by `sourceStart` and `sourceEnd`
@@ -283,13 +294,14 @@ var buffer2 = new Buffer('<JS>');
 
 buffer2.copy(buffer1, 6, 1, 3);
 
-console.log(buffer1); // prints Hello JS world!
+// prints: Hello JS world!
+console.log(buffer1);
 ```
 
 
-### `buf.equals(otherBuffer)`
-* `otherBuffer <Buffer>` - the right-hand side of the comparison
-* Returns: `<Boolean>`
+### buf.equals(otherBuffer)
+* `otherBuffer` {Buffer} The right-hand side of the comparison.
+* Returns: {boolean}
 
 Returns `true` if `this` and `otherBuffer` have exactly the
 same bytes. Returns `false` otherwise. The effect is the same as:
@@ -307,14 +319,17 @@ var buffer1 = new Buffer('AB');
 var buffer2 = new Buffer('4142', 'hex');
 var buffer3 = new Buffer('A');
 
-console.log(buffer1.equals(buffer2)); // prints true
-console.log(buffer1.equals(buffer3)); // prints false
+// prints: true
+console.log(buffer1.equals(buffer2));
+
+// prints: false
+console.log(buffer1.equals(buffer3));
 ```
 
 
-### `buf.fill(value)`
-* `value <Integer>` - all bytes are set to this value
-* Returns: `<Buffer>` - the original buffer
+### buf.fill(value)
+* `value` {integer} All bytes are set to this value.
+* Returns: {Buffer} The original buffer.
 
 Set all bytes of the buffer to value. The value is converted to
 integer first and its modulo 256 remainder is used for updating
@@ -328,16 +343,21 @@ var Buffer = require('buffer');
 var buffer = new Buffer('Hello');
 
 buffer.fill(65);
-console.log(buffer); // prints AAAAA
+
+// prints: AAAAA
+console.log(buffer);
+
 buffer.fill(66 - 256);
-console.log(buffer); // prints BBBBB
+
+// prints: BBBBB
+console.log(buffer);
 ```
 
 
-### `buf.slice([start[,end]])`
-* `start <Integer>` Default: `0`
-* `end <Integer>` Default: `buf.length`
-* Returns: `<Buffer>` - a newly created buffer
+### buf.slice([start[, end]])
+* `start` {integer} **Default:** `0`
+* `end` {integer} **Default:** `buf.length`
+* Returns: {Buffer} A newly created buffer.
 
 This function returns with a newly created buffer which
 contains the bytes of the `buf` buffer between `start`
@@ -350,14 +370,15 @@ var Buffer = require('buffer');
 
 var buffer = new Buffer('This is JavaScript!!!');
 
-console.log(buffer.slice(8, 18)); // prints JavaScript
+// prints: JavaScript
+console.log(buffer.slice(8, 18));
 ```
 
 
-### `buf.toString([start[,end]])`
-* `start <Integer>` Default: `0`
-* `end <Integer>` Default: `buffer.length`
-* Returns: `<String>`
+### buf.toString([start[, end]])
+* `start` {integer} **Default:** `0`
+* `end` {integer} **Default:** `buffer.length`
+* Returns: {string}
 
 Returns a string created from the bytes stored in the buffer.
 By passing `start` and `end` the conversion can be limited
@@ -370,18 +391,21 @@ hexadecimal data.
 ```js
 var Buffer = require('buffer');
 
-var buffer = new Buffer("DEFG");
+var buffer = new Buffer('DEFG');
 
-console.log(buffer.toString(1, 3)); // prints EF
-console.log(buffer.toString('hex')); // prints 44454647
+// prints: EF
+console.log(buffer.toString(1, 3));
+
+// prints: 44454647
+console.log(buffer.toString('hex'));
 ```
 
 
-### `buf.write(string[,offset[,length]])`
-* `string <String>` - data to be written to buffer
-* `offset <Integer>` - start position of buffer for writing. Default: `0`
-* `length <Integer>` Default: `buffer.length - offset` - maximum length to be written.
-* Returns: `<Integer>` - total number of bytes written.
+### buf.write(string[, offset[, length]])
+* `string` {string} Data to be written into buffer.
+* `offset` {integer} Start position of writing. **Default:** `0`
+* `length` {integer} How many bytes to write. **Default:** `buffer.length - offset`.
+* Returns: {integer} Total number of bytes written.
 
 Writes `string` into the `buf` buffer. The start position of the
 writing can be specified by `offset` and the maximum number of
@@ -393,136 +417,171 @@ of bytes written to the buffer.
 ```js
 var Buffer = require('buffer');
 
-var buffer = new Buffer("......");
-buffer.write("AB");
-buffer.write("XY", 3);
+var buffer = new Buffer('......');
+buffer.write('AB');
+buffer.write('XY', 3);
 
-console.log(buffer); // prints AB.XY.
+// prints: AB.XY.
+console.log(buffer);
 
-var buffer = new Buffer("......");
-buffer.write("ABCDEF", 1, 3);
+var buffer = new Buffer('......');
+buffer.write('ABCDEF', 1, 3);
 
-console.log(buffer); // prints .ABC..
+// prints: .ABC..
+console.log(buffer);
 ```
 
 
-### `buf.writeUInt8(value, offset[, noAssert])`
-* `value <Integer>` - number to be written into the buffer
-* `offset <Integer>` - start position of the writing
-* `noAssert <Boolean>` Default: `false` - skip argument validation
-* Returns: `<Number>` offset plus the number of bytes written.
+### buf.writeUInt8(value, offset[, noAssert])
+* `value` {integer} Number to be written into the buffer.
+* `offset' {integer} Start position of the writing.
+* `noAssert` {boolean} Skip argument validation. **Default:** `false`
+* Returns: {number} Offset plus the number of bytes written.
 
 Writes `value` into the buffer starting from `offset` position.
 The `value` must be a valid 8-bit unsigned integer.
+
+If `noAssert` is set and the value is outside of the expected range
+or the offset is higher than the size of the buffer the operation
+is undefined.
 
 **Example**
 
 ```js
 var Buffer = require('buffer');
 
-var buffer = new Buffer("....");
+var buffer = new Buffer('....');
 
-console.log(buffer.writeUInt8(65, 2)); // prints 3
-console.log(buffer); // prints ..A.
+// prints: 3
+console.log(buffer.writeUInt8(65, 2));
+
+// prints: ..A.
+console.log(buffer);
 ```
 
 
-### `buf.writeUInt16LE(value, offset[, noAssert])`
-* `value <Integer>` - number to be written into the buffer
-* `offset <Integer>` - start position of the writing
-* `noAssert <Boolean>` Default: `false` - skip argument validation.
-* Returns: `<Integer>` - offset plus the number of bytes written
+### buf.writeUInt16LE(value, offset[, noAssert])
+* `value` {integer} Number to be written into the buffer.
+* `offset` {integer} Start position of the writing.
+* `noAssert` {boolean} Skip argument validation. **Default:** `false`
+* Returns: {integer} Offset plus the number of bytes written.
 
 Writes `value` into the buffer starting from `offset` position
 with little endian format. The `value` must be a valid 16-bit
 unsigned integer.
 
+If `noAssert` is set and the value is outside of the expected range
+or the offset is higher than the size of the buffer the operation
+is undefined.
+
 **Example**
 
 ```js
 var Buffer = require('buffer');
 
-var buffer = new Buffer("......");
+var buffer = new Buffer('......');
 
-print(buffer.wrrteUInt16LE(0x4142, 1)); // prints 3
-print(buffer); // prints .BA...
+// prints: 3
+console.log(buffer.writeUInt16LE(0x4142, 1));
+
+// prints .BA...
+console.log(buffer);
 ```
 
 
-### `buf.writeUInt32LE(value, offset[, noAssert])`
-* `value <Integer>` - number to be written into the buffer
-* `offset <Integer>` - start position of the writing
-* `noAssert <Boolean>` Default: `false` - skip argument validation
-* Returns: `<Integer>` - offset plus the number of bytes written
+### buf.writeUInt32LE(value, offset[, noAssert])
+* `value` {integer} Number to be written into the buffer.
+* `offset` {integer} Start position of the writing.
+* `noAssert` {boolean} Skip argument validation. **Default:** `false`
+* Returns: {integer} Offset plus the number of bytes written.
 
 Writes `value` into the buffer starting from `offset` position
 with little endian format. The `value` must be a valid 32-bit
 unsigned integer.
 
+If `noAssert` is set and the value is outside of the expected range
+or the offset is higher than the size of the buffer the operation
+is undefined.
+
 **Example**
 
 ```js
 var Buffer = require('buffer');
 
-var buffer = new Buffer("......");
+var buffer = new Buffer('......');
 
-print(buffer.wrrteUInt32LE(0x41424344, 1)); // prints 5
-print(buffer); // prints .DCBA.
+// prints: 5
+console.log(buffer.writeUInt32LE(0x41424344, 1));
+
+// prints: .DCBA.
+console.log(buffer);
 ```
 
 
-### `buf.readInt8(offset[, noAssert])`
-* `offset <Number>` - start position of buffer for reading.
-* `noAssert <Boolean>` Default: `false` - skip offset validation.
-* Returns: `<Number>`
+### buf.readInt8(offset[, noAssert])
+* `offset` {number} Start position of buffer for reading.
+* `noAssert` {boolean} Skip offset validation. **Default:** `false`
+* Returns: {number}
 
 Reads a signed 8-bit integer from `buf` buffer starting from
 `offset` position.
 
+If `noAssert` is set and the offset is higher than the size of
+the buffer the result is undefined.
+
 **Example**
 
 ```js
 var Buffer = require('buffer');
 
-var buffer = new Buffer("ABCDEF");
+var buffer = new Buffer('ABCDEF');
 
-print(buffer.readUInt8(1).toString(16)); // prints 42
+// prints: 42
+console.log(buffer.readUInt8(1).toString(16));
 ```
 
 
-### `buf.readUInt8(offset[, noAssert])`
-* `offset <Integer>` - start position of the reading
-* `noAssert <Boolean>` Default: `false` - skip argument validation
-* Returns: `<Number>`
+### buf.readUInt8(offset[, noAssert])
+* `offset` {integer} Start position of the reading.
+* `noAssert` {boolean} Skip argument validation. **Default:** `false`
+* Returns: {number}
 
 Reads an unsigned 8-bit integer from `buf` buffer starting from
 `offset` position.
 
+If `noAssert` is set and the offset is higher than the size of
+the buffer the result is undefined.
+
 **Example**
 
 ```js
 var Buffer = require('buffer');
 
-var buffer = new Buffer("ABCDEF");
+var buffer = new Buffer('ABCDEF');
 
-print(buffer.readUInt8(1).toString(16)); // prints 42
+// prints: 42
+console.log(buffer.readUInt8(1).toString(16));
 ```
 
 
-### `buf.readUInt16LE(offset[, noAssert])`
-* `offset <Number>` - start position of buffer for reading.
-* `noAssert <Boolean>` Default: `false` - skip offset validation.
-* Returns: `<Number>`
+### buf.readUInt16LE(offset[, noAssert])
+* `offset` {number} Start position of buffer for reading.
+* `noAssert` {boolean} Skip offset validation. **Default:** `false`
+* Returns: {number}
 
 Reads an unsigned 16-bit integer from `buf` buffer starting from
 `offset` position with little endian format.
 
+If `noAssert` is set and the offset is higher than the size of
+the buffer the result is undefined.
+
 **Example**
 
 ```js
 var Buffer = require('buffer');
 
-var buffer = new Buffer("ABCDEF");
+var buffer = new Buffer('ABCDEF');
 
-print(buffer.readUInt16LE(1).toString(16)); // prints 4342
+// prints: 4342
+console.log(buffer.readUInt16LE(1).toString(16));
 ```

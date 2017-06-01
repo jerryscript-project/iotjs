@@ -11,84 +11,222 @@ The following shows process module APIs available for each platform.
 
 ※ On nuttx, you should pass absolute path to `process.chdir`.
 
-`process` is unique global object can be accessed from anywhere.
-
-### Contents
-
-- [Process](#process)
-    - [Properites](#properites)
-        - [`'arch'`](#arch)
-        - [`'argv'`](#argv)
-        - [`'board'`](#board)
-        - [`'env'`](#env)
-        - [`'platform'`](#platform)
-    - [Module Functions](#module-functions)
-        - [`process.chdir(path)`](#processchdirpath)
-        - [`process.cwd()`](#processcwd)
-        - [`process.exit(code)`](#processexitcode)
-        - [`process.nextTick(callback)`](#processnexttickcallback)
-    - [Events](#events)
-        - [`'exit'`](#exit)
-        - [`'uncaughtException'`](#uncaughtexception)
-
 # Process
 
-The process object is a global that provides information about, and control over, the current IoT.js process. As a global, it is always available to IoT.js applications without using require().
+The `process` object is a global that provides information about, and control over, the current IoT.js process.
+As a global, it is always available to IoT.js applications without using `require()`.
 
-## Properites
+### `process.arch`
+* {string}
 
-### `'arch'`
+The `arch` proeprty returns the processor architercture identifier that the IoT.js process is currently running on.
+For instance `'arm'`, `'ia32'`, `'x64'`, or `'unknown'`.
 
-Target Arch, one of (`arm`|`ia32`|`x64`|`unknown`)
+### `process.argv`
+* {Array}
 
-### `'argv'`
+The `argv` property returns an array containing the command line arguments passed when the IoT.js
+process was launched. The first element is the path to the IoT.js program.
+The second element is the path of the JavaScript file currently being executed.
+The remaining elements will be any additional arguments passed via command line.
 
-Argument vector to be passed to IoT.js
+**Example**
 
+To print out all command line arguments the following example could be used:
 
-### `'board'`
+```js
+process.argv.forEach(function(val, idx) {
+  console.log('index: ' + idx + ' value: ' + val);
+});
+```
 
-Target Board, one of (`STM32F4DIS`|`RP2`|`unknown`)
+### `process.env`
+* {Object}
 
-### `'env'`
+The `env` property returns an object containing a few environment variables.
+The following environment elements can be accessed:
+* `HOME`
+* `NODE_PATH` which is set to `/mnt/srdcard` on NuttX by default.
+* `env` contains `'experimental'` if the IoT.js was build with experimental support.
 
-Environment object holding `HOME` and `NODE_PATH`. On NuttX `NODE_PATH` is `/mnt/sdcard` in default.
+**Example**
 
-### `'platform'`
+```js
+console.log('HOME: ' + process.env.HOME);
+// prints: HOME: /home/user
+```
 
-Target Platform, one of (`linux`|`nuttx`|`darwin`|`unknown`)
+### `process.exitCode`
+* {integer} Default: `0`
 
-## Module Functions
+The `exitCode` property can be used to specify the exit code of the IoT.js process.
+This will be used when the process exits gracefully, or exited via `process.exit()` without specifying an exit code.
+
+Specifying an exit code for the `process.exit()` call will override any previous setting of `process.exitCode`.
+
+### `process.iotjs`
+* {Object}
+
+The `iotjs` property holds IoT.js related information in an object.
+The following keys can be accessed via this property:
+* `board` specifies the device type on which the IoT.js is running currently. For instance `'STM32F4DIS'`, `'RP2'`, or `'unknown'`.
+
+**Example**
+
+```js
+console.log(process.iotjs.board);
+// on Raspberry 2 it prints: RP2
+```
+
+### `process.platform`
+* {string}
+
+The `platform` returns the identification of the operating system the IoT.js process
+is currently running on. For instance `'linux'`, `'darwin'`, `'nuttx'`, `'tizenrt'`, or `'unknown'`.
+
 
 ### `process.chdir(path)`
-* `path <String>`
+* `path` {string} The path to change working directory to.
 
-Changes current working directory to `path`.
+The `chdir` method changes the current working directory of the IoT.js process or
+throes an exception if the operaion fails (for instance the `path` specified does not exist).
+
+**Example**
+
+```js
+try {
+  process.chdir('/invalid/path');
+} catch(err) {
+  console.log('invalid path');
+}
+// prints: invalid path
+```
 
 ### `process.cwd()`
+* Returns: {string}
 
-Returns current working directory.
+The `cwd()` call returns the current working directory of the IoT.js process.
 
-### `process.exit(code)`
-* `code <Number>` - exitCode
+**Example**
 
-Exits executing process with code.
+```js
+console.log('Current dir: ' + process.cwd());
+```
+
+### `process.exit([code])`
+* `code` {integer} The exit code. Default is `0`
+
+The `exit()` method instructs the IoT.js to terminate the process synchronously with an exit status of `code`.
+If `code` is not specified, exit uses the `process.exitCode` value which defaults to `0`.
+IoT.js will not exit till all `'exit'` event listeners are called.
+
+The `process.exit()` method call will force the process to exit as quickly as possible,
+ignoring if there is any asynchronous operations still pending.
+
+In most situations, it is not necessary to explcitly call `process.exit()`. The IoT.js will exit on its own
+if there is no additional work pending in the event loop. The `process.exitCode` property can be set
+to exit code when the process exits gracefully.
+
+If it is necessary to terminate the IoT.js process due to an error condition, throwing an
+uncaught error and allowing the process to terminate accordingly is advised instead of calling `process.exit()`.
+
+**Example**
+
+To exit with a failure code:
+
+```js
+process.exit(1);
+```
+The shell that executed the IoT.js should see the returned exit code as `1`.
+
+To set the exit code on graceful exit:
+
+```js
+doSomeWork()
+process.exitCode = 1;
+```
 
 ### `process.nextTick(callback)`
-* `callback <Function()>`
+* `callback` {Function}
 
-After current event loop finished, calls the `callback` function. The next tick callback will be called before any I/O events.
+The `nextTick` method adds the `callback` method to the "next tick queue".
+Once the current turn of the event loop is completed, all callbacks currently in the next tick queue will be called.
 
-## Events
+This is not a simple alias to `setTimeout` call. It runs before any additional I/O events.
 
-### `'exit'`
-* `callback <Function(code)>`
-* `code <Number>` - exitCode
+**Example**
+```js
+console.log('step 1');
+process.nextTick(function() {
+  console.log('step 2');
+});
+console.log('step 3');
+// prints:
+// step 1
+// step 3
+// step 2
+```
 
-Emitted when IoT.js process is about to exit.
+### Event: `'exit'`
+* `callback` {Function}
+  * `code` {integer}  exitCode
 
-### `'uncaughtException'`
-* `callback <Function(err)>`
-* `err <Error>` - error object uncaught by catch handler
+The `'exit'` event is emitted when the IoT.js process is about to exit.
+This can happen two ways:
+* The `process.exit()` method was called explicitly;
+* The IoT.js event loop does not have any additional work to perform.
 
-Emitted there's no catch handler for exception.
+There is no way to prevent the exiting, and once all `'exit'` listeners have finished
+running the process will terminate.
+
+The listener callback function is invoked with the exit code specified either by the
+`process.exitCode` property, or the `exitCode` argument passed to the `process.exit()` method.
+
+Listener functions *must* only perform *synchronous* operations. The IoT.js process will exit
+immediately after calling the `'exit'` event listeners causing any additional work still queued
+to be abandoned.
+
+**Example**
+
+```js
+process.on('exit', function(code) {
+  console.log('exited with: ' + code);
+});
+```
+
+### Event: `'uncaughtException'`
+* `callback` {Function}
+  * `err` {Error} error object uncaught by catch handler
+
+The `'uncaughtException'` event is emitted when an uncaught JavaScript exception bubbles all the
+way back to the event loop. By default, IoT.js handles such exceptions by printing it to `stderr` and exiting.
+Adding a handler for the `'uncaughtException'` event overrides the default behavior.
+
+The listener function is called with the `Error` obect passed as the only argument.
+
+**Warning: Using the `'uncaughtException'` event correctly**
+
+This event is a crude mechanism for exception handling intended to be used only as a last resort.
+The event should not be used as an eqivalent to 'On Error Resume Next'. Unhandled exceptions inherently mean
+that a program is in an unknown state. Thus attempting to resume the application code withtout properly
+recovering from the exception can cause unforeseen/unpredictable issues.
+
+Only one exception thrown within the event handler will be caught and will immediately terminate the application.
+
+The correct use of the event is to perform synchronous cleanup of allocated resources (e.g. file descriptors, handles, etc)
+before shutting down the process. **It is not safe to resume normal operation after this event**.
+
+To restart a crashed application in a more reliable way, whether uncaughtException is emitted or not,
+an external monitoring application should be employed in a separate process to detect application failures and
+recover or restart as needed.
+
+**Example**
+
+```js
+process.on('uncaughtException', function(err) {
+  console.log('Something went wrong: ' + err);
+});
+
+nonExistentFunctionCall();
+console.log('This will not be printed.');
+```

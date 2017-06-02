@@ -49,3 +49,23 @@ assert.throws(
   },
   Error
 );
+
+// test the position argument of fs.read()
+fs.open(fileName, flags, function(err, fd) {
+  if (err) {
+    throw err;
+  }
+  var buffer = new Buffer(64);
+  fs.read(fd, buffer, 0, 7, null, function(err, bytesRead, buffer) {
+    if (err) {
+      throw err;
+    }
+    fs.read(fd, buffer, 7, 7, null, function(err, bytesRead, buffer) {
+      if (err) {
+        throw err;
+      }
+      assert.equal(buffer.toString(), expectedContents);
+      fs.closeSync(fd);
+    });
+  });
+});

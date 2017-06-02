@@ -96,10 +96,10 @@ Opens file synchronously.
 * `buffer <Buffer>` - buffer that the data will be written to.
 * `offset <Number>` - offset of the buffer where to start writing.
 * `length <Number>` - number of bytes to read.
-* `position <Number>` - specifying where to start read data from the file, if `null`, read from current position.
+* `position <Number>` - specifying where to start read data from the file, if `null` or `undefined`, read from current position.
 * `callback <Function(err: null | Error, bytesRead: Number, buffer: Buffer)>`
 
-Reads data from the file specified by fd asynchronously.
+Reads data from the file specified by `fd` asynchronously.
 
 **Example**
 
@@ -124,9 +124,20 @@ fs.open('test.txt', 'r', 755, function(err, fd) {
 * `buffer <Buffer>` - buffer that the data will be written to.
 * `offset <Number>` - offset of the buffer where to start writing.
 * `length <Number>` - number of bytes to read.
-* `position <Number>` - specifying where to start read data from the file, if `null`, read from current position.
+* `position <Number>` - specifying where to start read data from the file, if `null` or `undefined`, read from current position.
+* Returns: `<Number>` Number of bytes read.
 
-Reads data from the file specified by fd synchronously.
+Reads data from the file specified by `fd` synchronously.
+
+**Example**
+
+```js
+var fs = require('fs');
+
+var buffer = new Buffer(16);
+var fd = fs.openSync('test.txt', 'r');
+var bytesRead = fs.readSync(fd, buffer, 0, buffer.length, 0);
+```
 
 
 ### `fs.readFile(path[, options], callback)`

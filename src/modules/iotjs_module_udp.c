@@ -149,7 +149,7 @@ JHANDLER_FUNCTION(Bind) {
   IOTJS_ASSERT(iotjs_jval_is_boolean(&reuse_addr) ||
                iotjs_jval_is_undefined(&reuse_addr));
 
-  bool flags = false;
+  unsigned int flags = 0;
   if (!iotjs_jval_is_undefined(&reuse_addr)) {
     flags = iotjs_jval_as_boolean(&reuse_addr) ? UV_UDP_REUSEADDR : 0;
   }
@@ -160,7 +160,7 @@ JHANDLER_FUNCTION(Bind) {
 
   if (err == 0) {
     err = uv_udp_bind(iotjs_udpwrap_udp_handle(udp_wrap),
-                      (const sockaddr*)(&addr), (flags ? 1 : 0));
+                      (const sockaddr*)(&addr), flags);
   }
 
   iotjs_jhandler_return_number(jhandler, err);

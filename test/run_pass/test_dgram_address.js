@@ -18,8 +18,8 @@ var dgram = require('dgram');
 
 var port = 41236;
 var msg = 'Hello IoT.js';
-var client = dgram.createSocket('udp4');
-var server = dgram.createSocket('udp4');
+var client = dgram.createSocket({ type: 'udp4', reuseAddr: true });
+var server = dgram.createSocket({ type: 'udp4', reuseAddr: true });
 var server_address, server_port, client_address, client_port;
 
 server.on('error', function(err) {

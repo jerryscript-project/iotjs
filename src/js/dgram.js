@@ -93,7 +93,7 @@ function startListening(socket) {
 }
 
 
-Socket.prototype.bind = function(port /*, address, callback*/) {
+Socket.prototype.bind = function(port, address, callback) {
   var self = this;
 
   self._healthCheck();
@@ -103,16 +103,23 @@ Socket.prototype.bind = function(port /*, address, callback*/) {
 
   this._bindState = BIND_STATE_BINDING;
 
-  if (util.isFunction(arguments[arguments.length - 1]))
-    self.once('listening', arguments[arguments.length - 1]);
-
   var address;
-  if (util.isObject(port)) {
+
+  if (util.isFunction(port)) {
+    callback = port;
+    port = 0;
+    address = '';
+  } else if (util.isObject(port)) {
+    callback = address;
     address = port.address || '';
     port = port.port;
-  } else {
-    address = util.isFunction(arguments[1]) ? '' : arguments[1];
+  } else if (util.isFunction(address)) {
+    callback = address;
+    address = '';
   }
+
+  if (util.isFunction(callback))
+    self.once('listening', callback);
 
   // defaulting address for bind to all interfaces
   if (!address && self._handle.lookup === lookup4) {
@@ -132,7 +139,7 @@ Socket.prototype.bind = function(port /*, address, callback*/) {
 
     self._handle._reuseAddr = self._reuseAddr;
 
-    var err = self._handle.bind(ip, port || 0);
+    var err = self._handle.bind(ip, port | 0);
     if (err) {
       var ex = util.exceptionWithHostPort(err, 'bind', ip, port);
       self.emit('error', ex);
@@ -236,7 +243,7 @@ Socket.prototype.send = function(buffer, offset, length, port, address,
   if (!util.isArray(buffer)) {
     if (util.isString(buffer)) {
       list = [ new Buffer(buffer) ];
-    } else if (!(buffer instanceof Buffer)) {
+    } else if (!util.isBuffer(buffer)) {
       throw new TypeError('First argument must be a buffer or a string');
     } else {
       list = [ buffer ];
@@ -246,6 +253,7 @@ Socket.prototype.send = function(buffer, offset, length, port, address,
   }
 
   port = port >>> 0;
+
   if (port === 0 || port > 65535)
     throw new RangeError('Port should be > 0 and < 65536');
 
@@ -448,13 +456,20 @@ function onMessage(nread, handle, buf, rinfo) {
 }
 
 
+/*
+TODO: Implement Socket.prototype.ref.
+
 Socket.prototype.ref = function() {
   if (this._handle)
     this._handle.ref();
 
   return this;
 };
+*/
 
+
+/*
+TODO: Implement Socket.prototype.unref.
 
 Socket.prototype.unref = function() {
   if (this._handle)
@@ -462,3 +477,4 @@ Socket.prototype.unref = function() {
 
   return this;
 };
+*/

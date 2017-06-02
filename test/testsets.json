@@ -20,6 +20,8 @@
     { "name": "test_events_uncaught_error.js", "uncaught": true },
     { "name": "test_fs_exists.js", "skip": ["nuttx"], "reason": "not implemented for nuttx" },
     { "name": "test_fs_exists_sync.js", "skip": ["nuttx"], "reason": "not implemented for nuttx" },
+    { "name": "test_fs_fstat.js", "skip": ["nuttx"], "reason": "not implemented for nuttx" },
+    { "name": "test_fs_fstat_sync.js", "skip": ["nuttx"], "reason": "not implemented for nuttx" },
     { "name": "test_fs_mkdir_rmdir.js", "skip": ["nuttx"], "reason": "not implemented for nuttx" },
     { "name": "test_fs_open_close.js", "skip": ["nuttx"], "reason": "not implemented for nuttx" },
     { "name": "test_fs_readdir.js", "skip": ["nuttx"], "reason": "not implemented for nuttx" },

@@ -297,7 +297,9 @@ function close(socket) {
     socket.emit('close');
   };
 
-  socket._handle.close();
+  var handle = socket._handle;
+  socket._handle = null;
+  handle.close();
 
   if (socket._server) {
     var server = socket._server;

@@ -38,6 +38,7 @@
     { "name": "test_fs_open_read.js", "skip": ["nuttx"], "reason": "not implemented for nuttx" },
     { "name": "test_fs_open_read_sync_1.js", "skip": ["nuttx"], "reason": "not implemented for nuttx" },
     { "name": "test_fs_open_read_sync_2.js", "skip": ["nuttx"], "reason": "not implemented for nuttx" },
+    { "name": "test_fs_open_read_sync_3.js", "skip": ["nuttx"], "reason": "not implemented for nuttx" },
     { "name": "test_gpio_input.js", "skip": ["all"], "reason": "needs hardware" },
     { "name": "test_gpio_output.js", "skip": ["all"], "reason": "need user input"},
     { "name": "test_i2c.js", "skip": ["all"], "reason": "need to setup test environment" },

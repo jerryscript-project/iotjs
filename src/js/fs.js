@@ -128,6 +128,10 @@ fs.openSync = function(path, flags, mode) {
 
 
 fs.read = function(fd, buffer, offset, length, position, callback) {
+  if (util.isNullOrUndefined(position)) {
+    position = -1; // Read from the current position.
+  }
+
   callback = checkArgFunction(callback, 'callback');
 
   var cb = function(err, bytesRead) {
@@ -145,8 +149,9 @@ fs.read = function(fd, buffer, offset, length, position, callback) {
 
 fs.readSync = function(fd, buffer, offset, length, position) {
   if (util.isNullOrUndefined(position)) {
-    position = -1;
+    position = -1; // Read from the current position.
   }
+
   return fsBuiltin.read(checkArgNumber(fd, 'fd'),
                         checkArgBuffer(buffer, 'buffer'),
                         checkArgNumber(offset, 'offset'),

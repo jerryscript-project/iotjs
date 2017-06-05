@@ -51,7 +51,6 @@
     { "name": "test_net_8.js" },
     { "name": "test_net_9.js" },
     { "name": "test_net_10.js" },
-    { "name": "test_net_11.js" },
     { "name": "test_net_headers.js", "skip": ["nuttx"], "reason": "not implemented for nuttx" },
     { "name": "test_net_http_get.js", "timeout": 20, "skip": ["nuttx"], "reason": "not implemented for nuttx" },
     { "name": "test_net_http_response_twice.js", "timeout": 10, "skip": ["nuttx"], "reason": "not implemented for nuttx" },

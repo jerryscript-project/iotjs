@@ -101,6 +101,7 @@ static void AfterAsync(uv_fs_t* req) {
         iotjs_jval_destroy(&ret);
         break;
       }
+      case UV_FS_FSTAT:
       case UV_FS_STAT: {
         uv_stat_t s = (req->statbuf);
         iotjs_jval_t ret = MakeStatObject(&s);
@@ -137,6 +138,7 @@ static void AfterSync(uv_fs_t* req, int err, const char* syscall_name,
       case UV_FS_WRITE:
         iotjs_jhandler_return_number(jhandler, err);
         break;
+      case UV_FS_FSTAT:
       case UV_FS_STAT: {
         uv_stat_t* s = &(req->statbuf);
         iotjs_jval_t stat = MakeStatObject(s);
@@ -381,6 +383,24 @@ JHANDLER_FUNCTION(Stat) {
 }
 
 
+JHANDLER_FUNCTION(Fstat) {
+  JHANDLER_CHECK_THIS(object);
+  JHANDLER_CHECK_ARGS(1, number);
+  JHANDLER_CHECK_ARG_IF_EXIST(1, function);
+
+  const iotjs_environment_t* env = iotjs_environment_get();
+
+  int fd = JHANDLER_GET_ARG(0, number);
+  const iotjs_jval_t* jcallback = JHANDLER_GET_ARG_IF_EXIST(1, function);
+
+  if (jcallback) {
+    FS_ASYNC(env, fstat, jcallback, fd);
+  } else {
+    FS_SYNC(env, fstat, fd);
+  }
+}
+
+
 JHANDLER_FUNCTION(MkDir) {
   JHANDLER_CHECK_THIS(object);
   JHANDLER_CHECK_ARGS(2, string, number);
@@ -492,6 +512,7 @@ iotjs_jval_t InitFs() {
   iotjs_jval_set_method(&fs, IOTJS_MAGIC_STRING_READ, Read);
   iotjs_jval_set_method(&fs, IOTJS_MAGIC_STRING_WRITE, Write);
   iotjs_jval_set_method(&fs, IOTJS_MAGIC_STRING_STAT, Stat);
+  iotjs_jval_set_method(&fs, IOTJS_MAGIC_STRING_FSTAT, Fstat);
   iotjs_jval_set_method(&fs, IOTJS_MAGIC_STRING_MKDIR, MkDir);
   iotjs_jval_set_method(&fs, IOTJS_MAGIC_STRING_RMDIR, RmDir);
   iotjs_jval_set_method(&fs, IOTJS_MAGIC_STRING_UNLINK, Unlink);

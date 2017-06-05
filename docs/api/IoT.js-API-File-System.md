@@ -18,8 +18,8 @@ The following shows fs module APIs available for each platform.
 | fs.renameSync | O | O | O |
 | fs.stat | O | O | O |
 | fs.statSync | O | O | O |
-| fs.fstat | O | O | O |
-| fs.fstatSync | O | O | O |
+| fs.fstat | O | O | X |
+| fs.fstatSync | O | O | X |
 | fs.write | O | O | O |
 | fs.writeSync | O | O | O |
 | fs.writeFile | O | O | O |
@@ -194,11 +194,52 @@ Renames `oldPath` to `newPath` synchronously.
 * `fd <Integer>` - file descriptor to be stated
 * `callback <Function(err: null | Error, stat: Object)>`
 
+Get information about a file what specified by `fd` into `stat` asynchronously.
+
+**Example**
+
+```js
+var assert = require('assert');
+var fs = require('fs');
+
+fs.open('test.txt', 'r', function(err, fd) {
+  if (err) {
+    throw err;
+  }
+  fs.fstat(fd, function(err, stat) {
+    if (err) {
+      throw err;
+    }
+    assert.equal(stat.isFile(), true);
+    assert.equal(stat.isDirectory(), false);
+  });
+});
+```
+
 
 ### `fs.fstatSync(fd)`
 * `fd <Integer>` - file descriptor to be stated
+* Returns: `<Object>` An instance of `fs.Stats`.
 
- 
+Get information about a file what specified by `fd` synchronously.
+
+**Example**
+
+```js
+var assert = require('assert');
+var fs = require('fs');
+
+fs.open('test.txt', 'r', function(err, fd) {
+  if (err) {
+    throw err;
+  }
+  var stat = fs.fstatSync(fd);
+  assert.equal(stat.isFile(), true);
+  assert.equal(stat.isDirectory(), false);
+});
+```
+
+
 ### `fs.write(fd, buffer, offset, length, position, callback)`
 * `fd <Integer>` - file descriptor.
 * `buffer <Buffer>` - buffer that the data will be written from.

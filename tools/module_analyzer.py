@@ -47,16 +47,6 @@ def resolve_modules(options):
     include_modules |= options.iotjs_include_module
 
     if not options.iotjs_minimal_profile:
-        # In case of normal build (not minimal profile):
-        # Check if there is any overlap between the included and excluded
-        # module sets which are from the build config
-        problem_modules = build_modules_includes & build_modules_excludes
-        if problem_modules:
-            print('Detected module(s) both in include and exclude list.',
-                  end=' ')
-            print('Module name(s): %s' % ', '.join(problem_modules))
-            ex.fail('Inconsistency in build config file!')
-
         # Add the include set from the build config to
         # the target include modules set
         include_modules |= build_modules_includes
@@ -67,19 +57,13 @@ def resolve_modules(options):
         ex.fail('Cannot exclude modules which are always enabled: %s' %
                 ', '.join(impossible_to_exclude))
 
-    # Remove any excluded modules (defined by the command line argument) from
-    # the target include set
-    include_modules -= options.iotjs_exclude_module
-
     # Finally build up the excluded module set:
     #  - use the command line exclude set
     #  - use the exclude set from the build config
     exclude_modules = options.iotjs_exclude_module | build_modules_excludes
-    # Remove the included modules set from the excluded modules
-    exclude_modules -= include_modules
 
-    assert len(include_modules & exclude_modules) == 0, \
-        'Module can NOT be both in include and exclude list'
+    # Remove the excluded modules from the included modules set
+    include_modules -= exclude_modules
 
     return include_modules, exclude_modules
 

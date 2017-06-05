@@ -647,7 +647,7 @@ exports.createServer = function(options, callback) {
 };
 
 
-// net.connect(options[, connectListenr])
+// net.connect(options[, connectListener])
 // net.connect(port[, host][, connectListener])
 exports.connect = exports.createConnection = function() {
   var args = normalizeConnectArgs(arguments);

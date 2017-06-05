@@ -1,4 +1,3 @@
-<a id="markdown-platform-support" name="platform-support"></a>
 ### Platform Support
 
 The following shows net module APIs available for each platform.
@@ -22,305 +21,841 @@ The following shows net module APIs available for each platform.
 ※ When writable stream is finished but readable stream is still alive, IoT.js tries to shutdown the socket, not destroy.
 However on `nuttx` due to lack of implementation, it does nothing inside.
 
-### Contents
-
-- [Net](#net)
-    - [Module Functions](#module-functions)
-        - [`net.connect(options[, connectListener])`](#netconnectoptions-connectlistener)
-        - [`net.connect(port[, host][, connectListener])`](#netconnectport-host-connectlistener)
-        - [`net.createConnection(options[, connectListener])`](#netcreateconnectionoptions-connectlistener)
-        - [`net.createConnection(port[, host][, connectListener])`](#netcreateconnectionport-host-connectlistener)
-        - [net.createServer([options][, connectionListener])](#netcreateserveroptions-connectionlistener)
-- [Class: net.Server](#class-netserver)
-    - [Prototype Funtions](#prototype-funtions)
-        - [`server.close([closeListener])`](#serverclosecloselistener)
-        - [`server.listen(port[, host][, backlog][, listenListener])`](#serverlistenport-host-backlog-listenlistener)
-        - [`server.listen(options[, listenListener])`](#serverlistenoptions-listenlistener)
-    - [Events](#events)
-        - [`'close'`](#close)
-        - [`'connection(socket)'`](#connectionsocket)
-        - [`'error'`](#error)
-        - [`'listening'`](#listening)
-- [Class: net.Socket](#class-netsocket)
-    - [Constructor](#constructor)
-        - [new net.Socket([options])](#new-netsocketoptions)
-    - [Prototype Functions](#prototype-functions)
-        - [`socket.connect(options[, connectListener])`](#socketconnectoptions-connectlistener)
-        - [`socket.connect(port[, host][, connectListener])`](#socketconnectport-host-connectlistener)
-        - [`socket.destroy()`](#socketdestroy)
-        - [`socket.end([data][, callback])`](#socketenddata-callback)
-        - [`socket.pause()`](#socketpause)
-        - [`socket.resume()`](#socketresume)
-        - [`socket.setKeepAlive([enable][, initialDelay])`](#socketsetkeepaliveenable-initialdelay)
-        - [`socket.setTimeout(timeout[, callback])`](#socketsettimeouttimeout-callback)
-        - [`socket.write(data[, callback])`](#socketwritedata-callback)
-    - [Events](#events-1)
-        - [`'connect'`](#connect)
-        - [`'close'`](#close-1)
-        - [`'data'`](#data)
-        - [`'drain'`](#drain)
-        - [`'end'`](#end)
-        - [`'error'`](#error-1)
-        - [`'lookup'`](#lookup)
-        - [`'timeout'`](#timeout)
-
-<a id="markdown-net" name="net"></a>
 # Net
 
 IoT.js provides asynchronous networking through Net module. You can use this module with `require('net')` and create both servers and clients.
 
-<a id="markdown-module-functions" name="module-functions"></a>
-## Module Functions
+### net.connect(options[, connectListener])
+* `options` {Object} An object which specifies the connection options.
+* `connectListener` {Function} Listener for the `'connect'` event.
+* Returns {net.Socket}.
 
-<a id="markdown-netconnectoptions-connectlistener" name="netconnectoptions-connectlistener"></a>
-### `net.connect(options[, connectListener])`
-<a id="markdown-netconnectport-host-connectlistener" name="netconnectport-host-connectlistener"></a>
-### `net.connect(port[, host][, connectListener])`
-<a id="markdown-netcreateconnectionoptions-connectlistener" name="netcreateconnectionoptions-connectlistener"></a>
-### `net.createConnection(options[, connectListener])`
-<a id="markdown-netcreateconnectionport-host-connectlistener" name="netcreateconnectionport-host-connectlistener"></a>
-### `net.createConnection(port[, host][, connectListener])`
-* `options <Object>`
-* `port <Number>`
-* `host <String>` Default: 'localhost'
-* `connectListener <Function()>`
+Creates a new `net.Socket` and automatically connects with the supplied `options`.
+The `options` object specifying following information:
+* `port` {number} Port connect to (required).
+* `host` {string}  Host connect to (optional,  **Default:** `localhost`).
+* `family` {number} Version of IP stack.
 
-Creates a `net.Socket` and connects to the supplied host.
+The options are passed to both the `net.Socket` constructor and the `socket.connect` method.
+The `connectListener` is automatically registered as `'connect'` event listener.
 
+**Example**
+
+```js
+
+var net = require('net');
+
+var port = 22702;
+
+var echo_msg = '';
+
+var socket = net.connect({port: port, family: 4}, function() {
+  socket.end('Hello IoT.js');
+});
+
+socket.on('data', function(data) {
+  echo_msg += data;
+});
+
+socket.on('end', function() {
+  console.log(echo_msg);
+});
+
+```
+
+### net.connect(port[, host][, connectListener])
+* `port` {number} Port the client should connect to.
+* `host` {string} Host the client should connect to. **Default:** `localhost`.
+* `connectListener` {Function} Listener for the `'connect'` event.
+* Returns {net.Socket}.
+
+Creates a new `net.Socket` and automatically connects to the supplied `port` and `host`.
+If host is omitted, `localhost` will be assumed.
+The `connectListener` is automatically registered as `'connect'` event listener.
+
+**Example**
+
+```js
+
+var net = require('net');
+
+var port = 22702;
+var host = '127.0.0.1';
+var echo_msg = '';
+
+var socket = net.connect(port, host, function() {
+  socket.end('Hello IoT.js');
+});
+
+socket.on('data', function(data) {
+  echo_msg += data;
+});
+
+socket.on('end', function() {
+  console.log(echo_msg);
+});
+
+```
+
+### net.createConnection(options[, connectListener])
+* `options` {Object} An object which specifies the connection options.
+* `connectListener` {Function} Listener for the `'connect'` event.
+* Returns {net.Socket}.
+
+Creates a new `net.Socket` and automatically connects with the supplied `options`.
+The options are passed to both the `net.Socket` constructor and the `socket.connect` method.
+The options object specifying following information:
+* `port` {number} Port connect to (required).
+* `host` {string}  Host connect to (optional,  **Default:** `localhost`)
+* `family` {number} Version of IP stack.
+
+
+The `connectionListener` is automatically registered as `'connect'` event listener.
+
+**Example**
+
+```js
+
+var net = require('net');
+
+var port = 80;
+
+var echo_msg = '';
+
+var socket = net.createConnection({port: port, family: 4}, function() {
+  socket.end('Hello IoT.js');
+});
+
+socket.on('data', function(data) {
+  echo_msg += data;
+});
+
+socket.on('end', function() {
+  console.log(echo_msg);
+});
+
+```
+
+### net.createConnection(port[, host][, connectListener])
+* `port` {number} Port the client should connect to.
+* `host` {string} Host the client should connect to. **Default:** `localhost`.
+* `connectListener` {Function} Listener for the `'connect'` event.
+* Returns {net.Socket}.
+
+
+Creates a new `net.Socket` and automatically connects to the supplied `port` and `host`.
 It is equivalent to `new net.Socket()` followed by `socket.connect()`.
+If host is omitted, `localhost` will be assumed.
+The `connectionListener` is automatically registered as `'connect'` event listener.
 
-<a id="markdown-netcreateserveroptions-connectionlistener" name="netcreateserveroptions-connectionlistener"></a>
-### `net.createServer([options][, connectionListener])`
-* `options <Object>`
-* `connectionListener <Function(connection: net.Socket)>`
+**Example**
+
+```js
+
+var net = require('net');
+
+var port = 22702;
+var host = '127.0.0.1';
+var echo_msg = '';
+
+var socket = net.createConnection(port, host, function() {
+  socket.end('Hello IoT.js');
+});
+
+socket.on('data', function(data) {
+  echo_msg += data;
+});
+
+socket.on('end', function() {
+  console.log(echo_msg);
+});
+
+```
+
+### net.createServer([options][, connectionListener])
+* `options` {Object} An object which specifies the connection options **Default:** `{ allowHalfOpen: false }`.
+* `connectListener` {Function} Listener for the `'connection'` event.
+* Returns {net.Server}.
 
 Creates a TCP server according to `options`.
+The `connectionListener` is automatically registered as `'connection'` event listener.
+If `allowHalfOpen` is true, then the socket becomes non-readable, but still writable. You should call the `socket.end()` method explicitly.
 
-`connectionListener` is automatically registered as `connection` event listener.
+**Example**
 
+```js
 
-<a id="markdown-class-netserver" name="class-netserver"></a>
-# Class: net.Server
+var net = require('net');
+
+var port = 22702;
+
+var server = net.createServer(
+  {
+    allowHalfOpen: true
+  },
+  function(socket) {
+    server.close();
+  }
+);
+
+server.listen(port);
+
+server.on('connection', function(socket) {
+  var msg = '';
+  socket.on('data', function(data) {
+    msg += data;
+  });
+  socket.on('end', function() {
+    socket.end(msg);
+  });
+});
+
+```
+
+## Class: net.Server
 
 This class is used to create a TCP or local server. You can create `net.Server` instance with `net.createServer()`.
 
-<a id="markdown-prototype-funtions" name="prototype-funtions"></a>
-## Prototype Funtions
-
-<a id="markdown-serverclosecloselistener" name="serverclosecloselistener"></a>
-### `server.close([closeListener])`
-* `closeListener <Function()>`
+### server.close([closeListener])
+* `closeListener` {Function} Listener for the `'close'` event.
 
 Stops listening new arriving connection.
+Server socket will finally close when all existing connections are closed, then emit `'close'` event.
+`closeListener` is registered as `'close'` event listener.
 
-Server socket will finally close when all existing connections are closed, then emit 'close' event.
+**Example**
 
-`closeListener` is registered as `close` event listener.
+```js
 
-<a id="markdown-serverlistenport-host-backlog-listenlistener" name="serverlistenport-host-backlog-listenlistener"></a>
-### `server.listen(port[, host][, backlog][, listenListener])`
-<a id="markdown-serverlistenoptions-listenlistener" name="serverlistenoptions-listenlistener"></a>
-### `server.listen(options[, listenListener])`
-* `port <Number>`
-* `host <String>`
-* `backlog <Number>`
-* `listenListener <Function()>`
+var net = require('net');
 
-Starts listening and accepting connections on specified port and host.
+var server = net.createServer();
+var port = 22704;
+var timeout = 1000;
 
-<a id="markdown-events" name="events"></a>
-## Events
+server.listen(port);
 
-<a id="markdown-close" name="close"></a>
-### `'close'`
-* `callback <Function()>`
+/* ... */
+
+server.close();
+
+```
+
+### server.listen(port[, host][, backlog][, listenListener])
+* `port` {number} Port the client should connect to.
+* `host` {string} Host the client should connect to.
+* `backlog` {number} The maximum length of the queue of pending connections. **Default:** `511`.
+* `listenListener` {Function} Listener for the `'listening'` event.
+
+Begin accepting connections on the specified port and hostname.
+If the hostname is omitted, the server will accept connections on  any IPv4 address (0.0.0.0).
+
+**Example**
+
+```js
+
+var net = require('net');
+
+var server = net.createServer();
+var port = 22709;
+
+server.listen(port);
+
+```
+
+
+### server.listen(options[, listenListener])
+* options {Object} An object which specifies the connection options.
+* `listenListener` {Function}  Listener for the `'listening'` event.
+
+It behaves as the [`server.listen(port[, host][, backlog][, listenListener])`](#serverlistenport-host-backlog-listenlistener) function.
+
+The option object supports the following properties:
+* `port` {number} Port the client should connect to.
+* `host` {string} Host the client should connect to.
+* `backlog` {number} The maximum length of the queue of pending connections. **Default:** `511`.
+
+**Example**
+
+```js
+
+var net = require('net');
+
+var server = net.createServer();
+
+server.listen({port: 80, host: 'localhost'});
+
+```
+
+### Event: 'close'
+* `callback` {Function}
 
 Emitted when server closed.
 
 Note that this event will be emitted after all existing connections are closed.
 
+**Example**
 
-<a id="markdown-connectionsocket" name="connectionsocket"></a>
-### `'connection(socket)'`
-* `callback <Function(socket)>`
-* `socket <net.Socket>`
+```js
+
+var net = require('net');
+
+var serverCloseEvent = 0;
+var server = net.createServer();
+var port = 80;
+
+server.listen(port);
+
+server.on('connection', function(socket) {
+  server.on('close', function() {
+    serverCloseEvent++;
+  });
+});
+
+```
+
+### Event: 'connection(socket)'
+* `callback` {Function}
+  * `socket` {Net.Socket}
 
 Emitted when new connection is established.
 
-<a id="markdown-error" name="error"></a>
-### `'error'`
-* `callback <Function()>`
+**Example**
+
+```js
+
+var net = require('net');
+
+var server = net.createServer();
+var port = 80;
+
+server.listen(port);
+
+server.on('connection', function(socket) {
+  var msg = '';
+  socket.on('data', function(data) {
+    msg += data;
+  });
+
+});
+
+```
+
+### Event: 'error'
+* `callback` {Function}
 
 Emitted when an error occurs.
 
+**Example**
 
-<a id="markdown-listening" name="listening"></a>
-### `'listening'`
-* `callback <Function()>`
+```js
+
+var assert = require('assert');
+var net = require('net');
+
+var port = 80;
+var msg = 'Hello IoT.js';
+var server = net.createServer();
+
+/* ... */
+
+server.on('error', function() {
+  assert.fail();
+  server.close();
+});
+
+```
+
+### Event: 'listening'
+* `callback` {Function}
 
 Emitted when server has been started listening.
 
+**Example**
 
+```js
 
+var net = require('net');
 
+var port = 80;
 
-<a id="markdown-class-netsocket" name="class-netsocket"></a>
-# Class: net.Socket
+var server = net.createServer(
+  {
+    allowHalfOpen: true
+  },
+  function(socket) {
+    server.close();
+  }
+);
+
+server.listen(port);
+
+server.on('listening', function() {
+    console.log('started listening');
+});
+
+```
+
+## Class: net.Socket
 
 This object is an abstraction of a TCP or local socket. net.Socket inherits [`Stream.Duplex`](IoT.js-API-Stream.md). They can be created by the user and used as a client (with connect()) or they can be created by IoT.js and passed to the user through the 'connection' event of a server.
 
-<a id="markdown-constructor" name="constructor"></a>
-## Constructor
-<a id="markdown-new-netsocketoptions" name="new-netsocketoptions"></a>
-### `new net.Socket([options])`
-* `options <Object>`
+### new net.Socket([options])
+* `options` {Object} An optional object which specifies socket information.
+* Returns {net.Socket}.
 
-Creates a new socket object.
+Construct a new socket object.
+The `options` object specifying only the following information: `allowHalfOpen` {boolean}.
 
-`options` is an object specifying following information:
-* `allowHalfOpen <Boolean>`
+**Example**
 
+```js
 
-<a id="markdown-prototype-functions" name="prototype-functions"></a>
-## Prototype Functions
+var net = require('net');
 
-<a id="markdown-socketconnectoptions-connectlistener" name="socketconnectoptions-connectlistener"></a>
-### `socket.connect(options[, connectListener])`
-<a id="markdown-socketconnectport-host-connectlistener" name="socketconnectport-host-connectlistener"></a>
-### `socket.connect(port[, host][, connectListener])`
-* `options <Object>`
-* `port <Number>`
-* `host <String>` Default: 'localhost'
+var socket = new net.Socket();
 
-Opens the connection with supplied port and host.
+```
 
-`options` is an object specifying following information:
-* `port <Number>` - port connect to (required)
-* `host <String>` - host connect to (optional, default: `'127.0.0.1'`)
+### socket.connect(options[, connectListener])
+* `options` {Object} An object which specifies connection information.
+* `connectListener` {Function} Listener for the `'connect'` event.
+* Returns {net.Socket}.
 
-`connectionListener` is automatically registered as `connect` event listener which will be emitted when the connection is established.
+Creates a new socket object and automatically connects with the supplied `options`.
 
-<a id="markdown-socketdestroy" name="socketdestroy"></a>
-### `socket.destroy()`
+The `options` object specifying following information:
+* `port` {number} Port connect to (required).
+* `host` {string}  Host connect to (optional,  **Default:** `localhost`).
+* `family` {number} Version of IP stack.
 
-Destroys the socket.
+The `connectionListener` is automatically registered as `'connect'` event listener which will be emitted when the connection is established.
 
+**Example**
 
-<a id="markdown-socketenddata-callback" name="socketenddata-callback"></a>
-### `socket.end([data][, callback])`
+```js
 
-* `data <String> | <Buffer>`
-* `callback <Function()>`
+var net = require('net');
 
-Half-closes the socket.
+var port = 22702;
 
+var socket = new net.Socket();
+
+socket.connect({port: port, family: 4}, function() {
+  socket.end('Hello IoT.js');
+});
+
+```
+
+### socket.connect(port[, host][, connectListener])
+* `port` {number} Port the client should connect to.
+* `host` {string} Host the client should connect to. **Default:** `localhost`.
+* `connectListener` {Function} Listener for the `'connect'` event.
+* Returns {net.Socket}.
+
+Creates a new socket and automatically connects with the supplied `port` and `host`.
+
+`connectionListener` is automatically registered as `'connect'` event listener which will be emitted when the connection is established.
+
+**Example**
+
+```js
+
+var net = require('net');
+
+var port = 80;
+
+var socket = new net.Socket();
+
+socket.connect(port, '127.0.0.1', function() {
+  socket.end('Hello IoT.js');
+});
+
+```
+
+### socket.destroy()
+
+Ensures that no more I/O activity happens on this socket and destroys the socket as soon as possible.
+
+**Example**
+```js
+
+var net = require('net');
+
+var port = 80;
+
+var socket = new net.Socket();
+
+socket.connect(port, '127.0.0.1', function() {
+  socket.end('Hello IoT.js');
+});
+
+/* ... */
+
+socket.destroy();
+
+```
+
+### socket.end([data][, callback])
+
+* `data` {string} | {Buffer}
+* `callback` {Function}
+
+Half-closes the socket. The socket is no longer writable.
 If `data` is given it is equivalent to `socket.write(data)` followed by `socket.end()`.
 
-* `data <String> | <Buffer>`
+**Example**
+```js
 
+var net = require('net');
 
-<a id="markdown-socketpause" name="socketpause"></a>
-### `socket.pause()`
+var server = net.createServer();
+var port = 4010;
+
+server.listen(port);
+
+server.on('connection', function(socket) {
+  socket.on('data', function(data) {
+    socket.end('Hello IoT.js');
+  });
+});
+
+```
+
+### socket.pause()
 
 Pauses reading data.
 
+**Example**
+```js
 
-<a id="markdown-socketresume" name="socketresume"></a>
-### `socket.resume()`
+var net = require('net');
+
+var server = net.createServer();
+var port = 4010;
+
+server.listen(port);
+
+server.on('connection', function(socket) {
+
+  // as soon as connection established, pause the socket
+  socket.pause();
+});
+
+```
+
+### socket.resume()
 
 Resumes reading data after a call to `pause()`.
 
+**Example**
+```js
 
-<a id="markdown-socketsetkeepaliveenable-initialdelay" name="socketsetkeepaliveenable-initialdelay"></a>
-### `socket.setKeepAlive([enable][, initialDelay])`
+var net = require('net');
+var timers = require('timers');
 
-* `enable <Boolean>`
-* `initialDelay <Number>` Default: '0'
+var server = net.createServer();
+var port = 80;
+
+var socket = new net.Socket();
+var msg = "";
+
+/* ... */
+
+server.listen(port);
+
+server.on('connection', function(socket) {
+  socket.on('data', function(data) {
+    msg += data;
+    socket.end();
+  });
+  socket.on('close', function() {
+    server.close();
+  });
+
+  // as soon as connection established, pause the socket
+  socket.pause();
+
+  // resume after 2 secs
+  timers.setTimeout(function() {
+    socket.resume();
+  }, 2000);
+});
+
+```
+
+### socket.setKeepAlive([enable][, initialDelay])
+
+* `enable` {boolean}  **Default:** `false`.
+* `initialDelay {number} **Default:** `0`.
 
 Enables or disables keep-alive functionality.
 
+**Example**
+```js
 
-<a id="markdown-socketsettimeouttimeout-callback" name="socketsettimeouttimeout-callback"></a>
-### `socket.setTimeout(timeout[, callback])`
-* `timeout <Number>`
-* `callback <Function()>`
+var net = require('net');
+
+var keepalive_sock = new net.Socket();
+
+keepalive_sock.setKeepAlive(true, 1000);
+
+```
+
+### socket.setTimeout(timeout[, callback])
+* `timeout` {number} Timeout number.
+* `callback` {Function} Registered as `'timeout'` event listener.
 
 Sets timeout for the socket.
 
 If the socket is inactive for `timeout` milliseconds, `'timeout'` event will emit.
 
-`callback` is registered as `timeout` event listener.
+**Example**
+```js
 
+var net = require('net');
 
-<a id="markdown-socketwritedata-callback" name="socketwritedata-callback"></a>
-### `socket.write(data[, callback])`
-* `data <String> | <Buffer>`
-* `callback <Function()>`
+var server = net.createServer();
+var port = 40;
+var timeout = 2000;
+var msg = '';
+
+server.listen(port);
+
+server.on('connection', function(socket) {
+  socket.setTimeout(timeout, function() {
+    socket.end();
+  });
+});
+
+```
+
+### socket.write(data[, callback])
+* `data` {string} | {Buffer} Data to write.
+* `callback` {Function} Executed function (when the data is finally written out).
 
 Sends `data` on the socket.
 
-`callback` function will be called after given data is flushed through the connection.
+The optional `callback` function will be called after given data is flushed through the connection.
 
+**Example**
+```js
 
-<a id="markdown-events-1" name="events-1"></a>
-## Events
+var net = require('net');
+var timers = require('timers');
 
+var writeat = 1000;
 
-<a id="markdown-connect" name="connect"></a>
-### `'connect'`
-* `callback <Function()>`
+var socket = new net.Socket();
+
+/* ... */
+
+socket.on('connect', function() {
+  timers.setTimeout(function() {
+    socket.write('Hello IoT.js');
+  }, writeat);
+});
+
+```
+
+### Event: 'connect'
+* `callback` {Function}
 
 Emitted after connection is established.
 
+**Example**
+```js
 
-<a id="markdown-close-1" name="close-1"></a>
-### `'close'`
-* `callback <Function()>`
+var net = require('net');
+
+var port = 80;
+
+var count = 40;
+
+/* ... */
+
+for (var i = 0; i < count; ++i) {
+  (function(i) {
+    var socket = new net.Socket();
+
+    socket.connect(port, "localhost");
+    socket.on('connect', function() {
+      socket.end(i.toString());
+    });
+
+    /* ... */
+
+  })(i);
+}
+
+```
+
+### Event: 'close'
+* `callback` {Function}
 
 Emitted when the socket closed.
 
+**Example**
+```js
 
-<a id="markdown-data" name="data"></a>
-### `'data'`
-* `callback <Function(data)>`
-* `data <Buffer> | <String>`
+var net = require('net');
+
+var server = net.createServer();
+var port = 80;
+
+server.listen(port);
+
+server.on('connection', function(socket) {
+
+  /* ... */
+
+  socket.on('close', function() {
+    server.close();
+  });
+});
+
+```
+
+### Event: 'data'
+* `callback` {Function}
+
+The data is given an argument (data: Buffer | string).
 
 Emitted when data is received from the connection.
 
+**Example**
+```js
 
-<a id="markdown-drain" name="drain"></a>
-### `'drain'`
-* `callback <Function()>`
+var net = require('net');
+
+var msg = "";
+
+var socket = new net.Socket();
+
+/* ... */
+
+socket.on('data', function(data) {
+  msg += data;
+});
+
+```
+
+### Event: 'drain'
+* `callback` {Function}
 
 Emitted when the write buffer becomes empty.
 
+**Example**
+```js
 
-<a id="markdown-end" name="end"></a>
-### `'end'`
-* `callback <Function()>`
+var net = require('net');
+
+var port = 22703;
+var limit = 200;
+var server = net.createServer();
+
+server.listen({ port: port });
+
+/* ... */
+
+server.on('connection', function(socket) {
+  var i = 0;
+  var writing = function() {
+    var ok;
+    do {
+      ok = socket.write("" + (i % 10));
+      if (++i == limit) {
+        socket.end();
+        ok = false;
+      }
+    } while (ok);
+  };
+  socket.on('drain', writing);
+  writing();
+});
+
+```
+
+### Event: 'end'
+* `callback` {Function}
 
 Emitted when FIN packet received.
 
+**Example**
+```js
 
-<a id="markdown-error-1" name="error-1"></a>
-### `'error'`
-* `callback <Function()>`
+var net = require('net');
+
+var socket = new net.Socket();
+
+/* ... */
+
+socket.on('end', function() {
+  socket.end();
+});
+
+```
+
+### Event: 'error'
+* `callback` {Function}
+  * `err` {Error}
 
 Emitted when an error occurs.
 
+**Example**
+```js
 
-<a id="markdown-lookup" name="lookup"></a>
-### `'lookup'`
-* `callback <Function(err, address, family)>`
-  * `err <Error> | Null`
-  * `address <String>`
-  * `family <String> | Null`
+var assert = require('assert');
+var net = require('net');
+
+var bad_sock = new net.Socket();
+bad_sock.on('error', function(err){
+  assert.equal(err instanceof Error, true);
+});
+
+```
+
+### Event: 'lookup'
+* `callback` {Function}
+  * `err` {Error}
+  * `address` {string}
+  * `family` {string | Null}
 
 Emitted after resolving hostname.
 
+**Example**
+```js
 
-<a id="markdown-timeout" name="timeout"></a>
-### `'timeout'`
-* `callback <Function()>`
+var socket = new net.Socket();
+var msg = "";
+var lookupHandled = false;
+
+socket.on('lookup', function(err, ip, family) {
+  lookupHandled = true;
+});
+
+```
+
+### Event: 'timeout'
+* `callback` {Function}`
 
 Emitted when the connection remains idle for specified timeout.
+
+**Example**
+```js
+
+var net = require('net');
+
+var timedout = false;
+
+// Try connect to host that is not exist (Reserved address)
+var socket = net.createConnection(11111, '192.0.2.1');
+
+socket.setTimeout(1000);
+
+socket.on('timeout', function() {
+  timedout = true;
+  socket.destroy();
+});
+
+```

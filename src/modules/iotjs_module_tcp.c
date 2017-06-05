@@ -209,8 +209,8 @@ const iotjs_jval_t* iotjs_shutdown_reqwrap_jcallback(THIS) {
 
 
 JHANDLER_FUNCTION(TCP) {
-  JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARGS(0);
+  DJHANDLER_CHECK_THIS(object);
+  DJHANDLER_CHECK_ARGS(0);
 
   const iotjs_jval_t* jtcp = JHANDLER_GET_THIS(object);
   iotjs_tcpwrap_t* tcp_wrap = iotjs_tcpwrap_create(jtcp);
@@ -242,8 +242,8 @@ void AfterClose(uv_handle_t* handle) {
 
 // Close socket
 JHANDLER_FUNCTION(Close) {
-  JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARGS(0);
+  DJHANDLER_CHECK_THIS(object);
+  DJHANDLER_CHECK_ARGS(0);
 
   const iotjs_jval_t* jtcp = JHANDLER_GET_THIS(object);
   iotjs_handlewrap_t* wrap = iotjs_handlewrap_from_jobject(jtcp);
@@ -258,8 +258,8 @@ JHANDLER_FUNCTION(Close) {
 // [0] address
 // [1] port
 JHANDLER_FUNCTION(Bind) {
-  JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARGS(2, string, number);
+  DJHANDLER_CHECK_THIS(object);
+  DJHANDLER_CHECK_ARGS(2, string, number);
 
   const iotjs_jval_t* jtcp = JHANDLER_GET_THIS(object);
   iotjs_string_t address = JHANDLER_GET_ARG(0, string);
@@ -310,8 +310,8 @@ static void AfterConnect(uv_connect_t* req, int status) {
 // [1] port
 // [2] callback
 JHANDLER_FUNCTION(Connect) {
-  JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARGS(3, string, number, function);
+  DJHANDLER_CHECK_THIS(object);
+  DJHANDLER_CHECK_ARGS(3, string, number, function);
 
   const iotjs_jval_t* jtcp = JHANDLER_GET_THIS(object);
   iotjs_string_t address = JHANDLER_GET_ARG(0, string);
@@ -401,8 +401,8 @@ static void OnConnection(uv_stream_t* handle, int status) {
 
 
 JHANDLER_FUNCTION(Listen) {
-  JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARGS(1, number);
+  DJHANDLER_CHECK_THIS(object);
+  DJHANDLER_CHECK_ARGS(1, number);
 
   const iotjs_jval_t* jtcp = JHANDLER_GET_THIS(object);
   iotjs_tcpwrap_t* tcp_wrap = iotjs_tcpwrap_from_jobject(jtcp);
@@ -441,8 +441,8 @@ void AfterWrite(uv_write_t* req, int status) {
 
 
 JHANDLER_FUNCTION(Write) {
-  JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARGS(2, object, function);
+  DJHANDLER_CHECK_THIS(object);
+  DJHANDLER_CHECK_ARGS(2, object, function);
 
   const iotjs_jval_t* jtcp = JHANDLER_GET_THIS(object);
   iotjs_tcpwrap_t* tcp_wrap = iotjs_tcpwrap_from_jobject(jtcp);
@@ -533,7 +533,7 @@ void OnRead(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
 
 
 JHANDLER_FUNCTION(ReadStart) {
-  JHANDLER_CHECK_THIS(object);
+  DJHANDLER_CHECK_THIS(object);
 
   const iotjs_jval_t* jtcp = JHANDLER_GET_THIS(object);
   iotjs_tcpwrap_t* tcp_wrap = iotjs_tcpwrap_from_jobject(jtcp);
@@ -567,8 +567,8 @@ static void AfterShutdown(uv_shutdown_t* req, int status) {
 
 
 JHANDLER_FUNCTION(Shutdown) {
-  JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARGS(1, function);
+  DJHANDLER_CHECK_THIS(object);
+  DJHANDLER_CHECK_ARGS(1, function);
 
   const iotjs_jval_t* jtcp = JHANDLER_GET_THIS(object);
   iotjs_tcpwrap_t* tcp_wrap = iotjs_tcpwrap_from_jobject(jtcp);
@@ -592,8 +592,8 @@ JHANDLER_FUNCTION(Shutdown) {
 // [0] enable
 // [1] delay
 JHANDLER_FUNCTION(SetKeepAlive) {
-  JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARGS(2, number, number);
+  DJHANDLER_CHECK_THIS(object);
+  DJHANDLER_CHECK_ARGS(2, number, number);
 
   const iotjs_jval_t* jtcp = JHANDLER_GET_THIS(object);
   int enable = JHANDLER_GET_ARG(0, number);
@@ -606,8 +606,8 @@ JHANDLER_FUNCTION(SetKeepAlive) {
 }
 
 JHANDLER_FUNCTION(ErrName) {
-  JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARGS(1, number);
+  DJHANDLER_CHECK_THIS(object);
+  DJHANDLER_CHECK_ARGS(1, number);
 
   int errorcode = JHANDLER_GET_ARG(0, number);
   iotjs_jhandler_return_string_raw(jhandler, uv_err_name(errorcode));

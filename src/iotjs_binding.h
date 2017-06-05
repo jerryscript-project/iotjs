@@ -293,6 +293,19 @@ static inline bool ge(uint16_t a, uint16_t b) {
 
 #define JHANDLER_FUNCTION(name) static void name(iotjs_jhandler_t* jhandler)
 
+#if defined(EXPERIMENTAL) && !defined(DEBUG)
+// This code branch is to be in #ifdef NDEBUG
+#define DJHANDLER_CHECK_ARG(index, type) ((void)0)
+#define DJHANDLER_CHECK_ARGS(argc, ...) ((void)0)
+#define DJHANDLER_CHECK_THIS(type) ((void)0)
+#define DJHANDLER_CHECK_ARG_IF_EXIST(index, type) ((void)0)
+#else
+#define DJHANDLER_CHECK_ARG(index, type) JHANDLER_CHECK_ARG(index, type)
+#define DJHANDLER_CHECK_ARGS(argc, ...) JHANDLER_CHECK_ARGS(argc, __VA_ARGS__)
+#define DJHANDLER_CHECK_THIS(type) JHANDLER_CHECK_THIS(type)
+#define DJHANDLER_CHECK_ARG_IF_EXIST(index, type) \
+  JHANDLER_CHECK_ARG_IF_EXIST(index, type)
+#endif
 
 void iotjs_binding_initialize();
 void iotjs_binding_finalize();

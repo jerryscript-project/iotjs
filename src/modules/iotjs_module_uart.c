@@ -253,8 +253,8 @@ void iotjs_uart_read_cb(uv_poll_t* req, int status, int events) {
 
 
 JHANDLER_FUNCTION(UartConstructor) {
-  JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARGS(3, object, object, function);
+  DJHANDLER_CHECK_THIS(object);
+  DJHANDLER_CHECK_ARGS(3, object, object, function);
 
   // Create UART object
   const iotjs_jval_t* juart = JHANDLER_GET_THIS(object);
@@ -292,9 +292,9 @@ JHANDLER_FUNCTION(UartConstructor) {
 
 
 JHANDLER_FUNCTION(Write) {
-  JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARGS(1, string);
-  JHANDLER_CHECK_ARG_IF_EXIST(1, function);
+  DJHANDLER_CHECK_THIS(object);
+  DJHANDLER_CHECK_ARGS(1, string);
+  DJHANDLER_CHECK_ARG_IF_EXIST(1, function);
 
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG_IF_EXIST(1, function);
   const iotjs_jval_t* juart = JHANDLER_GET_THIS(object);
@@ -322,8 +322,8 @@ JHANDLER_FUNCTION(Write) {
 
 
 JHANDLER_FUNCTION(Close) {
-  JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARG_IF_EXIST(0, function);
+  DJHANDLER_CHECK_THIS(object);
+  DJHANDLER_CHECK_ARG_IF_EXIST(0, function);
 
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG_IF_EXIST(0, function);
   const iotjs_jval_t* juart = JHANDLER_GET_THIS(object);

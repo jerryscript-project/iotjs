@@ -323,8 +323,8 @@ iotjs_spi_t* iotjs_spi_get_instance(const iotjs_jval_t* jspi) {
 
 
 JHANDLER_FUNCTION(SpiConstructor) {
-  JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARGS(2, object, function);
+  DJHANDLER_CHECK_THIS(object);
+  DJHANDLER_CHECK_ARGS(2, object, function);
 
   // Create SPI object
   const iotjs_jval_t* jspi = JHANDLER_GET_THIS(object);
@@ -342,9 +342,9 @@ JHANDLER_FUNCTION(SpiConstructor) {
 
 // FIXME: do not need transferArray if array buffer is implemented.
 JHANDLER_FUNCTION(TransferArray) {
-  JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARGS(2, array, array);
-  JHANDLER_CHECK_ARG_IF_EXIST(2, function);
+  DJHANDLER_CHECK_THIS(object);
+  DJHANDLER_CHECK_ARGS(2, array, array);
+  DJHANDLER_CHECK_ARG_IF_EXIST(2, function);
 
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG_IF_EXIST(2, function);
   const iotjs_jval_t* jspi = JHANDLER_GET_THIS(object);
@@ -371,9 +371,9 @@ JHANDLER_FUNCTION(TransferArray) {
 
 
 JHANDLER_FUNCTION(TransferBuffer) {
-  JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARGS(2, object, object);
-  JHANDLER_CHECK_ARG_IF_EXIST(2, function);
+  DJHANDLER_CHECK_THIS(object);
+  DJHANDLER_CHECK_ARGS(2, object, object);
+  DJHANDLER_CHECK_ARG_IF_EXIST(2, function);
 
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG_IF_EXIST(2, function);
   const iotjs_jval_t* jspi = JHANDLER_GET_THIS(object);
@@ -400,8 +400,8 @@ JHANDLER_FUNCTION(TransferBuffer) {
 
 
 JHANDLER_FUNCTION(Close) {
-  JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARG_IF_EXIST(0, function);
+  DJHANDLER_CHECK_THIS(object);
+  DJHANDLER_CHECK_ARG_IF_EXIST(0, function);
 
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG_IF_EXIST(0, function);
   const iotjs_jval_t* jspi = JHANDLER_GET_THIS(object);

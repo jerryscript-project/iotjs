@@ -207,9 +207,9 @@ static inline bool IsWithinBounds(size_t off, size_t len, size_t max) {
 
 
 JHANDLER_FUNCTION(Close) {
-  JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARGS(1, number);
-  JHANDLER_CHECK_ARG_IF_EXIST(1, function);
+  DJHANDLER_CHECK_THIS(object);
+  DJHANDLER_CHECK_ARGS(1, number);
+  DJHANDLER_CHECK_ARG_IF_EXIST(1, function);
 
   const iotjs_environment_t* env = iotjs_environment_get();
 
@@ -225,9 +225,9 @@ JHANDLER_FUNCTION(Close) {
 
 
 JHANDLER_FUNCTION(Open) {
-  JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARGS(3, string, number, number);
-  JHANDLER_CHECK_ARG_IF_EXIST(3, function);
+  DJHANDLER_CHECK_THIS(object);
+  DJHANDLER_CHECK_ARGS(3, string, number, number);
+  DJHANDLER_CHECK_ARG_IF_EXIST(3, function);
 
   const iotjs_environment_t* env = iotjs_environment_get();
 
@@ -247,9 +247,9 @@ JHANDLER_FUNCTION(Open) {
 
 
 JHANDLER_FUNCTION(Read) {
-  JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARGS(5, number, object, number, number, number);
-  JHANDLER_CHECK_ARG_IF_EXIST(5, function);
+  DJHANDLER_CHECK_THIS(object);
+  DJHANDLER_CHECK_ARGS(5, number, object, number, number, number);
+  DJHANDLER_CHECK_ARG_IF_EXIST(5, function);
 
   const iotjs_environment_t* env = iotjs_environment_get();
 
@@ -286,9 +286,9 @@ JHANDLER_FUNCTION(Read) {
 
 
 JHANDLER_FUNCTION(Write) {
-  JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARGS(5, number, object, number, number, number);
-  JHANDLER_CHECK_ARG_IF_EXIST(5, function);
+  DJHANDLER_CHECK_THIS(object);
+  DJHANDLER_CHECK_ARGS(5, number, object, number, number, number);
+  DJHANDLER_CHECK_ARG_IF_EXIST(5, function);
 
   const iotjs_environment_t* env = iotjs_environment_get();
 
@@ -364,9 +364,9 @@ iotjs_jval_t MakeStatObject(uv_stat_t* statbuf) {
 
 
 JHANDLER_FUNCTION(Stat) {
-  JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARGS(1, string);
-  JHANDLER_CHECK_ARG_IF_EXIST(1, function);
+  DJHANDLER_CHECK_THIS(object);
+  DJHANDLER_CHECK_ARGS(1, string);
+  DJHANDLER_CHECK_ARG_IF_EXIST(1, function);
 
   const iotjs_environment_t* env = iotjs_environment_get();
 
@@ -384,9 +384,9 @@ JHANDLER_FUNCTION(Stat) {
 
 
 JHANDLER_FUNCTION(Fstat) {
-  JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARGS(1, number);
-  JHANDLER_CHECK_ARG_IF_EXIST(1, function);
+  DJHANDLER_CHECK_THIS(object);
+  DJHANDLER_CHECK_ARGS(1, number);
+  DJHANDLER_CHECK_ARG_IF_EXIST(1, function);
 
   const iotjs_environment_t* env = iotjs_environment_get();
 
@@ -402,9 +402,9 @@ JHANDLER_FUNCTION(Fstat) {
 
 
 JHANDLER_FUNCTION(MkDir) {
-  JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARGS(2, string, number);
-  JHANDLER_CHECK_ARG_IF_EXIST(2, function);
+  DJHANDLER_CHECK_THIS(object);
+  DJHANDLER_CHECK_ARGS(2, string, number);
+  DJHANDLER_CHECK_ARG_IF_EXIST(2, function);
 
   const iotjs_environment_t* env = iotjs_environment_get();
 
@@ -423,9 +423,9 @@ JHANDLER_FUNCTION(MkDir) {
 
 
 JHANDLER_FUNCTION(RmDir) {
-  JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARGS(1, string);
-  JHANDLER_CHECK_ARG_IF_EXIST(1, function);
+  DJHANDLER_CHECK_THIS(object);
+  DJHANDLER_CHECK_ARGS(1, string);
+  DJHANDLER_CHECK_ARG_IF_EXIST(1, function);
 
   const iotjs_environment_t* env = iotjs_environment_get();
 
@@ -443,9 +443,9 @@ JHANDLER_FUNCTION(RmDir) {
 
 
 JHANDLER_FUNCTION(Unlink) {
-  JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARGS(1, string);
-  JHANDLER_CHECK_ARG_IF_EXIST(1, function);
+  DJHANDLER_CHECK_THIS(object);
+  DJHANDLER_CHECK_ARGS(1, string);
+  DJHANDLER_CHECK_ARG_IF_EXIST(1, function);
 
   const iotjs_environment_t* env = iotjs_environment_get();
 
@@ -463,9 +463,9 @@ JHANDLER_FUNCTION(Unlink) {
 
 
 JHANDLER_FUNCTION(Rename) {
-  JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARGS(2, string, string);
-  JHANDLER_CHECK_ARG_IF_EXIST(2, function);
+  DJHANDLER_CHECK_THIS(object);
+  DJHANDLER_CHECK_ARGS(2, string, string);
+  DJHANDLER_CHECK_ARG_IF_EXIST(2, function);
 
   const iotjs_environment_t* env = iotjs_environment_get();
 
@@ -487,9 +487,9 @@ JHANDLER_FUNCTION(Rename) {
 
 
 JHANDLER_FUNCTION(ReadDir) {
-  JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARGS(1, string);
-  JHANDLER_CHECK_ARG_IF_EXIST(1, function);
+  DJHANDLER_CHECK_THIS(object);
+  DJHANDLER_CHECK_ARGS(1, string);
+  DJHANDLER_CHECK_ARG_IF_EXIST(1, function);
 
   const iotjs_environment_t* env = iotjs_environment_get();
   iotjs_string_t path = JHANDLER_GET_ARG(0, string);

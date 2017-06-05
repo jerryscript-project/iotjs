@@ -180,7 +180,7 @@ JHANDLER_FUNCTION(DoExit) {
 
 // Initialize `process.argv`
 JHANDLER_FUNCTION(InitArgv) {
-  JHANDLER_CHECK_THIS(object);
+  DJHANDLER_CHECK_THIS(object);
 
   // environment
   const iotjs_environment_t* env = iotjs_environment_get();

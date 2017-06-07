@@ -20,7 +20,7 @@ IoT.js is based on event-driven programming where objects (called "emitters") pe
 # Class: EventEmitter
 
 The `events.EventEmitter` plays a role as base class for "emmitters".
-User application would not directly create an instance of `EventEmitter` since `EventEmitter` is an abstract trait which defines its behavior and grants to sub-classes.
+User application would not directly creates an instance of `EventEmitter` since `EventEmitter` is an abstract trait which defines its behavior and grants to sub-classes.
 
 ### new EventEmitter()
 * Returns {events.EventEmitter}.
@@ -47,9 +47,8 @@ var emitter = new EventEmitter();
 
 It is an alias for `emitter.on(eventName, listener)`.
 
-Adds `listener` to the end of list of event listeners for `event`. No checks are made to see if the `listener` has already been added.
-Multiple calls passing the same combination of `event` name and `listener` will result in the listener being added, and called, multiple times.
-
+Adds the `listener` callback function to the end of the listener's list for the given `event`. No checks are made to see if the `listener` has already been added.
+In case of multiple calls the `listener` will be added and called multiple times.
 
 **Example**
 
@@ -79,8 +78,8 @@ console.log(eventSequence); // prints '22'
   * `args` {any}.
 * Returns `emitter` {events.EventEmitter}.
 
-Adds `listener` to the end of list of event listeners for `event`. No checks are made to see if the `listener` has already been added.
-Multiple calls passing the same combination of `event` name and `listener` will result in the listener being added, and called, multiple times.
+Adds the `listener` callback function to the end of the listener's list for the given `event`. No checks are made to see if the `listener` has already been added.
+In case of multiple calls the `listener` will be added and called multiple times.
 
 **Example**
 
@@ -102,9 +101,9 @@ emitter.emit('event');
   * `args` {any}.
 * Returns {boolean}.
 
-Invokes each of listener with supplied arguments.
+Synchronously calls each of the listeners registered for the `event`, in the order they were registered, passing the supplied arguments to each.
 
-Returns `true` if there were listeners, `false` otherwise.
+Returns true if the event had listeners, false otherwise.
 
 **Example**
 
@@ -129,7 +128,7 @@ emitter.emit('not_an_event'); // false
   * `args` {any}.
 * Returns `emitter` {events.EventEmitter}.
 
-Adds `listener` as one time listener for `event`.
+Adds the `listener` as a one time listener for the `event`.
 
 Using this method, it is possible to register a listener that is called at most once for a particular `event`.
 The listener will be invoked only once, when the first `event` is emitted.
@@ -165,7 +164,7 @@ assert.equal(onceCnt, 1);
 
 Removes listener from the list of event listeners.
 
-If you add the same listener multiple times, this removes only one instance of them.
+If you add the same `listener` multiple times, this removes only one instance of them.
 
 **Example**
 
@@ -189,7 +188,7 @@ emitter.removeListener('event', listener);
 
 Removes all listeners.
 
-If `event` was specified, it only removes listeners for that event.
+If `event` was specified, it only removes the listeners for that event.
 
 **Example**
 

@@ -31,13 +31,13 @@ IoT.js provides asynchronous networking through Net module. You can use this mod
 * Returns {net.Socket}.
 
 Creates a new `net.Socket` and automatically connects with the supplied `options`.
-The `options` object specifying following information:
+The `options` object specifies the following information:
 * `port` {number} Port connect to (required).
-* `host` {string}  Host connect to (optional,  **Default:** `localhost`).
+* `host` {string} Host connect to (optional, **Default:** `localhost`).
 * `family` {number} Version of IP stack.
 
-The options are passed to both the `net.Socket` constructor and the `socket.connect` method.
-The `connectListener` is automatically registered as `'connect'` event listener.
+The `options` are passed to both the `net.Socket` constructor and the `socket.connect` method.
+The `connectListener` is automatically registered as a `'connect'` event listener.
 
 **Example**
 
@@ -71,7 +71,7 @@ socket.on('end', function() {
 
 Creates a new `net.Socket` and automatically connects to the supplied `port` and `host`.
 If host is omitted, `localhost` will be assumed.
-The `connectListener` is automatically registered as `'connect'` event listener.
+The `connectListener` is automatically registered as a `'connect'` event listener.
 
 **Example**
 
@@ -103,14 +103,13 @@ socket.on('end', function() {
 * Returns {net.Socket}.
 
 Creates a new `net.Socket` and automatically connects with the supplied `options`.
-The options are passed to both the `net.Socket` constructor and the `socket.connect` method.
-The options object specifying following information:
+The `options` are passed to both the `net.Socket` constructor and the `socket.connect` method.
+The `options` object specifies the following information:
 * `port` {number} Port connect to (required).
-* `host` {string}  Host connect to (optional,  **Default:** `localhost`)
+* `host` {string} Host connect to (optional, **Default:** `localhost`).
 * `family` {number} Version of IP stack.
 
-
-The `connectionListener` is automatically registered as `'connect'` event listener.
+The `connectionListener` is automatically registered as a `'connect'` event listener.
 
 **Example**
 
@@ -146,7 +145,7 @@ socket.on('end', function() {
 Creates a new `net.Socket` and automatically connects to the supplied `port` and `host`.
 It is equivalent to `new net.Socket()` followed by `socket.connect()`.
 If host is omitted, `localhost` will be assumed.
-The `connectionListener` is automatically registered as `'connect'` event listener.
+The `connectionListener` is automatically registered as a `'connect'` event listener.
 
 **Example**
 
@@ -178,7 +177,7 @@ socket.on('end', function() {
 * Returns {net.Server}.
 
 Creates a TCP server according to `options`.
-The `connectionListener` is automatically registered as `'connection'` event listener.
+The `connectionListener` is automatically registered as a `'connection'` event listener.
 If `allowHalfOpen` is true, then the socket becomes non-readable, but still writable. You should call the `socket.end()` method explicitly.
 
 **Example**
@@ -220,8 +219,8 @@ This class is used to create a TCP or local server. You can create `net.Server` 
 * `closeListener` {Function} Listener for the `'close'` event.
 
 Stops listening new arriving connection.
-Server socket will finally close when all existing connections are closed, then emit `'close'` event.
-`closeListener` is registered as `'close'` event listener.
+Server socket will be finally closed when all existing connections are closed, then emits `'close'` event.
+The `closeListener` is registered as a `'close'` event listener.
 
 **Example**
 
@@ -248,7 +247,7 @@ server.close();
 * `listenListener` {Function} Listener for the `'listening'` event.
 
 Begin accepting connections on the specified port and hostname.
-If the hostname is omitted, the server will accept connections on  any IPv4 address (0.0.0.0).
+If the hostname is omitted, the server will accept connections on any IPv4 address (0.0.0.0).
 
 **Example**
 
@@ -266,9 +265,9 @@ server.listen(port);
 
 ### server.listen(options[, listenListener])
 * options {Object} An object which specifies the connection options.
-* `listenListener` {Function}  Listener for the `'listening'` event.
+* `listenListener` {Function} Listener for the `'listening'` event.
 
-It behaves as the [`server.listen(port[, host][, backlog][, listenListener])`](#serverlistenport-host-backlog-listenlistener) function.
+It behaves as the `server.listen(port[, host][, backlog][, listenListener])` function above.
 
 The option object supports the following properties:
 * `port` {number} Port the client should connect to.
@@ -290,7 +289,7 @@ server.listen({port: 80, host: 'localhost'});
 ### Event: 'close'
 * `callback` {Function}
 
-Emitted when server closed.
+Emitted when server has closed the connection.
 
 Note that this event will be emitted after all existing connections are closed.
 
@@ -398,14 +397,14 @@ server.on('listening', function() {
 
 ## Class: net.Socket
 
-This object is an abstraction of a TCP or local socket. net.Socket inherits [`Stream.Duplex`](IoT.js-API-Stream.md). They can be created by the user and used as a client (with connect()) or they can be created by IoT.js and passed to the user through the 'connection' event of a server.
+This object is an abstraction of a TCP or a local socket. `net.Socket` inherits from [`Stream.Duplex`](IoT.js-API-Stream.md). They can be created by the user (used as a client with connect()) or by the IoT.js engine (passed to the user through the 'connection' event of a server).
 
 ### new net.Socket([options])
-* `options` {Object} An optional object which specifies socket information.
+* `options` {Object} An optional object which specifies the socket information.
 * Returns {net.Socket}.
 
 Construct a new socket object.
-The `options` object specifying only the following information: `allowHalfOpen` {boolean}.
+The `options` object specifies only the following information: `allowHalfOpen` {boolean}.
 
 **Example**
 
@@ -418,18 +417,18 @@ var socket = new net.Socket();
 ```
 
 ### socket.connect(options[, connectListener])
-* `options` {Object} An object which specifies connection information.
+* `options` {Object} An object which specifies the connection information.
 * `connectListener` {Function} Listener for the `'connect'` event.
 * Returns {net.Socket}.
 
 Creates a new socket object and automatically connects with the supplied `options`.
 
-The `options` object specifying following information:
+The `options` object specifies following information:
 * `port` {number} Port connect to (required).
-* `host` {string}  Host connect to (optional,  **Default:** `localhost`).
+* `host` {string}  Host connect to (optional, **Default:** `localhost`).
 * `family` {number} Version of IP stack.
 
-The `connectionListener` is automatically registered as `'connect'` event listener which will be emitted when the connection is established.
+The `connectionListener` is automatically registered as a `'connect'` event listener which will be emitted when the connection is established.
 
 **Example**
 
@@ -455,7 +454,7 @@ socket.connect({port: port, family: 4}, function() {
 
 Creates a new socket and automatically connects with the supplied `port` and `host`.
 
-`connectionListener` is automatically registered as `'connect'` event listener which will be emitted when the connection is established.
+`connectionListener` is automatically registered as a `'connect'` event listener which will be emitted when the connection is established.
 
 **Example**
 
@@ -475,7 +474,7 @@ socket.connect(port, '127.0.0.1', function() {
 
 ### socket.destroy()
 
-Ensures that no more I/O activity happens on this socket and destroys the socket as soon as possible.
+Ensures that no more I/O activity happens on the socket and destroys the socket as soon as possible.
 
 **Example**
 ```js
@@ -498,7 +497,7 @@ socket.destroy();
 
 ### socket.end([data][, callback])
 
-* `data` {string} | {Buffer}
+* `data` {Buffer|string}
 * `callback` {Function}
 
 Half-closes the socket. The socket is no longer writable.
@@ -586,7 +585,7 @@ server.on('connection', function(socket) {
 
 ### socket.setKeepAlive([enable][, initialDelay])
 
-* `enable` {boolean}  **Default:** `false`.
+* `enable` {boolean} **Default:** `false`.
 * `initialDelay {number} **Default:** `0`.
 
 Enables or disables keep-alive functionality.
@@ -604,7 +603,7 @@ keepalive_sock.setKeepAlive(true, 1000);
 
 ### socket.setTimeout(timeout[, callback])
 * `timeout` {number} Timeout number.
-* `callback` {Function} Registered as `'timeout'` event listener.
+* `callback` {Function} Registered as a `'timeout'` event listener.
 
 Sets timeout for the socket.
 
@@ -631,12 +630,12 @@ server.on('connection', function(socket) {
 ```
 
 ### socket.write(data[, callback])
-* `data` {string} | {Buffer} Data to write.
+* `data` {Buffer|string} Data to write.
 * `callback` {Function} Executed function (when the data is finally written out).
 
 Sends `data` on the socket.
 
-The optional `callback` function will be called after given data is flushed through the connection.
+The optional `callback` function will be called after the given data is flushed through the connection.
 
 **Example**
 ```js
@@ -693,7 +692,7 @@ for (var i = 0; i < count; ++i) {
 ### Event: 'close'
 * `callback` {Function}
 
-Emitted when the socket closed.
+Emitted when the socket has been closed.
 
 **Example**
 ```js
@@ -719,7 +718,7 @@ server.on('connection', function(socket) {
 ### Event: 'data'
 * `callback` {Function}
 
-The data is given an argument (data: Buffer | string).
+The data is given an argument (data: Buffer|string).
 
 Emitted when data is received from the connection.
 
@@ -819,7 +818,7 @@ bad_sock.on('error', function(err){
 * `callback` {Function}
   * `err` {Error}
   * `address` {string}
-  * `family` {string | Null}
+  * `family` {string|null}
 
 Emitted after resolving hostname.
 
@@ -839,7 +838,7 @@ socket.on('lookup', function(err, ip, family) {
 ### Event: 'timeout'
 * `callback` {Function}`
 
-Emitted when the connection remains idle for specified timeout.
+Emitted when the connection remains idle for the specified timeout.
 
 **Example**
 ```js

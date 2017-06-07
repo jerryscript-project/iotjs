@@ -52,14 +52,15 @@
 -include $(TOPDIR)/Make.defs
 include $(APPDIR)/Make.defs
 
+IOTJS_ABSOLUTE_ROOT_DIR := $(shell cd $(TOPDIR) && cd $(IOTJS_ROOT_DIR) && pwd)
 
 CONFIG_IOTJS_PRIORITY ?= SCHED_PRIORITY_DEFAULT
 CONFIG_IOTJS_STACKSIZE ?= 16384
 # NSH sysinfo command
 
 APPNAME = iotjs
-CFLAGS += -I$(IOTJS_ROOT_DIR)/deps/jerry/jerry-core/include
-CFLAGS += -I$(IOTJS_ROOT_DIR)/deps/jerry/jerry-ext/include
+CFLAGS += -I$(IOTJS_ABSOLUTE_ROOT_DIR)/deps/jerry/jerry-core/include
+CFLAGS += -I$(IOTJS_ABSOLUTE_ROOT_DIR)/deps/jerry/jerry-ext/include
 PRIORITY = $(CONFIG_IOTJS_PRIORITY)
 STACKSIZE = $(CONFIG_IOTJS_STACKSIZE)
 HEAPSIZE = $(CONFIG_IOTJS_HEAPSIZE)
@@ -121,7 +122,7 @@ $(COBJS): %$(OBJEXT): %.c
 	$(call COMPILE, $<, $@)
 
 copylibs :
-	cp $(IOTJS_ROOT_DIR)/build/arm-nuttx/$(BUILD_TYPE)/lib/lib*.a .
+	cp $(IOTJS_ABSOLUTE_ROOT_DIR)/build/arm-nuttx/$(BUILD_TYPE)/lib/lib*.a .
 
 $(LIBS) : copylibs
 	$(firstword $(AR)) x $@

@@ -15,8 +15,6 @@ The `dns` module provides a method to perform host name resolution. The function
 implemented on top of the underlying operation system facilities. Please see
 [Implementation considerations section](#implementation-considerations).
 
-## Properties
-
 The following properties are flags which can be passed as hints for the
 [`dns.lookup()`](#dnslookuphostname-options-callback) method.
 
@@ -32,15 +30,13 @@ Returned address types are determined by the types of addresses supported by the
 If the IPv6 family was specified, but no IPv6 addresses were found, then return IPv4 mapped IPv6 addresses. 
 
 
-## Module Methods
-
 
 ### `dns.lookup(hostname[, options], callback)`
 * `hostname {string}` Hostname to be resolved.
 * `options {Object} | {number}`
   * `family {number}` The record family. If specified must be 4. Specifies that IPv4 addresses should be returned.
   * `hints {number}` One or more supported getaddrinfo flags. Multiple flags may be passed by bitwise `OR`ing their values.
-* `callback {Function(err: Number, address: String, family: Number)}`
+* `callback {Function}`
   * `err {Error}` If there is no error the value is `null`.
   * `address {string}` A string representation of an IPv4 address.
   * `family {number}` 4, denoting the family of `address`.

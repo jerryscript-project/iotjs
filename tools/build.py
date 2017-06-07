@@ -206,16 +206,6 @@ def init_options():
 
 
 def adjust_options(options):
-    # First fix some option inconsistencies
-    if options.target_os in ['nuttx', 'tizenrt']:
-        options.buildlib = True
-        if not options.sysroot:
-            ex.fail('--sysroot needed for nuttx target')
-
-        options.sysroot = fs.abspath(options.sysroot)
-        if not fs.exists(options.sysroot):
-            ex.fail('Nuttx sysroot %s does not exist' % options.sysroot)
-
     if options.target_arch == 'x86':
         options.target_arch = 'i686'
     if options.target_arch == 'x64':
@@ -235,6 +225,27 @@ def adjust_options(options):
     # Then add calculated options
     options.host_tuple = '%s-%s' % (platform.arch(), platform.os())
     options.target_tuple = '%s-%s' % (options.target_arch, options.target_os)
+
+    # Verify options consistency (sysroot vs. cross build)
+    if options.target_tuple != options.host_tuple:
+        # This is cross build, sysroot should/must be supplied
+        if options.target_os in ['nuttx', 'tizenrt']:
+            require_sysroot = True
+            options.buildlib = True
+        if not options.sysroot:
+            if require_sysroot:
+                ex.fail('--sysroot required for %s', options.target_os)
+            else:
+                ex.warn('--sysroot recommended for cross builds target')
+        options.sysroot = fs.abspath(options.sysroot)
+        if not fs.exists(options.sysroot):
+            ex.fail('sysroot %s does not exist' % options.sysroot)
+
+    arch_for_iotjs = 'arm' if options.target_arch.startswith('arm') else \
+        options.target_arch
+    os_for_iotjs = 'linux' if options.target_os == 'tizen' else \
+        options.target_os
+    options.target_tuple_for_iotjs = '%s-%s' % (arch_for_iotjs, os_for_iotjs)
 
     options.host_build_root = fs.join(path.PROJECT_ROOT,
                                      options.builddir,
@@ -290,6 +301,23 @@ def build_cmake_args(options, for_jerry=False):
 
     compile_flags += options.compile_flag
     compile_flags += options.jerry_compile_flag if for_jerry else []
+
+    # nosdtinc/nostdlib must be specified when toolchain contains
+    # a non-matching C library.
+    # This is the case with nuttx/tinyara that come with uClibc,
+    # while prebuild GCC mostly comes with glibc/newlib.
+    # TODO: consider factoring this out to an option
+    if options.target_os in ['nuttx', 'tizenrt']:
+        compile_flags.extend(['-nostdinc', '-nostdlib'])
+
+    # With sysroot set, exclude default (host) directories from build.
+    if options.sysroot:
+        compile_flags.extend(['--sysroot', options.sysroot])
+        compile_flags.append('-isystem =/include')
+        if options.target_os == 'nuttx':
+            compile_flags.append('-isystem =/include/nuttx')
+        if options.target_os == 'tizenrt':
+            compile_flags.append('-isystem =/include/tinyara')
 
     cmake_args.append("-DCMAKE_C_FLAGS='%s'" % (' '.join(compile_flags)))
 

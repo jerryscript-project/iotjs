@@ -11,74 +11,54 @@ The following shows spi module APIs available for each platform.
 | spibus.closeSync | O | O | X |
 
 
-## Contents
-* [SPI](#spi)
-  * [Constructor](#spi-constructor)
-    * [`new SPI()`](#spi-new)
-  * [Properties](#spi-properties)
-    * [`MODE`](#spi-mode)
-    * [`CHIPSELECT`](#spi-chipselect)
-    * [`BITORDER`](#spi-bitorder)
-  * [Prototype methods](#spi-prototype-methods)
-    * [`spi.open(configuration[, callback])`](#spi-open)
-* [SPIBus](#spibus)
-  * [Prototype methods](#spibus-prototype-methods)
-    * [`spibus.transfer(tx, rx[, callback])`](#spibus-transfer)
-    * [`spibus.transferSync(tx, rx)`](#spibus-transfer-sync)
-    * [`spibus.close([callback])`](#spibus-close)
-    * [`spibus.closeSync()`](#spibus-close-sync)
+## Class: SPI
 
+SPI (Serial Peripheral Interface) is a communication protocol which defines a way to communicate between devices.
 
-## Class: SPI <a name="spi"></a>
-
-
-## Constructor <a name="spi-constructor"></a>
-
-
-### `new SPI()` <a name="spi-new"></a>
+### new SPI()
 
 Returns a new SPI object which can open SPI bus.
 
+### SPI.MODE
+The clock polarity and the clock phase can be specified as `0` or `1` to form four unique modes to provide flexibility in communication between devices. The `SPI.MODE` will specify which one to use (the combinations of the polarity and phase).
 
-## Properties <a name="spi-properties"></a>
-
-
-### `MODE`<a name="spi-mode"></a>
-* `0` - Clock Polarity(0), Clock Phase(0), Clock Edge(1)
-* `1` - Clock Polarity(0), Clock Phase(1), Clock Edge(0)
-* `2` - Clock Polarity(1), Clock Phase(0), Clock Edge(1)
-* `3` - Clock Polarity(1), Clock Phase(1), Clock Edge(0)
+* `0` Clock Polarity(0), Clock Phase(0), Clock Edge(1)
+* `1` Clock Polarity(0), Clock Phase(1), Clock Edge(0)
+* `2` Clock Polarity(1), Clock Phase(0), Clock Edge(1)
+* `3` Clock Polarity(1), Clock Phase(1), Clock Edge(0)
 
 
-### `CHIPSELECT`<a name="spi-chipselect"></a>
+### SPI.CHIPSELECT
 * `NONE`
-* `HIGH` - chip select active high
+* `HIGH`
 
+The chip select is an access-enable switch. When the chip select pin is in the `HIGH` state, the device responds to changes on its input pins.
 
-### `BITORDER`<a name="spi-bitorder"></a>
-* `MSB` - most significant bit
-* `LSB` - least significant bit
+### SPI.BITORDER
+* `MSB` The most significant bit.
+* `LSB` The least significant bit.
 
+Sets the order of the bits shifted out of and into the SPI bus, either MSB (most-significant bit first) or LSB (least-significant bit first).
 
-## Prototype methods <a name="spi-prototype-methods"></a>
+### spi.open(configuration[, callback])
+* `configuration` {Object}
+  * `device` {string} The specified path for `spidev`.
+  * `mode` {SPI.MODE} The combinations of the polarity and phase. **Default:** `SPI.MODE[0]`.
+  * `chipSelect` {SPI.CHIPSELECT} Chip select state. **Default:** `SPI.CHIPSELECT.NONE`.
+  * `maxSpeed` {number} Maximum transfer speed. **Default:** `500000`.
+  * `bitsPerWord` {number} Bits per word to send (should be 8 or 9). **Default:** `8`.
+  * `bitOrder` {SPI.BITORDER} Order of the bits shifted out of and into the SPI bus. Default: `SPI.BITORDER.MSB`.
+  * `loopback` {boolean} Using loopback. **Default:** `false`.
+* `callback` {Function}.
+  * `err` {Error|null}.
+* Returns: {SPIBus}.
 
-
-### `spi.open(configuration[, callback])` <a name="spi-open"></a>
-* `configuration <Object>`
-  * `device <String>`, the specified path for `spidev`
-  * `mode <SPI.MODE>`, the combinations of polarity and phases, Default: `SPI.MODE[0]`
-  * `chipSelect <SPI.CHIPSELECT>`, Default: `SPI.CHIPSELECT.NONE`
-  * `maxSpeed <Number>`, max transfer speed, Default: `500000`
-  * `bitsPerWord <Number>`, bits per word to send, should be 8 or 9, Default: `8`
-  * `bitOrder <SPI.bitORDER>`, Default: `SPI.BITORDER.MSB`
-  * `loopback <Boolean>`, Default: `false`
-* `callback <Function(err: Error | null)>`
-* Returns: `<SPIBus>`
-
-Opens SPI device with the specified configuration.
+Opens an SPI device with the specified configuration.
 
 **Example**
+
 ```js
+
 var Spi = require('spi');
 var spi = new Spi();
 var spi0 = spi.open({
@@ -88,24 +68,26 @@ var spi0 = spi.open({
       throw err;
     }
 });
+
 ```
 
-## Class: SPIBus <a name="spibus"></a>
+## Class: SPIBus
 
+The SPIBus is commonly used for communication.
 
-## Prototype methods <a name="spibus-prototype-methods"></a>
+### spibus.transfer(txBuffer, rxBuffer[, callback])
+* `txBuffer` {Array|Buffer}.
+* `rxBuffer` {Array|Buffer}.
+* `callback` {Function}.
+  * `err` {Error|null}.
 
-
-### `spibus.transfer(txBuffer, rxBuffer[, callback])` <a name="spibus-transfer"></a>
-* `txBuffer <Array | Buffer>`
-* `rxBuffer <Array | Buffer>`
-* `callback <Function(err: Error | null)>`
-
-Writes and reads data from SPI device asynchronously.
-`txBuffer` and `rxBuffer` must have equal length.
+Writes and reads data from the SPI device asynchronously.
+The `txBuffer` and `rxBuffer` must have equal length.
 
 **Example**
+
 ```js
+
 var tx = new Buffer('Hello IoTjs');
 var rx = new Buffer(tx.length);
 spi0.transfer(tx, rx, function(err) {
@@ -119,17 +101,20 @@ spi0.transfer(tx, rx, function(err) {
   }
   console.log(value);
 });
+
 ```
 
-### `spibus.transferSync(txBuffer, rxBuffer)` <a name="spibus-transfer-sync"></a>
-* `txBuffer <Array | Buffer>`
-* `rxBuffer <Array | Buffer>`
+### spibus.transferSync(txBuffer, rxBuffer)
+* `txBuffer` {Array|Buffer}.
+* `rxBuffer` {Array|Buffer}.
 
-Writes and reads data from SPI device synchronously.
-`txBuffer` and `rxBuffer` must have equal length.
+Writes and reads data from the SPI device synchronously.
+The `txBuffer` and `rxBuffer` must have equal length.
 
 **Example**
+
 ```js
+
 var tx = new Buffer('Hello IoTjs');
 var rx = new Buffer(tx.length);
 spi0.transferSync(tx, rx);
@@ -138,33 +123,38 @@ for (var i = 0; i < tx.length; i++) {
   value += String.fromCharCode(rx[i]);
 }
 console.log(value);
+
 ```
 
+### spibus.close([callback])
+* `callback` {Function}.
+  * `err` {Error|null}.
 
-### `spibus.close([callback])` <a name="spibus-close"></a>
-* `callback <Function(err: Error | null)>`
+Closes the SPI device asynchronously.
 
-Closes SPI device asynchronously.
-
-`callback` will be called after SPI device is closed.
+The `callback` function will be called after the SPI device is closed.
 
 **Example**
 ```js
+
 spi0.close(function(err) {
   if (err) {
     throw err;
   }
   console.log('spi bus is closed');
 });
+
 ```
 
+### spibus.closeSync()
 
-### `spibus.closeSync()` <a name="spibus-close-sync"></a>
-
-Closes SPI device synchronously.
+Closes the SPI device synchronously.
 
 **Example**
 ```js
+
 spi.closeSync();
+
 console.log('spi bus is closed');
+
 ```

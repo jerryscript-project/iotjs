@@ -10,52 +10,37 @@ The following shows uart module APIs available for each platform.
 | uartport.close | O | O | O |
 | uartport.closeSync | O | O | O |
 
+## Class: UART
 
-## Contents
-  * [UART](#uart)
-    * [Constructor](#uart-constructor)
-      * [`new UART()`](#new-uart)
-    * [Prototype Methods](#uart-prototype-methods)
-      * [`uart.open(configurable[, callback])`](#uart-open)
-  * [UARTPort](#uartport)
-    * [Prototype Methods](#uartport-prototype-methods)
-      * [`uartport.write(data[, callback])`](#uartport-write)
-      * [`uartport.writeSync(data)`](#uartport-write-sync)
-      * [`uartport.close([callback])`](#uartport-close)
-      * [`uartport.closeSync()`](#uartport-close-sync)
-    * [Event](#uartport-event)
+The UART (Universal Asynchronous Receiver/Transmitter) class supports asynchronous serial communication.
 
+### new UART()
 
-## Class: UART <a name="uart"></a>
+Returns with a new UART object.
 
+### uart.open(configuration[, callback])
+* `configuration` {Object}
+  * `device` {string} Mandatory configuration.
+  * `baudRate` {number} Specifies how fast data is sent over a serial line. **Default:** `9600`.
+  * `dataBits` {number} Number of data bits that are being transmitted. **Default:** `8`.
+* `callback` {Function}.
+  * `err` {Error|null}.
+* Returns: {UARTPort}.
 
-## Constructor <a name="uart-constructor"></a>
+Opens an UARTPort object with the specified configuration.
 
+The `baudRate` must be equal to one of these values: [0, 50, 75, 110, 134, 150, 200, 300, 600, 1200, 1800, 2400, 4800, 9600, 19200, 38400, 57600, 115200, 230400].
 
-### `new UART()` <a name="uart-new"></a>
+The `dataBits` must be equal to one of these values: [5, 6, 7, 8].
 
-Returns a new UART object which can open UART port.
+On Nuttx, you also need to set the properties of the `configuration` in the NuttX configuration file. Using the NuttX menuconfig, it can be found at the `Device Drivers -> Serial Driver Support -> U[S]ART(N) Configuration` section.
 
-
-## Prototype methods <a name="uart-prototype-methods"></a>
-
-
-### `uart.open(configuration[, callback])` <a name="uart-open"></a>
-* `configuration <Object>`
-  * `device <String>`, mandatory configuration
-  * `baudRate <Number> (Default value is 9600)`
-  * `dataBits <Number> (Default value is 8)`
-* `callback <Function(err: Error | null)>`
-* Returns: `<UARTPort>`
-
-On Nuttx, you can set the properties of `configuration` only on Nuttx config. `Device Drivers -> Serial Driver Support -> U[S]ART(N) Configuration` will help. And if you want to get information about `device`, please see below list.
-  * [STM32F4-discovery](../targets/nuttx/stm32f4dis/IoT.js-API-Stm32f4dis.md#uart)
-
-Opens UART port with the specified configuration. Following methods can be called with UARTPort object.
-
+You can read more information about the usage of the UART on stm32f4-discovery board: [STM32F4-discovery](../targets/nuttx/stm32f4dis/IoT.js-API-Stm32f4dis.md#uart).
 
 **Example**
-```javascript
+
+```js
+
 var Uart = require('uart');
 
 var uart = new Uart();
@@ -68,65 +53,67 @@ var configuration = {
 var serial = uart.open(configuration, function(err) {
   // Do something.
 });
+
 ```
 
+## Class: UARTPort
+The UARTPort class is responsible for transmitting and receiving serial data.
 
-## Class: UARTPort <a name="uartport"></a>
+### uartport.write(data[, callback]).
+* `data` {string}.
+* `callback` {Function}.
+  * `err` {Error|null}.
 
-
-## Prototype methods <a name="uartport-prototype-methods"></a>
-
-
-### `uartport.write(data[, callback])` <a name="uartport-write"></a>
-* `data <String>`
-* `callback <Function(err: Error | null)>`
-
-Writes data to UART device asynchronously.
+Writes the given `data` to the UART device asynchronously.
 
 **Example**
-```javascript
-serial.write("Hello?", function(err) {
+
+```js
+
+serial.write('Hello?', function(err) {
   if (err) {
     // Do something.
   }
   serial.close();
 });
+
 ```
 
-### `uartport.writeSync(data)` <a name="uartport-write-sync"></a>
-* `data <String>`
+### uartport.writeSync(data)
+* `data` {string}.
 
-Writes data to UART device synchronously.
+Writes the given `data` to the UART device synchronously.
 
 **Example**
-```javascript
-serial.writeSync("Hello?");
+
+```js
+
+serial.writeSync('Hello?');
+
 serial.close();
+
 ```
 
+### uartport.close([callback])
+* `callback` {Function}.
+  * `err` {Error|null)}.
 
-### `uartport.close([callback])` <a name="uartport-close"></a>
-* `callback <Function(err: Error | null)>`
+Closes the UART device asynchronously.
 
-Closes UART device asynchronously.
+### uartport.closeSync()
 
+Closes the UART device synchronously.
 
-### `uartport.closeSync()` <a name="uartport-close-sync"></a>
+### Event: 'data'
+* `callback` {Function}
+  * `data` {string} A string from the sender.
 
-Closes UART device synchronously.
+**Example**
 
+```js
 
-## Events <a name="uartport-event"></a>
+/* ... */
 
-
-### `'data'`
-* `callback <Function(data)>`
-
- `data` is a string from sender
-
-For example,
-```javascript
-...
 serial.on('data', function(data) {
   console.log('read result: ' + data.toString());
 });

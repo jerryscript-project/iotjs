@@ -33,13 +33,13 @@ Timer.prototype.handleTimeout = function() {
   if (timeout && timeout.callback) {
     timeout.callback();
     if (!timeout.isrepeat) {
-      timeout.close();
+      timeout.unref();
     }
   }
 };
 
 
-Timeout.prototype.activate = function() {
+Timeout.prototype.ref = function() {
   var repeat = 0;
   var handler = new Timer();
 
@@ -55,7 +55,7 @@ Timeout.prototype.activate = function() {
 };
 
 
-Timeout.prototype.close = function() {
+Timeout.prototype.unref = function() {
   this.callback = undefined;
   if (this.handler) {
     this.handler.timeoutObj = undefined;
@@ -85,7 +85,7 @@ function timeoutConfigurator(isrepeat, callback, delay) {
     timeout.callback = callback.bind.apply(callback, args);
   }
   timeout.isrepeat = isrepeat;
-  timeout.activate();
+  timeout.ref();
 
   return timeout;
 }
@@ -95,7 +95,7 @@ exports.setInterval = timeoutConfigurator.bind(undefined, true);
 
 function clearTimeoutBase(timeoutType, timeout) {
   if (timeout && (timeout instanceof Timeout)) {
-    timeout.close();
+    timeout.unref();
   } else {
     throw new Error(timeoutType + '() - invalid timeout');
   }

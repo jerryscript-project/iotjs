@@ -9,61 +9,84 @@ The following shows timer module APIs available for each platform.
 | setInterval | O | O | O |
 | clearInterval | O | O | O |
 
-### Contents
 
-- [Timer](#timer)
-    - [Class: Timeout](#class-timeout)
-        - [Prototype Functions](#prototype-functions)
-            - [`activate()`](#activate)
-            - [`close()`](#close)
-    - [Module Functions](#module-functions)
-        - [`setTimeout(callback, delay[, args..])`](#settimeoutcallback-delay-args)
-        - [`clearTimeout(timeoutObject)`](#cleartimeouttimeoutobject)
-        - [`setInterval(callback, delay[, args..])`](#setintervalcallback-delay-args)
-        - [`clearInterval(intervalObject)`](#clearintervalintervalobject)
+# Timers
 
-# Timer
+The `timer` module exposes a global API for scheduling functions to be called at some future period of time. Because the timer functions are globals, there is no need to call require('timers') to use the API.
 
-The timer module exposes a global API for scheduling functions to be called at some future period of time. Because the timer functions are globals, there is no need to call require('timers') to use the API.
 
-# Class: Timeout
+### setTimeout(callback, delay[, args..])
 
-This object is created internally and is returned from setTimeout() and setInterval().
+* `callback` {Function} The function to call when the timer elapses.
+  * `...args` {any}
+* `delay` {number} The number of milliseconds to wait before calling the `callback`.
+* `...args` {any} - Optional arguments to pass when the `callback` is called.
+* Returns: {Timeout}
 
-## Prototype Functions
+Schedules execution of a one-time `callback` after `delay` milliseconds. Returns a `Timeout` for use with `clearTimeout()`. If `callback` is not a function, a `TypeError` will be thrown.
 
-### `activate()`
+Example:
 
-When called, requests that the IoT.js event loop not exit so long as the Timeout is active.
+```javascript
+var timeout = setTimeout(function() {
+  // Do something which will be executed after one second.
+}, 1000);
+```
 
-### `close()`
+### clearTimeout(timeout)
 
-When called, the active Timeout object will not require the IoT.js event loop to remain active. If there is no other activity keeping the event loop running, the process may exit before the Timeout object's callback is invoked.
+* `timeout` {Timeout} A Timeout object returned by `setTimeout()`.
 
-## Module Functions
+Cancels a `Timeout` object created by `setTimeout()`.
 
-### `setTimeout(callback, delay[, args..])`
-* `callback <Function([args..])>`
-* `delay <Number>`
-* `...args <any>` - Optional arguments to pass when the callback is called.
-* Returns: `<Timeout>`
+Example:
 
-Schedules to call one-time to `callback` function after `delay` milliseconds.
+```javascript
+var timeout = setTimeout(function() { }, 1000);
+...
+clearTimeout(timeout);
+```
 
-### `clearTimeout(timeoutObject)`
-*  `timeoutObject <Timeout>`
+### setInterval(callback, delay[, args..])
+* `callback` {Function} The function to call when the timer elapses.
+  * `...args` {any}
+* `delay` {number} The number of milliseconds to wait before calling the `callback`.
+* `...args` {any} - Optional arguments to pass when the `callback` is called.
+* Returns: {Timeout}
 
-Disables a `Timeout` object from `setTimeout` method.
+Schedules repeated execution of `callback` every `delay` milliseconds. Returns a `Timeout` object for use with `clearInterval()`. If `callback` is not a function, a `TypeError` will be thrown.
 
-### `setInterval(callback, delay[, args..])`
-* `callback <Function([args..])>`
-* `delay <Number>`
-* `...args <any>` - Optional arguments to pass when the callback is called.
-* Returns: `<Timeout>`
+Example:
 
-Schedules repeated execution of `callback` every `delay` milliseconds. If callback is not a function, a `TypeError` will be thrown.
+```javascript
+var timeout = setInterval(function() {
+  // Do something which will be executed repeatadly one time per second.
+}, 1000);
+```
 
-### `clearInterval(intervalObject)`
-* `intervalObject <Timeout>`
+### clearInterval(timeout)
 
-Disables a `Timeout` object from `setInterval` method.
+* `timeout` {Timeout} A Timeout object as returned by `setInterval()`.
+
+Cancels a `Timeout` object created by `setInterval()`.
+
+Example:
+
+```javascript
+var timeout = setInterval(function() { }, 1000);
+...
+clearInterval(timeout);
+```
+
+## Class: Timeout
+
+This object is created internally and is returned from `setTimeout()` and `setInterval()`.
+
+
+### timeout.ref()
+
+When called, requests that the IoT.js event loop should not exit as long as the `Timeout` is active.
+
+### timeout.unref()
+
+When called, the active `Timeout` object will not force the IoT.js event loop to remain active. If there are no other scheduled activites, the process may exit, the process may exit before the `Timeout` object's callback is invoked.

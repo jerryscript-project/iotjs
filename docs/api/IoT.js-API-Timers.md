@@ -25,9 +25,9 @@ The `timer` module exposes a global API for scheduling functions to be called at
 
 Schedules execution of a one-time `callback` after `delay` milliseconds. Returns a `Timeout` for use with `clearTimeout()`. If `callback` is not a function, a `TypeError` will be thrown.
 
-Example:
+**Example**
 
-```javascript
+```js
 var timeout = setTimeout(function() {
   // Do something which will be executed after one second.
 }, 1000);
@@ -39,9 +39,9 @@ var timeout = setTimeout(function() {
 
 Cancels a `Timeout` object created by `setTimeout()`.
 
-Example:
+**Example**
 
-```javascript
+```js
 var timeout = setTimeout(function() { }, 1000);
 ...
 clearTimeout(timeout);
@@ -56,9 +56,9 @@ clearTimeout(timeout);
 
 Schedules repeated execution of `callback` every `delay` milliseconds. Returns a `Timeout` object for use with `clearInterval()`. If `callback` is not a function, a `TypeError` will be thrown.
 
-Example:
+**Example**
 
-```javascript
+```js
 var timeout = setInterval(function() {
   // Do something which will be executed repeatadly one time per second.
 }, 1000);
@@ -70,9 +70,9 @@ var timeout = setInterval(function() {
 
 Cancels a `Timeout` object created by `setInterval()`.
 
-Example:
+**Example**
 
-```javascript
+```js
 var timeout = setInterval(function() { }, 1000);
 ...
 clearInterval(timeout);

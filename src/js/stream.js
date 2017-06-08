@@ -14,16 +14,16 @@
  */
 
 
-var EE = require('events').EventEmitter;
+var eventEmitter = require('events').EventEmitter;
 var util = require('util');
 
 
 function Stream() {
-  EE.call(this);
+  eventEmitter.call(this);
 };
 
 
-util.inherits(Stream, EE);
+util.inherits(Stream, eventEmitter);
 
 
 exports.Stream = Stream;

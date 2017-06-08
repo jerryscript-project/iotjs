@@ -90,15 +90,13 @@ util.inherits(Writable, Stream);
 //    Writable.prototype._onwrite()
 Writable.prototype.write = function(chunk, callback) {
   var state = this._writableState;
-  var res = false;
 
   if (state.ended) {
     writeAfterEnd(this, callback);
-  } else {
-    res = writeOrBuffer(this, chunk, callback);
+    return false;
   }
 
-  return res;
+  return writeOrBuffer(this, chunk, callback);
 };
 
 
@@ -144,7 +142,7 @@ Writable.prototype._readyToWrite = function() {
 
 
 // A chunk of data has been written down to stream.
-Writable.prototype._onwrite = function(status) {
+Writable.prototype._onwrite = function() {
   var state = this._writableState;
 
   state.length -= state.writingLength;

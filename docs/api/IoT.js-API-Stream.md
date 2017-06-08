@@ -11,184 +11,466 @@ The following shows stream module APIs available for each platform.
 | writable.end | O | O | O |
 | writable.write | O | O | O |
 
-### Contents
-
-- [Stream](#stream)
-- [Class: Stream](#class-stream)
-    - [Constructor](#constructor)
-        - [`new Stream()`](#new-stream)
-- [Class: Stream.Readable](#class-streamreadable)
-    - [Readable Constructor](#readable-constructor)
-        - [`new Stream.Readable()`](#new-streamreadable)
-    - [Prototype Functions](#prototype-functions)
-        - [`readable.isPaused()`](#readableispaused)
-        - [`readable.pause()`](#readablepause)
-        - [`readable.read([size])`](#readablereadsize)
-        - [`readable.resume()`](#readableresume)
-        - [`readable.push(chunk)`](#readablepushchunk)
-    - [Events](#events)
-        - [`'close'`](#close)
-        - [`'data'`](#data)
-        - [`'end'`](#end)
-        - [`'error'`](#error)
-        - [`'readable'`](#readable)
-- [Class: Stream.Writable](#class-streamwritable)
-    - [Writable Constructor](#Writable-constructor)
-        - [`new Stream.Writable([options])`](#new-streamWritableoptions)
-    - [Prototype Functions](#prototype-functions-1)
-        - [`writable.end([chunk][, callback])`](#writableendchunk-callback)
-        - [`writable.write(chunk[, callback])`](#writablewritechunk-callback)
-        - [`writable._readyToWrite()`](#writable_readytowrite)
-        - [`writable._write(chunk, callback, onwrite)`](#writable_writechunk-callback-onwrite)
-    - [Events](#events-1)
-        - [`'drain'`](#drain)
-        - [`'error'`](#error-1)
-        - [`'finish'`](#finish)
-- [Class: Stream.Duplex](#class-streamduplex)
-
 # Stream
 
-The stream module provides a base API that makes it easy to build objects that implement the stream interface.
+A stream is an abstract interface for working with streaming data.
+Streams can be readable, writable, or both (duplex). All streams
+are instances of EventEmitter.
 
-# Class: Stream
+## Class: Stream
 
-A stream is an abstract interface for working with streaming data in IoT.js.
+### new Stream()
 
-## Constructor
+**This method is only for implementing a new stream type.**
 
-### `new Stream()`
+This function registers the common properties of all streams.
 
-Returns a new Stream object.
+**Example**
 
-# Class: Stream.Readable
+```js
+var Stream = require('stream').Stream;
 
-Readable stream is abstraction for data source from which data will be read. At any time a readable stream is in one of two state: **flowing** and **paused**. In paused state, readable stream emits `'readable'` event for you that indicates there are data ready for read. And then, you can explicitly call `stream.read()` to get the data form the stream. In flowing state, readable stream emits `'data'` event with actual data that you can receive data as fast as possible. All streams start out in paused mode.
+var stream = new Stream();
 
-## Readable Constructor
+stream.read = function () {
+  // A custom read function.
+}
+```
 
-### `new Stream.Readable()`
 
-**This method is only for implementing a readable stream.**
-Returns a new Readable Stream object.
+## Class: Stream.Readable
 
-## Prototype Functions
+Readable stream is an abstraction for a *data source* from
+which data will be read. At any time a readable stream operates
+in one of two modes: *flowing* and *paused*. All streams begin
+in paused mode.
 
-### `readable.isPaused()`
-* Returns: `<Boolean>`
+In paused mode the stream emits [`'readable'`](#event-readable)
+event every time a new data is available for read. This data can
+be read by calling the [`readable.read()`](#readablereadsize)
+function. A stream can be switched to paused mode by calling
+the [`readable.pause()`](#readablepause) function.
 
-Returns `true` if the readable stream is in paused mode.
+In flowing mode the stream emits [`'data'`](#event-data) events
+every time when data is received. The data buffer is passed to
+the callback function. A stream can be switched to flowing mode
+by calling the [`readable.resume()`](#readableresume) function
+or by adding a [`'data'`](#event-data) event handler.
 
-### `readable.pause()`
-* Returns: `<Readable>`
+Supported events:
 
-Pauses emitting `data` events if the stream is in flowing mode.
+### Event: 'close'
 
-### `readable.read([size])`
-* `size <Number>` - Specify how much data will be read.
-* Returns: `<String> | <Buffer> | <Null>`
+Emitted when the underlying resource has been closed and no more
+events will be emitted. Not all [`Readable`](#class-streamreadable)
+streams will emit the `'close'` event.
 
-The readable.read() method pulls some data out of the internal buffer and returns it. If no data available to be read, null is returned. By default, the data will be returned as a Buffer object.
 
-### `readable.resume()`
-* Returns: `<Readable>`
+### Event: 'data'
+* `chunk` {Buffer|string}
 
-The readable.resume() method causes an explicitly paused Readable stream to resume emitting 'data' events, switching the stream into flowing mode.
+Emitted when the stream passes the ownership of the data to a
+consumer. Only streams in flowing mode emit this event.
 
-### `readable.push(chunk)`
-* `chunk <Buffer> | <String>`
+A stream can be switched to flowing mode by calling the
+[`readable.resume()`](#readableresume) function or by adding
+a `'data'` event handler.
 
-**This method is only for implementing a readable stream.**
-Use this method to push chunk of data to the underlying Buffer of this stream.
-This can then be read by a consumer using either `readable.read` or `'data'` event of this stream.
+**Example**
 
-## Events
+```js
+var Readable = require('stream').Readable;
 
-### `'close'`
-* `callback <Function()>`
+var readable = new Readable();
 
-Emitted when the underlying resource has been closed.
+readable.on('data', function (chunk) {
+  // prints: data received: message
+  console.log('data received: ' + chunk);
+})
 
-### `'data'`
-* `callback <Function(chunk)>`
-* `chunk <Buffer> | <String>`
+readable.push("message");
+```
 
-Readable stream emits this event when a chunk of data prepared to be read. This event is only emitted when the stream is in flowing state. Attaching a `data` event listener to a stream makes the stream to be switched to flowing mode.
 
-### `'end'`
-* `callback <Function()>`
+### Event: 'end'
 
-This event is only fired when there will be no more data to read.
+Emitted when there is no more data to be consumed from the stream.
 
-### `'error'`
-* `callback Function(err)`
-* `err <Error>`
+**Example**
 
-Emitted if there were something wrong reading data.
+```js
+var Readable = require('stream').Readable;
 
-### `'readable'`
-* `callback <Function()>`
+var readable = new Readable();
 
-The 'readable' event is emitted when there is data available to be read from the stream. This event will also be emitted once the end of the stream data has been reached but before the 'end' event is emitted.
+readable.on('end', function () {
+  // prints: no more data
+  console.log('no more data');
+})
+
+readable.push(null);
+```
+
+
+### Event: 'error'
+* `error` {Object}
+
+Emitted when an error is detected by the readable stream. This event
+may occure any time.
+
+### Event: 'readable'
+
+Emitted when there is data available to be read from the stream.
+This event will also be emitted once the end of the stream data
+has been reached but before the ['end'](#event-end) event is emitted.
+
+**Example**
+
+```js
+var Readable = require('stream').Readable;
+
+var readable = new Readable();
+
+readable.on('readable', function () {
+  // prints:.
+  console.log('data received: ' + this.read());
+})
+
+readable.push('message');
+```
+
+
+### new Readable(options)
+* `options` {Object}
+  * `defaultEncoding` {string} **Default:** `utf8`
+
+**This method is only for implementing a new
+[`Readable`](#class-streamreadable) stream type.**
+
+This function registers the common properties
+of [`Readable`](#class-streamreadable) streams.
+
+The `options` object allows passing configuration
+arguments. The `Readable` constructor only supports
+a few members of the `options` object but descendants
+may supports more of them.
+
+**Example**
+
+```js
+var Readable = require('stream').Readable;
+
+var readable = new Readable({ defaultEncoding: 'utf8' });
+```
+
+
+### readable.isPaused()
+* Returns: {boolean}
+
+Returns `true` if the [`Readable`](#class-streamreadable)
+stream is in paused mode. Otherwise the stream is in
+flowing mode. By default the stream starts in paused mode.
+
+**Example**
+
+```js
+var Readable = require('stream').Readable;
+
+var readable = new Readable();
+
+// prints: true
+console.log(readable.isPaused());
+```
+
+### readable.pause()
+* Returns: {Readable}
+
+Stops emitting [`'data'`](#event-data) events if the
+stream is in flowing mode and sets paused mode. No
+effect otherwise.
+
+**Example**
+
+```js
+var Readable = require('stream').Readable;
+
+var readable = new Readable();
+
+readable.pause();
+```
+
+
+### readable.read([size])
+* `size` {number} Specify how much data will be read.
+* Returns: {Buffer|null}
+
+The `readable.read()` method pulls some data out of the
+internal buffer and returns it. If no data is available
+`null` is returned instead.
+
+Note: currently all data must be read.
+
+**Example**
+
+```js
+var Readable = require('stream').Readable;
+
+var readable = new Readable();
+
+// prints: null
+console.log(readable.read());
+
+readable.push('message');
+
+// prints: message
+console.log(readable.read());
+```
+
+
+### readable.resume()
+* Returns: {Readable}
+
+Starts emitting [`'data'`](#events-data) events if the
+stream is in paused mode and sets flowing mode. No effect
+otherwise.
+
+**Example**
+
+```js
+var Readable = require('stream').Readable;
+
+var readable = new Readable();
+
+readable.resume();
+```
+
+
+### readable.push(chunk)
+* `chunk` {Buffer|string}
+
+**This method is only for implementing a new
+[`Readable`](#class-streamreadable) stream type.**
+
+Push a chunk of data to the underlying `Buffer` of
+this stream. The data can be read by using
+either [`readable.read()`](#readablereadsize) method
+or [`'data'`](#event-data) event of this stream.
+
+**Example**
+
+```js
+var Readable = require('stream').Readable;
+
+var readable = new Readable();
+
+readable.push('message');
+
+// prints: message
+console.log(readable.read());
+```
+
 
 # Class: Stream.Writable
 
-Writable stream is abstraction for target that you can write data to.
+Writable stream is an abstraction for a *destination*
+to which data is written. Several functions of the
+Stream.Writable class are abstract interfaces and
+descendants can override them. The
+[`new Stream.Writable()`](#new-streamwritableoptions)
+constructor must be used for initializing a
+writable stream and
+[`writable._write()`](#writable_writechunk-callback-onwrite)
+method are required to be implemented.
 
-## Writable Constructor
 
-### `new Stream.Writable([options])`
-* `options <Object>`
+Supported events:
 
-**This method is only for implementing a Writable stream.**
-**Some functions of the class Stream.Writable are abstract interfaces. Concrete implementations of this class MUST call the above constructor and MUST implement the method `writable._write()`**
-Returns a new Writable Stream object. Set `options.highWaterMark` for the number of characters after which `write()` starts returning false.
+### Event: 'drain'
 
-## Prototype Functions
+If [`writable.write()`](#writablewritechunk-callback)
+returns `false` the stream emits a `drain` event when
+it is appropriate to resume writing data into the stream.
 
-### `writable.end([chunk][, callback])`
-* `chunk <String> | <Buffer>` - The data to write
-* `callback <Function()>` - Callback for for when the stream is finished.
+**Example**
 
-### `writable.write(chunk[, callback])`
-* `chunk <String> | <Buffer>` - The data to write
-* `callback <Function()>` - Callback for when the chunk of data is flushed.
-* Returns: `<Boolean>`
+```js
+var Writable = require('stream').Writable;
 
-This method writes `chunk` of data to the underlying system, when the data is flush it calls back the `callback` function.
-If you can write right after calling this method, it will return `true`, otherwise, return `false`.
+// Buffer is full after 1 byte of data.
+var writable = new Writable({ highWaterMark:1 });
 
-### `writable._readyToWrite()`
-**This method is only for implementing a Writable stream.**
-**Concrete implementations of this class MUST call the above method.**
-Concrete stream implementations should call this method to inform the stream when it is ready to be written to.
+writable._write = function(chunk, callback, onwrite) {
+  onwrite();
+}
 
-### `writable._write(chunk, callback, onwrite)`
-* `chunk <String> | <Buffer>` - The data to be written by the stream
-* `callback <Function()>` - Callback to be called when the chunk of data is flushed.
-* `onwrite <Function()>` - Internal Callback to be called for when the chunk of data is flushed.
+// Writes 1 byte data into the stream.
+writable.write("X");
 
-**This method is only for implementing a Writable stream.**
-**This function of the class Stream.Writable is an abstract interface. Concrete implementations of this class MUST implement the above method.**
-Concrete stream implementations should override this method. This method will be called when the stream neeeds to write a `chunk` of data. After the data is flushed, call `callback` and `onwrite` callbacks. This function will only be called after `writable._readyToWrite()` is called.
+writable.on('drain', function() {
+  // prints: can continue writing
+  console.log('can continue writing');
+});
 
-## Events
+writable._readyToWrite();
+```
 
-### `'drain'`
-* `callback <Function()>`
 
-If `writable.write()` returns false, `drain` events will indicate you that the stream is ready to be written.
+### Event: 'error'
+* `err` {Error}
 
-### `'error'`
-* `callback Function(err)`
-* `err <Error>`
+Emitted if an error occures during writing the data.
 
-Emitted if there were something wrong writing data.
 
-### `'finish'`
-* `callback <Function()>`
+### Event: 'finish'
 
-After `writable.end()` has been called, and all data has been flushed, this event will be fired.
+Emitted after [`writable.end()`](#writableendchunk-callback)
+has been called and all pending data has been flushed.
+
+**Example**
+
+```js
+var Writable = require('stream').Writable;
+
+var writable = new Writable();
+
+writable.on('finish', function() {
+  // prints: end of writing
+  console.log('end of writing');
+});
+
+writable.end();
+```
+
+
+### new Stream.Writable([options])
+* `options` {Object}
+  * `highWaterMark` {number}
+
+**This method is only for implementing a new
+[`Writable`](#class-streamwritable) stream type.**
+
+This function registers the common properties
+of [`Writable`](#class-streamwritable) streams.
+
+When the size of the internal buffer reaches
+`options.highWaterMark` the
+[`writable.write()`](#writablewritechunk-callback)
+method starts returning with `false` and the data
+should be drained before further data is written.
+
+**Example**
+
+```js
+var Writable = require('stream').Writable;
+
+var writable = new Writable({ highWaterMark:256 });
+```
+
+
+### writable.end([chunk[, callback]])
+* `chunk` {Buffer|string} Final data to write.
+* `callback` {Function}
+
+Calling this function signals that no more data will
+be written to the Writable. The optional `chunk`
+argument allows writing a final chunk of data.
+If `chunk` is `null` no data is written.
+
+The optional `callback` function is attached
+as a listener for the ['finish'](#event-finish) event.
+
+**Example**
+
+```js
+var Writable = require('stream').Writable;
+
+var writable = new Writable();
+
+writable.end();
+```
+
+
+### writable.write(chunk[, callback])
+* `chunk` {Buffer|string} Data to write.
+* `callback` {Function} Called when this chunk of data is flushed.
+* Returns: {boolean}
+
+Converts `chunk` into a sequence of bytes and writes this data
+to the stream. An optional `callback` function is called when
+the data is flushed.
+
+The returned value is `true` if writing can be continued
+right after calling this method. Otherwise the returned
+value is `false` and no data should be written until the
+[`'drain'`](#event-drain) event is received.
+
+**Example**
+
+```js
+var Writable = require('stream').Writable;
+
+var writable = new Writable();
+
+writable.write("String");
+```
+
+
+### writable._readyToWrite()
+
+**This method is only for implementing a new
+[`Writable`](#class-streamwritable) stream type.**
+
+This method informs the [`Writable`](#class-streamwritable)
+stream that the implementation is ready for receiving data.
+
+**Example**
+
+```js
+var Writable = require('stream').Writable;
+
+var writable = new Writable();
+
+writable._readyToWrite();
+```
+
+
+### writable._write(chunk, callback, onwrite)
+* `chunk` {Buffer|string} The data to be written by the stream.
+* `callback` {Function} Callback to be called when the chunk of data is flushed.
+* `onwrite` {Function} Internal Callback to be called for when the chunk of data is flushed.
+
+**This method is only for implementing a new
+[`Writable`](#class-streamwritable) stream type.**
+
+This internal method is called by the
+[`Writable`](#class-streamwritable) stream and the implementation
+**must** override it. The data to be written is passed as the
+`chunk` argument. After the operation is completed, both
+`callback` and `onwrite` function should be called.
+
+**Example**
+
+```js
+var Writable = require('stream').Writable;
+
+var writable = new Writable();
+
+writable._write = function(chunk, callback, onwrite) {
+  // prints: message
+  console.log(chunk);
+
+  onwrite();
+  if (callback)
+    callback();
+}
+
+writable._readyToWrite();
+
+writable.write('message');
+```
 
 
 # Class: Stream.Duplex
-Duplex streams are streams that implement both the Readable and Writable interfaces.
+
+Duplex streams are streams that implement both the
+Readable and Writable interfaces.

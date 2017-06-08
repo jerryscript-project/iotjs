@@ -122,12 +122,11 @@ Readable.prototype.error = function(error) {
 Readable.prototype.push = function(chunk, encoding) {
   var state = this._readableState;
 
-  if (!util.isString(chunk) &&
-      !util.isBuffer(chunk) &&
-      !util.isNull(chunk)) {
-    this.error(TypeError('Invalid chunk'));
-  } else if (util.isNull(chunk)) {
+  if (util.isNull(chunk)) {
     onEof(this);
+  } else if (!util.isString(chunk) &&
+             !util.isBuffer(chunk)) {
+    this.error(TypeError('Invalid chunk'));
   } else if (state.ended) {
     this.error(Error('stream.push() after EOF'));
   } else {

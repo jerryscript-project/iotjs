@@ -14,14 +14,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-function print_dep
+print_dep()
 {
   echo "The following dependencies are required:"
   echo "    sudo apt install lcov gcc-multilib"
   echo ""
 }
 
-function print_nvm_dep
+print_nvm_dep()
 {
   echo "The nvm (node version manager) is required to install node and npm."
   echo "Use the following command to install nvm:"
@@ -30,11 +30,23 @@ https://raw.githubusercontent.com/creationix/nvm/v0.33.1/install.sh | bash"
   echo ""
 }
 
-function print_npm_dep
+print_npm_dep()
 {
   echo "The following node dependencies are required: "
-  echo "    npm install babel-cli nyc babel-plugin-istanbul"
+  echo "    npm install babel-cli nyc babel-plugin-istanbul merge-source-map"
   echo ""
+}
+
+check_architecture()
+{
+  architecture=$(uname -m)
+  case $architecture in
+    i386|i686|x86_32)
+      ;;
+    *)
+      echo "Error: You can measure test coverage only on x86 32-bit."
+      exit 1
+  esac
 }
 
 if [ "$#" -gt "0" ] && ( [ "$1" == "-h" ] || [ "$1" == "--help" ] ); then
@@ -61,6 +73,9 @@ if [ "$#" -gt "0" ] && ( [ "$1" == "-h" ] || [ "$1" == "--help" ] ); then
     exit 0
 fi
 
+# Don't run this script on x86_64 architecture, only on x86_32
+check_architecture
+
 tools_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 iotjs_root=$(readlink -f "$tools_dir/..")
 
@@ -76,7 +91,7 @@ fi
 . ~/.profile
 
 # Istanbul and babel require node version > 4.0.
-nvm install 4.0
+nvm install 6.11.0
 
 dpkg -l lcov >> /dev/null 2>&1 && \
 dpkg -l gcc-multilib >> /dev/null 2>&1
@@ -138,6 +153,7 @@ rm -rf src/js
 mv src/orig_js src/js
 
 # Generate js coverage report
+mkdir -p .coverage_output
 $modules_dir/.bin/nyc report --reporter=lcov \
     --report-dir=coverage --temp-directory=.coverage_output
 rm -rf .coverage_output

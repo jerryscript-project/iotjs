@@ -21,6 +21,11 @@
 #include "iotjs_objectwrap.h"
 #include "iotjs_reqwrap.h"
 
+#if defined(__TIZENRT__)
+#include <iotbus_pwm.h>
+#include <stdint.h>
+#endif
+
 
 typedef enum {
   kPwmOpOpen,
@@ -40,6 +45,8 @@ typedef struct {
   iotjs_string_t device;
 #elif defined(__NUTTX__)
   int device_fd;
+#elif defined(__TIZENRT__)
+  iotbus_pwm_context_h ctx;
 #endif
   uint32_t pin;
   double duty_cycle;

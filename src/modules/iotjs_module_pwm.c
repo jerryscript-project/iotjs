@@ -247,8 +247,8 @@ static void iotjs_pwm_after_worker(uv_work_t* work_req, int status) {
 
 
 JHANDLER_FUNCTION(PWMConstructor) {
-  JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARGS(2, object, function);
+  DJHANDLER_CHECK_THIS(object);
+  DJHANDLER_CHECK_ARGS(2, object, function);
 
   // Create PWM object
   const iotjs_jval_t* jpwm = JHANDLER_GET_THIS(object);
@@ -266,8 +266,8 @@ JHANDLER_FUNCTION(PWMConstructor) {
 
 
 JHANDLER_FUNCTION(SetPeriod) {
-  JHANDLER_CHECK_ARGS(1, number);
-  JHANDLER_CHECK_ARG_IF_EXIST(1, function);
+  DJHANDLER_CHECK_ARGS(1, number);
+  DJHANDLER_CHECK_ARG_IF_EXIST(1, function);
 
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG_IF_EXIST(1, function);
   const iotjs_jval_t* jpwm = JHANDLER_GET_THIS(object);
@@ -290,8 +290,8 @@ JHANDLER_FUNCTION(SetPeriod) {
 
 
 JHANDLER_FUNCTION(SetDutyCycle) {
-  JHANDLER_CHECK_ARGS(1, number);
-  JHANDLER_CHECK_ARG_IF_EXIST(1, function);
+  DJHANDLER_CHECK_ARGS(1, number);
+  DJHANDLER_CHECK_ARG_IF_EXIST(1, function);
 
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG_IF_EXIST(1, function);
   const iotjs_jval_t* jpwm = JHANDLER_GET_THIS(object);
@@ -314,8 +314,8 @@ JHANDLER_FUNCTION(SetDutyCycle) {
 
 
 JHANDLER_FUNCTION(SetEnable) {
-  JHANDLER_CHECK_ARGS(1, boolean);
-  JHANDLER_CHECK_ARG_IF_EXIST(1, function);
+  DJHANDLER_CHECK_ARGS(1, boolean);
+  DJHANDLER_CHECK_ARG_IF_EXIST(1, function);
 
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG_IF_EXIST(1, function);
   const iotjs_jval_t* jpwm = JHANDLER_GET_THIS(object);
@@ -338,8 +338,8 @@ JHANDLER_FUNCTION(SetEnable) {
 
 
 JHANDLER_FUNCTION(Close) {
-  JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARG_IF_EXIST(0, function);
+  DJHANDLER_CHECK_THIS(object);
+  DJHANDLER_CHECK_ARG_IF_EXIST(0, function);
 
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG_IF_EXIST(0, function);
   const iotjs_jval_t* jpwm = JHANDLER_GET_THIS(object);

@@ -253,8 +253,8 @@ static void gpio_set_configurable(iotjs_gpio_t* gpio,
 
 
 JHANDLER_FUNCTION(GpioConstructor) {
-  JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARGS(2, object, function);
+  DJHANDLER_CHECK_THIS(object);
+  DJHANDLER_CHECK_ARGS(2, object, function);
 
   // Create GPIO object
   const iotjs_jval_t* jgpio = JHANDLER_GET_THIS(object);
@@ -269,9 +269,9 @@ JHANDLER_FUNCTION(GpioConstructor) {
 
 
 JHANDLER_FUNCTION(Write) {
-  JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARGS(1, boolean);
-  JHANDLER_CHECK_ARG_IF_EXIST(1, function);
+  DJHANDLER_CHECK_THIS(object);
+  DJHANDLER_CHECK_ARGS(1, boolean);
+  DJHANDLER_CHECK_ARG_IF_EXIST(1, function);
 
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG_IF_EXIST(1, function);
   const iotjs_jval_t* jgpio = JHANDLER_GET_THIS(object);
@@ -292,9 +292,9 @@ JHANDLER_FUNCTION(Write) {
 
 
 JHANDLER_FUNCTION(Read) {
-  JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARGS(0);
-  JHANDLER_CHECK_ARG_IF_EXIST(0, function);
+  DJHANDLER_CHECK_THIS(object);
+  DJHANDLER_CHECK_ARGS(0);
+  DJHANDLER_CHECK_ARG_IF_EXIST(0, function);
 
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG_IF_EXIST(0, function);
   const iotjs_jval_t* jgpio = JHANDLER_GET_THIS(object);
@@ -314,8 +314,8 @@ JHANDLER_FUNCTION(Read) {
 
 
 JHANDLER_FUNCTION(Close) {
-  JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARG_IF_EXIST(0, function);
+  DJHANDLER_CHECK_THIS(object);
+  DJHANDLER_CHECK_ARG_IF_EXIST(0, function);
 
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG_IF_EXIST(0, function);
   const iotjs_jval_t* jgpio = JHANDLER_GET_THIS(object);

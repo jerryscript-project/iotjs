@@ -357,8 +357,8 @@ static iotjs_httpparserwrap_t* get_parser_wrap(const iotjs_jval_t* jparser) {
 
 
 JHANDLER_FUNCTION(Reinitialize) {
-  JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARGS(1, number);
+  DJHANDLER_CHECK_THIS(object);
+  DJHANDLER_CHECK_ARGS(1, number);
 
   const iotjs_jval_t* jparser = JHANDLER_GET_THIS(object);
 
@@ -373,8 +373,8 @@ JHANDLER_FUNCTION(Reinitialize) {
 
 
 JHANDLER_FUNCTION(Finish) {
-  JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARGS(0);
+  DJHANDLER_CHECK_THIS(object);
+  DJHANDLER_CHECK_ARGS(0);
 
   const iotjs_jval_t* jparser = JHANDLER_GET_THIS(object);
   iotjs_httpparserwrap_t* parser = get_parser_wrap(jparser);
@@ -396,8 +396,8 @@ JHANDLER_FUNCTION(Finish) {
 
 
 JHANDLER_FUNCTION(Execute) {
-  JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARGS(1, object);
+  DJHANDLER_CHECK_THIS(object);
+  DJHANDLER_CHECK_ARGS(1, object);
 
   const iotjs_jval_t* jparser = JHANDLER_GET_THIS(object);
   iotjs_httpparserwrap_t* parser = get_parser_wrap(jparser);
@@ -436,8 +436,8 @@ JHANDLER_FUNCTION(Execute) {
 
 
 JHANDLER_FUNCTION(Pause) {
-  JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARGS(0);
+  DJHANDLER_CHECK_THIS(object);
+  DJHANDLER_CHECK_ARGS(0);
   const iotjs_jval_t* jparser = JHANDLER_GET_THIS(object);
   iotjs_httpparserwrap_t* parser = get_parser_wrap(jparser);
   http_parser* nativeparser = iotjs_httpparserwrap_parser(parser);
@@ -446,8 +446,8 @@ JHANDLER_FUNCTION(Pause) {
 
 
 JHANDLER_FUNCTION(Resume) {
-  JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARGS(0);
+  DJHANDLER_CHECK_THIS(object);
+  DJHANDLER_CHECK_ARGS(0);
   const iotjs_jval_t* jparser = JHANDLER_GET_THIS(object);
   iotjs_httpparserwrap_t* parser = get_parser_wrap(jparser);
   http_parser* nativeparser = iotjs_httpparserwrap_parser(parser);
@@ -456,8 +456,8 @@ JHANDLER_FUNCTION(Resume) {
 
 
 JHANDLER_FUNCTION(HTTPParserCons) {
-  JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARGS(1, number);
+  DJHANDLER_CHECK_THIS(object);
+  DJHANDLER_CHECK_ARGS(1, number);
 
   const iotjs_jval_t* jparser = JHANDLER_GET_THIS(object);
 

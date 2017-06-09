@@ -242,12 +242,12 @@ static void GetI2cArray(const iotjs_jval_t* jarray,
 
 
 JHANDLER_FUNCTION(I2cCons) {
-  JHANDLER_CHECK_THIS(object);
+  DJHANDLER_CHECK_THIS(object);
 #if defined(__linux__) || defined(__APPLE__)
-  JHANDLER_CHECK_ARGS(2, string, function);
+  DJHANDLER_CHECK_ARGS(2, string, function);
   iotjs_string_t device = JHANDLER_GET_ARG(0, string);
 #elif defined(__NUTTX__)
-  JHANDLER_CHECK_ARGS(2, number, function);
+  DJHANDLER_CHECK_ARGS(2, number, function);
   int device = JHANDLER_GET_ARG(0, number);
 #endif
 
@@ -275,8 +275,8 @@ JHANDLER_FUNCTION(I2cCons) {
 
 
 JHANDLER_FUNCTION(SetAddress) {
-  JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARGS(1, number);
+  DJHANDLER_CHECK_THIS(object);
+  DJHANDLER_CHECK_ARGS(1, number);
   iotjs_i2c_t* i2c = iotjs_i2c_instance_from_jval(JHANDLER_GET_THIS(object));
 
   I2cSetAddress(i2c, JHANDLER_GET_ARG(0, number));
@@ -286,8 +286,8 @@ JHANDLER_FUNCTION(SetAddress) {
 
 
 JHANDLER_FUNCTION(Close) {
-  JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARGS(0);
+  DJHANDLER_CHECK_THIS(object);
+  DJHANDLER_CHECK_ARGS(0);
 
   iotjs_i2c_t* i2c = iotjs_i2c_instance_from_jval(JHANDLER_GET_THIS(object));
   I2cClose(i2c);
@@ -297,8 +297,8 @@ JHANDLER_FUNCTION(Close) {
 
 
 JHANDLER_FUNCTION(Write) {
-  JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARGS(2, array, function);
+  DJHANDLER_CHECK_THIS(object);
+  DJHANDLER_CHECK_ARGS(2, array, function);
 
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG(1, function);
   const iotjs_jval_t* ji2c = JHANDLER_GET_THIS(object);
@@ -316,8 +316,8 @@ JHANDLER_FUNCTION(Write) {
 
 
 JHANDLER_FUNCTION(WriteByte) {
-  JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARGS(2, number, function);
+  DJHANDLER_CHECK_THIS(object);
+  DJHANDLER_CHECK_ARGS(2, number, function);
 
   uint8_t byte = JHANDLER_GET_ARG(0, number);
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG(1, function);
@@ -336,8 +336,8 @@ JHANDLER_FUNCTION(WriteByte) {
 
 
 JHANDLER_FUNCTION(WriteBlock) {
-  JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARGS(3, number, array, function);
+  DJHANDLER_CHECK_THIS(object);
+  DJHANDLER_CHECK_ARGS(3, number, array, function);
 
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG(2, function);
   const iotjs_jval_t* ji2c = JHANDLER_GET_THIS(object);
@@ -356,8 +356,8 @@ JHANDLER_FUNCTION(WriteBlock) {
 
 
 JHANDLER_FUNCTION(Read) {
-  JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARGS(2, number, function);
+  DJHANDLER_CHECK_THIS(object);
+  DJHANDLER_CHECK_ARGS(2, number, function);
 
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG(1, function);
   const iotjs_jval_t* ji2c = JHANDLER_GET_THIS(object);
@@ -376,8 +376,8 @@ JHANDLER_FUNCTION(Read) {
 
 
 JHANDLER_FUNCTION(ReadByte) {
-  JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARGS(1, function);
+  DJHANDLER_CHECK_THIS(object);
+  DJHANDLER_CHECK_ARGS(1, function);
 
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG(0, function);
   const iotjs_jval_t* ji2c = JHANDLER_GET_THIS(object);
@@ -392,8 +392,8 @@ JHANDLER_FUNCTION(ReadByte) {
 
 
 JHANDLER_FUNCTION(ReadBlock) {
-  JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARGS(4, number, number, number, function);
+  DJHANDLER_CHECK_THIS(object);
+  DJHANDLER_CHECK_ARGS(4, number, number, number, function);
 
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG(3, function);
   const iotjs_jval_t* ji2c = JHANDLER_GET_THIS(object);

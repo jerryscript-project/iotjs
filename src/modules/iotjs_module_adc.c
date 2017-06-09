@@ -215,8 +215,8 @@ static void iotjs_adc_close_worker(uv_work_t* work_req) {
 
 
 JHANDLER_FUNCTION(AdcConstructor) {
-  JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARGS(2, object, function);
+  DJHANDLER_CHECK_THIS(object);
+  DJHANDLER_CHECK_ARGS(2, object, function);
 
   // Create ADC object
   const iotjs_jval_t* jadc = JHANDLER_GET_THIS(object);
@@ -231,8 +231,8 @@ JHANDLER_FUNCTION(AdcConstructor) {
 
 
 JHANDLER_FUNCTION(Read) {
-  JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARG_IF_EXIST(0, function);
+  DJHANDLER_CHECK_THIS(object);
+  DJHANDLER_CHECK_ARG_IF_EXIST(0, function);
 
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG_IF_EXIST(0, function);
   const iotjs_jval_t* jadc = JHANDLER_GET_THIS(object);
@@ -252,8 +252,8 @@ JHANDLER_FUNCTION(Read) {
 
 
 JHANDLER_FUNCTION(Close) {
-  JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARG_IF_EXIST(0, function);
+  DJHANDLER_CHECK_THIS(object);
+  DJHANDLER_CHECK_ARG_IF_EXIST(0, function);
 
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG_IF_EXIST(0, function);
   const iotjs_jval_t* jadc = JHANDLER_GET_THIS(object);

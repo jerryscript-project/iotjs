@@ -79,8 +79,8 @@ static void iotjs_blehcisocket_destroy(THIS) {
 
 
 JHANDLER_FUNCTION(Start) {
-  JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARGS(0);
+  DJHANDLER_CHECK_THIS(object);
+  DJHANDLER_CHECK_ARGS(0);
 
   const iotjs_jval_t* jblehcisocket = JHANDLER_GET_THIS(object);
 
@@ -94,7 +94,7 @@ JHANDLER_FUNCTION(Start) {
 
 
 JHANDLER_FUNCTION(BindRaw) {
-  JHANDLER_CHECK_THIS(object);
+  DJHANDLER_CHECK_THIS(object);
   JHANDLER_CHECK(ge(iotjs_jhandler_get_arg_length(jhandler), 1));
 
   const iotjs_jval_t* jblehcisocket = JHANDLER_GET_THIS(object);
@@ -118,8 +118,8 @@ JHANDLER_FUNCTION(BindRaw) {
 
 
 JHANDLER_FUNCTION(BindUser) {
-  JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARGS(1, number);
+  DJHANDLER_CHECK_THIS(object);
+  DJHANDLER_CHECK_ARGS(1, number);
 
   const iotjs_jval_t* jblehcisocket = JHANDLER_GET_THIS(object);
 
@@ -136,8 +136,8 @@ JHANDLER_FUNCTION(BindUser) {
 
 
 JHANDLER_FUNCTION(BindControl) {
-  JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARGS(0);
+  DJHANDLER_CHECK_THIS(object);
+  DJHANDLER_CHECK_ARGS(0);
 
   const iotjs_jval_t* jblehcisocket = JHANDLER_GET_THIS(object);
 
@@ -151,8 +151,8 @@ JHANDLER_FUNCTION(BindControl) {
 
 
 JHANDLER_FUNCTION(IsDevUp) {
-  JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARGS(0);
+  DJHANDLER_CHECK_THIS(object);
+  DJHANDLER_CHECK_ARGS(0);
 
   const iotjs_jval_t* jblehcisocket = JHANDLER_GET_THIS(object);
 
@@ -166,8 +166,8 @@ JHANDLER_FUNCTION(IsDevUp) {
 
 
 JHANDLER_FUNCTION(SetFilter) {
-  JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARGS(1, object);
+  DJHANDLER_CHECK_THIS(object);
+  DJHANDLER_CHECK_ARGS(1, object);
 
   const iotjs_jval_t* jblehcisocket = JHANDLER_GET_THIS(object);
   iotjs_blehcisocket_t* blehcisocket =
@@ -183,8 +183,8 @@ JHANDLER_FUNCTION(SetFilter) {
 
 
 JHANDLER_FUNCTION(Stop) {
-  JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARGS(0);
+  DJHANDLER_CHECK_THIS(object);
+  DJHANDLER_CHECK_ARGS(0);
 
   const iotjs_jval_t* jblehcisocket = JHANDLER_GET_THIS(object);
 
@@ -198,8 +198,8 @@ JHANDLER_FUNCTION(Stop) {
 
 
 JHANDLER_FUNCTION(Write) {
-  JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARGS(1, object);
+  DJHANDLER_CHECK_THIS(object);
+  DJHANDLER_CHECK_ARGS(1, object);
 
   const iotjs_jval_t* jblehcisocket = JHANDLER_GET_THIS(object);
   iotjs_blehcisocket_t* blehcisocket =
@@ -215,8 +215,8 @@ JHANDLER_FUNCTION(Write) {
 
 
 JHANDLER_FUNCTION(BleHciSocketCons) {
-  JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARGS(0);
+  DJHANDLER_CHECK_THIS(object);
+  DJHANDLER_CHECK_ARGS(0);
 
   // Create object
   const iotjs_jval_t* jblehcisocket = JHANDLER_GET_THIS(object);

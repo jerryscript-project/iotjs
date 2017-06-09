@@ -113,8 +113,8 @@ static void AfterGetAddrInfo(uv_getaddrinfo_t* req, int status,
 
 
 JHANDLER_FUNCTION(GetAddrInfo) {
-  JHANDLER_CHECK_THIS(object);
-  JHANDLER_CHECK_ARGS(4, string, number, number, function);
+  DJHANDLER_CHECK_THIS(object);
+  DJHANDLER_CHECK_ARGS(4, string, number, number, function);
 
   iotjs_string_t hostname = JHANDLER_GET_ARG(0, string);
   int option = JHANDLER_GET_ARG(1, number);

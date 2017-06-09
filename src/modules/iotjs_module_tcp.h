@@ -91,7 +91,7 @@ void AddressToJS(const iotjs_jval_t* obj, const sockaddr* addr);
 
 #define GetSockNameFunction(wraptype, handletype, function)                    \
   static void DoGetSockName(iotjs_jhandler_t* jhandler) {                      \
-    JHANDLER_CHECK_ARGS(1, object);                                            \
+    DJHANDLER_CHECK_ARGS(1, object);                                           \
                                                                                \
     iotjs_##wraptype##_t* wrap =                                               \
         iotjs_##wraptype##_from_jobject(JHANDLER_GET_THIS(object));            \

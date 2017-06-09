@@ -1,37 +1,59 @@
-## Stm32f4dis module
+## Pin
+In order to use system IO, such as GPIO, PWM and ADC you need to know the pin name.
+The `stm32f4dis` module has pin object which is designed to find a pin name easier.
 
-## `Pin`
-To use system IO, such as GPIO, PWM and ADC you must know pin name.
-`stm32f4dis` module has pin object which is designed to find a pin name easier.
+**Example**
 
-``` javascript
+```js
+
 var pin = require('stm32f4dis').pin;
+
 ```
 
+### GPIO Pin
+P[port][pin]
 
-### `GPIO Pin` <a name="gpio-pin"></a>
-`P<port><pin>`
+A configured GPIO pin.
 
-For example,
-``` javascript
+The `port` must be equal to a capital letter from 'A' to 'D'.
+
+The `pin` must be equal to an integer from 0 to 15.
+
+**Example**
+
+```js
+
 var gpio = require('gpio');
 var pin = require('stm32f4dis').pin;
 
 gpio.open(pin.PD6);
+
 ```
 
+### PWM Pin
+PWM[timer].CH[channel]_[number]
 
-### `PWM Pin` <a name="pwm-pin"></a>
-`PWM<timer>.CH<channel>_<number>`
+A configured PWM pin.
 
-For example,
-``` javascript
+The `timer` must be equal to an integer from 1 to 14.
+
+The `channel` must be equal to an integer from 1 to 4, but it also depends on the `timer`.
+
+The `number` must be equal to an integer form 1 to 2, and 3 in case of PWM3.CH1_3, PWM3.CH2_3 and PWM2.CH1_3.
+
+**Example**
+
+```js
+
 var pwm = require('pwm');
 var pin = require('stm32f4dis').pin;
 
 var pwm2 = new pwm(pin.PWM2.CH1_2);
+
 ```
-The following is a list of PWM pin name.
+
+The following table shows the available PWM pin names and their corresponding
+ GPIO pins.
 
 | PWM Pin Name | GPIO Name | PWM Pin Name | GPIO Name|
 | :---: | :---: | :---: | :---: |
@@ -63,18 +85,28 @@ The following is a list of PWM pin name.
 | PWM3.CH4_1 | PB1 | PWM14.CH1_1 | PA7 |
 | PWM3.CH4_2 | PC9 | | |
 
+### ADC Pin
+ADC[number]_[timer]
 
-### `ADC Pin` <a name="adc-pin"></a>
-`ADC<number>_<timer>`
+A configured ADC pin.
 
-For example,
-``` javascript
+The `number`  must be equal to an integer from 1 to 3.
+
+The `timer` must be equal to an integer from 0 to 15.
+
+**Example**
+
+```js
+
 var adc = require('adc');
 var pin = require('stm32f4dis').pin;
 
 var adc1 = new adc(pin.ADC1_3);
+
 ```
-The following is a list of ADC pin name.
+
+The following table shows the available ADC pin names and their corresponding
+ GPIO pins.
 
 | ADC Pin Name | GPIO Name |
 | :--- | :---: |
@@ -95,12 +127,14 @@ The following is a list of ADC pin name.
 | ADC1_14, ADC2_14 | PC4 |
 | ADC1_15, ADC2_15 | PC5 |
 
+## UART Port Information
 
-## `UART Port Information` <a name="uart"></a>
-To use UART on stm32f4-discovery board, you must use proper pins. Stm32f4-discovery board supports 4 UART ports, such as USART2, USART3, UART5, USART6.
-But as our default config option sets SDIO to be on, it makes conflict with UART5 port because these two use the same pin for connection. So you must be careful when you enable UART5 port.
+In order to use the UART on stm32f4-discovery board, you must use proper pins.
 
-The following is a list of ADC pin map.
+The stm32f4-discovery board supports 4 UART ports, such as USART2, USART3, UART5, USART6.
+The UART5 port and the SDIO uses the same pin for connection. SDIO is enabled by default, so be careful when you enable the UART5 port.
+
+The following table shows the U[S]ART pin map:
 
 | U[S]ART Pin Name | GPIO Name |
 | :--- | :---: |
@@ -113,15 +147,21 @@ The following is a list of ADC pin map.
 | USART6_RX | PC7 |
 | USART6_TX | PC6 |
 
-* Different from other system IO such as GPIO, ADC, PWM, you can't find the name of the UART device easily by `stm32f4dis.pin` module. It's because the name of the uart device can be changed according to your Nuttx config option. You can find '/dev/ttyS[0-3]' according to your environment.
+Note: The name of the UART device cannot find by the `stm32f4dis.pin` module, because it can be changed in the NuttX configuration file. It should be '/dev/ttyS[0-3]'.
 
+### Enable USART1 and UART4
 
-### Enable more ports using patch file
+The current version of the NuttX does not support the USART1 and UART4 ports for stm32f4-discovery board.
 
-Current version of Nuttx doesn't support USART1 and UART4 as the ports for stm32f4-discovery board. But if you want to enable more ports other than above, you can modify Nuttx code by referring to a part of `config/nuttx/stm32f4dis/patch` file.
+The `config/nuttx/stm32f4dis/patch` file contains the implementations of the the USART1 and UART4 ports. It maps the PB6 and PB7 gpio pins to USART1_TX and USART2_RX, PA0 and PA1 gpio pins to UART4_TX and UART4_RX respectively.
 
-To apply whole patch,
+Note: You can add more ports according to the patch file.
+
+**Apply the patch**
+
 ```bash
+
 ~/workspace/nuttx$ patch -p1 < ../iotjs/config/nuttx/stm32f4dis/patch
+
 ```
-Make sure it is your responsibility to enable the ports only when they do not make any conflicts.
+

@@ -5,7 +5,7 @@ The following shows Assert module APIs available for each platform.
 |  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | Nuttx<br/>(STM32F4-Discovery) |
 | :---: | :---: | :---: | :---: |
 | assert.assert | O | O | O |
-| assert.doesNotThrows | O | O | O |
+| assert.doesNotThrow | O | O | O |
 | assert.equal | O | O | O |
 | assert.fail | O | O | O |
 | assert.notEqual | O | O | O |
@@ -13,195 +13,216 @@ The following shows Assert module APIs available for each platform.
 | assert.strictEqual | O | O | O |
 | assert.throws | O | O | O |
 
-
-### Contents
-
-- [Assert](#assert)
-    - [Module Functions](#module-functions)
-        - [`assert.assert(value[, message])`](#assertassertvalue-message)
-        - [`assert.doesNotThrows(block[, message])`](#assertdoesnotthrowsblock-message)
-        - [`assert.equal(actual, expected[, message])`](#assertequalactual-expected-message)
-        - [`assert.fail(actual, expected, message, operator)`](#assertfailactual-expected-message-operator)
-        - [`assert.notEqual(actual, expected[, message])`](#assertnotequalactual-expected-message)
-        - [`assert.notStrictEqual(actual, expected[, message])`](#assertnotstrictequalactual-expected-message)
-        - [`assert.strictEqual(actual, expected[, message])`](#assertstrictequalactual-expected-message)
-        - [`assert.throws(block[, expected, message])`](#assertthrowsblock-expected-message)
-    - [Class: assert.AssertionError](#class-assertassertionerror)
-        - [Properties](#properties)
-            - [`actual`](#actual)
-            - [`message`](#message)
-            - [`expected`](#expected)
-            - [`name`](#name)
-            - [`operator`](#operator)
-
-
 # Assert
 
-Assert module is for writing test for applications.
+Assert module is designed for writing tests for applications.
 
-You can get assert module by `require('assert')` the module provide.
-
-
-## Module Functions
+You can access the functions of the module by adding `require('assert')` to your file.
 
 
-### `assert.assert(value[, message])`
-* `value <any>`
-* `message <any>`
+## Class: AssertionError
 
-Test if `value` is true, it throws an `AssertionError` exception if `value` evaluates `false`.
+Assert module will produce `AssertionError` in case of an assertion failure. `AssertionError` inherits standard `Error` thus it has properties provided by `Error` object including additional properties.
+
+
+* `actual` {any} This property contains the actual value.
+* `expected` {any} This property contains the expected value.
+* `message` {any} The error message, default value is the error itself.
+* `name` {string} The name is `AssertionError` string.
+* `operator` {string} This property contains the operator used for comparing `actual` with `expected`.
+
+
+### assert(value[, message])
+* `value` {any} Value to test.
+* `message` {any} Message displayed in the thrown error.
+
+Checks if the `value` is truthy. If it is not, throws an AssertionError, with the given optional `message`.
 
 **Example**
 
 ```js
 var assert = require('assert');
-assert.assert(1 == 1);
+
+assert.assert(1);
+// OK
+
+assert.assert(true);
+// OK
+
+assert.assert(false);
+// throws "AssertionError: false == true"
+
+assert.assert(0);
+// throws "AssertionError: 0 == true"
+
+assert.assert(false, "it's false");
+// throws "AssertionError: it's false"
 ```
 
 
-### `assert.doesNotThrows(block[, message])`
-* `value <Function()>`
-* `message <any>`
+### doesNotThrow(block[, message])
+* `block` {Function}
+* `message` {any} Message to be displayed.
 
-Test if the given `block` does not throw any exception, if not, it throws an exception.
+Tests if the given `block` does not throw any exception. Otherwise throws an
+exception with the given optional `message`.
 
 **Example**
 
 ```js
 var assert = require('assert');
+
 assert.doesNotThrow(
   function() {
-    assert.assert(1 == 1);
+    assert.assert(1);
   }
 );
+// OK
+
+assert.doesNotThrow(
+  function() {
+    assert.assert(0);
+  }
+)
+// throws "AssertionError: Got unwanted exception."
 ```
 
 
-### `assert.equal(actual, expected[, message])`
-* `actual <any>`
-* `expected <any>`
-* `message <any>`
+### equal(actual, expected[, message])
+* `actual` {any} The actual value.
+* `expected` {any} The expected value.
+* `message` {any} Message to be displayed.
 
-Test if `actual == expected` is evaluated to `true`, if not, it throws an exception.
+Tests if `actual == expected` is evaluated to `true`. Otherwise throws an
+exception with the given optional `message`.
 
 **Example**
 
 ```js
 var assert = require('assert');
+
 assert.equal(1, 1);
 assert.equal(1, '1');
 ```
 
 
-### `assert.fail(actual, expected, message, operator)`
-* `actual <any>`
-* `expected <any>`
-* `message <any>`
-* `operator <String>`
+### fail(actual, expected, message, operator)
+* `actual` {any} The actual value.
+* `expected` {any} The expected value.
+* `message` {any} Message to be displayed.
+* `operator` {string} The operator.
 
-Throw an `AssertionError` exception.
+Throws an `AssertionError` exception with the given `message`.
 
 **Example**
 
 ```js
 var assert = require('assert');
-assert.fail(1, 2, undefined, '>'); // AssertionError: 1 > 2
+
+assert.fail(1, 2, undefined, '>');
+// AssertionError: 1 > 2
 ```
 
 
-### `assert.notEqual(actual, expected[, message])`
-* `actual <any>`
-* `expected <any>`
-* `message <any>`
+### notEqual(actual, expected[, message])
+* `actual` {any} The actual value.
+* `expected` {any} The expected value.
+* `message` {any} Message to be displayed.
 
-Test if `actual != expected` is evaluated to `true`, if not, it throws an exception.
+Tests if `actual != expected` is evaluated to `true`. Otherwise throws an
+exception with the given optional `message`.
 
 **Example**
 
 ```js
 var assert = require('assert');
+
 assert.notEqual(1, 2);
 ```
 
 
-### `assert.notStrictEqual(actual, expected[, message])`
-* `actual <any>`
-* `expected <any>`
-* `message <any>`
+### notStrictEqual(actual, expected[, message])
+* `actual` {any} The actual value.
+* `expected` {any} The expected value.
+* `message` {any} Message to be displayed.
 
-Test if `actual !== expected` is evaluated to `true`, if not, it throws an exception.
+Tests if `actual !== expected` is evaluated to `true`. Otherwise throws an exception
+with the given optional `message`.
 
 **Example**
 
 ```js
 var assert = require('assert');
-assert.notStrictEqual(0, false);
+
+assert.notStrictEqual(1, 2);
+// OK
+
+assert.notStrictEqual(1, 1);
+// AssertionError: 1 !== 1
+
+assert.notStrictEqual(1, '1');
+// OK
 ```
 
 
-### `assert.strictEqual(actual, expected[, message])`
-* `actual <any>`
-* `expected <any>`
-* `message <any>`
+### strictEqual(actual, expected[, message])
+* `actual` {any} The actual value.
+* `expected` {any} The expected value.
+* `message` {any} Message to be displayed.
 
-Test if `actual === expected` is evaluated to `true`, if not, it throws an exception.
+Tests if `actual === expected` is evaluated to `true`. Otherwise throws an exception
+with the given optional `message`.
 
 **Example**
 
 ```js
 var assert = require('assert');
+
 assert.strictEqual(1, 1);
+// OK
+
+assert.strictEqual(1, 2);
+// AssertionError: 1 === 2
+
+assert.strictEqual(1, '1');
+// AssertionError: 1 === '1'
 ```
 
 
-### `assert.throws(block[, expected, message])`
-* `actual <any>`
-* `expected <any>`
-* `message <any>`
+### throws(block[, expected, message])
+* `block` {Function} The function that throws an error.
+* `expected` {Function} The expected error type.
+* `message` {any} Message to be displayed.
 
-Test if the given `block` throws an `expected` error, if not, it throws an exception.
+Tests if the given `block` throws an `expected` error. Otherwise throws an exception
+with the given optional `message`.
 
 **Example**
 
 ```js
 var assert = require('assert');
+
 assert.throws(
   function() {
     assert.equal(1, 2);
   },
   assert.AssertionError
 );
+// OK
+
+assert.throws(
+  function() {
+    assert.equal(1, 1);
+  },
+  assert.AssertionError
+);
+// Uncaught error: Missing exception
+
+assert.throws(
+  function() {
+    assert.equal(1, 2);
+  },
+  TypeError
+);
+// AssertionError
 ```
-
-
-# Class: assert.AssertionError
-
-Assert module will produce `AssertionError` in case of assertion failure. `AssertionError` inherits standard `Error` thus it has properties provided by `Error` object including additional properties.
-
-
-## Properties
-
-
-### `actual`
-* `<any>`
-This property contains the actual value.
-
-
-### `message`
-* `<any>`
-The error message.
-
-
-### `expected`
-* `<any>`
-This property contains the expected value.
-
-
-### `name`
-* `<String>`
-The name of `AssertionError` is 'AssertionError` this is fixed.
-
-
-### `operator`
-* `<String>`
-This property contains the operator used for evaluating `actual` with `expected`.

@@ -2,7 +2,7 @@
 
 The following shows fs module APIs available for each platform.
 
-|  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | Nuttx<br/>(STM32F4-Discovery) |
+|  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | NuttX<br/>(STM32F4-Discovery) |
 | :---: | :---: | :---: | :---: |
 | fs.close | O | O | O |
 | fs.closeSync | O | O | O |
@@ -33,7 +33,7 @@ The following shows fs module APIs available for each platform.
 | fs.writeFile | O | O | O |
 | fs.writeFileSync | O | O | O |
 
-※ On `nuttx` path should be passed with a form of **absolute path**.
+※ On NuttX path should be passed with a form of **absolute path**.
 
 
 # File System
@@ -43,13 +43,13 @@ The following shows fs module APIs available for each platform.
 fs.Stats class is an object returned from `fs.stat()`,`fs.fstat()` and their synchronous counterparts.
 
 
-### `stats.isDirectory()`
+### stats.isDirectory()
 * Returns: {boolean}
 
 Returns true if stated file is a directory.
 
 
-### `stats.isFile()`
+### stats.isFile()
 * Returns: {boolean}
 
 Returns true if stated file is a file.
@@ -70,9 +70,7 @@ fs.stat('test.txt', function(err, stat) {
 ```
 
 
-## Class methods
-
-### Class method: fs.close(fd, callback)
+### fs.close(fd, callback)
 * `fd` {integer} File descriptor.
 * `callback` {Function}
   * `err` {Error|null}
@@ -98,7 +96,7 @@ fs.open('test.txt', 'r', function(err, fd) {
 ```
 
 
-### Class method: fs.closeSync(fd)
+### fs.closeSync(fd)
 * `fd` {integer} File descriptor.
 
 Closes the file of `fd` synchronously.
@@ -114,7 +112,7 @@ fs.closeSync(fd);
 ```
 
 
-### Class method: fs.exists(path, callback)
+### fs.exists(path, callback)
 * `path` {string} File path to be checked.
 * `callback` {Function}
   * `exists` {boolean}
@@ -133,7 +131,7 @@ fs.exists('test.txt', function(exists) {
 ```
 
 
-### Class method: fs.existsSync(path)
+### fs.existsSync(path)
 * `path` {string} File path to be checked.
 * Returns: {boolean} True if the file exists, otherwise false.
 
@@ -147,7 +145,7 @@ var result = fs.existsSync('test.txt');
 assert.equal(result, true);
 ```
 
-### Class method: fs.fstat(fd, callback)
+### fs.fstat(fd, callback)
 * `fd` {integer} File descriptor to be stated.
 * `callback` {Function}
   * `err` {Error|null}
@@ -175,7 +173,7 @@ fs.open('test.txt', 'r', function(err, fd) {
 });
 ```
 
-### Class method: fs.fstatSync(fd)
+### fs.fstatSync(fd)
 * `fd` {integer} - File descriptor to be stated.
 * Returns: {Object} An instance of `fs.Stats`.
 
@@ -198,7 +196,7 @@ fs.open('test.txt', 'r', function(err, fd) {
 ```
 
 
-### Class method: fs.mkdir(path[, mode], callback)
+### fs.mkdir(path[, mode], callback)
 * `path` {string} Path of the directory to be created.
 * `mode` {string|number} Permission mode. **Default:** `0777`
 * `callback` {Function}
@@ -219,7 +217,7 @@ fs.mkdir('testdir', function(err) {
 ```
 
 
-### Class method: fs.mkdirSync(path[, mode])
+### fs.mkdirSync(path[, mode])
 * `path` {string} Path of the directory to be created.
 * `mode` {string|number} Permission mode. **Default:** `0777`
 
@@ -234,7 +232,7 @@ fs.mkdirSync('testdir');
 ```
 
 
-### Class method: fs.open(path, flags[, mode], callback)
+### fs.open(path, flags[, mode], callback)
 * `path` {string} File path to be opened.
 * `flags` {string} Open flags.
 * `mode` {string|number} Permission mode. **Default:** `0666`
@@ -272,7 +270,7 @@ fs.open('test.txt', 'r', 755, function(err, fd) {
 ```
 
 
-### Class method: fs.openSync(path, flags[, mode])
+### fs.openSync(path, flags[, mode])
 * `path` {string} File path to be opened.
 * `flags` {string} Open flags.
 * `mode` {string|number} Permission mode. **Default:** `0666`
@@ -292,7 +290,7 @@ var fd = fs.openSync('test.txt', 'r', 755);
 ```
 
 
-### Class method: fs.read(fd, buffer, offset, length, position, callback)
+### fs.read(fd, buffer, offset, length, position, callback)
 * `fd` {integer} File descriptor.
 * `buffer` {Buffer} Buffer that the data will be written to.
 * `offset` {number} Offset of the buffer where to start writing.
@@ -324,7 +322,7 @@ fs.open('test.txt', 'r', 755, function(err, fd) {
 ```
 
 
-### Class method: fs.readSync(fd, buffer, offset, length, position)
+### fs.readSync(fd, buffer, offset, length, position)
 * `fd` {integer} File descriptor.
 * `buffer` {Buffer} Buffer that the data will be written to.
 * `offset` {number} Offset of the buffer where to start writing.
@@ -345,7 +343,7 @@ var bytesRead = fs.readSync(fd, buffer, 0, buffer.length, 0);
 ```
 
 
-### Class method: fs.readdir(path, callback)
+### fs.readdir(path, callback)
 * `path` {string} Directory path to be checked.
 * `callback` {Function}
   * `err` {Error|null}
@@ -369,7 +367,7 @@ fs.readdir('testdir', function(err, items) {
 ```
 
 
-### Class method: fs.readdirSync(path)
+### fs.readdirSync(path)
 * `path` {string} Directory path to be checked.
 * Returns: {Object} Array of filenames.
 
@@ -387,7 +385,7 @@ console.log(items);
 ```
 
 
-### Class method: fs.readFile(path, callback)
+### fs.readFile(path, callback)
 * `path` {string} File path to be opened.
 * `callback` {Function}
   * `err` {Error|null}
@@ -411,7 +409,7 @@ fs.readFile('test.txt', function(err, data) {
 ```
 
 
-### Class method: fs.readFileSync(path)
+### fs.readFileSync(path)
 * `path` {string} File path to be opened.
 * Returns: {Object} Contents of the file.
 
@@ -426,7 +424,7 @@ var data = fs.readFileSync('test.txt');
 ```
 
 
-### Class method: fs.rename(oldPath, newPath, callback)
+### fs.rename(oldPath, newPath, callback)
 * `oldPath` {string} Old file path.
 * `newPath` {string} New file path.
 * `callback` {Function}
@@ -447,7 +445,7 @@ fs.rename('test.txt', 'test.txt.async', function(err) {
 ```
 
 
-### Class method: fs.renameSync(oldPath, newPath)
+### fs.renameSync(oldPath, newPath)
 * `oldPath` {string} Old file path.
 * `newPath` {string} New file path.
 
@@ -462,7 +460,7 @@ fs.renameSync('test.txt', 'test.txt.sync');
 ```
 
 
-### Class method: fs.rmdir(path, callback)
+### fs.rmdir(path, callback)
 * `path` {string} Directory path to be removed.
 * `callback` {Function}
   * `err` {Error|null}
@@ -480,7 +478,7 @@ fs.rmdir('testdir', function() {
 ```
 
 
-### Class method: fs.rmdirSync(path)
+### fs.rmdirSync(path)
 * `path` {string} Directory path to be removed.
 
 Removes the directory specified by `path` synchronously.
@@ -492,7 +490,7 @@ fs.rmdirSync('testdir');
 ```
 
 
-### Class method: fs.stat(path, callback)
+### fs.stat(path, callback)
 * `path` {string} File path to be stated.
 * `callback` {Function}
   * `err` {Error|null}
@@ -516,7 +514,7 @@ fs.stat('test.txt', function(err, stat) {
 ```
 
 
-### Class method: fs.statSync(path)
+### fs.statSync(path)
 * `path` {string} File path to be stated.
 * Returns: {Object} An instance of `fs.Stats`.
 
@@ -534,7 +532,7 @@ assert.equal(stat.isDirectory(), false);
 ```
 
 
-### Class method: fs.unlink(path, callback)
+### fs.unlink(path, callback)
 * `path` {string} File path to be removed.
 * `callback` {Function}
   * `err` {Error|null}
@@ -554,7 +552,7 @@ fs.unlink('test.txt', function(err) {
 ```
 
 
-### Class method: fs.unlinkSync(path)
+### fs.unlinkSync(path)
 * `path` {string} File path to be removed.
 
 Removes the file specified by `path` synchronously.
@@ -568,7 +566,7 @@ fs.unlinkSync('test.txt');
 ```
 
 
-### Class method: fs.write(fd, buffer, offset, length[, position], callback)
+### fs.write(fd, buffer, offset, length[, position], callback)
 * `fd` {integer} File descriptor.
 * `buffer` {Buffer} Buffer that the data will be written from.
 * `offset` {number} Offset of the buffer where from start reading.
@@ -608,7 +606,7 @@ fs.open(file, 'w', function(err, fd) {
 });
 ```
 
-### Class method: fs.writeSync(fd, buffer, offset, length[, position])
+### fs.writeSync(fd, buffer, offset, length[, position])
 * `fd` {integer} File descriptor.
 * `buffer` {Buffer} Buffer that the data will be written from.
 * `offset` {number} Offset of the buffer where from start reading.
@@ -632,7 +630,7 @@ console.log(bytes);
 ```
 
 
-### Class method: fs.writeFile(path, data, callback)
+### fs.writeFile(path, data, callback)
 * `path` {string} File path that the `data` will be written.
 * `data` {string|Buffer} String or buffer that contains data.
 * `callback` {Function}
@@ -653,7 +651,7 @@ fs.writeFile('test.txt', 'IoT.js', function(err) {
 ```
 
 
-### Class method: fs.writeFileSync(path, data)
+### fs.writeFileSync(path, data)
 * `path` {string} File path that the `data` will be written.
 * `data` {string|Buffer} String or buffer that contains data.
 

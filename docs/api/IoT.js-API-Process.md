@@ -46,7 +46,7 @@ process.argv.forEach(function(val, idx) {
 The `env` property returns an object containing a few environment variables.
 The following environment elements can be accessed:
 * `HOME`
-* `NODE_PATH` which is set to `/mnt/srdcard` on NuttX by default.
+* `IOTJS_PATH` which is set to `/mnt/sdcard` on NuttX by default.
 * `env` contains `'experimental'` if the IoT.js was build with experimental support.
 
 **Example**

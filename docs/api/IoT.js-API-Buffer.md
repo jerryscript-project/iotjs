@@ -27,7 +27,7 @@ IoT.js provides Buffer to manipulate binary data. Currently buffer has
 a pure ES5 compatible implementation, but this might be reworked to use
 UInt8Array in the future.
 
-Examples:
+**Example**
 
 ```js
 var Buffer = require('buffer');
@@ -41,8 +41,6 @@ var buf2 = Buffer([1, 2, 3]);
 // Creates a Buffer containing UTF-8 bytes [0x74, 0xc3, 0xa9, 0x73, 0x74].
 var buf3 = Buffer('tést');
 ```
-
-## Class: Buffer
 
 
 ### new Buffer(size)
@@ -128,10 +126,7 @@ console.log(buffer);
 ```
 
 
-## Class Methods
-
-
-### Class Method: Buffer.byteLength(str, encoding)
+### Buffer.byteLength(str, encoding)
 
 * `str` {string} Source string.
 * `encoding` {string} String encoding.
@@ -164,7 +159,7 @@ console.log(Buffer.byteLength('4142', 'hex'));
 ```
 
 
-### Class Method: Buffer.concat(list)
+### Buffer.concat(list)
 * `list` {Array} An array of `Buffer` objects.
 * Returns: {Buffer} Concatenated buffer.
 
@@ -186,7 +181,7 @@ console.log(buffer);
 ```
 
 
-### Class Method: Buffer.isBuffer(obj)
+### Buffer.isBuffer(obj)
 * `obj` {Object}
 * Returns: {boolean}
 
@@ -204,9 +199,6 @@ console.log(Buffer.isBuffer(new Buffer(1)));
 // prints: false
 console.log(Buffer.isBuffer('str'));
 ```
-
-
-## Properties
 
 
 ### buf.length
@@ -232,9 +224,6 @@ var str = buffer.toString();
 // prints: 1
 console.log(str.length);
 ```
-
-
-## Prototype Methods
 
 
 ### buf.compare(otherBuffer)

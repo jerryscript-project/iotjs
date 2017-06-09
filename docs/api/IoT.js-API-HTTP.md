@@ -21,8 +21,9 @@ IoT.js provides HTTP to support HTTP server and client enabling users to receive
 
 The `requestListener` is a function which is automatically added to the `'request'` event.
 
-Example:
-```javascript
+**Example**
+
+```js
 var server = http.createServer(function(request, response) {
   ...
 });
@@ -40,8 +41,9 @@ var server = http.createServer(function(request, response) {
   * `response` {http.IncomingMessage}
 * Returns: {http.ClientRequest}
 
-Example:
-```javascript
+**Example**
+
+```js
 var http = require('http');
 
 var request = http.request({
@@ -65,8 +67,9 @@ Note that in the example `req.end()` was called. With `http.request()` one must 
 
 Same as `http.request` except that `http.get` automatically call `req.end()` at the end.
 
-Example:
-```javascript
+**Example**
+
+```js
 var http = require('http');
 
 http.get({
@@ -92,8 +95,9 @@ If a client connection emits an 'error' event, it will be forwarded here. Listen
 
 Default behavior is to destroy the socket immediately on malformed request.
 
-Example:
-```javascript
+**Example**
+
+```js
 var http = require('http');
 
 var server = http.createServer(function(req, res) {
@@ -139,8 +143,9 @@ Wait for new TCP connection with specified port and hostname. If no hostname is 
 `backlog` is maximum pending connections. Default backlog length is 511 (not 512).
 `callback` will be called when server has been bound.
 
-Example:
-```javascript
+**Example**
+
+```js
 var http = require('http');
 
 var server = http.createServer(function(req, res) {
@@ -166,8 +171,9 @@ If you provide cb, you should handle the socket's timeout.
 
 Default timeout for server is 2 minutes.
 
-Example:
-```javascript
+**Example**
+
+```js
 var http = require('http');
 
 var server = http.createServer();

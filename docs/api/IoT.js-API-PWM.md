@@ -17,58 +17,32 @@ The following shows PWM module APIs available for each platform.
 | pwmpin.closeSync | O | O | O |
 
 
-## Contents
-* [Pin](#pin)
-* [PWM](#pwm)
-  * [Constructor](#pwm-constructor)
-    * [`new PWM()`](#pwm-new)
-  * [Prototype methods](#pwm-prototype-methods)
-    * [`pwm.open(configuration[, callback])`](#pwm-open)
-* [PWMPin](#pwmpin)
-  * [Prototype methods](#pwmpin-prototype-methods)
-    * [`pwmpin.setPeriod(period[, callback])`](#pwmpin-period)
-    * [`pwmpin.setPeriodSync(period)`](#pwmpin-period-sync)
-    * [`pwmpin.setFrequency(frequency[, callback])`](#pwmpin-frequency)
-    * [`pwmpin.setFrequencySync(frequency)`](#pwmpin-frequency-sync)
-    * [`pwmpin.setDutyCycle(dutyCycle[, callback])`](#pwmpin-dutycycle)
-    * [`pwmpin.setDutyCycleSync(dutyCycle)`](#pwmpin-dutycycle-sync)
-    * [`pwmpin.setEnable(enable[, callback])`](#pwmpin-enable)
-    * [`pwmpin.setEnableSync(enable)`](#pwmpin-enable-sync)
-    * [`pwmpin.close([callback])`](#pwmpin-close)
-    * [`pwmpin.closeSync()`](#pwmpin-close-sync)
+## Class: PWM
 
+### new PWM()
 
-### `pin` <a name="pin"></a>
-* On Linux, `pin` is a pwm number which is 0 or 1.
-* On Nuttx, you have to know pin name. The pin name is defined in target board module. For more module information, please see below list.
-  * [STM32F4-discovery](../targets/nuttx/stm32f4dis/IoT.js-API-Stm32f4dis.md#pwm-pin)
+Returns a new PWM object which can open a PWM pin.
 
+This object allows the developer to specify a pin and generate a pulse-width modulatated (PWM)
+signal through that.
 
-## Class: PWM <a name="pwm"></a>
-
-
-## Constructor <a name="pwm-constructor"></a>
-
-
-### `new PWM()` <a name="pwm-new"></a>
-
-Returns a new PWM object which can open PWM pin.
-
-
-## Prototype methods <a name="pwm-prototype-methods"></a>
-
-
-### `pwm.open(configuration[, callback])` <a name="pwm-open"></a>
-* `configuration <Object>`
-  * `pin <Number>`, mandatory configuration
-  * `chip <Number>`, chip number, Default: 0, only Linux configuration
-  * `period <Number>`, seconds(positive integer) 
-  * `frequency <Number>`, Hz(positive integer)
-  * `dutyCycle <Number>`, between 0 and 1
-* `callback <Function(err: Error | null)>`
+### pwm.open(configuration[, callback])
+* `configuration` {Object} Configuration object which can have the following properties.
+  * `pin` {number} The pin number to use with this PWM object (mandatory configuration).
+  * `chip` {number} The PWM chip number (only on Linux). **Default:** `0`.
+  * `period` {number} The period of the PWM signal, in seconds (positive number).
+  * `frequency` {integer} In Hz (positive integer).
+  * `dutyCycle` {number} The active time of the PWM signal, must be within the `0.0` and `1.0` range.
+* `callback` {Function} Callback function.
+  * `err` {Error|null} The error object or `null` if there were no error.
 * Returns: `<PWMPin>`
 
 Opens PWM pin with the specified configuration.
+
+To correctly open a PWM pin one must know the correct pin number:
+* On Linux, `pin` is a number which is `0` or `1`.
+* On Nuttx, you have to know pin name. The pin name is defined in target board module. For more module information, please see below list.
+  * [STM32F4-discovery](../targets/nuttx/stm32f4dis/IoT.js-API-Stm32f4dis.md#pwm-pin)
 
 
 **Example**
@@ -80,7 +54,7 @@ var config = {
   period: 0.1,
   dutyCycle: 0.5
 }
-var pwm0 = pwm.open(config, function() {
+var pwm0 = pwm.open(config, function(err) {
   if (err) {
     throw err;
   }
@@ -88,19 +62,18 @@ var pwm0 = pwm.open(config, function() {
 ```
 
 
-## Class: PWMPin <a name="pwmpin"></a>
+## Class: PWMPin
 
+### pwmpin.setPeriod(period[, callback])
+* `period` {number} The period of the PWM signal, in seconds (positive number).
+* `callback` {Function}
+  * `err` {Error|null} The error object or `null` if there were no error.
 
-## Prototype methods <a name="pwmpin-prototype-methods"></a>
+The `setPeriod` method allows the configuration of the period of the PWM signal in seconds.
+The `period` argument must specified and it should be a positive number.
 
-
-### `pwmpin.setPeriod(period[, callback])` <a name="pwmpin-period"></a>
-* `period <Number>`, seconds(positive integer) 
-* `callback <Function(err: Error | null)>`
-
-Sets period that is the duration of one cycle in a repeating signal. It is given in seconds asynchronously.
-
-`callback` will be called after period is set.
+Configuration is done asynchronously and the `callback` method is invoked after the
+period is configured to the new value or if an error occured.
 
 **Example**
 ```js
@@ -110,28 +83,38 @@ pwm0.setPeriod(1, function(err) {
   }
   console.log('done');
 });
+// prints: do
+console.log('do');
+// prints: done
 ```
 
 
-### `pwmpin.setPeriodSync(period)` <a name="pwmpin-period-sync"></a>
-* `period <Number>`, seconds(positive integer) 
+### pwmpin.setPeriodSync(period)
+* `period` {number} The period of the PWM signal, in seconds (positive number).
 
-Sets period that is the duration of one cycle in a repeating signal synchronously.
+The `setPeriodSync` method allows the configuration of the period of the PWM signal in seconds.
+The `period` argument must specified and it should be a positive number.
+
+Configuration is done synchronously and will block till the period is configured.
 
 **Example**
 ```js
 pwm0.setPeriodSync(1);
+// prints: done
 console.log('done');
 ```
 
 
-### `pwmpin.setFrequency(frequency[, callback])` <a name="pwmpin-frequency"></a>
-* `frequency <Number>`, Hz(positive integer)
-* `callback <Function(err: Error | null)>`
+### pwmpin.setFrequency(frequency[, callback])
+* `frequency` {integer} In Hz (positive integer).
+* `callback` {Function}
+  * `err` {Error|null} The error object or `null` if there were no error.
 
-Sets frequency that is a measurement of how often repeating signal per unit time asynchronously.
+The `setFequency` method congifures the frequency of the PWM signal.
+`frequency` is the measurement of how often the signal is repeated in a single period.
 
-`callback` will be called after frequency is set.
+Configuration is done asynchronously and the `callback` method is invoked after the
+frequency is configured to the new value or if an error occured.
 
 **Example**
 ```js
@@ -141,28 +124,38 @@ pwm0.setFrequency(1, function(err) {
   }
   console.log('done');
 });
+// prints: do
+console.log('do');
+// prints: done
 ```
 
 
-### `pwmpin.setFrequencySync(frequency)` <a name="pwmpin-frequency-sync"></a>
-* `frequency <Number>`, Hz(positive integer)
+### pwmpin.setFrequencySync(frequency)
+* `frequency` {integer} In Hz (positive integer).
 
-Sets frequency that is a measurement of how often repeating signal per unit time synchronously.
+The `setFequencySync` method congifures the frequency of the PWM signal.
+`frequency` is the measurement of how often the signal is repeated in a single period.
+
+Configuration is done synchronously and will block till the frequency is configured.
 
 **Example**
 ```js
 pwm0.setFrequencySync(1);
+// prints: done
 console.log('done');
 ```
 
 
-### `pwmpin.setDutyCycle(dutyCycle[, callback])` <a name="pwmpin-dutycycle"></a>
-* `dutyCycle <Number>`, between 0 and 1
-* `callback <Function(err: Error | null)>`
+### pwmpin.setDutyCycle(dutyCycle[, callback])
+* `dutyCycle` {number} Must be within the `0.0` and `1.0` range.
+* `callback` {Function}
+  * `err` {Error|null} The error object or `null` if there were no error.
 
-Sets duty cycle that is the ratio of pulse width in one period asynchronously.
+The `setDutyCycle` method allows the configuration of the duty cycle of the PWM signal.
+The duty cycle is the ratio of the pulse width in one period.
 
-`callback` will be called after duty-cycle is set.
+Configuration is done asynchronously and the `callback` method is invoked after the
+duty cycle is configured to the new value or if an error occured.
 
 **Example**
 ```js
@@ -172,28 +165,38 @@ pwm0.setDutyCycle(1, function(err) {
   }
   console.log('done');
 });
+// prints: do
+console.log('do');
+// prints: done
 ```
 
 
-### `pwmpin.setDutyCycleSync(dutyCycle)` <a name="pwmpin-dutycycle-sync"></a>
-* `dutyCycle <Number>`, between 0 and 1
+### pwmpin.setDutyCycleSync(dutyCycle)
+* `dutyCycle` {number} Must be within the `0.0` and `1.0` range.
 
-Sets duty cycle that is the ratio of pulse width in one period synchronously.
+The `setDutyCycleSync` method allows the configuration of the duty cycle of the PWM signal.
+The duty cycle is the ratio of the pulse width in one period.
+
+Configuration is done synchronously and will block till the duty cycle is configured.
 
 **Example**
 ```js
 pwm0.setDutyCycleSync(1);
+// prints: done
 console.log('done');
 ```
 
 
-### `pwmpin.setEnable(enable[, callback])` <a name="pwmpin-enable"></a>
-* `enable <Boolean>`
-* `callback <Function(err: Error | null)>`
+### pwmpin.setEnable(enable[, callback])
+* `enable` {boolean}
+* `callback` {Function}
+  * `err` {Error|null} The error object or `null` if there were no error.
 
-Enables or Disables PWM asynchronously.
+The `setEnable` method can turn on/off the generation of the PWM signal.
+If the `enable` argument is `true` then the PWN signal generation is turned on.
+Otherwise the signal generation is turned off.
 
-`callback` will be called after enable is set.
+After enabling/disabling the signal generation the `callback` is invoked.
 
 **Example**
 ```js
@@ -203,27 +206,34 @@ pwm0.setEnable(true, function(err) {
   }
   console.log('done');
 });
+// prints: do
+console.log('do');
+// prints: done
 ```
 
 
-### `pwmpin.setEnableSync(enable)` <a name="pwmpin-enable-sync"></a>
-* `enable <Boolean>`
+### pwmpin.setEnableSync(enable)
+* `enable` {boolean}
 
-Enables or Disables PWM synchronously.
+The `setEnableSync` method can turn on/off the generation of the PWM signal.
+If the `enable` argument is `true` then the PWN signal generation is turned on.
+Otherwise the signal generation is turned off.
 
 **Example**
 ```js
 pwm0.setEnableSync(false);
+// prints: done
 console.log('done');
 ```
 
 
-### `pwmpin.close([callback])` <a name="pwmpin-close"></a>
-* `callback <Function(err: Error | null)>`
+### pwmpin.close([callback])
+* `callback` {Function}
+  * `err` {Error|null} The error object or `null` if there were no error.
 
-Closes PWM pin asynchronously.
+The `close` method closes the PWM pin asynchronously.
 
-`callback` will be called after PWM device is released.
+The `callback` method will be invoked after the PWM device is released.
 
 **Example**
 ```js
@@ -233,15 +243,19 @@ pwm0.close(function(err) {
   }
   console.log('done');
 });
+// prints: do
+console.log('do');
+// prints: done
 ```
 
 
-### `pwmpin.closeSync()` <a name="pwmpin-close-sync"></a>
+### pwmpin.closeSync()
 
-Closes PWM pin synchronously.
+The `closeSync` method closes the PWM pin synchronously.
 
 **Example**
 ```js
 pwm0.closeSync();
+// prints: done
 console.log('done');
 ```

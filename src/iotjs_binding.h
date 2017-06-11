@@ -128,6 +128,8 @@ iotjs_jval_t iotjs_jval_get_property(THIS_JVAL, const char* name);
 void iotjs_jval_set_object_native_handle(THIS_JVAL, uintptr_t ptr,
                                          JNativeInfoType native_info);
 uintptr_t iotjs_jval_get_object_native_handle(THIS_JVAL);
+uintptr_t iotjs_jval_get_object_from_jhandler(iotjs_jhandler_t* jhandler,
+                                              JNativeInfoType native_info);
 
 void iotjs_jval_set_property_by_index(THIS_JVAL, uint32_t idx,
                                       const iotjs_jval_t* value);
@@ -306,6 +308,13 @@ static inline bool ge(uint16_t a, uint16_t b) {
 #define DJHANDLER_CHECK_ARG_IF_EXIST(index, type) \
   JHANDLER_CHECK_ARG_IF_EXIST(index, type)
 #endif
+
+#define JHANDLER_DECLARE_THIS_PTR(type, name)                                  \
+  iotjs_##type##_t* name = (iotjs_##type##_t*)                                 \
+      iotjs_jval_get_object_from_jhandler(jhandler, &this_module_native_info); \
+  if (!name) {                                                                 \
+    return;                                                                    \
+  }
 
 void iotjs_binding_initialize();
 void iotjs_binding_finalize();

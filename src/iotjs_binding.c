@@ -384,6 +384,31 @@ uintptr_t iotjs_jval_get_object_native_handle(const iotjs_jval_t* jobj) {
 }
 
 
+uintptr_t iotjs_jval_get_object_from_jhandler(iotjs_jhandler_t* jhandler,
+                                              JNativeInfoType native_info) {
+  const iotjs_jval_t* jobj = JHANDLER_GET_THIS(object);
+  const IOTJS_DECLARE_THIS(iotjs_jval_t, jobj);
+
+  if (!jerry_value_is_object(_this->value)) {
+    return 0;
+  }
+
+  uintptr_t ptr = 0;
+  JNativeInfoType out_native_info;
+
+  if (jerry_get_object_native_pointer(_this->value, (void**)&ptr,
+                                      &out_native_info)) {
+    if (ptr && out_native_info == native_info) {
+      return ptr;
+    }
+  }
+
+  JHANDLER_THROW(COMMON, "Unsafe access");
+
+  return 0;
+}
+
+
 void iotjs_jval_set_property_by_index(const iotjs_jval_t* jarr, uint32_t idx,
                                       const iotjs_jval_t* jval) {
   const IOTJS_VALIDATED_STRUCT_METHOD(iotjs_jval_t, jarr);

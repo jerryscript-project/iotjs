@@ -24,6 +24,10 @@ var configuration = {
   dataBits: 8
 };
 
+if (process.platform === 'tizenrt') {
+  configuration.device = '/dev/ttyDBG';
+}
+
 var read = 0;
 var write = 0;
 

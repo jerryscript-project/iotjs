@@ -211,19 +211,19 @@ void SetNativeSources(iotjs_jval_t* native_sources) {
 
 
 static void SetProcessEnv(iotjs_jval_t* process) {
-  const char *homedir, *nodepath, *iotjsenv;
+  const char *homedir, *iotjspath, *iotjsenv;
 
   homedir = getenv("HOME");
   if (homedir == NULL) {
     homedir = "";
   }
 
-  nodepath = getenv("NODE_PATH");
-  if (nodepath == NULL) {
+  iotjspath = getenv("IOTJS_PATH");
+  if (iotjspath == NULL) {
 #if defined(__NUTTX__) || defined(__TIZENRT__)
-    nodepath = "/mnt/sdcard";
+    iotjspath = "/mnt/sdcard";
 #else
-    nodepath = "";
+    iotjspath = "";
 #endif
   }
 
@@ -235,8 +235,8 @@ static void SetProcessEnv(iotjs_jval_t* process) {
 
   iotjs_jval_t env = iotjs_jval_create_object();
   iotjs_jval_set_property_string_raw(&env, IOTJS_MAGIC_STRING_HOME, homedir);
-  iotjs_jval_set_property_string_raw(&env, IOTJS_MAGIC_STRING_NODE_PATH,
-                                     nodepath);
+  iotjs_jval_set_property_string_raw(&env, IOTJS_MAGIC_STRING_IOTJS_PATH,
+                                     iotjspath);
   iotjs_jval_set_property_string_raw(&env, IOTJS_MAGIC_STRING_ENV, iotjsenv);
 
   iotjs_jval_set_property_jval(process, IOTJS_MAGIC_STRING_ENV, &env);

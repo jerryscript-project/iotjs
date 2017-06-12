@@ -30,9 +30,9 @@ Loads the module named 'id'
 `require` function finds modules in the order of
 
 1. current working directory
-2. node_modules directory under current working directory
-3. `$HOME/node_modules`
-4. `$NODE_PATH/node_modules`
+2. iotjs_modules directory under current working directory
+3. `$HOME/iotjs_modules`
+4. `$IOTJS_PATH/iotjs_modules`
 
 
 ## `require('id')` works as follows:
@@ -45,5 +45,5 @@ For each directory in search paths above,
 ## `require('id')` as a package
 For a given id, if a directory id exists, module system consider the directory as a package.
 
-0. if 'id/node_modules/package.json' contains 'main' property, load the file named main property.
-1. if either id/node_modules/package.json or main property exists, load index.js
+0. if 'id/iotjs_modules/package.json' contains 'main' property, load the file named main property.
+1. if either id/iotjs_modules/package.json or main property exists, load index.js

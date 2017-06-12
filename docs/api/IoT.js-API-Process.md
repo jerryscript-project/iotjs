@@ -16,13 +16,13 @@ The following shows process module APIs available for each platform.
 The `process` object is a global that provides information about, and control over, the current IoT.js process.
 As a global, it is always available to IoT.js applications without using `require()`.
 
-### `process.arch`
+### process.arch
 * {string}
 
 The `arch` proeprty returns the processor architercture identifier that the IoT.js process is currently running on.
 For instance `'arm'`, `'ia32'`, `'x64'`, or `'unknown'`.
 
-### `process.argv`
+### process.argv
 * {Array}
 
 The `argv` property returns an array containing the command line arguments passed when the IoT.js
@@ -40,7 +40,7 @@ process.argv.forEach(function(val, idx) {
 });
 ```
 
-### `process.env`
+### process.env
 * {Object}
 
 The `env` property returns an object containing a few environment variables.
@@ -56,15 +56,15 @@ console.log('HOME: ' + process.env.HOME);
 // prints: HOME: /home/user
 ```
 
-### `process.exitCode`
-* {integer} Default: `0`
+### process.exitCode
+* {integer} **Default:** `0`
 
 The `exitCode` property can be used to specify the exit code of the IoT.js process.
 This will be used when the process exits gracefully, or exited via `process.exit()` without specifying an exit code.
 
 Specifying an exit code for the `process.exit()` call will override any previous setting of `process.exitCode`.
 
-### `process.iotjs`
+### process.iotjs
 * {Object}
 
 The `iotjs` property holds IoT.js related information in an object.
@@ -78,14 +78,14 @@ console.log(process.iotjs.board);
 // on Raspberry 2 it prints: RP2
 ```
 
-### `process.platform`
+### process.platform
 * {string}
 
 The `platform` returns the identification of the operating system the IoT.js process
 is currently running on. For instance `'linux'`, `'darwin'`, `'nuttx'`, `'tizenrt'`, or `'unknown'`.
 
 
-### `process.chdir(path)`
+### process.chdir(path)
 * `path` {string} The path to change working directory to.
 
 The `chdir` method changes the current working directory of the IoT.js process or
@@ -102,7 +102,7 @@ try {
 // prints: invalid path
 ```
 
-### `process.cwd()`
+### process.cwd()
 * Returns: {string}
 
 The `cwd()` call returns the current working directory of the IoT.js process.
@@ -113,8 +113,8 @@ The `cwd()` call returns the current working directory of the IoT.js process.
 console.log('Current dir: ' + process.cwd());
 ```
 
-### `process.exit([code])`
-* `code` {integer} The exit code. Default is `0`
+### process.exit([code])
+* `code` {integer} The exit code. **Default:** `0`
 
 The `exit()` method instructs the IoT.js to terminate the process synchronously with an exit status of `code`.
 If `code` is not specified, exit uses the `process.exitCode` value which defaults to `0`.
@@ -146,7 +146,7 @@ doSomeWork()
 process.exitCode = 1;
 ```
 
-### `process.nextTick(callback)`
+### process.nextTick(callback)
 * `callback` {Function}
 
 The `nextTick` method adds the `callback` method to the "next tick queue".
@@ -167,7 +167,7 @@ console.log('step 3');
 // step 2
 ```
 
-### Event: `'exit'`
+### Event: 'exit'
 * `callback` {Function}
   * `code` {integer}  exitCode
 
@@ -194,7 +194,7 @@ process.on('exit', function(code) {
 });
 ```
 
-### Event: `'uncaughtException'`
+### Event: 'uncaughtException'
 * `callback` {Function}
   * `err` {Error} error object uncaught by catch handler
 

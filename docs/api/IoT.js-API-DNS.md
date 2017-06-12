@@ -18,28 +18,28 @@ implemented on top of the underlying operation system facilities. Please see
 The following properties are flags which can be passed as hints for the
 [`dns.lookup()`](#dnslookuphostname-options-callback) method.
 
-### `dns.ADDRCONFIG`
+### dns.ADDRCONFIG
 * `{number}`
 
 Returned address types are determined by the types of addresses supported by the current system.
 
 
-### `dns.V4MAPPED`
+### dns.V4MAPPED
 * `{number}`
 
 If the IPv6 family was specified, but no IPv6 addresses were found, then return IPv4 mapped IPv6 addresses. 
 
 
 
-### `dns.lookup(hostname[, options], callback)`
-* `hostname {string}` Hostname to be resolved.
-* `options {Object} | {number}`
-  * `family {number}` The record family. If specified must be 4. Specifies that IPv4 addresses should be returned.
-  * `hints {number}` One or more supported getaddrinfo flags. Multiple flags may be passed by bitwise `OR`ing their values.
-* `callback {Function}`
-  * `err {Error}` If there is no error the value is `null`.
-  * `address {string}` A string representation of an IPv4 address.
-  * `family {number}` 4, denoting the family of `address`.
+### dns.lookup(hostname[, options], callback)
+* `hostname` {string} Hostname to be resolved.
+* `options` {Object|number}
+  * `family` {number} The record family. If specified must be 4. Specifies that IPv4 addresses should be returned.
+  * `hints` {number} One or more supported getaddrinfo flags. Multiple flags may be passed by bitwise `OR`ing their values.
+* `callback` {Function}
+  * `err` {Error|null} If there is no error the value is `null`.
+  * `address` {string} A string representation of an IPv4 address.
+  * `family` {number} 4, denoting the family of `address`.
 
 Resolves a hostname (e.g. `iotjs.net`) into the first found A (IPv4) or AAAA (IPv6) record. All `option` properties
 are option. If `option` is a number, then it must be `4`. If `options` is not provided, then IPv4 addresses are

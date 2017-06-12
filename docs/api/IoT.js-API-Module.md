@@ -2,48 +2,42 @@
 
 The following shows module APIs available for each platform.
 
-|  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | Nuttx<br/>(STM32F4-Discovery) |
+|  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | NuttX<br/>(STM32F4-Discovery) |
 | :---: | :---: | :---: | :---: |
 | require | O | O | O |
 
-### Contents
-
-- [Module](#module)
-    - [Module Functions](#module-functions)
-        - [`require(id)`](#requireid)
-    - [Module Loading by `require` function](#module-loading-by-require-function)
-
 # Module
-`module` implements `require` function.
-Since `require` function is implicitly passed to user code, user do not need to import it explicitly.
+The `require` function is always available there is no need to import `module` explicitly.
 
-## Module Functions
+### require(id)
+* `id` {string} Module name to be loaded.
 
-### `require(id)`
-* `id <String>`- module name to be loaded
+Loads the module named `id`.
 
-Loads the module named 'id'
+**Example**
 
-# Module Loading by `require` function
+```js
+var assert = require('assert');
 
-## `require` search paths
-`require` function finds modules in the order of
+assert.equal(2, 2);
+```
 
-1. current working directory
-2. iotjs_modules directory under current working directory
+**Loading a module**
+
+If a native module named `id` exists, load it and return.
+(_Native module:_ which module came from the IoT.js itself)
+
+`require` function searches for modules in the following order:
+
+1. Current working directory.
+2. `iotjs_modules` folder under current working directory.
 3. `$HOME/iotjs_modules`
 4. `$IOTJS_PATH/iotjs_modules`
 
+For each directory in search paths above:
 
-## `require('id')` works as follows:
-For each directory in search paths above,
-
-0. If native module named 'id' exists, load it and return.
-1. If id.js file exists, load it and return.
-2. If a directory id exists, load it as an package and return.
-
-## `require('id')` as a package
-For a given id, if a directory id exists, module system consider the directory as a package.
-
-0. if 'id/iotjs_modules/package.json' contains 'main' property, load the file named main property.
-1. if either id/iotjs_modules/package.json or main property exists, load index.js
+- If a file `id` exists, load it and return.
+- If a file `id.js` exists, load it and retun.
+- If a directory `id` exists, module system consider the directory as a package:
+  - If `id/package.json` contains **main** property, load the file named **main** property.
+  - If `id/package.json` exists, but neither the **main** property nor the file named **main** property exist, load `index.js`.

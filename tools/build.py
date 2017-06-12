@@ -436,7 +436,7 @@ def run_checktest(options):
 
     # iot.js executable
     iotjs = fs.join(options.build_root, 'bin', 'iotjs')
-    build_args = ['--', 'quiet=' + checktest_quiet]
+    build_args = ['quiet=' + checktest_quiet]
     if options.iotjs_exclude_module:
         skip_module = ','.join(options.iotjs_exclude_module)
         build_args.append('skip-module=' + skip_module)

@@ -101,17 +101,13 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
   // There must be at least two arguments.
   if (argc < 2) {
     fprintf(stderr,
-            "usage: iotjs <js> [<iotjs arguments>] [-- <app arguments>]\n");
+            "Usage: iotjs [options] {script | script.js} [arguments]\n");
     return false;
   }
 
   // Parse IoT.js command line arguments.
-  uint32_t i = 2;
-  while (i < argc) {
-    if (!strcmp(argv[i], "--")) {
-      ++i;
-      break;
-    }
+  uint32_t i = 1;
+  while (i < argc && argv[i][0] == '-') {
     if (!strcmp(argv[i], "--memstat")) {
       _this->config.memstat = true;
     } else if (!strcmp(argv[i], "--show-opcodes")) {
@@ -119,7 +115,7 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
     } else if (!strcmp(argv[i], "--start-debug-server")) {
       _this->config.debugger = true;
     } else {
-      fprintf(stderr, "unknown command line argument %s\n", argv[i]);
+      fprintf(stderr, "unknown command line option: %s\n", argv[i]);
       return false;
     }
     ++i;
@@ -130,7 +126,7 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
   size_t buffer_size = ((size_t)(_this->argc + argc - i)) * sizeof(char*);
   _this->argv = (char**)iotjs_buffer_allocate(buffer_size);
   _this->argv[0] = argv[0];
-  _this->argv[1] = argv[1];
+  _this->argv[1] = argv[i++];
   while (i < argc) {
     _this->argv[_this->argc] = iotjs_buffer_allocate(strlen(argv[i]) + 1);
     strcpy(_this->argv[_this->argc], argv[i]);

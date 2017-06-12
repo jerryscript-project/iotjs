@@ -69,7 +69,7 @@ function is_mem_stats_build
   [ -x "$1" ] || fail_msg "Engine '$1' is not executable"
 
   tmpfile=`mktemp`
-  "$1" $tmpfile --memstat 2>&1 | \
+  "$1" --memstat $tmpfile 2>&1 | \
     grep -- "Ignoring memory statistics option" 2>&1 > /dev/null
   code=$?
   rm $tmpfile
@@ -114,7 +114,7 @@ do
   cd `dirname $bench_canon`
 
   echo "$bench_name" | awk "$PRINT_TEST_NAME_AWK_SCRIPT"
-  MEM_STATS=$("$IOTJS_MEM_STATS" $bench_canon --memstat | \
+  MEM_STATS=$("$IOTJS_MEM_STATS" --memstat $bench_canon | \
     grep -e "Peak allocated =" | grep -o "[0-9]*")
   RSS=$($STARTDIR/deps/jerry/tools/rss-measure.sh "$IOTJS" $bench_canon | \
     tail -n 1 | grep -o "[0-9]*")

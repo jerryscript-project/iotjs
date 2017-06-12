@@ -36,8 +36,6 @@ def resolve_modules(options):
 
     if options.target_os:
         system_os = options.target_os
-        if system_os == 'tizen':
-            system_os = 'linux'
         build_modules_excludes |= set(
             options.config['module']['exclude'][system_os])
 

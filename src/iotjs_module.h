@@ -43,6 +43,7 @@ typedef iotjs_jval_t (*register_func)();
   E(F, FS, Fs, fs)                               \
   E(F, GPIO, Gpio, gpio)                         \
   E(F, HTTPPARSER, Httpparser, httpparser)       \
+  E(F, HTTPS, Https, https)                      \
   E(F, I2C, I2c, i2c)                            \
   E(F, PROCESS, Process, process)                \
   E(F, PWM, Pwm, pwm)                            \

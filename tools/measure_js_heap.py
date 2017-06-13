@@ -61,15 +61,13 @@ if __name__ == "__main__":
     for test_file in os.listdir(path.RUN_PASS_DIR):
         if test_file.endswith(".js"):
             line = "| " + test_file + " | "
-            cmd = [script_args.base,
-                os.path.join(path.RUN_PASS_DIR, test_file),
-                '--memstat'
+            cmd = [script_args.base, '--memstat',
+                os.path.join(path.RUN_PASS_DIR, test_file)
             ]
             base_out = run_iotjs(cmd)
 
-            cmd = [script_args.new,
-                os.path.join(path.RUN_PASS_DIR, test_file),
-                '--memstat'
+            cmd = [script_args.new, '--memstat',
+                os.path.join(path.RUN_PASS_DIR, test_file)
             ]
             new_out = run_iotjs(cmd)
 

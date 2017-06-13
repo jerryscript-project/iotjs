@@ -46,3 +46,12 @@ fs.stat(process.cwd() + '/resources', function(err, stats) {
     throw err
   }
 });
+
+// fs.statSync throws an exception for a non-existing file.
+try {
+  var stats3 = fs.statSync(process.cwd() + '/non_existing.js');
+  assert.assert(false);
+} catch(e) {
+  assert.equal(e instanceof Error, true);
+  assert.equal(e instanceof assert.AssertionError, false);
+}

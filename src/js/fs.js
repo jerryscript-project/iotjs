@@ -451,7 +451,7 @@ function convertMode(mode, def) {
   if (util.isNumber(mode)) {
     return mode;
   } else if (util.isString(mode)) {
-    return parseInt(mode);
+    return parseInt(mode, 8);
   } else if (def) {
     return convertMode(def);
   }

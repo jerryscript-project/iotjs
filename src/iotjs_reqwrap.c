@@ -47,13 +47,6 @@ const iotjs_jval_t* iotjs_reqwrap_jcallback(iotjs_reqwrap_t* reqwrap) {
 }
 
 
-uv_req_t* iotjs_reqwrap_req(iotjs_reqwrap_t* reqwrap) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_reqwrap_t, reqwrap);
-  iotjs_reqwrap_validate(reqwrap);
-  return _this->request;
-}
-
-
 iotjs_reqwrap_t* iotjs_reqwrap_from_request(uv_req_t* req) {
   iotjs_reqwrap_t* reqwrap = req->data;
   iotjs_reqwrap_validate(reqwrap);

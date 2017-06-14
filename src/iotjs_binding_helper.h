@@ -34,7 +34,4 @@ iotjs_jval_t iotjs_make_callback_with_result(const iotjs_jval_t* jfunction,
                                              const iotjs_jargs_t* jargs);
 
 
-const iotjs_jval_t* iotjs_init_process_module();
-
-
 #endif /* IOTJS_BINDING_HELPER_H */

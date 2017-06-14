@@ -503,8 +503,7 @@ Server.prototype.listen = function() {
   var err = self._handle.bind(host, port);
   if (err) {
     self._handle.close();
-    self._handle = null;
-    return err;
+    return self.emit('error', err);
   }
 
   // listen
@@ -516,8 +515,7 @@ Server.prototype.listen = function() {
 
   if (err) {
     self._handle.close();
-    self._handle = null;
-    return err;
+    return self.emit('error', err);
   }
 
   process.nextTick(function() {

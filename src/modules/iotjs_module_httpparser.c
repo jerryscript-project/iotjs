@@ -435,26 +435,6 @@ JHANDLER_FUNCTION(Execute) {
 }
 
 
-JHANDLER_FUNCTION(Pause) {
-  DJHANDLER_CHECK_THIS(object);
-  DJHANDLER_CHECK_ARGS(0);
-  const iotjs_jval_t* jparser = JHANDLER_GET_THIS(object);
-  iotjs_httpparserwrap_t* parser = get_parser_wrap(jparser);
-  http_parser* nativeparser = iotjs_httpparserwrap_parser(parser);
-  http_parser_pause(nativeparser, 1);
-}
-
-
-JHANDLER_FUNCTION(Resume) {
-  DJHANDLER_CHECK_THIS(object);
-  DJHANDLER_CHECK_ARGS(0);
-  const iotjs_jval_t* jparser = JHANDLER_GET_THIS(object);
-  iotjs_httpparserwrap_t* parser = get_parser_wrap(jparser);
-  http_parser* nativeparser = iotjs_httpparserwrap_parser(parser);
-  http_parser_pause(nativeparser, 0);
-}
-
-
 JHANDLER_FUNCTION(HTTPParserCons) {
   DJHANDLER_CHECK_THIS(object);
   DJHANDLER_CHECK_ARGS(1, number);
@@ -500,8 +480,6 @@ iotjs_jval_t InitHttpparser() {
   iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_REINITIALIZE,
                         Reinitialize);
   iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_FINISH, Finish);
-  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_PAUSE, Pause);
-  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_RESUME, Resume);
 
   iotjs_jval_set_property_jval(&jParserCons, IOTJS_MAGIC_STRING_PROTOTYPE,
                                &prototype);

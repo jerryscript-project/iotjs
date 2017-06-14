@@ -117,8 +117,3 @@ iotjs_jval_t iotjs_make_callback_with_result(const iotjs_jval_t* jfunction,
   // Return value.
   return jres;
 }
-
-
-const iotjs_jval_t* iotjs_init_process_module() {
-  return iotjs_module_initialize_if_necessary(MODULE_PROCESS);
-}

@@ -252,13 +252,6 @@ const iotjs_jval_t* iotjs_jval_as_object(const iotjs_jval_t* jval) {
 }
 
 
-const iotjs_jval_t* iotjs_jval_as_array(const iotjs_jval_t* jval) {
-  IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_jval_t, jval);
-  IOTJS_ASSERT(iotjs_jval_is_array(jval));
-  return jval;
-}
-
-
 const iotjs_jval_t* iotjs_jval_as_function(const iotjs_jval_t* jval) {
   IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_jval_t, jval);
   IOTJS_ASSERT(iotjs_jval_is_function(jval));
@@ -295,19 +288,6 @@ void iotjs_jval_set_property_jval(const iotjs_jval_t* jobj, const char* name,
 
   IOTJS_ASSERT(!jerry_value_has_error_flag(ret_val));
   jerry_release_value(ret_val);
-}
-
-
-void iotjs_jval_set_property_null(const iotjs_jval_t* jobj, const char* name) {
-  IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_jval_t, jobj);
-  iotjs_jval_set_property_jval(jobj, name, iotjs_jval_get_null());
-}
-
-
-void iotjs_jval_set_property_undefined(const iotjs_jval_t* jobj,
-                                       const char* name) {
-  IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_jval_t, jobj);
-  iotjs_jval_set_property_jval(jobj, name, iotjs_jval_get_undefined());
 }
 
 
@@ -559,12 +539,6 @@ void iotjs_jargs_append_jval(iotjs_jargs_t* jargs, const iotjs_jval_t* x) {
 }
 
 
-void iotjs_jargs_append_undefined(iotjs_jargs_t* jargs) {
-  IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_jargs_t, jargs);
-  iotjs_jargs_append_jval(jargs, iotjs_jval_get_undefined());
-}
-
-
 void iotjs_jargs_append_null(iotjs_jargs_t* jargs) {
   IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_jargs_t, jargs);
   iotjs_jargs_append_jval(jargs, iotjs_jval_get_null());
@@ -673,12 +647,6 @@ void iotjs_jhandler_destroy(iotjs_jhandler_t* jhandler) {
     IOTJS_ASSERT(_this->jargv == NULL);
   }
 #endif
-}
-
-
-const iotjs_jval_t* iotjs_jhandler_get_function(iotjs_jhandler_t* jhandler) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_jhandler_t, jhandler);
-  return &_this->jfunc;
 }
 
 

@@ -106,7 +106,6 @@ bool iotjs_jval_as_boolean(THIS_JVAL);
 double iotjs_jval_as_number(THIS_JVAL);
 iotjs_string_t iotjs_jval_as_string(THIS_JVAL);
 const iotjs_jval_t* iotjs_jval_as_object(THIS_JVAL);
-const iotjs_jval_t* iotjs_jval_as_array(THIS_JVAL);
 const iotjs_jval_t* iotjs_jval_as_function(THIS_JVAL);
 
 /* Methods for General JavaScript Object */
@@ -114,8 +113,6 @@ void iotjs_jval_set_method(THIS_JVAL, const char* name,
                            iotjs_native_handler_t handler);
 void iotjs_jval_set_property_jval(THIS_JVAL, const char* name,
                                   const iotjs_jval_t* value);
-void iotjs_jval_set_property_null(THIS_JVAL, const char* name);
-void iotjs_jval_set_property_undefined(THIS_JVAL, const char* name);
 void iotjs_jval_set_property_boolean(THIS_JVAL, const char* name, bool v);
 void iotjs_jval_set_property_number(THIS_JVAL, const char* name, double v);
 void iotjs_jval_set_property_string(THIS_JVAL, const char* name,
@@ -153,7 +150,6 @@ void iotjs_jargs_destroy(iotjs_jargs_t* jargs);
 uint16_t iotjs_jargs_length(const iotjs_jargs_t* jargs);
 
 void iotjs_jargs_append_jval(iotjs_jargs_t* jargs, const iotjs_jval_t* x);
-void iotjs_jargs_append_undefined(iotjs_jargs_t* jargs);
 void iotjs_jargs_append_null(iotjs_jargs_t* jargs);
 void iotjs_jargs_append_bool(iotjs_jargs_t* jargs, bool x);
 void iotjs_jargs_append_number(iotjs_jargs_t* jargs, double x);
@@ -197,7 +193,6 @@ void iotjs_jhandler_initialize(iotjs_jhandler_t* jhandler,
 
 void iotjs_jhandler_destroy(iotjs_jhandler_t* jhandler);
 
-const iotjs_jval_t* iotjs_jhandler_get_function(iotjs_jhandler_t* jhandler);
 const iotjs_jval_t* iotjs_jhandler_get_this(iotjs_jhandler_t* jhandler);
 const iotjs_jval_t* iotjs_jhandler_get_arg(iotjs_jhandler_t* jhandler,
                                            uint16_t index);

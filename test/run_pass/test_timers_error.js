@@ -47,14 +47,9 @@ assert.throws(function() {
 }, TypeError);
 
 // ClearTimeout without timeout parameter.
-assert.throws(function() {
+assert.doesNotThrow(function() {
   clearTimeout();
-}, Error);
-
-// ClearTimeout with invalid timeout parameter.
-assert.throws(function() {
-  clearTimeout(timeout);
-}, Error);
+});
 
 assert.throws(function() {
   clearTimeout('timeout');
@@ -64,13 +59,13 @@ assert.throws(function() {
   clearTimeout(1000);
 }, Error);
 
-assert.throws(function() {
+assert.doesNotThrow(function() {
   clearTimeout(null);
-}, Error);
+});
 
-assert.throws(function() {
+assert.doesNotThrow(function() {
   clearTimeout(undefined);
-}, Error);
+});
 
 assert.throws(function() {
   clearTimeout({timeout: 1000});
@@ -107,22 +102,18 @@ assert.throws(function() {
 }, TypeError);
 
 // ClearInterval without interval parameter.
-assert.throws(function() {
+assert.doesNotThrow(function() {
   clearInterval();
-}, Error);
+});
 
 // ClearInterval with invalid interval parameter.
-assert.throws(function() {
+assert.doesNotThrow(function() {
   clearInterval(null);
-}, Error);
+});
 
-assert.throws(function() {
+assert.doesNotThrow(function() {
   clearInterval(undefined);
-}, Error);
-
-assert.throws(function() {
-  clearInterval(interval);
-}, Error);
+});
 
 assert.throws(function() {
   clearInterval('interval');

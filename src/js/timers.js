@@ -94,10 +94,12 @@ exports.setTimeout = timeoutConfigurator.bind(undefined, false);
 exports.setInterval = timeoutConfigurator.bind(undefined, true);
 
 function clearTimeoutBase(timeoutType, timeout) {
-  if (timeout && (timeout instanceof Timeout)) {
-    timeout.unref();
-  } else {
-    throw new Error(timeoutType + '() - invalid timeout');
+  if (timeout) {
+    if (timeout instanceof Timeout) {
+      timeout.unref();
+    } else {
+       throw new Error(timeoutType + '() - invalid timeout');
+    }
   }
 }
 

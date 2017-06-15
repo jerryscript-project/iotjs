@@ -17,6 +17,9 @@
 
 var assert = require('assert');
 var http = require('http');
+var IncomingMessage = require('http_incoming').IncomingMessage;
+var OutgoingMessage = require('http_outgoing').OutgoingMessage;
+var net = require('net');
 
 var timeouted = false;
 
@@ -24,6 +27,21 @@ var options = {
   method: 'GET',
   port: 3002
 };
+
+var incTimeout = 0;
+var outTimeout = 0;
+
+var socket = new net.Socket();
+var inc = new IncomingMessage(socket);
+inc.setTimeout(100, function() {
+  incTimeout++;
+});
+var out = new OutgoingMessage();
+out.setTimeout(100, function() {
+  outTimeout++;
+});
+out.emit('timeout');
+
 
 var server = http.createServer(function(req, res) {
   // do nothing
@@ -48,4 +66,6 @@ server.listen(options.port, function() {
 process.on('exit', function(code) {
   assert.equal(code,0);
   assert.equal(timeouted, true);
+  assert.equal(incTimeout, 1);
+  assert.equal(outTimeout, 1);
 });

@@ -13,28 +13,30 @@
  * limitations under the License.
  */
 
-
 var assert = require('assert');
 
-assert.notEqual(process.platform, false);
+var dir = process.cwd() + "/run_pass/require1/";
 
-var x = require("require_add");
+// Load a JS file.
+var x = require(dir + "require_add");
 assert.equal(x.add(1,4), 5);
 
-var str = process.readSource("package.json");
-var json = JSON.parse(str);
-
-assert.equal(json.version, "2.9.1");
-assert.equal(json.name, "npm");
-assert.equal(json.main, "./lib/npm.js");
-assert.equal(json.repository.type, "git");
-
-var pkg1 = require('test_pkg');
+// Load a package.
+var pkg1 = require(dir + "test_pkg");
 assert.equal(pkg1.add(22, 44), 66);
 assert.equal(pkg1.multi(22, 44), 968);
 assert.equal(pkg1.add2(22, 44), 66);
 
-var pkg2 = require('test_index');
+var pkg2 = require(dir + "test_index");
 assert.equal(pkg2.add(22, 44), 66);
 assert.equal(pkg2.multi(22, 44), 968);
 assert.equal(pkg2.add2(22, 44), 66);
+
+// Load invalid modules.
+assert.throws(function() {
+  var test3 = require('run_pass/require1/babel-template');
+}, Error);
+
+assert.throws(function() {
+  var test4 = require('tmp');
+}, Error);

@@ -22,3 +22,4 @@ var server2 = net.Server(function() { });
 assert.equal(server instanceof net.Server, true);
 var socket = net.Socket('test');
 assert.equal(socket instanceof net.Socket, true);
+socket.setKeepAlive(true, 10);

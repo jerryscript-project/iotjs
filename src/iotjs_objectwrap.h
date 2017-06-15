@@ -41,4 +41,10 @@ iotjs_jobjectwrap_t* iotjs_jobjectwrap_from_jobject(
     .free_cb = (jerry_object_native_free_callback_t)iotjs_##module##_destroy \
   }
 
+#define IOTJS_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(name)                  \
+  static void iotjs_##name##_destroy(iotjs_##name##_t* wrap);              \
+  static const jerry_object_native_info_t this_module_native_info = {      \
+    .free_cb = (jerry_object_native_free_callback_t)iotjs_##name##_destroy \
+  }
+
 #endif /* IOTJS_OBJECTWRAP_H */

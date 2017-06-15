@@ -17,6 +17,7 @@ var net = require('net');
 var assert = require('assert');
 
 var timedout = false;
+var error = false;
 var connected = false;
 
 // Try connect to host that is not exist (Reserved address of TEST-NET-1)
@@ -30,7 +31,8 @@ socket1.on('timeout', function() {
 });
 
 socket1.on('error', function() {
-  assert.fail();
+  error = true;
+  socket1.destroy();
 });
 
 socket1.on('connect', function() {
@@ -39,6 +41,11 @@ socket1.on('connect', function() {
 });
 
 process.on('exit', function() {
-  assert(timedout);
+  if (process.platform == 'nuttx' || process.platform == 'tizenrt') {
+    // Connect is synchronous on these platforms.
+    assert(error && !timedout);
+  } else {
+    assert(!error && timedout);
+  }
   assert(!connected);
 });

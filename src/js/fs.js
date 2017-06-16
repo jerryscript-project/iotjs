@@ -164,6 +164,8 @@ fs.write = function(fd, buffer, offset, length, position, callback) {
   if (util.isFunction(position)) {
     callback = position;
     position = -1; // write at current position.
+  } else if (util.isNullOrUndefined(position)) {
+    position = -1; // write at current position.
   }
 
   callback = checkArgFunction(callback, 'callback');

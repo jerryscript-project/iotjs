@@ -22,6 +22,11 @@
 #include "iotjs_objectwrap.h"
 #include "iotjs_reqwrap.h"
 
+#if defined(__TIZENRT__)
+#include <iotbus_spi.h>
+#include <tinyara/config.h>
+#endif
+
 
 #if defined(__NUTTX__)
 #include <nuttx/spi/spi.h>
@@ -58,6 +63,9 @@ typedef struct {
   int bus;
   uint32_t cs_chip;
   struct spi_dev_s* spi_dev;
+#elif defined(__TIZENRT__)
+  unsigned int bus;
+  iotbus_spi_context_h hSpi;
 #endif
   SpiMode mode;
   SpiChipSelect chip_select;

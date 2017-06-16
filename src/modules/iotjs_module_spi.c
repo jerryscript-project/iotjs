@@ -182,7 +182,7 @@ static void iotjs_spi_set_configuration(iotjs_spi_t* spi,
       iotjs_jval_get_property(joptions, IOTJS_MAGIC_STRING_DEVICE);
   _this->device = iotjs_jval_as_string(&jdevice);
   iotjs_jval_destroy(&jdevice);
-#elif defined(__NUTTX__)
+#elif defined(__NUTTX__) || defined(__TIZENRT__)
   iotjs_jval_t jbus = iotjs_jval_get_property(joptions, IOTJS_MAGIC_STRING_BUS);
   _this->bus = iotjs_jval_as_number(&jbus);
   iotjs_jval_destroy(&jbus);

@@ -19,38 +19,60 @@ var Uart = require('uart');
 var uart = new Uart();
 
 var configuration = {
-  device: '/dev/ttyUSB0',
   baudRate: 115200,
   dataBits: 8
 };
 
-var read = 0;
-var write = 0;
+if (process.platform === 'linux') {
+  configuration.device = '/dev/ttyS0';
+} else if (process.platform === 'nuttx') {
+  configuration.device = '/dev/ttyS1';
+} else {
+  assert.fail();
+}
 
-var serial = uart.open(configuration, function(err){
-  assert.equal(err, null);
-  console.log('open done');
+writeTest();
 
-  serial.on('data', function(data) {
-    console.log('read result: ' + data.toString());
-    read = 1;
-
-    if (read && write) {
-      serial.closeSync();
-      console.log('close done');
-    }
-  });
-
-  serial.writeSync("Hello IoT.js.\n\r");
-
-  serial.write("Hello there?\n\r", function(err) {
+function writeTest() {
+  var serial = uart.open(configuration, function(err) {
     assert.equal(err, null);
-    console.log('write done');
-    write = 1;
+    console.log('open done');
 
-    if (read && write) {
-      serial.closeSync();
-      console.log('close done');
-    }
+    serial.writeSync("Hello IoT.js.\n\r");
+    serial.closeSync();
+    console.log('close done');
+    writeReadTest();
   });
-});
+}
+
+function writeReadTest() {
+  var read = 0;
+  var write = 0;
+
+  var serial = uart.open(configuration, function(err) {
+    assert.equal(err, null);
+    console.log('open done');
+
+    serial.on('data', function(data) {
+      console.log('read result: ' + data.toString());
+      read = 1;
+
+      if (read && write) {
+        serial.close();
+        console.log('close done');
+      }
+    });
+
+    serial.write("Hello there?\n\r", function(err) {
+      assert.equal(err, null);
+      console.log('write done');
+      write = 1;
+
+      if (read && write) {
+        serial.close();
+        console.log('close done');
+      }
+    });
+  });
+}
+

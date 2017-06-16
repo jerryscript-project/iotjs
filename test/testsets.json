@@ -115,6 +115,7 @@
     { "name": "test-assert.js" },
     { "name": "test-http-write-head.js" },
     { "name": "test-net-bind-twice.js" },
-    { "name": "test-net-end-without-connect.js" }
+    { "name": "test-net-end-without-connect.js" },
+    { "name": "test-net-keepalive.js"}
   ]
 }

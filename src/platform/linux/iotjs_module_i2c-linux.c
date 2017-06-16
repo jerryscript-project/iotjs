@@ -44,10 +44,6 @@
  */
 
 
-#ifndef IOTJS_MODULE_I2C_LINUX_GENERAL_INL_H
-#define IOTJS_MODULE_I2C_LINUX_GENERAL_INL_H
-
-
 #include <fcntl.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -89,96 +85,26 @@ typedef struct I2cSmbusIoctlDataStruct {
 } I2cSmbusIoctlData;
 
 
-static int current_fd;
-static uint8_t addr;
-
-
-int I2cSmbusAccess(int fd, uint8_t read_write, uint8_t command, int size,
-                   I2cSmbusData* data) {
-  I2cSmbusIoctlData args;
-
-  args.read_write = read_write;
-  args.command = command;
-  args.size = size;
-  args.data = data;
-
-  return ioctl(fd, I2C_SMBUS, &args);
-}
-
-
-int I2cSmbusWriteByte(int fd, uint8_t byte) {
-  return I2cSmbusAccess(fd, I2C_SMBUS_WRITE, byte, I2C_SMBUS_BYTE, NULL);
-}
-
-
-int I2cSmbusWriteI2cBlockData(int fd, uint8_t command, uint8_t* values,
-                              uint8_t length) {
-  I2cSmbusData data;
-
-  if (length > I2C_SMBUS_BLOCK_MAX) {
-    length = I2C_SMBUS_BLOCK_MAX;
-  }
-
-  for (int i = 1; i <= length; i++) {
-    data.block[i] = values[i - 1];
-  }
-  data.block[0] = length;
-
-  return I2cSmbusAccess(fd, I2C_SMBUS_WRITE, command, I2C_SMBUS_I2C_BLOCK_DATA,
-                        &data);
-}
-
-
-int I2cSmbusReadByte(int fd) {
-  I2cSmbusData data;
-
-  int result =
-      I2cSmbusAccess(fd, I2C_SMBUS_READ, I2C_NOCMD, I2C_SMBUS_BYTE, &data);
-
-  // Mask one byte from result (data.byte).
-  return result >= 0 ? 0xFF & data.byte : -1;
-}
-
-
-int I2cSmbusReadI2cBlockData(int fd, uint8_t command, uint8_t* values,
-                             uint8_t length) {
-  I2cSmbusData data;
-
-  if (length > I2C_SMBUS_BLOCK_MAX) {
-    length = I2C_SMBUS_BLOCK_MAX;
-  }
-  data.block[0] = length;
-
-  int result = I2cSmbusAccess(fd, I2C_SMBUS_READ, command,
-                              I2C_SMBUS_I2C_BLOCK_DATA, &data);
-  if (result >= 0) {
-    for (int i = 1; i <= data.block[0]; i++) {
-      values[i - 1] = data.block[i];
-    }
-    result = data.block[0];
-  }
-
-  return result;
-}
-
-
 #define I2C_WORKER_INIT_TEMPLATE                                            \
   iotjs_i2c_reqwrap_t* req_wrap = iotjs_i2c_reqwrap_from_request(work_req); \
   iotjs_i2c_reqdata_t* req_data = iotjs_i2c_reqwrap_data(req_wrap);
 
 
 void I2cSetAddress(iotjs_i2c_t* i2c, uint8_t address) {
-  addr = address;
-  ioctl(current_fd, I2C_SLAVE_FORCE, addr);
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_i2c_t, i2c);
+  _this->addr = address;
+  ioctl(_this->device_fd, I2C_SLAVE_FORCE, _this->addr);
 }
 
 
 void OpenWorker(uv_work_t* work_req) {
   I2C_WORKER_INIT_TEMPLATE;
+  iotjs_i2c_t* i2c = iotjs_i2c_instance_from_reqwrap(req_wrap);
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_i2c_t, i2c);
 
-  current_fd = open(iotjs_string_data(&req_data->device), O_RDWR);
+  _this->device_fd = open(iotjs_string_data(&req_data->device), O_RDWR);
 
-  if (current_fd == -1) {
+  if (_this->device_fd == -1) {
     req_data->error = kI2cErrOpen;
   } else {
     req_data->error = kI2cErrOk;
@@ -187,45 +113,24 @@ void OpenWorker(uv_work_t* work_req) {
 
 
 void I2cClose(iotjs_i2c_t* i2c) {
-  if (current_fd > 0) {
-    close(current_fd);
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_i2c_t, i2c);
+
+  if (_this->device_fd > 0) {
+    close(_this->device_fd);
+    _this->device_fd = -1;
   }
 }
 
 
 void WriteWorker(uv_work_t* work_req) {
   I2C_WORKER_INIT_TEMPLATE;
+  iotjs_i2c_t* i2c = iotjs_i2c_instance_from_reqwrap(req_wrap);
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_i2c_t, i2c);
 
   uint8_t len = req_data->buf_len;
   char* data = req_data->buf_data;
 
-  if (write(current_fd, data, len) != len) {
-    req_data->error = kI2cErrWrite;
-  }
-
-  if (req_data->buf_data != NULL) {
-    iotjs_buffer_release(req_data->buf_data);
-  }
-}
-
-
-void WriteByteWorker(uv_work_t* work_req) {
-  I2C_WORKER_INIT_TEMPLATE;
-
-  if (I2cSmbusWriteByte(current_fd, req_data->byte) == -1) {
-    req_data->error = kI2cErrWrite;
-  }
-}
-
-
-void WriteBlockWorker(uv_work_t* work_req) {
-  I2C_WORKER_INIT_TEMPLATE;
-
-  uint8_t cmd = req_data->cmd;
-  uint8_t len = req_data->buf_len;
-  uint8_t* data = (uint8_t*)(req_data->buf_data);
-
-  if (I2cSmbusWriteI2cBlockData(current_fd, cmd, data, len) == -1) {
+  if (write(_this->device_fd, data, len) != len) {
     req_data->error = kI2cErrWrite;
   }
 
@@ -237,42 +142,13 @@ void WriteBlockWorker(uv_work_t* work_req) {
 
 void ReadWorker(uv_work_t* work_req) {
   I2C_WORKER_INIT_TEMPLATE;
+  iotjs_i2c_t* i2c = iotjs_i2c_instance_from_reqwrap(req_wrap);
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_i2c_t, i2c);
 
   uint8_t len = req_data->buf_len;
   req_data->buf_data = iotjs_buffer_allocate(len);
 
-  if (read(current_fd, req_data->buf_data, len) != len) {
+  if (read(_this->device_fd, req_data->buf_data, len) != len) {
     req_data->error = kI2cErrRead;
   }
 }
-
-
-void ReadByteWorker(uv_work_t* work_req) {
-  I2C_WORKER_INIT_TEMPLATE;
-
-  int result = I2cSmbusReadByte(current_fd);
-  if (result == -1) {
-    req_data->error = kI2cErrRead;
-  } else {
-    req_data->byte = result;
-  }
-}
-
-
-void ReadBlockWorker(uv_work_t* work_req) {
-  I2C_WORKER_INIT_TEMPLATE;
-
-  uint8_t cmd = req_data->cmd;
-  uint8_t len = req_data->buf_len;
-  uint8_t data[I2C_SMBUS_BLOCK_MAX + 2];
-
-  if (I2cSmbusReadI2cBlockData(current_fd, cmd, data, len) != len) {
-    req_data->error = kI2cErrReadBlock;
-  }
-
-  req_data->buf_data = iotjs_buffer_allocate(len);
-  memcpy(req_data->buf_data, data, len);
-}
-
-
-#endif /* IOTJS_MODULE_I2C_LINUX_GENERAL_INL_H */

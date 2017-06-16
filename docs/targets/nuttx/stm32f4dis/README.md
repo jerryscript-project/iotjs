@@ -128,6 +128,9 @@ Followings are the options to set:
 * For `uart` module
   * Enable `System Type -> STM32 Peripheral Support -> U[S]ART(N)`
 
+* For `i2c` module
+  * Enable `System Type -> STM32 Peripheral Support -> I2C1`
+
 #### 4. Build IoT.js for NuttX
 
 ##### Follow the instruction

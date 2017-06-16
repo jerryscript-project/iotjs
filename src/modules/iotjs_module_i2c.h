@@ -30,19 +30,14 @@ typedef enum {
   kI2cOpOpen,
   kI2cOpClose,
   kI2cOpWrite,
-  kI2cOpWriteByte,
-  kI2cOpWriteBlock,
   kI2cOpRead,
-  kI2cOpReadByte,
-  kI2cOpReadBlock,
 } I2cOp;
 
 typedef enum {
   kI2cErrOk = 0,
   kI2cErrOpen = -1,
   kI2cErrRead = -2,
-  kI2cErrReadBlock = -3,
-  kI2cErrWrite = -4,
+  kI2cErrWrite = -3,
 } I2cError;
 
 
@@ -65,11 +60,14 @@ typedef struct {
 
 // This I2c class provides interfaces for I2C operation.
 typedef struct {
-#if defined(__NUTTX__)
+  iotjs_jobjectwrap_t jobjectwrap;
+#if defined(__linux__)
+  int device_fd;
+  uint8_t addr;
+#elif defined(__NUTTX__)
   struct i2c_master_s* i2c_master;
   struct i2c_config_s config;
 #endif
-  iotjs_jobjectwrap_t jobjectwrap;
 } IOTJS_VALIDATED_STRUCT(iotjs_i2c_t);
 
 
@@ -101,11 +99,7 @@ void I2cSetAddress(iotjs_i2c_t* i2c, uint8_t address);
 void OpenWorker(uv_work_t* work_req);
 void I2cClose(iotjs_i2c_t* i2c);
 void WriteWorker(uv_work_t* work_req);
-void WriteByteWorker(uv_work_t* work_req);
-void WriteBlockWorker(uv_work_t* work_req);
 void ReadWorker(uv_work_t* work_req);
-void ReadByteWorker(uv_work_t* work_req);
-void ReadBlockWorker(uv_work_t* work_req);
 
 
 #endif /* IOTJS_MODULE_I2C_H */

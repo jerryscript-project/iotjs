@@ -19,36 +19,33 @@ var assert = require('assert');
 var I2C = require('i2c');
 
 var i2c = new I2C();
+var configuration = {};
 
-var wire = i2c.open({device: '/dev/i2c-1', address: 0x23}, function(err) {
+configuration.address = 0x23;
+if (process.platform === 'linux') {
+  configuration.device = '/dev/i2c-1';
+} else if (process.platform === 'nuttx') {
+  configuration.device = 1;
+} else {
+  assert.fail();
+}
+
+var wire = i2c.open(configuration, function(err) {
   if (err) {
     throw err;
   }
+
+  wire.write([0x10], function(err) {
+    assert.equal(err, null);
+    console.log('write done');
+
+    wire.read(2, function(err, res) {
+      assert.equal(err, null);
+      assert.equal(res.length, 2, 'I2C read failed.(length is not equal)');
+      console.log('read result: '+res[0]+', '+res[1]);
+      wire.close();
+      console.log('test ok');
+    });
+  });
 });
 
-wire.write([0x10], function(err) {
-  assert.equal(err, null);
-  console.log('write done');
-});
-
-wire.writeByte(0x10, function(err) {
-  assert.equal(err, null);
-  console.log('writeByte done');
-});
-
-wire.read(2, function(err, res) {
-  assert.equal(err, null);
-  assert.equal(res.length, 2, 'I2C read failed.(length is not equal)');
-  console.log('read result: '+res[0]+', '+res[1]);
-});
-
-wire.readByte(function(err, res) {
-  assert.equal(err, null);
-  console.log('readByte result: '+res);
-});
-
-wire.readBytes(0x20, 2, function(err, res) {
-  assert.equal(err, null);
-  assert.equal(res.length, 2, 'I2C readBytes failed.(length is not equal)');
-  console.log('readBytes(cmd:0x20, length:2) result: '+res[0]+', '+res[1]);
-});

@@ -127,7 +127,7 @@ function spiBusOpen(configuration, callback) {
 
     process.on('exit', (function(self) {
     return function() {
-      if (!util.isNull(_binding)) {
+      if (_binding !== null) {
         self.closeSync();
       }
     };
@@ -137,7 +137,7 @@ function spiBusOpen(configuration, callback) {
   SpiBus.prototype.transfer = function(txBuffer, rxBuffer, callback) {
     var self = this;
 
-    if (util.isNull(_binding)) {
+    if (_binding === null) {
       throw new Error('SPI bus is not opened');
     }
 
@@ -166,7 +166,7 @@ function spiBusOpen(configuration, callback) {
   };
 
   SpiBus.prototype.transferSync = function(txBuffer, rxBuffer) {
-    if (util.isNull(_binding)) {
+    if (_binding === null) {
       throw new Error('SPI bus is not opened');
     }
 
@@ -198,7 +198,7 @@ function spiBusOpen(configuration, callback) {
   SpiBus.prototype.close = function(callback) {
     var self = this;
 
-    if (util.isNull(_binding)) {
+    if (_binding === null) {
       throw new Error('SPI bus is not opened');
     }
 
@@ -209,7 +209,7 @@ function spiBusOpen(configuration, callback) {
   };
 
   SpiBus.prototype.closeSync = function() {
-    if (util.isNull(_binding)) {
+    if (_binding === null) {
       throw new Error('SPI bus is not opened');
     }
 

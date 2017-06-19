@@ -122,7 +122,7 @@ Readable.prototype.error = function(error) {
 Readable.prototype.push = function(chunk, encoding) {
   var state = this._readableState;
 
-  if (util.isNull(chunk)) {
+  if (chunk === null) {
     onEof(this);
   } else if (!util.isString(chunk) &&
              !util.isBuffer(chunk)) {

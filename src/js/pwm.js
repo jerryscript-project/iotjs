@@ -73,7 +73,7 @@ function pwmPinOpen(configuration, callback) {
 
     process.on('exit', (function(self) {
       return function() {
-        if (!util.isNull(_binding)) {
+        if (_binding !== null) {
           self.closeSync();
         }
       };
@@ -111,7 +111,7 @@ function pwmPinOpen(configuration, callback) {
   PwmPin.prototype.setPeriod = function(period, callback) {
     var self = this;
 
-    if (util.isNull(_binding)) {
+    if (_binding === null) {
       throw new Error('Pwm pin is not opened');
     }
 
@@ -123,7 +123,7 @@ function pwmPinOpen(configuration, callback) {
   };
 
   PwmPin.prototype.setPeriodSync = function(period) {
-    if (util.isNull(_binding)) {
+    if (_binding === null) {
       throw new Error('Pwm pin is not opened');
     }
 
@@ -135,7 +135,7 @@ function pwmPinOpen(configuration, callback) {
   PwmPin.prototype.setFrequency = function(frequency, callback) {
     var self = this;
 
-    if (util.isNull(_binding)) {
+    if (_binding === null) {
       throw new Error('Pwm pin is not opened');
     }
 
@@ -147,7 +147,7 @@ function pwmPinOpen(configuration, callback) {
   };
 
   PwmPin.prototype.setFrequencySync = function(frequency) {
-    if (util.isNull(_binding)) {
+    if (_binding === null) {
       throw new Error('Pwm pin is not opened');
     }
 
@@ -159,7 +159,7 @@ function pwmPinOpen(configuration, callback) {
   PwmPin.prototype.setDutyCycle = function(dutyCycle, callback) {
     var self = this;
 
-    if (util.isNull(_binding)) {
+    if (_binding === null) {
       throw new Error('Pwm pin is not opened');
     }
 
@@ -172,7 +172,7 @@ function pwmPinOpen(configuration, callback) {
   };
 
   PwmPin.prototype.setDutyCycleSync = function(dutyCycle) {
-    if (util.isNull(_binding)) {
+    if (_binding === null) {
       throw new Error('Pwm pin is not opened');
     }
 
@@ -185,7 +185,7 @@ function pwmPinOpen(configuration, callback) {
   PwmPin.prototype.setEnable = function(enable, callback) {
     var self = this;
 
-    if (util.isNull(_binding)) {
+    if (_binding === null) {
       throw new Error('Pwm pin is not opened');
     }
 
@@ -200,7 +200,7 @@ function pwmPinOpen(configuration, callback) {
   };
 
   PwmPin.prototype.setEnableSync = function(enable) {
-    if (util.isNull(_binding)) {
+    if (_binding === null) {
       throw new Error('Pwm pin is not opened');
     }
 
@@ -215,7 +215,7 @@ function pwmPinOpen(configuration, callback) {
   PwmPin.prototype.close = function(callback) {
     var self = this;
 
-    if (util.isNull(_binding)) {
+    if (_binding === null) {
       throw new Error('Pwm pin is not opened');
     }
 
@@ -226,7 +226,7 @@ function pwmPinOpen(configuration, callback) {
   };
 
   PwmPin.prototype.closeSync = function() {
-    if (util.isNull(_binding)) {
+    if (_binding === null) {
       throw new Error('Pwm pin is not opened');
     }
 

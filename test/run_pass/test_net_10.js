@@ -19,18 +19,17 @@ var assert = require('assert');
 var timedout = false;
 var connected = false;
 
-// Try connect to host that is not exist (Reserved address of TEST-NET-1)
-var socket1 = net.createConnection(11111, '192.0.2.1');
-
-socket1.setTimeout(1000);
-
-socket1.on('timeout', function() {
+process.nextTick(function() {
   timedout = true;
   socket1.destroy();
 });
 
+// Try connect to host that is not exist (Reserved address of TEST-NET-1)
+var socket1 = net.createConnection(11111, '192.0.2.1');
+
 socket1.on('error', function() {
-  assert.fail();
+  if (!timedout)
+    assert.fail();
 });
 
 socket1.on('connect', function() {

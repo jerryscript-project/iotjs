@@ -191,7 +191,7 @@ Socket.prototype.destroy = function() {
   // unset timeout
   clearSocketTimeout(self);
 
-  if (self._writableState.ended) {
+  if (self._writableState.ended && self._handle) {
     close(self);
     state.destroyed = true;
   } else {
@@ -417,7 +417,7 @@ function onSocketFinish() {
   var self = this;
   var state = self._socketState;
 
-  if (!state.readable || self._readableState.ended) {
+  if (!state.readable || self._readableState.ended || !self._handle) {
     // no readable stream or ended, destroy(close) socket.
     return self.destroy();
   } else {

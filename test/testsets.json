@@ -113,6 +113,7 @@
   ],
   "node/parallel": [
     { "name": "test-assert.js" },
-    { "name": "test-net-bind-twice.js" }
+    { "name": "test-net-bind-twice.js" },
+    { "name": "test-net-end-without-connect.js" }
   ]
 }

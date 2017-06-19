@@ -46,7 +46,12 @@ server1.listen(0, '127.0.0.1', common.mustCall(function() {
   var server2 = net.createServer(common.fail);
 
   server2.on('error', common.mustCall(function(e) {
-    assert.strictEqual(e, -98); // EADDRINUSE
+    // EADDRINUSE have different value on OSX.
+    if (common.isOSX) {
+      assert.strictEqual(e, -48);
+    } else {
+      assert.strictEqual(e, -98);
+    }
 
     server1.close();
   }));

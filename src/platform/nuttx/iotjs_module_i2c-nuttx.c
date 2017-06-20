@@ -68,7 +68,7 @@ void WriteWorker(uv_work_t* work_req) {
   uint8_t len = req_data->buf_len;
   uint8_t* data = (uint8_t*)req_data->buf_data;
 
-  IOTJS_ASSERT(!_this->i2c_master);
+  IOTJS_ASSERT(_this->i2c_master);
   IOTJS_ASSERT(len > 0);
 
   int ret = i2c_write(_this->i2c_master, &_this->config, data, len);
@@ -87,50 +87,6 @@ void WriteWorker(uv_work_t* work_req) {
 }
 
 
-void WriteByteWorker(uv_work_t* work_req) {
-  I2C_WORKER_INIT_TEMPLATE;
-  iotjs_i2c_t* i2c = iotjs_i2c_instance_from_reqwrap(req_wrap);
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_i2c_t, i2c);
-
-  IOTJS_ASSERT(!_this->i2c_master);
-
-  int ret = i2c_write(_this->i2c_master, &_this->config, &req_data->byte, 1);
-  if (ret < 0) {
-    DDLOG("I2C WriteByteWorker : cannot write - %d", ret);
-    req_data->error = kI2cErrWrite;
-    return;
-  }
-  req_data->error = kI2cErrOk;
-}
-
-
-void WriteBlockWorker(uv_work_t* work_req) {
-  I2C_WORKER_INIT_TEMPLATE;
-  iotjs_i2c_t* i2c = iotjs_i2c_instance_from_reqwrap(req_wrap);
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_i2c_t, i2c);
-
-  uint8_t cmd = req_data->cmd;
-  uint8_t len = req_data->buf_len;
-  char* data = req_data->buf_data;
-
-  // The first element of data array is command.
-  iotjs_buffer_reallocate(data, (size_t)(len + 1));
-  memmove(data + 1, data, len * sizeof(char));
-  data[0] = cmd;
-
-  IOTJS_ASSERT(!_this->i2c_master);
-
-  int ret =
-      i2c_write(_this->i2c_master, &_this->config, &req_data->byte, len + 1);
-  if (ret < 0) {
-    DDLOG("I2C WriteBlockWorker : cannot write - %d", ret);
-    req_data->error = kI2cErrWrite;
-    return;
-  }
-  req_data->error = kI2cErrOk;
-}
-
-
 void ReadWorker(uv_work_t* work_req) {
   I2C_WORKER_INIT_TEMPLATE;
   iotjs_i2c_t* i2c = iotjs_i2c_instance_from_reqwrap(req_wrap);
@@ -139,54 +95,13 @@ void ReadWorker(uv_work_t* work_req) {
   uint8_t len = req_data->buf_len;
   req_data->buf_data = iotjs_buffer_allocate(len);
 
-  IOTJS_ASSERT(!_this->i2c_master);
+  IOTJS_ASSERT(_this->i2c_master);
   IOTJS_ASSERT(len > 0);
 
   int ret = i2c_read(_this->i2c_master, &_this->config,
                      (uint8_t*)req_data->buf_data, len);
   if (ret != 0) {
     DDLOG("I2C ReadWorker : cannot read - %d", ret);
-    req_data->error = kI2cErrRead;
-    return;
-  }
-  req_data->error = kI2cErrOk;
-}
-
-
-void ReadByteWorker(uv_work_t* work_req) {
-  I2C_WORKER_INIT_TEMPLATE;
-  iotjs_i2c_t* i2c = iotjs_i2c_instance_from_reqwrap(req_wrap);
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_i2c_t, i2c);
-
-  IOTJS_ASSERT(!_this->i2c_master);
-
-  int ret = i2c_read(_this->i2c_master, &_this->config, &req_data->byte, 1);
-  if (ret < 0) {
-    DDLOG("I2C ReadByteWorker : cannot read - %d", ret);
-    req_data->error = kI2cErrRead;
-    return;
-  }
-  req_data->error = kI2cErrOk;
-}
-
-
-void ReadBlockWorker(uv_work_t* work_req) {
-  I2C_WORKER_INIT_TEMPLATE;
-  iotjs_i2c_t* i2c = iotjs_i2c_instance_from_reqwrap(req_wrap);
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_i2c_t, i2c);
-
-  uint8_t cmd = req_data->cmd;
-  uint8_t len = req_data->buf_len;
-  req_data->buf_data = iotjs_buffer_allocate(len);
-
-  IOTJS_ASSERT(!_this->i2c_master);
-  IOTJS_ASSERT(len > 0);
-
-  int ret = i2c_writeread(_this->i2c_master, &_this->config, &cmd, 1,
-                          (uint8_t*)req_data->buf_data, len);
-
-  if (ret < 0) {
-    DDLOG("I2C ReadBlockWorker : cannot read - %d", ret);
     req_data->error = kI2cErrRead;
     return;
   }

@@ -172,8 +172,13 @@ JHANDLER_FUNCTION(Chdir) {
 JHANDLER_FUNCTION(DoExit) {
   JHANDLER_CHECK_ARGS(1, number);
 
-  int exit_code = JHANDLER_GET_ARG(0, number);
+  // Release builtin modules.
+  iotjs_module_list_cleanup();
 
+  // Release commonly used jerry values.
+  iotjs_binding_finalize();
+
+  int exit_code = JHANDLER_GET_ARG(0, number);
   exit(exit_code);
 }
 

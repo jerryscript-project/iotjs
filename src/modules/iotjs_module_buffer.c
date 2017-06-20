@@ -21,8 +21,7 @@
 #include <string.h>
 
 
-static void iotjs_bufferwrap_destroy(iotjs_bufferwrap_t* bufferwrap);
-IOTJS_DEFINE_NATIVE_HANDLE_INFO(bufferwrap);
+IOTJS_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(bufferwrap);
 
 
 iotjs_bufferwrap_t* iotjs_bufferwrap_create(const iotjs_jval_t* jbuiltin,
@@ -31,7 +30,7 @@ iotjs_bufferwrap_t* iotjs_bufferwrap_create(const iotjs_jval_t* jbuiltin,
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_bufferwrap_t, bufferwrap);
 
   iotjs_jobjectwrap_initialize(&_this->jobjectwrap, jbuiltin,
-                               &bufferwrap_native_info);
+                               &this_module_native_info);
   if (length > 0) {
     _this->length = length;
     _this->buffer = iotjs_buffer_allocate(length);
@@ -237,12 +236,8 @@ JHANDLER_FUNCTION(Buffer) {
 
 
 JHANDLER_FUNCTION(Compare) {
-  DJHANDLER_CHECK_THIS(object);
+  JHANDLER_DECLARE_THIS_PTR(bufferwrap, src_buffer_wrap);
   DJHANDLER_CHECK_ARGS(1, object);
-
-  const iotjs_jval_t* jsrc_builtin = JHANDLER_GET_THIS(object);
-  iotjs_bufferwrap_t* src_buffer_wrap =
-      iotjs_bufferwrap_from_jbuiltin(jsrc_builtin);
 
   const iotjs_jval_t* jdst_buffer = JHANDLER_GET_ARG(0, object);
   iotjs_bufferwrap_t* dst_buffer_wrap =
@@ -265,12 +260,8 @@ JHANDLER_FUNCTION(Compare) {
 
 
 JHANDLER_FUNCTION(Copy) {
-  DJHANDLER_CHECK_THIS(object);
+  JHANDLER_DECLARE_THIS_PTR(bufferwrap, src_buffer_wrap);
   DJHANDLER_CHECK_ARGS(4, object, number, number, number);
-
-  const iotjs_jval_t* jsrc_builtin = JHANDLER_GET_THIS(object);
-  iotjs_bufferwrap_t* src_buffer_wrap =
-      iotjs_bufferwrap_from_jbuiltin(jsrc_builtin);
 
   const iotjs_jval_t* jdst_buffer = JHANDLER_GET_ARG(0, object);
   iotjs_bufferwrap_t* dst_buffer_wrap =
@@ -301,13 +292,10 @@ JHANDLER_FUNCTION(Copy) {
 
 
 JHANDLER_FUNCTION(Write) {
+  JHANDLER_DECLARE_THIS_PTR(bufferwrap, buffer_wrap);
   DJHANDLER_CHECK_ARGS(3, string, number, number);
 
   iotjs_string_t src = JHANDLER_GET_ARG(0, string);
-
-  const iotjs_jval_t* jbuiltin = JHANDLER_GET_THIS(object);
-
-  iotjs_bufferwrap_t* buffer_wrap = iotjs_bufferwrap_from_jbuiltin(jbuiltin);
 
   size_t buffer_length = iotjs_bufferwrap_length(buffer_wrap);
   DECLARE_SIZE_T_FROM_DOUBLE(offset, JHANDLER_GET_ARG(1, number));
@@ -328,14 +316,11 @@ JHANDLER_FUNCTION(Write) {
 
 
 JHANDLER_FUNCTION(WriteUInt8) {
+  JHANDLER_DECLARE_THIS_PTR(bufferwrap, buffer_wrap);
   DJHANDLER_CHECK_ARGS(2, number, number);
 
   const char src[] = { (char)JHANDLER_GET_ARG(0, number) };
   size_t length = 1;
-
-  const iotjs_jval_t* jbuiltin = JHANDLER_GET_THIS(object);
-
-  iotjs_bufferwrap_t* buffer_wrap = iotjs_bufferwrap_from_jbuiltin(jbuiltin);
 
   size_t buffer_length = iotjs_bufferwrap_length(buffer_wrap);
   DECLARE_SIZE_T_FROM_DOUBLE(offset, JHANDLER_GET_ARG(1, number));
@@ -351,13 +336,10 @@ JHANDLER_FUNCTION(WriteUInt8) {
 
 
 JHANDLER_FUNCTION(HexWrite) {
+  JHANDLER_DECLARE_THIS_PTR(bufferwrap, buffer_wrap);
   DJHANDLER_CHECK_ARGS(3, string, number, number);
 
   iotjs_string_t src = JHANDLER_GET_ARG(0, string);
-
-  const iotjs_jval_t* jbuiltin = JHANDLER_GET_THIS(object);
-
-  iotjs_bufferwrap_t* buffer_wrap = iotjs_bufferwrap_from_jbuiltin(jbuiltin);
 
   size_t buffer_length = iotjs_bufferwrap_length(buffer_wrap);
   DECLARE_SIZE_T_FROM_DOUBLE(offset, JHANDLER_GET_ARG(1, number));
@@ -382,11 +364,8 @@ JHANDLER_FUNCTION(HexWrite) {
 
 
 JHANDLER_FUNCTION(ReadUInt8) {
+  JHANDLER_DECLARE_THIS_PTR(bufferwrap, buffer_wrap);
   DJHANDLER_CHECK_ARGS(1, number);
-
-  const iotjs_jval_t* jbuiltin = JHANDLER_GET_THIS(object);
-
-  iotjs_bufferwrap_t* buffer_wrap = iotjs_bufferwrap_from_jbuiltin(jbuiltin);
 
   size_t buffer_length = iotjs_bufferwrap_length(buffer_wrap);
   DECLARE_SIZE_T_FROM_DOUBLE(offset, JHANDLER_GET_ARG(0, number));
@@ -399,10 +378,8 @@ JHANDLER_FUNCTION(ReadUInt8) {
 
 
 JHANDLER_FUNCTION(Slice) {
+  JHANDLER_DECLARE_THIS_PTR(bufferwrap, buffer_wrap);
   DJHANDLER_CHECK_ARGS(2, number, number);
-
-  const iotjs_jval_t* jbuiltin = JHANDLER_GET_THIS(object);
-  iotjs_bufferwrap_t* buffer_wrap = iotjs_bufferwrap_from_jbuiltin(jbuiltin);
 
   int64_t start = JHANDLER_GET_ARG(0, number);
   int64_t end = JHANDLER_GET_ARG(1, number);
@@ -451,11 +428,8 @@ JHANDLER_FUNCTION(Slice) {
 
 
 JHANDLER_FUNCTION(ToString) {
-  DJHANDLER_CHECK_THIS(object);
+  JHANDLER_DECLARE_THIS_PTR(bufferwrap, buffer_wrap);
   DJHANDLER_CHECK_ARGS(2, number, number);
-
-  const iotjs_jval_t* jbuiltin = JHANDLER_GET_THIS(object);
-  iotjs_bufferwrap_t* buffer_wrap = iotjs_bufferwrap_from_jbuiltin(jbuiltin);
 
   DECLARE_SIZE_T_FROM_DOUBLE(start, JHANDLER_GET_ARG(0, number));
   start = bound_range(start, 0, iotjs_bufferwrap_length(buffer_wrap));
@@ -479,10 +453,8 @@ JHANDLER_FUNCTION(ToString) {
 
 
 JHANDLER_FUNCTION(ToHexString) {
+  JHANDLER_DECLARE_THIS_PTR(bufferwrap, buffer_wrap);
   DJHANDLER_CHECK_THIS(object);
-
-  const iotjs_jval_t* jbuiltin = JHANDLER_GET_THIS(object);
-  iotjs_bufferwrap_t* buffer_wrap = iotjs_bufferwrap_from_jbuiltin(jbuiltin);
 
   size_t length = iotjs_bufferwrap_length(buffer_wrap);
   const char* data = iotjs_bufferwrap_buffer(buffer_wrap);

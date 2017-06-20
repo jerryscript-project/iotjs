@@ -18,24 +18,47 @@ var http = require('http');
 var recievedResponse = false;
 
 var server = http.createServer(function(request, response) {
-  server.close();
+  var str = '';
+
+  request.on('data', function (chunk) {
+    str += chunk;
+  });
+
+  request.on('end', function() {
+    response.end();
+  });
 });
 
-server.listen(3085, 'localhost');
+server.listen(20004, 5);
 
 // Connection refusal: The request will try to connect to a server,
 // however the connection can not be created because the port is invalid.
-// Therefore the client will destroy the socket without an error emit.
-http.request({
+var req = http.request({
   host: 'localhost',
-  port: 3089,
+  port: 20002,
   path: '/',
   method: 'GET'
 }, function(response) {
+  var str = '';
+
+  response.on('data', function(chunk) {
+    str += chunk;
+  });
+
   response.on('end', function() {
     recievedResponse = true;
+    server.close();
   });
-}).end();
+});
+
+req.on('error', function() {
+  recievedResponse = false;
+  server.close();
+});
+
+req.setTimeout(100, function(){
+  req.end();
+});
 
 process.on('exit', function() {
   assert.equal(recievedResponse, false);

@@ -7,7 +7,7 @@ Adding below arguments when building and running IoT.js will show you the JerryS
 
 ```text
 $ ./tools/build.py --jerry-memstat
-$ ./build/bin/iotjs test.js --memstat
+$ ./build/bin/iotjs --memstat test.js
 Heap stats:
   Heap size = 262136 bytes
   Allocated = 0 bytes

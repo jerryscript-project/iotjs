@@ -163,6 +163,7 @@ mv coverage/lcov-report coverage/js
 
 # Generate c coverage report
 lcov -t "c_coverage" -o ".c-coverage.info" -c -d build/i686-linux/debug/
+lcov --remove ".c-coverage.info" 'iotjs/deps/*' -o ".c-coverage.info"
 genhtml -o coverage/c .c-coverage.info
 rm .c-coverage.info
 

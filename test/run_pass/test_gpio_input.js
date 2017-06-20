@@ -28,13 +28,13 @@ var SWITCH_ON = false,
 var loopCnt = 0;
 
 if (process.platform === 'linux') {
-  ledPin = 10;
-  switchPin = 9;
+  ledPin = 20;
+  switchPin = 13;
   ledMode = gpio.MODE.NONE;
 } else if (process.platform === 'nuttx') {
   var pin = require('stm32f4dis').pin;
   ledPin = pin.PA10;
-  switchPin = pin.PA8;
+  switchPin = pin.PA15;
   ledMode = gpio.MODE.PUSHPULL;
 } else if(process.platform === 'tizenrt') {
   ledPin = 41;
@@ -64,6 +64,11 @@ var loop = setInterval(function() {
 
   if ((++loopCnt) == 10) {
     clearInterval(loop);
+    ledGpio.closeSync();
+    switchGpio.closeSync();
+    ledGpio = switchGpio = null;
+    console.log('finish test');
+    return;
   }
 
   switchGpio.read(function(err, value) {

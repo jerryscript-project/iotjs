@@ -571,7 +571,7 @@ fs.unlinkSync('test.txt');
 * `buffer` {Buffer} Buffer that the data will be written from.
 * `offset` {number} Offset of the buffer where from start reading.
 * `length` {number} Number of bytes to write.
-* `position` {number} Specifying where to start write data to the file.
+* `position` {number} Specifying where to start write data to the file, if `null` or `undefined`, write at the current position.
 * `callback` {Function}
   * `err` {Error|null}
   * `bytesWrite` {integer}

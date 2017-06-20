@@ -165,3 +165,13 @@ Note: You can add more ports according to the patch file.
 
 ```
 
+## I2C Port Information
+
+In order to use the I2C on stm32f4-discovery board, you must use proper pins.
+Currently only I2C1 is supported.
+
+The following table shows the I2C pin map:
+| I2C Pin Name | GPIO Name |
+| :--- | :---: |
+| I2C1_SCL | PB8 |
+| I2C1_SDA | PB7 |

@@ -18,31 +18,6 @@ var Spi = require('spi');
 
 var spi = new Spi();
 
-//  mcp3008 test
-var channel = 0;
-var spi0 = spi.open({
-  device: '/dev/spidev0.0'
-}, function() {
-  var mode = (8 + channel) << 4;
-  var tx = [1, mode, 0];
-  var rx = [0, 0, 0];
-
-  spi0.transferSync(tx, rx);
-  console.log(((rx[1] & 0x03) << 8) + rx[2]);
-
-  setTimeout(function() {
-    spi0.transfer(tx, rx, function(err) {
-      assert.equal(err, null);
-      assert.equal(rx.length, 3);
-
-      var value = ((rx[1] & 0x03) << 8) + rx[2];
-      console.log(value);
-
-      spi0.close();
-    });
-  }, 500);
-});
-
 // Buffer test
 var spi1 = spi.open({device: '/dev/spidev0.0'}, function() {
   var data = 'Hello IoTjs';

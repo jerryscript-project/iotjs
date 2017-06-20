@@ -12,37 +12,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+var assert = require('assert');
 
-var Gpio = require('gpio');
-var gpio = new Gpio();
+var currentPath = process.cwd();
 
-var testGpioInfo = [
-  {
-    pin: 13,
-    edge: gpio.EDGE.RISING
-  },
-  {
-    pin: 19,
-    edge: gpio.EDGE.FALLING
-  },
-  {
-    pin: 26,
-    edge: gpio.EDGE.BOTH
-  }
-];
+try {
+  process.chdir('/');
+} catch (err) {
+  console.log('invalid path');
+}
 
-testGpioInfo.forEach(function(info) {
-  var switchGpio = gpio.open({
-    pin: info.pin,
-    edge: info.edge,
-    direction: gpio.DIRECTION.IN
-  }, function() {
-    switchGpio.on('change', function() {
-      console.log('pin:', info.pin, ', current value:', this.readSync());
-    });
-  });
-});
+assert.equal(process.cwd(), '/');
 
-setTimeout(function(){
-  console.log('finish test');
-}, 10000);
+process.chdir(currentPath);

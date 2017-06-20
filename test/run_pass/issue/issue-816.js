@@ -13,36 +13,19 @@
  * limitations under the License.
  */
 
-var Gpio = require('gpio');
-var gpio = new Gpio();
+var Buffer = require('buffer');
+var assert = require('assert');
 
-var testGpioInfo = [
-  {
-    pin: 13,
-    edge: gpio.EDGE.RISING
-  },
-  {
-    pin: 19,
-    edge: gpio.EDGE.FALLING
-  },
-  {
-    pin: 26,
-    edge: gpio.EDGE.BOTH
-  }
-];
+assert.throws(function () {
+  var buf = new Buffer("ABCDEF");
+  var o = {
+    _builtin: {
+      compare: function () {
+        buf._builtin.compare.call(this, arguments);
+      }
+    },
+    compare: buf.compare
+  };
 
-testGpioInfo.forEach(function(info) {
-  var switchGpio = gpio.open({
-    pin: info.pin,
-    edge: info.edge,
-    direction: gpio.DIRECTION.IN
-  }, function() {
-    switchGpio.on('change', function() {
-      console.log('pin:', info.pin, ', current value:', this.readSync());
-    });
-  });
-});
-
-setTimeout(function(){
-  console.log('finish test');
-}, 10000);
+  o.compare(buf);
+}, Error);

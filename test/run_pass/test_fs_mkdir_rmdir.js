@@ -57,6 +57,25 @@ function unlink(path) {
       fs.rmdir(root2, function(){
         assert.equal(fs.existsSync(root2), false);
       });
+
+      // Try to create a folder in a read-only directory.
+      fs.mkdir(root, '0444', function(err) {
+        assert.equal(fs.existsSync(root), true);
+
+        var dirname = root + "/permission_test";
+        try {
+          fs.mkdirSync(dirname);
+          assert.assert(false);
+        } catch (e) {
+          assert.equal(e instanceof Error, true);
+          assert.equal(e instanceof assert.AssertionError, false);
+        }
+
+        assert.equal(fs.existsSync(dirname), false);
+        fs.rmdir(root, function() {
+          assert.equal(fs.existsSync(root), false);
+        });
+      });
     });
   });
 }

@@ -13,36 +13,41 @@
  * limitations under the License.
  */
 
-var Gpio = require('gpio');
-var gpio = new Gpio();
+var assert = require('assert');
+var net = require('net');
+var host = '127.0.0.1';
+var port = 5696;
+var msg = 'Hello IoT.js';
 
-var testGpioInfo = [
-  {
-    pin: 13,
-    edge: gpio.EDGE.RISING
+var server = net.createServer({
+    allowHalfOpen: true,
   },
-  {
-    pin: 19,
-    edge: gpio.EDGE.FALLING
-  },
-  {
-    pin: 26,
-    edge: gpio.EDGE.BOTH
+  function(socket) {
+    server.close();
   }
-];
+);
 
-testGpioInfo.forEach(function(info) {
-  var switchGpio = gpio.open({
-    pin: info.pin,
-    edge: info.edge,
-    direction: gpio.DIRECTION.IN
-  }, function() {
-    switchGpio.on('change', function() {
-      console.log('pin:', info.pin, ', current value:', this.readSync());
-    });
+server.listen(port);
+
+server.on('connection', function(socket) {
+  var data = '';
+  socket.on('data', function(chuck) {
+    data += chuck;
+  });
+  socket.on('end', function() {
+    socket.end(data);
   });
 });
 
-setTimeout(function(){
-  console.log('finish test');
-}, 10000);
+var socket = net.connect(port, host, function() {
+  var data = '';
+  socket.on('data', function(chuck) {
+    data += chuck;
+  });
+
+  socket.on('end', function() {
+    assert.equal(data, msg);
+  });
+
+  socket.end(msg);
+});

@@ -14,7 +14,7 @@ you can do so with the `--jerry-debugger-port=<PORT>` option.
 
 ### Usage
 
-To start the debugger-server: `<iotjs binary> test.js --start-debug-server`
+To start the debugger-server: `<iotjs binary> --start-debug-server test.js`
 
 Two clients are included, a [python](https://github.com/jerryscript-project/jerryscript/blob/master/jerry-debugger/jerry-client-ws.py)
 and an [HTML](https://github.com/jerryscript-project/jerryscript/blob/master/jerry-debugger/jerry-client-ws.html) variant, they can be found under `deps/jerry/jerry-debugger/`.

@@ -187,12 +187,12 @@ To print memory statistics, follow the below steps;
 ```
 ./tools/build.py --jerry-memstat
 
-./build/x86_64-linux/debug/iotjs/iotjs ./test/run_pass/test_console.js --memstat
+./build/x86_64-linux/debug/iotjs/iotjs --memstat ./test/run_pass/test_console.js
 ```
 
 With given `show-opcodes` option, opcodes will be shown.
 ```
-./build/x86_64-linux/debug/iotjs/iotjs ./test/run_pass/test_console.js --show-opcodes
+./build/x86_64-linux/debug/iotjs/iotjs --show-opcodes ./test/run_pass/test_console.js
 ```
 
 ### 4. Clean build directory

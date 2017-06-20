@@ -151,6 +151,13 @@ OutgoingMessage.prototype._storeHeader = function(statusLine) {
 
 
 OutgoingMessage.prototype.setHeader = function(name, value) {
+  if ((typeof name) != 'string') {
+    throw new TypeError('Name must be string.');
+  }
+
+  if (!value) {
+    throw new Error('value required in setHeader(' + name + ', value)');
+  }
 
   if (this._headers === null) {
     this._headers = {};

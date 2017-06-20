@@ -213,6 +213,8 @@ function pwmPinOpen(configuration, callback) {
   };
 
   PwmPin.prototype.close = function(callback) {
+    var self = this;
+
     if (util.isNull(_binding)) {
       throw new Error('Pwm pin is not opened');
     }
@@ -220,6 +222,7 @@ function pwmPinOpen(configuration, callback) {
     _binding.close(function(err) {
       util.isFunction(callback) && callback.call(self, err);
     });
+    _binding = null;
   };
 
   PwmPin.prototype.closeSync = function() {
@@ -228,6 +231,7 @@ function pwmPinOpen(configuration, callback) {
     }
 
     _binding.close();
+    _binding = null;
   };
 
   return new PwmPin(configuration, callback);

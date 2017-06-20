@@ -21,10 +21,10 @@ var gpio = new Gpio();
 var LED_ON = true,
   LED_OFF = false;
 var pin, mode;
-var gpio10;
+var gpio20;
 
 if (process.platform === 'linux') {
-  pin = 10;
+  pin = 20;
   mode = gpio.MODE.NONE;
 } else if (process.platform === 'nuttx') {
   pin = require('stm32f4dis').pin.PA10;
@@ -38,7 +38,7 @@ if (process.platform === 'linux') {
 
 test1();
 
-gpio10 = gpio.open({
+gpio20 = gpio.open({
   pin: pin,
   direction: gpio.DIRECTION.OUT,
   mode: mode
@@ -61,19 +61,22 @@ function test1() {
 function test2(err) {
   assert.equal(err, null);
 
-  gpio10.write(LED_ON, function(writeErr) {
+  gpio20.write(LED_ON, function(writeErr) {
     assert.equal(writeErr, null);
     console.log('gpio write');
 
-    gpio10.read(function(readErr, value) {
+    gpio20.read(function(readErr, value) {
       assert.equal(readErr, null);
       console.log('gpio read:', value);
       assert.equal(LED_ON, value);
 
       setTimeout(function() {
-        gpio10.writeSync(LED_OFF);
-        assert.equal(LED_OFF, gpio10.readSync());
-        gpio10.close();
+        gpio20.writeSync(LED_OFF);
+        var value = gpio20.readSync();
+        console.log('gpio read:', value);
+        assert.equal(LED_OFF, value);
+        gpio20.close();
+        console.log('finish test');
       }, 3000);
     });
   });

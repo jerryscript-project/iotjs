@@ -20,8 +20,7 @@ var Pwm = require('pwm');
 var pwm = new Pwm();
 
 var configuration = {
-  period: 0.001,  // 1kHz
-  dutyCycle: 0.2  // 20%
+  period: 0.001  // 1kHz
 };
 
 if (process.platform === 'linux') {
@@ -53,56 +52,78 @@ var testCb = function (err) {
   }
 };
 
-var pwm0 = pwm.open(configuration, function (err) {
-  console.log('PWM initialized');
+var pwm0;
+testPeriods();
 
-  if (err) {
-    console.log('Have an error: ' + err.message);
-    assert.fail();
-  }
+function testPeriods() {
+  pwm0 = pwm.open(configuration, function (err) {
+    console.log('PWM initialized');
 
-  pwm0.setEnable(1, testCb);
-  testPeriods(pwm0, testCb);
-});
-
-function testPeriods(pwm, callback) {
-  var options = periodOptions;
-  console.log('PWM: period test start ');
-  var idx = 0;
-  var period = options.values[idx++];
-  console.log("Period(%d)", period);
-  pwm.setFrequency(1.0 / period, callback);
-  pwm.setDutyCycleSync(options.dutyCycle);
-
-  var loop = setInterval(function () {
-    if (idx == options.values.length) {
-      pwm.setPeriodSync(options.values[0]);
-      clearInterval(loop);
-      console.log('PWM period test complete');
-      testDutyCycles(pwm, callback);
-    } else {
-      period = options.values[idx++];
-      console.log("Period(%d)", period);
-      pwm.setPeriod(period, callback);
+    if (err) {
+      console.log('Have an error: ' + err.message);
+      assert.fail();
     }
-  }, 1000);
+
+    pwm0.setEnable(1, function(err) {
+      testCb(err);
+
+      var options = periodOptions;
+      console.log('PWM: period test start ');
+      var idx = 0;
+      var period = options.values[idx++];
+      console.log("Period(%d)", period);
+      pwm0.setFrequencySync(1.0 / period);
+      pwm0.setDutyCycleSync(options.dutyCycle);
+
+      var loop = setInterval(function () {
+        if (idx == options.values.length) {
+          clearInterval(loop);
+          console.log('PWM period test complete');
+          pwm0.setPeriodSync(options.values[0]);
+          pwm0.setEnableSync(0);
+          pwm0.closeSync();
+          testDutyCycles();
+        } else {
+          period = options.values[idx++];
+          console.log("Period(%d)", period);
+          pwm0.setPeriod(period, testCb);
+        }
+      }, 1000);
+    });
+  });
 }
 
-function testDutyCycles(pwm, callback) {
+function testDutyCycles() {
   var options = dutyOptions;
 
   console.log('PWM: duty cycle test start');
-  pwm.setFrequencySync(1.0 / options.period);
+  pwm0 = pwm.open(configuration, function (err) {
+    console.log('PWM initialized');
 
-  var idx = 0;
-  var loop = setInterval(function () {
-    console.log('Duty cycle %d', options.values[idx]);
-    pwm.setDutyCycle(options.values[idx], callback);
-
-    if (++idx == options.values.length) {
-      clearInterval(loop);
-      pwm.setEnableSync(0);
-      console.log('PWM duty cycle test complete');
+    if (err) {
+      console.log('Have an error: ' + err.message);
+      assert.fail();
     }
-  }, 1000);
+
+    pwm0.setPeriod(options.period, function(err) {
+      testCb(err);
+
+      pwm0.setEnableSync(1, testCb);
+      pwm0.setFrequency(1.0 / options.period, function(err) {
+        testCb(err);
+        var idx = 0;
+        var loop = setInterval(function () {
+          console.log('Duty cycle %d', options.values[idx]);
+          pwm0.setDutyCycle(options.values[idx], testCb);
+
+          if (++idx == options.values.length) {
+            clearInterval(loop);
+            pwm0.setEnableSync(0);
+            pwm0.close(testCb.bind(err));
+            console.log('PWM duty cycle test complete');
+          }
+        }, 1000);
+      });
+    });
+  });
 }

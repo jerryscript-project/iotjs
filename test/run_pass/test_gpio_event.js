@@ -18,15 +18,15 @@ var gpio = new Gpio();
 
 var testGpioInfo = [
   {
-    pin: 14,
+    pin: 13,
     edge: gpio.EDGE.RISING
   },
   {
-    pin: 15,
+    pin: 19,
     edge: gpio.EDGE.FALLING
   },
   {
-    pin: 18,
+    pin: 26,
     edge: gpio.EDGE.BOTH
   }
 ];

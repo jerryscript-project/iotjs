@@ -28,58 +28,67 @@ if (process.platform === 'linux') {
   assert.fail();
 }
 
-var adc0 = adc.open(configuration, function(err) {
-  console.log('ADC initialized');
-
-  if (err) {
-    assert.fail();
-  }
-
-  test1();
-});
+asyncTest();
 
 // read async test
-function test1() {
-  var loopCnt = 5;
+function asyncTest() {
+  var adc0 = adc.open(configuration, function(err) {
+    console.log('ADC initialized');
 
-  console.log('test1 start(read async test)');
-  var test1Loop = setInterval(function() {
-    if (--loopCnt < 0) {
-      console.log('test1 complete');
-      clearInterval(test1Loop);
-      test2();
-    } else {
-      adc0.read(function(err, value) {
-        if (err) {
-          console.log('read failed');
-          assert.fail();
-        }
-
-        console.log(value);
-      });
+    if (err) {
+      assert.fail();
     }
-  }, 1000);
+
+    var loopCnt = 5;
+
+    console.log('test1 start(read async test)');
+    var test1Loop = setInterval(function() {
+      if (--loopCnt < 0) {
+        console.log('test1 complete');
+        clearInterval(test1Loop);
+        adc0.closeSync();
+        syncTestst();
+      } else {
+        adc0.read(function(err, value) {
+          if (err) {
+            console.log('read failed');
+            assert.fail();
+          }
+
+          console.log(value);
+        });
+      }
+    }, 1000);
+  });
 }
 
 // read sync test
-function test2() {
-  var loopCnt = 5,
-      value = -1;
+function syncTestst() {
+  var adc0 = adc.open(configuration, function(err) {
+    console.log('ADC initialized');
 
-  console.log('test2 start(read sync test)');
-  var test2Loop = setInterval(function() {
-    if (--loopCnt < 0) {
-      console.log('test2 complete');
-      clearInterval(test2Loop);
-      adc0.close();
-    } else {
-      value = adc0.readSync();
-      if (value < 0) {
-        console.log('read failed');
-        assert.fail();
-      } else {
-        console.log(value);
-      }
+    if (err) {
+      assert.fail();
     }
-  }, 1000);
+
+    var loopCnt = 5,
+        value = -1;
+
+    console.log('test2 start(read sync test)');
+    var test2Loop = setInterval(function() {
+      if (--loopCnt < 0) {
+        console.log('test2 complete');
+        clearInterval(test2Loop);
+        adc0.close();
+      } else {
+        value = adc0.readSync();
+        if (value < 0) {
+          console.log('read failed');
+          assert.fail();
+        } else {
+          console.log(value);
+        }
+      }
+    }, 1000);
+  });
 }

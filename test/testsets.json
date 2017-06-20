@@ -4,6 +4,7 @@
     { "name": "test_assert.js" },
     { "name": "test_ble_advertisement.js", "skip": ["all"], "reason": "need to setup test environment" },
     { "name": "test_ble_setservices.js", "skip": ["all"], "reason": "need to setup test environment" },
+    { "name": "test_ble_setservices_central.js", "skip": ["all"], "reason": "run it with nodejs after running test_ble_setservices.js" },
     { "name": "test_buffer_builtin.js" },
     { "name": "test_buffer.js" },
     { "name": "test_console.js" },

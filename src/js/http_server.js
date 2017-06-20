@@ -82,7 +82,7 @@ ServerResponse.prototype.statusMessage = undefined;
 // if user does not set Header before write(..),
 // this function set default header(200).
 ServerResponse.prototype._implicitHeader = function() {
-  this.writeHead(this.statusCode);
+  this.writeHead(this.statusCode, this.statusMessage);
 };
 
 

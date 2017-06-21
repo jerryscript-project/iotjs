@@ -45,8 +45,7 @@
 #define THIS iotjs_blehcisocket_t* blehcisocket
 
 
-static void iotjs_blehcisocket_destroy(THIS);
-IOTJS_DEFINE_NATIVE_HANDLE_INFO(blehcisocket);
+IOTJS_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(blehcisocket);
 
 
 iotjs_blehcisocket_t* iotjs_blehcisocket_create(const iotjs_jval_t* jble) {
@@ -54,7 +53,7 @@ iotjs_blehcisocket_t* iotjs_blehcisocket_create(const iotjs_jval_t* jble) {
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_blehcisocket_t, blehcisocket);
 
   iotjs_jobjectwrap_initialize(&_this->jobjectwrap, jble,
-                               &blehcisocket_native_info);
+                               &this_module_native_info);
 
   iotjs_blehcisocket_initialize(blehcisocket);
 
@@ -79,13 +78,8 @@ static void iotjs_blehcisocket_destroy(THIS) {
 
 
 JHANDLER_FUNCTION(Start) {
-  DJHANDLER_CHECK_THIS(object);
+  JHANDLER_DECLARE_THIS_PTR(blehcisocket, blehcisocket);
   DJHANDLER_CHECK_ARGS(0);
-
-  const iotjs_jval_t* jblehcisocket = JHANDLER_GET_THIS(object);
-
-  iotjs_blehcisocket_t* blehcisocket =
-      iotjs_blehcisocket_instance_from_jval(jblehcisocket);
 
   iotjs_blehcisocket_start(blehcisocket);
 
@@ -94,13 +88,8 @@ JHANDLER_FUNCTION(Start) {
 
 
 JHANDLER_FUNCTION(BindRaw) {
-  DJHANDLER_CHECK_THIS(object);
+  JHANDLER_DECLARE_THIS_PTR(blehcisocket, blehcisocket);
   JHANDLER_CHECK(ge(iotjs_jhandler_get_arg_length(jhandler), 1));
-
-  const iotjs_jval_t* jblehcisocket = JHANDLER_GET_THIS(object);
-
-  iotjs_blehcisocket_t* blehcisocket =
-      iotjs_blehcisocket_instance_from_jval(jblehcisocket);
 
   int devId = 0;
   int* pDevId = NULL;
@@ -118,13 +107,8 @@ JHANDLER_FUNCTION(BindRaw) {
 
 
 JHANDLER_FUNCTION(BindUser) {
-  DJHANDLER_CHECK_THIS(object);
+  JHANDLER_DECLARE_THIS_PTR(blehcisocket, blehcisocket);
   DJHANDLER_CHECK_ARGS(1, number);
-
-  const iotjs_jval_t* jblehcisocket = JHANDLER_GET_THIS(object);
-
-  iotjs_blehcisocket_t* blehcisocket =
-      iotjs_blehcisocket_instance_from_jval(jblehcisocket);
 
   int devId = JHANDLER_GET_ARG(0, number);
   int* pDevId = &devId;
@@ -136,13 +120,8 @@ JHANDLER_FUNCTION(BindUser) {
 
 
 JHANDLER_FUNCTION(BindControl) {
-  DJHANDLER_CHECK_THIS(object);
+  JHANDLER_DECLARE_THIS_PTR(blehcisocket, blehcisocket);
   DJHANDLER_CHECK_ARGS(0);
-
-  const iotjs_jval_t* jblehcisocket = JHANDLER_GET_THIS(object);
-
-  iotjs_blehcisocket_t* blehcisocket =
-      iotjs_blehcisocket_instance_from_jval(jblehcisocket);
 
   iotjs_blehcisocket_bindControl(blehcisocket);
 
@@ -151,13 +130,8 @@ JHANDLER_FUNCTION(BindControl) {
 
 
 JHANDLER_FUNCTION(IsDevUp) {
-  DJHANDLER_CHECK_THIS(object);
+  JHANDLER_DECLARE_THIS_PTR(blehcisocket, blehcisocket);
   DJHANDLER_CHECK_ARGS(0);
-
-  const iotjs_jval_t* jblehcisocket = JHANDLER_GET_THIS(object);
-
-  iotjs_blehcisocket_t* blehcisocket =
-      iotjs_blehcisocket_instance_from_jval(jblehcisocket);
 
   bool ret = iotjs_blehcisocket_isDevUp(blehcisocket);
 
@@ -166,12 +140,9 @@ JHANDLER_FUNCTION(IsDevUp) {
 
 
 JHANDLER_FUNCTION(SetFilter) {
-  DJHANDLER_CHECK_THIS(object);
+  JHANDLER_DECLARE_THIS_PTR(blehcisocket, blehcisocket);
   DJHANDLER_CHECK_ARGS(1, object);
 
-  const iotjs_jval_t* jblehcisocket = JHANDLER_GET_THIS(object);
-  iotjs_blehcisocket_t* blehcisocket =
-      iotjs_blehcisocket_instance_from_jval(jblehcisocket);
   iotjs_bufferwrap_t* buffer =
       iotjs_bufferwrap_from_jbuffer(JHANDLER_GET_ARG(0, object));
 
@@ -183,13 +154,8 @@ JHANDLER_FUNCTION(SetFilter) {
 
 
 JHANDLER_FUNCTION(Stop) {
-  DJHANDLER_CHECK_THIS(object);
+  JHANDLER_DECLARE_THIS_PTR(blehcisocket, blehcisocket);
   DJHANDLER_CHECK_ARGS(0);
-
-  const iotjs_jval_t* jblehcisocket = JHANDLER_GET_THIS(object);
-
-  iotjs_blehcisocket_t* blehcisocket =
-      iotjs_blehcisocket_instance_from_jval(jblehcisocket);
 
   iotjs_blehcisocket_stop(blehcisocket);
 
@@ -198,12 +164,9 @@ JHANDLER_FUNCTION(Stop) {
 
 
 JHANDLER_FUNCTION(Write) {
-  DJHANDLER_CHECK_THIS(object);
+  JHANDLER_DECLARE_THIS_PTR(blehcisocket, blehcisocket);
   DJHANDLER_CHECK_ARGS(1, object);
 
-  const iotjs_jval_t* jblehcisocket = JHANDLER_GET_THIS(object);
-  iotjs_blehcisocket_t* blehcisocket =
-      iotjs_blehcisocket_instance_from_jval(jblehcisocket);
   iotjs_bufferwrap_t* buffer =
       iotjs_bufferwrap_from_jbuffer(JHANDLER_GET_ARG(0, object));
 

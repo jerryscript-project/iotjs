@@ -17,16 +17,16 @@
 #include "iotjs_module_pwm.h"
 #include "iotjs_objectwrap.h"
 
-
-static void iotjs_pwm_destroy(iotjs_pwm_t* pwm);
 static iotjs_pwm_t* iotjs_pwm_instance_from_jval(const iotjs_jval_t* jpwm);
-IOTJS_DEFINE_NATIVE_HANDLE_INFO(pwm);
+
+IOTJS_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(pwm);
 
 
 static iotjs_pwm_t* iotjs_pwm_create(const iotjs_jval_t* jpwm) {
   iotjs_pwm_t* pwm = IOTJS_ALLOC(iotjs_pwm_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_pwm_t, pwm);
-  iotjs_jobjectwrap_initialize(&_this->jobjectwrap, jpwm, &pwm_native_info);
+  iotjs_jobjectwrap_initialize(&_this->jobjectwrap, jpwm,
+                               &this_module_native_info);
 
   _this->period = -1;
   _this->duty_cycle = 0;
@@ -266,17 +266,19 @@ JHANDLER_FUNCTION(PWMConstructor) {
 
 
 JHANDLER_FUNCTION(SetPeriod) {
+  JHANDLER_DECLARE_THIS_PTR(pwm, pwm);
+
   DJHANDLER_CHECK_ARGS(1, number);
   DJHANDLER_CHECK_ARG_IF_EXIST(1, function);
 
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG_IF_EXIST(1, function);
-  const iotjs_jval_t* jpwm = JHANDLER_GET_THIS(object);
-  iotjs_pwm_t* pwm = iotjs_pwm_instance_from_jval(jpwm);
 
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_pwm_t, pwm);
   _this->period = JHANDLER_GET_ARG(0, number);
 
   if (jcallback) {
+    const iotjs_jval_t* jpwm = JHANDLER_GET_THIS(object);
+
     PWM_ASYNC_COMMON_WORKER(iotjs_pwm_set_period, jpwm, jcallback,
                             kPwmOpSetPeriod);
   } else {
@@ -290,17 +292,19 @@ JHANDLER_FUNCTION(SetPeriod) {
 
 
 JHANDLER_FUNCTION(SetDutyCycle) {
+  JHANDLER_DECLARE_THIS_PTR(pwm, pwm);
+
   DJHANDLER_CHECK_ARGS(1, number);
   DJHANDLER_CHECK_ARG_IF_EXIST(1, function);
 
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG_IF_EXIST(1, function);
-  const iotjs_jval_t* jpwm = JHANDLER_GET_THIS(object);
-  iotjs_pwm_t* pwm = iotjs_pwm_instance_from_jval(jpwm);
 
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_pwm_t, pwm);
   _this->duty_cycle = JHANDLER_GET_ARG(0, number);
 
   if (jcallback) {
+    const iotjs_jval_t* jpwm = JHANDLER_GET_THIS(object);
+
     PWM_ASYNC_COMMON_WORKER(iotjs_pwm_set_dutycycle, jpwm, jcallback,
                             kPwmOpSetDutyCycle);
   } else {
@@ -314,17 +318,18 @@ JHANDLER_FUNCTION(SetDutyCycle) {
 
 
 JHANDLER_FUNCTION(SetEnable) {
+  JHANDLER_DECLARE_THIS_PTR(pwm, pwm);
+
   DJHANDLER_CHECK_ARGS(1, boolean);
   DJHANDLER_CHECK_ARG_IF_EXIST(1, function);
 
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG_IF_EXIST(1, function);
-  const iotjs_jval_t* jpwm = JHANDLER_GET_THIS(object);
-  iotjs_pwm_t* pwm = iotjs_pwm_instance_from_jval(jpwm);
 
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_pwm_t, pwm);
   _this->enable = JHANDLER_GET_ARG(0, boolean);
 
   if (jcallback) {
+    const iotjs_jval_t* jpwm = JHANDLER_GET_THIS(object);
     PWM_ASYNC_COMMON_WORKER(iotjs_pwm_set_enable, jpwm, jcallback,
                             kPwmOpSetEnable);
   } else {
@@ -338,14 +343,13 @@ JHANDLER_FUNCTION(SetEnable) {
 
 
 JHANDLER_FUNCTION(Close) {
-  DJHANDLER_CHECK_THIS(object);
+  JHANDLER_DECLARE_THIS_PTR(pwm, pwm);
   DJHANDLER_CHECK_ARG_IF_EXIST(0, function);
 
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG_IF_EXIST(0, function);
-  const iotjs_jval_t* jpwm = JHANDLER_GET_THIS(object);
-  iotjs_pwm_t* pwm = iotjs_pwm_instance_from_jval(jpwm);
 
   if (jcallback) {
+    const iotjs_jval_t* jpwm = JHANDLER_GET_THIS(object);
     PWM_ASYNC_COMMON_WORKER(iotjs_pwm_close, jpwm, jcallback, kPwmOpClose);
   } else {
     if (!iotjs_pwm_close(pwm)) {

@@ -25,8 +25,7 @@
 #define THIS iotjs_httpparserwrap_t* httpparserwrap
 
 
-static void iotjs_httpparserwrap_destroy(THIS);
-IOTJS_DEFINE_NATIVE_HANDLE_INFO(httpparserwrap);
+IOTJS_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(httpparserwrap);
 
 
 iotjs_httpparserwrap_t* iotjs_httpparserwrap_create(const iotjs_jval_t* jparser,
@@ -35,7 +34,7 @@ iotjs_httpparserwrap_t* iotjs_httpparserwrap_create(const iotjs_jval_t* jparser,
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_httpparserwrap_t, httpparserwrap);
 
   iotjs_jobjectwrap_initialize(&_this->jobjectwrap, jparser,
-                               &httpparserwrap_native_info);
+                               &this_module_native_info);
 
   _this->url = iotjs_string_create();
   _this->status_msg = iotjs_string_create();
@@ -350,34 +349,22 @@ const struct http_parser_settings settings = {
 };
 
 
-static iotjs_httpparserwrap_t* get_parser_wrap(const iotjs_jval_t* jparser) {
-  uintptr_t handle = iotjs_jval_get_object_native_handle(jparser);
-  return (iotjs_httpparserwrap_t*)(handle);
-}
-
-
 JHANDLER_FUNCTION(Reinitialize) {
-  DJHANDLER_CHECK_THIS(object);
+  JHANDLER_DECLARE_THIS_PTR(httpparserwrap, parser);
   DJHANDLER_CHECK_ARGS(1, number);
-
-  const iotjs_jval_t* jparser = JHANDLER_GET_THIS(object);
 
   http_parser_type httpparser_type =
       (http_parser_type)(JHANDLER_GET_ARG(0, number));
   IOTJS_ASSERT(httpparser_type == HTTP_REQUEST ||
                httpparser_type == HTTP_RESPONSE);
 
-  iotjs_httpparserwrap_t* parser = get_parser_wrap(jparser);
   iotjs_httpparserwrap_initialize(parser, httpparser_type);
 }
 
 
 JHANDLER_FUNCTION(Finish) {
-  DJHANDLER_CHECK_THIS(object);
+  JHANDLER_DECLARE_THIS_PTR(httpparserwrap, parser);
   DJHANDLER_CHECK_ARGS(0);
-
-  const iotjs_jval_t* jparser = JHANDLER_GET_THIS(object);
-  iotjs_httpparserwrap_t* parser = get_parser_wrap(jparser);
 
   http_parser* nativeparser = iotjs_httpparserwrap_parser(parser);
   size_t rv = http_parser_execute(nativeparser, &settings, NULL, 0);
@@ -396,12 +383,8 @@ JHANDLER_FUNCTION(Finish) {
 
 
 JHANDLER_FUNCTION(Execute) {
-  DJHANDLER_CHECK_THIS(object);
+  JHANDLER_DECLARE_THIS_PTR(httpparserwrap, parser);
   DJHANDLER_CHECK_ARGS(1, object);
-
-  const iotjs_jval_t* jparser = JHANDLER_GET_THIS(object);
-  iotjs_httpparserwrap_t* parser = get_parser_wrap(jparser);
-
 
   const iotjs_jval_t* jbuffer = JHANDLER_GET_ARG(0, object);
   iotjs_bufferwrap_t* buffer_wrap = iotjs_bufferwrap_from_jbuffer(jbuffer);
@@ -436,20 +419,18 @@ JHANDLER_FUNCTION(Execute) {
 
 
 JHANDLER_FUNCTION(Pause) {
-  DJHANDLER_CHECK_THIS(object);
+  JHANDLER_DECLARE_THIS_PTR(httpparserwrap, parser);
   DJHANDLER_CHECK_ARGS(0);
-  const iotjs_jval_t* jparser = JHANDLER_GET_THIS(object);
-  iotjs_httpparserwrap_t* parser = get_parser_wrap(jparser);
+
   http_parser* nativeparser = iotjs_httpparserwrap_parser(parser);
   http_parser_pause(nativeparser, 1);
 }
 
 
 JHANDLER_FUNCTION(Resume) {
-  DJHANDLER_CHECK_THIS(object);
+  JHANDLER_DECLARE_THIS_PTR(httpparserwrap, parser);
   DJHANDLER_CHECK_ARGS(0);
-  const iotjs_jval_t* jparser = JHANDLER_GET_THIS(object);
-  iotjs_httpparserwrap_t* parser = get_parser_wrap(jparser);
+
   http_parser* nativeparser = iotjs_httpparserwrap_parser(parser);
   http_parser_pause(nativeparser, 0);
 }
@@ -468,7 +449,6 @@ JHANDLER_FUNCTION(HTTPParserCons) {
   iotjs_httpparserwrap_t* parser =
       iotjs_httpparserwrap_create(jparser, httpparser_type);
   IOTJS_ASSERT(iotjs_jval_is_object(iotjs_httpparserwrap_jobject(parser)));
-  IOTJS_ASSERT(get_parser_wrap(jparser) == parser);
 }
 
 

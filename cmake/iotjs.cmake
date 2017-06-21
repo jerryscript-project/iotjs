@@ -55,6 +55,7 @@ endif()
 execute_process(
   COMMAND python ${ROOT_DIR}/tools/module_analyzer.py
           --mode cmake-dump
+          --target-os ${TARGET_OS}
           --iotjs-include-module "${IOTJS_INCLUDE_MODULE}"
           --iotjs-exclude-module "${IOTJS_EXCLUDE_MODULE}"
           ${MODULE_ANALYZER_ARGS}

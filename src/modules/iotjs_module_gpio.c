@@ -23,13 +23,14 @@
 
 static void iotjs_gpio_destroy(iotjs_gpio_t* gpio);
 static iotjs_gpio_t* iotjs_gpio_instance_from_jval(const iotjs_jval_t* jgpio);
-IOTJS_DEFINE_NATIVE_HANDLE_INFO(gpio);
+IOTJS_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(gpio);
 
 
 static iotjs_gpio_t* iotjs_gpio_create(const iotjs_jval_t* jgpio) {
   iotjs_gpio_t* gpio = IOTJS_ALLOC(iotjs_gpio_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_gpio_t, gpio);
-  iotjs_jobjectwrap_initialize(&_this->jobjectwrap, jgpio, &gpio_native_info);
+  iotjs_jobjectwrap_initialize(&_this->jobjectwrap, jgpio,
+                               &this_module_native_info);
 #if defined(__linux__)
   _this->value_fd = -1;
 #endif
@@ -269,13 +270,12 @@ JHANDLER_FUNCTION(GpioConstructor) {
 
 
 JHANDLER_FUNCTION(Write) {
-  DJHANDLER_CHECK_THIS(object);
+  JHANDLER_DECLARE_THIS_PTR(gpio, gpio);
   DJHANDLER_CHECK_ARGS(1, boolean);
   DJHANDLER_CHECK_ARG_IF_EXIST(1, function);
 
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG_IF_EXIST(1, function);
   const iotjs_jval_t* jgpio = JHANDLER_GET_THIS(object);
-  iotjs_gpio_t* gpio = iotjs_gpio_instance_from_jval(jgpio);
 
   bool value = JHANDLER_GET_ARG(0, boolean);
 
@@ -292,13 +292,12 @@ JHANDLER_FUNCTION(Write) {
 
 
 JHANDLER_FUNCTION(Read) {
-  DJHANDLER_CHECK_THIS(object);
+  JHANDLER_DECLARE_THIS_PTR(gpio, gpio);
   DJHANDLER_CHECK_ARGS(0);
   DJHANDLER_CHECK_ARG_IF_EXIST(0, function);
 
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG_IF_EXIST(0, function);
   const iotjs_jval_t* jgpio = JHANDLER_GET_THIS(object);
-  iotjs_gpio_t* gpio = iotjs_gpio_instance_from_jval(jgpio);
 
   if (jcallback) {
     GPIO_ASYNC(read, jgpio, jcallback, kGpioOpRead);
@@ -314,12 +313,11 @@ JHANDLER_FUNCTION(Read) {
 
 
 JHANDLER_FUNCTION(Close) {
-  DJHANDLER_CHECK_THIS(object);
+  JHANDLER_DECLARE_THIS_PTR(gpio, gpio)
   DJHANDLER_CHECK_ARG_IF_EXIST(0, function);
 
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG_IF_EXIST(0, function);
   const iotjs_jval_t* jgpio = JHANDLER_GET_THIS(object);
-  iotjs_gpio_t* gpio = iotjs_gpio_instance_from_jval(jgpio);
 
   if (jcallback) {
     GPIO_ASYNC(close, jgpio, jcallback, kGpioOpClose);

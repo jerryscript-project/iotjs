@@ -19,7 +19,7 @@
 
 static void iotjs_timerwrap_destroy(iotjs_timerwrap_t* timerwrap);
 static void iotjs_timerwrap_on_timeout(iotjs_timerwrap_t* timerwrap);
-IOTJS_DEFINE_NATIVE_HANDLE_INFO(timerwrap);
+IOTJS_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(timerwrap);
 
 
 iotjs_timerwrap_t* iotjs_timerwrap_create(const iotjs_jval_t* jtimer) {
@@ -28,7 +28,8 @@ iotjs_timerwrap_t* iotjs_timerwrap_create(const iotjs_jval_t* jtimer) {
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_timerwrap_t, timerwrap);
 
   iotjs_handlewrap_initialize(&_this->handlewrap, jtimer,
-                              (uv_handle_t*)(uv_timer), &timerwrap_native_info);
+                              (uv_handle_t*)(uv_timer),
+                              &this_module_native_info);
 
   // Initialize timer handler.
   const iotjs_environment_t* env = iotjs_environment_get();
@@ -124,13 +125,8 @@ iotjs_timerwrap_t* iotjs_timerwrap_from_jobject(const iotjs_jval_t* jtimer) {
 
 JHANDLER_FUNCTION(Start) {
   // Check parameters.
-  JHANDLER_CHECK_THIS(object);
+  JHANDLER_DECLARE_THIS_PTR(timerwrap, timer_wrap);
   JHANDLER_CHECK_ARGS(2, number, number);
-
-  const iotjs_jval_t* jtimer = JHANDLER_GET_THIS(object);
-
-  // Take timer wrap.
-  iotjs_timerwrap_t* timer_wrap = iotjs_timerwrap_from_jobject(jtimer);
 
   // parameters.
   uint64_t timeout = JHANDLER_GET_ARG(0, number);
@@ -144,12 +140,7 @@ JHANDLER_FUNCTION(Start) {
 
 
 JHANDLER_FUNCTION(Stop) {
-  JHANDLER_CHECK_THIS(object);
-
-  const iotjs_jval_t* jtimer = JHANDLER_GET_THIS(object);
-
-  iotjs_timerwrap_t* timer_wrap = iotjs_timerwrap_from_jobject(jtimer);
-
+  JHANDLER_DECLARE_THIS_PTR(timerwrap, timer_wrap);
   // Stop timer.
   int res = iotjs_timerwrap_stop(timer_wrap);
 

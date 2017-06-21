@@ -22,8 +22,7 @@
 #define THIS iotjs_i2c_reqwrap_t* i2c_reqwrap
 
 
-static void iotjs_i2c_destroy(iotjs_i2c_t* i2c);
-IOTJS_DEFINE_NATIVE_HANDLE_INFO(i2c);
+IOTJS_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(i2c);
 
 
 iotjs_i2c_reqwrap_t* iotjs_i2c_reqwrap_create(const iotjs_jval_t* jcallback,
@@ -100,7 +99,8 @@ iotjs_i2c_t* iotjs_i2c_create(const iotjs_jval_t* ji2c) {
   _this->i2c_master = NULL;
 #endif
 
-  iotjs_jobjectwrap_initialize(&_this->jobjectwrap, ji2c, &i2c_native_info);
+  iotjs_jobjectwrap_initialize(&_this->jobjectwrap, ji2c,
+                               &this_module_native_info);
   return i2c;
 }
 
@@ -255,9 +255,8 @@ JHANDLER_FUNCTION(I2cCons) {
 
 
 JHANDLER_FUNCTION(SetAddress) {
-  DJHANDLER_CHECK_THIS(object);
+  JHANDLER_DECLARE_THIS_PTR(i2c_reqwrap, i2c);
   DJHANDLER_CHECK_ARGS(1, number);
-  iotjs_i2c_t* i2c = iotjs_i2c_instance_from_jval(JHANDLER_GET_THIS(object));
 
   I2cSetAddress(i2c, JHANDLER_GET_ARG(0, number));
 
@@ -266,10 +265,9 @@ JHANDLER_FUNCTION(SetAddress) {
 
 
 JHANDLER_FUNCTION(Close) {
-  DJHANDLER_CHECK_THIS(object);
+  JHANDLER_DECLARE_THIS_PTR(i2c_reqwrap, i2c);
   DJHANDLER_CHECK_ARGS(0);
 
-  iotjs_i2c_t* i2c = iotjs_i2c_instance_from_jval(JHANDLER_GET_THIS(object));
   I2cClose(i2c);
 
   iotjs_jhandler_return_null(jhandler);
@@ -277,11 +275,11 @@ JHANDLER_FUNCTION(Close) {
 
 
 JHANDLER_FUNCTION(Write) {
-  DJHANDLER_CHECK_THIS(object);
+  JHANDLER_DECLARE_THIS_PTR(i2c_reqwrap, i2c);
   DJHANDLER_CHECK_ARGS(2, array, function);
 
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG(1, function);
-  const iotjs_jval_t* ji2c = JHANDLER_GET_THIS(object);
+  const iotjs_jval_t* ji2c = iotjs_jobjectwrap_jobject(i2c);
 
   iotjs_i2c_reqwrap_t* req_wrap =
       iotjs_i2c_reqwrap_create(jcallback, ji2c, kI2cOpWrite);
@@ -296,11 +294,11 @@ JHANDLER_FUNCTION(Write) {
 
 
 JHANDLER_FUNCTION(Read) {
-  DJHANDLER_CHECK_THIS(object);
+  JHANDLER_DECLARE_THIS_PTR(i2c_reqwrap, i2c);
   DJHANDLER_CHECK_ARGS(2, number, function);
 
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG(1, function);
-  const iotjs_jval_t* ji2c = JHANDLER_GET_THIS(object);
+  const iotjs_jval_t* ji2c = iotjs_jobjectwrap_jobject(i2c);
 
   iotjs_i2c_reqwrap_t* req_wrap =
       iotjs_i2c_reqwrap_create(jcallback, ji2c, kI2cOpRead);

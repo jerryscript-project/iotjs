@@ -242,7 +242,8 @@ static void SetProcessEnv(iotjs_jval_t* process) {
   iotjs_jval_set_property_string_raw(&env, IOTJS_MAGIC_STRING_HOME, homedir);
   iotjs_jval_set_property_string_raw(&env, IOTJS_MAGIC_STRING_IOTJS_PATH,
                                      iotjspath);
-  iotjs_jval_set_property_string_raw(&env, IOTJS_MAGIC_STRING_ENV, iotjsenv);
+  iotjs_jval_set_property_string_raw(&env, IOTJS_MAGIC_STRING_IOTJS_ENV,
+                                     iotjsenv);
 
   iotjs_jval_set_property_jval(process, IOTJS_MAGIC_STRING_ENV, &env);
 

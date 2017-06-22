@@ -23,15 +23,15 @@
 /*
  * SPI instance function
  */
-static void iotjs_spi_destroy(iotjs_spi_t* spi);
 static iotjs_spi_t* iotjs_spi_instance_from_jval(const iotjs_jval_t* jspi);
-IOTJS_DEFINE_NATIVE_HANDLE_INFO(spi);
 
+IOTJS_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(spi);
 
 static iotjs_spi_t* iotjs_spi_create(const iotjs_jval_t* jspi) {
   iotjs_spi_t* spi = IOTJS_ALLOC(iotjs_spi_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_spi_t, spi);
-  iotjs_jobjectwrap_initialize(&_this->jobjectwrap, jspi, &spi_native_info);
+  iotjs_jobjectwrap_initialize(&_this->jobjectwrap, jspi,
+                               &this_module_native_info);
 
   _this->device = iotjs_string_create("");
 
@@ -51,14 +51,14 @@ static void iotjs_spi_destroy(iotjs_spi_t* spi) {
 
 
 static iotjs_spi_reqwrap_t* iotjs_spi_reqwrap_create(
-    const iotjs_jval_t* jcallback, const iotjs_jval_t* jspi, SpiOp op) {
+    const iotjs_jval_t* jcallback, const iotjs_spi_t* spi, SpiOp op) {
   iotjs_spi_reqwrap_t* spi_reqwrap = IOTJS_ALLOC(iotjs_spi_reqwrap_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_spi_reqwrap_t, spi_reqwrap);
 
   iotjs_reqwrap_initialize(&_this->reqwrap, jcallback, (uv_req_t*)&_this->req);
 
   _this->req_data.op = op;
-  _this->spi_instance = iotjs_spi_instance_from_jval(jspi);
+  _this->spi_instance = spi;
 
   return spi_reqwrap;
 }
@@ -312,11 +312,11 @@ iotjs_spi_t* iotjs_spi_get_instance(const iotjs_jval_t* jspi) {
 }
 
 
-#define SPI_ASYNC(call, jthis, jcallback, op)                                  \
+#define SPI_ASYNC(call, this, jcallback, op)                                   \
   do {                                                                         \
     uv_loop_t* loop = iotjs_environment_loop(iotjs_environment_get());         \
     iotjs_spi_reqwrap_t* req_wrap =                                            \
-        iotjs_spi_reqwrap_create(jcallback, jthis, op);                        \
+        iotjs_spi_reqwrap_create(jcallback, this, op);                         \
     uv_work_t* req = iotjs_spi_reqwrap_req(req_wrap);                          \
     uv_queue_work(loop, req, iotjs_spi_##call##_worker, iotjs_spi_after_work); \
   } while (0)
@@ -336,25 +336,24 @@ JHANDLER_FUNCTION(SpiConstructor) {
   iotjs_spi_set_configuration(spi, jconfiguration);
 
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG(1, function);
-  SPI_ASYNC(open, jspi, jcallback, kSpiOpOpen);
+  SPI_ASYNC(open, spi, jcallback, kSpiOpOpen);
 }
 
 
 // FIXME: do not need transferArray if array buffer is implemented.
 JHANDLER_FUNCTION(TransferArray) {
-  DJHANDLER_CHECK_THIS(object);
+  JHANDLER_DECLARE_THIS_PTR(spi, spi);
+
   DJHANDLER_CHECK_ARGS(2, array, array);
   DJHANDLER_CHECK_ARG_IF_EXIST(2, function);
 
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG_IF_EXIST(2, function);
-  const iotjs_jval_t* jspi = JHANDLER_GET_THIS(object);
-  iotjs_spi_t* spi = iotjs_spi_get_instance(jspi);
 
   iotjs_spi_set_array_buffer(spi, JHANDLER_GET_ARG(0, array),
                              JHANDLER_GET_ARG(1, array));
 
   if (jcallback) {
-    SPI_ASYNC(transfer, jspi, jcallback, kSpiOpTransfer);
+    SPI_ASYNC(transfer, spi, jcallback, kSpiOpTransfer);
   } else {
     if (!iotjs_spi_transfer(spi)) {
       JHANDLER_THROW(COMMON, "SPI Transfer Error");
@@ -371,19 +370,18 @@ JHANDLER_FUNCTION(TransferArray) {
 
 
 JHANDLER_FUNCTION(TransferBuffer) {
-  DJHANDLER_CHECK_THIS(object);
+  JHANDLER_DECLARE_THIS_PTR(spi, spi);
+
   DJHANDLER_CHECK_ARGS(2, object, object);
   DJHANDLER_CHECK_ARG_IF_EXIST(2, function);
 
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG_IF_EXIST(2, function);
-  const iotjs_jval_t* jspi = JHANDLER_GET_THIS(object);
-  iotjs_spi_t* spi = iotjs_spi_get_instance(jspi);
 
   iotjs_spi_set_buffer(spi, JHANDLER_GET_ARG(0, object),
                        JHANDLER_GET_ARG(1, object));
 
   if (jcallback) {
-    SPI_ASYNC(transfer, jspi, jcallback, kSpiOpTransfer);
+    SPI_ASYNC(transfer, spi, jcallback, kSpiOpTransfer);
   } else {
     if (!iotjs_spi_transfer(spi)) {
       JHANDLER_THROW(COMMON, "SPI Transfer Error");
@@ -400,15 +398,14 @@ JHANDLER_FUNCTION(TransferBuffer) {
 
 
 JHANDLER_FUNCTION(Close) {
-  DJHANDLER_CHECK_THIS(object);
+  JHANDLER_DECLARE_THIS_PTR(spi, spi);
+
   DJHANDLER_CHECK_ARG_IF_EXIST(0, function);
 
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG_IF_EXIST(0, function);
-  const iotjs_jval_t* jspi = JHANDLER_GET_THIS(object);
-  iotjs_spi_t* spi = iotjs_spi_get_instance(jspi);
 
   if (jcallback) {
-    SPI_ASYNC(close, jspi, jcallback, kSpiOpClose);
+    SPI_ASYNC(close, spi, jcallback, kSpiOpClose);
   } else {
     if (!iotjs_spi_close(spi)) {
       JHANDLER_THROW(COMMON, "SPI Close Error");

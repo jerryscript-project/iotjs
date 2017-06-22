@@ -20,27 +20,18 @@
 #include "iotjs_objectwrap.h"
 
 
-static void iotjs_uart_destroy(iotjs_uart_t* uart);
 static iotjs_uart_t* iotjs_uart_instance_from_jval(const iotjs_jval_t* juart);
-IOTJS_DEFINE_NATIVE_HANDLE_INFO(uart);
-
+IOTJS_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(uart);
 
 static iotjs_uart_t* iotjs_uart_create(const iotjs_jval_t* juart) {
   iotjs_uart_t* uart = IOTJS_ALLOC(iotjs_uart_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_uart_t, uart);
-  iotjs_jobjectwrap_initialize(&_this->jobjectwrap, juart, &uart_native_info);
+  iotjs_jobjectwrap_initialize(&_this->jobjectwrap, juart,
+                               &this_module_native_info);
 
   _this->device_fd = -1;
 
   return uart;
-}
-
-
-static void iotjs_uart_destroy(iotjs_uart_t* uart) {
-  IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_uart_t, uart);
-  iotjs_jobjectwrap_destroy(&_this->jobjectwrap);
-  iotjs_string_destroy(&_this->device_path);
-  IOTJS_RELEASE(uart);
 }
 
 
@@ -292,13 +283,11 @@ JHANDLER_FUNCTION(UartConstructor) {
 
 
 JHANDLER_FUNCTION(Write) {
-  DJHANDLER_CHECK_THIS(object);
+  JHANDLER_DECLARE_THIS_PTR(uart, uart);
   DJHANDLER_CHECK_ARGS(1, string);
   DJHANDLER_CHECK_ARG_IF_EXIST(1, function);
 
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG_IF_EXIST(1, function);
-  const iotjs_jval_t* juart = JHANDLER_GET_THIS(object);
-  iotjs_uart_t* uart = iotjs_uart_instance_from_jval(juart);
 
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_uart_t, uart);
 
@@ -322,12 +311,10 @@ JHANDLER_FUNCTION(Write) {
 
 
 JHANDLER_FUNCTION(Close) {
-  DJHANDLER_CHECK_THIS(object);
+  JHANDLER_DECLARE_THIS_PTR(uart, uart);
   DJHANDLER_CHECK_ARG_IF_EXIST(0, function);
 
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG_IF_EXIST(0, function);
-  const iotjs_jval_t* juart = JHANDLER_GET_THIS(object);
-  iotjs_uart_t* uart = iotjs_uart_instance_from_jval(juart);
 
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_uart_t, uart);
   iotjs_jval_destroy(&_this->jemitter_this);

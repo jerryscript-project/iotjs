@@ -41,8 +41,15 @@ var server = http.createServer(function (req, res) {
     }
     // final res.headers = { 'h1' : 'h1', 'h3': 'h3prime' }
 
-    // Large header on response.
-    for (var i = 0; i < 500; i++) {
+    var responseSize;
+    if (process.platform === 'linux') {
+      // For Desktop and RPI, test with large header.
+      responseSize = 500;
+    } else {
+      // NuttX and TizenRt cannot handle large header.
+      responseSize = 10;
+    }
+    for (var i = 0; i < responseSize; i++) {
       res.setHeader('h' + (5 + i), 'h' + (5 + i));
     }
 

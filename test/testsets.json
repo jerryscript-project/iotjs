@@ -25,7 +25,7 @@
     { "name": "test_fs_exists_sync.js" },
     { "name": "test_fs_fstat.js", "skip": ["nuttx"], "reason": "not implemented for nuttx" },
     { "name": "test_fs_fstat_sync.js", "skip": ["nuttx"], "reason": "not implemented for nuttx" },
-    { "name": "test_fs_mkdir_rmdir.js", "skip": ["nuttx"], "reason": "not implemented for nuttx" },
+    { "name": "test_fs_mkdir_rmdir.js", "skip": ["nuttx"], "reason": "implemented, run manually in default configuration" },
     { "name": "test_fs_open_close.js", "skip": ["nuttx"], "reason": "not implemented for nuttx" },
     { "name": "test_fs_readdir.js", "skip": ["nuttx"], "reason": "not implemented for nuttx" },
     { "name": "test_fs_readfile.js" },

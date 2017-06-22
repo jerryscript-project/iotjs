@@ -60,7 +60,7 @@
     { "name": "test_net_9.js" },
     { "name": "test_net_10.js" },
     { "name": "test_net_connect.js", "timeout": 10 },
-    { "name": "test_net_headers.js", "skip": ["nuttx"], "reason": "not implemented for nuttx" },
+    { "name": "test_net_headers.js" },
     { "name": "test_net_http_get.js", "timeout": 20 },
     { "name": "test_net_http_response_twice.js", "timeout": 10 },
     { "name": "test_net_http_request_response.js", "timeout": 10, "skip": ["nuttx"], "reason": "not implemented for nuttx" },

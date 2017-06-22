@@ -50,7 +50,7 @@ function unlink(path) {
 
     var root2 = process.cwd() + "/resources/test_dir2";
 
-    fs.mkdir(root2, 777, function(err){
+    fs.mkdir(root2, 777, function(err) {
       assert.equal(err, null);
       assert.equal(fs.existsSync(root2), true);
 
@@ -58,24 +58,28 @@ function unlink(path) {
         assert.equal(fs.existsSync(root2), false);
       });
 
-      // Try to create a folder in a read-only directory.
-      fs.mkdir(root, '0444', function(err) {
-        assert.equal(fs.existsSync(root), true);
+      // Run read-only directory test only on linux
+      // NuttX does not support read-only attribute.
+      if (process.platform === 'linux') {
+        // Try to create a folder in a read-only directory.
+        fs.mkdir(root, '0444', function(err) {
+          assert.equal(fs.existsSync(root), true);
 
-        var dirname = root + "/permission_test";
-        try {
-          fs.mkdirSync(dirname);
-          assert.assert(false);
-        } catch (e) {
-          assert.equal(e instanceof Error, true);
-          assert.equal(e instanceof assert.AssertionError, false);
-        }
+          var dirname = root + "/permission_test";
+          try {
+            fs.mkdirSync(dirname);
+            assert.assert(false);
+          } catch (e) {
+            assert.equal(e instanceof Error, true);
+            assert.equal(e instanceof assert.AssertionError, false);
+          }
 
-        assert.equal(fs.existsSync(dirname), false);
-        fs.rmdir(root, function() {
-          assert.equal(fs.existsSync(root), false);
+          assert.equal(fs.existsSync(dirname), false);
+          fs.rmdir(root, function() {
+            assert.equal(fs.existsSync(root), false);
+          });
         });
-      });
+      }
     });
   });
 }

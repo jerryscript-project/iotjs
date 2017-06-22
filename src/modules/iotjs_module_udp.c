@@ -57,6 +57,12 @@ iotjs_udpwrap_t* iotjs_udpwrap_from_handle(uv_udp_t* udp_handle) {
 }
 
 
+iotjs_udpwrap_t* iotjs_udpwrap_from_jobject(const iotjs_jval_t* judp) {
+  iotjs_handlewrap_t* handlewrap = iotjs_handlewrap_from_jobject(judp);
+  return (iotjs_udpwrap_t*)handlewrap;
+}
+
+
 uv_udp_t* iotjs_udpwrap_udp_handle(iotjs_udpwrap_t* udpwrap) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_udpwrap_t, udpwrap);
   uv_handle_t* handle = iotjs_handlewrap_get_uv_handle(&_this->handlewrap);
@@ -318,10 +324,10 @@ JHANDLER_FUNCTION(Send) {
 
 // Close socket
 JHANDLER_FUNCTION(Close) {
-  JHANDLER_DECLARE_THIS_PTR(udpwrap, udp_wrap);
+  JHANDLER_DECLARE_THIS_PTR(handlewrap, wrap);
   DJHANDLER_CHECK_ARGS(0);
 
-  iotjs_handlewrap_close(udp_wrap, NULL);
+  iotjs_handlewrap_close(wrap, NULL);
 }
 
 

@@ -71,10 +71,6 @@ global.Buffer = Native.require('buffer');
   global.clearInterval = _timeoutHandler.bind(this, 'clearInterval');
 })();
 
-// Initialize `process.argv`
-process.argv = [];
-process._initArgv();
-
 var EventEmitter = Native.require('events').EventEmitter;
 
 EventEmitter.call(process);

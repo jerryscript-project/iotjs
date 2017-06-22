@@ -183,30 +183,6 @@ JHANDLER_FUNCTION(DoExit) {
 }
 
 
-// Initialize `process.argv`
-JHANDLER_FUNCTION(InitArgv) {
-  DJHANDLER_CHECK_THIS(object);
-
-  // environment
-  const iotjs_environment_t* env = iotjs_environment_get();
-
-  // process.argv
-  const iotjs_jval_t* thisObj = JHANDLER_GET_THIS(object);
-  iotjs_jval_t jargv =
-      iotjs_jval_get_property(thisObj, IOTJS_MAGIC_STRING_ARGV);
-
-  uint32_t argc = iotjs_environment_argc(env);
-
-  for (uint32_t i = 0; i < argc; ++i) {
-    const char* argvi = iotjs_environment_argv(env, i);
-    iotjs_jval_t arg = iotjs_jval_create_string_raw(argvi);
-    iotjs_jval_set_property_by_index(&jargv, i, &arg);
-    iotjs_jval_destroy(&arg);
-  }
-  iotjs_jval_destroy(&jargv);
-}
-
-
 void SetNativeSources(iotjs_jval_t* native_sources) {
   for (int i = 0; natives[i].name; i++) {
     iotjs_jval_set_property_jval(native_sources, natives[i].name,
@@ -262,6 +238,24 @@ static void SetProcessIotjs(iotjs_jval_t* process) {
 }
 
 
+static void SetProcessArgv(iotjs_jval_t* process) {
+  const iotjs_environment_t* env = iotjs_environment_get();
+  uint32_t argc = iotjs_environment_argc(env);
+
+  iotjs_jval_t argv = iotjs_jval_create_array(argc);
+
+  for (uint32_t i = 0; i < argc; ++i) {
+    const char* argvi = iotjs_environment_argv(env, i);
+    iotjs_jval_t arg = iotjs_jval_create_string_raw(argvi);
+    iotjs_jval_set_property_by_index(&argv, i, &arg);
+    iotjs_jval_destroy(&arg);
+  }
+  iotjs_jval_set_property_jval(process, IOTJS_MAGIC_STRING_ARGV, &argv);
+
+  iotjs_jval_destroy(&argv);
+}
+
+
 iotjs_jval_t InitProcess() {
   iotjs_jval_t process = iotjs_jval_create_object();
 
@@ -273,7 +267,6 @@ iotjs_jval_t InitProcess() {
   iotjs_jval_set_method(&process, IOTJS_MAGIC_STRING_CWD, Cwd);
   iotjs_jval_set_method(&process, IOTJS_MAGIC_STRING_CHDIR, Chdir);
   iotjs_jval_set_method(&process, IOTJS_MAGIC_STRING_DOEXIT, DoExit);
-  iotjs_jval_set_method(&process, IOTJS_MAGIC_STRING__INITARGV, InitArgv);
   SetProcessEnv(&process);
 
   // process.native_sources
@@ -293,6 +286,8 @@ iotjs_jval_t InitProcess() {
 
   // Set iotjs
   SetProcessIotjs(&process);
+
+  SetProcessArgv(&process);
 
   // Binding module id.
   iotjs_jval_t jbinding =

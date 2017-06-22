@@ -39,11 +39,13 @@ def resolve_modules(options):
         build_modules_excludes |= set(
             options.config['module']['exclude'][system_os])
 
+    # Build options has higher priority than defaults
+    build_modules_excludes -= options.iotjs_include_module
+
     # By default the target included modules are:
     #  - always module set from the build config
     #  - modules specified by the command line argument
-    include_modules = set()
-    include_modules |= build_modules_always
+    include_modules = set() | build_modules_always
     include_modules |= options.iotjs_include_module
 
     if not options.iotjs_minimal_profile:
@@ -51,7 +53,7 @@ def resolve_modules(options):
         # the target include modules set
         include_modules |= build_modules_includes
 
-    # Check if there is any modules which are not allowed to be excluded
+    # Check if there are any modules which are not allowed to be excluded
     impossible_to_exclude = options.iotjs_exclude_module & build_modules_always
     if impossible_to_exclude:
         ex.fail('Cannot exclude modules which are always enabled: %s' %

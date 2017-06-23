@@ -84,8 +84,7 @@ iotjs_i2c_t* iotjs_i2c_instance_from_jval(const iotjs_jval_t* ji2c);
 
 #define THIS iotjs_i2c_reqwrap_t* i2c_reqwrap
 iotjs_i2c_reqwrap_t* iotjs_i2c_reqwrap_create(const iotjs_jval_t* jcallback,
-                                              const iotjs_jval_t* ji2c,
-                                              I2cOp op);
+                                              iotjs_i2c_t* i2c, I2cOp op);
 void iotjs_i2c_reqwrap_dispatched(THIS);
 uv_work_t* iotjs_i2c_reqwrap_req(THIS);
 const iotjs_jval_t* iotjs_i2c_reqwrap_jcallback(THIS);

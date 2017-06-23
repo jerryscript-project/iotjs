@@ -20,11 +20,6 @@
 #include <unistd.h>
 
 
-/*
- * SPI instance function
- */
-static iotjs_spi_t* iotjs_spi_instance_from_jval(const iotjs_jval_t* jspi);
-
 IOTJS_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(spi);
 
 static iotjs_spi_t* iotjs_spi_create(const iotjs_jval_t* jspi) {
@@ -51,7 +46,7 @@ static void iotjs_spi_destroy(iotjs_spi_t* spi) {
 
 
 static iotjs_spi_reqwrap_t* iotjs_spi_reqwrap_create(
-    const iotjs_jval_t* jcallback, const iotjs_spi_t* spi, SpiOp op) {
+    const iotjs_jval_t* jcallback, iotjs_spi_t* spi, SpiOp op) {
   iotjs_spi_reqwrap_t* spi_reqwrap = IOTJS_ALLOC(iotjs_spi_reqwrap_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_spi_reqwrap_t, spi_reqwrap);
 
@@ -86,12 +81,6 @@ static uv_work_t* iotjs_spi_reqwrap_req(THIS) {
 static const iotjs_jval_t* iotjs_spi_reqwrap_jcallback(THIS) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_spi_reqwrap_t, spi_reqwrap);
   return iotjs_reqwrap_jcallback(&_this->reqwrap);
-}
-
-
-static iotjs_spi_t* iotjs_spi_instance_from_jval(const iotjs_jval_t* jspi) {
-  uintptr_t handle = iotjs_jval_get_object_native_handle(jspi);
-  return (iotjs_spi_t*)handle;
 }
 
 

@@ -51,7 +51,7 @@ static void iotjs_pwm_destroy(iotjs_pwm_t* pwm) {
 
 
 static iotjs_pwm_reqwrap_t* iotjs_pwm_reqwrap_create(
-    const iotjs_jval_t* jcallback, const iotjs_pwm_t* pwm, PwmOp op) {
+    const iotjs_jval_t* jcallback, iotjs_pwm_t* pwm, PwmOp op) {
   iotjs_pwm_reqwrap_t* pwm_reqwrap = IOTJS_ALLOC(iotjs_pwm_reqwrap_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_pwm_reqwrap_t, pwm_reqwrap);
 

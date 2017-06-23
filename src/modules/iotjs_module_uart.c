@@ -34,19 +34,26 @@ static iotjs_uart_t* iotjs_uart_create(const iotjs_jval_t* juart) {
   return uart;
 }
 
+static void iotjs_uart_destroy(iotjs_uart_t* uart) {
+  IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_uart_t, uart);
+  iotjs_jobjectwrap_destroy(&_this->jobjectwrap);
+  iotjs_string_destroy(&_this->device_path);
+  IOTJS_RELEASE(uart);
+}
+
 
 #define THIS iotjs_uart_reqwrap_t* uart_reqwrap
 
 
 static iotjs_uart_reqwrap_t* iotjs_uart_reqwrap_create(
-    const iotjs_jval_t* jcallback, const iotjs_jval_t* juart, UartOp op) {
+    const iotjs_jval_t* jcallback, iotjs_uart_t* uart, UartOp op) {
   iotjs_uart_reqwrap_t* uart_reqwrap = IOTJS_ALLOC(iotjs_uart_reqwrap_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_uart_reqwrap_t, uart_reqwrap);
 
   iotjs_reqwrap_initialize(&_this->reqwrap, jcallback, (uv_req_t*)&_this->req);
 
   _this->req_data.op = op;
-  _this->uart_instance = iotjs_uart_instance_from_jval(juart);
+  _this->uart_instance = uart;
 
   return uart_reqwrap;
 }
@@ -232,11 +239,11 @@ void iotjs_uart_read_cb(uv_poll_t* req, int status, int events) {
 }
 
 
-#define UART_ASYNC(call, jthis, jcallback, op)                         \
+#define UART_ASYNC(call, this, jcallback, op)                          \
   do {                                                                 \
     uv_loop_t* loop = iotjs_environment_loop(iotjs_environment_get()); \
     iotjs_uart_reqwrap_t* req_wrap =                                   \
-        iotjs_uart_reqwrap_create(jcallback, jthis, op);               \
+        iotjs_uart_reqwrap_create(jcallback, this, op);                \
     uv_work_t* req = iotjs_uart_reqwrap_req(req_wrap);                 \
     uv_queue_work(loop, req, iotjs_uart_##call##_worker,               \
                   iotjs_uart_after_worker);                            \
@@ -278,7 +285,7 @@ JHANDLER_FUNCTION(UartConstructor) {
   iotjs_jval_destroy(&jbaud_rate);
   iotjs_jval_destroy(&jdata_bits);
 
-  UART_ASYNC(open, juart, jcallback, kUartOpOpen);
+  UART_ASYNC(open, uart, jcallback, kUartOpOpen);
 }
 
 
@@ -295,7 +302,7 @@ JHANDLER_FUNCTION(Write) {
   _this->buf_len = iotjs_string_size(&_this->buf_data);
 
   if (jcallback) {
-    UART_ASYNC(write, juart, jcallback, kUartOpWrite);
+    UART_ASYNC(write, uart, jcallback, kUartOpWrite);
   } else {
     bool result = iotjs_uart_write(uart);
     iotjs_string_destroy(&_this->buf_data);
@@ -320,7 +327,7 @@ JHANDLER_FUNCTION(Close) {
   iotjs_jval_destroy(&_this->jemitter_this);
 
   if (jcallback) {
-    UART_ASYNC(close, juart, jcallback, kUartOpClose);
+    UART_ASYNC(close, uart, jcallback, kUartOpClose);
   } else {
     if (!iotjs_uart_close(uart)) {
       JHANDLER_THROW(COMMON, "UART Close Error");

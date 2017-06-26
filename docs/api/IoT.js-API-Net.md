@@ -2,7 +2,7 @@
 
 The following shows net module APIs available for each platform.
 
-|  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | Nuttx<br/>(STM32F4-Discovery) |
+|  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | NuttX<br/>(STM32F4-Discovery) |
 | :---: | :---: | :---: | :---: |
 | net.createServer | O | O | O |
 | net.connect | O | O | O |
@@ -19,7 +19,9 @@ The following shows net module APIs available for each platform.
 | net.Socket.setKeepAlive | X | X | X |
 
 ※ When writable stream is finished but readable stream is still alive, IoT.js tries to shutdown the socket, not destroy.
-However on `nuttx` due to lack of implementation, it does nothing inside.
+However on `NuttX` due to lack of implementation, it does nothing inside.
+
+※ On NuttX/STM32F4-Discovery, even a couple of sockets/server/requests might not work properly.
 
 # Net
 

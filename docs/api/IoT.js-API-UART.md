@@ -2,13 +2,13 @@
 
 The following shows uart module APIs available for each platform.
 
-|  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | Nuttx<br/>(STM32F4-Discovery) |
+|  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | NuttX<br/>(STM32F4-Discovery) |
 | :---: | :---: | :---: | :---: |
 | uart.open | O | O | O |
 | uartport.write | O | O | O |
 | uartport.writeSync | O | O | O |
-| uartport.close | O | O | O |
-| uartport.closeSync | O | O | O |
+| uartport.close | O | O | X |
+| uartport.closeSync | O | O | X |
 
 ## Class: UART
 
@@ -33,7 +33,7 @@ The `baudRate` must be equal to one of these values: [0, 50, 75, 110, 134, 150, 
 
 The `dataBits` must be equal to one of these values: [5, 6, 7, 8].
 
-On Nuttx, you also need to set the properties of the `configuration` in the NuttX configuration file. Using the NuttX menuconfig, it can be found at the `Device Drivers -> Serial Driver Support -> U[S]ART(N) Configuration` section.
+On NuttX, you also need to set the properties of the `configuration` in the NuttX configuration file. Using the NuttX menuconfig, it can be found at the `Device Drivers -> Serial Driver Support -> U[S]ART(N) Configuration` section.
 
 You can read more information about the usage of the UART on stm32f4-discovery board: [STM32F4-discovery](../targets/nuttx/stm32f4dis/IoT.js-API-Stm32f4dis.md#uart).
 
@@ -100,9 +100,15 @@ serial.close();
 
 Closes the UART device asynchronously.
 
+On NuttX/STM32F4Discovery, Uart.close() blocks after close().
+It seems that poll() does not work properly on NuttX for some cases.
+
 ### uartport.closeSync()
 
 Closes the UART device synchronously.
+
+On NuttX/STM32F4Discovery, Uart.close() blocks after close().
+It seems that poll() does not work properly on NuttX for some cases.
 
 ### Event: 'data'
 * `callback` {Function}

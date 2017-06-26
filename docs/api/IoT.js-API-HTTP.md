@@ -2,12 +2,13 @@
 
  The following shows Http module APIs available for each platform.
 
- |  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | Nuttx<br/>(STM32F4-Discovery) |
+ |  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | NuttX<br/>(STM32F4-Discovery) |
  | :---: | :---: | :---: | :---: |
  | http.createServer | O | O | O |
  | http.request | O | O | O |
  | http.get | O | O | O |
 
+※ On NuttX/STM32F4-Discovery, even a couple of sockets/server/requests might not work properly.
 
 # Http
 

@@ -2,7 +2,7 @@
 
 The following shows dgram module APIs available for each platform.
 
-|  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | Nuttx<br/>(STM32F4-Discovery) |
+|  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | NuttX<br/>(STM32F4-Discovery) |
 | :---: | :---: | :---: | :---: |
 | dgram.createSocket | O | O | O |
 | dgram.Socket.addMembership | O | O | X |
@@ -15,6 +15,8 @@ The following shows dgram module APIs available for each platform.
 | dgram.Socket.setMulticastLoopback | O | O | X |
 | dgram.Socket.setMulticastTTL | X | X | X |
 | dgram.Socket.setTTL | O | O | X |
+
+※ On NuttX/STM32F4-Discovery, even a couple of sockets/server/requests might not work properly.
 
 # Dgram
 

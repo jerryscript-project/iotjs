@@ -98,7 +98,7 @@ To give options, please use two dashes '--' before the option name as described 
 Options that may need explanations.
 * builddir: compile intermediate and output files are generated here.
 * buildlib: generating _iotjs_ to a library if True(e.g. for NuttX). give __--buildlib__ to make it True.
-* jerry-heaplimit: JerryScript default heap size (as of today) is 256Kbytes. This option is to change the size for embedded systems, nuttx for now, and current default is 81KB. For linux, this has no effect. While building nuttx if you see an error `region sram overflowed by xxxx bytes`, you may have to decrease about that amount.
+* jerry-heaplimit: JerryScript default heap size (as of today) is 256Kbytes. This option is to change the size for embedded systems, NuttX for now, and current default is 81KB. For linux, this has no effect. While building nuttx if you see an error `region sram overflowed by xxxx bytes`, you may have to decrease about that amount.
 * jerry-memstat: turn on the flag so that jerry dumps byte codes and literals and memory usage while parsing and execution.
 * no-check-tidy: no checks codes are tidy. we recommend to check tidy.
 * no-check-test: do not run all tests in test folder after build.

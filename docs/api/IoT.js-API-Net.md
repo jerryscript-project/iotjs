@@ -247,6 +247,7 @@ server.close();
 * `host` {string} Host the client should connect to.
 * `backlog` {number} The maximum length of the queue of pending connections. **Default:** `511`.
 * `listenListener` {Function} Listener for the `'listening'` event.
+* Returns: {Object} The self instance of `net.Server`.
 
 Begin accepting connections on the specified port and hostname.
 If the hostname is omitted, the server will accept connections on any IPv4 address (0.0.0.0).

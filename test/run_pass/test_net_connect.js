@@ -25,9 +25,7 @@ var server = net.createServer({
   function(socket) {
     server.close();
   }
-);
-
-server.listen(port);
+).listen(port);
 
 server.on('connection', function(socket) {
   var data = '';

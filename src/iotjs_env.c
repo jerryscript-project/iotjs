@@ -98,13 +98,6 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
                                                     char** argv) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_environment_t, env);
 
-  // There must be at least two arguments.
-  if (argc < 2) {
-    fprintf(stderr,
-            "Usage: iotjs [options] {script | script.js} [arguments]\n");
-    return false;
-  }
-
   // Parse IoT.js command line arguments.
   uint32_t i = 1;
   while (i < argc && argv[i][0] == '-') {
@@ -119,6 +112,13 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
       return false;
     }
     ++i;
+  }
+
+  // There must be at least one argument after processing the IoT.js args.
+  if ((argc - i) < 1) {
+    fprintf(stderr,
+            "Usage: iotjs [options] {script | script.js} [arguments]\n");
+    return false;
   }
 
   // Remaining arguments are for application.

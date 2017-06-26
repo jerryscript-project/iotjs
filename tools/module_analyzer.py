@@ -20,8 +20,10 @@ import re
 
 from common_py.system.filesystem import FileSystem as fs
 from common_py.system.executor import Executor as ex
+from common_py.system.platform import Platform
 from common_py import path
 
+platform = Platform()
 
 def resolve_modules(options):
     """ Resolve include/exclude module lists based on command line arguments
@@ -144,6 +146,11 @@ def _load_options(argv):
             help='Specify iotjs modules which should be excluded '
                  '(format: module_1,module_2,...)')
         },
+        {'name': 'target-os',
+         'args': dict(choices=['linux', 'darwin', 'nuttx', 'tizen', 'tizenrt'],
+            default=platform.os, type=str.lower,
+            help='Specify the target os: %(choices)s (default: %(default)s)')
+        },
         {'name': 'mode',
          'args': dict(choices=['verbose', 'cmake-dump'],
             default='verbose',
@@ -192,7 +199,6 @@ def _load_options(argv):
 
     options = parser.parse_args(loaded_argv)
     options.config = config
-    options.target_os = config['build_option']['target-os']
 
     return options
 

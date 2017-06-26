@@ -454,7 +454,6 @@ JHANDLER_FUNCTION(ToString) {
 
 JHANDLER_FUNCTION(ToHexString) {
   JHANDLER_DECLARE_THIS_PTR(bufferwrap, buffer_wrap);
-  DJHANDLER_CHECK_THIS(object);
 
   size_t length = iotjs_bufferwrap_length(buffer_wrap);
   const char* data = iotjs_bufferwrap_buffer(buffer_wrap);

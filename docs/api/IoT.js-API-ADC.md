@@ -2,7 +2,7 @@
 
 The following table shows ADC module APIs available for each platform.
 
-|  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | Nuttx<br/>(STM32F4-Discovery) |
+|  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | NuttX<br/>(STM32F4-Discovery) |
 | :---: | :---: | :---: | :---: |
 | adc.open | O | O | O |
 | adcpin.read | O | O | O |
@@ -17,7 +17,7 @@ This class allows reading analogue data from hardware pins.
 
 The hardware pins can be read from or written to, therefore they are called bidirectional IO pins. This module provides the reading part.
 
-On Nuttx, you have to know the number of pins that is defined on the target board module. For more information, please see the list below.
+On NuttX, you have to know the number of pins that is defined on the target board module. For more information, please see the list below.
   * [STM32F4-discovery](../targets/nuttx/stm32f4dis/IoT.js-API-Stm32f4dis.md#adc-pin)
 
 
@@ -29,7 +29,7 @@ Returns a new ADC object which can open an ADC pin.
 ### adc.open(configuration[, callback])
 * `configuration` {Object}
   * `device` {string} mandatory configuration on Linux
-  * `pin` {int} mandatory configuration on Nuttx
+  * `pin` {int} mandatory configuration on NuttX
 * `callback` {Function}
   * `err`: {Error|null}
 * Returns: `AdcPin` {adc.AdcPin}

@@ -2,14 +2,14 @@
 
 The following shows process module APIs available for each platform.
 
-|  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | Nuttx<br/>(STM32F4-Discovery) |
+|  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | NuttX<br/>(STM32F4-Discovery) |
 | :---: | :---: | :---: | :---: |
 | process.nextTick | O | O | O |
 | process.exit | O | O | O |
 | process.cwd | O | O | O |
 | process.chdir | O | O | O |
 
-※ On nuttx, you should pass absolute path to `process.chdir`.
+※ On NuttX, you should pass absolute path to `process.chdir`.
 
 # Process
 

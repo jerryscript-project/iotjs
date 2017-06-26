@@ -2,7 +2,7 @@
 
 The following shows GPIO module APIs available for each platform.
 
-|  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | Nuttx<br/>(STM32F4-Discovery) |
+|  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | NuttX<br/>(STM32F4-Discovery) |
 | :---: | :---: | :---: | :---: |
 | gpio.open | O | O | O |
 | gpiopin.write | O | O | O |
@@ -23,7 +23,7 @@ The logical number might be different from the physical
 pin number of the board. The mapping is available
 in the documentation of a given board.
 
-On Nuttx, the pin number is defined in target board
+On NuttX, the pin number is defined in target board
 module. For more information, please check the
 following list:
 [STM32F4-discovery](../targets/nuttx/stm32f4dis/IoT.js-API-Stm32f4dis.md#gpio-pin)

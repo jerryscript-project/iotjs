@@ -2,7 +2,7 @@
 
 The following shows PWM module APIs available for each platform.
 
-|  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | Nuttx<br/>(STM32F4-Discovery) |
+|  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | NuttX<br/>(STM32F4-Discovery) |
 | :---: | :---: | :---: | :---: |
 | pwm.open | O | O | O |
 | pwmpin.setPeriod | O | O | O |
@@ -41,7 +41,7 @@ Opens PWM pin with the specified configuration.
 
 To correctly open a PWM pin one must know the correct pin number:
 * On Linux, `pin` is a number which is `0` or `1`.
-* On Nuttx, you have to know pin name. The pin name is defined in target board module. For more module information, please see below list.
+* On NuttX, you have to know pin name. The pin name is defined in target board module. For more module information, please see below list.
   * [STM32F4-discovery](../targets/nuttx/stm32f4dis/IoT.js-API-Stm32f4dis.md#pwm-pin)
 
 

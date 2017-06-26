@@ -2,7 +2,7 @@
 
 The following shows dns module APIs available for each platform.
 
-|  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | Nuttx<br/>(STM32F4-Discovery) |
+|  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | NuttX<br/>(STM32F4-Discovery) |
 | :---: | :---: | :---: | :---: |
 | dns.lookup | O | O | X |
 
@@ -75,5 +75,5 @@ dns.lookup ('iotjs.net', options, function(err, ip, family) {
 
 The current implementation only supports host name resolution to IPv4 addresses.
 
-On Nuttx currently only valid IPv4 addresses are allowed for the
+On NuttX currently only valid IPv4 addresses are allowed for the
 [`dns.lookup()`](#dnslookuphostname-options-callback) method.

@@ -130,6 +130,7 @@ Followings are the options to set:
 
 * For `i2c` module
   * Enable `System Type -> STM32 Peripheral Support -> I2C1`
+  * Enable `Device Drivers -> I2C Driver Support`
 
 #### 4. Build IoT.js for NuttX
 
@@ -151,8 +152,16 @@ Connect Mini-USB for power supply and connect Micro-USB for `NSH` console.
 
 To configure `stlink` utility for flashing, follow the instructions [here](https://github.com/texane/stlink#build-from-sources).
 
+To install,
+```bash
+# assuming you are in stlink folder
+$ cd stlink
+$ make
+```
+
 To flash,
 ```bash
 # assuming you are in nuttx folder
-$ sudo ../stlink/build/st-flash write nuttx.bin 0x8000000
+$ cd nuttx
+$ sudo ../stlink/build/Release/st-flash write nuttx.bin 0x8000000
 ```

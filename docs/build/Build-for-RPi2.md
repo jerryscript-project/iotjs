@@ -115,7 +115,7 @@ This script gives you `build/arm-linux/release/iotjs/iotjs` or `build/arm-linux/
 Copy this binary with your favorite tool or `scp` like below.
 
 ``` bash
-scp build/arm-linux/release/iotjs/iotjs pi@(your RPi2 IP):/home/pi/.
+scp build/arm-linux/release/bin/iotjs pi@(your RPi2 IP):/home/pi/.
 ```
 
 Lastly, open a shell and run with your test program.

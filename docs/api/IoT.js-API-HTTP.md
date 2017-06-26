@@ -4,11 +4,11 @@
 
  |  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | NuttX<br/>(STM32F4-Discovery) |
  | :---: | :---: | :---: | :---: |
- | http.createServer | O | O | O |
- | http.request | O | O | O |
- | http.get | O | O | O |
+ | http.createServer | O | O | △ ¹ |
+ | http.request | O | O | △ ¹ |
+ | http.get | O | O | △ ¹ |
 
-※ On NuttX/STM32F4-Discovery, even a couple of sockets/server/requests might not work properly.
+1. On NuttX/STM32F4-Discovery, even a couple of sockets/server/requests might not work properly.
 
 # Http
 

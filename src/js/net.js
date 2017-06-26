@@ -523,6 +523,8 @@ Server.prototype.listen = function() {
       self.emit('listening');
     }
   });
+
+  return this;
 };
 
 

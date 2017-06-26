@@ -4,19 +4,21 @@ The following shows dgram module APIs available for each platform.
 
 |  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | NuttX<br/>(STM32F4-Discovery) |
 | :---: | :---: | :---: | :---: |
-| dgram.createSocket | O | O | O |
+| dgram.createSocket | O | O | △ ¹ |
 | dgram.Socket.addMembership | O | O | X |
 | dgram.Socket.address | O | O | X |
-| dgram.Socket.bind | O | O | O |
-| dgram.Socket.close | O | O | O |
+| dgram.Socket.bind | O | O | △ ¹ |
+| dgram.Socket.close | O | O | △ ² |
 | dgram.Socket.dropMembership | O | O | X |
-| dgram.Socket.send | O | O | O |
+| dgram.Socket.send | O | O | △ ¹ |
 | dgram.Socket.setBroadcast | O | O | X |
 | dgram.Socket.setMulticastLoopback | O | O | X |
 | dgram.Socket.setMulticastTTL | X | X | X |
 | dgram.Socket.setTTL | O | O | X |
 
-※ On NuttX/STM32F4-Discovery, even a couple of sockets/server/requests might not work properly.
+1. On NuttX/STM32F4-Discovery, even a couple of sockets/server/requests might not work properly.
+
+2. On NuttX/STM32F4-Discovery, close() may block due to a bug in poll().
 
 # Dgram
 

@@ -83,7 +83,7 @@ if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
   list(APPEND DEPS_LIB_JERRY_ARGS -DFEATURE_ERROR_MESSAGES=ON)
 endif()
 
-# Nuttx is not using the default port implementation of JerryScript
+# NuttX is not using the default port implementation of JerryScript
 if("${TARGET_OS}" MATCHES "NUTTX")
   list(APPEND DEPS_LIB_JERRY_ARGS -DJERRY_PORT_DEFAULT=OFF)
 else()

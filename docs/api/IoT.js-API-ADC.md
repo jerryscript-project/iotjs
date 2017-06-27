@@ -28,8 +28,8 @@ Returns a new ADC object which can open an ADC pin.
 
 ### adc.open(configuration[, callback])
 * `configuration` {Object}
-  * `device` {string} mandatory configuration on Linux
-  * `pin` {int} mandatory configuration on NuttX
+  * `device` {string} Mandatory configuration on Linux.
+  * `pin` {int} Mandatory configuration on NuttX.
 * `callback` {Function}
   * `err`: {Error|null}
 * Returns: `AdcPin` {adc.AdcPin}
@@ -73,7 +73,7 @@ adc0.read(function(err, value) {
 
 
 ### adcpin.readSync()
-* Returns: `{int}` analog value
+* Returns: `{int}` Analog value.
 
 Reads the analog value from the pin synchronously.
 

@@ -206,7 +206,7 @@ def init_options():
 
 
 def adjust_options(options):
-    # First fix some option inconsistencies
+    # First fix some option inconsistencies.
     if options.target_os in ['nuttx', 'tizenrt']:
         options.buildlib = True
         if not options.sysroot:
@@ -214,7 +214,7 @@ def adjust_options(options):
 
         options.sysroot = fs.abspath(options.sysroot)
         if not fs.exists(options.sysroot):
-            ex.fail('Nuttx sysroot %s does not exist' % options.sysroot)
+            ex.fail('NuttX sysroot %s does not exist' % options.sysroot)
 
     if options.target_arch == 'x86':
         options.target_arch = 'i686'
@@ -232,7 +232,7 @@ def adjust_options(options):
     if options.iotjs_minimal_profile:
         options.no_check_test = True
 
-    # Then add calculated options
+    # Then add calculated options.
     options.host_tuple = '%s-%s' % (platform.arch(), platform.os())
     options.target_tuple = '%s-%s' % (options.target_arch, options.target_os)
 
@@ -254,7 +254,7 @@ def adjust_options(options):
     options.cmake_toolchain_file = cmake_path % options.target_tuple
     options.host_cmake_toolchain_file = cmake_path % options.host_tuple
 
-    # Specify the file of JerryScript profile
+    # Specify the file of JerryScript profile.
     options.jerry_profile = fs.join(path.JERRY_PROFILE_ROOT,
                                     options.jerry_profile + '.profile')
 
@@ -340,7 +340,7 @@ def get_on_off(boolean_value):
 def build_iotjs(options):
     print_progress('Build IoT.js')
 
-    # Set JerryScript cmake options.
+    # Set IoT.js cmake options.
     cmake_opt = [
         '-B%s' % options.build_root,
         '-H%s' % path.PROJECT_ROOT,
@@ -434,7 +434,7 @@ def run_checktest(options):
     if os.getenv('TRAVIS') == "true":
         checktest_quiet = 'no'
 
-    # iot.js executable
+    # IoT.js executable
     iotjs = fs.join(options.build_root, 'bin', 'iotjs')
     build_args = ['quiet=' + checktest_quiet]
     if options.iotjs_exclude_module:
@@ -481,7 +481,7 @@ if __name__ == '__main__':
 
     build_iotjs(options)
 
-    # Run tests
+    # Run tests.
     if not options.no_check_test:
         print_progress('Run tests')
         if options.buildlib:

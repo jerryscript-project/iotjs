@@ -19,7 +19,7 @@ As a global, it is always available to IoT.js applications without using `requir
 ### process.arch
 * {string}
 
-The `arch` proeprty returns the processor architercture identifier that the IoT.js process is currently running on.
+The `arch` property returns the processor architecture identifier that the IoT.js process is currently running on.
 For instance `'arm'`, `'ia32'`, `'x64'`, or `'unknown'`.
 
 ### process.argv
@@ -89,7 +89,7 @@ is currently running on. For instance `'linux'`, `'darwin'`, `'nuttx'`, `'tizenr
 * `path` {string} The path to change working directory to.
 
 The `chdir` method changes the current working directory of the IoT.js process or
-throes an exception if the operaion fails (for instance the `path` specified does not exist).
+throws an exception if the operation fails (for instance the `path` specified does not exist).
 
 **Example**
 
@@ -202,13 +202,13 @@ The `'uncaughtException'` event is emitted when an uncaught JavaScript exception
 way back to the event loop. By default, IoT.js handles such exceptions by printing it to `stderr` and exiting.
 Adding a handler for the `'uncaughtException'` event overrides the default behavior.
 
-The listener function is called with the `Error` obect passed as the only argument.
+The listener function is called with the `Error` object passed as the only argument.
 
 **Warning: Using the `'uncaughtException'` event correctly**
 
 This event is a crude mechanism for exception handling intended to be used only as a last resort.
 The event should not be used as an eqivalent to 'On Error Resume Next'. Unhandled exceptions inherently mean
-that a program is in an unknown state. Thus attempting to resume the application code withtout properly
+that a program is in an unknown state. Thus attempting to resume the application code without properly
 recovering from the exception can cause unforeseen/unpredictable issues.
 
 Only one exception thrown within the event handler will be caught and will immediately terminate the application.

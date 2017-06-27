@@ -423,7 +423,7 @@ console.log(buffer);
 
 ### buf.writeUInt8(value, offset[, noAssert])
 * `value` {integer} Number to be written into the buffer.
-* `offset' {integer} Start position of the writing.
+* `offset` {integer} Start position of the writing.
 * `noAssert` {boolean} Skip argument validation. **Default:** `false`
 * Returns: {number} Offset plus the number of bytes written.
 

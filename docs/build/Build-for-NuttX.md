@@ -50,7 +50,7 @@ $ brew install gcc-arm-none-eabi libusb minicom
 
 To generate headers which are required to build IoT.js, for the first time, you need to build NuttX at least once. This time NuttX build will be failed. But don't worry at this time. After one execution, you don't need this sequence any more.
 
-#### Supported Nuttx version
+#### Supported NuttX version
 |Repository|Tag Name|
 |----------|:------:|
 | nuttx | nuttx-7.19 |

@@ -8,9 +8,8 @@ The following shows Event module APIs available for each platform.
 | emitter.on | O | O | O |
 | emitter.emit | O | O | O |
 | emitter.once | O | O | O |
-| emitter.addListener | O | O | O |
 | emitter.removeListener | O | O | O |
-| emitter.removeAllListener | O | O | O |
+| emitter.removeAllListeners | O | O | O |
 
 
 # Events
@@ -19,7 +18,7 @@ IoT.js is based on event-driven programming where objects (called "emitters") pe
 
 # Class: EventEmitter
 
-The `events.EventEmitter` plays a role as base class for "emmitters".
+The `events.EventEmitter` plays a role as base class for "emitters".
 User application would not directly creates an instance of `EventEmitter` since `EventEmitter` is an abstract trait which defines its behavior and grants to sub-classes.
 
 ### new EventEmitter()
@@ -162,7 +161,7 @@ assert.equal(onceCnt, 1);
   * `args` {any}.
 * Returns `emitter` {events.EventEmitter}.
 
-Removes listener from the list of event listeners.
+Removes `listener` from the list of event listeners.
 
 If you add the same `listener` multiple times, this removes only one instance of them.
 
@@ -182,7 +181,7 @@ emitter.removeListener('event', listener);
 
 ```
 
-### emitter.removeAllListener([event])
+### emitter.removeAllListeners([event])
 * `event` {string} The name of the event.
 * Returns `emitter` {events.EventEmitter}.
 

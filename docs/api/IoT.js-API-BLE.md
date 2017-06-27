@@ -1,6 +1,6 @@
 ### Platform Support
 
-The following shows ble module APIs available for each platform.
+The following shows BLE module APIs available for each platform.
 
 |  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | NuttX<br/>(STM32F4-Discovery) |
 | :---: | :---: | :---: | :---: |
@@ -56,12 +56,12 @@ ble.on('stateChange', function(state){
 ```
 
 ### ble.startAdvertising(name, serviceUuids[, callback])
-* `name` {string} - maximum 26 bytes
+* `name` {string} Maximum 26 bytes.
 * `serviceUuids` {Array[String]}
   * 1 128-bit service UUID
   * 1 128-bit service UUID + 2 16-bit service UUIDs
   * 7 16-bit service UUID
-* `callback` {Function} error handler
+* `callback` {Function} Error handler.
   * `error` {Error}
 
 Starts advertising.
@@ -80,7 +80,7 @@ ble.startAdvertising(name, serviceUuids[, callback(error)]);
 
 
 ### ble.stopAdvertising(callback)
-* `callback` {Function} error handler
+* `callback` {Function} Error handler.
   * `error` {Error}
 
 Stops advertising.
@@ -88,7 +88,7 @@ Stops advertising.
 
 ### ble.setServices(services[, callback])
 * `services` {Array[PrimaryService]}
-* `callback` {Function} error handler
+* `callback` {Function} Error handler.
   * `error` {Error}
 
 Sets the primary services available on the peripheral.
@@ -124,23 +124,23 @@ Characteristics are defined attribute types that contain a single logical value.
   * `secure` {Array[string]} Enables security for properties, can be a combination of 'read', 'write', 'writeWithoutResponse', 'notify' and 'indicate'.
   * `value` {Buffer}
   * `descriptors` {Array[Descriptor]}
-  * `onReadRequest` {Function} ead request handler (optional)
+  * `onReadRequest` {Function} Read request handler. (optional)
     * `offset` {number} (0x0000 - 0xffff)
     * `callback` {Function}
       * `result` {Characteristic.RESULT_*}
       * `data` {Buffer}
-  * `onWriteRequest` {Function} write request handler (optional)
+  * `onWriteRequest` {Function} Write request handler. (optional)
     * `data` {Buffer}
     * `offset` {number} (0x0000 - 0xffff)
     * `withoutResponse` {boolean}
     * `callback` {Function}
       * `result` {Characteristic.RESULT_*}
-  * `onSubscribe` {Function} notify/indicate subscribe handler (optional)
-    * `maxValueSize` {number} maximum data size
+  * `onSubscribe` {Function} Notify/indicate subscribe handler. (optional)
+    * `maxValueSize` {number} Maximum data size.
     * `updateValueCallback` {Function}
-  * `onUnsubscribe` {Function} notify/indicate unsubscribe handler (optional)
-  * `onNotify` {Function} notify sent handler (optional)
-  * `onIndicate` {Function} indicate confirmation received handler (optional)
+  * `onUnsubscribe` {Function} Notify/indicate unsubscribe handler. (optional)
+  * `onNotify` {Function} Notify sent handler. (optional)
+  * `onIndicate` {Function} Indicate confirmation received handler. (optional)
 Returns: {Characteristic}
 
 **Example**

@@ -39,22 +39,22 @@ assert.equal(onceCnt, 1);
 
 {
   var emit_test = new EventEmitter();
-  emit_test._events=false;
+  emit_test._events = false;
   emit_test.emit();
 }
 {
   var emit_test = new EventEmitter();
-  emit_test._events.error=false;
+  emit_test._events.error = false;
   emit_test.emit(null);
 }
 {
   var emit_test = new EventEmitter();
-  emit_test._events=false;
+  emit_test._events = false;
   assert.throws(function() { emit_test.addListener(null, null); }, TypeError);
 }
 {
   var emit_test = new EventEmitter();
-  emit_test._events=false;
+  emit_test._events = false;
   emit_test.addListener('event', function() { });
 }
 {
@@ -228,4 +228,22 @@ assert.equal(removableListenerCnt, 0);
 emitter.removeListener('onceRemove', removableListener);
 emitter.emit('onceRemove');
 assert.equal(removableListenerCnt, 0,
-    'a listener for a "once" typed evet should be removable');
+    'a listener for a "once" typed event should be removable');
+
+/*
+ * Test when the last listener is removed from an object,
+ * the related property doesn't exist anymore.
+ */
+var listener1 = function() {
+};
+
+emitter.addListener('event1', listener1);
+emitter.removeListener('event1', listener1);
+var res = emitter.emit('event1');
+assert.equal(res, false);
+
+emitter.addListener('event2', listener1);
+emitter.addListener('event2', listener1);
+emitter.removeAllListeners('event2');
+res = emitter.emit('event2');
+assert.equal(res, false);

@@ -106,13 +106,15 @@ EventEmitter.prototype.removeListener = function(type, listener) {
       if (list[i] == listener ||
           (list[i].listener && list[i].listener == listener)) {
         list.splice(i, 1);
+        if (!list.length) {
+          delete this._events[type];
+        }
         break;
       }
     }
   }
 
   return this;
-
 };
 
 

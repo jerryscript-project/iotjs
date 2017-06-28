@@ -116,7 +116,7 @@
   ],
   "node/parallel": [
     { "name": "test-assert.js" },
-    { "name": "test-http-status-message.js", "timeout": 20, "skip": ["all"], "reason": "it stalls" },
+    { "name": "test-http-status-message.js" },
     { "name": "test-http-write-head.js" },
     { "name": "test-net-bind-twice.js" },
     { "name": "test-net-end-without-connect.js" },

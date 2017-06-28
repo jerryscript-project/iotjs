@@ -53,7 +53,7 @@ Runner.prototype.cleanup = function() {
 
 Runner.prototype.spin = function() {
   var that = this;
-  process.nextTick(function() {
+  setTimeout(function() {
       var timerOnlyAlive = !testdriver.isAliveExceptFor(that.timer);
       if (timerOnlyAlive) {
         timerOnlyAlive = !process._onNextTick();
@@ -66,7 +66,7 @@ Runner.prototype.spin = function() {
           that.spin();
         }
       }
-  });
+  }, 0);
 };
 
 Runner.prototype.checkSkipModule = function() {

@@ -237,11 +237,7 @@ JHANDLER_FUNCTION(Buffer) {
 
 JHANDLER_FUNCTION(Compare) {
   JHANDLER_DECLARE_THIS_PTR(bufferwrap, src_buffer_wrap);
-  DJHANDLER_CHECK_ARGS(1, object);
-
-  const iotjs_jval_t* jdst_buffer = JHANDLER_GET_ARG(0, object);
-  iotjs_bufferwrap_t* dst_buffer_wrap =
-      iotjs_bufferwrap_from_jbuffer(jdst_buffer);
+  JHANDLER_DECLARE_OBJECT_PTR(0, bufferwrap, dst_buffer_wrap);
 
   int compare = iotjs_bufferwrap_compare(src_buffer_wrap, dst_buffer_wrap);
   iotjs_jhandler_return_number(jhandler, compare);

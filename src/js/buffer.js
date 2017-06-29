@@ -130,7 +130,7 @@ Buffer.prototype.equals = function(otherBuffer) {
     throw new TypeError('Bad arguments: buffer.equals(Buffer)');
   }
 
-  return this._builtin.compare(otherBuffer) == 0;
+  return this._builtin.compare(otherBuffer._builtin) == 0;
 };
 
 
@@ -140,7 +140,7 @@ Buffer.prototype.compare = function(otherBuffer) {
     throw new TypeError('Bad arguments: buffer.compare(Buffer)');
   }
 
-  return this._builtin.compare(otherBuffer);
+  return this._builtin.compare(otherBuffer._builtin);
 };
 
 

@@ -57,7 +57,6 @@ static iotjs_adc_reqwrap_t* iotjs_adc_reqwrap_create(
   return adc_reqwrap;
 }
 
-
 static void iotjs_adc_reqwrap_destroy(THIS) {
   IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_adc_reqwrap_t, adc_reqwrap);
   iotjs_reqwrap_destroy(&_this->reqwrap);
@@ -159,24 +158,6 @@ static void iotjs_adc_after_work(uv_work_t* work_req, int status) {
 }
 
 
-static void iotjs_adc_set_configuration(iotjs_adc_t* adc,
-                                        const iotjs_jval_t* jconfiguration) {
-#if defined(__linux__)
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_adc_t, adc);
-  iotjs_jval_t jdevice =
-      iotjs_jval_get_property(jconfiguration, IOTJS_MAGIC_STRING_DEVICE);
-  _this->device = iotjs_jval_as_string(&jdevice);
-  iotjs_jval_destroy(&jdevice);
-#elif defined(__NUTTX__)
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_adc_t, adc);
-  iotjs_jval_t jpin =
-      iotjs_jval_get_property(jconfiguration, IOTJS_MAGIC_STRING_PIN);
-  _this->pin = iotjs_jval_as_number(&jpin);
-  iotjs_jval_destroy(&jpin);
-#endif
-}
-
-
 static void iotjs_adc_read_worker(uv_work_t* work_req) {
   ADC_WORKER_INIT;
   int32_t value = iotjs_adc_read(adc);
@@ -213,20 +194,43 @@ static void iotjs_adc_close_worker(uv_work_t* work_req) {
     uv_queue_work(loop, req, iotjs_adc_##call##_worker, iotjs_adc_after_work); \
   } while (0)
 
-
 JHANDLER_FUNCTION(AdcConstructor) {
   DJHANDLER_CHECK_THIS(object);
-  DJHANDLER_CHECK_ARGS(2, object, function);
 
   // Create ADC object
   const iotjs_jval_t* jadc = JHANDLER_GET_THIS(object);
   iotjs_adc_t* adc = iotjs_adc_create(jadc);
   IOTJS_ASSERT(adc == iotjs_adc_instance_from_jval(jadc));
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_adc_t, adc);
 
-  iotjs_adc_set_configuration(adc, JHANDLER_GET_ARG(0, object));
+  const iotjs_jval_t* jconfiguration = JHANDLER_GET_ARG_IF_EXIST(0, object);
+  if (jconfiguration == NULL) {
+    JHANDLER_THROW(TYPE, "Bad arguments - configuration should be Object");
+    return;
+  }
 
-  const iotjs_jval_t* jcallback = JHANDLER_GET_ARG(1, function);
-  ADC_ASYNC(open, adc, jcallback, kAdcOpOpen);
+#if defined(__linux__)
+  DJHANDLER_GET_REQUIRED_CONF_VALUE(jconfiguration, _this->device,
+                                    IOTJS_MAGIC_STRING_DEVICE, string);
+#elif defined(__NUTTX__)
+  DJHANDLER_GET_REQUIRED_CONF_VALUE(jconfiguration, _this->pin,
+                                    IOTJS_MAGIC_STRING_PIN, number);
+#endif
+
+  if (iotjs_jhandler_get_arg_length(jhandler) > 1) {
+    const iotjs_jval_t* jcallback = iotjs_jhandler_get_arg(jhandler, 1);
+    if (iotjs_jval_is_function(jcallback)) {
+      ADC_ASYNC(open, adc, jcallback, kAdcOpOpen);
+    } else {
+      JHANDLER_THROW(TYPE, "Bad arguments - callback should be Function");
+      return;
+    }
+  } else {
+    iotjs_jval_t jdummycallback =
+        iotjs_jval_create_function(&iotjs_jval_dummy_function);
+    ADC_ASYNC(open, adc, &jdummycallback, kAdcOpOpen);
+    iotjs_jval_destroy(&jdummycallback);
+  }
 }
 
 
@@ -236,36 +240,52 @@ JHANDLER_FUNCTION(Read) {
 
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG_IF_EXIST(0, function);
 
-  if (jcallback) {
-    ADC_ASYNC(read, adc, jcallback, kAdcOpRead);
+  if (jcallback == NULL) {
+    JHANDLER_THROW(TYPE, "Bad arguments - callback required");
   } else {
-    int32_t value = iotjs_adc_read(adc);
-    if (value < 0) {
-      JHANDLER_THROW(COMMON, "ADC Read Error");
-    } else {
-      iotjs_jhandler_return_number(jhandler, value);
-    }
+    ADC_ASYNC(read, adc, jcallback, kAdcOpRead);
   }
 }
 
+JHANDLER_FUNCTION(ReadSync) {
+  JHANDLER_DECLARE_THIS_PTR(adc, adc);
+
+  int32_t value = iotjs_adc_read(adc);
+  if (value < 0) {
+    JHANDLER_THROW(COMMON, "ADC Read Error");
+  } else {
+    iotjs_jhandler_return_number(jhandler, value);
+  }
+}
 
 JHANDLER_FUNCTION(Close) {
   JHANDLER_DECLARE_THIS_PTR(adc, adc);
   DJHANDLER_CHECK_ARG_IF_EXIST(0, function);
 
-  const iotjs_jval_t* jcallback = JHANDLER_GET_ARG_IF_EXIST(0, function);
+  const iotjs_jval_t* jcallback =
+      (iotjs_jval_t*)JHANDLER_GET_ARG_IF_EXIST(0, function);
 
-  if (jcallback) {
-    ADC_ASYNC(close, adc, jcallback, kAdcOpClose);
+  if (jcallback == NULL) {
+    iotjs_jval_t jdummycallback =
+        iotjs_jval_create_function(&iotjs_jval_dummy_function);
+    ADC_ASYNC(close, adc, &jdummycallback, kAdcOpClose);
+    iotjs_jval_destroy(&jdummycallback);
   } else {
-    if (!iotjs_adc_close(adc)) {
-      JHANDLER_THROW(COMMON, "ADC Close Error");
-    }
+    ADC_ASYNC(close, adc, jcallback, kAdcOpClose);
   }
 
   iotjs_jhandler_return_null(jhandler);
 }
 
+JHANDLER_FUNCTION(CloseSync) {
+  JHANDLER_DECLARE_THIS_PTR(adc, adc);
+
+  if (!iotjs_adc_close(adc)) {
+    JHANDLER_THROW(COMMON, "ADC Close Error");
+  }
+
+  iotjs_jhandler_return_null(jhandler);
+}
 
 iotjs_jval_t InitAdc() {
   iotjs_jval_t jadc = iotjs_jval_create_object();
@@ -275,7 +295,9 @@ iotjs_jval_t InitAdc() {
 
   iotjs_jval_t jprototype = iotjs_jval_create_object();
   iotjs_jval_set_method(&jprototype, IOTJS_MAGIC_STRING_READ, Read);
+  iotjs_jval_set_method(&jprototype, IOTJS_MAGIC_STRING_READSYNC, ReadSync);
   iotjs_jval_set_method(&jprototype, IOTJS_MAGIC_STRING_CLOSE, Close);
+  iotjs_jval_set_method(&jprototype, IOTJS_MAGIC_STRING_CLOSESYNC, CloseSync);
   iotjs_jval_set_property_jval(&jadcConstructor, IOTJS_MAGIC_STRING_PROTOTYPE,
                                &jprototype);
 

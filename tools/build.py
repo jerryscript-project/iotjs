@@ -415,20 +415,6 @@ def build_iotjs(options):
     run_make(options, options.build_root)
 
 
-def process_modules(options):
-    print_progress('Analyze modules')
-
-    includes, excludes = resolve_modules(options)
-    modules = analyze_module_dependency(includes, excludes)
-
-    print('Selected js modules: %s' % ', '.join(modules['js']))
-    print('Selected native modules: %s' % ', '.join(modules['native']))
-
-    options.js_modules = modules['js']
-    options.native_modules = modules['native']
-    options.iotjs_exclude_module = excludes
-
-
 def run_checktest(options):
     checktest_quiet = 'yes'
     if os.getenv('TRAVIS') == "true":
@@ -471,8 +457,6 @@ if __name__ == '__main__':
         print_progress('Clear build directory')
         fs.rmtree(options.build_root)
         fs.rmtree(options.host_build_root)
-
-    process_modules(options)
 
     # Perform init-submodule.
     if not options.no_init_submodule:

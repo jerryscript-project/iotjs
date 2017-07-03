@@ -284,6 +284,10 @@ iotjs_jval_t InitProcess() {
   iotjs_jval_set_property_string_raw(&process, IOTJS_MAGIC_STRING_ARCH,
                                      TARGET_ARCH);
 
+  // process.version
+  iotjs_jval_set_property_string_raw(&process, IOTJS_MAGIC_STRING_VERSION,
+                                     IOTJS_VERSION);
+
   // Set iotjs
   SetProcessIotjs(&process);
 

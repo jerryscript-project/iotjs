@@ -167,6 +167,18 @@ console.log('step 3');
 // step 2
 ```
 
+### process.version
+* {string}
+
+The `version` property returns the version numbering of the currently running IoT.js process as a string.
+
+**Example**
+```js
+console.log(process.version);
+// prints: (in case of version 1.0.0)
+// 1.0.0
+```
+
 ### Event: 'exit'
 * `callback` {Function}
   * `code` {integer}  exitCode

@@ -59,6 +59,7 @@ LINKLIBS=$(EXTRA_LIBS)
 -include $(TOPDIR)/Make.defs
 include $(APPDIR)/Make.defs
 
+IOTJS_ABSOLUTE_ROOT_DIR := $(shell cd $(TOPDIR) && cd $(IOTJS_ROOT_DIR) && pwd)
 
 # IoT.js application
 CONFIG_IOTJS_PRIORITY ?= SCHED_PRIORITY_DEFAULT
@@ -66,12 +67,14 @@ CONFIG_IOTJS_STACKSIZE ?= 16384
 IOTJS_LIB_DIR ?= n
 
 APPNAME = iotjs
+CFLAGS += -I$(IOTJS_ABSOLUTE_ROOT_DIR)/deps/jerry/jerry-core/include
+CFLAGS += -I$(IOTJS_ABSOLUTE_ROOT_DIR)/deps/jerry/jerry-ext/include
 PRIORITY = $(CONFIG_IOTJS_PRIORITY)
 STACKSIZE = $(CONFIG_IOTJS_STACKSIZE)
 HEAPSIZE = $(CONFIG_IOTJS_HEAPSIZE)
 
 ASRCS =
-CSRCS =
+CSRCS = jerry_port.c
 MAINSRC = iotjs_main.c
 
 AOBJS = $(ASRCS:.S=$(OBJEXT))

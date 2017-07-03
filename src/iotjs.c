@@ -40,14 +40,14 @@ static bool iotjs_jerry_initialize(const iotjs_environment_t* env) {
 
   if (iotjs_environment_config(env)->memstat) {
     jerry_flag |= JERRY_INIT_MEM_STATS;
-#ifndef __NUTTX__
+#if !defined(__NUTTX__) && !defined(__TIZENRT__)
     jerry_port_default_set_log_level(JERRY_LOG_LEVEL_DEBUG);
 #endif
   }
 
   if (iotjs_environment_config(env)->show_opcode) {
     jerry_flag |= JERRY_INIT_SHOW_OPCODES;
-#ifndef __NUTTX__
+#if !defined(__NUTTX__) && !defined(__TIZENRT__)
     jerry_port_default_set_log_level(JERRY_LOG_LEVEL_DEBUG);
 #endif
   }

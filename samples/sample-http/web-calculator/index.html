@@ -1,0 +1,32 @@
+<html>
+<head>
+  <script language='javascript'>
+    var formula = '';
+    setInterval(function() {
+      var f = document.getElementById('formula');
+      if (formula != f.value) {
+        formula = f.value;
+
+        var xmlhttp = new XMLHttpRequest();
+        xmlhttp.onreadystatechange = function() {
+          if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+            document.getElementById('answer').innerText = xmlhttp.responseText;
+          }
+        };
+        xmlhttp.open("POST", "calculate", true);
+        xmlhttp.setRequestHeader("Content-type", "text/plain");
+        xmlhttp.setRequestHeader("Content-Length", formula.length);
+        xmlhttp.send(formula);
+      }
+    }, 2000);
+  </script>
+</head>
+<body>
+  <p>Input Formula:</p>
+  <p>
+    <input id='formula'></input>
+    =
+    <div id='answer'></div>
+  </p>
+</body>
+</html>

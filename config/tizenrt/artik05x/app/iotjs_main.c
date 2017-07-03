@@ -82,7 +82,7 @@ void longjmp(jmp_buf buf, int value) {
   __builtin_longjmp(buf, 1);
 } /* longjmp */
 
-int iotjs_entry(int argc, char *argv[]);
+int iotjs_entry(int argc, char **argv);
 int tuv_cleanup(void);
 
 
@@ -156,7 +156,7 @@ int iotjs_main(int argc, char *argv[])
   return iotjs(argc, argv);
 }
 
-int iotjs_register_cmd() {
+int iotjs_register_cmds(void) {
   tash_cmd_install("iotjs", iotjs, TASH_EXECMD_SYNC);
   return 0;
 }

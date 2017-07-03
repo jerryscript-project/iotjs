@@ -61,6 +61,8 @@
 #define TARGET_OS "unknown"
 #endif
 
+#define IOTJS_VERSION "1.0.0"
+
 #if !defined(STRINGIFY)
 #define STRINGIFY(x) #x
 #endif

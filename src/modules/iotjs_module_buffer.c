@@ -151,6 +151,19 @@ static size_t hex_decode(char* buf, size_t len, const char* src,
 }
 
 
+static size_t iotjs_convert_double_to_sizet(double value) {
+  size_t new_value;
+
+  if (value < 0 || isnan(value) || isinf(value)) {
+    new_value = SIZE_MAX;
+  } else {
+    new_value = (size_t)value;
+  }
+
+  return new_value;
+}
+
+
 int iotjs_bufferwrap_compare(const iotjs_bufferwrap_t* bufferwrap,
                              const iotjs_bufferwrap_t* other) {
   const IOTJS_VALIDATED_STRUCT_METHOD(iotjs_bufferwrap_t, bufferwrap);
@@ -244,17 +257,6 @@ JHANDLER_FUNCTION(Compare) {
 }
 
 
-#define DECLARE_SIZE_T_FROM_DOUBLE(n, d) \
-  size_t n;                              \
-  do {                                   \
-    if (d < 0 || isnan(d) || isinf(d)) { \
-      n = SIZE_MAX;                      \
-    } else {                             \
-      n = (size_t)d;                     \
-    }                                    \
-  } while (0)
-
-
 JHANDLER_FUNCTION(Copy) {
   JHANDLER_DECLARE_THIS_PTR(bufferwrap, src_buffer_wrap);
   DJHANDLER_CHECK_ARGS(4, object, number, number, number);
@@ -266,13 +268,13 @@ JHANDLER_FUNCTION(Copy) {
   size_t dst_length = iotjs_bufferwrap_length(dst_buffer_wrap);
   size_t src_length = iotjs_bufferwrap_length(src_buffer_wrap);
 
-  DECLARE_SIZE_T_FROM_DOUBLE(dst_start, JHANDLER_GET_ARG(1, number));
+  size_t dst_start = iotjs_convert_double_to_sizet(JHANDLER_GET_ARG(1, number));
   dst_start = bound_range(dst_start, 0, dst_length);
 
-  DECLARE_SIZE_T_FROM_DOUBLE(src_start, JHANDLER_GET_ARG(2, number));
+  size_t src_start = iotjs_convert_double_to_sizet(JHANDLER_GET_ARG(2, number));
   src_start = bound_range(src_start, 0, src_length);
 
-  DECLARE_SIZE_T_FROM_DOUBLE(src_end, JHANDLER_GET_ARG(3, number));
+  size_t src_end = iotjs_convert_double_to_sizet(JHANDLER_GET_ARG(3, number));
   src_end = bound_range(src_end, 0, src_length);
 
   if (src_end < src_start) {
@@ -294,10 +296,10 @@ JHANDLER_FUNCTION(Write) {
   iotjs_string_t src = JHANDLER_GET_ARG(0, string);
 
   size_t buffer_length = iotjs_bufferwrap_length(buffer_wrap);
-  DECLARE_SIZE_T_FROM_DOUBLE(offset, JHANDLER_GET_ARG(1, number));
+  size_t offset = iotjs_convert_double_to_sizet(JHANDLER_GET_ARG(1, number));
   offset = bound_range(offset, 0, buffer_length);
 
-  DECLARE_SIZE_T_FROM_DOUBLE(length, JHANDLER_GET_ARG(2, number));
+  size_t length = iotjs_convert_double_to_sizet(JHANDLER_GET_ARG(2, number));
   length = bound_range(length, 0, buffer_length - offset);
   length = bound_range(length, 0, iotjs_string_size(&src));
 
@@ -319,7 +321,7 @@ JHANDLER_FUNCTION(WriteUInt8) {
   size_t length = 1;
 
   size_t buffer_length = iotjs_bufferwrap_length(buffer_wrap);
-  DECLARE_SIZE_T_FROM_DOUBLE(offset, JHANDLER_GET_ARG(1, number));
+  size_t offset = iotjs_convert_double_to_sizet(JHANDLER_GET_ARG(1, number));
   offset = bound_range(offset, 0, buffer_length);
   length = bound_range(length, 0, buffer_length - offset);
   length = bound_range(length, 0, 1);
@@ -338,9 +340,10 @@ JHANDLER_FUNCTION(HexWrite) {
   iotjs_string_t src = JHANDLER_GET_ARG(0, string);
 
   size_t buffer_length = iotjs_bufferwrap_length(buffer_wrap);
-  DECLARE_SIZE_T_FROM_DOUBLE(offset, JHANDLER_GET_ARG(1, number));
+  size_t offset = iotjs_convert_double_to_sizet(JHANDLER_GET_ARG(1, number));
   offset = bound_range(offset, 0, buffer_length);
-  DECLARE_SIZE_T_FROM_DOUBLE(length, JHANDLER_GET_ARG(2, number));
+
+  size_t length = iotjs_convert_double_to_sizet(JHANDLER_GET_ARG(2, number));
   length = bound_range(length, 0, buffer_length - offset);
 
   const char* src_data = iotjs_string_data(&src);
@@ -364,7 +367,7 @@ JHANDLER_FUNCTION(ReadUInt8) {
   DJHANDLER_CHECK_ARGS(1, number);
 
   size_t buffer_length = iotjs_bufferwrap_length(buffer_wrap);
-  DECLARE_SIZE_T_FROM_DOUBLE(offset, JHANDLER_GET_ARG(0, number));
+  size_t offset = iotjs_convert_double_to_sizet(JHANDLER_GET_ARG(0, number));
   offset = bound_range(offset, 0, buffer_length - 1);
 
   char* buffer = iotjs_bufferwrap_buffer(buffer_wrap);
@@ -427,9 +430,10 @@ JHANDLER_FUNCTION(ToString) {
   JHANDLER_DECLARE_THIS_PTR(bufferwrap, buffer_wrap);
   DJHANDLER_CHECK_ARGS(2, number, number);
 
-  DECLARE_SIZE_T_FROM_DOUBLE(start, JHANDLER_GET_ARG(0, number));
+  size_t start = iotjs_convert_double_to_sizet(JHANDLER_GET_ARG(0, number));
   start = bound_range(start, 0, iotjs_bufferwrap_length(buffer_wrap));
-  DECLARE_SIZE_T_FROM_DOUBLE(end, JHANDLER_GET_ARG(1, number));
+
+  size_t end = iotjs_convert_double_to_sizet(JHANDLER_GET_ARG(1, number));
   end = bound_range(end, 0, iotjs_bufferwrap_length(buffer_wrap));
 
   if (end < start) {

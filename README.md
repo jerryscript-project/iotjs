@@ -9,6 +9,12 @@ You can find project details on our [project page](http://samsung.github.io/iotj
 
 Memory usage and Binary footprint are measured at [here](https://samsung.github.io/iotjs-test-results) with real target daily.
 
+The following table shows the latest results on the devices:
+
+|  STM32F4-Discovery  | [![Remote Testrunner](https://samsung.github.io/iotjs-test-results/status/stm32f4dis.svg)](https://samsung.github.io/iotjs-test-results/) |
+|        :---:        |                                             :---:                                                                                         |
+|  **Raspberry Pi 2** | [![Remote Testrunner](https://samsung.github.io/iotjs-test-results/status/rpi2.svg)](https://samsung.github.io/iotjs-test-results/)       |
+
 IRC channel: #iotjs on [freenode](https://freenode.net)  
 Mailing list: iotjs-dev@groups.io, you can subscribe [here](https://groups.io/g/iotjs-dev) and access the mailing list archive [here](https://groups.io/g/iotjs-dev/topics).
 

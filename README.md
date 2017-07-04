@@ -7,6 +7,8 @@
 
 You can find project details on our [project page](http://samsung.github.io/iotjs/) and [wiki](https://github.com/Samsung/iotjs/wiki).
 
+Memory usage and Binary footprint are measured at [here](https://samsung.github.io/iotjs-test-results) with real target daily.
+
 IRC channel: #iotjs on [freenode](https://freenode.net)  
 Mailing list: iotjs-dev@groups.io, you can subscribe [here](https://groups.io/g/iotjs-dev) and access the mailing list archive [here](https://groups.io/g/iotjs-dev/topics).
 

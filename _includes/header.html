@@ -17,19 +17,30 @@
 				{% else %}
 					<li><a href="{{ site.github.url }}/">Home</a></li>
 				{% endif %}
-				{% for p in site.pages %}
-					{% if p.title %}
-						{% if p.url != "/debugger/" and p.url != "/internals/" and p.url != "/port-api/" and p.url !=
-				"/reference-counting/" %}
-						{% if page.url == p.url %}
-							<li class="active"><a href="{{ p.url | prepend: site.github.url }}">{{ p.title }}</a></li>
-						{% else %}
-							<li><a href="{{ p.url | prepend: site.github.url }}">{{ p.title }}</a></li>
-						{% endif %}
-						{% endif %}
-					{% endif %}
-				{% endfor %}
 				<li><a href="http://www.jerryscript.net">Powered by <b>JerryScript</b></a></li>
+			</ul>
+			<ul class="nav navbar-nav navbar-right">
+				{% for p in site.pages %}
+          			{% if p.title %}
+            			{% if p.category == "navbar" %}
+              				{% if page.url == p.url %}
+                				<li class="active"><a href="{{ p.url | prepend: site.github.url }}" >{{ p.title }}</a></li>
+              				{% else %}
+                				<li><a href="{{ p.url | prepend: site.github.url }}" >{{ p.title }}</a></li>
+              				{% endif %}
+            			{% endif %}
+          			{% endif %}
+        		{% endfor %}
+				<li class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" href="#">Documents <span class="caret"></span></a>
+				<ul class="dropdown-menu">
+					{% assign doclist = site.pages | sort: 'title' %}
+					{% for p in doclist %}
+					{% if p.title and p.category == "documents" %}
+						<li><a href="{{ p.url | prepend: site.github.url }}" >{{ p.title }}</a></li>
+					{% endif %}
+					{% endfor %}
+				</ul>
+				</li>
 			</ul>
 		</div>
 		<!--/.nav-collapse -->

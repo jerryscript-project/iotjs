@@ -4,14 +4,14 @@
 
 #### Prerequisites
 
-* Tizen uses GBS to create RPM packages.
+ * Tizen uses GBS to create RPM packages.
   GBS and SDB tools are in Tizen Studio. Please, install tizen studio.
  (https://developer.tizen.org/development/tizen-studio/download)
-* Tizen Studio with CLI also includes GBS.
+ * Tizen Studio with CLI also includes GBS.
 
-* Create a GBS configuration file at ~/.gbs.conf.
+ * Create a GBS configuration file at ~/.gbs.conf.
  (https://source.tizen.org/documentation/reference/git-build-system/configuration-file)
- You can use this Unified build sample at /config/tizen/.gbs.conf
+ * You can use this sample, /config/tizen/.gbs.conf for GBS build.
 
 #### Building
 

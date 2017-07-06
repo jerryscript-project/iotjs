@@ -64,6 +64,7 @@ Development libraries for %{name}
 chmod g-w %_sourcedir/*
 cat LICENSE
 cp %{SOURCE1001} .
+touch abc.txt
 
 %build
 ./tools/build.py --clean --buildtype=%{build_mode} --target-arch=arm \
@@ -76,6 +77,7 @@ mkdir -p %{buildroot}%{_includedir}/iotjs
 mkdir -p %{buildroot}%{_libdir}/iotjs
 mkdir -p %{buildroot}%{_libdir}/pkgconfig
 mkdir -p %{buildroot}%{_includedir}/libtuv
+
 
 cp ./build/arm-tizen/%{build_mode}/bin/iotjs %{buildroot}%{_bindir}/
 cp ./build/arm-tizen/%{build_mode}/lib/* %{buildroot}%{_libdir}/iotjs/

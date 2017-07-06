@@ -14,7 +14,7 @@
 
 include(CMakeForceCompiler)
 
-set(CMAKE_SYSTEM_NAME Tizen)
+set(CMAKE_SYSTEM_NAME Linux)
 set(CMAKE_SYSTEM_PROCESSOR armv7l)
 
 # Only set the compiler if not provided already

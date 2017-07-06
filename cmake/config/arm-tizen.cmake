@@ -26,7 +26,3 @@ if(NOT "${CMAKE_C_COMPILER}" STREQUAL "")
   endif()
   unset(COMPILER_PATH)
 endif()
-
-if("${CMAKE_C_COMPILER}" STREQUAL "")
-  set(CMAKE_C_COMPILER arm-linux-gnueabi-gcc)
-endif()

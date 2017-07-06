@@ -22,7 +22,6 @@ env:
     - OPTS="--test=host-linux"
     - OPTS="--test=rpi2" INSTALL_ARM_DEPS=yes
     - OPTS="--test=nuttx" INSTALL_NUTTX_DEPS=yes
-    - OPTS="--test=artik10" INSTALL_TIZEN_DEPS=yes
     - OPTS="--test=misc"
 
 matrix:

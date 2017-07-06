@@ -17,7 +17,7 @@ cmake_minimum_required(VERSION 2.8)
 # Configure external libtuv
 set(DEPS_TUV deps/libtuv)
 set(DEPS_TUV_SRC ${ROOT_DIR}/${DEPS_TUV})
-message(${DEPS_TUV_SRC})
+
 set(DEPS_TUV_TOOLCHAIN
   ${DEPS_TUV_SRC}/cmake/config/config_${PLATFORM_DESCRIPTOR}.cmake)
 message(STATUS "libtuv toolchain file: ${DEPS_TUV_TOOLCHAIN}")

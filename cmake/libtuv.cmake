@@ -21,7 +21,6 @@ message(${DEPS_TUV_SRC})
 set(DEPS_TUV_TOOLCHAIN
   ${DEPS_TUV_SRC}/cmake/config/config_${PLATFORM_DESCRIPTOR}.cmake)
 message(STATUS "libtuv toolchain file: ${DEPS_TUV_TOOLCHAIN}")
-
 ExternalProject_Add(libtuv
   PREFIX ${DEPS_TUV}
   SOURCE_DIR ${DEPS_TUV_SRC}
@@ -41,7 +40,6 @@ ExternalProject_Add(libtuv
     -DBUILDAPIEMULTESTER=NO
     -DTARGET_SYSTEMROOT=${TARGET_SYSTEMROOT}
     -DTARGET_BOARD=${TARGET_BOARD}
-  GIT_REPOSITORY "https://github.com/Samsung/libtuv.git" 
 )
 add_library(tuv STATIC IMPORTED)
 add_dependencies(tuv libtuv)

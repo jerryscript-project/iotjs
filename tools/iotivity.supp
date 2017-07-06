@@ -1,0 +1,141 @@
+# ------------------------------------------------------------------------
+# Copyright 2015 Intel Corporation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ------------------------------------------------------------------------
+
+# ************************************************************************
+# This file contains Valgrind suppressions.  It is meant to make
+# Valgrind ignore memory violations that are out of the control of
+# IoTivity developers.  Do NOT abuse this file by adding suppressions
+# for memory violations that can be addressed in IoTivity itself.
+# ************************************************************************
+
+# ************************************************************************
+# GLib related suppressions
+#
+# These suppressions hide "possibly lost" leak diagnostics from
+# Valgrind that occur from running simple  code like the following:
+#     GError * error = NULL;
+#     GDBusConnection * const connection =
+#         g_bus_get_sync(G_BUS_TYPE_SYSTEM, NULL, &error);
+#     g_object_unref(connection);
+# ************************************************************************
+
+# gdbus-codegen generated code
+{
+   gdbus-codegen/*-skeleton-new
+   Memcheck:Leak
+   ...
+   fun:*_skeleton_new
+}
+# GLib >= 2.44.1
+{
+   glib/gobject-init-ctor
+   Memcheck:Leak
+   ...
+   fun:gobject_init_ctor
+}
+{
+   glib/g-dbus-auth-run-client
+   Memcheck:Leak
+   ...
+   fun:_g_dbus_auth_run_client
+}
+{
+   glib/g-main-context-iterate-
+   Memcheck:Leak
+   ...
+   fun:g_main_context_iterate.*
+}
+{
+   glib/g-main-context-dispatch
+   Memcheck:Leak
+   ...
+   fun:g_main_context_dispatch
+}
+{
+   glib/g-bus-get-sync
+   Memcheck:Leak
+   ...
+   fun:g_bus_get_sync
+}
+{
+   glib/get-uninitialized-connection
+   Memcheck:Leak
+   ...
+   fun:get_uninitialized_connection
+}
+{
+   glib/g-dbus-address-get-stream-sync
+   Memcheck:Leak
+   ...
+   fun:g_dbus_address_get_stream_sync
+}
+{
+   glib/g-type-register-static-simple
+   Memcheck:Leak
+   ...
+   fun:g_type_register_static_simple
+}
+{
+   glib/g-type-add-interface-static
+   Memcheck:Leak
+   ...
+   fun:g_type_add_interface_static
+}
+{
+   glib/complete-in-idle-cb
+   Memcheck:Leak
+   ...
+   fun:complete_in_idle_cb
+}
+{
+   glib/g-dbus-address-try-connect-one
+   Memcheck:Leak
+   ...
+   fun:g_dbus_address_try_connect_one
+}
+{
+   glib/g-initable-new
+   Memcheck:Leak
+   ...
+   fun:g_initable_new
+}
+# GLib < 2.36
+{
+   glib/g-type-register-fundamental
+   Memcheck:Leak
+   ...
+   fun:g_type_register_fundamental
+}
+{
+   glib/g-type-register-static
+   Memcheck:Leak
+   ...
+   fun:g_type_register_static
+}
+{
+   glib/g-malloc0
+   Memcheck:Leak
+   ...
+   fun:g_malloc0
+   obj:/usr/lib/*/libgobject-2.0*.so.*
+}
+{
+   glib/g-dbus-connection-send-message-with-reply-sync
+   Memcheck:Leak
+   ...
+   fun:g_dbus_connection_send_message_with_reply_sync
+}
+# ************************************************************************

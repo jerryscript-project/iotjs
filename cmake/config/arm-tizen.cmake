@@ -14,7 +14,7 @@
 
 include(CMakeForceCompiler)
 
-set(CMAKE_SYSTEM_NAME Linux)
+set(CMAKE_SYSTEM_NAME Tizen)
 set(CMAKE_SYSTEM_PROCESSOR armv7l)
 
 # Only set the compiler if not provided already
@@ -25,8 +25,4 @@ if(NOT "${CMAKE_C_COMPILER}" STREQUAL "")
     unset(CMAKE_C_COMPILER)
   endif()
   unset(COMPILER_PATH)
-endif()
-
-if("${CMAKE_C_COMPILER}" STREQUAL "")
-  set(CMAKE_C_COMPILER arm-linux-gnueabi-gcc)
 endif()

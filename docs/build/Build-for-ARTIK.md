@@ -9,6 +9,10 @@
   
   This is required to get rootstrap for Tizen (set of native libraries).
 * arm-linux-gnueabi-gcc cross compiler (can be found in Tizen Studio / Native toolchain)
+* Otherwise, you can install on your PC.
+```bash
+sudo apt-get install gcc-arm-linux-gnueabi g++-arm-linux-gnueabi
+```
 
 #### Building
 1. Make sure arm-linux-gnueabi-gcc is in path
@@ -19,6 +23,7 @@ Compile:
 ``` bash
 tools/build.py \
   --target-arch=arm --target-os=tizen --target-board=artik10 \
+  --cross-compile=arm-linux-gnueabi-gcc
   --compile-flag="--sysroot=~/tizen-studio/platforms/tizen-3.0/mobile/rootstraps/mobile-3.0-device.core/"
 ```
 

@@ -1,0 +1,10 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: iotjs
+Description: Platform for Internet of Things with JavaScript
+Version: 1.0.0
+Libs:
+Cflags: -I${includedir}

@@ -171,7 +171,21 @@ In order to use the I2C on stm32f4-discovery board, you must use proper pins.
 Currently only I2C1 is supported.
 
 The following table shows the I2C pin map:
+
 | I2C Pin Name | GPIO Name |
 | :--- | :---: |
 | I2C1_SCL | PB8 |
 | I2C1_SDA | PB7 |
+
+
+## SPI Bus Information
+
+The following table shows currently supported SPI pin number list.
+Currently only SPI1 is supported.
+
+| SPI Pin Name | GPIO Name |
+| :--- | :---: |
+| SPI1_SCK | PA5 |
+| SPI1_MISO | PA6 |
+| SPI1_MOSI | PA7 |
+| SPI1_NSS | PA15 |

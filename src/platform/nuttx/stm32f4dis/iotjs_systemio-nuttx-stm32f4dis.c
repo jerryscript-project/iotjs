@@ -21,8 +21,18 @@
 #include "stm32_gpio.h"
 
 
+void iotjs_gpio_config_nuttx(uint32_t pin) {
+  stm32_configgpio(pin);
+}
+
+
 void iotjs_gpio_unconfig_nuttx(uint32_t pin) {
   stm32_unconfiggpio(pin);
+}
+
+
+void iotjs_gpio_write_nuttx(uint32_t pin, bool value) {
+  stm32_gpiowrite(pin, value);
 }
 
 
@@ -66,6 +76,19 @@ struct pwm_lowerhalf_s* iotjs_pwm_config_nuttx(int timer, uint32_t pin) {
 
   // PWM initialize
   return stm32_pwminitialize(timer);
+}
+
+#endif /* ENABLE_MODULE_PWM */
+
+
+#if ENABLE_MODULE_SPI
+
+#include "stm32_spi.h"
+
+struct spi_dev_s* iotjs_spi_config_nuttx(int bus, uint32_t cs_chip) {
+  stm32_configgpio(cs_chip);
+
+  return stm32_spibus_initialize(bus);
 }
 
 #endif /* ENABLE_MODULE_PWM */

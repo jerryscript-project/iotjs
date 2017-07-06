@@ -4,16 +4,19 @@ The following shows spi module APIs available for each platform.
 
 |  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | NuttX<br/>(STM32F4-Discovery) |
 | :---: | :---: | :---: | :---: |
-| spi.open | O | O | X |
-| spibus.transfer | O | O | X |
-| spibus.transferSync | O | O | X |
-| spibus.close | O | O | X |
-| spibus.closeSync | O | O | X |
+| spi.open | O | O | O |
+| spibus.transfer | O | O | O |
+| spibus.transferSync | O | O | O |
+| spibus.close | O | O | O |
+| spibus.closeSync | O | O | O |
 
 
 ## Class: SPI
 
 SPI (Serial Peripheral Interface) is a communication protocol which defines a way to communicate between devices.
+
+On NuttX, you have to know the number of pins that is defined on the target board module. For more information, please see the list below.
+  * [STM32F4-discovery](../targets/nuttx/stm32f4dis/IoT.js-API-Stm32f4dis.md)
 
 ### new SPI()
 
@@ -42,7 +45,8 @@ Sets the order of the bits shifted out of and into the SPI bus, either MSB (most
 
 ### spi.open(configuration[, callback])
 * `configuration` {Object}
-  * `device` {string} The specified path for `spidev`.
+  * `device` {string} The specified path for `spidev`. (only on Linux)
+  * `bus` {number} The specified bus number. (only on NuttX)
   * `mode` {SPI.MODE} The combinations of the polarity and phase. **Default:** `SPI.MODE[0]`.
   * `chipSelect` {SPI.CHIPSELECT} Chip select state. **Default:** `SPI.CHIPSELECT.NONE`.
   * `maxSpeed` {number} Maximum transfer speed. **Default:** `500000`.

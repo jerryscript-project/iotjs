@@ -47,14 +47,14 @@ function spiBusOpen(configuration, callback) {
   function SpiBus(configuration, callback) {
     var self = this;
 
-    // validate device
-    if (util.isObject(configuration)) {
+    if (process.platform === 'linux') {
       if (!util.isString(configuration.device)) {
-        throw new TypeError(
-          'Bad configuration - device is mandatory and String');
+        throw new TypeError('Bad configuration - device: String');
       }
-    } else {
-      throw new TypeError('Bad arguments - configuration should be Object');
+    } else if (process.platform === 'nuttx') {
+      if (!util.isNumber(configuration.bus)) {
+        throw new TypeError('Bad configuration - bus: Number');
+      }
     }
 
     // validate mode
@@ -202,9 +202,10 @@ function spiBusOpen(configuration, callback) {
       throw new Error('SPI bus is not opened');
     }
 
-    return _binding.close(function(err) {
+    _binding.close(function(err) {
       util.isFunction(callback) && callback.call(self, err);
     });
+    _binding = null;
   };
 
   SpiBus.prototype.closeSync = function() {
@@ -212,7 +213,8 @@ function spiBusOpen(configuration, callback) {
       throw new Error('SPI bus is not opened');
     }
 
-    return _binding.close();
+    _binding.close();
+    _binding = null;
   };
 
   return new SpiBus(configuration, callback);

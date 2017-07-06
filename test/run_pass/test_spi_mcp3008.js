@@ -18,11 +18,19 @@ var Spi = require('spi');
 
 var spi = new Spi();
 
+var configuration = {};
+
+if (process.platform === 'linux') {
+  configuration.device = '/dev/spidev0.0';
+} else if (process.platform === 'nuttx') {
+  configuration.bus = 1;
+} else {
+  assert.fail();
+}
+
 //  mcp3008 test
 var channel = 0;
-var spi0 = spi.open({
-  device: '/dev/spidev0.0'
-}, function() {
+var spi0 = spi.open(configuration, function() {
   var mode = (8 + channel) << 4;
   var tx = [1, mode, 0];
   var rx = [0, 0, 0];

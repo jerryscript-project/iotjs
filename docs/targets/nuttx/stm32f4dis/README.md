@@ -132,6 +132,10 @@ Followings are the options to set:
   * Enable `System Type -> STM32 Peripheral Support -> I2C1`
   * Enable `Device Drivers -> I2C Driver Support`
 
+* For `spi` module
+  * Enable `System Type -> STM32 Peripheral Support -> SPI1`
+  * Enable `Device Drivers -> SPI exchange`  
+
 #### 4. Build IoT.js for NuttX
 
 ##### Follow the instruction

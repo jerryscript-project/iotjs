@@ -18,8 +18,18 @@ var Spi = require('spi');
 
 var spi = new Spi();
 
+var configuration = {};
+
+if (process.platform === 'linux') {
+  configuration.device = '/dev/spidev0.0';
+} else if (process.platform === 'nuttx') {
+  configuration.bus = 1;
+} else {
+  assert.fail();
+}
+
 // Buffer test
-var spi1 = spi.open({device: '/dev/spidev0.0'}, function() {
+var spi1 = spi.open(configuration, function() {
   var data = 'Hello IoTjs';
   var tx = new Buffer(data);
   var rx = new Buffer(11);

@@ -163,7 +163,7 @@ Executable name is **'iotjs'** and resides in (target-arch)-(target-os)/(buildty
 To run greetings JavaScript in test folder, for example;
 
 ```
-./build/x86_64-linux/debug/iotjs/iotjs ./test/run_pass/test_console.js
+./build/x86_64-linux/debug/bin/iotjs ./test/run_pass/test_console.js
 ```
 
 #### Set execution Options
@@ -187,12 +187,12 @@ To print memory statistics, follow the below steps;
 ```
 ./tools/build.py --jerry-memstat
 
-./build/x86_64-linux/debug/iotjs/iotjs --memstat ./test/run_pass/test_console.js
+./build/x86_64-linux/debug/bin/iotjs --memstat ./test/run_pass/test_console.js
 ```
 
 With given `show-opcodes` option, opcodes will be shown.
 ```
-./build/x86_64-linux/debug/iotjs/iotjs --show-opcodes ./test/run_pass/test_console.js
+./build/x86_64-linux/debug/bin/iotjs --show-opcodes ./test/run_pass/test_console.js
 ```
 
 ### 4. Clean build directory

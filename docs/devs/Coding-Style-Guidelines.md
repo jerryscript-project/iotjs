@@ -1,6 +1,3 @@
-Coding Style Guideline
-======================
-
 * [Coding Style Guideline for C](#coding-style-guideline-for-c)
   * Validated Struct
   * Header Files

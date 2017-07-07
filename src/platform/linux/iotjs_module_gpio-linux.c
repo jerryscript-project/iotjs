@@ -42,6 +42,11 @@
 #define GPIO_PIN_BUFFER_SIZE DEVICE_IO_PIN_BUFFER_SIZE
 #define GPIO_VALUE_BUFFER_SIZE 10
 
+struct _iotjs_gpio_module_platform_t {
+  int value_fd;
+  uv_thread_t thread;
+  uv_mutex_t mutex;
+};
 
 // Implementation used here are based on:
 //  https://www.kernel.org/doc/Documentation/gpio/sysfs.txt
@@ -54,9 +59,9 @@ static int gpio_get_value_fd(iotjs_gpio_t* gpio) {
   int fd;
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_gpio_t, gpio);
 
-  uv_mutex_lock(&_this->mutex);
-  fd = _this->value_fd;
-  uv_mutex_unlock(&_this->mutex);
+  uv_mutex_lock(&_this->platform->mutex);
+  fd = _this->platform->value_fd;
+  uv_mutex_unlock(&_this->platform->mutex);
 
   return fd;
 }
@@ -65,9 +70,9 @@ static int gpio_get_value_fd(iotjs_gpio_t* gpio) {
 static void gpio_set_value_fd(iotjs_gpio_t* gpio, int fd) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_gpio_t, gpio);
 
-  uv_mutex_lock(&_this->mutex);
-  _this->value_fd = fd;
-  uv_mutex_unlock(&_this->mutex);
+  uv_mutex_lock(&_this->platform->mutex);
+  _this->platform->value_fd = fd;
+  uv_mutex_unlock(&_this->platform->mutex);
 }
 
 
@@ -176,23 +181,36 @@ static bool gpio_set_edge(iotjs_gpio_t* gpio) {
     char value_path[GPIO_PATH_BUFFER_SIZE];
     snprintf(value_path, GPIO_PATH_BUFFER_SIZE, GPIO_PIN_FORMAT_VALUE,
              _this->pin);
-    if ((_this->value_fd = open(value_path, O_RDONLY)) < 0) {
+    if ((_this->platform->value_fd = open(value_path, O_RDONLY)) < 0) {
       DLOG("GPIO Error in open");
       return false;
     }
 
-    uv_mutex_init(&_this->mutex);
 
     // Create edge detection thread
     // When the GPIO pin is closed, thread is terminated.
-    if (uv_thread_create(&_this->thread, gpio_edge_detection_cb, (void*)gpio) <
-        0) {
+    int ret = uv_thread_create(&_this->platform->thread, gpio_edge_detection_cb,
+                               (void*)gpio);
+    if (ret < 0) {
       DLOG("GPIO Error in uv_thread_create");
     }
     return false;
   }
 
   return true;
+}
+
+
+void iotjs_gpio_platform_create(iotjs_gpio_t_impl_t* _this) {
+  size_t private_mem = sizeof(struct _iotjs_gpio_module_platform_t);
+  _this->platform = (iotjs_gpio_module_platform_t)malloc(private_mem);
+  _this->platform->value_fd = -1;
+  uv_mutex_init(&_this->platform->mutex);
+}
+
+
+void iotjs_gpio_platform_destroy(iotjs_gpio_t_impl_t* _this) {
+  iotjs_buffer_release((char*)_this->platform);
 }
 
 
@@ -235,7 +253,7 @@ bool iotjs_gpio_close(iotjs_gpio_t* gpio) {
   snprintf(buff, GPIO_PIN_BUFFER_SIZE, "%d", _this->pin);
 
   gpio_set_value_fd(gpio, -1);
-  close(_this->value_fd);
+  close(_this->platform->value_fd);
 
   return iotjs_systemio_open_write_close(GPIO_PIN_FORMAT_UNEXPORT, buff);
 }

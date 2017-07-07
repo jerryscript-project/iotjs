@@ -71,7 +71,7 @@ cp %{SOURCE1001} .
  --target-os=tizen --target-board=artik10 \
  --external-shared-lib=capi-system-peripheral-io \
  --compile-flag=-D__TIZEN__ \
- --iotjs-include-module=dgram,i2c \
+ --iotjs-include-module=dgram,gpio,i2c \
  --no-init-submodule --no-parallel-build --no-check-test
 
 %install

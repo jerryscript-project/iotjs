@@ -30,15 +30,15 @@ static iotjs_gpio_t* iotjs_gpio_create(const iotjs_jval_t* jgpio) {
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_gpio_t, gpio);
   iotjs_jobjectwrap_initialize(&_this->jobjectwrap, jgpio,
                                &this_module_native_info);
-#if defined(__linux__)
-  _this->value_fd = -1;
-#endif
+
+  iotjs_gpio_platform_create(_this);
   return gpio;
 }
 
 
 static void iotjs_gpio_destroy(iotjs_gpio_t* gpio) {
   IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_gpio_t, gpio);
+  iotjs_gpio_platform_destroy(_this);
   iotjs_jobjectwrap_destroy(&_this->jobjectwrap);
   IOTJS_RELEASE(gpio);
 }

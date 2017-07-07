@@ -14,7 +14,25 @@
  */
 
 
+#include <iotbus_gpio.h>
+#include <stdlib.h>
+
 #include "modules/iotjs_module_gpio.h"
+
+struct _iotjs_gpio_module_platform_t {
+  iotbus_gpio_context_h gpio_context;
+};
+
+
+void iotjs_gpio_platform_create(iotjs_gpio_t_impl_t* _this) {
+  size_t private_mem = sizeof(struct _iotjs_gpio_module_platform_t);
+  _this->platform = (iotjs_gpio_module_platform_t)malloc(private_mem);
+}
+
+
+void iotjs_gpio_platform_destroy(iotjs_gpio_t_impl_t* _this) {
+  iotjs_buffer_release((char*)_this->platform);
+}
 
 
 void iotjs_gpio_open_worker(uv_work_t* work_req) {
@@ -24,9 +42,8 @@ void iotjs_gpio_open_worker(uv_work_t* work_req) {
   DDDLOG("%s - pin: %d, direction: %d, mode: %d", __func__, _this->pin,
          _this->direction, _this->mode);
 
-  // Open gpio pin
-  _this->gpio_context = iotbus_gpio_open((int)_this->pin);
-  if (_this->gpio_context == NULL) {
+  iotbus_gpio_context_h gpio_context = iotbus_gpio_open((int)_this->pin);
+  if (gpio_context) {
     req_data->result = false;
     return;
   }
@@ -40,10 +57,12 @@ void iotjs_gpio_open_worker(uv_work_t* work_req) {
   } else {
     direction = IOTBUS_GPIO_DIRECTION_NONE;
   }
-  if (iotbus_gpio_set_direction(_this->gpio_context, direction) < 0) {
+  if (iotbus_gpio_set_direction(gpio_context, direction) < 0) {
     req_data->result = false;
     return;
   }
+
+  _this->platform->gpio_context = gpio_context;
 
   req_data->result = true;
 }
@@ -51,8 +70,7 @@ void iotjs_gpio_open_worker(uv_work_t* work_req) {
 
 bool iotjs_gpio_write(iotjs_gpio_t* gpio, bool value) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_gpio_t, gpio);
-
-  if (iotbus_gpio_write(_this->gpio_context, value) < 0) {
+  if (iotbus_gpio_write(_this->platform->gpio_context, value) < 0) {
     return false;
   }
   return true;
@@ -61,15 +79,13 @@ bool iotjs_gpio_write(iotjs_gpio_t* gpio, bool value) {
 
 int iotjs_gpio_read(iotjs_gpio_t* gpio) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_gpio_t, gpio);
-
-  return iotbus_gpio_read(_this->gpio_context);
+  return iotbus_gpio_read(_this->platform->gpio_context);
 }
 
 
 bool iotjs_gpio_close(iotjs_gpio_t* gpio) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_gpio_t, gpio);
-
-  if (iotbus_gpio_close(_this->gpio_context) < 0) {
+  if (iotbus_gpio_close(_this->platform->gpio_context) < 0) {
     return false;
   }
   return true;

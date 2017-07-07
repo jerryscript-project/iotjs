@@ -50,14 +50,27 @@
 #
 ############################################################################
 
-EXTRA_LIBPATHS += -L$(IOTJS_LIB_DIR)
 EXTRA_LIBS += libhttpparser.a libiotjs.a libjerrycore.a libtuv.a libjerry-libm.a
-
 LINKLIBS=$(EXTRA_LIBS)
 
 -include $(TOPDIR)/.config
 -include $(TOPDIR)/Make.defs
 include $(APPDIR)/Make.defs
+
+ifeq ($(IOTJS_ROOT_DIR),)
+  IOTJS_ROOT_DIR = ../../iotjs
+endif
+
+ifeq ($(IOTJS_LIB_DIR),)
+ifeq ($(CONFIG_DEBUG),y)
+  IOTJS_LIB_DIR = ../../$(IOTJS_ROOT_DIR)/build/arm-tizenrt/debug/lib
+else
+  IOTJS_LIB_DIR = ../../$(IOTJS_ROOT_DIR)/build/arm-tizenrt/release/lib
+endif
+
+endif
+EXTRA_LIBPATHS += -L$(IOTJS_LIB_DIR)
+
 
 IOTJS_ABSOLUTE_ROOT_DIR := $(shell cd $(TOPDIR) && cd $(IOTJS_ROOT_DIR) && pwd)
 

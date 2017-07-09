@@ -6,6 +6,8 @@
 /src/iotjs_js.c
 /src/iotjs_string_ext.inl.h
 /test/tmp/*
+/iotivity
+/iotivity/*
 
 # IDE related files
 nbproject
@@ -34,3 +36,4 @@ TAGS
 # config files
 *.config
 !build.config
+!build.iotivity.config

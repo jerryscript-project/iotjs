@@ -439,6 +439,7 @@ def run_checktest(options):
         code = ex.run_cmd('valgrind', ['--leak-check=full',
                                        '--error-exitcode=5',
                                        '--undef-value-errors=no',
+                                       '--suppressions=tools/iotivity.supp',
                                        iotjs,
                                        path.CHECKTEST_PATH] + build_args)
         if code == 5:

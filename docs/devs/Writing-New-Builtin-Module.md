@@ -1,5 +1,3 @@
-Writing New Builtin Module
-==========================
 
 This document provides a guide on how to write a builtin module for IoT.js.
 

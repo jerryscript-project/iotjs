@@ -1,4 +1,3 @@
-## Build IoT.js for ARTIK
 
 ### Tizen on ARTIK10 cross-compile
 

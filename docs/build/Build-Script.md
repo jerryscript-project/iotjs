@@ -16,7 +16,7 @@ You can build IoT.js with default setting for your host machine with;
 ```
 ./tools/build.py
 ```
-The command will generate runnable IoT.js binary in "./build/<arch-os>/debug/iotjs/iotjs".
+The command will generate runnable IoT.js binary in "./build/<arch-os>/debug/bin/iotjs".
 
 You can also build release binary with;
 ```

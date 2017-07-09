@@ -1,6 +1,3 @@
-Optimization Tips
-=================
-
 ## Tracing JerryScript heap usage
 
 Adding below arguments when building and running IoT.js will show you the JerryScript memory status.

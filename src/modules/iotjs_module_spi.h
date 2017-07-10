@@ -23,9 +23,14 @@
 #include "iotjs_reqwrap.h"
 
 
+#if defined(__NUTTX__)
+#include <nuttx/spi/spi.h>
+#endif
+
 typedef enum {
   kSpiOpOpen,
-  kSpiOpTransfer,
+  kSpiOpTransferArray,
+  kSpiOpTransferBuffer,
   kSpiOpClose,
 } SpiOp;
 
@@ -46,9 +51,14 @@ typedef enum { kSpiOrderMsb, kSpiOrderLsb } SpiOrder;
 
 typedef struct {
   iotjs_jobjectwrap_t jobjectwrap;
+#if defined(__linux__)
   iotjs_string_t device;
   int32_t device_fd;
-
+#elif defined(__NUTTX__)
+  int bus;
+  uint32_t cs_chip;
+  struct spi_dev_s* spi_dev;
+#endif
   SpiMode mode;
   SpiChipSelect chip_select;
   SpiOrder bit_order;

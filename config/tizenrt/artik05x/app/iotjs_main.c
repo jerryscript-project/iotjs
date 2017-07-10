@@ -147,16 +147,16 @@ static int iotjs(int argc, char *argv[]) {
 
 #endif
 
+int iotjs_register_cmds(void) {
+  tash_cmd_install("iotjs", iotjs, TASH_EXECMD_SYNC);
+  return 0;
+}
+
 #ifdef CONFIG_BUILD_KERNEL
 int main(int argc, FAR char *argv[])
 #else
 int iotjs_main(int argc, char *argv[])
 #endif
 {
-  return iotjs(argc, argv);
-}
-
-int iotjs_register_cmds(void) {
-  tash_cmd_install("iotjs", iotjs, TASH_EXECMD_SYNC);
-  return 0;
+  return iotjs_register_cmds();
 }

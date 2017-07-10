@@ -97,6 +97,7 @@ void iotjs_pwm_open_worker(uv_work_t* work_req) {
 
   if (!iotjs_pwm_set_options(pwm)) {
     req_data->result = false;
+    return;
   }
 
   req_data->result = true;

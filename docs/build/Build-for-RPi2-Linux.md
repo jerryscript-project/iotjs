@@ -1,4 +1,3 @@
-## Build IoT.js with Raspberry Pi 2
 
 IoT.js supports two build types:
 
@@ -111,7 +110,7 @@ Give `target-arch`, `target-os` and `target-board` options to the script named '
 
 #### Running in Raspberry Pi 2
 
-This script gives you `build/arm-linux/release/iotjs/iotjs` or `build/arm-linux/debug/iotjs/iotjs`.
+This script gives you `build/arm-linux/release/bin/iotjs` or `build/arm-linux/debug/bin/iotjs`.
 Copy this binary with your favorite tool or `scp` like below.
 
 ``` bash

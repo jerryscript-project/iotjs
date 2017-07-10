@@ -1,6 +1,3 @@
-Extended API Guideline
-======================
-
 Basically, our basic APIs are based on node.js. They will follow same form with node.js because of compatibility.<br>
 However, extended APIs need a guideline because they are implemented by many contributor. (for consistent usability)
 

@@ -1,6 +1,3 @@
-Validated Struct
-================
-
 Validated struct is C struct wrapper for encapsulation and validity check.
 
 * Validated Struct Declaration

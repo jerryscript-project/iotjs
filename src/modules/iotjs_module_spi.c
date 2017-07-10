@@ -28,7 +28,9 @@ static iotjs_spi_t* iotjs_spi_create(const iotjs_jval_t* jspi) {
   iotjs_jobjectwrap_initialize(&_this->jobjectwrap, jspi,
                                &this_module_native_info);
 
+#if defined(__linux__)
   _this->device = iotjs_string_create("");
+#endif
 
   return spi;
 }
@@ -37,7 +39,11 @@ static iotjs_spi_t* iotjs_spi_create(const iotjs_jval_t* jspi) {
 static void iotjs_spi_destroy(iotjs_spi_t* spi) {
   IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_spi_t, spi);
   iotjs_jobjectwrap_destroy(&_this->jobjectwrap);
+
+#if defined(__linux__)
   iotjs_string_destroy(&_this->device);
+#endif
+
   IOTJS_RELEASE(spi);
 }
 
@@ -171,11 +177,16 @@ static void iotjs_spi_set_configuration(iotjs_spi_t* spi,
                                         const iotjs_jval_t* joptions) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_spi_t, spi);
 
+#if defined(__linux__)
   iotjs_jval_t jdevice =
       iotjs_jval_get_property(joptions, IOTJS_MAGIC_STRING_DEVICE);
   _this->device = iotjs_jval_as_string(&jdevice);
   iotjs_jval_destroy(&jdevice);
-
+#elif defined(__NUTTX__)
+  iotjs_jval_t jbus = iotjs_jval_get_property(joptions, IOTJS_MAGIC_STRING_BUS);
+  _this->bus = iotjs_jval_as_number(&jbus);
+  iotjs_jval_destroy(&jbus);
+#endif
   iotjs_jval_t jmode =
       iotjs_jval_get_property(joptions, IOTJS_MAGIC_STRING_MODE);
   _this->mode = (SpiMode)iotjs_jval_as_number(&jmode);
@@ -255,8 +266,8 @@ static void iotjs_spi_after_work(uv_work_t* work_req, int status) {
           iotjs_jargs_append_null(&jargs);
         }
         break;
-      case kSpiOpTransfer:
-
+      case kSpiOpTransferArray:
+      case kSpiOpTransferBuffer:
         if (!result) {
           iotjs_jargs_append_error(&jargs, "Cannot transfer from SPI device");
         } else {
@@ -270,7 +281,10 @@ static void iotjs_spi_after_work(uv_work_t* work_req, int status) {
           iotjs_jargs_append_jval(&jargs, &result_data);
           iotjs_jval_destroy(&result_data);
         }
-        iotjs_spi_release_buffer(spi);
+
+        if (req_data->op == kSpiOpTransferArray)
+          iotjs_spi_release_buffer(spi);
+
         break;
       case kSpiOpClose:
         if (!result) {
@@ -342,7 +356,7 @@ JHANDLER_FUNCTION(TransferArray) {
                              JHANDLER_GET_ARG(1, array));
 
   if (jcallback) {
-    SPI_ASYNC(transfer, spi, jcallback, kSpiOpTransfer);
+    SPI_ASYNC(transfer, spi, jcallback, kSpiOpTransferArray);
   } else {
     if (!iotjs_spi_transfer(spi)) {
       JHANDLER_THROW(COMMON, "SPI Transfer Error");
@@ -354,6 +368,8 @@ JHANDLER_FUNCTION(TransferArray) {
       iotjs_jhandler_return_jval(jhandler, &result);
       iotjs_jval_destroy(&result);
     }
+
+    iotjs_spi_release_buffer(spi);
   }
 }
 
@@ -370,7 +386,7 @@ JHANDLER_FUNCTION(TransferBuffer) {
                        JHANDLER_GET_ARG(1, object));
 
   if (jcallback) {
-    SPI_ASYNC(transfer, spi, jcallback, kSpiOpTransfer);
+    SPI_ASYNC(transfer, spi, jcallback, kSpiOpTransferBuffer);
   } else {
     if (!iotjs_spi_transfer(spi)) {
       JHANDLER_THROW(COMMON, "SPI Transfer Error");

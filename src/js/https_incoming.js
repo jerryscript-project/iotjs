@@ -113,6 +113,8 @@ function parserOnHeadersComplete(info) {
   parser.incoming.started = true;
 
   // For client side, if response to 'HEAD' request, we will skip parsing body
+  if (parser.incoming.statusCode == 100)
+    return false;
   return parser.incoming.clientRequest.headersComplete();
 }
 
@@ -136,10 +138,18 @@ function parserOnMessageComplete() {
   var parser = this;
   var incoming = parser.incoming;
 
-  if (incoming) {
-    incoming.completed = true;
-    // no more data from incoming, stream will emit 'end' event
-    incoming.push(null);
+  if (incoming && incoming.statusCode != 100) {
+    if(incoming.statusCode == 100) {
+      incoming.headers = {};
+      incoming.statusCode = null;
+      incoming.statusMessage = null;
+      incoming.started = false;
+    }
+    else{
+      incoming.completed = true;
+      // no more data from incoming, stream will emit 'end' event
+      incoming.push(null);
+    }
   }
 }
 

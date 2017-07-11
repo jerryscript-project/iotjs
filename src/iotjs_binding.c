@@ -272,6 +272,16 @@ static jerry_value_t iotjs_jval_as_raw(const iotjs_jval_t* jval) {
 }
 
 
+bool iotjs_jval_set_prototype(const iotjs_jval_t* jobj, iotjs_jval_t* jproto) {
+  jerry_value_t ret =
+      jerry_set_prototype(iotjs_jval_as_raw(jobj), iotjs_jval_as_raw(jproto));
+  bool error_found = jerry_value_has_error_flag(ret);
+  jerry_release_value(ret);
+
+  return !error_found;
+}
+
+
 void iotjs_jval_set_method(const iotjs_jval_t* jobj, const char* name,
                            iotjs_native_handler_t handler) {
   IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_jval_t, jobj);

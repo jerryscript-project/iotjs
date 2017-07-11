@@ -110,6 +110,7 @@ const iotjs_jval_t* iotjs_jval_as_array(THIS_JVAL);
 const iotjs_jval_t* iotjs_jval_as_function(THIS_JVAL);
 
 /* Methods for General JavaScript Object */
+bool iotjs_jval_set_prototype(const iotjs_jval_t* jobj, iotjs_jval_t* jproto);
 void iotjs_jval_set_method(THIS_JVAL, const char* name,
                            iotjs_native_handler_t handler);
 void iotjs_jval_set_property_jval(THIS_JVAL, const char* name,

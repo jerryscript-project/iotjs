@@ -327,11 +327,15 @@ JHANDLER_FUNCTION(Write) {
 iotjs_jval_t MakeStatObject(uv_stat_t* statbuf) {
   const iotjs_jval_t* fs = iotjs_module_get(MODULE_FS);
 
-  iotjs_jval_t create_stat =
-      iotjs_jval_get_property(fs, IOTJS_MAGIC_STRING__CREATESTAT);
-  IOTJS_ASSERT(iotjs_jval_is_function(&create_stat));
+  iotjs_jval_t stat_prototype =
+      iotjs_jval_get_property(fs, IOTJS_MAGIC_STRING_STATS);
+  IOTJS_ASSERT(iotjs_jval_is_object(&stat_prototype));
 
   iotjs_jval_t jstat = iotjs_jval_create_object();
+  iotjs_jval_set_prototype(&jstat, &stat_prototype);
+
+  iotjs_jval_destroy(&stat_prototype);
+
 
 #define X(statobj, name) \
   iotjs_jval_set_property_number(statobj, #name, statbuf->st_##name);
@@ -349,17 +353,7 @@ iotjs_jval_t MakeStatObject(uv_stat_t* statbuf) {
 
 #undef X
 
-  iotjs_jargs_t jargs = iotjs_jargs_create(1);
-  iotjs_jargs_append_jval(&jargs, &jstat);
-  iotjs_jval_destroy(&jstat);
-
-  iotjs_jval_t res =
-      iotjs_jhelper_call_ok(&create_stat, iotjs_jval_get_undefined(), &jargs);
-
-  iotjs_jargs_destroy(&jargs);
-  iotjs_jval_destroy(&create_stat);
-
-  return res;
+  return jstat;
 }
 
 
@@ -503,6 +497,25 @@ JHANDLER_FUNCTION(ReadDir) {
   iotjs_string_destroy(&path);
 }
 
+static void StatsIsTypeOf(iotjs_jhandler_t* jhandler, int type) {
+  DJHANDLER_CHECK_THIS(object);
+  const iotjs_jval_t* stats = JHANDLER_GET_THIS(object);
+  iotjs_jval_t mode = iotjs_jval_get_property(stats, IOTJS_MAGIC_STRING_MODE);
+
+  int mode_number = (int)iotjs_jval_as_number(&mode);
+
+  iotjs_jval_destroy(&mode);
+
+  iotjs_jhandler_return_boolean(jhandler, (mode_number & S_IFMT) == type);
+}
+
+JHANDLER_FUNCTION(StatsIsDirectory) {
+  StatsIsTypeOf(jhandler, S_IFDIR);
+}
+
+JHANDLER_FUNCTION(StatsIsFile) {
+  StatsIsTypeOf(jhandler, S_IFREG);
+}
 
 iotjs_jval_t InitFs() {
   iotjs_jval_t fs = iotjs_jval_create_object();
@@ -518,6 +531,16 @@ iotjs_jval_t InitFs() {
   iotjs_jval_set_method(&fs, IOTJS_MAGIC_STRING_UNLINK, Unlink);
   iotjs_jval_set_method(&fs, IOTJS_MAGIC_STRING_RENAME, Rename);
   iotjs_jval_set_method(&fs, IOTJS_MAGIC_STRING_READDIR, ReadDir);
+
+  iotjs_jval_t stats_prototype = iotjs_jval_create_object();
+
+  iotjs_jval_set_method(&stats_prototype, IOTJS_MAGIC_STRING_ISDIRECTORY,
+                        StatsIsDirectory);
+  iotjs_jval_set_method(&stats_prototype, IOTJS_MAGIC_STRING_ISFILE,
+                        StatsIsFile);
+
+  iotjs_jval_set_property_jval(&fs, IOTJS_MAGIC_STRING_STATS, &stats_prototype);
+  iotjs_jval_destroy(&stats_prototype);
 
   return fs;
 }

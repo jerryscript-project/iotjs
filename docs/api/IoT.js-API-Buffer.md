@@ -33,15 +33,16 @@ UInt8Array in the future.
 var Buffer = require('buffer');
 
 // Creates a zero-filled Buffer of length 10.
-var buf1 = Buffer(10);
+var buf1 = new Buffer(10);
 
 // Creates a Buffer containing [0x1, 0x2, 0x3].
-var buf2 = Buffer([1, 2, 3]);
+var buf2 = new Buffer([1, 2, 3]);
 
 // Creates a Buffer containing UTF-8 bytes [0x74, 0xc3, 0xa9, 0x73, 0x74].
-var buf3 = Buffer('tést');
+var buf3 = new Buffer('tést');
 ```
 
+## Class: Buffer
 
 ### new Buffer(size)
 * `size` {integer} Size of the new buffer.
@@ -87,22 +88,22 @@ and these pairs are converted to bytes.
 ```js
 var Buffer = require('buffer');
 
-var buffer = new Buffer(String.fromCharCode(65))
+var buffer = new Buffer(String.fromCharCode(65));
 
 // prints: 1
 console.log(buffer);
 
-var buffer = new Buffer(String.fromCharCode(128))
+var buffer = new Buffer(String.fromCharCode(128));
 
 // prints: 2
 console.log(buffer);
 
-var buffer = new Buffer(String.fromCharCode(2048))
+var buffer = new Buffer(String.fromCharCode(2048));
 
 // prints: 3
 console.log(buffer);
 
-var buffer = new Buffer('4142', 'hex')
+var buffer = new Buffer('4142', 'hex');
 
 // prints: AB
 console.log(buffer);
@@ -119,7 +120,7 @@ numbers are converted to integers first and their modulo
 **Example**
 
 ```js
-var buffer = new Buffer([65, 256 + 65, 65 - 256, 65.1])
+var buffer = new Buffer([65, 256 + 65, 65 - 256, 65.1]);
 
 // prints: AAAA
 console.log(buffer);
@@ -214,7 +215,7 @@ this value.
 ```js
 var Buffer = require('buffer');
 
-var buffer = new Buffer([0xc8, 0x80])
+var buffer = new Buffer([0xc8, 0x80]);
 
 // prints: 2
 console.log(buffer.length);

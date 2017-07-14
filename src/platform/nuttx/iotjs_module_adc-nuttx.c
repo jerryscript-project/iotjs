@@ -68,7 +68,7 @@ static bool iotjs_adc_read_data(uint32_t pin, struct adc_msg_s* msg) {
     return false;
   }
 
-  DDLOG("ADC Read - path: %s, value: %d", path, msg->am_data);
+  DDDLOG("ADC Read - path: %s, value: %d", path, msg->am_data);
 
   return true;
 }
@@ -124,8 +124,8 @@ void iotjs_adc_open_worker(uv_work_t* work_req) {
     return;
   }
 
-  DDLOG("%s - path: %s, number: %d, timer: %d", __func__, path, adc_number,
-        timer);
+  DDDLOG("%s - path: %s, number: %d, timer: %d", __func__, path, adc_number,
+         timer);
 
   req_data->result = true;
 }

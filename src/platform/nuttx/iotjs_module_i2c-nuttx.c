@@ -42,7 +42,7 @@ void OpenWorker(uv_work_t* work_req) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_i2c_t, i2c);
   _this->i2c_master = iotjs_i2c_config_nuttx(req_data->device);
   if (!_this->i2c_master) {
-    DDLOG("I2C OpenWorker : cannot open");
+    DLOG("I2C OpenWorker : cannot open");
     req_data->error = kI2cErrOpen;
     return;
   }
@@ -73,7 +73,7 @@ void WriteWorker(uv_work_t* work_req) {
 
   int ret = i2c_write(_this->i2c_master, &_this->config, data, len);
   if (ret < 0) {
-    DDLOG("I2C WriteWorker : cannot write - %d", ret);
+    DLOG("I2C WriteWorker : cannot write - %d", ret);
     req_data->error = kI2cErrWrite;
   } else {
     req_data->error = kI2cErrOk;
@@ -101,7 +101,7 @@ void ReadWorker(uv_work_t* work_req) {
   int ret = i2c_read(_this->i2c_master, &_this->config,
                      (uint8_t*)req_data->buf_data, len);
   if (ret != 0) {
-    DDLOG("I2C ReadWorker : cannot read - %d", ret);
+    DLOG("I2C ReadWorker : cannot read - %d", ret);
     req_data->error = kI2cErrRead;
     return;
   }

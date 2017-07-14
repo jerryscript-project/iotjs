@@ -33,10 +33,19 @@
 #ifdef NDEBUG
 #define IOTJS_ASSERT(x) ((void)(x))
 #else
-#define IOTJS_ASSERT(x) assert(x)
+extern void print_stacktrace();
+extern void force_terminate();
+#define IOTJS_ASSERT(x)                                                      \
+  do {                                                                       \
+    if (!(x)) {                                                              \
+      fprintf(stderr, "%s:%d: Assertion '%s' failed.\n", __FILE__, __LINE__, \
+              #x);                                                           \
+      print_stacktrace();                                                    \
+      force_terminate();                                                     \
+    }                                                                        \
+  } while (0)
 #endif
 #endif
-
 
 #if defined(__arm__)
 #define TARGET_ARCH "arm"

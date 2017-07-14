@@ -213,7 +213,15 @@ static int iotjs_httpparserwrap_on_headers_complete(http_parser* parser) {
   iotjs_jargs_append_jval(&argv, &info);
 
   iotjs_jval_t res = iotjs_make_callback_with_result(&func, jobj, &argv);
-  bool ret = iotjs_jval_as_boolean(&res);
+
+  int ret = 1;
+  if (iotjs_jval_is_boolean(&res)) {
+    ret = iotjs_jval_as_boolean(&res);
+  } else if (iotjs_jval_is_object(&res)) {
+    // if exception throw occurs in iotjs_make_callback_with_result, then the
+    // result can be an object.
+    ret = 0;
+  }
 
   iotjs_jargs_destroy(&argv);
   iotjs_jval_destroy(&func);

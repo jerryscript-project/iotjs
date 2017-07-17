@@ -84,7 +84,7 @@ static bool iotjs_spi_set_configuration(iotjs_spi_t* spi) {
     return false;
   }
 
-  DDLOG(
+  DDDLOG(
       "SPI Options \n mode: %d\n chipSelect: %d\n bitOrder: %d\n "
       "maxSpeed: %d\n bitPerWord: %d\n loopback: %d",
       _this->mode, _this->chip_select, _this->bit_order, _this->max_speed,
@@ -107,7 +107,7 @@ bool iotjs_spi_transfer(iotjs_spi_t* spi) {
   // Transfer data
   int err = ioctl(_this->device_fd, SPI_IOC_MESSAGE(1), &data);
   if (err < 1) {
-    DDLOG("%s - transfer failed: %d", __func__, err);
+    DLOG("%s - transfer failed: %d", __func__, err);
     return false;
   }
 
@@ -126,7 +126,7 @@ bool iotjs_spi_close(iotjs_spi_t* spi) {
     int err = uv_fs_close(loop, &fs_close_req, _this->device_fd, NULL);
     uv_fs_req_cleanup(&fs_close_req);
     if (err < 0) {
-      DDLOG("%s - close failed: %d", __func__, err);
+      DLOG("%s - close failed: %d", __func__, err);
       return false;
     }
     _this->device_fd = -1;

@@ -27,7 +27,7 @@ static bool iotjs_pwm_set_options(iotjs_pwm_t* pwm) {
 
   iotbus_pwm_context_h ctx = _this->ctx;
   if (ctx == NULL) {
-    DDLOG("%s - file open failed", __func__);
+    DLOG("%s - file open failed", __func__);
     return false;
   }
 
@@ -43,7 +43,7 @@ void iotjs_pwm_open_worker(uv_work_t* work_req) {
 
   _this->ctx = iotbus_pwm_open(0, (int)_this->pin);
   if (_this->ctx == NULL) {
-    DDLOG("%s - file open failed", __func__);
+    DLOG("%s - file open failed", __func__);
     req_data->result = false;
     return;
   }
@@ -61,7 +61,7 @@ bool iotjs_pwm_set_period(iotjs_pwm_t* pwm) {
 
   iotbus_pwm_context_h ctx = _this->ctx;
   if (ctx == NULL) {
-    DDLOG("%s - file open failed", __func__);
+    DLOG("%s - file open failed", __func__);
     return false;
   }
 
@@ -76,7 +76,7 @@ bool iotjs_pwm_set_dutycycle(iotjs_pwm_t* pwm) {
 
   iotbus_pwm_context_h ctx = _this->ctx;
   if (ctx == NULL) {
-    DDLOG("%s - file open failed", __func__);
+    DLOG("%s - file open failed", __func__);
     return false;
   }
 
@@ -91,7 +91,7 @@ bool iotjs_pwm_set_enable(iotjs_pwm_t* pwm) {
 
   iotbus_pwm_context_h ctx = _this->ctx;
   if (ctx == NULL) {
-    DDLOG("%s - file open failed", __func__);
+    DLOG("%s - file open failed", __func__);
     return false;
   }
 
@@ -105,7 +105,7 @@ bool iotjs_pwm_set_enable(iotjs_pwm_t* pwm) {
   }
 
   if (ret < 0) {
-    DDLOG("%s - setEnable failed", __func__);
+    DLOG("%s - setEnable failed", __func__);
     return false;
   }
 
@@ -117,7 +117,7 @@ bool iotjs_pwm_close(iotjs_pwm_t* pwm) {
 
   iotbus_pwm_context_h ctx = _this->ctx;
   if (ctx == NULL) {
-    DDLOG("%s - file not opened", __func__);
+    DLOG("%s - file not opened", __func__);
     return false;
   }
 

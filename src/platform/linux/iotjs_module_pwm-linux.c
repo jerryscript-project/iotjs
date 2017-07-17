@@ -135,7 +135,7 @@ bool iotjs_pwm_set_period(iotjs_pwm_t* pwm) {
     if (devicePath) {
       // Linux API uses nanoseconds, thus 1E9
       unsigned int value = (unsigned)(adjust_period(_this->period) * 1.E9);
-      DDLOG("%s - path: %s, value: %fs", __func__, devicePath, 1.E-9 * value);
+      DDDLOG("%s - path: %s, value: %fs", __func__, devicePath, 1.E-9 * value);
       char buf[PWM_VALUE_BUFFER_SIZE];
       if (snprintf(buf, sizeof(buf), "%d", value) > 0) {
         result = iotjs_systemio_open_write_close(devicePath, buf);
@@ -161,7 +161,8 @@ bool iotjs_pwm_set_dutycycle(iotjs_pwm_t* pwm) {
       // Linux API uses nanoseconds, thus 1E9
       unsigned dutyCycleValue = (unsigned)(period * _this->duty_cycle * 1E9);
 
-      DDLOG("%s - path: %s, value: %d\n", __func__, devicePath, dutyCycleValue);
+      DDDLOG("%s - path: %s, value: %d\n", __func__, devicePath,
+             dutyCycleValue);
       char buf[PWM_VALUE_BUFFER_SIZE];
       if (snprintf(buf, sizeof(buf), "%d", dutyCycleValue) < 0) {
         return false;
@@ -187,7 +188,7 @@ bool iotjs_pwm_set_enable(iotjs_pwm_t* pwm) {
       return false;
     }
 
-    DDLOG("%s - path: %s, set: %d\n", __func__, devicePath, _this->enable);
+    DDDLOG("%s - path: %s, set: %d\n", __func__, devicePath, _this->enable);
     char buf[PWM_VALUE_BUFFER_SIZE];
     if (snprintf(buf, sizeof(buf), "%d", _this->enable) < 0) {
       return false;

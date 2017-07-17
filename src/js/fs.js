@@ -19,35 +19,6 @@ var constants = require('constants');
 var util = require('util');
 var fsBuiltin = process.binding(process.binding.fs);
 
-fs.Stats = function(stat) {
-  this.dev = stat.dev;
-  this.mode = stat.mode;
-  this.nlink = stat.nlink;
-  this.uid = stat.uid;
-  this.gid = stat.gid;
-  this.rdev = stat.rdev;
-  this.blksize = stat.blksize;
-  this.ino = stat.ino;
-  this.size = stat.size;
-  this.blocks = stat.blocks;
-};
-
-
-fs.Stats.prototype.isDirectory = function() {
-  return ((this.mode & constants.S_IFMT) === constants.S_IFDIR);
-};
-
-
-fs.Stats.prototype.isFile = function() {
-  return ((this.mode & constants.S_IFMT) === constants.S_IFREG);
-};
-
-
-fsBuiltin._createStat = function(stat) {
-  return new fs.Stats(stat);
-};
-
-
 fs.exists = function(path, callback) {
   if (!path || !path.length) {
     process.nextTick(function () {

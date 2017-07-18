@@ -165,7 +165,7 @@ iotjs_module_t.prototype.compile = function() {
 
 iotjs_module_t.runMain = function(){
   iotjs_module_t.load(process.argv[1], null, true);
-  process._onNextTick();
+  while(process._onNextTick());
 };
 
 iotjs_module_t.prototype.require = function(id) {

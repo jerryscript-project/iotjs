@@ -371,8 +371,13 @@ JHANDLER_FUNCTION(ReadUInt8) {
   offset = bound_range(offset, 0, buffer_length - 1);
 
   char* buffer = iotjs_bufferwrap_buffer(buffer_wrap);
+  uint8_t result = 0;
 
-  iotjs_jhandler_return_number(jhandler, (uint8_t)buffer[offset]);
+  if (buffer != NULL) {
+    result = (uint8_t)buffer[offset];
+  }
+
+  iotjs_jhandler_return_number(jhandler, result);
 }
 
 

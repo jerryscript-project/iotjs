@@ -60,19 +60,17 @@ include $(APPDIR)/Make.defs
 ifeq ($(IOTJS_ROOT_DIR),)
   IOTJS_ROOT_DIR = ../../iotjs
 endif
+IOTJS_ABSOLUTE_ROOT_DIR := $(shell cd $(TOPDIR) && cd $(IOTJS_ROOT_DIR) && pwd)
 
 ifeq ($(IOTJS_LIB_DIR),)
-ifeq ($(CONFIG_DEBUG),y)
-  IOTJS_LIB_DIR = ../../$(IOTJS_ROOT_DIR)/build/arm-tizenrt/debug/lib
-else
-  IOTJS_LIB_DIR = ../../$(IOTJS_ROOT_DIR)/build/arm-tizenrt/release/lib
-endif
-
+  ifeq ($(CONFIG_DEBUG),y)
+    IOTJS_LIB_DIR = $(IOTJS_ABSOLUTE_ROOT_DIR)/build/arm-tizenrt/debug/lib
+  else
+    IOTJS_LIB_DIR = $(IOTJS_ABSOLUTE_ROOT_DIR)/build/arm-tizenrt/release/lib
+  endif
 endif
 EXTRA_LIBPATHS += -L$(IOTJS_LIB_DIR)
 
-
-IOTJS_ABSOLUTE_ROOT_DIR := $(shell cd $(TOPDIR) && cd $(IOTJS_ROOT_DIR) && pwd)
 
 # IoT.js application
 CONFIG_IOTJS_PRIORITY ?= SCHED_PRIORITY_DEFAULT
@@ -97,11 +95,6 @@ MAINOBJ = $(MAINSRC:.c=$(OBJEXT))
 SRCS = $(ASRCS) $(CSRCS) $(MAINSRC)
 OBJS = $(AOBJS) $(COBJS)
 
-ifeq ($(R),1)
-  BUILD_TYPE = release
-else
-  BUILD_TYPE = debug
-endif
 
 ifneq ($(CONFIG_BUILD_KERNEL),y)
   OBJS += $(MAINOBJ)

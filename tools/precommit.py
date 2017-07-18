@@ -27,7 +27,7 @@ from common_py.system.platform import Platform
 from check_tidy import check_tidy
 
 TESTS=['host-linux', 'host-darwin', 'rpi2', 'nuttx', 'misc',
-       'artik10', 'coverity']
+       'artik10', 'artik053', 'coverity']
 BUILDTYPES=['debug', 'release']
 NUTTXTAG = 'nuttx-7.19'
 
@@ -113,6 +113,45 @@ def setup_tizen_root(tizen_root):
             'https://github.com/pmarcinkiew/tizen3.0_rootstrap.git',
             tizen_root])
 
+def copy_tiznert_stuff(tizenrt_root, iotjs_dir):
+    tizenrt_iotjsapp_dir = fs.join(tizenrt_root, 'apps/system/iotjs')
+    if not fs.exists(tizenrt_iotjsapp_dir):
+        iotjs_tizenrt_appdir = fs.join(iotjs_dir,
+                                       'config/tizenrt/artik05x/app')
+        ex.check_run_cmd('cp',
+                         ['-r', iotjs_tizenrt_appdir, tizenrt_iotjsapp_dir])
+
+    tizenrt_config_dir = fs.join(tizenrt_root, 'build/configs/artik053/iotjs')
+    if not fs.exists(tizenrt_config_dir):
+        iotjs_config_dir = \
+            fs.join(iotjs_dir, 'config/tizenrt/artik05x/configs')
+        ex.check_run_cmd('cp',
+                         ['-r', iotjs_config_dir, tizenrt_config_dir])
+
+def setup_tizenrt_repo(tizenrt_root):
+    if fs.exists(tizenrt_root):
+        fs.chdir(tizenrt_root)
+        ex.check_run_cmd('git', ['pull'])
+        fs.chdir(path.PROJECT_ROOT)
+    else:
+        ex.check_run_cmd('git', ['clone',
+            'https://github.com/Samsung/TizenRT.git',
+            tizenrt_root])
+    copy_tiznert_stuff(tizenrt_root, path.PROJECT_ROOT)
+
+def configure_trizenrt(tizenrt_root, buildtype):
+    # TODO: handle buildtype (build vs release) for tizenrt build
+    tizenrt_tools = fs.join(tizenrt_root, 'os/tools')
+    fs.chdir(tizenrt_tools)
+    ex.check_run_cmd('./configure.sh', ['artik053/iotjs'])
+    fs.chdir('..')
+    ex.check_run_cmd('make', ['context'])
+
+def build_tizenrt(tizenrt_root, iotjs_rootdir, buildtype):
+    fs.chdir(fs.join(tizenrt_root, 'os'))
+    iotjs_libdir = iotjs_rootdir + '/build/arm-tizenrt/' + buildtype + '/lib'
+    ex.check_run_cmd('make', ['IOTJS_ROOT_DIR=' + iotjs_rootdir,
+                              'IOTJS_LIB_DIR=' + iotjs_libdir])
 
 def build(buildtype, args=[]):
     fs.chdir(path.PROJECT_ROOT)
@@ -169,6 +208,20 @@ for test in option.test:
                               '--target-board=artik10',
                               '--compile-flag=--sysroot=' + tizen_root
                               ] + os_dependency_module['linux'] + build_args)
+
+    elif test == "artik053":
+        for buildtype in option.buildtype:
+            tizenrt_root = fs.join(path.PROJECT_ROOT, 'deps', 'tizenrt')
+            setup_tizenrt_repo(tizenrt_root)
+            configure_trizenrt(tizenrt_root, buildtype)
+            build(buildtype, ['--target-arch=arm',
+                              '--target-os=tizenrt',
+                              '--target-board=artik05x',
+                              '--sysroot=' + tizenrt_root + '/os',
+                              '--jerry-heaplimit=128',
+                              '--clean',
+                              ] + os_dependency_module['tizenrt'] + build_args)
+            build_tizenrt(tizenrt_root, path.PROJECT_ROOT, buildtype)
 
     elif test == "nuttx":
         current_dir = os.getcwd()

@@ -15,10 +15,11 @@
 
 #if defined(__TIZENRT__)
 
-#include <iotbus_error.h>
-#include <iotbus_pwm.h>
 #include <stdlib.h>
 #include <sys/ioctl.h>
+
+#include <iotbus_error.h>
+#include <iotbus_pwm.h>
 
 #include "modules/iotjs_module_pwm.h"
 

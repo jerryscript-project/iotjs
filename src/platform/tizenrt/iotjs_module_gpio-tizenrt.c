@@ -25,7 +25,7 @@ void iotjs_gpio_open_worker(uv_work_t* work_req) {
          _this->direction, _this->mode);
 
   // Open gpio pin
-  _this->gpio_context = iotbus_gpio_open(_this->pin);
+  _this->gpio_context = iotbus_gpio_open((int)_this->pin);
   if (_this->gpio_context == NULL) {
     req_data->result = false;
     return;

@@ -35,6 +35,7 @@ ExternalProject_Add(http-parser
     -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
     -DOS=${TARGET_OS}
     ${HTTPPARSER_NUTTX_ARG}
+    -DENABLE_MEMORY_CONSTRAINTS=ON
 )
 add_library(libhttp-parser STATIC IMPORTED)
 add_dependencies(libhttp-parser http-parser)

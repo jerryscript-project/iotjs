@@ -14,7 +14,7 @@ Clone IoT.js and TizenRT into iotjs-tizenrt directory
 $ mkdir iotjs-tizenrt
 $ cd iotjs-tizenrt
 $ git clone https://github.com/Samsung/iotjs.git
-$ git clone https://github.com/Samsung/TizenRT.git tizenrt
+$ git clone https://github.com/Samsung/TizenRT.git
 ```
 The following directory structure is created after these commands
 
@@ -24,60 +24,55 @@ iotjs-tizenrt
   |  + config
   |      + tizenrt
   |          + artik05x
-  + tizenrt
+  + TizenRT
 ```
 
 #### 2. Add IoT.js as a builtin application for TizenRT
 
 ```bash
-$ cd tizenrt/apps/system
-$ mkdir iotjs
-$ cp ../../../iotjs/config/tizenrt/artik05x/app/* ./iotjs/
+$ cp iotjs/config/tizenrt/artik05x/app/ TizenRT/apps/system/iotjs -r
+$ cp iotjs/config/tizenrt/artik05x/configs/ TizenRT/build/configs/artik053/iotjs -r
+$ cp iotjs/config/tizenrt/artik05x/romfs.patch TizenRT/
 ```
-
-**WARNING: Manual modification is required**
-
-**WARNING: Below two bullet points are subject to change**
-
-* change tizenrt/apps/system/Kconfig to include iotjs folder
-    ```
-    menu "IoT.js node.js like Javascript runtime"
-    source "$APPSDIR/system/iotjs/Kconfig"
-    endmenu
-    ```
-* Libraries required to link iotjs have to be supplied in some way
-    ```
-    EXTRA_LIBS = -lhttpparser -liotjs -ljerrycore -ltuv -ljerry-libm
-    ```
-
 
 #### 3. Configure TizenRT
 
 ```bash
-$ cd tizenrt/os/tools
-$ ./configure.sh sidk_s5jt200/hello_with_tash
-
-$ cd ..
-# might require to run "make menuconfig" twice
-$ make menuconfig
+$ cd TizenRT/os/tools
+$ ./configure.sh artik053/iotjs
 ```
 
-#### 4. Build IoT.js for TizenRT
+#### 4. Configure ROMFS of TizenRT
 
 ```bash
-$ cd iotjs
-$ ./tools/build.py --target-arch=arm --target-os=tizenrt --target-board=artik05x --sysroot=../tizenrt/os
-
+$ cd ../../
+$ patch -p0 < romfs.patch
+$ cd build/output/
+$ mkdir res
+# You can add files in res folder
+# The res folder is later flashing into the target's /rom folder
 ```
 
-#### 5. Build TizenRT
+#### 5. Build IoT.js for TizenRT
 
 ```bash
-$ cd tizenrt/os
-IOTJS_LIB_DIR=../iotjs/build/arm-tizenrt/debug/lib make
+$ cd os
+$ make context
+$ cd ../../iotjs
+$ ./tools/build.py --target-arch=arm --target-os=tizenrt --sysroot=../TizenRT/os --target-board=artik05x --clean
 ```
-Binaries are available in `tizenrt/build/output/bin`
 
-#### 6. Flashing
+#### 6. Build TizenRT
 
-Yet to be announced on [TizenRT page](https://github.com/Samsung/TizenRT#board)
+```bash
+$ cd ../TizenRT/os
+$ make
+$ genromfs -f ../build/output/bin/rom.img -d ../build/output/res/ -V "NuttXBootVol"
+```
+Binaries are available in `TizenRT/build/output/bin`
+
+#### 7. Flashing
+
+```bash
+$ make download ALL
+```

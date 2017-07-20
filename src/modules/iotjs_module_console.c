@@ -15,12 +15,23 @@
 
 #include "iotjs_def.h"
 
-
+// This function should be able to print utf8 encoded string
+// as utf8 is internal string representation in Jerryscript
 static void Print(iotjs_jhandler_t* jhandler, FILE* out_fd) {
   JHANDLER_CHECK_ARGS(1, string);
 
   iotjs_string_t msg = JHANDLER_GET_ARG(0, string);
-  fprintf(out_fd, "%s", iotjs_string_data(&msg));
+  const char* str = iotjs_string_data(&msg);
+  unsigned str_len = iotjs_string_size(&msg);
+  unsigned idx = 0;
+
+  for (idx = 0; idx < str_len; idx++) {
+    if (str[idx] != 0) {
+      fprintf(out_fd, "%c", str[idx]);
+    } else {
+      fprintf(out_fd, "\\u0000");
+    }
+  }
   iotjs_string_destroy(&msg);
 }
 

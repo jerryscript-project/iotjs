@@ -46,7 +46,7 @@ Sets the order of the bits shifted out of and into the SPI bus, either MSB (most
 ### spi.open(configuration[, callback])
 * `configuration` {Object}
   * `device` {string} The specified path for `spidev`. (only on Linux)
-  * `bus` {number} The specified bus number. (only on NuttX)
+  * `bus` {number} The specified bus number. (NuttX and ARTIK05x only)
   * `mode` {SPI.MODE} The combinations of the polarity and phase. **Default:** `SPI.MODE[0]`.
   * `chipSelect` {SPI.CHIPSELECT} Chip select state. **Default:** `SPI.CHIPSELECT.NONE`.
   * `maxSpeed` {number} Maximum transfer speed. **Default:** `500000`.

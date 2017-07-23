@@ -21,12 +21,8 @@ On NuttX, you have to know the number of pins that is defined on the target boar
   * [STM32F4-discovery](../targets/nuttx/stm32f4dis/IoT.js-API-Stm32f4dis.md#adc-pin)
 
 
-### new ADC()
+### new ADC(configuration[, callback])
 
-Returns a new ADC object which can open an ADC pin.
-
-
-### adc.open(configuration[, callback])
 * `configuration` {Object}
   * `device` {string} Mandatory configuration on Linux.
   * `pin` {int} Mandatory configuration on NuttX.
@@ -39,8 +35,7 @@ Opens an ADC pin with the specified configuration.
 **Example**
 ```js
 var Adc = require('adc');
-var adc = new Adc();
-var adc0 = adc.open({
+var adc0 = new Adc({
   device: '/sys/devices/12d10000.adc/iio:device0/in_voltage0_raw'
 }, function(err) {
   if (err) {
@@ -49,11 +44,7 @@ var adc0 = adc.open({
 });
 ```
 
-
-## Class: ADCPin
-
-
-### adcpin.read([callback])
+### adc.read(callback)
 * `callback` {Function}
   * `err`: {Error|null}
 
@@ -72,7 +63,7 @@ adc0.read(function(err, value) {
 ```
 
 
-### adcpin.readSync()
+### adc.readSync()
 * Returns: `{int}` Analog value.
 
 Reads the analog value from the pin synchronously.
@@ -84,7 +75,7 @@ console.log('value:', value);
 ```
 
 
-### adcpin.close([callback])
+### adc.close([callback])
 * `callback` {Function}
   * `err`: {Error|null}
 
@@ -102,7 +93,7 @@ adc0.close(function(err) {
 ```
 
 
-### adcpin.closeSync()
+### adc.closeSync()
 
 Closes ADC pin synchronously. This function must be called after the work of ADC finished.
 

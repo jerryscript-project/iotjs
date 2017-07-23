@@ -74,6 +74,10 @@ iotjs_jval_t iotjs_jval_create_string_raw(const char* data);
 iotjs_jval_t iotjs_jval_create_object();
 iotjs_jval_t iotjs_jval_create_array(uint32_t len);
 iotjs_jval_t iotjs_jval_create_byte_array(uint32_t len, const char* data);
+jerry_value_t iotjs_jval_dummy_function(const jerry_value_t function_obj,
+                                        const jerry_value_t this_val,
+                                        const jerry_value_t args_p[],
+                                        const jerry_length_t args_count);
 iotjs_jval_t iotjs_jval_create_function(JHandlerType handler);
 iotjs_jval_t iotjs_jval_create_error(const char* msg);
 iotjs_jval_t iotjs_jval_create_error_type(iotjs_error_t type, const char* msg);
@@ -327,6 +331,22 @@ static inline bool ge(uint16_t a, uint16_t b) {
   if (!name) {                                                        \
     return;                                                           \
   }
+
+#define DJHANDLER_GET_REQUIRED_CONF_VALUE(src, target, property, type)        \
+  do {                                                                        \
+    iotjs_jval_t jtmp = iotjs_jval_get_property(src, property);               \
+    if (iotjs_jval_is_undefined(&jtmp)) {                                     \
+      JHANDLER_THROW(TYPE, "Missing argument, required " property);           \
+      return;                                                                 \
+    } else if (iotjs_jval_is_##type(&jtmp))                                   \
+      target = iotjs_jval_as_##type(&jtmp);                                   \
+    else {                                                                    \
+      JHANDLER_THROW(TYPE,                                                    \
+                     "Bad arguments, required " property " is not a " #type); \
+      return;                                                                 \
+    }                                                                         \
+    iotjs_jval_destroy(&jtmp);                                                \
+  } while (0);
 
 void iotjs_binding_initialize();
 void iotjs_binding_finalize();

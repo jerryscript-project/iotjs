@@ -27,6 +27,7 @@ env:
     - OPTS="--test=artik10" INSTALL_TIZEN_DEPS=yes
     - OPTS="--test=artik053" INSTALL_TIZENRT_DEPS=yes
     - OPTS="--test=misc"
+    - OPTS="--test=no-snapshot"
 
 matrix:
   include:

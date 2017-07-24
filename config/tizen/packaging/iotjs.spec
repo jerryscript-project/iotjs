@@ -19,6 +19,7 @@ BuildRequires: pkgconfig(capi-appfw-app-common)
 BuildRequires: pkgconfig(capi-appfw-package-manager)
 BuildRequires: pkgconfig(capi-appfw-application)
 BuildRequires: pkgconfig(dlog)
+BuildRequires: terminfo-base-mini
 #for https
 BuildRequires:  openssl-devel
 BuildRequires:  libcurl-devel

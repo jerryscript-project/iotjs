@@ -20,8 +20,6 @@
 #include "iotjs_exception.h"
 #include "iotjs_reqwrap.h"
 
-#undef JHANDLER_FUNCTION
-#define JHANDLER_FUNCTION(name) static void name(iotjs_jhandler_t* jhandler)
 
 typedef struct {
   iotjs_reqwrap_t reqwrap;

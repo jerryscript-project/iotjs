@@ -2,11 +2,23 @@
 
 This directory contains files to run IoT.js on [TizenRT](https://github.com/Samsung/TizenRT).
 
-WARNING: **This document is not 100% accurate since Artik05x board with tooling is not available yet**
 
 ### How to build
 
 #### 1. Set up the build environment for Artik05x board
+
+* Install toolchain
+
+Get the build in binaries and libraries, [gcc-arm-none-eabi-4_9-2015q3-20150921-linux.tar](https://launchpad.net/gcc-arm-embedded/4.9/4.9-2015-q3-update).
+
+Untar the gcc-arm-none-eabi-4_9-2015q3-20150921-linux.tar and export the path like
+
+```
+$ tar xvf gcc-arm-none-eabi-4_9-2015q3-20150921-linux.tar
+$ export PATH=<Your Toolchain PATH>:$PATH
+```
+
+* Get IoT.js and TizenRT sources
 
 Clone IoT.js and TizenRT into iotjs-tizenrt directory
 

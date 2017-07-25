@@ -26,7 +26,7 @@ from common_py.system.executor import Executor as ex
 from common_py.system.platform import Platform
 from check_tidy import check_tidy
 
-TESTS=['host-linux', 'host-darwin', 'rpi2', 'nuttx', 'misc',
+TESTS=['host-linux', 'host-darwin', 'rpi2', 'nuttx', 'misc', 'no-snapshot',
        'artik10', 'artik053', 'coverity']
 BUILDTYPES=['debug', 'release']
 NUTTXTAG = 'nuttx-7.19'
@@ -239,7 +239,6 @@ for test in option.test:
             fs.chdir(current_dir)
 
     elif test == "misc":
-
         args = []
         if os.getenv('TRAVIS') != None:
             args = ['--travis']
@@ -249,10 +248,17 @@ for test in option.test:
             ex.fail("Failed tidy check")
 
         build("debug", build_args)
+        build("debug", ['--iotjs-minimal-profile'] + build_args)
+
+    elif test == "no-snapshot":
+        args = []
+        if os.getenv('TRAVIS') != None:
+            args = ['--travis']
+
         build("debug", ['--no-snapshot', '--jerry-lto']
                        + os_dependency_module['linux'] + build_args)
 
-        build("debug", ['--iotjs-minimal-profile'] + build_args)
 
     elif test == "coverity":
-        build("debug", os_dependency_module['linux'] + build_args)
+        build("debug", ['--no-check-test']
+                       + os_dependency_module['linux'] + build_args)

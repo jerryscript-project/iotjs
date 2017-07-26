@@ -27,6 +27,10 @@ var buff2 = null;
 var str = 'test string2';
 var num = 1;
 
+if (process.platform === 'tizenrt') {
+  file = '/mnt/test';
+}
+
 fs.writeFileSync(file, buff1);
 buff2 = fs.readFileSync(file);
 assert.equal(buff2.equals(buff1), true);

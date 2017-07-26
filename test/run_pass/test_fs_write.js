@@ -16,9 +16,14 @@
 var fs = require('fs');
 var assert = require('assert');
 
-var dstFilePath = process.cwd() + "/tmp/test_fs3.txt";
-var buff1 = new Buffer("IoT");
-var buff2 = new Buffer(".js");
+var dstFilePath = process.cwd() + '/tmp/test_fs3.txt';
+
+if (process.platform === 'tizenrt') {
+  dstFilePath = '/mnt/test_fs3.txt';
+}
+
+var buff1 = new Buffer('IoT');
+var buff2 = new Buffer('.js');
 
 fs.open(dstFilePath, 'w+', function(err, fd) {
   if (err) {

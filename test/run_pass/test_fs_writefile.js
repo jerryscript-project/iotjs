@@ -25,6 +25,10 @@ var buff1 = new Buffer('test string1');
 var str = 'test string2';
 var num = 1;
 
+if (process.platform === 'tizenrt') {
+  file = '/mnt/test';
+}
+
 fs.writeFile(file, buff1, function (err) {
   assert.equal(err, null);
   fs.readFile(file, function (err, buff2) {

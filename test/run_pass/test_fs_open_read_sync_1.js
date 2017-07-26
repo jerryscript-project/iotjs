@@ -22,6 +22,12 @@ var assert = require('assert');
 var srcFilePath = process.cwd() + "/resources/test1.txt";
 var dstFilePath = process.cwd() + "/tmp/test_fs1.txt";
 
+// TizenRT tests are performed from ROM
+// Files should be stored in other path
+if (process.platform === 'tizenrt') {
+  dstFilePath = "/mnt/test_fs1.txt";
+}
+
 try {
   var fd1 = fs.openSync(srcFilePath, 'r');
   var buffer = new Buffer(128);

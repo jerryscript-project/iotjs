@@ -64,33 +64,41 @@ iotjs_module_t.resolveFilepath = function(id, directories) {
 
   for(var i = 0; i<directories.length ; i++) {
     var dir = directories[i];
+    var modulePath = dir + id;
+
+    // START: Temprorary fix for TizenRT
+    // See: https://github.com/Samsung/TizenRT/issues/320
+    if (process.platform === 'tizenrt' && modulePath[0] !== '/') {
+      modulePath = process.cwd() + '/' + modulePath;
+    }
+    // END: Temprorary fix for TizenRT
+
     // 1. 'id'
-    var filepath = iotjs_module_t.tryPath(dir+id);
+    var filepath = iotjs_module_t.tryPath(modulePath);
 
     if(filepath){
       return filepath;
     }
 
     // 2. 'id.js'
-    filepath = iotjs_module_t.tryPath(dir+id+'.js');
+    filepath = iotjs_module_t.tryPath(modulePath + '.js');
 
     if(filepath){
       return filepath;
     }
 
     // 3. package path id/
-    var packagepath = dir + id;
-    var jsonpath = packagepath + "/package.json";
+    var jsonpath = modulePath + "/package.json";
     filepath = iotjs_module_t.tryPath(jsonpath);
     if(filepath){
       var pkgSrc = process.readSource(jsonpath);
       var pkgMainFile = JSON.parse(pkgSrc).main;
-      filepath = iotjs_module_t.tryPath(packagepath + "/" + pkgMainFile);
+      filepath = iotjs_module_t.tryPath(modulePath + "/" + pkgMainFile);
       if(filepath){
         return filepath;
       }
       // index.js
-      filepath = iotjs_module_t.tryPath(packagepath + "/" + "index.js");
+      filepath = iotjs_module_t.tryPath(modulePath + "/" + "index.js");
       if(filepath){
         return filepath;
       }

@@ -14,7 +14,6 @@
  */
 
 
-
 var fs = require('fs');
 var assert = require('assert');
 
@@ -22,46 +21,55 @@ var assert = require('assert');
 var srcFilePath = process.cwd() + "/resources/test1.txt";
 var dstFilePath = process.cwd() + "/tmp/test_fs2.txt";
 
-var data;
+// TizenRT tests are performed from ROM
+// Files should be stored in other path
+if (process.platform === 'tizenrt') {
+  dstFilePath = "/mnt/test_fs2.txt";
 
-function onWrite(err, written, buffer) {
-  if (err) {
-    throw err;
-  } else {
-    var fd = fs.openSync(dstFilePath, 'r');
-    var buffer = new Buffer(128);
-    fs.readSync(fd, buffer, 0, buffer.length, 0);
-
-    var result = 'TEST File Read & Write\n';
-
-    assert.equal(buffer.toString(), result);
+  // Prepare test environment
+  if (fs.existsSync(dstFilePath)) {
+    fs.unlinkSync(dstFilePath);
   }
 }
 
-function onOpenForWrite(err, fd) {
-  if (err) {
-    throw err;
-  } else {
-    fs.write(fd, data, 0, data.length, onWrite);
+function cleanup() {
+  if (process.platform === 'tizenrt') {
+    fs.unlinkSync(dstFilePath);
   }
+}
+
+var result = 'TEST File Read & Write\n';
+var data;
+
+function onOpenForWrite(err, fd) {
+  assert.equal(err, null, 'Failed to open for write file:' + err);
+
+  fs.write(fd, data, 0, data.length, function (err, written, buffer) {
+    assert.equal(err, null, 'Failed to write file:' + err);
+    fs.closeSync(fd);
+
+    var fdr = fs.openSync(dstFilePath, 'r');
+    var buffer = new Buffer(128);
+    fs.readSync(fdr, buffer, 0, buffer.length, 0);
+    fs.closeSync(fdr);
+
+    cleanup();
+
+    assert.equal(buffer.toString(), result,
+                 'Read/write content does not match');
+  });
 }
 
 function onRead(err, bytesRead, buffer) {
-  if (err) {
-    throw err;
-  } else {
-    data = new Buffer(buffer.toString());
-    fs.open(dstFilePath, 'w', onOpenForWrite);
-  }
+  assert.equal(err, null, 'Failed to read file:' + err);
+  data = new Buffer(buffer.toString());
+  fs.open(dstFilePath, 'w', onOpenForWrite);
 }
 
 function onOpenForRead(err, fd) {
-  if (err) {
-    throw err;
-  } else {
-    var buffer = new Buffer(128);
-    fs.read(fd, buffer, 0, buffer.length, 0, onRead);
-  }
+  assert.equal(err, null, 'Failed to open for read file:' + err);
+  var buffer = new Buffer(128);
+  fs.read(fd, buffer, 0, buffer.length, 0, onRead);
 }
 
 fs.open(srcFilePath, 'r', onOpenForRead);

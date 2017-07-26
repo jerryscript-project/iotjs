@@ -17,49 +17,55 @@ var fs = require('fs');
 var assert = require('assert');
 
 {
-  var filePath = process.cwd() + "/resources/tobeornottobe.txt";
+  var filePath = process.cwd() + '/resources/tobeornottobe.txt';
 
   fs.exists(filePath, function(exists) {
-    assert.equal(exists, true);
+    assert.equal(exists, true, 'File should exist: ' + filePath);
   });
 }
 
 {
-  var filePath = "";
+  var filePath = '';
 
-  assert.doesNotThrow(function(){
+  assert.doesNotThrow(function() {
+    fs.exists(filePath, function (exists) {
+      assert.equal(exists, false, 'File with empty name should not exist');
+    });
+  }, 'Checking fs.exists(\'\') without callback does not throw exception');
+
+  assert.doesNotThrow(function() {
     fs.exists(filePath);
-  });
+  }, 'Checking fs.exists(\'\') without callback does not throw exception');
 }
 
 {
-  var filePath = process.cwd() + "/resources/tobeornottobe.txt";
+  var filePath = process.cwd() + '/resources/tobeornottobe.txt';
 
-  assert.doesNotThrow(function(){
+  assert.doesNotThrow(function() {
     fs.exists(filePath);
+  }, 'Checking fs.exists() for existing file does not throw exception');
+}
+
+{
+  var filePath = process.cwd() + '/resources/empty.txt';
+
+  fs.exists(filePath, function(exists) {
+    assert.equal(exists, false, 'File should not exist' + filePath);
   });
 }
 
 {
-  var filePath = process.cwd() + "/resources/empty.txt";
+  var filePath = '';
 
   fs.exists(filePath, function(exists) {
-    assert.equal(exists, false);
+    assert.equal(exists, false, 'File with empty name should not exist');
   });
 }
 
 {
-  var filePath = "";
+  var filePath = ' ';
 
   fs.exists(filePath, function(exists) {
-    assert.equal(exists, false);
-  });
-}
-
-{
-  var filePath = " ";
-
-  fs.exists(filePath, function(exists) {
-    assert.equal(exists, false);
+    assert.equal(exists, false, 'File name with single whitespace check');
   });
 }

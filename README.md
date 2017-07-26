@@ -42,7 +42,7 @@ build/x86_64-linux/debug/bin/iotjs tools/check_test.js
 For Additional information see [Getting Started](docs/help/Getting-Started.md).
 
 ## Documentation
-- [Getting Started](docs/help/Getting-Started.md)
+- [Getting Started](docs/Getting-Started.md)
 - [API Reference](docs/api/IoT.js-API-reference.md)
 
 ## License

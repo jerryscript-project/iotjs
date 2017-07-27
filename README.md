@@ -39,7 +39,7 @@ build/x86_64-linux/debug/bin/iotjs tools/check_test.js
 ```
 
 
-For Additional information see [Getting Started](docs/help/Getting-Started.md).
+For Additional information see [Getting Started](docs/Getting-Started.md).
 
 ## Documentation
 - [Getting Started](docs/Getting-Started.md)

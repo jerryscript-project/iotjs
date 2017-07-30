@@ -31,6 +31,7 @@ typedef enum {
   kUartOpWrite,
 } UartOp;
 
+typedef struct _iotjs_uart_module_platform_t* iotjs_uart_module_platform_t;
 
 typedef struct {
   iotjs_jobjectwrap_t jobjectwrap;
@@ -42,6 +43,8 @@ typedef struct {
   iotjs_string_t buf_data;
   unsigned buf_len;
   uv_poll_t poll_handle;
+
+  iotjs_uart_module_platform_t platform;
 } IOTJS_VALIDATED_STRUCT(iotjs_uart_t);
 
 

@@ -23,6 +23,8 @@ if (process.platform === 'linux') {
     '/sys/devices/12d10000.adc/iio:device0/in_voltage0_raw';
 } else if (process.platform === 'nuttx') {
   configuration.pin = require('stm32f4dis').pin.ADC1_3;
+} else if (process.platform === 'tizenrt') {
+  configuration.pin = 0;
 } else {
   assert.fail();
 }

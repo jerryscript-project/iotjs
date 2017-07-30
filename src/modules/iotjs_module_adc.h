@@ -34,7 +34,7 @@ typedef struct {
 
 #if defined(__linux__)
   iotjs_string_t device;
-#elif defined(__NUTTX__)
+#elif defined(__NUTTX__) || defined(__TIZENRT__)
   uint32_t pin;
 #endif
   int32_t device_fd;

@@ -20,15 +20,32 @@
 var fs = require('fs');
 var assert = require('assert');
 
-var file1 = process.cwd() + "/resources/rename.txt";
-var file2 = process.cwd() + "/resources/rename.txt.async";
+var file1 = process.cwd() + '/resources/rename.txt';
+var file2 = process.cwd() + '/resources/rename.txt.async';
+
+// TizenRT tests are performed from ROM
+// Files should be stored in other path
+if (process.platform === 'tizenrt') {
+  file1 = '/mnt/rename.txt';
+  file2 = '/mnt/rename.txt.sync';
+
+  fs.closeSync(fs.openSync(file1, 'w'));
+}
+
+assert.equal(fs.existsSync(file1), true,
+             'Test prerequisites: checking existance of ' + file1);
 
 fs.rename(file1, file2, function(err) {
-  assert.equal(err, null);
-  assert.equal(fs.existsSync(file1), false);
-  assert.equal(fs.existsSync(file2), true);
+  assert.equal(err, null, 'Rename error:' + err);
+  assert.equal(fs.existsSync(file1), false, 'Source file exist after renaming');
+  assert.equal(fs.existsSync(file2), true,
+               'Destination file not exist after renaming');
   fs.rename(file2, file1, function(err) {
-    assert.equal(err, null);
-    console.log("Pass");
+    assert.equal(err, null, 'Renaming back error: ' + err);
   });
 });
+
+// Cleanup after test
+if (process.platform === 'tizenrt') {
+  fs.unlinkSync(file1);
+}

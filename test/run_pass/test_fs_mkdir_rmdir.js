@@ -16,6 +16,14 @@
 var fs = require('fs');
 var assert = require('assert');
 
+var testRoot = process.cwd() + "/resources";
+
+// TizenRT tests are performed from ROM
+// Files should be stored in other path
+if (process.platform === 'tizenrt') {
+  testRoot = "/mnt";
+}
+
 function unlink(path) {
   try {
     fs.rmdirSync(path);
@@ -25,9 +33,9 @@ function unlink(path) {
 }
 
 {
-  var root = process.cwd() + "/resources/test_dir";
-  var sub1 = process.cwd() + "/resources/test_dir/file1";
-  var sub2 = process.cwd() + "/resources/test_dir/file2";
+  var root = testRoot + "/test_dir";
+  var sub1 = root + "/file1";
+  var sub2 = root + "/file2";
 
   unlink(sub1);
   unlink(sub2);
@@ -48,7 +56,7 @@ function unlink(path) {
       assert.equal(fs.existsSync(root), false);
     });
 
-    var root2 = process.cwd() + "/resources/test_dir2";
+    var root2 = testRoot + "/test_dir2";
 
     fs.mkdir(root2, 777, function(err) {
       assert.equal(err, null);

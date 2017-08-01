@@ -16,8 +16,12 @@
 var fs = require('fs');
 var assert = require('assert');
 
-var file1 = process.cwd() + "/resources/tobeornottobe.txt";
-var file2 = process.cwd() + "/resources/tobeornottobe_sync.txt";
+var file1 = process.cwd() + '/resources/tobeornottobe.txt';
+var file2 = process.cwd() + '/resources/tobeornottobe_sync.txt';
+
+if (process.platform === 'tizenrt') {
+  file2 = '/mnt/tobeornottobe_sync.txt';
+}
 
 /* make a new file2 from file1 */
 var buf1 = fs.readFileSync(file1);

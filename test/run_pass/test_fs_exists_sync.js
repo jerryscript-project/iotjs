@@ -20,26 +20,26 @@ var assert = require('assert');
   var filePath = process.cwd() + "/resources/tobeornottobe.txt";
 
   var result = fs.existsSync(filePath);
-  assert.equal(result, true);
+  assert.equal(result, true, 'File should exist: ' + filePath);
 }
 
 {
   var filePath = process.cwd() + "/resources/empty.txt";
 
   var result = fs.existsSync(filePath);
-  assert.equal(result, false);
+  assert.equal(result, false, 'File should not exist: ' + filePath);
 }
 
 {
   var filePath = "";
 
   var result = fs.existsSync(filePath);
-  assert.equal(result, false);
+  assert.equal(result, false, 'File with empty should not exist');
 }
 
 {
   var filePath = " ";
 
   var result = fs.existsSync(filePath);
-  assert.equal(result, false);
+  assert.equal(result, false, 'File name with single whitespace check');
 }

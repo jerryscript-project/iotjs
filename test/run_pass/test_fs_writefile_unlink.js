@@ -20,8 +20,12 @@
 var fs = require('fs');
 var assert = require('assert');
 
-var file1 = process.cwd() + "/resources/tobeornottobe.txt";
-var file2 = process.cwd() + "/resources/tobeornottobe_async.txt";
+var file1 = process.cwd() + '/resources/tobeornottobe.txt';
+var file2 = process.cwd() + '/resources/tobeornottobe_async.txt';
+
+if (process.platform === 'tizenrt') {
+  file2 = '/mnt/tobeornottobe_sync.txt';
+}
 
 fs.readFile(file1, function(err, buf1) {
   assert.equal(err, null);

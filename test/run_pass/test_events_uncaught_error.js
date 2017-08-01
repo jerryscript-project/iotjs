@@ -21,14 +21,15 @@ var EventEmitter = require('events').EventEmitter;
 var uncaught_error = false;
 
 process.on('uncaughtException', function(err) {
-  assert.equal(err.message, "Uncaught 'error' event");
+  assert.equal(err.message, "Uncaught 'error' event",
+               'Error type does not match');
   uncaught_error = true;
 });
 
 process.on('exit', function(code) {
   process.removeAllListeners('uncaughtException');
-  assert.equal(code, 0);
-  assert(uncaught_error);
+  assert.equal(code, 0, 'Non-zero exit status code:' + code);
+  assert(uncaught_error, 'Expected uncaughtException was not executed');
 });
 
 var ee = new EventEmitter();

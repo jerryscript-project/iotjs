@@ -70,6 +70,7 @@ static void iotjs_environment_initialize(iotjs_environment_t* env) {
   _this->state = kInitializing;
   _this->config.memstat = false;
   _this->config.show_opcode = false;
+  _this->config.debugger = false;
 }
 
 

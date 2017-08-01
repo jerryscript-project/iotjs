@@ -36,28 +36,28 @@
  */
 static bool iotjs_jerry_initialize(const iotjs_environment_t* env) {
   // Set jerry run flags.
-  uint32_t jerry_flag = JERRY_INIT_EMPTY;
+  jerry_init_flag_t jerry_flags = JERRY_INIT_EMPTY;
 
   if (iotjs_environment_config(env)->memstat) {
-    jerry_flag |= JERRY_INIT_MEM_STATS;
+    jerry_flags |= JERRY_INIT_MEM_STATS;
 #if !defined(__NUTTX__) && !defined(__TIZENRT__)
     jerry_port_default_set_log_level(JERRY_LOG_LEVEL_DEBUG);
 #endif
   }
 
   if (iotjs_environment_config(env)->show_opcode) {
-    jerry_flag |= JERRY_INIT_SHOW_OPCODES;
+    jerry_flags |= JERRY_INIT_SHOW_OPCODES;
 #if !defined(__NUTTX__) && !defined(__TIZENRT__)
     jerry_port_default_set_log_level(JERRY_LOG_LEVEL_DEBUG);
 #endif
   }
 
   if (iotjs_environment_config(env)->debugger) {
-    jerry_flag |= JERRY_INIT_DEBUGGER;
+    jerry_flags |= JERRY_INIT_DEBUGGER;
   }
 
   // Initialize jerry.
-  jerry_init((jerry_init_flag_t)jerry_flag);
+  jerry_init(jerry_flags);
 
   if (iotjs_environment_config(env)->debugger) {
     jerry_debugger_continue();
@@ -113,8 +113,8 @@ static bool iotjs_run() {
 }
 
 
-static bool iotjs_start(iotjs_environment_t* env) {
-  // Initialize commonly used jerry values
+static int iotjs_start(iotjs_environment_t* env) {
+  // Initialize commonly used jerry values.
   iotjs_binding_initialize();
 
   // Bind environment to global object.
@@ -125,15 +125,13 @@ static bool iotjs_start(iotjs_environment_t* env) {
   iotjs_module_list_init();
 
   // Initialize builtin process module.
-  const iotjs_jval_t* process =
-      iotjs_module_initialize_if_necessary(MODULE_PROCESS);
-
-  // Call the entry.
-  // load and call iotjs.js
-  iotjs_environment_go_state_running_main(env);
-
+  const iotjs_jval_t* process = iotjs_init_process_module();
   iotjs_jval_set_property_jval(global, "process", process);
 
+  // Set running state.
+  iotjs_environment_go_state_running_main(env);
+
+  // Load and call iotjs.js.
   iotjs_run();
 
   // Run event loop.
@@ -152,10 +150,12 @@ static bool iotjs_start(iotjs_environment_t* env) {
     }
   } while (more);
 
+  const int exit_code = iotjs_process_exitcode();
+
   iotjs_environment_go_state_exiting(env);
 
   // Emit 'exit' event.
-  iotjs_process_emit_exit(0);
+  iotjs_process_emit_exit(exit_code);
 
   // Release builtin modules.
   iotjs_module_list_cleanup();
@@ -163,7 +163,7 @@ static bool iotjs_start(iotjs_environment_t* env) {
   // Release commonly used jerry values.
   iotjs_binding_finalize();
 
-  return true;
+  return exit_code;
 }
 
 
@@ -182,30 +182,30 @@ int iotjs_entry(int argc, char** argv) {
   // Create environment.
   iotjs_environment_t* env = (iotjs_environment_t*)iotjs_environment_get();
 
+  int ret_code = 0;
+
   // Parse command line arguments.
   if (!iotjs_environment_parse_command_line_arguments(env, (uint32_t)argc,
                                                       argv)) {
     DLOG("iotjs_environment_parse_command_line_arguments failed");
-    return 1;
+    ret_code = 1;
+    goto terminate;
+  }
+
+  // Initialize JerryScript engine.
+  if (!iotjs_jerry_initialize(env)) {
+    DLOG("iotjs_jerry_initialize failed");
+    ret_code = 1;
+    goto terminate;
   }
 
   // Set event loop.
   iotjs_environment_set_loop(env, uv_default_loop());
 
-  // Initialize JerryScript engine.
-  if (!iotjs_jerry_initialize(env)) {
-    DLOG("iotjs_jerry_initialize failed");
-    return 1;
-  }
+  // Start iot.js.
+  ret_code = iotjs_start(env);
 
-  // Start IoT.js
-  if (!iotjs_start(env)) {
-    DLOG("iotjs_start failed");
-    return 1;
-  }
-
-  // close uv loop.
-  // uv_stop(iotjs_environment_loop(env));
+  // Close uv loop.
   uv_walk(iotjs_environment_loop(env), iotjs_uv_walk_to_close_callback, NULL);
   uv_run(iotjs_environment_loop(env), UV_RUN_DEFAULT);
 
@@ -215,11 +215,12 @@ int iotjs_entry(int argc, char** argv) {
   // Release JerryScript engine.
   iotjs_jerry_release();
 
+terminate:
   // Release environment.
   iotjs_environment_release();
 
   // Release debug print setting.
   release_debug_settings();
 
-  return 0;
+  return ret_code;
 }

@@ -85,32 +85,47 @@ http://download.tizen.org/snapshots/tizen/unified/latest/images/standard/common-
 Setup IP on RPi3 target using serial port
 ``` bash
  User id/passwd : root / tizen
- $ ifconfig eth0 down
- $ ifconfig eth0 192.168.1.11 netmask 255.255.255.0 up
- $ route add default gw 192.168.1.1
+ (target)$ ifconfig eth0 down
+ (target)$ ifconfig eth0 192.168.1.11 netmask 255.255.255.0 up
+ (target)$ route add default gw 192.168.1.1
+```
+
+If you want to use your fixed ip when you reboot,
+you need to add ip settings in /etc/profile.
+
+``` bash
+ (ubuntu)$ sdb pull /etc/profile
+ (ubuntu)$ vi profile
+
+ Adding the following configurations
+ ifconfig eth0 down
+ ifconfig eth0 192.168.1.11 netmask 255.255.255.0 up
+ route add default gw 192.168.1.1
+
+ (ubuntu)$ sdb push profile /etc/
 ```
 
 #### SDB connection
  Now you can connect RPi3 on Ubuntu PC
 
 ``` bash
-$ sdb connect 192.168.1.11
+(ubuntu)$ sdb connect 192.168.1.11
  ```
 
 #### Install
 Transfer iotjs binary and test file to the device:
 ``` bash
-sdb push  ~/GBS-ROOT/local/repos/tizen_unified/armv7l/RPMS/iotjs-1.0.0-0.armv7l.rpm /tmp
-sdb push ./test/run_pass/test_console.js /home/owner/iotjs/
-sdb root on
-sdb shell
+(ubuntu)$ sdb push  ~/GBS-ROOT/local/repos/tizen_unified/armv7l/RPMS/iotjs-1.0.0-0.armv7l.rpm /tmp
+(ubuntu)$ sdb push ./test/run_pass/test_console.js /home/owner/iotjs/
+(ubuntu)$ sdb root on
+(ubuntu)$ sdb shell
 (target)$ cd /tmp
-(only in headless Tizen 4.0 target)$ mount -o remount,rw
-(target)$ rpm -ivh --force iotjs-1.0.0.rpm
+(only in headless Tizen 4.0 target)$ mount -o remount,rw /
+(target)$ rpm -ivh --force iotjs-1.0.0-0.armv7l.rpm
 ```
 
 #### Run the test:
 ``` bash
-sdb shell
-$ iotjs test_console.js
+(ubuntu)$ sdb shell
+(target)$ iotjs test_console.js
 ```

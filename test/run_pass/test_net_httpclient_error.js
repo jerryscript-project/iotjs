@@ -56,9 +56,8 @@ req.on('error', function() {
   server.close();
 });
 
-req.setTimeout(100, function(){
-  req.end();
-});
+req.end();
+
 
 process.on('exit', function() {
   assert.equal(recievedResponse, false);

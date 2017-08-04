@@ -40,6 +40,7 @@ var events = require('events');
 var util = require('util');
 
 var Hci = require('ble_hci_socket_hci');
+var uuidUtil = require('ble_uuid_util');
 
 var isLinux = (process.platform === 'linux');
 var isIntelEdison = false; // isLinux && (os.release().indexOf('edison') !== -1);
@@ -76,7 +77,7 @@ Gap.prototype.startAdvertising = function(name, serviceUuids) {
 
   if (serviceUuids && serviceUuids.length) {
     for (i = 0; i < serviceUuids.length; i++) {
-      var serviceUuid = new Buffer(serviceUuids[i].match(/.{1,2}/g).reverse().join(''), 'hex');
+      var serviceUuid = new Buffer(uuidUtil.reverseByteOrder(serviceUuids[i], ''), 'hex');
 
       if (serviceUuid.length === 2) {
         serviceUuids16bit.push(serviceUuid);

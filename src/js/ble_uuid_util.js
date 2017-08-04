@@ -36,8 +36,25 @@
 
 module.exports.removeDashes = function(uuid) {
   if (uuid) {
-    uuid = uuid.replace(/-/g, '');
+    uuid = uuid.split('-').join('');
   }
 
   return uuid;
 };
+
+module.exports.reverseByteOrder = function(str, joint) {
+  str = String(str);
+  var uuid = '';
+  var len = str.length;
+  var i = 0;
+
+  while (i < (len & ~0x1)) {
+    uuid = joint + str.slice(i, i + 2) + uuid;
+    i = i + 2;
+  }
+
+  if (len & 0x1) uuid = str.slice(i, i + 1) + uuid;
+  else if (joint !== '') uuid = uuid.substring(1, uuid.length);
+
+  return uuid;
+}

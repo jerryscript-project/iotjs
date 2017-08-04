@@ -39,10 +39,10 @@ var util = require('util');
 
 var debug = console.log; // require('debug')('ble_characteristic');
 
-var UuidUtil = require('ble_uuid_util');
+var uuidUtil = require('ble_uuid_util');
 
 function Characteristic(options) {
-  this.uuid = UuidUtil.removeDashes(options.uuid);
+  this.uuid = uuidUtil.removeDashes(options.uuid);
   this.properties = options.properties || [];
   this.secure = options.secure || [];
   this.value = options.value || null;

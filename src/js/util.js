@@ -78,32 +78,62 @@ function format(s) {
   if (!isString(s)) {
     var arrs = [];
     for (var i = 0; i < arguments.length; ++i) {
-        arrs.push(formatValue(arguments[i]));
+      arrs.push(formatValue(arguments[i]));
     }
     return arrs.join(' ');
   }
 
   var i = 1;
   var args = arguments;
-  var str = String(s).replace(/%[sdj%]/g, function(m) {
-    if (m === '%%') {
-      return '%';
+  var arg_string;
+  var str = '';
+  var start = 0;
+  var end = 0;
+
+  while (end < s.length) {
+    if (s.charAt(end) !== '%') {
+      end++;
+      continue;
     }
-    if (i >= args.length) {
-      return m;
-    }
-    switch (m) {
-      case '%s': return String(args[i++]);
-      case '%d': return Number(args[i++]);
-      case '%j':
+
+    str += s.slice(start, end);
+
+    switch (s.charAt(end + 1)) {
+      case 's':
+        arg_string = String(args[i]);
+        break;
+      case 'd':
+        arg_string = Number(args[i]);
+        break;
+      case 'j':
         try {
-          return JSON.stringify(args[i++]);
+          arg_string = JSON.stringify(args[i]);
         } catch (_) {
-          return '[Circular]';
+          arg_string = '[Circular]'
         }
-      default: return m;
+        break;
+      case '%':
+        str += '%';
+        start = end = end + 2;
+        continue;
+      default:
+        str = str + '%' + s.charAt(end + 1);
+        start = end = end + 2;
+        continue;
     }
-  });
+
+    if (i >= args.length) {
+      str = str + '%' + s.charAt(end + 1);
+    }
+    else {
+      i++;
+      str += arg_string;
+    }
+
+    start = end = end + 2;
+  }
+
+  str += s.slice(start, end);
 
   while (i < args.length) {
     str += ' ' + formatValue(args[i++]);

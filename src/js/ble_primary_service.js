@@ -39,10 +39,10 @@ var util = require('util');
 
 var debug = console.log; // require('debug')('ble_primary_service');
 
-var UuidUtil = require('ble_uuid_util');
+var uuidUtil = require('ble_uuid_util');
 
 function PrimaryService(options) {
-  this.uuid = UuidUtil.removeDashes(options.uuid);
+  this.uuid = uuidUtil.removeDashes(options.uuid);
   this.characteristics = options.characteristics || [];
 }
 

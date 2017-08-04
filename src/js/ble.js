@@ -39,7 +39,7 @@ var debug = console.log; // require('debug')('ble');
 var events = require('events');
 var util = require('util');
 
-var UuidUtil = require('ble_uuid_util');
+var uuidUtil = require('ble_uuid_util');
 
 var PrimaryService = require('ble_primary_service');
 var Characteristic = require('ble_characteristic');
@@ -143,7 +143,7 @@ Bleno.prototype.startAdvertising = function(name, serviceUuids, callback) {
 
     if (serviceUuids && serviceUuids.length) {
       for (var i = 0; i < serviceUuids.length; i++) {
-        undashedServiceUuids[i] = UuidUtil.removeDashes(serviceUuids[i]);
+        undashedServiceUuids[i] = uuidUtil.removeDashes(serviceUuids[i]);
       }
     }
 
@@ -161,7 +161,7 @@ Bleno.prototype.startAdvertisingIBeacon = function(uuid, major, minor, measuredP
       throw error;
     }
   } else {
-    var undashedUuid =  UuidUtil.removeDashes(uuid);
+    var undashedUuid =  uuidUtil.removeDashes(uuid);
     var uuidData = new Buffer(undashedUuid, 'hex');
     var uuidDataLength = uuidData.length;
     var iBeaconData = new Buffer(uuidData.length + 5);

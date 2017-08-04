@@ -40,6 +40,7 @@ var debug = console.log; // require('debug')('ble_hci_socket_gatt');
 
 var events = require('events');
 var util = require('util');
+var uuidUtil = require('ble_uuid_util');
 
 var ATT_OP_ERROR                    = 0x01;
 var ATT_OP_MTU_REQ                  = 0x02;
@@ -479,7 +480,7 @@ Gatt.prototype.handleFindInfoRequest = function(request) {
 
       response.writeUInt16LE(info.handle, 2 + i * lengthPerInfo);
 
-      uuid = new Buffer(info.uuid.match(/.{1,2}/g).reverse().join(''), 'hex');
+      uuid = new Buffer(uuidUtil.reverseByteOrder(info.uuid, ''), 'hex');
       for (var j = 0; j < uuid.length; j++) {
         //response[2 + i * lengthPerInfo + 2 + j] = uuid[j];
         response.writeUInt8(uuid[j], 2 + i * lengthPerInfo + 2 + j);
@@ -497,8 +498,8 @@ Gatt.prototype.handleFindByTypeRequest = function(request) {
 
   var startHandle = request.readUInt16LE(1);
   var endHandle = request.readUInt16LE(3);
-  var uuid = request.slice(5, 7).toString('hex').match(/.{1,2}/g).reverse().join('');
-  var value = request.slice(7).toString('hex').match(/.{1,2}/g).reverse().join('');
+  var uuid = uuidUtil.reverseByteOrder(request.slice(5, 7).toString('hex'), '');
+  var value = uuidUtil.reverseByteOrder(request.slice(7).toString('hex'), '');
 
   var handles = [];
   var handle;
@@ -548,7 +549,7 @@ Gatt.prototype.handleReadByGroupRequest = function(request) {
 
   var startHandle = request.readUInt16LE(1);
   var endHandle = request.readUInt16LE(3);
-  var uuid = request.slice(5).toString('hex').match(/.{1,2}/g).reverse().join('');
+  var uuid = uuidUtil.reverseByteOrder(request.slice(5).toString('hex'), '');
 
   debug('read by group: startHandle = 0x' + startHandle.toString(16) + ', endHandle = 0x' + endHandle.toString(16) + ', uuid = 0x' + uuid.toString(16));
 
@@ -597,7 +598,7 @@ Gatt.prototype.handleReadByGroupRequest = function(request) {
         response.writeUInt16LE(service.startHandle, 2 + i * lengthPerService);
         response.writeUInt16LE(service.endHandle, 2 + i * lengthPerService + 2);
 
-        var serviceUuid = new Buffer(service.uuid.match(/.{1,2}/g).reverse().join(''), 'hex');
+        var serviceUuid = new Buffer(uuidUtil.reverseByteOrder(service.uuid, ''), 'hex');
         for (var j = 0; j < serviceUuid.length; j++) {
           //response[2 + i * lengthPerService + 4 + j] = serviceUuid[j];
           response.writeUInt8(serviceUuid.readUInt8(j), 2 + i * lengthPerService + 4 + j);
@@ -618,7 +619,7 @@ Gatt.prototype.handleReadByTypeRequest = function(request) {
 
   var startHandle = request.readUInt16LE(1);
   var endHandle = request.readUInt16LE(3);
-  var uuid = request.slice(5).toString('hex').match(/.{1,2}/g).reverse().join('');
+  var uuid = uuidUtil.reverseByteOrder(request.slice(5).toString('hex'), '');
   var i;
   var handle;
 
@@ -668,7 +669,7 @@ Gatt.prototype.handleReadByTypeRequest = function(request) {
         response.writeUInt8(characteristic.properties, 2 + i * lengthPerCharacteristic + 2);
         response.writeUInt16LE(characteristic.valueHandle, 2 + i * lengthPerCharacteristic + 3);
 
-        var characteristicUuid = new Buffer(characteristic.uuid.match(/.{1,2}/g).reverse().join(''), 'hex');
+        var characteristicUuid = new Buffer(uuidUtil.reverseByteOrder(characteristic.uuid, ''), 'hex');
         for (var j = 0; j < characteristicUuid.length; j++) {
           //response[2 + i * lengthPerCharacteristic + 5 + j] = characteristicUuid[j];
           response.writeUInt8(characteristicUuid.readUInt8(j), 2 + i * lengthPerCharacteristic + 5 + j);
@@ -789,9 +790,9 @@ Gatt.prototype.handleReadOrReadBlobRequest = function(request) {
 
     if (handleType === 'service' || handleType === 'includedService') {
       result = ATT_ECODE_SUCCESS;
-      data = new Buffer(handle.uuid.match(/.{1,2}/g).reverse().join(''), 'hex');
+      data = new Buffer(uuidUtil.reverseByteOrder(handle.uuid, ''), 'hex');
     } else if (handleType === 'characteristic') {
-      var uuid = new Buffer(handle.uuid.match(/.{1,2}/g).reverse().join(''), 'hex');
+      var uuid = new Buffer(uuidUtil.reverseByteOrder(handle.uuid, ''), 'hex');
 
       result = ATT_ECODE_SUCCESS;
       data = new Buffer(3 + uuid.length);

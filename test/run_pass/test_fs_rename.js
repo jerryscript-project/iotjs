@@ -42,10 +42,10 @@ fs.rename(file1, file2, function(err) {
                'Destination file not exist after renaming');
   fs.rename(file2, file1, function(err) {
     assert.equal(err, null, 'Renaming back error: ' + err);
+
+    // Cleanup after test
+    if (process.platform === 'tizenrt') {
+      fs.unlinkSync(file1);
+    }
   });
 });
-
-// Cleanup after test
-if (process.platform === 'tizenrt') {
-  fs.unlinkSync(file1);
-}

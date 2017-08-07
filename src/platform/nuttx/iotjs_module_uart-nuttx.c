@@ -19,15 +19,16 @@
 #include "modules/iotjs_module_uart.h"
 
 
-void iotjs_uart_open_worker(uv_work_t* work_req) {
-  UART_WORKER_INIT;
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_uart_t, uart);
+void iotjs_uart_platform_open_worker(uv_work_t* work_req) {
+  iotjs_worker_t worker;
+  iotjs_uart_worker_init(work_req, &worker);
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_uart_t, worker.uart);
 
   int fd = open(iotjs_string_data(&_this->device_path),
                 O_RDWR | O_NOCTTY | O_NDELAY);
 
   if (fd < 0) {
-    req_data->result = false;
+    worker.req_data->result = false;
     return;
   }
 
@@ -36,14 +37,14 @@ void iotjs_uart_open_worker(uv_work_t* work_req) {
 
   uv_loop_t* loop = iotjs_environment_loop(iotjs_environment_get());
   uv_poll_init(loop, poll_handle, fd);
-  poll_handle->data = uart;
+  poll_handle->data = worker.uart;
   uv_poll_start(poll_handle, UV_READABLE, iotjs_uart_read_cb);
 
-  req_data->result = true;
+  worker.req_data->result = true;
 }
 
 
-bool iotjs_uart_write(iotjs_uart_t* uart) {
+bool iotjs_uart_platform_write(iotjs_uart_t* uart) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_uart_t, uart);
   int bytesWritten = 0;
   unsigned offset = 0;
@@ -72,6 +73,16 @@ bool iotjs_uart_write(iotjs_uart_t* uart) {
   } while (_this->buf_len > offset);
 
   return true;
+}
+
+
+bool iotjs_uart_platform_close(iotjs_uart_t* uart) {
+  return iotjs_uart_libtuv_close(uart);
+}
+
+
+void iotjs_uart_platform_close_worker(uv_work_t* work_req) {
+  iotjs_uart_libtuv_close_worker(work_req);
 }
 
 

@@ -170,18 +170,26 @@ request5.end();
 
 
 // Test the IncomingMessage read function.
+var server6 = http.createServer(function(request, response) {
+  request.on('end', function() {
+    response.end('ok');
+    server6.close();
+  });
+}).listen(8080, 5);
+
 var readRequest = http.request({
-  host: 'localhost',
-  port: 80,
+  host: '127.0.0.1',
+  port: 8080,
   path: '/',
   method: 'GET'
 });
 readRequest.end();
+
 readRequest.on('response', function(incomingMessage) {
   incomingMessage.on('readable', function() {
     var inc = incomingMessage.read();
     assert.equal(inc instanceof Buffer, true);
-    assert(inc.toString('utf8').length > 0);
+    assert.assert(inc.toString('utf8').length > 0);
   });
 });
 

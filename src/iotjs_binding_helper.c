@@ -119,6 +119,19 @@ iotjs_jval_t iotjs_make_callback_with_result(const iotjs_jval_t* jfunction,
 }
 
 
+int iotjs_process_exitcode() {
+  const iotjs_jval_t* process = iotjs_module_get(MODULE_PROCESS);
+
+  iotjs_jval_t jexitcode =
+      iotjs_jval_get_property(process, IOTJS_MAGIC_STRING_EXITCODE);
+  IOTJS_ASSERT(iotjs_jval_is_number(&jexitcode));
+
+  const int exitcode = (int)iotjs_jval_as_number(&jexitcode);
+
+  return exitcode;
+}
+
+
 const iotjs_jval_t* iotjs_init_process_module() {
   return iotjs_module_initialize_if_necessary(MODULE_PROCESS);
 }

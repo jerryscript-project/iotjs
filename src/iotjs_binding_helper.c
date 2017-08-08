@@ -127,6 +127,7 @@ int iotjs_process_exitcode() {
   IOTJS_ASSERT(iotjs_jval_is_number(&jexitcode));
 
   const int exitcode = (int)iotjs_jval_as_number(&jexitcode);
+  iotjs_jval_destroy(&jexitcode);
 
   return exitcode;
 }

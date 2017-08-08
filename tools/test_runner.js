@@ -19,8 +19,6 @@ var builtin_modules =
   Object.keys(process.native_sources).concat(Object.keys(process.binding));
 
 function Runner(driver) {
-  process._exiting = false;
-
   this.driver = driver;
   this.test = driver.currentTest();
   this.finished = false;

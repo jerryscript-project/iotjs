@@ -22,6 +22,7 @@ var EventEmitter = require('events').EventEmitter;
 
 var root = 'test';
 var parent = '..';
+var watch = new util.Watch();
 
 function Driver() {
   this.results = {
@@ -33,6 +34,8 @@ function Driver() {
 
   this.emitter = new EventEmitter();
   this.emitter.addListener('nextTest', function(driver, status, test) {
+    var elapsedTime = ' (' + watch.delta().toFixed(2) + 's) ';
+
     if (driver.runner) {
       driver.runner.cleanup();
     }
@@ -40,17 +43,17 @@ function Driver() {
 
     if (status == 'pass') {
       driver.results.pass++;
-      driver.logger.message('PASS : ' + filename, status);
+      driver.logger.message('PASS : ' + filename + elapsedTime, status);
     } else if (status == 'fail') {
       driver.results.fail++;
-      driver.logger.message('FAIL : ' + filename, status);
+      driver.logger.message('FAIL : ' + filename + elapsedTime, status);
     } else if (status == 'skip') {
       driver.results.skip++;
       driver.logger.message('SKIP : ' + filename +
                    '   (reason : ' + test.reason + ")", status);
     } else if (status == 'timeout') {
       driver.results.timeout++;
-      driver.logger.message('TIMEOUT : ' + filename, status);
+      driver.logger.message('TIMEOUT : ' + filename + elapsedTime, status);
     }
     driver.fIdx++;
     driver.runNextTest();
@@ -258,5 +261,6 @@ process.exit = function(code) {
 
 var conf = driver.config();
 if (conf) {
+  watch.delta();
   driver.runNextTest();
 }

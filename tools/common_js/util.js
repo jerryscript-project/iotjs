@@ -25,5 +25,25 @@ function join() {
   return path;
 }
 
+function Watch() {
+  this.reset();
+}
+
+Watch.prototype.reset = function() {
+  this.startTime = 0;
+  this.elapsedTime = 0;
+}
+
+Watch.prototype.delta = function() {
+  if (this.startTime) {
+    this.elapsedTime = (Date.now() - this.startTime) / 1000;
+  }
+
+  this.startTime = Date.now();
+
+  return this.elapsedTime;
+}
+
 module.exports.absolutePath = absolutePath;
 module.exports.join = join;
+module.exports.Watch = Watch;

@@ -39,6 +39,7 @@ function SocketState(options) {
   this.readable = true;
 
   this.destroyed = false;
+  this.errored = false;
 
   this.allowHalfOpen = options && options.allowHalfOpen || false;
 }
@@ -139,7 +140,6 @@ Socket.prototype.write = function(data, callback) {
   if (!util.isString(data) && !util.isBuffer(data)) {
     throw new TypeError('invalid argument');
   }
-
   return stream.Duplex.prototype.write.call(this, data, callback);
 };
 
@@ -150,16 +150,25 @@ Socket.prototype._write = function(chunk, callback, afterWrite) {
 
   var self = this;
 
-  resetSocketTimeout(self);
-
-  self._handle.owner = self;
-
-  self._handle.write(chunk, function(status) {
-    afterWrite(status);
+  if (self.errored) {
+    process.nextTick(afterWrite, 1);
     if (util.isFunction(callback)) {
-      callback.call(self, status);
+      process.nextTick(function(self, status) {
+        callback.call(self, status);
+      }, self, 1);
     }
-  });
+  } else {
+    resetSocketTimeout(self);
+
+    self._handle.owner = self;
+
+    self._handle.write(chunk, function(status) {
+      afterWrite(status);
+      if (util.isFunction(callback)) {
+        callback.call(self, status);
+      }
+    });
+  }
 };
 
 
@@ -333,6 +342,11 @@ function clearSocketTimeout(socket) {
 
 
 function emitError(socket, err) {
+  socket.errored = true;
+  stream.Duplex.prototype.end.call(socket, '', function() {
+    socket.destroy();
+  });
+  socket._readyToWrite();
   socket.emit('error', err);
 }
 
@@ -341,8 +355,8 @@ function maybeDestroy(socket) {
   var state = socket._socketState;
 
   if (!state.connecting &&
-      !state.writable &&
-      !state.readable) {
+    !state.writable &&
+    !state.readable) {
     socket.destroy();
   }
 }

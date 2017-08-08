@@ -27,7 +27,10 @@
 
 iotjs_string_t iotjs_file_read(const char* path) {
   FILE* file = fopen(path, "rb");
-  IOTJS_ASSERT(file != NULL);
+  if (file == NULL) {
+    iotjs_string_t empty_content = iotjs_string_create();
+    return empty_content;
+  }
 
   fseek(file, 0, SEEK_END);
   long ftell_ret = ftell(file);

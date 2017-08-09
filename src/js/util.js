@@ -123,6 +123,12 @@ function formatValue(v) {
 }
 
 
+function stringToNumber(value, default_value) {
+  var num = Number(value);
+  return isNaN(num) ? default_value : num;
+}
+
+
 function errnoException(err, syscall, original) {
   var errname = "error"; // uv.errname(err);
   var message = syscall + ' ' + errname;
@@ -174,7 +180,6 @@ exports.isBuffer = isBuffer;
 exports.isArray = Array.isArray;
 exports.exceptionWithHostPort = exceptionWithHostPort;
 exports.errnoException = errnoException;
-
+exports.stringToNumber = stringToNumber;
 exports.inherits = inherits;
-
 exports.format = format;

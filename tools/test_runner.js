@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+var assert = require('assert');
+var util = require('util');
 var testdriver = require('testdriver');
 var console_wrapper = require('common_js/module/console');
 var builtin_modules =
@@ -32,6 +34,12 @@ function Runner(driver) {
     this.console = console;
     console = console_wrapper;
   }
+
+  this.timeout = this.test['timeout'];
+  if (!this.timeout) {
+    this.timeout = driver.options['default-timeout'];
+  }
+  assert.assert(util.isNumber(this.timeout), "Timeout is not a number.");
 
   return this;
 }
@@ -126,15 +134,11 @@ Runner.prototype.run = function() {
   }
 
   this.timer = null;
-  if (this.test['timeout']) {
-    var timeout = this.test['timeout'];
-    if (timeout) {
-      var that = this;
-      this.timer = setTimeout(function () {
-        that.finish('timeout');
-      }, timeout * 1000);
-    }
-  }
+
+  var that = this;
+  this.timer = setTimeout(function () {
+    that.finish('timeout');
+  }, this.timeout * 1000);
 
   try {
     var source = this.driver.test();

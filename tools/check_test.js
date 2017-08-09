@@ -84,6 +84,8 @@ Driver.prototype.config = function() {
     "output coverage information");
   parser.addOption('experimental', "yes|no", "no",
     "a flag that indicates if tests for experimental are needed");
+  parser.addOption('default-timeout', "", 240,
+    "the default timeout in seconds");
 
   var options = parser.parse();
 

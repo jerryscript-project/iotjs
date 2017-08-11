@@ -86,7 +86,7 @@
     { "name": "test_process_uncaught_order.js", "uncaught": true },
     { "name": "test_process_uncaught_simple.js", "uncaught": true },
     { "name": "test_pwm.js", "skip": ["all"], "reason": "need to setup test environment" },
-    { "name": "test_spi.js", "skip": ["all"], "reason": "need to setup test environment" },
+    { "name": "test_spi.js", "skip": ["linux"], "reason": "Differend env on Linux desktop/travis/rpi" },
     { "name": "test_stream.js" },
     { "name": "test_stream_duplex.js"},
     { "name": "test_timers_arguments.js" },

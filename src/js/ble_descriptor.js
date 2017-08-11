@@ -36,10 +36,10 @@
 
 var debug = console.log; // require('debug')('descriptor');
 
-var UuidUtil = require('ble_uuid_util');
+var uuidUtil = require('ble_uuid_util');
 
 function Descriptor(options) {
-  this.uuid = UuidUtil.removeDashes(options.uuid);
+  this.uuid = uuidUtil.removeDashes(options.uuid);
   this.value = options.value || new Buffer(0);
 }
 

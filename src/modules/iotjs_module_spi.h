@@ -22,16 +22,6 @@
 #include "iotjs_objectwrap.h"
 #include "iotjs_reqwrap.h"
 
-#if defined(__TIZENRT__)
-#include <iotbus_spi.h>
-#include <tinyara/config.h>
-#endif
-
-
-#if defined(__NUTTX__)
-#include <nuttx/spi/spi.h>
-#endif
-
 typedef enum {
   kSpiOpOpen,
   kSpiOpTransferArray,
@@ -53,20 +43,10 @@ typedef enum {
 
 typedef enum { kSpiOrderMsb, kSpiOrderLsb } SpiOrder;
 
+typedef struct _iotjs_spi_module_platform_t* iotjs_spi_module_platform_t;
 
 typedef struct {
   iotjs_jobjectwrap_t jobjectwrap;
-#if defined(__linux__)
-  iotjs_string_t device;
-  int32_t device_fd;
-#elif defined(__NUTTX__)
-  int bus;
-  uint32_t cs_chip;
-  struct spi_dev_s* spi_dev;
-#elif defined(__TIZENRT__)
-  unsigned int bus;
-  iotbus_spi_context_h hSpi;
-#endif
   SpiMode mode;
   SpiChipSelect chip_select;
   SpiOrder bit_order;
@@ -80,6 +60,7 @@ typedef struct {
   char* rx_buf_data;
   uint8_t buf_len;
 
+  iotjs_spi_module_platform_t platform;
 } IOTJS_VALIDATED_STRUCT(iotjs_spi_t);
 
 
@@ -118,5 +99,9 @@ bool iotjs_spi_close(iotjs_spi_t* spi);
 
 void iotjs_spi_open_worker(uv_work_t* work_req);
 
+void iotjs_spi_platform_create(iotjs_spi_t_impl_t* _this);
+void iotjs_spi_platform_destroy(iotjs_spi_t_impl_t* _this);
+void iotjs_spi_platform_set_cofiguration(iotjs_spi_t_impl_t* _this,
+                                         const iotjs_jval_t* joptions);
 
 #endif /* IOTJS_MODULE_SPI_H */

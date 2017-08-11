@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+var util = require('util');
+
 function Option(arg, value, default_value, help) {
   this.arg = arg;
   this.value = value;
@@ -60,6 +62,11 @@ OptionParser.prototype.parse = function() {
     var val = arg_val[1];
     var found = false;
 
+    if (arg === "default-timeout") {
+      // Transform to number, or use default value.
+      val = util.stringToNumber(val, options[arg]);
+    }
+
     for (var oIdx in this.options) {
       if (arg == this.options[oIdx].arg) {
         options[arg] = val;
@@ -84,6 +91,4 @@ OptionParser.prototype.printHelp = function() {
 }
 
 
-
-
- module.exports.OptionParser = OptionParser;
+module.exports.OptionParser = OptionParser;

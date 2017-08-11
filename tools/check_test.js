@@ -30,6 +30,12 @@ function Driver() {
     fail: 0,
     skip: 0,
     timeout: 0,
+    json: {
+      bin: { text:0, total:0, data:0, bss:0, rodata:0 },
+      date: new Date().toISOString(),
+      tests: [],
+      submodules: [],
+    },
   };
 
   this.emitter = new EventEmitter();
@@ -41,6 +47,7 @@ function Driver() {
     }
     var filename = test['name'];
 
+    driver.addTestResult(filename, status, test.reason);
     if (status == 'pass') {
       driver.results.pass++;
       driver.logger.message('PASS : ' + filename + elapsedTime, status);
@@ -68,6 +75,17 @@ function Driver() {
   return this;
 }
 
+Driver.prototype.addTestResult = function(name, result, output) {
+  var item = {
+    name: name,
+    result: result
+  }
+  if (result !== 'pass') {
+    item.output = output;
+  }
+  this.results.json.tests.push(item);
+}
+
 Driver.prototype.config = function() {
   var parser = new OptionParser();
 
@@ -78,6 +96,8 @@ Driver.prototype.config = function() {
     "console outputs of test case");
   parser.addOption('output-file', "", "",
     "a file name where the driver leaves output");
+  parser.addOption('output-json', "", "",
+    "a file name where the driver leaves JSON test results");
   parser.addOption('skip-module', "", "",
     "a module list to skip test of specific modules");
   parser.addOption('output-coverage', "yes|no", "no",
@@ -98,9 +118,12 @@ Driver.prototype.config = function() {
   if (output) {
     if (this.os == 'nuttx') {
       var path = util.join('/mnt/sdcard', output);
+    } else if (this.os == 'tizenrt') {
+      var path = util.join('/mnt', output);
     } else {
       var path = util.join(this.root, '..', output);
     }
+    console.log('Storing test results in:', path);
     fs.writeFileSync(path, new Buffer(''));
   }
   var skipModule = options['skip-module'];
@@ -202,6 +225,13 @@ Driver.prototype.test = function() {
 };
 
 Driver.prototype.finish = function() {
+
+  if (this.options['output-json'] !== '') {
+    console.log('storing test result to', this.options['output-json'])
+    fs.writeFileSync(this.options['output-json'],
+                     Buffer(JSON.stringify(this.results.json)));
+  }
+
   this.logger.message('\n\nfinish all tests', this.logger.status.summary);
 
   this.logger.message('PASS : ' + this.results.pass, this.logger.status.pass);
@@ -246,6 +276,8 @@ process.exit = function(code) {
       driver.runner.finish('pass');
     } else {
       console.error(e);
+
+      driver.test.reason = '' + e;
       driver.runner.finish('fail');
     }
   } finally {

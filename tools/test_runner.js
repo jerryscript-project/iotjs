@@ -150,6 +150,7 @@ Runner.prototype.run = function() {
       throw e;
     } else {
       console.error(e);
+      this.test.reason = '' + e;
       this.finish('fail');
     }
   } finally {

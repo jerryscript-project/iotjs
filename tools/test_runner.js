@@ -164,6 +164,7 @@ Runner.prototype.finish = function(status) {
     return;
 
   this.finished = true;
+  process._exiting = false;
 
   this.driver.emitter.emit('nextTest', this.driver, status, this.test);
 };

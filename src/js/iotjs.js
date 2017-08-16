@@ -140,11 +140,15 @@ function _onUncaughtException(error) {
 
 
 process.exitCode = 0;
+process._exiting = false;
 process.emitExit = function(code) {
-  if (code || code == 0) {
-    process.exitCode = code;
+  if (!process._exiting) {
+    process._exiting = true;
+    if (code || code == 0) {
+      process.exitCode = code;
+    }
+    process.emit('exit', process.exitCode || 0);
   }
-  process.emit('exit', process.exitCode || 0);
 }
 
 

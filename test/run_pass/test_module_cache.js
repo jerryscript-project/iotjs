@@ -15,8 +15,18 @@
 
 var assert = require('assert');
 
-var module_cache = require('run_pass/require1/module_cache.js');
-module_cache.i = 100;
-module_cache = require('run_pass/require1/module_cache.js');
+var dir = process.cwd() + '/run_pass/require1/';
+var dirDoubleDot = dir + '../require1/';
+var dirDot = dir + './';
 
-assert.equal(module_cache.i, 100);
+var moduleCache = require(dir + 'module_cache.js');
+moduleCache.i = 100;
+
+moduleCache = require(dir + 'module_cache.js');
+assert.equal(moduleCache.i, 100);
+
+moduleCache = require(dirDoubleDot + 'module_cache.js');
+assert.equal(moduleCache.i, 100);
+
+moduleCache = require(dirDot + 'module_cache.js');
+assert.equal(moduleCache.i, 100);

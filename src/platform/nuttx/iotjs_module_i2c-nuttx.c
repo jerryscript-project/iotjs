@@ -13,7 +13,11 @@
  * limitations under the License.
  */
 
-#if defined(__NUTTX__)
+#if !defined(__NUTTX__)
+#error "Module __FILE__ is for nuttx only"
+#endif
+
+#include <nuttx/i2c/i2c_master.h>
 
 #include "iotjs_systemio-nuttx.h"
 
@@ -22,56 +26,76 @@
 
 #define I2C_DEFAULT_FREQUENCY 400000
 
+struct iotjs_i2c_platform_data_s {
+  int device;
+  struct i2c_master_s* i2c_master;
+  struct i2c_config_s config;
+};
 
-void I2cSetAddress(iotjs_i2c_t* i2c, uint8_t address) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_i2c_t, i2c);
-  _this->config.address = address;
-  _this->config.addrlen = 7;
+void i2c_create_platform_data(iotjs_jhandler_t* jhandler, iotjs_i2c_t* i2c,
+                              iotjs_i2c_platform_data_t** ppdata) {
+  iotjs_i2c_platform_data_t* pdata = IOTJS_ALLOC(iotjs_i2c_platform_data_t);
+
+  DJHANDLER_CHECK_ARGS(2, number, function);
+  pdata->device = JHANDLER_GET_ARG(0, number);
+  pdata->i2c_master = NULL;
+  *ppdata = pdata;
 }
 
+void i2c_destroy_platform_data(iotjs_i2c_platform_data_t* pdata) {
+  (void)pdata;
+}
 
 #define I2C_WORKER_INIT_TEMPLATE                                            \
   iotjs_i2c_reqwrap_t* req_wrap = iotjs_i2c_reqwrap_from_request(work_req); \
   iotjs_i2c_reqdata_t* req_data = iotjs_i2c_reqwrap_data(req_wrap);
 
+#define IOTJS_I2C_METHOD_HEADER(arg)              \
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_i2c_t, arg) \
+  iotjs_i2c_platform_data_t* platform_data = _this->platform_data;
+
+
+void I2cSetAddress(iotjs_i2c_t* i2c, uint8_t address) {
+  IOTJS_I2C_METHOD_HEADER(i2c);
+  platform_data->config.address = address;
+  platform_data->config.addrlen = 7;
+}
 
 void OpenWorker(uv_work_t* work_req) {
   I2C_WORKER_INIT_TEMPLATE;
   iotjs_i2c_t* i2c = iotjs_i2c_instance_from_reqwrap(req_wrap);
 
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_i2c_t, i2c);
-  _this->i2c_master = iotjs_i2c_config_nuttx(req_data->device);
-  if (!_this->i2c_master) {
+  IOTJS_I2C_METHOD_HEADER(i2c);
+  platform_data->i2c_master = iotjs_i2c_config_nuttx(platform_data->device);
+  if (!platform_data->i2c_master) {
     DLOG("I2C OpenWorker : cannot open");
     req_data->error = kI2cErrOpen;
     return;
   }
 
-  _this->config.frequency = I2C_DEFAULT_FREQUENCY;
+  platform_data->config.frequency = I2C_DEFAULT_FREQUENCY;
 
   req_data->error = kI2cErrOk;
 }
 
-
 void I2cClose(iotjs_i2c_t* i2c) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_i2c_t, i2c);
-
-  iotjs_i2c_unconfig_nuttx(_this->i2c_master);
+  IOTJS_I2C_METHOD_HEADER(i2c);
+  iotjs_i2c_unconfig_nuttx(platform_data->i2c_master);
 }
-
 
 void WriteWorker(uv_work_t* work_req) {
   I2C_WORKER_INIT_TEMPLATE;
   iotjs_i2c_t* i2c = iotjs_i2c_instance_from_reqwrap(req_wrap);
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_i2c_t, i2c);
+  IOTJS_I2C_METHOD_HEADER(i2c);
 
   uint8_t len = req_data->buf_len;
   uint8_t* data = (uint8_t*)req_data->buf_data;
 
-  IOTJS_ASSERT(_this->i2c_master);
+  IOTJS_ASSERT(platform_data->i2c_master);
   IOTJS_ASSERT(len > 0);
 
-  int ret = i2c_write(_this->i2c_master, &_this->config, data, len);
+  int ret =
+      i2c_write(platform_data->i2c_master, &platform_data->config, data, len);
   if (ret < 0) {
     DLOG("I2C WriteWorker : cannot write - %d", ret);
     req_data->error = kI2cErrWrite;
@@ -86,19 +110,18 @@ void WriteWorker(uv_work_t* work_req) {
   req_data->error = kI2cErrOk;
 }
 
-
 void ReadWorker(uv_work_t* work_req) {
   I2C_WORKER_INIT_TEMPLATE;
   iotjs_i2c_t* i2c = iotjs_i2c_instance_from_reqwrap(req_wrap);
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_i2c_t, i2c);
+  IOTJS_I2C_METHOD_HEADER(i2c);
 
   uint8_t len = req_data->buf_len;
   req_data->buf_data = iotjs_buffer_allocate(len);
 
-  IOTJS_ASSERT(_this->i2c_master);
+  IOTJS_ASSERT(platform_data->i2c_master);
   IOTJS_ASSERT(len > 0);
 
-  int ret = i2c_read(_this->i2c_master, &_this->config,
+  int ret = i2c_read(platform_data->i2c_master, &platform_data->config,
                      (uint8_t*)req_data->buf_data, len);
   if (ret != 0) {
     DLOG("I2C ReadWorker : cannot read - %d", ret);
@@ -107,6 +130,3 @@ void ReadWorker(uv_work_t* work_req) {
   }
   req_data->error = kI2cErrOk;
 }
-
-
-#endif // __NUTTX__

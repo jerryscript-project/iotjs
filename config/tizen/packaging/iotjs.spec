@@ -18,6 +18,7 @@ BuildRequires: pkgconfig(capi-appfw-service-application)
 BuildRequires: pkgconfig(capi-appfw-app-common)
 BuildRequires: pkgconfig(capi-appfw-package-manager)
 BuildRequires: pkgconfig(capi-appfw-application)
+BuildRequires: pkgconfig(capi-system-peripheral-io)
 BuildRequires: pkgconfig(dlog)
 #for https
 BuildRequires:  openssl-devel
@@ -68,6 +69,9 @@ cp %{SOURCE1001} .
 %build
 ./tools/build.py --clean --buildtype=%{build_mode} --target-arch=arm \
  --target-os=tizen --target-board=artik10 \
+ --external-shared-lib=capi-system-peripheral-io \
+ --compile-flag=-D__TIZEN__ \
+ --iotjs-include-module=dgram,i2c \
  --no-init-submodule --no-parallel-build --no-check-test
 
 %install

@@ -41,7 +41,7 @@ then
   rm ./cmake/config/arm-tizen.cmake
   echo "include(CMakeForceCompiler)
 
-  set(CMAKE_SYSTEM_NAME Linux)
+  set(CMAKE_SYSTEM_NAME Tizen)
   set(CMAKE_SYSTEM_PROCESSOR armv7l)"\
    >> ./cmake/config/arm-tizen.cmake
 

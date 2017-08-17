@@ -66,7 +66,8 @@ function i2cBusOpen(configurable, callback) {
         if (!util.isString(configurable.device)) {
           throw new TypeError('Bad configurable - device: String');
         }
-      } else if (process.platform === 'nuttx') {
+      } else if (process.platform === 'nuttx' ||
+                 process.platform === 'tizen') {
         if (!util.isNumber(configurable.device)) {
           throw new TypeError('Bad configurable - device: Number');
         }

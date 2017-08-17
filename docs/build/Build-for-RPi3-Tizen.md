@@ -39,7 +39,7 @@ $ sudo apt-get install pv
 
 #### Downloading fusing-script and firmwares
 ``` bash
-  $ wget https://git.tizen.org/cgit/platform/kernel/linux-rpi3/plain/scripts/sd_fusing_rpi3.sh?h=tizen --output-document=sd_fusing_rpi3.sh
+  $ wget https://git.tizen.org/cgit/platform/kernel/linux-rpi3/plain/scripts/sd_fusing_rpi3.sh?h=submit/tizen/20170725.223437 --output-document=sd_fusing_rpi3.sh
   $ chmod 755 sd_fusing_rpi3.sh
   $ wget https://github.com/RPi-Distro/firmware-nonfree/raw/master/brcm80211/brcm/brcmfmac43430-sdio.bin
   $ wget https://github.com/RPi-Distro/firmware-nonfree/raw/master/brcm80211/brcm/brcmfmac43430-sdio.txt

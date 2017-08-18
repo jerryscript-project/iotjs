@@ -146,8 +146,9 @@ doSomeWork()
 process.exitCode = 1;
 ```
 
-### process.nextTick(callback)
+### process.nextTick(callback, [...args])
 * `callback` {Function}
+* `...args` {any} Additional arguments to pass when invoking the callback
 
 The `nextTick` method adds the `callback` method to the "next tick queue".
 Once the current turn of the event loop is completed, all callbacks currently in the next tick queue will be called.

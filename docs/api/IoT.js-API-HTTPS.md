@@ -14,16 +14,17 @@ IoT.js provides HTTPS to support HTTPS clients enabling users to send HTTPS requ
 
 ### https.request(options[, callback])
 * `options` {Object}
-  * `host` {string} A domain name or IP address of the server to issue the request to. **Deafult:** 'localhost'.
+  * `host` {string} A domain name or IP address of the server to issue the request to. **Default:** 'localhost'.
   * `hostname` {string} Alias for host.
-  * `port` {number} Port of remote server. **Deafult:** 80.
-  * `method` {string} A string specifying the HTTPS request method. **Deafult:** 'GET'.
-  * `path` {string} Request path. **Deafult:** '/'. Should include query string if any. E.G. '/index.html?page=12'. An exception is thrown when the request path contains illegal characters. Currently, only spaces are rejected but that may change in the future.
+  * `port` {number} Port of remote server. **Default:** 80.
+  * `method` {string} A string specifying the HTTPS request method. **Default:** 'GET'.
+  * `path` {string} Request path. **Default:** '/'. Should include query string if any. E.G. '/index.html?page=12'. An exception is thrown when the request path contains illegal characters. Currently, only spaces are rejected but that may change in the future.
   * `headers` {Object} An object containing request headers.
   * `auth` {string} Optional Basic Authentication in the form `username:password`. Used to compute HTTPS Basic Authentication header.
   * `ca` {string} Optional file path to CA certificate. Allows to override system trusted CA certificates.
   * `cert` {string} Optional file path to client authentication certificate in PEM format.
   * `key` {string} Optional file path to private keys for client cert in PEM format.
+  * `rejectUnauthorized` {boolean} Optional Specify whether to verify the Server's certificate against CA certificates. WARNING - Making this `false` may be a security risk. **Default:** `true`
 * `callback` {Function}
   * `response` {https.IncomingMessage}
 * Returns: {https.ClientRequest}
@@ -47,16 +48,17 @@ Note that in the example `req.end()` was called. With `https.request()` one must
 
 ### https.get(options[, callback])
 * `options` {Object}
-  * `host` {string} A domain name or IP address of the server to issue the request to. **Deafult:** 'localhost'.
+  * `host` {string} A domain name or IP address of the server to issue the request to. **Default:** 'localhost'.
   * `hostname` {string} Alias for host.
-  * `port` {number} Port of remote server. **Deafult:** 80.
-  * `method` {string} A string specifying the HTTPS request method. **Deafult:** 'GET'.
-  * `path` {string} Request path. **Deafult:** '/'. Should include query string if any. E.G. '/index.html?page=12'. An exception is thrown when the request path contains illegal characters. Currently, only spaces are rejected but that may change in the future.
+  * `port` {number} Port of remote server. **Default:** 80.
+  * `method` {string} A string specifying the HTTPS request method. **Default:** 'GET'.
+  * `path` {string} Request path. **Default:** '/'. Should include query string if any. E.G. '/index.html?page=12'. An exception is thrown when the request path contains illegal characters. Currently, only spaces are rejected but that may change in the future.
   * `headers` {Object} An object containing request headers.
   * `auth` {string} Optional Basic Authentication in the form `username:password`. Used to compute HTTPS Basic Authentication header.
   * `ca` {string} Optional file path to CA certificate. Allows to override system trusted CA certificates.
   * `cert` {string} Optional file path to client authentication certificate in PEM format.
   * `key` {string} Optional file path to private keys for client cert in PEM format.
+  * `rejectUnauthorized` {boolean} Optional Specify whether to verify the Server's certificate against CA certificates. WARNING - Making this `false` may be a security risk. **Default:** `true`
 * `callback` {Function}
   * `response` {https.IncomingMessage}
 * Returns: {https.ClientRequest}

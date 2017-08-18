@@ -400,7 +400,7 @@ function onread(socket, nread, isEOF, buffer) {
     var err = new Error('read error: ' + nread);
     stream.Readable.prototype.error.call(socket, err);
   } else if (nread > 0) {
-    if (process.platform  !== 'nuttx' && process.platform !== 'tizenrt') {
+    if (process.platform  !== 'nuttx') {
       stream.Readable.prototype.push.call(socket, buffer);
       return;
     }

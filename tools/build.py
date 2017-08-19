@@ -28,7 +28,6 @@ import re
 import os
 
 from js2c import js2c
-from module_analyzer import resolve_modules, analyze_module_dependency
 from common_py import path
 from common_py.system.filesystem import FileSystem as fs
 from common_py.system.executor import Executor as ex
@@ -36,6 +35,15 @@ from common_py.system.platform import Platform
 
 platform = Platform()
 
+def get_config(build_option_path):
+    config_path_list = [path.BUILD_TARGET_CONFIG_PATH,
+                        build_option_path]
+    result = {}
+    for cpath in config_path_list:
+        with open(cpath, 'rb') as f:
+            module = json.loads(f.read().decode('ascii'))
+            result.update(module)
+    return result
 
 # Initialize build options.
 def init_options():
@@ -46,23 +54,28 @@ def init_options():
     if arg_config:
         config_path = arg_config[-1].split('=', 1)[1]
 
+    config = get_config(config_path)
+
     # Read config file and apply it to argv.
     argv = []
-    with open(config_path, 'rb') as f:
-        config = json.loads(f.read().decode('ascii'))
-        config_option = config['build_option']
-        for opt_key in config_option:
-            opt_val = config_option[opt_key]
-            if isinstance(opt_val, basestring) and opt_val != '':
-                argv.append('--%s=%s' % (opt_key, opt_val))
-            elif isinstance(opt_val, bool):
-                if opt_val:
-                    argv.append('--%s' % opt_key)
-            elif isinstance(opt_val, int):
-                argv.append('--%s=%s' % (opt_key, opt_val))
-            elif isinstance(opt_val, list):
-                for val in opt_val:
-                    argv.append('--%s=%s' % (opt_key, val))
+
+    config_option = config['build_option']
+    list_with_commas = ['iotjs-include-module','iotjs-exclude-module']
+
+    for opt_key in config_option:
+        opt_val = config_option[opt_key]
+        if (opt_key in list_with_commas) and isinstance(opt_val, list):
+            opt_val and argv.append('--%s=%s' % (opt_key, ','.join(opt_val)))
+        elif isinstance(opt_val, basestring) and opt_val != '':
+            argv.append('--%s=%s' % (opt_key, opt_val))
+        elif isinstance(opt_val, bool):
+            if opt_val:
+                argv.append('--%s' % opt_key)
+        elif isinstance(opt_val, int):
+            argv.append('--%s=%s' % (opt_key, opt_val))
+        elif isinstance(opt_val, list):
+            for val in opt_val:
+                argv.append('--%s=%s' % (opt_key, val))
 
     # Apply command line argument to argv.
     argv = argv + sys.argv[1:]

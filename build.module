@@ -1,0 +1,23 @@
+{
+  "module": {
+    "supported": {
+      "core": ["buffer", "console", "events", "fs", "module", "timers"],
+      "basic": ["assert", "dns", "http", "net", "stream", "testdriver"],
+      "extended": {
+        "linux": ["adc", "ble", "dgram", "gpio", "i2c", "pwm", "spi", "uart"],
+        "nuttx": ["adc", "dgram", "gpio", "i2c", "pwm", "stm32f4dis", "uart"],
+        "darwin": [],
+        "tizen": ["adc", "ble", "dgram", "gpio", "i2c", "pwm", "spi", "uart", "https"],
+        "tizenrt": ["adc", "dgram", "gpio", "pwm", "uart"]
+      }
+    },
+    "disabled": {
+      "board": {
+        "rp2": ["adc"],
+        "stm32f4dis": ["ble"],
+        "artik05x": ["ble"],
+        "artik10": []
+      }
+    }
+  }
+}

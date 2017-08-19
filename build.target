@@ -1,0 +1,77 @@
+{
+  "compile_flags": {
+    "os": {
+      "linux": ["-D__LINUX__",
+                "-fno-builtin"],
+      "darwin": ["-D__DARWIN__",
+                 "-fno-builtin"],
+      "nuttx": ["-D__NUTTX__",
+                "-Os",
+                "-fno-strict-aliasing",
+                "-fno-strength-reduce",
+                "-fomit-frame-pointer"],
+      "tizen": ["-D__LINUX__",
+                "-fno-builtin"],
+      "tizenrt": ["-D__TIZENRT__",
+                "-Os",
+                "-fno-strict-aliasing",
+                "-fno-strength-reduce",
+                "-fomit-frame-pointer"]
+  },
+    "arch": {
+      "i686": ["-D__i686__",
+               "-D__x86__",
+               "-D__I686__",
+               "-D__X86__",
+               "-march=i686",
+               "-m32"],
+      "x86_64": ["-D__x86_64__",
+                 "-D__X86_64__"],
+      "arm": ["-D__ARM__",
+              "-D__arm__",
+              "-mthumb",
+              "-fno-short-enums",
+              "-mlittle-endian"]
+    },
+    "board": {
+      "stm32f4dis": ["-mcpu=cortex-m4",
+                     "-march=armv7e-m",
+                     "-mfpu=fpv4-sp-d16",
+                     "-mfloat-abi=hard",
+                     "-DTARGET_BOARD=STM32F4DIS"],
+      "rpi2": ["-mcpu=cortex-a7",
+               "-mfpu=neon-vfpv4",
+               "-DTARGET_BOARD=RP2"],
+      "artik05x": ["-mcpu=cortex-r4",
+                   "-mfpu=vfp3",
+                   "-DTARGET_BOARD=artik05x"],
+      "artik10": ["-mcpu=cortex-a7",
+                  "-mfpu=neon-vfpv4",
+                  "-mfloat-abi=softfp",
+                  "-DTARGET_BOARD=artik10"]
+    },
+    "buildtype": {
+      "release": [],
+      "debug": ["-DDEBUG",
+                "-DENABLE_DEBUG_LOG"]
+    }
+  },
+  "link_flags": {
+    "os": {
+      "linux": ["-pthread"],
+      "darwin": [],
+      "nuttx": [],
+      "tizen": ["-pthread"],
+      "tizenrt": []
+    }
+  },
+  "shared_libs": {
+    "os": {
+      "linux": ["m", "rt"],
+      "darwin": [],
+      "nuttx": [],
+      "tizen": ["m", "rt", "curl"],
+      "tizenrt": []
+    }
+  }
+}

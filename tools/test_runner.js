@@ -127,6 +127,21 @@ Runner.prototype.run = function() {
     }
   }
 
+  var dependencies = this.test['dependencies'] || [];
+  var dependenciesFailed = [];
+  for (var i = 0, len = dependencies.length; i < len; ++i) {
+    if (this.driver.dependecies.indexOf(dependencies[i]) === -1) {
+      dependenciesFailed.push(dependencies[i]);
+    }
+  }
+
+  if (dependenciesFailed.length > 0) {
+    this.test.reason = this.test.reason
+      || '[' + dependenciesFailed.join(', ') + '] dependencies is not met';
+    this.finish('skip');
+    return;
+  }
+
   if (this.skipModuleLength && this.checkSkipModule()) {
     this.test.reason = 'exclude module';
     this.finish('skip');

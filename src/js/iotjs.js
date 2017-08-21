@@ -115,7 +115,9 @@ function _onNextTick() {
 
 
 function nextTick(callback) {
-  nextTickQueue.push(callback);
+  var args = Array.prototype.slice.call(arguments);
+  args[0] = null;
+  nextTickQueue.push(Function.prototype.bind.apply(callback, args));
 }
 
 

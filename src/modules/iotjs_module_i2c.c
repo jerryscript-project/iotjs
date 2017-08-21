@@ -53,7 +53,6 @@ static iotjs_i2c_reqwrap_t* iotjs_i2c_reqwrap_create(
 static void iotjs_i2c_reqwrap_destroy(THIS) {
   IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_i2c_reqwrap_t, i2c_reqwrap);
   iotjs_reqwrap_destroy(&_this->reqwrap);
-  i2c_destroy_data(_this->i2c_data);
   IOTJS_RELEASE(i2c_reqwrap);
 }
 
@@ -90,6 +89,7 @@ iotjs_i2c_t* iotjs_i2c_instance_from_reqwrap(THIS) {
 static void iotjs_i2c_destroy(iotjs_i2c_t* i2c) {
   IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_i2c_t, i2c);
   iotjs_jobjectwrap_destroy(&_this->jobjectwrap);
+  i2c_destroy_data(i2c);
   IOTJS_RELEASE(i2c);
 }
 

@@ -90,6 +90,7 @@ void i2c_create_platform_data(iotjs_jhandler_t* jhandler, iotjs_i2c_t* i2c,
 
 void i2c_destroy_platform_data(iotjs_i2c_platform_data_t* pdata) {
   iotjs_string_destroy(&pdata->device);
+  IOTJS_RELEASE(pdata);
 }
 
 void I2cSetAddress(iotjs_i2c_t* i2c, uint8_t address) {

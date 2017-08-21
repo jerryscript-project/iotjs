@@ -43,6 +43,7 @@
 #define IOTJS_MAGIC_STRING__BUILTIN "_builtin"
 #define IOTJS_MAGIC_STRING_BUS "bus"
 #define IOTJS_MAGIC_STRING_BYTELENGTH "byteLength"
+#define IOTJS_MAGIC_STRING_REJECTUNAUTHORIZED "rejectUnauthorized"
 #define IOTJS_MAGIC_STRING_BYTEPARSED "byteParsed"
 #define IOTJS_MAGIC_STRING_CA "ca"
 #define IOTJS_MAGIC_STRING_CERT "cert"

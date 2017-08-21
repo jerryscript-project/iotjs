@@ -29,7 +29,9 @@ IOTJS_DEFINE_NATIVE_HANDLE_INFO(https);
 //-------------Constructor------------
 iotjs_https_t* iotjs_https_create(const char* URL, const char* method,
                                   const char* ca, const char* cert,
-                                  const char* key, const iotjs_jval_t* jthis) {
+                                  const char* key,
+                                  const bool reject_unauthorized,
+                                  const iotjs_jval_t* jthis) {
   iotjs_https_t* https_data = IOTJS_ALLOC(iotjs_https_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_https_t, https_data);
 
@@ -60,6 +62,7 @@ iotjs_https_t* iotjs_https_create(const char* URL, const char* method,
   _this->ca = ca;
   _this->cert = cert;
   _this->key = key;
+  _this->reject_unauthorized = reject_unauthorized;
   // Content Length stuff
   _this->content_length = -1;
 
@@ -248,6 +251,10 @@ void iotjs_https_initialize_curl_opts(iotjs_https_t* https_data) {
   if (strlen(_this->key) > 0)
     curl_easy_setopt(_this->curl_easy_handle, CURLOPT_SSLKEY, _this->key);
   _this->key = NULL;
+  if (!_this->reject_unauthorized) {
+    curl_easy_setopt(_this->curl_easy_handle, CURLOPT_SSL_VERIFYPEER, 0);
+    curl_easy_setopt(_this->curl_easy_handle, CURLOPT_SSL_VERIFYHOST, 0);
+  }
 
   // Various request types
   switch (_this->method) {
@@ -735,13 +742,17 @@ JHANDLER_FUNCTION(createRequest) {
   iotjs_string_t key = iotjs_jval_as_string(&jkey);
   iotjs_jval_destroy(&jkey);
 
+  iotjs_jval_t jreject_unauthorized =
+      iotjs_jval_get_property(jthis, IOTJS_MAGIC_STRING_REJECTUNAUTHORIZED);
+  const bool reject_unauthorized = iotjs_jval_as_boolean(&jreject_unauthorized);
+
   if (curl_global_init(CURL_GLOBAL_SSL)) {
     return;
   }
   iotjs_https_t* https_data =
       iotjs_https_create(iotjs_string_data(&host), iotjs_string_data(&method),
                          iotjs_string_data(&ca), iotjs_string_data(&cert),
-                         iotjs_string_data(&key), jthis);
+                         iotjs_string_data(&key), reject_unauthorized, jthis);
 
   iotjs_https_initialize_curl_opts(https_data);
 

@@ -38,6 +38,12 @@ function ClientRequest(options, cb) {
   this.cert = options.cert || '';
   this.key = options.key || '';
 
+  if (options.rejectUnauthorized == null) {
+    this.rejectUnauthorized = true;
+  } else {
+    this.rejectUnauthorized = options.rejectUnauthorized;
+  }
+
   var isMethodGood = false;
   for (var key in methods) {
     if (methods.hasOwnProperty(key)) {

@@ -50,6 +50,7 @@ typedef struct {
   const char* ca;
   const char* cert;
   const char* key;
+  bool reject_unauthorized;
   // Content-Length for Post and Put
   long content_length;
 
@@ -86,7 +87,9 @@ typedef struct {
 
 iotjs_https_t* iotjs_https_create(const char* URL, const char* method,
                                   const char* ca, const char* cert,
-                                  const char* key, const iotjs_jval_t* jthis);
+                                  const char* key,
+                                  const bool reject_unauthorized,
+                                  const iotjs_jval_t* jthis);
 
 #define THIS iotjs_https_t* https_data
 // Some utility functions

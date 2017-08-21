@@ -104,7 +104,8 @@
     { "name": "issue-266.js" },
     { "name": "issue-323.js" },
     { "name": "issue-816.js" },
-    { "name": "issue-1046.js" }
+    { "name": "issue-1046.js" },
+    { "name": "issue-1077.js" }
   ],
   "run_fail":  [
     { "name": "test_assert_equal.js", "expected-failure": true },

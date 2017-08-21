@@ -111,6 +111,9 @@ iotjs_module_t.resolveFilepath = function(id, directories) {
 
 
 iotjs_module_t.resolveModPath = function(id, parent) {
+  if (parent != null && id === parent.id) {
+    return false;
+  }
 
   // 0. resolve Directory for lookup
   var directories = iotjs_module_t.resolveDirectories(id, parent);

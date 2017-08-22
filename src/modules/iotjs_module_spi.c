@@ -28,10 +28,7 @@ static iotjs_spi_t* iotjs_spi_create(const iotjs_jval_t* jspi) {
   iotjs_jobjectwrap_initialize(&_this->jobjectwrap, jspi,
                                &this_module_native_info);
 
-#if defined(__linux__)
-  _this->device = iotjs_string_create("");
-#endif
-
+  iotjs_spi_platform_create(_this);
   return spi;
 }
 
@@ -40,10 +37,7 @@ static void iotjs_spi_destroy(iotjs_spi_t* spi) {
   IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_spi_t, spi);
   iotjs_jobjectwrap_destroy(&_this->jobjectwrap);
 
-#if defined(__linux__)
-  iotjs_string_destroy(&_this->device);
-#endif
-
+  iotjs_spi_platform_destroy(_this);
   IOTJS_RELEASE(spi);
 }
 
@@ -177,16 +171,7 @@ static void iotjs_spi_set_configuration(iotjs_spi_t* spi,
                                         const iotjs_jval_t* joptions) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_spi_t, spi);
 
-#if defined(__linux__)
-  iotjs_jval_t jdevice =
-      iotjs_jval_get_property(joptions, IOTJS_MAGIC_STRING_DEVICE);
-  _this->device = iotjs_jval_as_string(&jdevice);
-  iotjs_jval_destroy(&jdevice);
-#elif defined(__NUTTX__) || defined(__TIZENRT__)
-  iotjs_jval_t jbus = iotjs_jval_get_property(joptions, IOTJS_MAGIC_STRING_BUS);
-  _this->bus = iotjs_jval_as_number(&jbus);
-  iotjs_jval_destroy(&jbus);
-#endif
+  iotjs_spi_platform_set_cofiguration(_this, joptions);
   iotjs_jval_t jmode =
       iotjs_jval_get_property(joptions, IOTJS_MAGIC_STRING_MODE);
   _this->mode = (SpiMode)iotjs_jval_as_number(&jmode);

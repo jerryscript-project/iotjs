@@ -15,6 +15,7 @@
 
 #if defined(__TIZENRT__)
 
+#include <iotbus_spi.h>
 #include <tinyara/config.h>
 
 #if !defined(CONFIG_SPI)
@@ -29,12 +30,15 @@
 #include "modules/iotjs_module_spi.h"
 
 
+struct _iotjs_spi_module_platform_t {
+  unsigned int bus;
+  iotbus_spi_context_h hSpi;
+};
+
 static bool iotjs_spi_open(iotjs_spi_t* spi) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_spi_t, spi);
 
   struct iotbus_spi_config_s cfg = {.bits_per_word = _this->bits_per_word,
-                                    .lsb = _this->bit_order == kSpiOrderLsb ? 1
-                                                                            : 0,
                                     .chip_select =
                                         _this->chip_select == kSpiCsNone ? 0
                                                                          : 1,
@@ -57,8 +61,8 @@ static bool iotjs_spi_open(iotjs_spi_t* spi) {
       cfg.mode = IOTBUS_SPI_MODE0;
   }
 
-  _this->hSpi = iotbus_spi_open(_this->bus, &cfg);
-  if (_this->hSpi == NULL) {
+  _this->platform->hSpi = iotbus_spi_open(_this->platform->bus, &cfg);
+  if (_this->platform->hSpi == NULL) {
     return false;
   }
 
@@ -75,10 +79,10 @@ static bool iotjs_spi_open(iotjs_spi_t* spi) {
 bool iotjs_spi_transfer(iotjs_spi_t* spi) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_spi_t, spi);
 
-  int err =
-      iotbus_spi_transfer_buf(_this->hSpi, (unsigned char*)_this->tx_buf_data,
-                              (unsigned char*)_this->rx_buf_data,
-                              _this->buf_len);
+  int err = iotbus_spi_transfer_buf(_this->platform->hSpi,
+                                    (unsigned char*)_this->tx_buf_data,
+                                    (unsigned char*)_this->rx_buf_data,
+                                    _this->buf_len);
   if (err != 0) {
     DDLOG("%s - transfer failed: %d", __func__, err);
     return false;
@@ -91,13 +95,13 @@ bool iotjs_spi_transfer(iotjs_spi_t* spi) {
 bool iotjs_spi_close(iotjs_spi_t* spi) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_spi_t, spi);
 
-  if (_this->hSpi != NULL) {
-    int err = iotbus_spi_close(_this->hSpi);
+  if (_this->platform->hSpi != NULL) {
+    int err = iotbus_spi_close(_this->platform->hSpi);
     if (err != 0) {
       DDLOG("%s - close failed: %d", __func__, err);
       return false;
     }
-    _this->hSpi = NULL;
+    _this->platform->hSpi = NULL;
   }
 
   return true;
@@ -108,8 +112,11 @@ void iotjs_spi_open_worker(uv_work_t* work_req) {
   SPI_WORKER_INIT;
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_spi_t, spi);
 
+  if (_this != 0) { // use of _this to prevent compiler warnings
+  }
+
   if (!iotjs_spi_open(spi)) {
-    DDLOG("%s - SPI open failed %d", __func__, _this->bus);
+    DLOG("%s - SPI open failed %d", __func__, _this->platform->bus);
     req_data->result = false;
     return;
   }
@@ -117,4 +124,16 @@ void iotjs_spi_open_worker(uv_work_t* work_req) {
   req_data->result = true;
 }
 
+void iotjs_spi_platform_create(iotjs_spi_t_impl_t* _this) {
+}
+
+void iotjs_spi_platform_destroy(iotjs_spi_t_impl_t* _this) {
+}
+
+void iotjs_spi_platform_set_cofiguration(iotjs_spi_t_impl_t* _this,
+                                         const iotjs_jval_t* joptions) {
+  iotjs_jval_t jbus = iotjs_jval_get_property(joptions, IOTJS_MAGIC_STRING_BUS);
+  _this->platform->bus = iotjs_jval_as_number(&jbus);
+  iotjs_jval_destroy(&jbus);
+}
 #endif // __TIZENRT__

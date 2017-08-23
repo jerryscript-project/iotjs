@@ -21,7 +21,6 @@ core
 vgcore.*
 **.orig
 **.directory
-**.patch
 .tags*
 cscope.*
 *.pyc

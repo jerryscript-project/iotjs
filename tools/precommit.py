@@ -82,15 +82,18 @@ def setup_nuttx_root(nuttx_root):
                 fs.join(nuttx_root, 'apps', 'system', 'iotjs'))
 
     # Step 3
+    fs.chdir(fs.join(nuttx_root, 'nuttx'))
+    patchdir = fs.join(
+            path.PROJECT_ROOT, 'config', 'nuttx', 'stm32f4dis', 'patches')
+    for patchfile in fs.listdir(patchdir):
+        if (patchfile.endswith('.patch')):
+            ex.check_run_cmd('git', ['am',
+                fs.join(patchdir, patchfile),
+                '--committer-date-is-author-date'])
+
+    # Step 4
     fs.chdir(fs.join(nuttx_root, 'nuttx', 'tools'))
-    ex.check_run_cmd('./configure.sh', ['stm32f4discovery/usbnsh'])
-    fs.chdir('..')
-    fs.copy(fs.join(path.PROJECT_ROOT,
-                    'config',
-                    'nuttx',
-                    'stm32f4dis',
-                    '.config.travis'),
-            '.config')
+    ex.check_run_cmd('./configure.sh', ['stm32f4discovery/usbnshiotjs'])
 
 
 def build_nuttx(nuttx_root, buildtype, maketarget):

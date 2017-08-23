@@ -351,5 +351,6 @@ static inline bool ge(uint16_t a, uint16_t b) {
 void iotjs_binding_initialize();
 void iotjs_binding_finalize();
 
+jerry_value_t vm_exec_stop_callback(void* user_p);
 
 #endif /* IOTJS_BINDING_H */

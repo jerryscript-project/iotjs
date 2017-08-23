@@ -39,7 +39,12 @@ void iotjs_uncaught_exception(const iotjs_jval_t* jexception) {
   iotjs_jval_destroy(&jonuncaughtexception);
 
   if (throws) {
-    exit(2);
+    iotjs_environment_t* env = iotjs_environment_get();
+
+    if (!iotjs_environment_is_exiting(env)) {
+      iotjs_set_process_exitcode(2);
+      iotjs_environment_go_state_exiting(env);
+    }
   }
 }
 
@@ -62,13 +67,19 @@ void iotjs_process_emit_exit(int code) {
   iotjs_jval_destroy(&jexit);
 
   if (throws) {
-    exit(2);
+    iotjs_set_process_exitcode(2);
   }
 }
 
 
 // Calls next tick callbacks registered via `process.nextTick()`.
 bool iotjs_process_next_tick() {
+  iotjs_environment_t* env = iotjs_environment_get();
+
+  if (iotjs_environment_is_exiting(env)) {
+    return false;
+  }
+
   const iotjs_jval_t* process = iotjs_module_get(MODULE_PROCESS);
 
   iotjs_jval_t jon_next_tick =
@@ -130,6 +141,12 @@ int iotjs_process_exitcode() {
   iotjs_jval_destroy(&jexitcode);
 
   return exitcode;
+}
+
+
+void iotjs_set_process_exitcode(int code) {
+  const iotjs_jval_t* process = iotjs_module_get(MODULE_PROCESS);
+  iotjs_jval_set_property_number(process, IOTJS_MAGIC_STRING_EXITCODE, code);
 }
 
 

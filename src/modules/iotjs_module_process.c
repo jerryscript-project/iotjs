@@ -170,16 +170,15 @@ JHANDLER_FUNCTION(Chdir) {
 
 
 JHANDLER_FUNCTION(DoExit) {
-  JHANDLER_CHECK_ARGS(1, number);
+  iotjs_environment_t* env = iotjs_environment_get();
 
-  // Release builtin modules.
-  iotjs_module_list_cleanup();
+  if (!iotjs_environment_is_exiting(env)) {
+    JHANDLER_CHECK_ARGS(1, number);
+    int exit_code = JHANDLER_GET_ARG(0, number);
 
-  // Release commonly used jerry values.
-  iotjs_binding_finalize();
-
-  int exit_code = JHANDLER_GET_ARG(0, number);
-  exit(exit_code);
+    iotjs_set_process_exitcode(exit_code);
+    iotjs_environment_go_state_exiting(env);
+  }
 }
 
 

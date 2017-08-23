@@ -34,7 +34,7 @@
 /**
  * Initialize JerryScript.
  */
-static bool iotjs_jerry_initialize(const iotjs_environment_t* env) {
+static bool iotjs_jerry_initialize(iotjs_environment_t* env) {
   // Set jerry run flags.
   jerry_init_flag_t jerry_flags = JERRY_INIT_EMPTY;
 
@@ -66,6 +66,10 @@ static bool iotjs_jerry_initialize(const iotjs_environment_t* env) {
   // Set magic strings.
   iotjs_register_jerry_magic_string();
 
+  // Register VM execution stop callback.
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_environment_t, env);
+  jerry_set_vm_exec_stop_callback(vm_exec_stop_callback, &(_this->state), 2);
+
   // Do parse and run to generate initial javascript environment.
   jerry_value_t parsed_code = jerry_parse((jerry_char_t*)"", 0, false);
   if (jerry_value_has_error_flag(parsed_code)) {
@@ -93,7 +97,7 @@ static void iotjs_jerry_release() {
 }
 
 
-static bool iotjs_run() {
+static bool iotjs_run(iotjs_environment_t* env) {
   // Evaluating 'iotjs.js' returns a function.
   bool throws = false;
 #ifndef ENABLE_SNAPSHOT
@@ -132,30 +136,37 @@ static int iotjs_start(iotjs_environment_t* env) {
   iotjs_environment_go_state_running_main(env);
 
   // Load and call iotjs.js.
-  iotjs_run();
+  iotjs_run(env);
 
-  // Run event loop.
-  iotjs_environment_go_state_running_loop(env);
+  int exit_code = 0;
+  if (!iotjs_environment_is_exiting(env)) {
+    // Run event loop.
+    iotjs_environment_go_state_running_loop(env);
 
-  bool more;
-  do {
-    more = uv_run(iotjs_environment_loop(env), UV_RUN_ONCE);
-    more |= iotjs_process_next_tick();
-    if (more == false) {
-      more = uv_loop_alive(iotjs_environment_loop(env));
+    bool more;
+    do {
+      more = uv_run(iotjs_environment_loop(env), UV_RUN_ONCE);
+      more |= iotjs_process_next_tick();
+      if (more == false) {
+        more = uv_loop_alive(iotjs_environment_loop(env));
+      }
+      jerry_value_t ret_val = jerry_run_all_enqueued_jobs();
+      if (jerry_value_has_error_flag(ret_val)) {
+        DLOG("jerry_run_all_enqueued_jobs() failed");
+      }
+    } while (more && !iotjs_environment_is_exiting(env));
+
+    exit_code = iotjs_process_exitcode();
+
+    if (!iotjs_environment_is_exiting(env)) {
+      // Emit 'exit' event.
+      iotjs_process_emit_exit(exit_code);
+
+      iotjs_environment_go_state_exiting(env);
     }
-    jerry_value_t ret_val = jerry_run_all_enqueued_jobs();
-    if (jerry_value_has_error_flag(ret_val)) {
-      DLOG("jerry_run_all_enqueued_jobs() failed");
-    }
-  } while (more);
+  }
 
-  const int exit_code = iotjs_process_exitcode();
-
-  iotjs_environment_go_state_exiting(env);
-
-  // Emit 'exit' event.
-  iotjs_process_emit_exit(exit_code);
+  exit_code = iotjs_process_exitcode();
 
   // Release builtin modules.
   iotjs_module_list_cleanup();

@@ -38,7 +38,7 @@ static void iotjs_environment_destroy(iotjs_environment_t* env);
 /**
  * Get the singleton instance of iotjs_environment_t.
  */
-const iotjs_environment_t* iotjs_environment_get() {
+iotjs_environment_t* iotjs_environment_get() {
   if (!initialized) {
     iotjs_environment_initialize(&current_env);
     initialized = true;
@@ -189,4 +189,9 @@ void iotjs_environment_go_state_exiting(iotjs_environment_t* env) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_environment_t, env);
   IOTJS_ASSERT(_this->state < kExiting);
   _this->state = kExiting;
+}
+
+bool iotjs_environment_is_exiting(iotjs_environment_t* env) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_environment_t, env);
+  return _this->state == kExiting;
 }

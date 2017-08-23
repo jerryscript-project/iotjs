@@ -2,17 +2,26 @@
 ### 1. Tizen on RPi3 GBS build
 
 #### Prerequisites
-* Tizen uses GBS to create RPM packages.  
-  SDB tool is in Tizen Studio. To send a file, please, install tizen studio.  
-  (https://developer.tizen.org/development/tizen-studio/download)  
-* To run GBS, please create a GBS configuration file at '~/.gbs.conf'  
- (https://source.tizen.org/documentation/reference/git-build-system/configuration-file)  
- You can use this sample, /config/tizen/sample.gbs.conf for GBS build.  
+
+* Install SDB tool (https://developer.tizen.org/development/tizen-studio/download)
+
+  It is required to send file to target, which is in Tizen Studio.
+
+* Install GBS
+
+  It is required to create Tizen RPM package.
+
 ``` bash
-sudo apt-get install gbs mic
-cp ./config/tizen/sample.gbs.conf ~/.gbs.conf
-```  
-Please add your Tizen.org id and password on this conf file.  
+sudo apt-get install gbs
+```
+
+* Prepare a GBS configuration file.
+
+ You can use sample gbs configuration in config/tizen/sample.gbs.conf.
+ (Please add your Tizen.org id and password on this conf file.)
+
+ See https://source.tizen.org/documentation/reference/git-build-system/configuration-file for details.
+
 
 #### Building
 * You can modify IoT.js build option on the spec file.  
@@ -20,13 +29,12 @@ Please add your Tizen.org id and password on this conf file.
 * Run gbsbuild.sh at first.
 Compile:
 ``` bash
-cp ./config/tizen/gbsbuild.sh ./
-./gbsbuild.sh
+./config/tizen/gbsbuild.sh
 ```
 After finishing build, move to a new working directory at '../iotjs_tizen_gbs/'.  
 Next time, build with this basic command.
 ```bash
-gbs build -A armv7l --include-all
+gbs -c config/tizen/sample.gbs.conf build -A armv7l --include-all
 ```
 
 ### 2. Bring up RPi3 with Tizen
@@ -90,8 +98,12 @@ Setup IP on RPi3 target using serial port
  (target)$ route add default gw 192.168.1.1
 ```
 
-If you want to use your fixed ip when you reboot,
-you need to add ip settings in /etc/profile.
+If you want to use your fixed ip when you reboot, add ip settings in /etc/profile.
+
+Please make sure to run before modifying /etc/profile.
+```
+(target) $ mount -o remount,rw /
+```
 
 ``` bash
  (ubuntu)$ sdb pull /etc/profile

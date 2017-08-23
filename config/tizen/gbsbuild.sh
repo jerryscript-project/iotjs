@@ -71,7 +71,8 @@ then
   fi
 
   echo -e "\n(5) Calling core gbs build command"
-  gbscommand="gbs build -A armv7l --include-all --clean"
+  gbsconf="config/tizen/sample.gbs.conf"
+  gbscommand="gbs -c $gbsconf build -A armv7l --include-all --clean"
   echo $gbscommand
   if eval $gbscommand
   then

@@ -29,42 +29,32 @@ def resolve_modules(options):
     """ Resolve include/exclude module lists based on command line arguments
         and build config.
     """
-    # Load the modules which are always enabled and the include/exclude sets
-    build_modules_always = set(options.config['module']['always'])
-    build_modules_includes = set(options.config['module']['include'])
-    build_modules_excludes = set(options.config['module']['exclude']['all'])
+    # Load all the supported modules
+    supported = options.config['module']['supported']
 
-    if options.target_os:
-        system_os = options.target_os
-        build_modules_excludes |= set(
-            options.config['module']['exclude'][system_os])
-
-    # Build options has higher priority than defaults
-    build_modules_excludes -= options.iotjs_include_module
+    core_modules = set(supported['core'])
+    basic_modules = set(supported['basic'])
 
     # By default the target included modules are:
-    #  - always module set from the build config
+    #  - 'core' module set from the build config
     #  - modules specified by the command line argument
-    include_modules = set() | build_modules_always
+    include_modules = set() | core_modules
     include_modules |= options.iotjs_include_module
 
     if not options.iotjs_minimal_profile:
-        # Add the include set from the build config to
-        # the target include modules set
-        include_modules |= build_modules_includes
+        # Add 'basic' module to the target include modules
+        include_modules |= basic_modules
+
+    # Start to check exclude modules
+    exclude_modules = options.iotjs_exclude_module
 
     # Check if there are any modules which are not allowed to be excluded
-    impossible_to_exclude = options.iotjs_exclude_module & build_modules_always
+    impossible_to_exclude = exclude_modules & core_modules
     if impossible_to_exclude:
-        ex.fail('Cannot exclude modules which are always enabled: %s' %
+        ex.fail('Can not exclude modules which are in `core` modules: %s' %
                 ', '.join(impossible_to_exclude))
 
-    # Finally build up the excluded module set:
-    #  - use the command line exclude set
-    #  - use the exclude set from the build config
-    exclude_modules = options.iotjs_exclude_module | build_modules_excludes
-
-    # Remove the excluded modules from the included modules set
+    # Finally remove the excluded modules from the included modules set
     include_modules -= exclude_modules
 
     return include_modules, exclude_modules
@@ -118,6 +108,16 @@ def _normalize_module_set(argument):
     return set([module.strip() for module in argument.split(',')
                 if module.strip()])
 
+def get_config(build_option_path):
+    config_path_list = [path.BUILD_MODULE_CONFIG_PATH,
+                        path.BUILD_TARGET_CONFIG_PATH,
+                        build_option_path]
+    result = {}
+    for cpath in config_path_list:
+        with open(cpath, 'rb') as f:
+            module = json.loads(f.read().decode('ascii'))
+            result.update(module)
+    return result
 
 def _load_options(argv):
     try:
@@ -165,9 +165,7 @@ def _load_options(argv):
     if arg_config:
         config_path = arg_config[-1].split('=', 1)[1]
 
-    # Read config file and apply it to argv.
-    with open(config_path, 'rb') as f:
-        config = json.loads(f.read().decode('ascii'))
+    config = get_config(config_path)
 
     loaded_argv = []
     for opt_key, opt_value in config['build_option'].items():

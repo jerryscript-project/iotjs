@@ -32,7 +32,7 @@ BUILDTYPES=['debug', 'release']
 NUTTXTAG = 'nuttx-7.19'
 
 def get_config():
-    config_path = path.BUILD_CONFIG_PATH
+    config_path = path.BUILD_MODULE_CONFIG_PATH
     with open(config_path, 'r') as f:
         config = json.loads(f.read().encode('ascii'))
     return config
@@ -158,107 +158,97 @@ def build(buildtype, args=[]):
     ex.check_run_cmd('./tools/build.py', ['--buildtype=' + buildtype] + args)
 
 
-def get_os_dependency_exclude_module(exclude_module):
+if __name__ == '__main__':
+    option = parse_option()
+    config = get_config()
+    extend_module = config['module']['supported']['extended']
     os_dependency_module = {}
-    all_module = set(exclude_module['all'])
-    for os_name in exclude_module.keys():
-        if not os_name == 'all':
-            os_dependency_module[os_name] = \
-              list(all_module | set(exclude_module[os_name]))
-    return os_dependency_module
 
-
-option = parse_option()
-config = get_config()
-os_dependency_module = \
-    get_os_dependency_exclude_module(config['module']['exclude'])
-
-# Excluded modules are also included in the build test.
-# Travis will test all implemented modules.
-for os_name in os_dependency_module:
-    if os_dependency_module[os_name]:
+    # Travis will test all implemented modules.
+    for os_name in extend_module.keys():
         os_dependency_module[os_name] = \
-        ['--iotjs-include-module=' + ','.join(os_dependency_module[os_name])]
+        ['--iotjs-include-module=' + ','.join(extend_module[os_name])]
 
-build_args = []
+    build_args = []
 
-if option.buildoptions:
-    build_args.extend(option.buildoptions.split(','))
+    if option.buildoptions:
+        build_args.extend(option.buildoptions.split(','))
 
-for test in option.test:
-    if test == "host-linux":
-        for buildtype in option.buildtype:
-            build(buildtype, os_dependency_module['linux'] + build_args)
+    for test in option.test:
+        if test == "host-linux":
+            for buildtype in option.buildtype:
+                build(buildtype, os_dependency_module['linux'] + build_args)
 
-    if test == "host-darwin":
-        for buildtype in option.buildtype:
-            build(buildtype, os_dependency_module['darwin'] + build_args)
+        if test == "host-darwin":
+            for buildtype in option.buildtype:
+                build(buildtype, os_dependency_module['darwin'] + build_args)
 
-    elif test == "rpi2":
-        for buildtype in option.buildtype:
-            build(buildtype, ['--target-arch=arm', '--target-board=rpi2']
-                              + os_dependency_module['linux'] + build_args)
+        elif test == "rpi2":
+            for buildtype in option.buildtype:
+                build(buildtype, ['--target-arch=arm', '--target-board=rpi2']
+                                + os_dependency_module['linux'] + build_args)
 
-    elif test == "artik10":
-        for buildtype in option.buildtype:
-            tizen_root = fs.join(path.PROJECT_ROOT, 'deps', 'tizen')
-            setup_tizen_root(tizen_root)
-            build(buildtype, ['--target-arch=arm',
-                              '--target-os=tizen',
-                              '--target-board=artik10',
-                              '--compile-flag=--sysroot=' + tizen_root
-                              ] + os_dependency_module['linux'] + build_args)
+        elif test == "artik10":
+            for buildtype in option.buildtype:
+                tizen_root = fs.join(path.PROJECT_ROOT, 'deps', 'tizen')
+                setup_tizen_root(tizen_root)
+                build(buildtype, ['--target-arch=arm',
+                                '--target-os=tizen',
+                                '--target-board=artik10',
+                                '--compile-flag=--sysroot=' + tizen_root
+                                ] + os_dependency_module['linux'] + build_args)
 
-    elif test == "artik053":
-        for buildtype in option.buildtype:
-            tizenrt_root = fs.join(path.PROJECT_ROOT, 'deps', 'tizenrt')
-            setup_tizenrt_repo(tizenrt_root)
-            configure_trizenrt(tizenrt_root, buildtype)
-            build(buildtype, ['--target-arch=arm',
-                              '--target-os=tizenrt',
-                              '--target-board=artik05x',
-                              '--sysroot=' + tizenrt_root + '/os',
-                              '--jerry-heaplimit=128',
-                              '--clean',
-                              ] + os_dependency_module['tizenrt'] + build_args)
-            build_tizenrt(tizenrt_root, path.PROJECT_ROOT, buildtype)
+        elif test == "artik053":
+            for buildtype in option.buildtype:
+                tizenrt_root = fs.join(path.PROJECT_ROOT, 'deps', 'tizenrt')
+                setup_tizenrt_repo(tizenrt_root)
+                configure_trizenrt(tizenrt_root, buildtype)
+                build(buildtype, ['--target-arch=arm',
+                                '--target-os=tizenrt',
+                                '--target-board=artik05x',
+                                '--sysroot=' + tizenrt_root + '/os',
+                                '--jerry-heaplimit=128',
+                                '--clean',
+                                ] + os_dependency_module['tizenrt']
+                                + build_args)
+                build_tizenrt(tizenrt_root, path.PROJECT_ROOT, buildtype)
 
-    elif test == "nuttx":
-        current_dir = os.getcwd()
-        for buildtype in option.buildtype:
-            nuttx_root=fs.join(path.PROJECT_ROOT, 'deps', 'nuttx')
-            setup_nuttx_root(nuttx_root)
-            build_nuttx(nuttx_root, buildtype, 'context')
-            build(buildtype, ['--target-arch=arm',
-                              '--target-os=nuttx',
-                              '--nuttx-home=' + fs.join(nuttx_root, 'nuttx'),
-                              '--target-board=stm32f4dis',
-                              '--jerry-heaplimit=78']
-                              + os_dependency_module['nuttx'] + build_args)
-            build_nuttx(nuttx_root, buildtype, 'all')
-            fs.chdir(current_dir)
+        elif test == "nuttx":
+            current_dir = os.getcwd()
+            for buildtype in option.buildtype:
+                nuttx_root=fs.join(path.PROJECT_ROOT, 'deps', 'nuttx')
+                setup_nuttx_root(nuttx_root)
+                build_nuttx(nuttx_root, buildtype, 'context')
+                build(buildtype, ['--target-arch=arm',
+                                '--target-os=nuttx',
+                                '--nuttx-home=' + fs.join(nuttx_root, 'nuttx'),
+                                '--target-board=stm32f4dis',
+                                '--jerry-heaplimit=78']
+                                + os_dependency_module['nuttx'] + build_args)
+                build_nuttx(nuttx_root, buildtype, 'all')
+                fs.chdir(current_dir)
 
-    elif test == "misc":
-        args = []
-        if os.getenv('TRAVIS') != None:
-            args = ['--travis']
-        ex.check_run_cmd('tools/check_signed_off.sh', args)
+        elif test == "misc":
+            args = []
+            if os.getenv('TRAVIS') != None:
+                args = ['--travis']
+            ex.check_run_cmd('tools/check_signed_off.sh', args)
 
-        if not check_tidy(path.PROJECT_ROOT):
-            ex.fail("Failed tidy check")
+            if not check_tidy(path.PROJECT_ROOT):
+                ex.fail("Failed tidy check")
 
-        build("debug", build_args)
-        build("debug", ['--iotjs-minimal-profile'] + build_args)
+            build("debug", build_args)
+            build("debug", ['--iotjs-minimal-profile'] + build_args)
 
-    elif test == "no-snapshot":
-        args = []
-        if os.getenv('TRAVIS') != None:
-            args = ['--travis']
+        elif test == "no-snapshot":
+            args = []
+            if os.getenv('TRAVIS') != None:
+                args = ['--travis']
 
-        build("debug", ['--no-snapshot', '--jerry-lto']
-                       + os_dependency_module['linux'] + build_args)
+            build("debug", ['--no-snapshot', '--jerry-lto']
+                        + os_dependency_module['linux'] + build_args)
 
 
-    elif test == "coverity":
-        build("debug", ['--no-check-test']
-                       + os_dependency_module['linux'] + build_args)
+        elif test == "coverity":
+            build("debug", ['--no-check-test']
+                        + os_dependency_module['linux'] + build_args)

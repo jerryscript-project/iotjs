@@ -22,9 +22,6 @@
 #include "iotjs_objectwrap.h"
 #include "iotjs_reqwrap.h"
 
-#if defined(__TIZENRT__)
-#include <iotbus_gpio.h>
-#endif
 
 typedef enum {
   kGpioDirectionIn = 0,
@@ -64,6 +61,7 @@ typedef struct {
   GpioOp op;
 } iotjs_gpio_reqdata_t;
 
+typedef struct _iotjs_gpio_module_platform_t* iotjs_gpio_module_platform_t;
 
 // This Gpio class provides interfaces for GPIO operation.
 typedef struct {
@@ -72,13 +70,7 @@ typedef struct {
   GpioDirection direction;
   GpioMode mode;
   GpioEdge edge;
-#if defined(__linux__)
-  int value_fd;
-  uv_thread_t thread;
-  uv_mutex_t mutex;
-#elif defined(__TIZENRT__)
-  iotbus_gpio_context_h gpio_context;
-#endif
+  iotjs_gpio_module_platform_t platform;
 } IOTJS_VALIDATED_STRUCT(iotjs_gpio_t);
 
 
@@ -110,5 +102,7 @@ void iotjs_gpio_open_worker(uv_work_t* work_req);
 bool iotjs_gpio_write(iotjs_gpio_t* gpio, bool value);
 int iotjs_gpio_read(iotjs_gpio_t* gpio);
 bool iotjs_gpio_close(iotjs_gpio_t* gpio);
+void iotjs_gpio_platform_create(iotjs_gpio_t_impl_t* gpio);
+void iotjs_gpio_platform_destroy(iotjs_gpio_t_impl_t* gpio);
 
 #endif /* IOTJS_MODULE_GPIO_H */

@@ -50,16 +50,20 @@ Runner.prototype.cleanup = function() {
   }
 
   this.driver = null;
-  this.attr = null;
+  this.test = null;
   if (this.timer != null) {
     clearTimeout(this.timer);
     this.timer = null;
+  }
+  if (this.timer_spin != null) {
+    clearTimeout(this.timer_spin);
+    this.timer_spin = null;
   }
 };
 
 Runner.prototype.spin = function() {
   var that = this;
-  setTimeout(function() {
+  this.timer_spin = setTimeout(function() {
       var timerOnlyAlive = !testdriver.isAliveExceptFor(that.timer);
       if (timerOnlyAlive) {
         timerOnlyAlive = !process._onNextTick();

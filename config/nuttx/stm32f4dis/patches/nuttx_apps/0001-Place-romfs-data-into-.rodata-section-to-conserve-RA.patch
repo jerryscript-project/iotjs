@@ -1,0 +1,33 @@
+From c66025b93ff90d63f6d21e448aa59ac693594c31 Mon Sep 17 00:00:00 2001
+From: Tomasz Wozniak <t.wozniak@samsung.com>
+Date: Thu, 24 Aug 2017 15:18:51 +0200
+Subject: [PATCH] Place romfs data into .rodata section to conserve RAM.
+
+---
+ nshlib/nsh_romfsetc.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/nshlib/nsh_romfsetc.c b/nshlib/nsh_romfsetc.c
+index 19fb9f4..a3c60ab 100644
+--- a/nshlib/nsh_romfsetc.c
++++ b/nshlib/nsh_romfsetc.c
+@@ -53,12 +53,15 @@
+  * ROMFS image?
+  */
+ 
++unsigned char romfs_img[] __attribute__((section(".rodata")));
+ #ifdef CONFIG_NSH_ARCHROMFS
+ #  include <arch/board/nsh_romfsimg.h>
+ #elif defined(CONFIG_NSH_CUSTOMROMFS)
+ #  include CONFIG_NSH_CUSTOMROMFS_HEADER
+-#else /* if defined(CONFIG_NSH_DEFAULTROMFS) */
++#elif defined(CONFIG_NSH_DEFAULTROMFS)
+ #  include "nsh_romfsimg.h"
++#else
++#  error "No romfs source header"
+ #endif
+ 
+ /****************************************************************************
+-- 
+2.7.4
+

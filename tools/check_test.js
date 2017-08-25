@@ -59,8 +59,16 @@ function Driver() {
     driver.runNextTest();
   });
 
-  this.os = process.platform;
-  this.board = process.iotjs.board;
+  this.os = process.platform ? process.platform : 'unknown-platform';
+  this.board = process.iotjs ? process.iotjs.board : 'unknown-board';
+  this.arch = process.arch ? process.arch : 'unknown-arch';
+  this.env = 'unknown-environment';
+  if (process.iotjs) {
+    this.env = 'iotjs';
+  } else if (process.versions && process.versions.node) {
+    this.env = 'nodejs';
+  }
+  this.dependecies = [this.os, this.board, this.arch, this.env];
 
   this.root = util.absolutePath(root);
   process.chdir(this.root);
@@ -86,6 +94,8 @@ Driver.prototype.config = function() {
     "a flag that indicates if tests for experimental are needed");
   parser.addOption('default-timeout', "", 240,
     "the default timeout in seconds");
+  parser.addOption('dependencies', "dep1,dep2,dep3...", "",
+    "list of dependecies which are met in this test run");
 
   var options = parser.parse();
 
@@ -113,6 +123,11 @@ Driver.prototype.config = function() {
     this.stability = 'stable';
   } else {
     this.stability = 'experimental';
+  }
+
+  var dependecies = options['dependencies'];
+  if (dependecies) {
+    this.dependecies = this.dependecies.concat(dependecies.split(','));
   }
 
   this.logger = new Logger(path);

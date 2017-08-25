@@ -257,6 +257,16 @@ target_link_libraries(${TARGET_LIB_IOTJS}
   ${EXTERNAL_SHARED_LIB}
 )
 
+if("${LIB_INSTALL_DIR}" STREQUAL "")
+  set(LIB_INSTALL_DIR "lib")
+endif()
+
+if("${BIN_INSTALL_DIR}" STREQUAL "")
+  set(BIN_INSTALL_DIR "bin")
+endif()
+
+install(TARGETS ${TARGET_LIB_IOTJS} DESTINATION ${LIB_INSTALL_DIR})
+
 if(NOT BUILD_LIB_ONLY)
 
   if("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
@@ -275,4 +285,5 @@ if(NOT BUILD_LIB_ONLY)
   )
   target_include_directories(${TARGET_IOTJS} PRIVATE ${IOTJS_INCLUDE_DIRS})
   target_link_libraries(${TARGET_IOTJS} ${TARGET_LIB_IOTJS})
+  install(TARGETS ${TARGET_IOTJS} DESTINATION ${BIN_INSTALL_DIR})
 endif()

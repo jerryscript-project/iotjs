@@ -488,6 +488,13 @@ endif()
 
 install(TARGETS ${TARGET_STATIC_IOTJS} DESTINATION ${LIB_INSTALL_DIR})
 
+# Install headers
+if("${INCLUDE_INSTALL_DIR}" STREQUAL "")
+  set(INCLUDE_INSTALL_DIR "include/iotjs")
+endif()
+file(GLOB IOTJS_HEADERS include/*.h)
+install(FILES ${IOTJS_HEADERS} DESTINATION ${INCLUDE_INSTALL_DIR})
+
 # Configure the libiotjs.so
 if (NOT BUILD_LIB_ONLY AND CREATE_SHARED_LIB)
   set(TARGET_SHARED_IOTJS shared_iotjs)
@@ -506,6 +513,7 @@ if (NOT BUILD_LIB_ONLY AND CREATE_SHARED_LIB)
     ${MBEDTLS_LIBS}
     -Wl,--no-whole-archive
     ${EXTERNAL_LIBS})
+  install(TARGETS ${TARGET_SHARED_IOTJS} DESTINATION ${LIB_INSTALL_DIR})
 endif()
 
 # Configure the iotjs executable

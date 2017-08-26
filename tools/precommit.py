@@ -82,15 +82,23 @@ def setup_nuttx_root(nuttx_root):
                 fs.join(nuttx_root, 'apps', 'system', 'iotjs'))
 
     # Step 3
+    fs.chdir(fs.join(nuttx_root, 'nuttx'))
+    srcconfigdir = fs.join(path.PROJECT_ROOT, 'config', 'nuttx', 'stm32f4dis')
+    patchdir = fs.join(srcconfigdir, 'patches')
+    for patchfile in sorted(fs.listdir(patchdir)):
+        if (patchfile.endswith('.patch')):
+            ex.check_run_cmd('git', ['am',
+                fs.join(patchdir, patchfile),
+                '--committer-date-is-author-date'])
+    # Copy over our config onto stm32f4/usbnsh setup
+    src_config = fs.join(srcconfigdir,'dot_usbnshiotjs_defconfig')
+    dst_config = fs.join(nuttx_root, 'nuttx', 'configs', 'stm32f4discovery',
+                            'usbnsh', 'defconfig')
+    ex.check_run_cmd('cp', ['-f', src_config, dst_config])
+
+    # Step 4: configure Nuttx with the specified config
     fs.chdir(fs.join(nuttx_root, 'nuttx', 'tools'))
     ex.check_run_cmd('./configure.sh', ['stm32f4discovery/usbnsh'])
-    fs.chdir('..')
-    fs.copy(fs.join(path.PROJECT_ROOT,
-                    'config',
-                    'nuttx',
-                    'stm32f4dis',
-                    '.config.travis'),
-            '.config')
 
 
 def build_nuttx(nuttx_root, buildtype, maketarget):

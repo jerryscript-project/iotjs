@@ -109,45 +109,25 @@ iotjs_uart_t* iotjs_uart_instance_from_reqwrap(THIS) {
 
 #undef THIS
 
-
-static bool iotjs_uart_close(iotjs_uart_t* uart) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_uart_t, uart);
-  uv_poll_t* poll_handle = &_this->poll_handle;
-
-  if (_this->device_fd > 0) {
-    if (!uv_is_closing((uv_handle_t*)poll_handle)) {
-      uv_close((uv_handle_t*)poll_handle, NULL);
-    }
-    if (close(_this->device_fd) < 0) {
-      return false;
-    }
-  }
-
-  return true;
+void iotjs_uart_worker_init(uv_work_t* work_req,
+                            iotjs_worker_t* worker_fields) {
+  worker_fields->req_wrap = iotjs_uart_reqwrap_from_request(work_req);
+  worker_fields->req_data = iotjs_uart_reqwrap_data(worker_fields->req_wrap);
+  worker_fields->uart =
+      iotjs_uart_instance_from_reqwrap(worker_fields->req_wrap);
 }
 
 
 static void iotjs_uart_write_worker(uv_work_t* work_req) {
-  UART_WORKER_INIT;
+  iotjs_worker_t worker;
+  iotjs_uart_worker_init(work_req, &worker);
 
-  if (!iotjs_uart_write(uart)) {
-    req_data->result = false;
+  if (!iotjs_uart_platform_write(worker.uart)) {
+    worker.req_data->result = false;
     return;
   }
 
-  req_data->result = true;
-}
-
-
-static void iotjs_uart_close_worker(uv_work_t* work_req) {
-  UART_WORKER_INIT;
-
-  if (!iotjs_uart_close(uart)) {
-    req_data->result = false;
-    return;
-  }
-
-  req_data->result = true;
+  worker.req_data->result = true;
 }
 
 
@@ -238,17 +218,16 @@ void iotjs_uart_read_cb(uv_poll_t* req, int status, int events) {
   }
 }
 
+typedef void (*uv_worker_t)(uv_work_t* work_req);
 
-#define UART_ASYNC(call, this, jcallback, op)                          \
-  do {                                                                 \
-    uv_loop_t* loop = iotjs_environment_loop(iotjs_environment_get()); \
-    iotjs_uart_reqwrap_t* req_wrap =                                   \
-        iotjs_uart_reqwrap_create(jcallback, this, op);                \
-    uv_work_t* req = iotjs_uart_reqwrap_req(req_wrap);                 \
-    uv_queue_work(loop, req, iotjs_uart_##call##_worker,               \
-                  iotjs_uart_after_worker);                            \
-  } while (0)
-
+static void _uart_async(uv_worker_t worker, iotjs_uart_t* this,
+                        const iotjs_jval_t* jcallback, UartOp op) {
+  uv_loop_t* loop = iotjs_environment_loop(iotjs_environment_get());
+  iotjs_uart_reqwrap_t* req_wrap =
+      iotjs_uart_reqwrap_create(jcallback, this, op);
+  uv_work_t* req = iotjs_uart_reqwrap_req(req_wrap);
+  uv_queue_work(loop, req, worker, iotjs_uart_after_worker);
+}
 
 JHANDLER_FUNCTION(UartConstructor) {
   DJHANDLER_CHECK_THIS(object);
@@ -285,7 +264,7 @@ JHANDLER_FUNCTION(UartConstructor) {
   iotjs_jval_destroy(&jbaud_rate);
   iotjs_jval_destroy(&jdata_bits);
 
-  UART_ASYNC(open, uart, jcallback, kUartOpOpen);
+  _uart_async(iotjs_uart_platform_open_worker, uart, jcallback, kUartOpOpen);
 }
 
 
@@ -302,9 +281,9 @@ JHANDLER_FUNCTION(Write) {
   _this->buf_len = iotjs_string_size(&_this->buf_data);
 
   if (jcallback) {
-    UART_ASYNC(write, uart, jcallback, kUartOpWrite);
+    _uart_async(iotjs_uart_write_worker, uart, jcallback, kUartOpWrite);
   } else {
-    bool result = iotjs_uart_write(uart);
+    bool result = iotjs_uart_platform_write(uart);
     iotjs_string_destroy(&_this->buf_data);
 
     if (!result) {
@@ -327,9 +306,10 @@ JHANDLER_FUNCTION(Close) {
   iotjs_jval_destroy(&_this->jemitter_this);
 
   if (jcallback) {
-    UART_ASYNC(close, uart, jcallback, kUartOpClose);
+    _uart_async(iotjs_uart_platform_close_worker, uart, jcallback,
+                kUartOpClose);
   } else {
-    if (!iotjs_uart_close(uart)) {
+    if (!iotjs_uart_platform_close(uart)) {
       JHANDLER_THROW(COMMON, "UART Close Error");
     }
   }
@@ -351,4 +331,34 @@ iotjs_jval_t InitUart() {
   iotjs_jval_destroy(&prototype);
 
   return juart_constructor;
+}
+
+
+bool iotjs_uart_libtuv_close(iotjs_uart_t* uart) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_uart_t, uart);
+  uv_poll_t* poll_handle = &_this->poll_handle;
+
+  if (_this->device_fd > 0) {
+    if (!uv_is_closing((uv_handle_t*)poll_handle)) {
+      uv_close((uv_handle_t*)poll_handle, NULL);
+    }
+    if (close(_this->device_fd) < 0) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+
+void iotjs_uart_libtuv_close_worker(uv_work_t* work_req) {
+  iotjs_worker_t worker;
+  iotjs_uart_worker_init(work_req, &worker);
+
+  if (!iotjs_uart_libtuv_close(worker.uart)) {
+    worker.req_data->result = false;
+    return;
+  }
+
+  worker.req_data->result = true;
 }

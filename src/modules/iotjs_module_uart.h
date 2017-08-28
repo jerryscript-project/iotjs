@@ -31,6 +31,7 @@ typedef enum {
   kUartOpWrite,
 } UartOp;
 
+typedef struct _iotjs_uart_module_platform_t* iotjs_uart_module_platform_t;
 
 typedef struct {
   iotjs_jobjectwrap_t jobjectwrap;
@@ -42,6 +43,8 @@ typedef struct {
   iotjs_string_t buf_data;
   unsigned buf_len;
   uv_poll_t poll_handle;
+
+  iotjs_uart_module_platform_t platform;
 } IOTJS_VALIDATED_STRUCT(iotjs_uart_t);
 
 
@@ -58,25 +61,34 @@ typedef struct {
   iotjs_uart_t* uart_instance;
 } IOTJS_VALIDATED_STRUCT(iotjs_uart_reqwrap_t);
 
-#define THIS iotjs_uart_reqwrap_t* uart_reqwrap
+typedef struct {
+  iotjs_uart_reqwrap_t* req_wrap;
+  iotjs_uart_reqdata_t* req_data;
+  iotjs_uart_t* uart;
+} iotjs_worker_t;
+
+void iotjs_uart_worker_init(uv_work_t* work_req, iotjs_worker_t* worker_fields);
+
 
 iotjs_uart_reqwrap_t* iotjs_uart_reqwrap_from_request(uv_work_t* req);
-iotjs_uart_reqdata_t* iotjs_uart_reqwrap_data(THIS);
+iotjs_uart_reqdata_t* iotjs_uart_reqwrap_data(
+    iotjs_uart_reqwrap_t* uart_reqwrap);
 
-iotjs_uart_t* iotjs_uart_instance_from_reqwrap(THIS);
-
-#undef THIS
-
-
-#define UART_WORKER_INIT                                                      \
-  iotjs_uart_reqwrap_t* req_wrap = iotjs_uart_reqwrap_from_request(work_req); \
-  iotjs_uart_reqdata_t* req_data = iotjs_uart_reqwrap_data(req_wrap);         \
-  iotjs_uart_t* uart = iotjs_uart_instance_from_reqwrap(req_wrap);
-
+iotjs_uart_t* iotjs_uart_instance_from_reqwrap(
+    iotjs_uart_reqwrap_t* uart_reqwrap);
 
 void iotjs_uart_read_cb(uv_poll_t* req, int status, int events);
 
-void iotjs_uart_open_worker(uv_work_t* work_req);
-bool iotjs_uart_write(iotjs_uart_t* uart);
+
+// These two functions you can use to implement close functions
+// for file descriptor base libtuv data pulling
+bool iotjs_uart_libtuv_close(iotjs_uart_t* uart);
+void iotjs_uart_libtuv_close_worker(uv_work_t* work_req);
+
+// These four functions you should provide to port UART to new platform
+void iotjs_uart_platform_open_worker(uv_work_t* work_req);
+void iotjs_uart_platform_close_worker(uv_work_t* work_req);
+bool iotjs_uart_platform_close(iotjs_uart_t* uart);
+bool iotjs_uart_platform_write(iotjs_uart_t* uart);
 
 #endif /* IOTJS_MODULE_UART_H */

@@ -51,7 +51,7 @@ typedef struct {
 } IOTJS_VALIDATED_STRUCT(iotjs_environment_t);
 
 
-const iotjs_environment_t* iotjs_environment_get();
+iotjs_environment_t* iotjs_environment_get();
 void iotjs_environment_release();
 
 bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
@@ -69,6 +69,6 @@ const Config* iotjs_environment_config(const iotjs_environment_t* env);
 void iotjs_environment_go_state_running_main(iotjs_environment_t* env);
 void iotjs_environment_go_state_running_loop(iotjs_environment_t* env);
 void iotjs_environment_go_state_exiting(iotjs_environment_t* env);
-
+bool iotjs_environment_is_exiting(iotjs_environment_t* env);
 
 #endif /* IOTJS_ENV_H */

@@ -571,6 +571,17 @@ iotjs_jval_t iotjs_jhelper_exec_snapshot(const void* snapshot_p,
 #endif
 
 
+jerry_value_t vm_exec_stop_callback(void* user_p) {
+  State* state_p = (State*)user_p;
+
+  if (*state_p != kExiting) {
+    return jerry_create_undefined();
+  }
+
+  return jerry_create_string((const jerry_char_t*)"Abort script");
+}
+
+
 iotjs_jargs_t iotjs_jargs_create(uint16_t capacity) {
   iotjs_jargs_t jargs;
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_jargs_t, &jargs);

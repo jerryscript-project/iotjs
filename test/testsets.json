@@ -116,6 +116,7 @@
     { "name": "test_iotjs_runtime_error.js", "expected-failure": true },
     { "name": "test_iotjs_syntax_error.js", "expected-failure": true, "skip": ["tizenrt"], "reason": "Core dump on TizenRT" },
     { "name": "test_module_require_invalid_file.js", "expected-failure": true },
+    { "name": "test_module_require_path_below_root.js", "expected-failure": true },
     { "name": "test_process_exitcode_arg.js", "expected-failure": true },
     { "name": "test_process_exitcode_var.js", "expected-failure": true },
     { "name": "test_process_explicit_exit.js", "expected-failure": true },

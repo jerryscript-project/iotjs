@@ -45,10 +45,10 @@ exports.OutgoingMessage = OutgoingMessage;
 OutgoingMessage.prototype.end = function(data, encoding, callback) {
   var self = this;
 
-  if (util.isFunction(data)) {
+  if (typeof data === 'function') {
     callback = data;
     data = null;
-  } else if (util.isFunction(encoding)) {
+  } else if (typeof encoding === 'function') {
     callback = encoding;
     encoding = null;
   }
@@ -67,7 +67,7 @@ OutgoingMessage.prototype.end = function(data, encoding, callback) {
   }
 
   // Register finish event handler.
-  if (util.isFunction(callback)) {
+  if (typeof callback === 'function') {
     this.once('finish', callback);
   }
 
@@ -99,7 +99,7 @@ OutgoingMessage.prototype._finish = function() {
 // This sends chunk directly into socket
 // TODO: buffering of chunk in the case of socket is not available
 OutgoingMessage.prototype._send = function(chunk, encoding, callback) {
-  if (util.isFunction(encoding)) {
+  if (typeof encoding === 'function') {
     callback = encoding;
   }
 

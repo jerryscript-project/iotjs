@@ -54,7 +54,7 @@ EventEmitter.prototype.emit = function(type) {
 
 
 EventEmitter.prototype.addListener = function(type, listener) {
-  if (!util.isFunction(listener)) {
+  if (typeof listener !== 'function') {
     throw new TypeError('listener must be a function');
   }
 
@@ -75,7 +75,7 @@ EventEmitter.prototype.on = EventEmitter.prototype.addListener;
 
 
 EventEmitter.prototype.once = function(type, listener) {
-  if (!util.isFunction(listener)) {
+  if (typeof listener !== 'function') {
     throw new TypeError('listener must be a function');
   }
 
@@ -96,7 +96,7 @@ EventEmitter.prototype.once = function(type, listener) {
 
 
 EventEmitter.prototype.removeListener = function(type, listener) {
-  if (!util.isFunction(listener)) {
+  if (typeof listener !== 'function') {
     throw new TypeError('listener must be a function');
   }
 

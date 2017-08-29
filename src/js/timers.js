@@ -65,7 +65,7 @@ Timeout.prototype.unref = function() {
 };
 
 function timeoutConfigurator(isrepeat, callback, delay) {
-  if (!util.isFunction(callback)) {
+  if (typeof callback !== 'function') {
     throw new TypeError('Bad arguments: callback must be a Function');
   }
 

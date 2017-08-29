@@ -49,7 +49,7 @@ function gpioPinOpen(configuration, callback) {
 
     // validate pin
     if (util.isObject(configuration)) {
-      if (!util.isNumber(configuration.pin)) {
+      if (typeof configuration.pin !== 'number') {
         throw new TypeError('Bad configuration - pin is mandatory and number');
       }
     } else {
@@ -104,7 +104,7 @@ function gpioPinOpen(configuration, callback) {
     EventEmitter.call(this);
 
     _binding = new gpio.Gpio(configuration, function(err) {
-      util.isFunction(callback) && callback.call(self, err);
+      typeof callback === 'function' && callback.call(self, err);
     });
 
     _binding.onChange = function() {
@@ -129,12 +129,12 @@ function gpioPinOpen(configuration, callback) {
       throw new Error('GPIO pin is not opened');
     }
 
-    if (!util.isNumber(value) && !util.isBoolean(value)) {
+    if (typeof value !== 'number' && typeof value !== 'boolean') {
       throw new TypeError('Bad arguments - value should be Boolean');
     }
 
     _binding.write(!!value, function(err) {
-      util.isFunction(callback) && callback.call(self, err);
+      typeof callback === 'function' && callback.call(self, err);
     });
   };
 
@@ -143,7 +143,7 @@ function gpioPinOpen(configuration, callback) {
       throw new Error('GPIO pin is not opened');
     }
 
-    if (!util.isNumber(value) && !util.isBoolean(value)) {
+    if (typeof value !== 'number' && typeof value !== 'boolean') {
       throw new TypeError('Bad arguments - value should be Boolean');
     }
 
@@ -158,7 +158,7 @@ function gpioPinOpen(configuration, callback) {
     }
 
     _binding.read(function(err, value) {
-      util.isFunction(callback) && callback.call(self, err, value);
+      typeof callback === 'function' && callback.call(self, err, value);
     });
   };
 
@@ -178,7 +178,7 @@ function gpioPinOpen(configuration, callback) {
     }
 
     _binding.close(function(err) {
-      util.isFunction(callback) && callback.call(self, err);
+      typeof callback === 'function' && callback.call(self, err);
       _binding = null;
     });
   };

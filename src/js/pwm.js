@@ -37,14 +37,14 @@ function pwmPinOpen(configuration, callback) {
 
     if (util.isObject(configuration)) {
       if (process.platform === 'linux') {
-        if (util.isNumber(configuration.chip)) {
+        if (typeof configuration.chip === 'number') {
           self._configuration.chip = configuration.chip
         } else {
           self._configuration.chip = 0;
         }
       }
 
-      if (!util.isNumber(configuration.pin)) {
+      if (typeof configuration.pin !== 'number') {
         throw new TypeError(
           'Bad configuration - pin is mandatory and should be Number');
       } else {
@@ -57,18 +57,19 @@ function pwmPinOpen(configuration, callback) {
     // validate configuration
     var dutyCycle = configuration.dutyCycle;
     var period = configuration.period;
-    if (!util.isNumber(period) && util.isNumber(configuration.frequency)) {
+    if (typeof period !== 'number'
+        && typeof configuration.frequency === 'number') {
       period = 1.0 / configuration.frequency;
     }
 
-    if (util.isNumber(dutyCycle) && dutyCycle >= 0.0 && dutyCycle <= 1.0 &&
-      util.isNumber(period) && util.isFinite(period) && period > 0) {
+    if (typeof dutyCycle === 'number' && dutyCycle >= 0.0 && dutyCycle <= 1.0 &&
+      typeof period === 'number' && util.isFinite(period) && period > 0) {
       self._configuration.dutyCycle = dutyCycle;
       self._configuration.period = period;
     }
 
     _binding = new pwm(self._configuration, function(err) {
-      util.isFunction(callback) && callback.call(self, err);
+      typeof callback === 'function' && callback.call(self, err);
     });
 
     process.on('exit', (function(self) {
@@ -81,7 +82,7 @@ function pwmPinOpen(configuration, callback) {
   }
 
   PwmPin.prototype._validatePeriod = function(period) {
-    if (!util.isNumber(period)) {
+    if (typeof period !== 'number') {
       throw new TypeError('Period is not a number(' + typeof(period) + ')');
     } else if (period < 0) {
       throw new RangeError('Period(' + period + ') is negative');
@@ -90,7 +91,7 @@ function pwmPinOpen(configuration, callback) {
   };
 
   PwmPin.prototype._validateFrequency = function(frequency) {
-    if (!util.isNumber(frequency)) {
+    if (typeof frequency !== 'number') {
       throw new TypeError('Frequency is not a number(' +
         typeof(frequency) + ')');
     } else if (frequency <= 0) {
@@ -100,7 +101,7 @@ function pwmPinOpen(configuration, callback) {
   };
 
   PwmPin.prototype._validateDutyCycle = function(dutyCycle) {
-    if (!util.isNumber(dutyCycle)) {
+    if (typeof dutyCycle !== 'number') {
       throw TypeError('DutyCycle is not a number(' + typeof(dutyCycle) + ')');
     } else if (dutyCycle < 0.0 || dutyCycle > 1.0) {
       throw RangeError('DutyCycle of ' + dutyCycle + ' out of bounds [0..1]');
@@ -117,7 +118,7 @@ function pwmPinOpen(configuration, callback) {
 
     if (this._validatePeriod(period)) {
       _binding.setPeriod(period, function(err) {
-        util.isFunction(callback) && callback.call(self, err);
+        typeof callback === 'function' && callback.call(self, err);
       });
     }
   };
@@ -141,7 +142,7 @@ function pwmPinOpen(configuration, callback) {
 
     if (this._validateFrequency(frequency)) {
       _binding.setPeriod(1.0 / frequency, function(err) {
-        util.isFunction(callback) && callback.call(self, err);
+        typeof callback === 'function' && callback.call(self, err);
       });
     }
   };
@@ -166,7 +167,7 @@ function pwmPinOpen(configuration, callback) {
     // Check arguments.
     if (this._validateDutyCycle(dutyCycle)) {
       _binding.setDutyCycle(dutyCycle, function(err) {
-        util.isFunction(callback) && callback.call(self, err);
+        typeof callback === 'function' && callback.call(self, err);
       });
     }
   };
@@ -190,12 +191,12 @@ function pwmPinOpen(configuration, callback) {
     }
 
     // Check arguments.
-    if (!util.isNumber(enable) && !util.isBoolean(enable)) {
+    if (typeof enable !== 'number' && typeof enable !== 'boolean') {
       throw new TypeError('enable is of type ' + typeof(enable));
     }
 
     _binding.setEnable(!!enable, function(err) {
-      util.isFunction(callback) && callback.call(self, err);
+      typeof callback === 'function' && callback.call(self, err);
     });
   };
 
@@ -205,7 +206,7 @@ function pwmPinOpen(configuration, callback) {
     }
 
     // Check arguments.
-    if (!util.isNumber(enable) && !util.isBoolean(enable)) {
+    if (typeof enable !== 'number' && typeof enable !== 'boolean') {
       throw new TypeError('enable is of type ' + typeof(enable));
     }
 
@@ -220,7 +221,7 @@ function pwmPinOpen(configuration, callback) {
     }
 
     _binding.close(function(err) {
-      util.isFunction(callback) && callback.call(self, err);
+      typeof callback === 'function' && callback.call(self, err);
       _binding = null;
     });
   };

@@ -43,9 +43,9 @@ function Buffer(subject, encoding) {
     return new Buffer(subject);
   }
 
-  if (util.isNumber(subject)) {
+  if ( typeof subject === 'number' ) {
     this.length = subject > 0 ? subject >>> 0 : 0;
-  } else if (util.isString(subject)) {
+  } else if (typeof subject === 'string') {
     this.length = Buffer.byteLength(subject, encoding);
   } else if (util.isBuffer(subject) || util.isArray(subject)) {
     this.length = subject.length;
@@ -55,8 +55,8 @@ function Buffer(subject, encoding) {
 
   this._builtin = new bufferBuiltin(this, this.length);
 
-  if (util.isString(subject)) {
-    if (encoding !== undefined && util.isString(encoding)) {
+  if (typeof subject === 'string') {
+    if (encoding !== undefined && typeof encoding === 'string') {
       switch (encoding) {
         case 'hex':
           if (this._builtin.hexWrite(subject, 0, this.length) != this.length) {
@@ -83,7 +83,7 @@ function Buffer(subject, encoding) {
 Buffer.byteLength = function(str, encoding) {
   var len = bufferBuiltin.byteLength(str);
 
-  if (encoding !== undefined && util.isString(encoding)) {
+  if (encoding !== undefined && typeof encoding === 'string') {
     switch (encoding) {
       case 'hex':
         return len >>> 1;
@@ -176,7 +176,7 @@ Buffer.prototype.copy = function(target, targetStart, sourceStart, sourceEnd) {
 // * offset - default to 0
 // * length - default to buffer.length - offset
 Buffer.prototype.write = function(string, offset, length) {
-  if (!util.isString(string)) {
+  if (typeof string !== 'string') {
     throw new TypeError('Bad arguments: buff.write(string)');
   }
 
@@ -214,7 +214,7 @@ Buffer.prototype.slice = function(start, end) {
 // * start - default to 0
 // * end - default to buff.length
 Buffer.prototype.toString = function(start, end) {
-  if (util.isString(start) && start === "hex" && end === undefined) {
+  if (typeof start === 'string' && start === "hex" && end === undefined) {
       return this._builtin.toHexString();
   }
   start = start === undefined ? 0 : ~~start;
@@ -304,7 +304,7 @@ Buffer.prototype.readUInt16LE = function(offset, noAssert) {
 
 // buff.fill(value)
 Buffer.prototype.fill = function(value) {
-  if (util.isNumber(value)) {
+  if (typeof value === 'number') {
     value = value & 255;
     for (var i = 0; i < this.length; i++) {
       this._builtin.writeUInt8(value, i);

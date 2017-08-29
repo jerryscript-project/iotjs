@@ -58,7 +58,7 @@ Readable.prototype.read = function(n) {
   var state = this._readableState;
   var res;
 
-  if (!util.isNumber(n) || n > state.length) {
+  if (typeof n !== 'number' || n > state.length) {
     n = state.length;
   } else if (n < 0) {
     n = 0;
@@ -124,13 +124,13 @@ Readable.prototype.push = function(chunk, encoding) {
 
   if (chunk === null) {
     onEof(this);
-  } else if (!util.isString(chunk) &&
+  } else if (typeof chunk !== 'string' &&
              !util.isBuffer(chunk)) {
     this.error(TypeError('Invalid chunk'));
   } else if (state.ended) {
     this.error(Error('stream.push() after EOF'));
   } else {
-    if (util.isString(chunk)) {
+    if (typeof chunk === 'string') {
       encoding = encoding || state.defaultEncoding;
       chunk = new Buffer(chunk, encoding);
     }

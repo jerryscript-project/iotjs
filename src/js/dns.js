@@ -34,13 +34,13 @@ exports.lookup = function lookup(hostname, options, callback) {
   var family = -1;
 
   // Parse arguments
-  if (!util.isString(hostname)) {
+  if (typeof hostname !== 'string') {
     throw TypeError('invalid argument: hostname must be a string');
   }
-  if (util.isFunction(options)) {
+  if (typeof options === 'function') {
     callback = options;
     family = 0;
-  } else if (!util.isFunction(callback)) {
+  } else if (typeof callback !== 'function') {
     throw TypeError('invalid argument: callback must be passed');
   } else if (util.isObject(options)) {
     hints = options.hints >>> 0;
@@ -49,7 +49,7 @@ exports.lookup = function lookup(hostname, options, callback) {
     if (hints < 0 || hints > (exports.ADDRCONFIG | exports.V4MAPPED)) {
       throw new TypeError('invalid argument: invalid hints flags');
     }
-  } else if (util.isNumber(options)) {
+  } else if (typeof options === 'number') {
     family = ~~options;
   } else {
     throw TypeError(

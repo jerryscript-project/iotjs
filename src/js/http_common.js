@@ -71,7 +71,7 @@ function parserOnHeadersComplete(info) {
   // add header fields of headers to incoming.headers
   this.incoming.addHeaders(headers);
 
-  if (util.isNumber(info.method)) {
+  if (typeof info.method === 'number') {
     // for server
     this.incoming.method = HTTPParser.methods[info.method];
   } else {

@@ -33,8 +33,6 @@ static bool iotjs_spi_open(iotjs_spi_t* spi) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_spi_t, spi);
 
   struct iotbus_spi_config_s cfg = {.bits_per_word = _this->bits_per_word,
-                                    .lsb = _this->bit_order == kSpiOrderLsb ? 1
-                                                                            : 0,
                                     .chip_select =
                                         _this->chip_select == kSpiCsNone ? 0
                                                                          : 1,

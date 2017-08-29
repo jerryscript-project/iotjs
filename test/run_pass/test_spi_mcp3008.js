@@ -22,7 +22,7 @@ var configuration = {};
 
 if (process.platform === 'linux') {
   configuration.device = '/dev/spidev0.0';
-} else if (process.platform === 'nuttx') {
+} else if (process.platform === 'nuttx' || process.platform === 'tizenrt') {
   configuration.bus = 1;
 } else {
   assert.fail();

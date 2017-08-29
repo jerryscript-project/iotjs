@@ -2,12 +2,12 @@
 
 The following shows I2C module APIs available for each platform.
 
-|  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | NuttX<br/>(STM32F4-Discovery) |
-| :---: | :---: | :---: | :---: |
-| i2c.open | O | O | O |
-| i2cbus.read | O | O | O |
-| i2cbus.write | O | O | O |
-| i2cbus.close | O | O | O |
+|  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | NuttX<br/>(STM32F4-Discovery) | TizenRT<br/>(Artik053) |
+| :---: | :---: | :---: | :---: | :---: |
+| i2c.open | O | O | O | - |
+| i2cbus.read | O | O | O | - |
+| i2cbus.write | O | O | O | - |
+| i2cbus.close | O | O | O | - |
 
 
 # I2C

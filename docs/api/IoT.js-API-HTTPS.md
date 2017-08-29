@@ -2,10 +2,10 @@
 
  The following shows Https module APIs available for each platform.
 
-|  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | Nuttx<br/>(STM32F4-Discovery) | Tizen<br/>(Artik 10) |
-| :---: | :---: | :---: | :---: | :---: |
-| https.request  | X | X | X | O |
-| https.get  | X | X | X | O |
+|  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | Nuttx<br/>(STM32F4-Discovery) | TizenRT<br/>(Artik053) | Tizen<br/>(Artik 10) |
+| :---: | :---: | :---: | :---: | :---: | :---: |
+| https.request  | X | X | X | X | O |
+| https.get  | X | X | X | X | O |
 
 
 # Https

@@ -2,13 +2,13 @@
 
 The following shows spi module APIs available for each platform.
 
-|  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | NuttX<br/>(STM32F4-Discovery) |
-| :---: | :---: | :---: | :---: |
-| spi.open | O | O | O |
-| spibus.transfer | O | O | O |
-| spibus.transferSync | O | O | O |
-| spibus.close | O | O | O |
-| spibus.closeSync | O | O | O |
+|  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | NuttX<br/>(STM32F4-Discovery) | TizenRT<br/>(Artik053) |
+| :---: | :---: | :---: | :---: | :---: |
+| spi.open | O | O | O | - |
+| spibus.transfer | O | O | O | - |
+| spibus.transferSync | O | O | O | - |
+| spibus.close | O | O | O | - |
+| spibus.closeSync | O | O | O | - |
 
 
 ## Class: SPI

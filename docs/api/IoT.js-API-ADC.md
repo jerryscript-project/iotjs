@@ -2,13 +2,13 @@
 
 The following table shows ADC module APIs available for each platform.
 
-|  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | NuttX<br/>(STM32F4-Discovery) |
-| :---: | :---: | :---: | :---: |
-| adc.open | O | X | O |
-| adcpin.read | O | X | O |
-| adcpin.readSync | O | X | O |
-| adcpin.close | O | X | O |
-| adcpin.closeSync | O | X | O |
+|  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | NuttX<br/>(STM32F4-Discovery) | TizenRT<br/>(Artik053) |
+| :---: | :---: | :---: | :---: | :---: |
+| adc.open | O | X | O | - |
+| adcpin.read | O | X | O | - |
+| adcpin.readSync | O | X | O | - |
+| adcpin.close | O | X | O | - |
+| adcpin.closeSync | O | X | O | - |
 
 
 ## Class: ADC

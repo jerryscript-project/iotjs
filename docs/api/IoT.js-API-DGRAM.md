@@ -2,19 +2,19 @@
 
 The following shows dgram module APIs available for each platform.
 
-|  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | NuttX<br/>(STM32F4-Discovery) |
-| :---: | :---: | :---: | :---: |
-| dgram.createSocket | O | O | △ ¹ |
-| dgram.Socket.addMembership | O | O | X |
-| dgram.Socket.address | O | O | X |
-| dgram.Socket.bind | O | O | △ ¹ |
-| dgram.Socket.close | O | O | △ ² |
-| dgram.Socket.dropMembership | O | O | X |
-| dgram.Socket.send | O | O | △ ¹ |
-| dgram.Socket.setBroadcast | O | O | X |
-| dgram.Socket.setMulticastLoopback | O | O | X |
-| dgram.Socket.setMulticastTTL | X | X | X |
-| dgram.Socket.setTTL | O | O | X |
+|  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | NuttX<br/>(STM32F4-Discovery) | TizenRT<br/>(Artik053) |
+| :---: | :---: | :---: | :---: | :---: |
+| dgram.createSocket | O | O | △ ¹ | - |
+| dgram.Socket.addMembership | O | O | X | - |
+| dgram.Socket.address | O | O | X | - |
+| dgram.Socket.bind | O | O | △ ¹ | - |
+| dgram.Socket.close | O | O | △ ² | - |
+| dgram.Socket.dropMembership | O | O | X | - |
+| dgram.Socket.send | O | O | △ ¹ | - |
+| dgram.Socket.setBroadcast | O | O | X | - |
+| dgram.Socket.setMulticastLoopback | O | O | X | - |
+| dgram.Socket.setMulticastTTL | X | X | X | - |
+| dgram.Socket.setTTL | O | O | X | - |
 
 1. On NuttX/STM32F4-Discovery, even a couple of sockets/server/requests might not work properly.
 

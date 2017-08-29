@@ -2,9 +2,9 @@
 
 The following shows dns module APIs available for each platform.
 
-|  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | NuttX<br/>(STM32F4-Discovery) |
-| :---: | :---: | :---: | :---: |
-| dns.lookup | O | O | X |
+|  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | NuttX<br/>(STM32F4-Discovery) | TizenRT<br/>(Artik053) |
+| :---: | :---: | :---: | :---: | :---: |
+| dns.lookup | O | O | X | - |
 
 ※ dns.lookup currently only returns IPv4 addresses. Support for IPv6 addresses are on the roadmap.
 
@@ -27,7 +27,7 @@ Returned address types are determined by the types of addresses supported by the
 ### dns.V4MAPPED
 * `{number}`
 
-If the IPv6 family was specified, but no IPv6 addresses were found, then return IPv4 mapped IPv6 addresses. 
+If the IPv6 family was specified, but no IPv6 addresses were found, then return IPv4 mapped IPv6 addresses.
 
 
 

@@ -2,36 +2,36 @@
 
 The following shows fs module APIs available for each platform.
 
-|  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | NuttX<br/>(STM32F4-Discovery) |
-| :---: | :---: | :---: | :---: |
-| fs.close | O | O | O |
-| fs.closeSync | O | O | O |
-| fs.exists | O | O | O |
-| fs.existsSync | O | O | O |
-| fs.fstat | O | O | X |
-| fs.fstatSync | O | O | X |
-| fs.mkdir | O | O | O |
-| fs.mkdirSync | O | O | O |
-| fs.open | O | O | O |
-| fs.openSync | O | O | O |
-| fs.read | O | O | O |
-| fs.readSync | O | O | O |
-| fs.readdir | O | O | X |
-| fs.readdirSync | O | O | X |
-| fs.readFile | O | O | O |
-| fs.readFileSync | O | O | O |
-| fs.rename | O | O | O |
-| fs.renameSync | O | O | O |
-| fs.rmdir | O | O | O |
-| fs.rmdirSync | O | O | O |
-| fs.stat | O | O | O |
-| fs.statSync | O | O | O |
-| fs.unlink | O | O | O |
-| fs.unlinkSync | O | O | O |
-| fs.write | O | O | O |
-| fs.writeSync | O | O | O |
-| fs.writeFile | O | O | O |
-| fs.writeFileSync | O | O | O |
+|  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | NuttX<br/>(STM32F4-Discovery) | TizenRT<br/>(Artik053) |
+| :---: | :---: | :---: | :---: | :---: |
+| fs.close | O | O | O | - |
+| fs.closeSync | O | O | O | - |
+| fs.exists | O | O | O | - |
+| fs.existsSync | O | O | O | - |
+| fs.fstat | O | O | X | - |
+| fs.fstatSync | O | O | X | - |
+| fs.mkdir | O | O | O | - |
+| fs.mkdirSync | O | O | O | - |
+| fs.open | O | O | O | - |
+| fs.openSync | O | O | O | - |
+| fs.read | O | O | O | - |
+| fs.readSync | O | O | O | - |
+| fs.readdir | O | O | X | - |
+| fs.readdirSync | O | O | X | - |
+| fs.readFile | O | O | O | - |
+| fs.readFileSync | O | O | O | - |
+| fs.rename | O | O | O | - |
+| fs.renameSync | O | O | O | - |
+| fs.rmdir | O | O | O | - |
+| fs.rmdirSync | O | O | O | - |
+| fs.stat | O | O | O | - |
+| fs.statSync | O | O | O | - |
+| fs.unlink | O | O | O | - |
+| fs.unlinkSync | O | O | O | - |
+| fs.write | O | O | O | - |
+| fs.writeSync | O | O | O | - |
+| fs.writeFile | O | O | O | - |
+| fs.writeFileSync | O | O | O | - |
 
 ※ On NuttX path should be passed with a form of **absolute path**.
 

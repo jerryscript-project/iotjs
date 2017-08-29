@@ -2,12 +2,12 @@
 
 The following shows timer module APIs available for each platform.
 
-|  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | NuttX<br/>(STM32F4-Discovery) |
-| :---: | :---: | :---: | :---: |
-| setTimeout | O | O | O |
-| clearTimeout | O | O | O |
-| setInterval | O | O | O |
-| clearInterval | O | O | O |
+|  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | NuttX<br/>(STM32F4-Discovery) | TizenRT<br/>(Artik053) |
+| :---: | :---: | :---: | :---: | :---: |
+| setTimeout | O | O | O | - |
+| clearTimeout | O | O | O | - |
+| setInterval | O | O | O | - |
+| clearInterval | O | O | O | - |
 
 
 # Timers

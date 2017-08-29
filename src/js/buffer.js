@@ -56,7 +56,7 @@ function Buffer(subject, encoding) {
   this._builtin = new bufferBuiltin(this, this.length);
 
   if (util.isString(subject)) {
-    if (!util.isUndefined(encoding) && util.isString(encoding)) {
+    if (encoding !== undefined && util.isString(encoding)) {
       switch (encoding) {
         case 'hex':
           if (this._builtin.hexWrite(subject, 0, this.length) != this.length) {
@@ -83,7 +83,7 @@ function Buffer(subject, encoding) {
 Buffer.byteLength = function(str, encoding) {
   var len = bufferBuiltin.byteLength(str);
 
-  if (!util.isUndefined(encoding) && util.isString(encoding)) {
+  if (encoding !== undefined && util.isString(encoding)) {
     switch (encoding) {
       case 'hex':
         return len >>> 1;
@@ -157,9 +157,9 @@ Buffer.prototype.copy = function(target, targetStart, sourceStart, sourceEnd) {
     throw new TypeError('Bad arguments: buff.copy(Buffer)');
   }
 
-  targetStart = util.isUndefined(targetStart) ? 0 : ~~targetStart;
-  sourceStart = util.isUndefined(sourceStart) ? 0 : ~~sourceStart;
-  sourceEnd = util.isUndefined(sourceEnd) ? this.length : ~~ sourceEnd;
+  targetStart = targetStart === undefined ? 0 : ~~targetStart;
+  sourceStart = sourceStart === undefined ? 0 : ~~sourceStart;
+  sourceEnd = sourceEnd === undefined ? this.length : ~~ sourceEnd;
 
   if ((sourceEnd > sourceStart) && (targetStart < 0)) {
     throw new RangeError('Attempt to write outside buffer bounds');
@@ -180,13 +180,13 @@ Buffer.prototype.write = function(string, offset, length) {
     throw new TypeError('Bad arguments: buff.write(string)');
   }
 
-  offset = util.isUndefined(offset) ? 0 : ~~offset;
+  offset = offset === undefined ? 0 : ~~offset;
   if (string.length > 0 && (offset < 0 || offset >= this.length)) {
     throw new RangeError('Attempt to write outside buffer bounds');
   }
 
   var remaining = this.length - offset;
-  length = util.isUndefined(length) ? remaining : ~~length;
+  length = length === undefined ? remaining : ~~length;
 
   return this._builtin.write(string, offset, length);
 };
@@ -199,8 +199,8 @@ Buffer.prototype.write = function(string, offset, length) {
 // * start - default to 0
 // * end - default to buff.length
 Buffer.prototype.slice = function(start, end) {
-  start = util.isUndefined(start) ? 0 : ~~start;
-  end = util.isUndefined(end) ? this.length : ~~end;
+  start = start === undefined ? 0 : ~~start;
+  end = end === undefined ? this.length : ~~end;
 
   return this._builtin.slice(start, end);
 };
@@ -214,11 +214,11 @@ Buffer.prototype.slice = function(start, end) {
 // * start - default to 0
 // * end - default to buff.length
 Buffer.prototype.toString = function(start, end) {
-  if (util.isString(start) && start === "hex" && util.isUndefined(end)) {
+  if (util.isString(start) && start === "hex" && end === undefined) {
       return this._builtin.toHexString();
   }
-  start = util.isUndefined(start) ? 0 : ~~start;
-  end = util.isUndefined(end) ? this.length : ~~end;
+  start = start === undefined ? 0 : ~~start;
+  end = end === undefined ? this.length : ~~end;
 
   return this._builtin.toString(start, end);
 };

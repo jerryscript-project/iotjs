@@ -55,7 +55,7 @@ function uartPortOpen(configuration, callback) {
     }
 
     // validate baud rate
-    if (!util.isUndefined(configuration.baudRate)) {
+    if (configuration.baudRate !== undefined) {
       if (BAUDRATE.indexOf(configuration.baudRate) === -1) {
         throw new TypeError("Invalid 'baudRate': " + configuration.baudRate);
       }
@@ -64,7 +64,7 @@ function uartPortOpen(configuration, callback) {
     }
 
     // validate data bits
-    if (!util.isUndefined(configuration.dataBits)) {
+    if (configuration.dataBits !== undefined) {
       if (DATABITS.indexOf(configuration.dataBits) === -1) {
         throw new TypeError("Invalid 'databits': " + configuration.dataBits);
       }

@@ -25,7 +25,7 @@ function isUndefined(arg) {
 
 
 function isNullOrUndefined(arg) {
-  return isNull(arg) || isUndefined(arg);
+  return isNull(arg) || arg === undefined;
 }
 
 
@@ -143,7 +143,7 @@ function format(s) {
 }
 
 function formatValue(v) {
-  if (isUndefined(v)) {
+  if (v === undefined) {
     return 'undefined';
   } else if (isNull(v)) {
     return 'null';

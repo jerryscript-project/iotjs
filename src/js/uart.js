@@ -80,7 +80,7 @@ function uartPortOpen(configuration, callback) {
 
     process.on('exit', (function(self) {
       return function() {
-        if (!util.isNull(_binding)) {
+        if (_binding !== null) {
           self.closeSync();
         }
       };
@@ -92,7 +92,7 @@ function uartPortOpen(configuration, callback) {
   UartPort.prototype.write = function(buffer, callback) {
     var self = this;
 
-    if (util.isNull(_binding)) {
+    if (_binding === null) {
       throw new Error('UART port is not opened');
     }
 
@@ -104,7 +104,7 @@ function uartPortOpen(configuration, callback) {
   UartPort.prototype.writeSync = function(buffer) {
     var self = this;
 
-    if (util.isNull(_binding)) {
+    if (_binding === null) {
       throw new Error('UART port is not opened');
     }
 
@@ -114,7 +114,7 @@ function uartPortOpen(configuration, callback) {
   UartPort.prototype.close = function(callback) {
     var self = this;
 
-    if (util.isNull(_binding)) {
+    if (_binding === null) {
       throw new Error('UART port is not opened');
     }
 
@@ -125,7 +125,7 @@ function uartPortOpen(configuration, callback) {
   };
 
   UartPort.prototype.closeSync = function() {
-    if (util.isNull(_binding)) {
+    if (_binding === null) {
       throw new Error('UART port is not opened');
     }
 

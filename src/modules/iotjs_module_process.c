@@ -21,7 +21,7 @@
 
 
 JHANDLER_FUNCTION(Binding) {
-  JHANDLER_CHECK_ARGS(1, number);
+  DJHANDLER_CHECK_ARGS(1, number);
 
   ModuleKind module_kind = (ModuleKind)JHANDLER_GET_ARG(0, number);
 
@@ -56,7 +56,7 @@ static iotjs_jval_t WrapEval(const char* name, size_t name_len,
 
 
 JHANDLER_FUNCTION(Compile) {
-  JHANDLER_CHECK_ARGS(2, string, string);
+  DJHANDLER_CHECK_ARGS(2, string, string);
 
   iotjs_string_t file = JHANDLER_GET_ARG(0, string);
   iotjs_string_t source = JHANDLER_GET_ARG(1, string);
@@ -86,7 +86,7 @@ JHANDLER_FUNCTION(Compile) {
 
 
 JHANDLER_FUNCTION(CompileNativePtr) {
-  JHANDLER_CHECK_ARGS(1, string);
+  DJHANDLER_CHECK_ARGS(1, string);
 
   iotjs_string_t id = JHANDLER_GET_ARG(0, string);
   const char* name = iotjs_string_data(&id);
@@ -128,7 +128,7 @@ JHANDLER_FUNCTION(CompileNativePtr) {
 
 
 JHANDLER_FUNCTION(ReadSource) {
-  JHANDLER_CHECK_ARGS(1, string);
+  DJHANDLER_CHECK_ARGS(1, string);
 
   iotjs_string_t path = JHANDLER_GET_ARG(0, string);
   iotjs_string_t code = iotjs_file_read(iotjs_string_data(&path));
@@ -141,7 +141,7 @@ JHANDLER_FUNCTION(ReadSource) {
 
 
 JHANDLER_FUNCTION(Cwd) {
-  JHANDLER_CHECK_ARGS(0);
+  DJHANDLER_CHECK_ARGS(0);
 
   char path[IOTJS_MAX_PATH_SIZE];
   size_t size_path = sizeof(path);
@@ -154,7 +154,7 @@ JHANDLER_FUNCTION(Cwd) {
 }
 
 JHANDLER_FUNCTION(Chdir) {
-  JHANDLER_CHECK_ARGS(1, string);
+  DJHANDLER_CHECK_ARGS(1, string);
 
   iotjs_string_t path = JHANDLER_GET_ARG(0, string);
   int err = uv_chdir(iotjs_string_data(&path));
@@ -173,7 +173,7 @@ JHANDLER_FUNCTION(DoExit) {
   iotjs_environment_t* env = iotjs_environment_get();
 
   if (!iotjs_environment_is_exiting(env)) {
-    JHANDLER_CHECK_ARGS(1, number);
+    DJHANDLER_CHECK_ARGS(1, number);
     int exit_code = JHANDLER_GET_ARG(0, number);
 
     iotjs_set_process_exitcode(exit_code);

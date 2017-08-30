@@ -126,7 +126,7 @@ iotjs_timerwrap_t* iotjs_timerwrap_from_jobject(const iotjs_jval_t* jtimer) {
 JHANDLER_FUNCTION(Start) {
   // Check parameters.
   JHANDLER_DECLARE_THIS_PTR(timerwrap, timer_wrap);
-  JHANDLER_CHECK_ARGS(2, number, number);
+  DJHANDLER_CHECK_ARGS(2, number, number);
 
   // parameters.
   uint64_t timeout = JHANDLER_GET_ARG(0, number);

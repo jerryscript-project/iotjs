@@ -287,6 +287,14 @@ def print_progress(msg):
 def init_submodule():
     ex.check_run_cmd('git', ['submodule', 'init'])
     ex.check_run_cmd('git', ['submodule', 'update'])
+    # Temporary patch for invalid headers
+    if options.target_os in ['tizenrt']:
+        ex.check_run_cmd("patch",
+                ["-d", "deps/jerry", "-p1",
+                 "-i", os.getcwd() + "/config/tizenrt/artik05x/" +
+                       "0001-Disable-conversion-and" +
+                       "-implicit-fallthrough-warnings.patch"])
+
 
 
 def build_cmake_args(options, for_jerry=False):

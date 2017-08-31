@@ -1,0 +1,23 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 495b8a28..bc15695b 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -199,7 +199,7 @@ jerry_add_compile_flags(-fno-stack-protector)
+ endif()
+
+ if (USING_GCC OR USING_CLANG)
+-  jerry_add_compile_warnings(all extra format-nonliteral init-self conversion sign-conversion format-security missing-declarations shadow strict-prototypes undef old-style-definition)
++  jerry_add_compile_warnings(all extra format-nonliteral init-self sign-conversion format-security missing-declarations shadow strict-prototypes undef old-style-definition)
+   jerry_add_compile_flags(-Wno-stack-protector -Wno-attributes)
+ endif()
+
+@@ -227,7 +227,7 @@ endif()
+
+ # TODO: Remove workaround for gcc 7 bug if the
+ # fallthrough comment detection is fixed.
+-if (USING_GCC AND CMAKE_C_COMPILER_VERSION VERSION_GREATER 7.0)
++if (USING_GCC)
+   jerry_add_compile_flags(-Wno-implicit-fallthrough)
+ endif()
+
+

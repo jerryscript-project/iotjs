@@ -132,12 +132,13 @@ JHANDLER_FUNCTION(UDP) {
   IOTJS_UNUSED(udp_wrap);
 }
 
-
 JHANDLER_FUNCTION(Bind) {
   JHANDLER_DECLARE_THIS_PTR(udpwrap, udp_wrap);
   DJHANDLER_CHECK_ARGS(2, string, number);
 
-  iotjs_string_t address = JHANDLER_GET_ARG(0, string);
+  iotjs_string_t option_address = JHANDLER_GET_ARG(0, string);
+  iotjs_string_t address = iotjs_create_ip(&option_address);
+
   const int port = JHANDLER_GET_ARG(1, number);
   const iotjs_jval_t* this_obj = JHANDLER_GET_THIS(object);
   iotjs_jval_t reuse_addr =
@@ -162,6 +163,7 @@ JHANDLER_FUNCTION(Bind) {
   iotjs_jhandler_return_number(jhandler, err);
 
   iotjs_jval_destroy(&reuse_addr);
+  iotjs_string_destroy(&option_address);
   iotjs_string_destroy(&address);
 }
 
@@ -289,7 +291,8 @@ JHANDLER_FUNCTION(Send) {
 
   const iotjs_jval_t* jbuffer = JHANDLER_GET_ARG(0, object);
   const unsigned short port = JHANDLER_GET_ARG(1, number);
-  iotjs_string_t address = JHANDLER_GET_ARG(2, string);
+  iotjs_string_t option_address = JHANDLER_GET_ARG(2, string);
+  iotjs_string_t address = iotjs_create_ip(&option_address);
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG(3, object);
 
   iotjs_bufferwrap_t* buffer_wrap = iotjs_bufferwrap_from_jbuffer(jbuffer);
@@ -318,6 +321,7 @@ JHANDLER_FUNCTION(Send) {
 
   iotjs_jhandler_return_number(jhandler, err);
 
+  iotjs_string_destroy(&option_address);
   iotjs_string_destroy(&address);
 }
 
@@ -400,7 +404,8 @@ void SetMembership(iotjs_jhandler_t* jhandler, uv_membership membership) {
   JHANDLER_DECLARE_THIS_PTR(udpwrap, udp_wrap);
   DJHANDLER_CHECK_ARGS(1, string);
 
-  iotjs_string_t address = JHANDLER_GET_ARG(0, string);
+  iotjs_string_t option_address = JHANDLER_GET_ARG(0, string);
+  iotjs_string_t address = iotjs_create_ip(&option_address);
   const iotjs_jval_t* arg1 = iotjs_jhandler_get_arg(jhandler, 1);
   bool isUndefinedOrNull =
       iotjs_jval_is_undefined(arg1) || iotjs_jval_is_null(arg1);
@@ -420,6 +425,7 @@ void SetMembership(iotjs_jhandler_t* jhandler, uv_membership membership) {
 
   iotjs_jhandler_return_number(jhandler, err);
 
+  iotjs_string_destroy(&option_address);
   iotjs_string_destroy(&address);
   if (!isUndefinedOrNull)
     iotjs_string_destroy(&iface);

@@ -350,7 +350,7 @@ JHANDLER_FUNCTION(GetSockeName) {
 
 
 JHANDLER_FUNCTION(SetBroadcast) {
-#if !defined(__NUTTX__) && !defined(__TIZENRT__)
+#if !defined(__NUTTX__)
   IOTJS_UV_SET_SOCKOPT(uv_udp_set_broadcast);
 #else
   IOTJS_ASSERT(!"Not implemented");

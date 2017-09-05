@@ -71,6 +71,7 @@ static void iotjs_environment_initialize(iotjs_environment_t* env) {
   _this->config.memstat = false;
   _this->config.show_opcode = false;
   _this->config.debugger = false;
+  _this->config.debugger_port = 5001;
 }
 
 
@@ -101,6 +102,7 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
 
   // Parse IoT.js command line arguments.
   uint32_t i = 1;
+  uint8_t port_arg_len = strlen("--jerry-debugger-port=");
   while (i < argc && argv[i][0] == '-') {
     if (!strcmp(argv[i], "--memstat")) {
       _this->config.memstat = true;
@@ -108,6 +110,11 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
       _this->config.show_opcode = true;
     } else if (!strcmp(argv[i], "--start-debug-server")) {
       _this->config.debugger = true;
+    } else if (!strncmp(argv[i], "--jerry-debugger-port=", port_arg_len)) {
+      size_t port_length = sizeof(strlen(argv[i] - port_arg_len - 1));
+      char port[port_length];
+      memcpy(&port, argv[i] + port_arg_len, port_length);
+      sscanf(port, "%d", &(_this->config.debugger_port));
     } else {
       fprintf(stderr, "unknown command line option: %s\n", argv[i]);
       return false;

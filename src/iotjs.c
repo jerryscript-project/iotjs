@@ -51,13 +51,12 @@ static bool iotjs_jerry_initialize(iotjs_environment_t* env) {
     jerry_port_default_set_log_level(JERRY_LOG_LEVEL_DEBUG);
 #endif
   }
-
-  if (iotjs_environment_config(env)->debugger) {
-    jerry_flags |= JERRY_INIT_DEBUGGER;
-  }
-
   // Initialize jerry.
   jerry_init(jerry_flags);
+
+  if (iotjs_environment_config(env)->debugger) {
+    jerry_debugger_init(iotjs_environment_config(env)->debugger_port);
+  }
 
   if (iotjs_environment_config(env)->debugger) {
     jerry_debugger_continue();
@@ -92,7 +91,10 @@ static bool iotjs_jerry_initialize(iotjs_environment_t* env) {
 }
 
 
-static void iotjs_jerry_release() {
+static void iotjs_jerry_release(iotjs_environment_t* env) {
+  if (iotjs_environment_config(env)->debugger) {
+    jerry_debugger_cleanup();
+  }
   jerry_cleanup();
 }
 
@@ -224,7 +226,7 @@ int iotjs_entry(int argc, char** argv) {
   IOTJS_ASSERT(res == 0);
 
   // Release JerryScript engine.
-  iotjs_jerry_release();
+  iotjs_jerry_release(env);
 
 terminate:
   // Release environment.

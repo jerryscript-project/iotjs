@@ -29,6 +29,7 @@ ExternalProject_Add(hostjerry
     -DJERRY_CMDLINE_MINIMAL=OFF
     -DFEATURE_SNAPSHOT_SAVE=${ENABLE_SNAPSHOT}
     -DFEATURE_PROFILE=es5.1
+    -DENABLE_STATIC_LINK=${ENABLE_STATIC_LINK}
 )
 add_executable(jerry IMPORTED)
 add_dependencies(jerry hostjerry)

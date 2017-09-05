@@ -120,8 +120,8 @@ function uartPortOpen(configuration, callback) {
 
     _binding.close(function(err) {
       util.isFunction(callback) && callback.call(self, err);
+      _binding = null;
     });
-    _binding = null;
   };
 
   UartPort.prototype.closeSync = function() {

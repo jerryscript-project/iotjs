@@ -31,6 +31,10 @@ TESTS=['host-linux', 'host-darwin', 'rpi2', 'nuttx', 'misc', 'no-snapshot',
 BUILDTYPES=['debug', 'release']
 NUTTXTAG = 'nuttx-7.19'
 
+# This is latest tested TizenRT commit working for IoT.js
+# Title: Merge pull request #496 from sunghan-chang/iotivity
+TIZENRT_COMMIT='0f47277170972bb33b51996a374c483e4ff2c26a'
+
 def get_config():
     config_path = path.BUILD_MODULE_CONFIG_PATH
     with open(config_path, 'r') as f:
@@ -130,12 +134,15 @@ def copy_tiznert_stuff(tizenrt_root, iotjs_dir):
 def setup_tizenrt_repo(tizenrt_root):
     if fs.exists(tizenrt_root):
         fs.chdir(tizenrt_root)
-        ex.check_run_cmd('git', ['pull'])
+        ex.check_run_cmd('git', ['fetch', 'origin'])
         fs.chdir(path.PROJECT_ROOT)
     else:
         ex.check_run_cmd('git', ['clone',
             'https://github.com/Samsung/TizenRT.git',
             tizenrt_root])
+    ex.check_run_cmd('git', ['--git-dir', tizenrt_root + '/.git/',
+                             '--work-tree', tizenrt_root,
+                             'checkout', TIZENRT_COMMIT])
     copy_tiznert_stuff(tizenrt_root, path.PROJECT_ROOT)
 
 def configure_trizenrt(tizenrt_root, buildtype):

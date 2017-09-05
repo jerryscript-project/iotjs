@@ -361,7 +361,7 @@ JHANDLER_FUNCTION(SetBroadcast) {
 
 
 JHANDLER_FUNCTION(SetTTL) {
-#if !defined(__NUTTX__) && !defined(__TIZENRT__)
+#if !defined(__NUTTX__)
   IOTJS_UV_SET_SOCKOPT(uv_udp_set_ttl);
 #else
   IOTJS_ASSERT(!"Not implemented");

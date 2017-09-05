@@ -140,7 +140,7 @@ JHANDLER_FUNCTION(GetAddrInfo) {
 #if defined(__NUTTX__) || defined(__TIZENRT__)
   iotjs_jargs_t args = iotjs_jargs_create(3);
   int err = 0;
-  char ip[INET6_ADDRSTRLEN];
+  char ip[INET6_ADDRSTRLEN] = "";
   const char* hostname_data = iotjs_string_data(&hostname);
 
   if (strcmp(hostname_data, "localhost") == 0) {

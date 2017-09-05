@@ -19,6 +19,8 @@ var dgram = require('dgram');
 var port = 41234;
 var msg = 'Hello IoT.js';
 var server = dgram.createSocket('udp4');
+var recvMsg = "";
+var recvCnt = 0;
 
 server.on('error', function(err) {
   assert.fail();
@@ -30,21 +32,24 @@ server.on('message', function(data, rinfo) {
   console.log('client address : ' + rinfo.address);
   console.log('client port : ' + rinfo.port);
   console.log('client family : ' + rinfo.family);
-  assert.equal(data, msg);
+  recvMsg = data;
+  recvCnt++;
   server.send(msg, rinfo.port, rinfo.address, function (err, len) {
     assert.equal(err, null);
     assert.equal(len, msg.length);
   });
+  setTimeout(function() { server.close() }, 4000);
 });
+
 
 server.on('listening', function() {
   console.log('listening');
 });
 
-server.bind(port, function() {
-  server.setTTL(1);
-});
+server.bind(port);
 
 process.on('exit', function(code) {
   assert.equal(code, 0);
+  assert.equal(recvCnt, 1);
+  assert.equal(recvMsg, msg);
 });

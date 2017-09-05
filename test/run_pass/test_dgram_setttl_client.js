@@ -18,6 +18,7 @@ var dgram = require('dgram');
 
 var port = 41234;
 var msg = 'Hello IoT.js';
+var msg2 = 'Bye IoT.js';
 var addr = '192.168.0.1'; // Change to your ip address
 var server = dgram.createSocket('udp4');
 
@@ -33,7 +34,7 @@ client.on('error', function(err) {
 });
 
 client.on('listening', function(err) {
-  client.setTTL(1);
+  client.setTTL(2);
 });
 
 client.on('message', function(data, rinfo) {
@@ -43,6 +44,16 @@ client.on('message', function(data, rinfo) {
   console.log('server family : ' + rinfo.family);
   assert.equal(port, rinfo.port);
   assert.equal(data, msg);
-  client.close();
+  /* send with TTL=1 */
+  client.setTTL(1);
+  client.send(msg2, port, addr, function(err, len) {
+    assert.equal(err, null);
+    assert.equal(len, msg2.length);
+    client.close();
+  });
+});
+
+process.on('exit', function(code) {
+  assert.equal(code, 0);
 });
 

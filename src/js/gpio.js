@@ -179,9 +179,8 @@ function gpioPinOpen(configuration, callback) {
 
     _binding.close(function(err) {
       util.isFunction(callback) && callback.call(self, err);
+      _binding = null;
     });
-
-    _binding = null;
   };
 
   GpioPin.prototype.closeSync = function() {
@@ -190,7 +189,6 @@ function gpioPinOpen(configuration, callback) {
     }
 
     _binding.close();
-
     _binding = null;
   };
 

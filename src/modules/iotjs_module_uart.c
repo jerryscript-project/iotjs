@@ -26,17 +26,18 @@ IOTJS_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(uart);
 static iotjs_uart_t* iotjs_uart_create(const iotjs_jval_t* juart) {
   iotjs_uart_t* uart = IOTJS_ALLOC(iotjs_uart_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_uart_t, uart);
-  iotjs_jobjectwrap_initialize(&_this->jobjectwrap, juart,
-                               &this_module_native_info);
+
+  iotjs_handlewrap_initialize(&_this->handlewrap, juart,
+                              (uv_handle_t*)(&_this->poll_handle),
+                              &this_module_native_info);
 
   _this->device_fd = -1;
-
   return uart;
 }
 
 static void iotjs_uart_destroy(iotjs_uart_t* uart) {
   IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_uart_t, uart);
-  iotjs_jobjectwrap_destroy(&_this->jobjectwrap);
+  iotjs_handlewrap_destroy(&_this->handlewrap);
   iotjs_string_destroy(&_this->device_path);
   IOTJS_RELEASE(uart);
 }
@@ -85,8 +86,8 @@ static const iotjs_jval_t* iotjs_uart_reqwrap_jcallback(THIS) {
 
 
 static iotjs_uart_t* iotjs_uart_instance_from_jval(const iotjs_jval_t* juart) {
-  iotjs_jobjectwrap_t* jobjectwrap = iotjs_jobjectwrap_from_jobject(juart);
-  return (iotjs_uart_t*)jobjectwrap;
+  iotjs_handlewrap_t* handlewrap = iotjs_handlewrap_from_jobject(juart);
+  return (iotjs_uart_t*)handlewrap;
 }
 
 
@@ -110,18 +111,20 @@ iotjs_uart_t* iotjs_uart_instance_from_reqwrap(THIS) {
 #undef THIS
 
 
+static void handlewrap_close_callback(uv_handle_t* handle) {
+  iotjs_uart_t* uart = (iotjs_uart_t*)handle->data;
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_uart_t, uart);
+
+  if (close(_this->device_fd) < 0) {
+    DLOG("UART Close Error");
+    IOTJS_ASSERT(0);
+  }
+}
+
 static bool iotjs_uart_close(iotjs_uart_t* uart) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_uart_t, uart);
-  uv_poll_t* poll_handle = &_this->poll_handle;
 
-  if (_this->device_fd > 0) {
-    if (!uv_is_closing((uv_handle_t*)poll_handle)) {
-      uv_close((uv_handle_t*)poll_handle, NULL);
-    }
-    if (close(_this->device_fd) < 0) {
-      return false;
-    }
-  }
+  iotjs_handlewrap_close(&_this->handlewrap, handlewrap_close_callback);
 
   return true;
 }

@@ -18,7 +18,7 @@
 #define IOTJS_MODULE_UART_H
 
 #include "iotjs_def.h"
-#include "iotjs_objectwrap.h"
+#include "iotjs_handlewrap.h"
 #include "iotjs_reqwrap.h"
 
 
@@ -33,7 +33,7 @@ typedef enum {
 
 
 typedef struct {
-  iotjs_jobjectwrap_t jobjectwrap;
+  iotjs_handlewrap_t handlewrap;
   iotjs_jval_t jemitter_this;
   int device_fd;
   int baud_rate;

@@ -204,8 +204,8 @@ function spiBusOpen(configuration, callback) {
 
     _binding.close(function(err) {
       util.isFunction(callback) && callback.call(self, err);
+      _binding = null;
     });
-    _binding = null;
   };
 
   SpiBus.prototype.closeSync = function() {

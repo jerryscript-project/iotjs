@@ -67,12 +67,13 @@ iotjs_module_t.resolveFilepath = function(id, directories) {
     var dir = directories[i];
     var modulePath = dir + id;
 
-    // START: Temprorary fix for TizenRT
-    // See: https://github.com/Samsung/TizenRT/issues/320
     if (modulePath[0] !== '/') {
       modulePath = process.cwd() + '/' + modulePath;
     }
-    // END: Temprorary fix for TizenRT
+
+    if (process.platform === 'tizenrt' && modulePath.indexOf("..") != -1) {
+      modulePath = iotjs_module_t.normalizePath(modulePath);
+    }
 
     // 1. 'id'
     var filepath = iotjs_module_t.tryPath(modulePath);

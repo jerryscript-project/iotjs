@@ -18,7 +18,9 @@
 #include "iotjs_objectwrap.h"
 
 
-IOTJS_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(adc);
+static JNativeInfoType this_module_native_info = {.free_cb = NULL };
+
+
 static iotjs_adc_t* iotjs_adc_instance_from_jval(const iotjs_jval_t* jadc);
 
 
@@ -110,7 +112,9 @@ iotjs_adc_t* iotjs_adc_instance_from_reqwrap(THIS) {
 
 static void iotjs_adc_after_work(uv_work_t* work_req, int status) {
   iotjs_adc_reqwrap_t* req_wrap = iotjs_adc_reqwrap_from_request(work_req);
-  iotjs_adc_reqdata_t* req_data = iotjs_adc_reqwrap_data(req_wrap);
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_adc_reqwrap_t, req_wrap);
+
+  iotjs_adc_reqdata_t* req_data = &_this->req_data;
   iotjs_jargs_t jargs = iotjs_jargs_create(2);
   bool result = req_data->result;
 
@@ -155,6 +159,10 @@ static void iotjs_adc_after_work(uv_work_t* work_req, int status) {
   iotjs_jargs_destroy(&jargs);
 
   iotjs_adc_reqwrap_dispatched(req_wrap);
+
+  if (req_data->op == kAdcOpClose) {
+    iotjs_adc_destroy(_this->adc_instance);
+  }
 }
 
 
@@ -280,7 +288,9 @@ JHANDLER_FUNCTION(Close) {
 JHANDLER_FUNCTION(CloseSync) {
   JHANDLER_DECLARE_THIS_PTR(adc, adc);
 
-  if (!iotjs_adc_close(adc)) {
+  bool ret = iotjs_adc_close(adc);
+  iotjs_adc_destroy(adc);
+  if (!ret) {
     JHANDLER_THROW(COMMON, "ADC Close Error");
   }
 

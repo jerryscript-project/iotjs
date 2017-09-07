@@ -19,7 +19,7 @@
 
 void iotjs_jobjectwrap_initialize(iotjs_jobjectwrap_t* jobjectwrap,
                                   const iotjs_jval_t* jobject,
-                                  JNativeInfoType native_info) {
+                                  JNativeInfoType* native_info) {
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_jobjectwrap_t, jobjectwrap);
 
   IOTJS_ASSERT(iotjs_jval_is_object(jobject));

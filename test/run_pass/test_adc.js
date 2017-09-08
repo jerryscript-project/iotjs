@@ -16,6 +16,7 @@
 
 var Adc = require('adc');
 var assert = require('assert');
+var adc = new Adc();
 var configuration = {};
 
 if (process.platform === 'linux') {
@@ -33,7 +34,7 @@ asyncTest();
 
 // read async test
 function asyncTest() {
-  var adc0 = new Adc(configuration, function(err) {
+  var adc0 = adc.open(configuration, function(err) {
     console.log('ADC initialized');
 
     if (err) {
@@ -65,7 +66,7 @@ function asyncTest() {
 
 // read sync test
 function syncTestst() {
-  var adc0 = new Adc(configuration, function(err) {
+  var adc0 = adc.open(configuration, function(err) {
     console.log('ADC initialized');
 
     if (err) {

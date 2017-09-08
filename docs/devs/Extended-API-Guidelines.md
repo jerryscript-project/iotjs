@@ -9,14 +9,14 @@ However, extended APIs need a guideline because they are implemented by many con
 2. Basically, all APIs are async API. If you want to make sync API, you need to add `Sync` as a suffix.<br>For example, `readSync()`, `writeSync()`, and so on.
 
 ## Generating an object 
-1. The module object should be generated using `new` API for consistent usability.
-2. Constructor API should have configurable as first argument and callback function as second argument.<br>callback function is always optional.
+1. The module object should be generated using `open()` API for consistent usability.
+2. `open()` API should have configurable as first argument and callback function as second argument.<br>callback function is always optional.
 
 For example, GPIO module generate an object like below:
 ```javascript
 var Gpio = require('gpio');
-
-var gpio10 = new Gpio({pin: 10, direction: gpio.DIRECTION.OUT},
+var gpio = new Gpio();
+var gpio10 = gpio.open({pin: 10, direction: gpio.DIRECTION.OUT},
                        function(err){console.log(err);});
 gpio10.writeSync(1);
 

@@ -68,6 +68,18 @@ set(CFLAGS_COMMON
 
 include(ExternalProject)
 
+set(TARGET_BUILD_C_FLAGS "${CMAKE_C_FLAGS}")
+
+if(NOT ("${EXTERNAL_LIBC_INTERFACE}" STREQUAL ""))
+	if("${TARGET_OS}" MATCHES "TIZENRT|NUTTX")
+		set(TARGET_BUILD_C_FLAGS "${TARGET_BUILD_C_FLAGS} -isystem ${EXTERNAL_LIBC_INTERFACE}")
+	elseif("${TARGET_OS}" MATCHES "LINUX|TIZEN|DARWIN")
+		set(TARGET_BUILD_C_FLAGS "${TARGET_BUILD_C_FLAGS}")
+	else()
+		set(TARGET_BUILD_C_FLAGS "${TARGET_BUILD_C_FLAGS} -isystem ${EXTERNAL_LIBC_INTERFACE}")
+	endif()
+endif()
+
 # Include external projects
 include(cmake/jerry.cmake)
 include(cmake/http-parser.cmake)

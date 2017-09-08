@@ -53,7 +53,7 @@ typedef struct {
 void iotjs_handlewrap_initialize(iotjs_handlewrap_t* handlewrap,
                                  const iotjs_jval_t* jobject,
                                  uv_handle_t* handle,
-                                 JNativeInfoType native_info);
+                                 JNativeInfoType* native_info);
 
 void iotjs_handlewrap_destroy(iotjs_handlewrap_t* handlewrap);
 

@@ -23,7 +23,7 @@
 
 
 typedef jerry_external_handler_t JHandlerType;
-typedef const jerry_object_native_info_t* JNativeInfoType;
+typedef const jerry_object_native_info_t JNativeInfoType;
 typedef jerry_length_t JRawLengthType;
 
 
@@ -131,13 +131,13 @@ void iotjs_jval_set_property_string_raw(THIS_JVAL, const char* name,
 iotjs_jval_t iotjs_jval_get_property(THIS_JVAL, const char* name);
 
 void iotjs_jval_set_object_native_handle(THIS_JVAL, uintptr_t ptr,
-                                         JNativeInfoType native_info);
+                                         JNativeInfoType* native_info);
 uintptr_t iotjs_jval_get_object_native_handle(THIS_JVAL);
 uintptr_t iotjs_jval_get_object_from_jhandler(iotjs_jhandler_t* jhandler,
-                                              JNativeInfoType native_info);
+                                              JNativeInfoType* native_info);
 uintptr_t iotjs_jval_get_arg_obj_from_jhandler(iotjs_jhandler_t* jhandler,
                                                uint16_t index,
-                                               JNativeInfoType native_info);
+                                               JNativeInfoType* native_info);
 
 void iotjs_jval_set_property_by_index(THIS_JVAL, uint32_t idx,
                                       const iotjs_jval_t* value);

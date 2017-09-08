@@ -28,7 +28,7 @@ typedef struct {
 
 void iotjs_jobjectwrap_initialize(iotjs_jobjectwrap_t* jobjectwrap,
                                   const iotjs_jval_t* jobject,
-                                  JNativeInfoType native_info);
+                                  JNativeInfoType* native_info);
 
 void iotjs_jobjectwrap_destroy(iotjs_jobjectwrap_t* jobjectwrap);
 

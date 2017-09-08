@@ -20,7 +20,7 @@
 void iotjs_handlewrap_initialize(iotjs_handlewrap_t* handlewrap,
                                  const iotjs_jval_t* jobject,
                                  uv_handle_t* handle,
-                                 JNativeInfoType native_info) {
+                                 JNativeInfoType* native_info) {
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_handlewrap_t, handlewrap);
 
   // Increase ref count of Javascript object to guarantee it is alive until the

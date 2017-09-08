@@ -381,7 +381,7 @@ iotjs_jval_t iotjs_jval_get_property(const iotjs_jval_t* jobj,
 
 void iotjs_jval_set_object_native_handle(const iotjs_jval_t* jobj,
                                          uintptr_t ptr,
-                                         JNativeInfoType native_info) {
+                                         JNativeInfoType* native_info) {
   const IOTJS_VALIDATED_STRUCT_METHOD(iotjs_jval_t, jobj);
   IOTJS_ASSERT(iotjs_jval_is_object(jobj));
 
@@ -394,14 +394,14 @@ uintptr_t iotjs_jval_get_object_native_handle(const iotjs_jval_t* jobj) {
   IOTJS_ASSERT(iotjs_jval_is_object(jobj));
 
   uintptr_t ptr = 0x0;
-  JNativeInfoType out_info;
+  JNativeInfoType* out_info;
   jerry_get_object_native_pointer(_this->value, (void**)&ptr, &out_info);
   return ptr;
 }
 
 
 uintptr_t iotjs_jval_get_object_from_jhandler(iotjs_jhandler_t* jhandler,
-                                              JNativeInfoType native_info) {
+                                              JNativeInfoType* native_info) {
   const iotjs_jval_t* jobj = JHANDLER_GET_THIS(object);
   const IOTJS_DECLARE_THIS(iotjs_jval_t, jobj);
 
@@ -410,7 +410,7 @@ uintptr_t iotjs_jval_get_object_from_jhandler(iotjs_jhandler_t* jhandler,
   }
 
   uintptr_t ptr = 0;
-  JNativeInfoType out_native_info;
+  JNativeInfoType* out_native_info;
 
   if (jerry_get_object_native_pointer(_this->value, (void**)&ptr,
                                       &out_native_info)) {
@@ -427,7 +427,7 @@ uintptr_t iotjs_jval_get_object_from_jhandler(iotjs_jhandler_t* jhandler,
 
 uintptr_t iotjs_jval_get_arg_obj_from_jhandler(iotjs_jhandler_t* jhandler,
                                                uint16_t index,
-                                               JNativeInfoType native_info) {
+                                               JNativeInfoType* native_info) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_jhandler_t, jhandler);
 
   if (index >= _this->jargc) {
@@ -441,7 +441,7 @@ uintptr_t iotjs_jval_get_arg_obj_from_jhandler(iotjs_jhandler_t* jhandler,
   }
 
   uintptr_t ptr = 0;
-  JNativeInfoType out_native_info;
+  JNativeInfoType* out_native_info;
 
   if (jerry_get_object_native_pointer(jobj.unsafe.value, (void**)&ptr,
                                       &out_native_info)) {
@@ -865,7 +865,7 @@ static jerry_value_t iotjs_native_dispatch_function(
     const jerry_value_t jfunc, const jerry_value_t jthis,
     const jerry_value_t jargv[], const JRawLengthType jargc) {
   uintptr_t target_function_ptr = 0x0;
-  JNativeInfoType out_info;
+  JNativeInfoType* out_info;
 
   if (!jerry_get_object_native_pointer(jfunc, (void**)&target_function_ptr,
                                        &out_info)) {

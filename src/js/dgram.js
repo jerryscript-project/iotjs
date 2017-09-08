@@ -70,7 +70,7 @@ function Socket(type, listener) {
   // If true - UV_UDP_REUSEADDR flag will be set
   this._reuseAddr = options && options.reuseAddr;
 
-  if (util.isFunction(listener))
+  if (typeof listener === 'function')
     this.on('message', listener);
 }
 util.inherits(Socket, EventEmitter);
@@ -105,7 +105,7 @@ Socket.prototype.bind = function(port, address, callback) {
 
   var address;
 
-  if (util.isFunction(port)) {
+  if (typeof port === 'function') {
     callback = port;
     port = 0;
     address = '';
@@ -113,12 +113,12 @@ Socket.prototype.bind = function(port, address, callback) {
     callback = address;
     address = port.address || '';
     port = port.port;
-  } else if (util.isFunction(address)) {
+  } else if (address === 'function') {
     callback = address;
     address = '';
   }
 
-  if (util.isFunction(callback))
+  if (typeof callback === 'function')
     self.once('listening', callback);
 
   // defaulting address for bind to all interfaces
@@ -158,10 +158,10 @@ Socket.prototype.bind = function(port, address, callback) {
 // thin wrapper around `send`, here for compatibility with dgram_legacy.js
 Socket.prototype.sendto = function(buffer, offset, length, port, address,
                                    callback) {
-  if (!(util.isNumber(offset)) || !(util.isNumber(length)))
+  if (typeof offset !== 'number' || typeof length !== 'number')
     throw new Error('send takes offset and length as args 2 and 3');
 
-  if (!(util.isString(address)))
+  if (typeof address !== 'string')
     throw new Error(this.type + ' sockets must send to port, address');
 
   this.send(buffer, offset, length, port, address, callback);
@@ -169,7 +169,7 @@ Socket.prototype.sendto = function(buffer, offset, length, port, address,
 
 
 function sliceBuffer(buffer, offset, length) {
-  if (util.isString(buffer))
+  if (typeof buffer === 'string')
     buffer = new Buffer(buffer);
   else if (!(util.isBuffer(buffer)))
     throw new TypeError('First argument must be a buffer or string');
@@ -186,7 +186,7 @@ function fixBufferList(list) {
 
   for (var i = 0, l = list.length; i < l; i++) {
     var buf = list[i];
-    if (util.isString(buf))
+    if (typeof buf === 'string')
       newlist[i] = new Buffer(buf);
     else if (!(util.isBuffer(buf)))
       return null;
@@ -232,7 +232,7 @@ Socket.prototype.send = function(buffer, offset, length, port, address,
   var self = this;
   var list;
 
-  if (address || (port && !(util.isFunction(port)))) {
+  if (address || (port && typeof port !== 'function')) {
     buffer = sliceBuffer(buffer, offset, length);
   } else {
     callback = port;
@@ -241,7 +241,7 @@ Socket.prototype.send = function(buffer, offset, length, port, address,
   }
 
   if (!util.isArray(buffer)) {
-    if (util.isString(buffer)) {
+    if (typeof buffer === 'string') {
       list = [ new Buffer(buffer) ];
     } else if (!util.isBuffer(buffer)) {
       throw new TypeError('First argument must be a buffer or a string');
@@ -259,7 +259,7 @@ Socket.prototype.send = function(buffer, offset, length, port, address,
 
   // Normalize callback so it's either a function or undefined but not anything
   // else.
-  if (!(util.isFunction(callback)))
+  if (typeof callback !== 'function')
     callback = undefined;
 
   self._healthCheck();
@@ -285,7 +285,7 @@ Socket.prototype.send = function(buffer, offset, length, port, address,
 
 function doSend(ex, self, ip, list, address, port, callback) {
   if (ex) {
-    if (util.isFunction(callback)) {
+    if (typeof callback === 'function') {
       callback(ex);
       return;
     }
@@ -305,7 +305,7 @@ function doSend(ex, self, ip, list, address, port, callback) {
       err = null;
     }
 
-    if (util.isFunction(callback)) {
+    if (typeof callback === 'function') {
       callback(err, length);
     }
   });
@@ -319,7 +319,7 @@ function doSend(ex, self, ip, list, address, port, callback) {
 
 
 Socket.prototype.close = function(callback) {
-  if (util.isFunction(callback))
+  if (typeof callback === 'function')
     this.on('close', callback);
 
   if (this._queue) {
@@ -362,7 +362,7 @@ Socket.prototype.setBroadcast = function(arg) {
 
 
 Socket.prototype.setTTL = function(arg) {
-  if (!(util.isNumber(arg))) {
+  if (typeof arg !== 'number') {
     throw new TypeError('Argument must be a number');
   }
 
@@ -376,7 +376,7 @@ Socket.prototype.setTTL = function(arg) {
 
 
 Socket.prototype.setMulticastTTL = function(arg) {
-  if (!(util.isNumber(arg))) {
+  if (typeof arg !== 'number') {
     throw new TypeError('Argument must be a number');
   }
 

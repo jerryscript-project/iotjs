@@ -87,7 +87,7 @@ ServerResponse.prototype._implicitHeader = function() {
 
 
 ServerResponse.prototype.writeHead = function(statusCode, reason, obj) {
-  if (util.isString(reason)) {
+  if (typeof reason === 'string') {
     this.statusMessage = reason;
   }
   else {
@@ -151,7 +151,7 @@ function Server(requestListener) {
 
   net.Server.call(this, {allowHalfOpen: true});
 
-  if (util.isFunction(requestListener)) {
+  if (typeof requestListener === 'function') {
     this.addListener('request', requestListener);
   }
 

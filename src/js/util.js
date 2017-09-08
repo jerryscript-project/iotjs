@@ -75,7 +75,7 @@ function inherits(ctor, superCtor) {
 
 
 function format(s) {
-  if (!isString(s)) {
+  if (typeof s !== 'string') {
     var arrs = [];
     for (var i = 0; i < arguments.length; ++i) {
       arrs.push(formatValue(arguments[i]));

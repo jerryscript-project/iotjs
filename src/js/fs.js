@@ -132,7 +132,7 @@ fs.readSync = function(fd, buffer, offset, length, position) {
 
 
 fs.write = function(fd, buffer, offset, length, position, callback) {
-  if (util.isFunction(position)) {
+  if (typeof position === 'function') {
     callback = position;
     position = -1; // write at current position.
   } else if (util.isNullOrUndefined(position)) {
@@ -315,7 +315,7 @@ fs.writeFileSync = function(path, data) {
 
 
 fs.mkdir = function(path, mode, callback) {
-  if (util.isFunction(mode)) callback = mode;
+  if (typeof mode === 'function') callback = mode;
   checkArgString(path, 'path');
   checkArgFunction(callback, 'callback');
   fsBuiltin.mkdir(path, convertMode(mode, 511), callback);
@@ -389,7 +389,7 @@ function convertFlags(flag) {
   var O_TRUNC = constants.O_TRUNC;
   var O_WRONLY = constants.O_WRONLY;
 
-  if (util.isString(flag)) {
+  if (typeof flag === 'string') {
     switch (flag) {
       case 'r': return O_RDONLY;
       case 'rs':
@@ -421,9 +421,9 @@ function convertFlags(flag) {
 
 
 function convertMode(mode, def) {
-  if (util.isNumber(mode)) {
+  if (typeof mode === 'number') {
     return mode;
-  } else if (util.isString(mode)) {
+  } else if (typeof mode === 'string') {
     return parseInt(mode, 8);
   } else if (def) {
     return convertMode(def);

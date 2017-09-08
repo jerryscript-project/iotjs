@@ -48,11 +48,11 @@ function spiBusOpen(configuration, callback) {
     var self = this;
 
     if (process.platform === 'linux') {
-      if (!util.isString(configuration.device)) {
+      if (typeof configuration.device !== 'string') {
         throw new TypeError('Bad configuration - device: String');
       }
     } else if (process.platform === 'nuttx') {
-      if (!util.isNumber(configuration.bus)) {
+      if (typeof configuration.bus !== 'number') {
         throw new TypeError('Bad configuration - bus: Number');
       }
     }
@@ -83,7 +83,7 @@ function spiBusOpen(configuration, callback) {
 
     // validate max speed
     if (configuration.maxSpeed !== undefined) {
-      if (!util.isNumber(configuration.maxSpeed)) {
+      if (typeof configuration.maxSpeed !== 'number') {
         throw new TypeError('Bad arguments - maxSpeed should be Number');
       }
     } else {
@@ -114,7 +114,7 @@ function spiBusOpen(configuration, callback) {
     // validate loopback
     var loopback = configuration.loopback;
     if (loopback !== undefined) {
-      if (!util.isBoolean(loopback)) {
+      if (typeof loopback !== 'boolean') {
         throw new TypeError('Bad arguments - loopback should be Boolean');
       }
     } else {
@@ -122,7 +122,7 @@ function spiBusOpen(configuration, callback) {
     }
 
     _binding = new spi.Spi(configuration, function(err) {
-      util.isFunction(callback) && callback.call(self, err);
+      typeof callback === 'function' && callback.call(self, err);
     });
 
     process.on('exit', (function(self) {
@@ -153,7 +153,7 @@ function spiBusOpen(configuration, callback) {
         rxBuffer[i] = buffer[i];
       }
 
-      util.isFunction(callback) && callback.call(self, err);
+      typeof callback === 'function' && callback.call(self, err);
     };
 
     if (util.isArray(txBuffer) && util.isArray(rxBuffer)) {
@@ -203,7 +203,7 @@ function spiBusOpen(configuration, callback) {
     }
 
     _binding.close(function(err) {
-      util.isFunction(callback) && callback.call(self, err);
+      typeof callback === 'function' && callback.call(self, err);
       _binding = null;
     });
   };

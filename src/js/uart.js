@@ -46,7 +46,7 @@ function uartPortOpen(configuration, callback) {
     var self = this;
 
     if (util.isObject(configuration)) {
-      if (!util.isString(configuration.device)) {
+      if (typeof configuration.device !== 'string') {
         throw new TypeError(
           'Bad configuration - device is mandatory and should be String');
       }
@@ -75,7 +75,7 @@ function uartPortOpen(configuration, callback) {
     EventEmitter.call(this);
 
     _binding = new uart(configuration, this, function(err) {
-      util.isFunction(callback) && callback.call(self, err);
+      typeof callback === 'function' && callback.call(self, err);
     });
 
     process.on('exit', (function(self) {
@@ -97,7 +97,7 @@ function uartPortOpen(configuration, callback) {
     }
 
     _binding.write(buffer, function(err) {
-      util.isFunction(callback) && callback.call(self, err);
+      typeof callback === 'function' && callback.call(self, err);
     });
   };
 
@@ -119,7 +119,7 @@ function uartPortOpen(configuration, callback) {
     }
 
     _binding.close(function(err) {
-      util.isFunction(callback) && callback.call(self, err);
+      typeof callback === 'function'  && callback.call(self, err);
       _binding = null;
     });
   };

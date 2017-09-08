@@ -37,7 +37,7 @@ function WritableState(options) {
 
   // high water mark.
   // The point where write() starts retuning false.
-  this.highWaterMark = (options && util.isNumber(options.highWaterMark)) ?
+  this.highWaterMark = (options && typeof options.highWaterMark === 'number') ?
     options.highWaterMark : defaultHighWaterMark;
 
   // 'true' if stream is ready to write.
@@ -158,7 +158,7 @@ Writable.prototype._onwrite = function() {
 function writeAfterEnd(stream, callback) {
   var err = new Error('write after end');
   stream.emit('error', err);
-  if (util.isFunction(callback)) {
+  if (typeof callback === 'function') {
     process.nextTick(callback.bind(undefined, err));
   }
 }
@@ -167,7 +167,7 @@ function writeAfterEnd(stream, callback) {
 function writeOrBuffer(stream, chunk, callback) {
   var state = stream._writableState;
 
-  if (util.isString(chunk)) {
+  if (typeof chunk === 'string') {
     chunk = new Buffer(chunk);
   }
 

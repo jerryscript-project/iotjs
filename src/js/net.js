@@ -92,7 +92,7 @@ Socket.prototype.connect = function() {
     self._handle.owner = self;
   }
 
-  if (util.isFunction(callback)) {
+  if (typeof callback === 'function') {
     self.once('connect', callback);
   }
 
@@ -108,7 +108,7 @@ Socket.prototype.connect = function() {
     hints: 0
   };
 
-  if (!util.isNumber(port) || port < 0 || port > 65535)
+  if (typeof port !== 'number' || port < 0 || port > 65535)
     throw new RangeError('port should be >= 0 and < 65536: ' + options.port);
 
   if (dnsopts.family !== 0 && dnsopts.family !== 4 && dnsopts.family !== 6)
@@ -137,7 +137,7 @@ Socket.prototype.connect = function() {
 
 
 Socket.prototype.write = function(data, callback) {
-  if (!util.isString(data) && !util.isBuffer(data)) {
+  if (typeof data !== 'string' && !util.isBuffer(data)) {
     throw new TypeError('invalid argument');
   }
   return stream.Duplex.prototype.write.call(this, data, callback);
@@ -146,13 +146,13 @@ Socket.prototype.write = function(data, callback) {
 
 Socket.prototype._write = function(chunk, callback, afterWrite) {
   assert(util.isBuffer(chunk));
-  assert(util.isFunction(afterWrite));
+  assert(typeof afterWrite === 'function');
 
   var self = this;
 
   if (self.errored) {
     process.nextTick(afterWrite, 1);
-    if (util.isFunction(callback)) {
+    if (typeof callback === 'function') {
       process.nextTick(function(self, status) {
         callback.call(self, status);
       }, self, 1);
@@ -164,7 +164,7 @@ Socket.prototype._write = function(chunk, callback, afterWrite) {
 
     self._handle.write(chunk, function(status) {
       afterWrite(status);
-      if (util.isFunction(callback)) {
+      if (typeof callback === 'function') {
         callback.call(self, status);
       }
     });
@@ -465,14 +465,14 @@ function Server(options, connectionListener) {
 
   EventEmitter.call(this);
 
-  if (util.isFunction(options)) {
+  if (typeof options === 'function') {
     connectionListener = options;
     options = {};
   } else {
     options = options || {};
   }
 
-  if (util.isFunction(connectionListener)) {
+  if (typeof connectionListener === 'function') {
     this.on('connection', connectionListener);
   }
 
@@ -496,15 +496,15 @@ Server.prototype.listen = function() {
   var callback = args[1];
 
   var port = options.port;
-  var host = util.isString(options.host) ? options.host : '0.0.0.0';
-  var backlog = util.isNumber(options.backlog) ? options.backlog : 511;
+  var host = typeof options.host === 'string' ? options.host : '0.0.0.0';
+  var backlog = typeof options.backlog === 'number' ? options.backlog : 511;
 
-  if (!util.isNumber(port)) {
+  if (typeof port !== 'number') {
     throw new Error('invalid argument - need port number');
   }
 
   // register listening event listener.
-  if (util.isFunction(callback)) {
+  if (typeof callback === 'function') {
     self.once('listening', callback);
   }
 
@@ -555,7 +555,7 @@ Server.prototype.address = function() {
 
 
 Server.prototype.close = function(callback) {
-  if (util.isFunction(callback)) {
+  if (typeof callback === 'function') {
     if (!this._handle) {
       this.once('close', function() {
         callback(new Error('Not running'));
@@ -624,17 +624,17 @@ function normalizeListenArgs(args) {
   } else {
     var idx = 0;
     options.port = args[idx++];
-    if (util.isString(args[idx])) {
+    if (typeof args[idx] === 'string') {
       options.host = args[idx++];
     }
-    if (util.isNumber(args[idx])) {
+    if (typeof args[idx] === 'number') {
       options.backlog = args[idx++];
     }
   }
 
   var cb = args[args.length - 1];
 
-  return util.isFunction(cb) ? [options, cb] : [options];
+  return typeof cb === 'function' ? [options, cb] : [options];
 }
 
 
@@ -645,14 +645,14 @@ function normalizeConnectArgs(args) {
     options = args[0];
   } else {
     options.port = args[0];
-    if (util.isString(args[1])) {
+    if (typeof args[1] === 'string') {
       options.host = args[1];
     }
   }
 
   var cb = args[args.length - 1];
 
-  return util.isFunction(cb) ? [options, cb] : [options];
+  return typeof cb === 'function' ? [options, cb] : [options];
 }
 
 

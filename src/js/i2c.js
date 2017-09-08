@@ -63,17 +63,17 @@ function i2cBusOpen(configurable, callback) {
   function I2CBus(configurable, callback) {
     if (util.isObject(configurable)) {
       if (process.platform === 'linux') {
-        if (!util.isString(configurable.device)) {
+        if (typeof configurable.device !== 'string') {
           throw new TypeError('Bad configurable - device: String');
         }
       } else if (process.platform === 'nuttx' ||
                  process.platform === 'tizen') {
-        if (!util.isNumber(configurable.device)) {
+        if (typeof configurable.device !== 'number') {
           throw new TypeError('Bad configurable - device: Number');
         }
       }
 
-      if (!util.isNumber(configurable.address)) {
+      if (typeof configurable.address !== 'number') {
         throw new TypeError('Bad configurable - address: Number');
       }
 
@@ -84,7 +84,7 @@ function i2cBusOpen(configurable, callback) {
           if (!err) {
             _this.setAddress(configurable.address);
           }
-          util.isFunction(callback) && callback(err);
+          typeof callback === 'function' && callback(err);
         };
       })(this));
     }
@@ -95,14 +95,14 @@ function i2cBusOpen(configurable, callback) {
   };
 
   I2CBus.prototype.setAddress = function(address, callback) {
-    if (!util.isNumber(address)) {
+    if (typeof address !== 'number') {
       throw new TypeError('Bad argument - address: Number');
     }
 
     this.address = address;
     _binding.setAddress(this.address);
 
-    util.isFunction(callback) && callback();
+    typeof callback === 'function' && callback();
   };
 
   I2CBus.prototype.write = function(array, callback) {
@@ -112,18 +112,18 @@ function i2cBusOpen(configurable, callback) {
 
     this.setAddress(this.address);
     _binding.write(array, function(err) {
-      util.isFunction(callback) && callback(err);
+      typeof callback === 'function' && callback(err);
     });
   };
 
   I2CBus.prototype.read = function(length, callback) {
-    if (!util.isNumber(length)) {
+    if (typeof length !== 'number') {
       throw new TypeError('Bad argument - length: Number');
     }
 
     this.setAddress(this.address);
     _binding.read(length, function(err, data) {
-      util.isFunction(callback) && callback(err, data);
+      typeof callback === 'function' && callback(err, data);
     });
   };
 

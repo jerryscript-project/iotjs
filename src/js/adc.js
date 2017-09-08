@@ -13,4 +13,16 @@
  * limitations under the License.
  */
 
-module.exports = process.binding(process.binding.adc).Adc;
+var adc = process.binding(process.binding.adc).Adc;
+
+function Adc() {
+  if (!(this instanceof Adc)) {
+    return new Adc();
+  }
+}
+
+Adc.prototype.open = function(configuration, callback) {
+  return new adc(configuration, callback);
+};
+
+module.exports = Adc;

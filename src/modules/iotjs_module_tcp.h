@@ -88,6 +88,7 @@ const iotjs_jval_t* iotjs_shutdown_reqwrap_jcallback(THIS);
 
 void AddressToJS(const iotjs_jval_t* obj, const sockaddr* addr);
 
+iotjs_string_t iotjs_create_ip(const iotjs_string_t* address);
 
 #define GetSockNameFunction(wraptype, handletype, function)                    \
   static void DoGetSockName(iotjs_jhandler_t* jhandler) {                      \

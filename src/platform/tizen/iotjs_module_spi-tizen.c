@@ -13,64 +13,55 @@
  * limitations under the License.
  */
 
-#if defined(__TIZENRT__)
-
-#include <iotbus_spi.h>
-#include <tinyara/config.h>
-
-#if !defined(CONFIG_SPI)
-#error "\n\nTizenRT CONFIG_SPI configuration flag required for SPI module\n\n"
-#elif !defined(CONFIG_SPI_EXCHANGE)
-#error "\n\nTizenRT CONFIG_SPI_EXCHANGE flag required for SPI module\n\n"
-#endif
-
-#include <iotbus_error.h>
-#include <iotbus_spi.h>
-
 #include "modules/iotjs_module_spi.h"
-
+#include <peripheral_io.h>
 
 struct _iotjs_spi_module_platform_t {
-  unsigned int bus;
-  iotbus_spi_context_h hSpi;
+  peripheral_spi_h peripheral_spi;
+  int bus;
 };
 
-static bool iotjs_spi_open(iotjs_spi_t* spi) {
+static bool iotjs_spi_set_configuration(iotjs_spi_t* spi) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_spi_t, spi);
 
-  struct iotbus_spi_config_s cfg = {.bits_per_word = _this->bits_per_word,
-                                    .chip_select =
-                                        _this->chip_select == kSpiCsNone ? 0
-                                                                         : 1,
-                                    .frequency = _this->max_speed };
+  peripheral_spi_mode_e mode;
 
   switch (_this->mode) {
     case kSpiMode_0:
-      cfg.mode = IOTBUS_SPI_MODE0;
+      mode = PERIPHERAL_SPI_MODE_0;
       break;
     case kSpiMode_1:
-      cfg.mode = IOTBUS_SPI_MODE1;
+      mode = PERIPHERAL_SPI_MODE_1;
       break;
     case kSpiMode_2:
-      cfg.mode = IOTBUS_SPI_MODE2;
+      mode = PERIPHERAL_SPI_MODE_2;
       break;
     case kSpiMode_3:
-      cfg.mode = IOTBUS_SPI_MODE3;
+      mode = PERIPHERAL_SPI_MODE_3;
       break;
     default:
-      cfg.mode = IOTBUS_SPI_MODE0;
+      mode = PERIPHERAL_SPI_MODE_0;
   }
 
-  _this->platform->hSpi = iotbus_spi_open(_this->platform->bus, &cfg);
-  if (_this->platform->hSpi == NULL) {
+  if (peripheral_spi_set_mode(_this->platform->peripheral_spi, mode) < 0)
     return false;
-  }
 
-  DDLOG(
-      "SPI Options \n mode: %d\n chipSelect: %d\n bitOrder: %d\n "
-      "maxSpeed: %d\n bitPerWord: %d\n loopback: %d",
-      _this->mode, _this->chip_select, _this->bit_order, _this->max_speed,
-      _this->bits_per_word, _this->loopback);
+  if (peripheral_spi_set_lsb_first(_this->platform->peripheral_spi,
+                                   _this->bit_order == kSpiOrderLsb) < 0)
+    return false;
+
+  if (peripheral_spi_set_bits_per_word(_this->platform->peripheral_spi,
+                                       _this->bits_per_word) < 0)
+    return false;
+
+  if (peripheral_spi_set_frequency(_this->platform->peripheral_spi,
+                                   _this->max_speed) < 0)
+    return false;
+
+  DDDLOG(
+      "SPI Options \n mode: %d\n bitOrder: %d\n maxSpeed: %d\n bitPerWord: "
+      "%d\n loopback: %d",
+      _this->mode, _this->bit_order, _this->max_speed, _this->bits_per_word);
 
   return true;
 }
@@ -79,12 +70,12 @@ static bool iotjs_spi_open(iotjs_spi_t* spi) {
 bool iotjs_spi_transfer(iotjs_spi_t* spi) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_spi_t, spi);
 
-  int err = iotbus_spi_transfer_buf(_this->platform->hSpi,
-                                    (unsigned char*)_this->tx_buf_data,
-                                    (unsigned char*)_this->rx_buf_data,
-                                    _this->buf_len);
-  if (err != 0) {
-    DDLOG("%s - transfer failed: %d", __func__, err);
+  int err = peripheral_spi_read_write(_this->platform->peripheral_spi,
+                                      (unsigned char*)_this->tx_buf_data,
+                                      (unsigned char*)_this->rx_buf_data,
+                                      _this->buf_len);
+  if (err < 1) {
+    DLOG("%s - transfer failed: %d", __func__, err);
     return false;
   }
 
@@ -95,14 +86,8 @@ bool iotjs_spi_transfer(iotjs_spi_t* spi) {
 bool iotjs_spi_close(iotjs_spi_t* spi) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_spi_t, spi);
 
-  if (_this->platform->hSpi != NULL) {
-    int err = iotbus_spi_close(_this->platform->hSpi);
-    if (err != 0) {
-      DDLOG("%s - close failed: %d", __func__, err);
-      return false;
-    }
-    _this->platform->hSpi = NULL;
-  }
+  if (peripheral_spi_close(_this->platform->peripheral_spi) < 0)
+    return false;
 
   return true;
 }
@@ -112,15 +97,16 @@ void iotjs_spi_open_worker(uv_work_t* work_req) {
   SPI_WORKER_INIT;
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_spi_t, spi);
 
-  if (_this != 0) { // use of _this to prevent compiler warnings
-  }
-
-  if (!iotjs_spi_open(spi)) {
+  if (peripheral_spi_open(_this->platform->bus, _this->chip_select,
+                          &_this->platform->peripheral_spi) < 0) {
     DLOG("%s - SPI open failed %d", __func__, _this->platform->bus);
     req_data->result = false;
     return;
   }
-
+  if (!iotjs_spi_set_configuration(spi)) {
+    req_data->result = false;
+    return;
+  }
   req_data->result = true;
 }
 
@@ -138,4 +124,3 @@ void iotjs_spi_platform_set_cofiguration(iotjs_spi_t_impl_t* _this,
   _this->platform->bus = iotjs_jval_as_number(&jbus);
   iotjs_jval_destroy(&jbus);
 }
-#endif // __TIZENRT__

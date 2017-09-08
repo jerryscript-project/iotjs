@@ -61,74 +61,114 @@ function i2cBusOpen(configurable, callback) {
   var _binding = null;
 
   function I2CBus(configurable, callback) {
-    if (util.isObject(configurable)) {
+    var error;
+    if (!util.isObject(configurable)) {
+      error = new TypeError(
+          'configurable: expected Object, received '
+          + typeof configurable);
+    } else {
       if (process.platform === 'linux') {
         if (!util.isString(configurable.device)) {
-          throw new TypeError('Bad configurable - device: String');
+          error = new TypeError(
+              'configurable.device: string expected, received ' +
+              typeof configurable.device);
         }
       } else if (process.platform === 'nuttx' ||
-                 process.platform === 'tizen') {
+                 process.platform === 'tizen' ||
+                 process.platform === 'tizenrt') {
         if (!util.isNumber(configurable.device)) {
-          throw new TypeError('Bad configurable - device: Number');
+          error = new TypeError(
+              'configurable.device: number expected, received ' +
+              typeof configurable.device);
         }
+      } else {
+        error = new RangeError('Unsupported platform: ' + process.platform);
       }
-
-      if (!util.isNumber(configurable.address)) {
-        throw new TypeError('Bad configurable - address: Number');
-      }
-
-      this.address = configurable.address;
-
-      _binding = new i2c(configurable.device, (function(_this) {
-        return function(err) {
-          if (!err) {
-            _this.setAddress(configurable.address);
-          }
-          util.isFunction(callback) && callback(err);
-        };
-      })(this));
     }
+    if (error) throw error;
+
+    if (this.validateAddress(configurable.address)) {
+      this.device = configurable.device;
+      this.address = configurable.address;
+    }
+
+    var boundCallback =
+        function(err) {
+          if (!err) this.setAddress(configurable.address);
+          util.isFunction(callback) && callback(err);
+        }.bind(this);
+
+    _binding = new i2c(configurable.device, boundCallback);
   }
 
   I2CBus.prototype.close = function() {
     _binding.close();
   };
 
+  I2CBus.prototype.validateAddress = function(address) {
+    // This is incomplete - for device-related transactions valid addresses
+    // exclude 0000xxx and 1111xxx patterns, leaving valid range of 8..119
+    // For bus-wide transactions all addresses are valid.
+    // Note: 8/10 bit addressing is not covered here.
+    if (!util.isNumber(address))
+      throw new TypeError('Number expected, ' + typeof address + ' received');
+    if (address < 0 || address > 127)
+      throw new RangeError('value ' + address + ' out of range [0..127]');
+    return true;
+  };
+
+  I2CBus.prototype.validateByte = function(byte) {
+    if (!util.isNumber(byte))
+      throw new TypeError('byte expected, ' + typeof byte + ' received');
+    if (byte < 0 || byte > 255)
+      throw new RangeError('value ' + byte + ' out of range [0..255]');
+    return true;
+  }
+
+  I2CBus.prototype.validateArrayOfBytes = function(array) {
+    if (util.isArray(array)) {
+      var maxIdx = array.length;
+      // Try-catch maybe to embed context (index, what else?) into the error?
+      for (var idx = 0; idx < maxIdx; ++idx) this.validateByte(array[idx]);
+    } else throw new TypeError('array expected, ' + typeof array + ' received');
+    return true;
+  }
+
   I2CBus.prototype.setAddress = function(address, callback) {
-    if (!util.isNumber(address)) {
-      throw new TypeError('Bad argument - address: Number');
+    if (this.validateAddress(address)) {
+      this.address = address;
+      util.isFunction(callback) && callback();
     }
-
-    this.address = address;
-    _binding.setAddress(this.address);
-
-    util.isFunction(callback) && callback();
   };
 
   I2CBus.prototype.write = function(array, callback) {
-    if (!util.isArray(array)) {
-      throw new TypeError('Bad argument - array: Array');
+    if (this.validateArrayOfBytes(array)) {
+      _binding.setAddress(this.address);
+      _binding.write(array, function(err) {
+        util.isFunction(callback) && callback(err);
+      });
     }
-
-    this.setAddress(this.address);
-    _binding.write(array, function(err) {
-      util.isFunction(callback) && callback(err);
-    });
   };
 
   I2CBus.prototype.read = function(length, callback) {
-    if (!util.isNumber(length)) {
-      throw new TypeError('Bad argument - length: Number');
+    if (this.validateLength(length)) {
+      _binding.setAddress(this.address);
+      _binding.read(length, function(err, data) {
+        util.isFunction(callback) && callback(err, data);
+      });
     }
+  };
 
-    this.setAddress(this.address);
-    _binding.read(length, function(err, data) {
-      util.isFunction(callback) && callback(err, data);
-    });
+  I2CBus.prototype.validateLength = function(length) {
+    if (!util.isNumber(length)) {
+      throw new TypeError('Number expected, ' + typeof length + ' received');
+    } else if (length < 0) {
+      throw new RangeError('length ' + length + ' < 0');
+    }
+    return true;
   };
 
   return new I2CBus(configurable, callback);
 }
-
 
 module.exports = I2C;

@@ -13,22 +13,20 @@
  * limitations under the License.
  */
 
-#if !defined(__NUTTX__)
-#error "Module __FILE__ is for nuttx only"
+#if !defined(__TIZENRT__)
+#error "Module " __FILE__ " should only be built with __TIZENRT__"
 #endif
 
-#include <nuttx/i2c/i2c_master.h>
-
-#include "iotjs_systemio-nuttx.h"
-
 #include "modules/iotjs_module_i2c.h"
+#include "iotjs_systemio.h"
+#include <tinyara/i2c.h>
 
 
 #define I2C_DEFAULT_FREQUENCY 400000
 
 struct iotjs_i2c_platform_data_s {
   int device;
-  struct i2c_master_s* i2c_master;
+  struct i2c_dev_s* i2c_master;
   struct i2c_config_s config;
 };
 
@@ -66,7 +64,7 @@ void OpenWorker(uv_work_t* work_req) {
   iotjs_i2c_t* i2c = iotjs_i2c_instance_from_reqwrap(req_wrap);
 
   IOTJS_I2C_METHOD_HEADER(i2c);
-  platform_data->i2c_master = iotjs_i2c_config_nuttx(platform_data->device);
+  platform_data->i2c_master = iotjs_i2c_platform_config(platform_data->device);
   if (!platform_data->i2c_master) {
     DLOG("I2C OpenWorker : cannot open");
     req_data->error = kI2cErrOpen;
@@ -80,7 +78,7 @@ void OpenWorker(uv_work_t* work_req) {
 
 void I2cClose(iotjs_i2c_t* i2c) {
   IOTJS_I2C_METHOD_HEADER(i2c);
-  iotjs_i2c_unconfig_nuttx(platform_data->i2c_master);
+  iotjs_i2c_platform_unconfig(platform_data->i2c_master);
 }
 
 void WriteWorker(uv_work_t* work_req) {

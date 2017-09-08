@@ -57,6 +57,19 @@
 #include <setjmp.h>
 #include <stdio.h>
 
+#if (defined CONFIG_I2C)
+#if (defined CONFIG_ARCH_BOARD_ARTIK053) || \
+    (defined CONFIG_ARCH_BOARD_SIDK_S5JT200)
+// Forward declaration.
+struct i2c_dev_s;
+
+int up_i2cuninitialize(FAR struct i2c_dev_s *dev) {
+  return s5j_i2cbus_uninitialize(dev);
+}
+#endif // artik05x
+#endif // defined CONFIG_I2C
+
+
 #define USE_IOTJS_THREAD 1
 
 /**
@@ -77,7 +90,7 @@ int setjmp(jmp_buf buf) {
  *   ignores value argument
  */
 
-void longjmp(jmp_buf buf, int value) {
+__attribute__((__noreturn__)) void longjmp(jmp_buf buf, int value) {
   /* Must be called with 1. */
   __builtin_longjmp(buf, 1);
 } /* longjmp */

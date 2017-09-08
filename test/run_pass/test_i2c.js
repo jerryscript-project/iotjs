@@ -26,6 +26,8 @@ if (process.platform === 'linux') {
   configuration.device = '/dev/i2c-1';
 } else if (process.platform === 'nuttx') {
   configuration.device = 1;
+} else if (process.platform === 'tizenrt') {
+  configuration.device = 1;
 } else {
   assert.fail();
 }
@@ -36,11 +38,11 @@ var wire = i2c.open(configuration, function(err) {
   }
 
   wire.write([0x10], function(err) {
-    assert.equal(err, null);
+    assert.equal(err, null, "write() error");
     console.log('write done');
 
     wire.read(2, function(err, res) {
-      assert.equal(err, null);
+      assert.equal(err, null, "read() error");
       assert.equal(res.length, 2, 'I2C read failed.(length is not equal)');
       console.log('read result: '+res[0]+', '+res[1]);
       wire.close();

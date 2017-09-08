@@ -27,7 +27,7 @@
     { "name": "test_fs_fstat_sync.js", "skip": ["nuttx", "tizenrt"], "reason": "not implemented for nuttx/TizenRT" },
     { "name": "test_fs_mkdir_rmdir.js", "skip": ["linux", "nuttx"], "reason": "[linux]: flaky on Travis, [nuttx]: implemented, run manually in default configuration" },
     { "name": "test_fs_open_close.js", "skip": ["nuttx"], "reason": "not implemented for nuttx" },
-    { "name": "test_fs_readdir.js", "skip": ["nuttx", "tizenrt"], "reason": "not implemented for nuttx/TizenRT" },
+    { "name": "test_fs_readdir.js" },
     { "name": "test_fs_readfile.js" },
     { "name": "test_fs_readfile_sync.js" },
     { "name": "test_fs_rename.js" },

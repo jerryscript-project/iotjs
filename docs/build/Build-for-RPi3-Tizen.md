@@ -47,7 +47,7 @@ $ sudo apt-get install pv
 
 #### Downloading fusing-script and firmwares
 ``` bash
-  $ wget https://git.tizen.org/cgit/platform/kernel/linux-rpi3/plain/scripts/sd_fusing_rpi3.sh?h=submit/tizen/20170725.223437 --output-document=sd_fusing_rpi3.sh
+  $ wget https://git.tizen.org/cgit/platform/kernel/u-boot/plain/scripts/tizen/sd_fusing_rpi3.sh?h=tizen --output-document=sd_fusing_rpi3.sh
   $ chmod 755 sd_fusing_rpi3.sh
   $ wget https://github.com/RPi-Distro/firmware-nonfree/raw/master/brcm80211/brcm/brcmfmac43430-sdio.bin
   $ wget https://github.com/RPi-Distro/firmware-nonfree/raw/master/brcm80211/brcm/brcmfmac43430-sdio.txt
@@ -57,14 +57,10 @@ $ sudo apt-get install pv
 #### Downloading TizenIoT Core Image for RPi3
 
 Kernel & Module Image
-
-http://download.tizen.org/snapshots/tizen/unified/latest/images/standard/common-boot-arm64-rpi3/
-
+http://download.tizen.org/snapshots/tizen/unified/latest/images/standard/iot-boot-arm64-rpi3/
 
 Tizen Platform Image
-
-http://download.tizen.org/snapshots/tizen/unified/latest/images/standard/common-iot_core-2parts-armv7l-rpi3/
-
+http://download.tizen.org/snapshots/tizen/unified/latest/images/standard/iot-headless-2parts-armv7l-rpi3/
 
 #### Fusing images to sd-card
 ``` bash

@@ -92,9 +92,6 @@ static bool iotjs_jerry_initialize(iotjs_environment_t* env) {
 
 
 static void iotjs_jerry_release(iotjs_environment_t* env) {
-  if (iotjs_environment_config(env)->debugger) {
-    jerry_debugger_cleanup();
-  }
   jerry_cleanup();
 }
 

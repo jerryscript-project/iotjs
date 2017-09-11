@@ -16,31 +16,26 @@
 /* This test is based on Raspberry Pi with GY-30 Sensor. */
 
 var assert = require('assert');
+var pin = require('tools/systemio_common').pin;
+var checkError = require('tools/systemio_common').checkError;
 var I2C = require('i2c');
 
 var i2c = new I2C();
-var configuration = {};
-
-configuration.address = 0x23;
-if (process.platform === 'linux') {
-  configuration.device = '/dev/i2c-1';
-} else if (process.platform === 'nuttx') {
-  configuration.device = 1;
-} else {
-  assert.fail();
-}
+var configuration = {
+  address: 0x23,
+  device: pin.i2c1, // for Linux, NuttX and Tizen
+  bus: pin.i2c1 // for TizenRT
+};
 
 var wire = i2c.open(configuration, function(err) {
-  if (err) {
-    throw err;
-  }
+  checkError(err);
 
   wire.write([0x10], function(err) {
-    assert.equal(err, null);
+    checkError(err);
     console.log('write done');
 
     wire.read(2, function(err, res) {
-      assert.equal(err, null);
+      checkError(err);
       assert.equal(res.length, 2, 'I2C read failed.(length is not equal)');
       console.log('read result: '+res[0]+', '+res[1]);
       wire.close();

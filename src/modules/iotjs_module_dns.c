@@ -66,13 +66,59 @@ const iotjs_jval_t* iotjs_getaddrinfo_reqwrap_jcallback(THIS) {
 
 
 #if !defined(__NUTTX__) && !defined(__TIZENRT__)
+char* getaddrinfo_error_str(int status) {
+  switch (status) {
+    case UV__EAI_ADDRFAMILY:
+      return "EAI_ADDRFAMILY, address family for hostname not supported";
+      break;
+    case UV__EAI_AGAIN:
+      return "EAI_AGAIN, temporary failure in name resolution";
+      break;
+    case UV__EAI_BADFLAGS:
+      return "EAI_BADFLAGS, bad flags";
+      break;
+    case UV__EAI_FAIL:
+      return "EAI_FAIL, Non-recoverable failure in name resolution";
+      break;
+    case UV__EAI_FAMILY:
+      return "EAI_FAMILY, family not supported";
+      break;
+    case UV__EAI_CANCELED:
+      return "EAI_CANCELED, request canceled";
+      break;
+    case UV__EAI_MEMORY:
+      return "EAI_MEMORY, memory allocation failure";
+      break;
+    case UV__EAI_NODATA:
+      return "EAI_NODATA, no address association with hostname";
+      break;
+    case UV__EAI_NONAME:
+      return "EAI_NONAME, name or service not known";
+      break;
+    case UV__EAI_OVERFLOW:
+      return "EAI_OVERFLOW, argument buffer overflow";
+      break;
+    case UV__EAI_SERVICE:
+      return "EAI_SERVICE, service not supported";
+      break;
+    case UV__EAI_SOCKTYPE:
+      return "EAI_SOCKTYPE, socktype not supported";
+      break;
+    case UV__EAI_PROTOCOL:
+      return "EAI_PROTOCOL, unknown error";
+      break;
+    default:
+      return "unknown error";
+      break;
+  }
+}
+
 static void AfterGetAddrInfo(uv_getaddrinfo_t* req, int status,
                              struct addrinfo* res) {
   iotjs_getaddrinfo_reqwrap_t* req_wrap =
       (iotjs_getaddrinfo_reqwrap_t*)(req->data);
 
   iotjs_jargs_t args = iotjs_jargs_create(3);
-  iotjs_jargs_append_number(&args, status);
 
   if (status == 0) {
     char ip[INET6_ADDRSTRLEN];
@@ -93,10 +139,16 @@ static void AfterGetAddrInfo(uv_getaddrinfo_t* req, int status,
     int err = uv_inet_ntop(res->ai_family, addr, ip, INET6_ADDRSTRLEN);
     if (err) {
       ip[0] = 0;
+      iotjs_jargs_append_error(&args,
+                               "EAFNOSUPPORT, DNS could not resolve hostname");
+    } else {
+      iotjs_jargs_append_null(&args);
     }
 
     iotjs_jargs_append_string_raw(&args, ip);
     iotjs_jargs_append_number(&args, family);
+  } else {
+    iotjs_jargs_append_error(&args, getaddrinfo_error_str(status));
   }
 
   uv_freeaddrinfo(res);
@@ -119,6 +171,7 @@ JHANDLER_FUNCTION(GetAddrInfo) {
   iotjs_string_t hostname = JHANDLER_GET_ARG(0, string);
   int option = JHANDLER_GET_ARG(1, number);
   int flags = JHANDLER_GET_ARG(2, number);
+  int error = 0;
   const iotjs_jval_t* jcallback = JHANDLER_GET_ARG(3, function);
 
   int family;
@@ -139,7 +192,6 @@ JHANDLER_FUNCTION(GetAddrInfo) {
 
 #if defined(__NUTTX__) || defined(__TIZENRT__)
   iotjs_jargs_t args = iotjs_jargs_create(3);
-  int err = 0;
   char ip[INET6_ADDRSTRLEN] = "";
   const char* hostname_data = iotjs_string_data(&hostname);
 
@@ -147,16 +199,20 @@ JHANDLER_FUNCTION(GetAddrInfo) {
     strcpy(ip, "127.0.0.1");
   } else {
     struct sockaddr_in addr;
-    int result = inet_pton(family, hostname_data, &(addr.sin_addr));
 
-    if (result != 1) {
-      err = errno;
-    } else {
+    if (inet_pton(family, hostname_data, &(addr.sin_addr)) == 1) {
       inet_ntop(family, &(addr.sin_addr), ip, INET6_ADDRSTRLEN);
+    } else {
+      error = EAFNOSUPPORT;
     }
   }
 
-  iotjs_jargs_append_number(&args, err);
+  if (error) {
+    iotjs_jargs_append_error(&args, "EAFNOSUPPORT, could not resolve hostname");
+  } else {
+    iotjs_jargs_append_null(&args);
+  }
+
   iotjs_jargs_append_string_raw(&args, ip);
   iotjs_jargs_append_number(&args, option);
 
@@ -173,17 +229,17 @@ JHANDLER_FUNCTION(GetAddrInfo) {
   hints.ai_socktype = SOCK_STREAM;
   hints.ai_flags = flags;
 
-  int err =
+  error =
       uv_getaddrinfo(iotjs_environment_loop(iotjs_environment_get()),
                      iotjs_getaddrinfo_reqwrap_req(req_wrap), AfterGetAddrInfo,
                      iotjs_string_data(&hostname), NULL, &hints);
 
-  if (err) {
+  if (error) {
     iotjs_getaddrinfo_reqwrap_dispatched(req_wrap);
   }
 #endif
 
-  iotjs_jhandler_return_number(jhandler, err);
+  iotjs_jhandler_return_number(jhandler, error);
 
   iotjs_string_destroy(&hostname);
 }

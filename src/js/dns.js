@@ -16,19 +16,6 @@
 var util = require('util');
 var dnsBuiltin = process.binding(process.binding.dns);
 
-function dnsException(err, syscall, hostname) {
-  var ex = new Error(syscall + ' ' + err + (hostname ? ' ' + hostname : ''));
-  // TODO(hanjoung.lee@samsung.com) err should be a string (currently a number)
-  ex.code = err;
-  ex.errno = err;
-  ex.syscall = syscall;
-  if (hostname) {
-    ex.hostname = hostname;
-  }
-  return ex;
-}
-
-
 exports.lookup = function lookup(hostname, options, callback) {
   var hints = 0;
   var family = -1;
@@ -59,29 +46,13 @@ exports.lookup = function lookup(hostname, options, callback) {
   if (family !== 0 && family !== 4 && family !== 6)
     throw new TypeError('invalid argument: family must be 4 or 6');
 
-  function getaddrinfo() {
-    var err = dnsBuiltin.getaddrinfo(
-      hostname,
-      family,
-      hints,
-      function(err, address, family) {
-        var errObj = null;
-        if (err) {
-          errObj = dnsException(err, 'getaddrinfo', hostname);
-        }
-        callback(errObj, address, family);
-      });
-      if (err) {
-        callback(dnsException(err, 'getaddrinfo', hostname), address, family);
-      }
-    }
   if (process.platform != 'nuttx' && process.platform != 'tizenrt') {
-    getaddrinfo();
+    dnsBuiltin.getaddrinfo(hostname, family, hints, callback);
   } else {
     // dnsBuiltin.getaddrinfo is synchronous on these platforms.
     // needs to be wrapped into an asynchronous call.
     process.nextTick(function() {
-      getaddrinfo()
+      dnsBuiltin.getaddrinfo(hostname, family, hints, callback);
     });
   }
 };

@@ -21,7 +21,7 @@
 
 #define THIS iotjs_i2c_reqwrap_t* i2c_reqwrap
 
-IOTJS_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(i2c);
+static JNativeInfoType this_module_native_info = {.free_cb = NULL };
 
 static void i2c_destroy_data(iotjs_i2c_t* i2c) {
   IOTJS_DECLARE_THIS(iotjs_i2c_t, i2c);
@@ -228,6 +228,7 @@ JHANDLER_FUNCTION(Close) {
   DJHANDLER_CHECK_ARGS(0);
 
   I2cClose(i2c);
+  iotjs_i2c_destroy(i2c);
 
   iotjs_jhandler_return_null(jhandler);
 }

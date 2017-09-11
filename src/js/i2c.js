@@ -61,16 +61,27 @@ function i2cBusOpen(configurable, callback) {
   var _binding = null;
 
   function I2CBus(configurable, callback) {
+    var i2cContext;
+
     if (util.isObject(configurable)) {
       if (process.platform === 'linux') {
-        if (!util.isString(configurable.device)) {
+        i2cContext = configurable.device;
+        if (!util.isString(i2cContext)) {
           throw new TypeError('Bad configurable - device: String');
         }
       } else if (process.platform === 'nuttx' ||
                  process.platform === 'tizen') {
-        if (!util.isNumber(configurable.device)) {
+        i2cContext = configurable.device;
+        if (!util.isNumber(i2cContext)) {
           throw new TypeError('Bad configurable - device: Number');
         }
+      } else if (process.platform === 'tizenrt') {
+        i2cContext = configurable.bus;
+        if (!util.isNumber(i2cContext)) {
+          throw new TypeError('Bad configurable - bus: Number');
+        }
+      } else {
+        throw new Error('Unsupported platform');
       }
 
       if (!util.isNumber(configurable.address)) {
@@ -79,7 +90,7 @@ function i2cBusOpen(configurable, callback) {
 
       this.address = configurable.address;
 
-      _binding = new i2c(configurable.device, (function(_this) {
+      _binding = new i2c(i2cContext, (function(_this) {
         return function(err) {
           if (!err) {
             _this.setAddress(configurable.address);

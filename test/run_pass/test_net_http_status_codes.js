@@ -17,9 +17,14 @@
 var assert = require('assert');
 var http = require('http');
 
-var codes = ["100", "150", "199", "200", "204", "304", "404", "510"];
+var codes = ["150", "199", "200", "204", "304", "404", "510"];
+var queue = codes.slice(0);
 var responses = [];
-var completedResponses = 0;
+var options = {
+  method: 'POST',
+  port: 3008,
+  headers: {'Content-Length': 3}
+};
 
 var server = http.createServer(function (request, response) {
   var str = '';
@@ -33,57 +38,29 @@ var server = http.createServer(function (request, response) {
       response.writeHead(parseInt(str));
     }
 
-    response.write(str);
-    response.end(function() {
-      if(str == 'close server') {
+    response.end();
+  });
+}).listen(3008, 5);
+
+requestOnQueue(queue.shift());
+
+function requestOnQueue(code) {
+  var request = http.request(options, function(res) {
+      responses.push(res.statusCode);
+
+      if (responses.length == codes.length) {
+        // Done with downloads.
+        for (var j = 0; j < codes.length; j++) {
+          assert(responses.indexOf(parseInt(codes[j])) > -1);
+        }
+
         server.close();
+      } else {
+        if(queue.length) {
+          process.nextTick(function() {
+            requestOnQueue(queue.shift());
+          });
+        }
       }
-    });
-  });
-});
-
-server.listen(3008, 5);
-
-var options = {
-  method: 'POST',
-  port: 3008,
-  headers: {'Content-Length': 3}
-};
-
-
-for (var i = 0; i < codes.length; i++) {
-  var request = http.request(options, function(response) {
-    responses.push(response.statusCode);
-    completedResponses++;
-    if (completedResponses == codes.length) {
-      // Done with downloads.
-      for (var j = 0; j < codes.length; j++) {
-        assert(responses.indexOf(parseInt(codes[j])) > -1);
-      }
-    }
-  }).end(codes[i]);
+    }).end(code);
 }
-
-var closeMessage = 'close server';
-var closeOptions = {
-  method : 'POST',
-  port : 3008,
-  headers : {'Content-Length': closeMessage.length}
-};
-var closeHandler = function(response) {
-  var str = '';
-
-  assert.equal(200, response.statusCode);
-
-  response.on('end', function() {
-    assert.equal(closeMessage, str);
-  });
-
-  response.on('data', function(chunk) {
-    str += chunk;
-  });
-};
-
-closeRequest = http.request(closeOptions, closeHandler);
-closeRequest.write(closeMessage);
-closeRequest.end();

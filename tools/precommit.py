@@ -28,6 +28,7 @@ from check_tidy import check_tidy
 
 TESTS=['host-linux', 'host-darwin', 'rpi2', 'nuttx', 'misc', 'no-snapshot',
        'artik10', 'artik053', 'coverity']
+ROMFS_MODULES=['tests']
 BUILDTYPES=['debug', 'release']
 NUTTXTAG = 'nuttx-7.19'
 
@@ -50,12 +51,15 @@ def parse_option():
     parser.add_argument('--buildtype', choices=BUILDTYPES, action='append')
     parser.add_argument('--buildoptions', action='store', default='',
                         help='A comma separated list of extra buildoptions')
+    parser.add_argument('--romfs', choices=ROMFS_MODULES, action='append')
 
     option = parser.parse_args(sys.argv[1:])
     if option.test is None:
         option.test = TESTS
     if option.buildtype is None:
         option.buildtype = BUILDTYPES
+    if option.romfs is None:
+        option.romfs = []
     return option
 
 
@@ -132,18 +136,14 @@ def copy_tiznert_stuff(tizenrt_root, iotjs_dir):
                     ['-rfu', iotjs_config_dir, tizenrt_config_dir])
 
 def setup_tizenrt_repo(tizenrt_root):
-    if fs.exists(tizenrt_root):
-        fs.chdir(tizenrt_root)
-        ex.check_run_cmd('git', ['fetch', 'origin'])
-        fs.chdir(path.PROJECT_ROOT)
-    else:
+    if not fs.exists(tizenrt_root):
         ex.check_run_cmd('git', ['clone',
             'https://github.com/Samsung/TizenRT.git',
             tizenrt_root])
-    ex.check_run_cmd('git', ['--git-dir', tizenrt_root + '/.git/',
-                             '--work-tree', tizenrt_root,
-                             'checkout', TIZENRT_COMMIT])
-    copy_tiznert_stuff(tizenrt_root, path.PROJECT_ROOT)
+        ex.check_run_cmd('git', ['--git-dir', tizenrt_root + '/.git/',
+                                 '--work-tree', tizenrt_root,
+                                 'checkout', TIZENRT_COMMIT])
+        copy_tiznert_stuff(tizenrt_root, path.PROJECT_ROOT)
 
 def configure_trizenrt(tizenrt_root, buildtype):
     # TODO: handle buildtype (build vs release) for tizenrt build
@@ -158,6 +158,10 @@ def build_tizenrt(tizenrt_root, iotjs_rootdir, buildtype):
     iotjs_libdir = iotjs_rootdir + '/build/arm-tizenrt/' + buildtype + '/lib'
     ex.check_run_cmd('make', ['IOTJS_ROOT_DIR=' + iotjs_rootdir,
                               'IOTJS_LIB_DIR=' + iotjs_libdir])
+
+def build_romfs(romfs_image):
+    ex.check_run_cmd('genromfs', ['-f', romfs_image, '-d',
+        fs.join(path.PROJECT_ROOT, 'test'), '-V', 'NuttXBootVol'])
 
 def build(buildtype, args=[]):
     fs.chdir(path.PROJECT_ROOT)
@@ -205,8 +209,13 @@ if __name__ == '__main__':
                                 ] + os_dependency_module['linux'] + build_args)
 
         elif test == "artik053":
+            tizenrt_root = fs.join(path.PROJECT_ROOT, 'deps', 'tizenrt')
+            # For now only romfs=tests works
+            if 'tests' in option.romfs:
+                romfs_image_file = fs.join(tizenrt_root, "build", "output",
+                                           "bin", "rom.img")
+                romfs_image_file = build_romfs(romfs_image_file)
             for buildtype in option.buildtype:
-                tizenrt_root = fs.join(path.PROJECT_ROOT, 'deps', 'tizenrt')
                 setup_tizenrt_repo(tizenrt_root)
                 configure_trizenrt(tizenrt_root, buildtype)
                 build(buildtype, ['--target-arch=arm',

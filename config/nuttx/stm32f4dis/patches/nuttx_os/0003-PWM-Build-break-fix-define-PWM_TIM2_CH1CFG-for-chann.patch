@@ -1,0 +1,35 @@
+From 68d8a20bae0bcc30c1e47bfff3523afa45e7dae2 Mon Sep 17 00:00:00 2001
+From: Tomasz Wozniak <t.wozniak@samsung.com>
+Date: Wed, 23 Aug 2017 12:41:22 +0200
+Subject: [PATCH 3/4] [PWM] Build break fix: define PWM_TIM2_CH1CFG for channel
+ 1 PWM
+
+---
+ arch/arm/src/stm32/stm32_pwm.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/src/stm32/stm32_pwm.h b/arch/arm/src/stm32/stm32_pwm.h
+index 1321389..7dba0a0 100644
+--- a/arch/arm/src/stm32/stm32_pwm.h
++++ b/arch/arm/src/stm32/stm32_pwm.h
+@@ -174,7 +174,7 @@
+ 
+ #ifdef CONFIG_STM32_TIM2_CHANNEL1
+ #  ifdef CONFIG_STM32_TIM2_CH1OUT
+-#    define PWM_TIM2_CH1CFG GPIO_TIM2_CH1OUT
++#    define PWM_TIM2_CH1CFG GPIO_TIM2_CH1OUT_1
+ #  else
+ #    define PWM_TIM2_CH1CFG 0
+ #  endif
+@@ -754,7 +754,7 @@
+ #  elif CONFIG_STM32_TIM2_CHANNEL == 1
+ #    define CONFIG_STM32_TIM2_CHANNEL1 1
+ #    define CONFIG_STM32_TIM2_CH1MODE  CONFIG_STM32_TIM2_CHMODE
+-#    define PWM_TIM2_CH1CFG            GPIO_TIM2_CH1OUT
++#    define PWM_TIM2_CH1CFG            GPIO_TIM2_CH1OUT_1
+ #  elif CONFIG_STM32_TIM2_CHANNEL == 2
+ #    define CONFIG_STM32_TIM2_CHANNEL2 1
+ #    define CONFIG_STM32_TIM2_CH2MODE  CONFIG_STM32_TIM2_CHMODE
+-- 
+2.7.4
+

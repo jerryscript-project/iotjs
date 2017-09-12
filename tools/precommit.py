@@ -85,16 +85,35 @@ def setup_nuttx_root(nuttx_root):
                         'nuttx', 'stm32f4dis', 'app', file),
                 fs.join(nuttx_root, 'apps', 'system', 'iotjs'))
 
-    # Step 3
+    # Step 3: patch the nuttx OS
+    fs.chdir(fs.join(nuttx_root, 'nuttx'))
+    patchdir = fs.join(path.PROJECT_ROOT, 'config', 'nuttx', 'stm32f4dis',
+                       'patches', 'nuttx_os')
+    for patchfile in sorted(fs.listdir(patchdir)):
+        if (patchfile.endswith('.patch')):
+            print('Applying OS patch %s/%s' % (patchdir, patchfile))
+            ex.check_run_cmd('git', ['am',
+                fs.join(patchdir, patchfile),
+                '--committer-date-is-author-date'])
+        else:
+            print('Rejected file %s/%s: not a patch' % (patchdir, patchfile))
+
+    # Step 4: patch the nuttx apps
+    fs.chdir(fs.join(nuttx_root, 'apps'))
+    patchdir = fs.join(path.PROJECT_ROOT, 'config', 'nuttx', 'stm32f4dis',
+                       'patches', 'nuttx_apps')
+    for patchfile in sorted(fs.listdir(patchdir)):
+        if (patchfile.endswith('.patch')):
+            print('Applying apps patch %s/%s' % (patchdir, patchfile))
+            ex.check_run_cmd('git', ['am',
+                fs.join(patchdir, patchfile),
+                '--committer-date-is-author-date'])
+        else:
+            print('Rejected file %s/%s: not a patch' % (patchdir, patchfile))
+
+    # Step 5: configure nuttx OS & apps
     fs.chdir(fs.join(nuttx_root, 'nuttx', 'tools'))
-    ex.check_run_cmd('./configure.sh', ['stm32f4discovery/usbnsh'])
-    fs.chdir('..')
-    fs.copy(fs.join(path.PROJECT_ROOT,
-                    'config',
-                    'nuttx',
-                    'stm32f4dis',
-                    '.config.travis'),
-            '.config')
+    ex.check_run_cmd('./configure.sh', ['stm32f4discovery/usbnshiotjs'])
 
 
 def build_nuttx(nuttx_root, buildtype, maketarget):
@@ -106,6 +125,22 @@ def build_nuttx(nuttx_root, buildtype, maketarget):
     ex.check_run_cmd('make',
                      [maketarget, 'IOTJS_ROOT_DIR=' + path.PROJECT_ROOT, rflag])
 
+def create_nuttx_romfs(iotjs_root, nuttx_root):
+    print("Creating nuttx ROMFS")
+    ex.check_run_cmd('mkdir', ['-p', fs.join(nuttx_root, 'apps/bin')])
+    nuttx_romfs_testdir = fs.join(iotjs_root, 'test')
+    romfs_target_dir = fs.join(nuttx_root, "apps/bin")
+    if not fs.exists(fs.join(romfs_target_dir, 'test')):
+        print("Copying %s to %s" %
+              (nuttx_romfs_testdir, fs.join(nuttx_root, "apps/bin")))
+        ex.check_run_cmd('cp', ['-r', nuttx_romfs_testdir,
+                                fs.join(nuttx_root, "apps/bin")])
+    else:
+        print("IoT.js testdir already there: %s" %
+              fs.join(romfs_target_dir, 'test'))
+    fs.chdir(fs.join(nuttx_root, 'apps'))
+    ex.check_run_cmd('tools/mkromfsimg.sh')
+    ex.check_run_cmd('cp', [ '-f', 'boot_romfsimg.h', 'nshlib/nsh_romfsimg.h'])
 
 def setup_tizen_root(tizen_root):
     if fs.exists(tizen_root):
@@ -231,6 +266,7 @@ if __name__ == '__main__':
                                 '--target-board=stm32f4dis',
                                 '--jerry-heaplimit=78']
                                 + os_dependency_module['nuttx'] + build_args)
+                create_nuttx_romfs(path.PROJECT_ROOT, nuttx_root)
                 build_nuttx(nuttx_root, buildtype, 'all')
                 fs.chdir(current_dir)
 

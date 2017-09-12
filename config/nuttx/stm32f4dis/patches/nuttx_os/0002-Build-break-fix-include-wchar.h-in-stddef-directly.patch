@@ -1,0 +1,27 @@
+From 1354e7fb39039cc593d1cda8580bd91afab4eb13 Mon Sep 17 00:00:00 2001
+From: Tomasz Wozniak <t.wozniak@samsung.com>
+Date: Wed, 23 Aug 2017 12:38:36 +0200
+Subject: [PATCH 2/4] Build break fix: include wchar.h in stddef directly
+
+---
+ include/stddef.h | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/include/stddef.h b/include/stddef.h
+index 63e815d..f1169fa 100644
+--- a/include/stddef.h
++++ b/include/stddef.h
+@@ -42,6 +42,10 @@
+ 
+ #include <sys/types.h>
+ 
++#ifdef __need_wint_t
++#include <wchar.h>
++#endif
++
+ /****************************************************************************
+  * Pre-processor Definitions
+  ****************************************************************************/
+-- 
+2.7.4
+

@@ -1,0 +1,41 @@
+From a3b474e3bcb37e12ee1e5bff62fdf42f34d1e44c Mon Sep 17 00:00:00 2001
+From: Tomasz Wozniak <t.wozniak@samsung.com>
+Date: Thu, 24 Aug 2017 16:14:55 +0200
+Subject: [PATCH] Enable ROMFS at default location (/etc)
+
+---
+ configs/stm32f4discovery/usbnshiotjs/defconfig | 11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
+
+diff --git a/configs/stm32f4discovery/usbnshiotjs/defconfig b/configs/stm32f4discovery/usbnshiotjs/defconfig
+index 3ea88b2..e22a76e 100644
+--- a/configs/stm32f4discovery/usbnshiotjs/defconfig
++++ b/configs/stm32f4discovery/usbnshiotjs/defconfig
+@@ -1351,7 +1351,6 @@ CONFIG_EXAMPLES_NSH=y
+ # CONFIG_EXAMPLES_SMART is not set
+ # CONFIG_EXAMPLES_SMART_TEST is not set
+ # CONFIG_EXAMPLES_SMP is not set
+-# CONFIG_EXAMPLES_STAT is not set
+ # CONFIG_EXAMPLES_TCPECHO is not set
+ # CONFIG_EXAMPLES_TELNETD is not set
+ # CONFIG_EXAMPLES_THTTPD is not set
+@@ -1514,7 +1513,15 @@ CONFIG_NSH_FILEIOSIZE=512
+ # CONFIG_NSH_DISABLESCRIPT is not set
+ # CONFIG_NSH_DISABLE_ITEF is not set
+ # CONFIG_NSH_DISABLE_LOOPS is not set
+-# CONFIG_NSH_ROMFSETC is not set
++CONFIG_NSH_ROMFSETC=y
++# CONFIG_NSH_ROMFSRC is not set
++CONFIG_NSH_ROMFSMOUNTPT="/etc"
++CONFIG_NSH_INITSCRIPT="init.d/rcS"
++CONFIG_NSH_ROMFSDEVNO=0
++CONFIG_NSH_ROMFSSECTSIZE=64
++CONFIG_NSH_DEFAULTROMFS=y
++# CONFIG_NSH_ARCHROMFS is not set
++# CONFIG_NSH_CUSTOMROMFS is not set
+ 
+ #
+ # Console Configuration
+-- 
+2.7.4
+

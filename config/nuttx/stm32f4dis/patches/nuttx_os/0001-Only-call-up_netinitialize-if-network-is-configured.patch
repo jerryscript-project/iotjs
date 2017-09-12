@@ -1,0 +1,25 @@
+From 662e30417dae4bae722a3408deae930a7917d19d Mon Sep 17 00:00:00 2001
+From: Tomasz Wozniak <t.wozniak@samsung.com>
+Date: Tue, 22 Aug 2017 13:16:00 +0200
+Subject: [PATCH 1/4] Only call up_netinitialize if network is configured.
+
+---
+ arch/arm/src/common/up_initialize.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/src/common/up_initialize.c b/arch/arm/src/common/up_initialize.c
+index a97cd40..5c33df7 100644
+--- a/arch/arm/src/common/up_initialize.c
++++ b/arch/arm/src/common/up_initialize.c
+@@ -261,7 +261,7 @@ void up_initialize(void)
+   devcrypto_register();
+ #endif
+ 
+-#ifndef CONFIG_NETDEV_LATEINIT
++#if defined(CONFIG_NETDEVICES) && !defined(CONFIG_NETDEV_LATEINIT)
+   /* Initialize the network */
+ 
+   up_netinitialize();
+-- 
+2.7.4
+

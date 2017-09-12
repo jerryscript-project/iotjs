@@ -31,9 +31,8 @@ TESTS=['host-linux', 'host-darwin', 'rpi2', 'nuttx', 'misc', 'no-snapshot',
 BUILDTYPES=['debug', 'release']
 NUTTXTAG = 'nuttx-7.19'
 
-# This is latest tested TizenRT commit working for IoT.js
-# Title: Merge pull request #496 from sunghan-chang/iotivity
-TIZENRT_COMMIT='0f47277170972bb33b51996a374c483e4ff2c26a'
+# TizenRT revision known to build with iotjs (Mon Sep 11 22:00:34 2017 +0900)
+TIZENRT_COMMIT='1a6d47ada5299'
 
 def get_config():
     config_path = path.BUILD_MODULE_CONFIG_PATH
@@ -126,10 +125,10 @@ def copy_tiznert_stuff(tizenrt_root, iotjs_dir):
         fs.join(iotjs_dir, 'config/tizenrt/artik05x/configs')
 
     ex.check_run_cmd('cp',
-                    ['-rfu', iotjs_tizenrt_appdir, tizenrt_iotjsapp_dir])
+                    ['-rfuT', iotjs_tizenrt_appdir, tizenrt_iotjsapp_dir])
 
     ex.check_run_cmd('cp',
-                    ['-rfu', iotjs_config_dir, tizenrt_config_dir])
+                    ['-rfuT', iotjs_config_dir, tizenrt_config_dir])
 
 def setup_tizenrt_repo(tizenrt_root):
     if fs.exists(tizenrt_root):
@@ -140,9 +139,20 @@ def setup_tizenrt_repo(tizenrt_root):
         ex.check_run_cmd('git', ['clone',
             'https://github.com/Samsung/TizenRT.git',
             tizenrt_root])
+    # The following two do not have to succeed
+    ex.run_cmd('git', ['--git-dir', tizenrt_root + '/.git/',
+                       '--work-tree', tizenrt_root,
+                       'checkout', 'master'])
+    ex.run_cmd('git', ['--git-dir', tizenrt_root + '/.git/',
+                       '--work-tree', tizenrt_root,
+                       'branch', '-D', 'iotjs_build'])
+    # These have to however
     ex.check_run_cmd('git', ['--git-dir', tizenrt_root + '/.git/',
                              '--work-tree', tizenrt_root,
-                             'checkout', TIZENRT_COMMIT])
+                             'checkout', '-b', 'iotjs_build', TIZENRT_COMMIT])
+    ex.check_run_cmd('git', ['--git-dir', tizenrt_root + '/.git/',
+                             '--work-tree', tizenrt_root,
+                             'revert', '--no-edit', '035144d9'])
     copy_tiznert_stuff(tizenrt_root, path.PROJECT_ROOT)
 
 def configure_trizenrt(tizenrt_root, buildtype):

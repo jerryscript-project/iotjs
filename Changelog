@@ -1,0 +1,9 @@
+2017-09-13
+Initial version of IoT.js fork aimed for working product.
+[libtuv] submodule reference changed to https://github.com/pmarcinkiew/libtuv
+[jerryscript] submodule reference changed to https://github.com/pmarcinkiew/jerryscript
+
+TODO: Project mission
+TODO: HOWTO
+TODO: Project links: issue/task list, roadmap (milestones) and such
+

@@ -286,7 +286,10 @@ def print_progress(msg):
 
 def init_submodule():
     ex.check_run_cmd('git', ['submodule', 'init'])
-    ex.check_run_cmd('git', ['submodule', 'update'])
+    job_commands = []
+    for module in ['http-parser', 'libtuv', 'jerry']:
+        job_commands.append(('git', ['submodule', 'update', 'deps/' + module]))
+    ex.check_run_parallel(job_commands, True)
 
 
 def build_cmake_args(options, for_jerry=False):

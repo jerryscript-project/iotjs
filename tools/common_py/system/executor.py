@@ -42,6 +42,29 @@ class Executor(object):
         exit(1)
 
     @staticmethod
+    def start_cmd(cmd, args=[], quiet=False):
+        if not quiet:
+            Executor.print_cmd_line(cmd, args)
+        try:
+            return subprocess.Popen([cmd] + args)
+        except OSError as e:
+            Executor.fail("[Failed - %s] %s" % (cmd, e.strerror))
+
+    @staticmethod
+    def check_run_parallel(job_commands = [], quiet=False):
+        jobs = []
+        try:
+            for cmd, args in job_commands:
+                jobs.append(Executor.start_cmd(cmd, args, quiet))
+            for job in jobs:
+                retcode = job.wait()
+                if retcode != 0:
+                    Executor.fail("[Failed - %d] %s" %
+                                  (retcode, Executor.cmd_line(cmd, args)))
+        except OSError as e:
+            Executor.fail("[Parallel run failed] %s" % (e.strerror))
+
+    @staticmethod
     def run_cmd(cmd, args=[], quiet=False):
         if not quiet:
             Executor.print_cmd_line(cmd, args)

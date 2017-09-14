@@ -32,7 +32,8 @@ BUILDTYPES=['debug', 'release']
 NUTTXTAG = 'nuttx-7.19'
 
 TIZENRT_REPO='https://github.com/tadziopazur/TizenRT.git'
-TIZENRT_REVISION='iotjs_baseline'
+TIZENRT_REVISION='origin/iotjs_baseline'
+TIZNERT_BUILD_BRANCH='iotjs_build'
 
 def get_config():
     config_path = path.BUILD_MODULE_CONFIG_PATH
@@ -125,10 +126,10 @@ def copy_tiznert_stuff(tizenrt_root, iotjs_dir):
         fs.join(iotjs_dir, 'config/tizenrt/artik05x/configs')
 
     ex.check_run_cmd('cp',
-                    ['-rfu', iotjs_tizenrt_appdir, tizenrt_iotjsapp_dir])
+                    ['-rfuT', iotjs_tizenrt_appdir, tizenrt_iotjsapp_dir])
 
     ex.check_run_cmd('cp',
-                    ['-rfu', iotjs_config_dir, tizenrt_config_dir])
+                    ['-rfuT', iotjs_config_dir, tizenrt_config_dir])
 
 def setup_tizenrt_repo(tizenrt_root):
     if fs.exists(tizenrt_root):
@@ -149,7 +150,8 @@ def setup_tizenrt_repo(tizenrt_root):
     # This has to however
     ex.check_run_cmd('git', ['--git-dir', tizenrt_root + '/.git/',
                              '--work-tree', tizenrt_root,
-                             'checkout', TIZENRT_REVISION])
+                             'checkout', '-b', TIZNERT_BUILD_BRANCH,
+                             TIZENRT_REVISION])
     copy_tiznert_stuff(tizenrt_root, path.PROJECT_ROOT)
 
 def configure_trizenrt(tizenrt_root, buildtype):

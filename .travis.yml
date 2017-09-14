@@ -36,16 +36,6 @@ matrix:
     - os: linux
       before_install:
         - tools/apt-get-install-deps.sh
-        - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
-      addons:
-        coverity_scan:
-          project:
-            name: "Samsung/iotjs"
-            description: "Platform for Internet of Things with JavaScript"
-          notification_email: duddlf.choi@samsung.com
-          build_command: "tools/precommit.py --test=coverity"
-          branch_pattern: master
-      env: OPTS="--test=coverity"
     - compiler: gcc-4.9
       addons:
         apt:

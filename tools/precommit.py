@@ -28,6 +28,7 @@ from check_tidy import check_tidy
 
 TESTS=['host-linux', 'host-darwin', 'rpi2', 'nuttx', 'misc', 'no-snapshot',
        'artik10', 'artik053', 'coverity']
+ROMFS_MODULES=['tests']
 BUILDTYPES=['debug', 'release']
 NUTTXTAG = 'nuttx-7.19'
 
@@ -50,12 +51,15 @@ def parse_option():
     parser.add_argument('--buildtype', choices=BUILDTYPES, action='append')
     parser.add_argument('--buildoptions', action='store', default='',
                         help='A comma separated list of extra buildoptions')
+    parser.add_argument('--romfs', choices=ROMFS_MODULES, action='append')
 
     option = parser.parse_args(sys.argv[1:])
     if option.test is None:
         option.test = TESTS
     if option.buildtype is None:
         option.buildtype = BUILDTYPES
+    if option.romfs is None:
+        option.romfs = []
     return option
 
 
@@ -168,6 +172,10 @@ def build_tizenrt(tizenrt_root, iotjs_rootdir, buildtype):
     ex.check_run_cmd('make', ['IOTJS_ROOT_DIR=' + iotjs_rootdir,
                               'IOTJS_LIB_DIR=' + iotjs_libdir])
 
+def build_romfs(romfs_image):
+    ex.check_run_cmd('genromfs', ['-f', romfs_image, '-d',
+        fs.join(path.PROJECT_ROOT, 'test'), '-V', 'NuttXBootVol'])
+
 def build(buildtype, args=[]):
     fs.chdir(path.PROJECT_ROOT)
     ex.check_run_cmd('./tools/build.py', ['--buildtype=' + buildtype] + args)
@@ -214,8 +222,8 @@ if __name__ == '__main__':
                                 ] + os_dependency_module['linux'] + build_args)
 
         elif test == "artik053":
+            tizenrt_root = fs.join(path.PROJECT_ROOT, 'deps', 'tizenrt')
             for buildtype in option.buildtype:
-                tizenrt_root = fs.join(path.PROJECT_ROOT, 'deps', 'tizenrt')
                 setup_tizenrt_repo(tizenrt_root)
                 configure_trizenrt(tizenrt_root, buildtype)
                 build(buildtype, ['--target-arch=arm',
@@ -227,6 +235,11 @@ if __name__ == '__main__':
                                 ] + os_dependency_module['tizenrt']
                                 + build_args)
                 build_tizenrt(tizenrt_root, path.PROJECT_ROOT, buildtype)
+            # For now only romfs=tests works
+            if 'tests' in option.romfs:
+                romfs_image_file = fs.join(tizenrt_root, "build", "output",
+                                           "bin", "romfs.img")
+                romfs_image_file = build_romfs(romfs_image_file)
 
         elif test == "nuttx":
             current_dir = os.getcwd()

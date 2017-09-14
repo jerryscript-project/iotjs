@@ -23,55 +23,23 @@ export PATH=<Your Toolchain PATH>:$PATH
 Clone IoT.js and TizenRT into iotjs-tizenrt directory
 
 ```bash
-mkdir iotjs-tizenrt
-cd iotjs-tizenrt
-git clone https://github.com/Samsung/iotjs.git
-git clone https://github.com/Samsung/TizenRT.git
+git clone https://github.com/pmarcinkiew/iotjs.git
+export IOTJS_ROOT_DIR="$PWD/iotjs"
 ```
 The following directory structure is created after these commands
 
 ```bash
-iotjs-tizenrt
-  + iotjs
-  |  + config
-  |      + tizenrt
-  |          + artik05x
-  + TizenRT
+iotjs
+  + config
+  |   + tizenrt
+  |       + artik05x
 ```
 
-#### 2. Add IoT.js as a builtin application for TizenRT
+#### 2. Build IoT.js for TizenRT (and ROMFS image)
 
 ```bash
-cp iotjs/config/tizenrt/artik05x/app/ TizenRT/apps/system/iotjs -r
-cp iotjs/config/tizenrt/artik05x/configs/ TizenRT/build/configs/artik053/iotjs -r
-cp iotjs/config/tizenrt/artik05x/romfs.patch TizenRT/
-```
-
-#### 3. Configure TizenRT
-
-```bash
-cd TizenRT/os/tools
-./configure.sh artik053/iotjs
-```
-
-#### 4. Configure ROMFS of TizenRT
-
-```bash
-cd ../../
-patch -p0 < romfs.patch
-cd build/output/
-mkdir res
-# You can add files in res folder
-# The res folder is later flashing into the target's /rom folder
-```
-
-#### 5. Build IoT.js for TizenRT
-
-```bash
-cd ../../os
-make context
-cd ../../iotjs
-./tools/build.py --target-arch=arm --target-os=tizenrt --sysroot=../TizenRT/os --target-board=artik05x --clean
+cd ${IOTJS_ROOT_DIR}
+tools/precommit.py --test=artik053 --buildtype=debug --romfs=tests
 ```
 
 > :grey_exclamation: Trouble Shooting: Building IoT.js fails: You may encounter `arm-none-eabi-gcc: Command not found` error message while building IoT.js on a 64-bit system. This may be because the above toolchain you set uses 32-bit libs. For this matter, install the below toolchain as alternative.
@@ -80,19 +48,20 @@ cd ../../iotjs
 > ```
 
 
-#### 6. Build TizenRT
+#### 2A. Build ROMFS separately
 
 ```bash
-cd ../TizenRT/os
-make
-genromfs -f ../build/output/bin/rom.img -d ../build/output/res/ -V "NuttXBootVol"
+genromfs -f ${IOTJS_ROOT_DIR}/deps/tizenrt/output/bin/rom.img -d <romfs contentdir> -V "NuttXBootVol"
 ```
-Binaries are available in `TizenRT/build/output/bin`
 
-#### 7. Flashing
+Binaries (firmare image parts, romfs image file) are available in `TizenRT/build/output/bin`
+
+#### 3. Flashing
 
 ```bash
+pushd ${IOTJS_ROOT_DIR}/deps/tizenrt/os
 make download ALL
+popd
 ```
 > :grey_exclamation: Trouble Shooting: Flashing the binary via USB fails: Refer to [add-usb-device-rules](https://github.com/Samsung/TizenRT/blob/master/build/configs/artik053/README.md#add-usb-device-rules). Your `VendorID:ProductID` pair can be found in `lsusb` output as the below instance.
 >

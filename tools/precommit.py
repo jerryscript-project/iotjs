@@ -31,9 +31,8 @@ TESTS=['host-linux', 'host-darwin', 'rpi2', 'nuttx', 'misc', 'no-snapshot',
 BUILDTYPES=['debug', 'release']
 NUTTXTAG = 'nuttx-7.19'
 
-# This is latest tested TizenRT commit working for IoT.js
-# Title: Merge pull request #496 from sunghan-chang/iotivity
-TIZENRT_COMMIT='0f47277170972bb33b51996a374c483e4ff2c26a'
+TIZENRT_REPO='https://github.com/tadziopazur/TizenRT.git'
+TIZENRT_REVISION='iotjs_baseline'
 
 def get_config():
     config_path = path.BUILD_MODULE_CONFIG_PATH
@@ -137,12 +136,20 @@ def setup_tizenrt_repo(tizenrt_root):
         ex.check_run_cmd('git', ['fetch', 'origin'])
         fs.chdir(path.PROJECT_ROOT)
     else:
-        ex.check_run_cmd('git', ['clone',
-            'https://github.com/Samsung/TizenRT.git',
-            tizenrt_root])
+        ex.check_run_cmd('git', ['clone', TIZENRT_REPO, tizenrt_root])
+
+    # The following two do not have to succeed
+    # Checkout master, so we're not sitting on
+    ex.run_cmd('git', ['--git-dir', tizenrt_root + '/.git/',
+                       '--work-tree', tizenrt_root,
+                       'checkout', 'master'])
+    ex.run_cmd('git', ['--git-dir', tizenrt_root + '/.git/',
+                       '--work-tree', tizenrt_root,
+                       'branch', '-D', TIZNERT_BUILD_BRANCH])
+    # This has to however
     ex.check_run_cmd('git', ['--git-dir', tizenrt_root + '/.git/',
                              '--work-tree', tizenrt_root,
-                             'checkout', TIZENRT_COMMIT])
+                             'checkout', TIZENRT_REVISION])
     copy_tiznert_stuff(tizenrt_root, path.PROJECT_ROOT)
 
 def configure_trizenrt(tizenrt_root, buildtype):

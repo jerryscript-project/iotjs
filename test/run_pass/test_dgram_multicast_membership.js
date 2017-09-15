@@ -15,49 +15,74 @@
 
 var assert = require('assert');
 var dgram = require('dgram');
+var MODE = process.argv[2] || 'echo';
+var SERVER = 'server';
+var CLIENT = 'client';
+var ECHO = 'echo';
+
+if (MODE !== 'server' && MODE !== 'client' && MODE !== 'echo') {
+  console.log(
+    'usage: iotjs test_dgram_multicast_membership.js server|client|echo');
+  assert(false);
+}
 
 var port = 41239;
 var multicast_address = '230.255.255.250';
-var interval = 100;
-
-var recv_count = 0, send_count = 0;
-
+var interval = 1000;
 var msg = 'Hello IoT.js';
-var client = dgram.createSocket('udp4');
-var server = dgram.createSocket('udp4');
 
-server.on('error', function(err) {
-  assert.fail();
-  server.close();
-});
+if (MODE !== CLIENT) { // for server and echo
+  var recv_count = 0;
+  var server = dgram.createSocket('udp4');
 
-server.on('message', function(data, rinfo) {
-  console.log('server got data : ' + data);
-  recv_count++;
-  if (recv_count == 1) {
-    server.dropMembership(multicast_address);
-  }
-});
+  server.on('message', function(data, rinfo) {
+    console.log('server got data : ' + data);
+    recv_count++;
+    if (recv_count == 1) {
+      server.dropMembership(multicast_address);
+    }
+  });
 
-server.bind(port, function() {
-  server.addMembership(multicast_address);
-});
+  server.bind(port, function() {
+    server.addMembership(multicast_address);
+  });
 
-var timer = setInterval(function () {
-  send_count++;
-  client.send(msg, port, multicast_address);
-  if (send_count == 3) {
-    clearInterval(timer);
-  }
-}, interval);
+  server.on('error', function(err) {
+    assert.fail();
+    server.close();
+  });
 
-setTimeout(function() {
-  server.close();
-  client.close();
-}, 1000);
+  setTimeout(function() {
+    server.close();
+  }, 5000);
+}
+
+if (MODE !== SERVER) { // for client and echo
+  var send_count = 0;
+  var client = dgram.createSocket('udp4');
+
+  var timer = setInterval(function () {
+    send_count++;
+
+    console.log('client send data : ' + msg);
+    client.send(msg, port, multicast_address);
+    if (send_count == 3) {
+      clearInterval(timer);
+    }
+  }, interval);
+
+  setTimeout(function() {
+    client.close();
+  }, 5000);
+}
 
 process.on('exit', function(code) {
   assert.equal(code, 0);
-  assert.equal(recv_count, 1);
-  assert.equal(send_count, 3);
+
+  if (MODE !== CLIENT) {
+    assert.equal(recv_count, 1);
+  }
+  if (MODE !== SERVER) {
+    assert.equal(send_count, 3);
+  }
 });

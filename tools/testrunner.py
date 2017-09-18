@@ -28,6 +28,57 @@ from common_py.system.executor import Executor as ex
 from common_py.system.platform import Platform
 
 
+# Defines the folder that will contain the coverage info.
+# The path must be consistent with the measure_coverage.sh script.
+JS_COVERAGE_FOLDER = fs.join(path.PROJECT_ROOT, '.coverage_output')
+
+# This code should be applied to each testfile.
+JS_COVERAGE_CODE = (
+"""
+process.on('exit', function() {{
+  if (typeof __coverage__ == 'undefined')
+    return;
+
+  if (typeof fs == 'undefined')
+    var fs = require('fs');
+
+  if (!fs.existsSync('{folder}'))
+    fs.mkdirSync('{folder}');
+
+  var filename = '{folder}/{file}';
+  fs.writeFileSync(filename, Buffer(JSON.stringify(__coverage__)));
+}})
+"""
+)
+
+
+# Append coverage source to the appropriate test.
+def append_coverage_code(testfile, coverage):
+    if not coverage:
+        return
+
+    with open(testfile, 'r') as file_p:
+        content = file_p.read()
+
+    with open(testfile, 'w') as file_p:
+        file_p.write(JS_COVERAGE_CODE.format(
+            folder=JS_COVERAGE_FOLDER, file=fs.basename(testfile)))
+        file_p.write(content)
+
+
+# Remove coverage source from the appropriate test.
+def remove_coverage_code(testfile, coverage):
+    if not coverage:
+        return
+
+    with open(testfile, 'r') as file_p:
+        content = file_p.read()
+        index = content.find('/* Copyright')
+
+    with open(testfile, 'w') as file_p:
+        file_p.write(content[index:])
+
+
 class Reporter(object):
     @staticmethod
     def message(msg="", color=ex._TERM_EMPTY):
@@ -89,10 +140,11 @@ def alarm_handler(signum, frame):
 
 class TestRunner(object):
     def __init__(self, options):
-        self.iotjs = options.iotjs
+        self.iotjs = fs.abspath(options.iotjs)
         self.quiet = options.quiet
         self.timeout = options.timeout
         self.valgrind = options.valgrind
+        self.coverage = options.coverage
         self.skip_modules = []
         self.results = {}
 
@@ -131,19 +183,30 @@ class TestRunner(object):
         Reporter.report_testset(testset)
 
         for test in tests:
+            testfile = fs.join(path.TEST_ROOT, testset, test["name"])
+            timeout = test.get("timeout", self.timeout)
+
             if self.skip_test(test):
                 Reporter.report_skip(test["name"], test.get("reason"))
                 self.results["skip"] += 1
                 continue
 
-            exitcode, output, runtime = self.run_test(testset, test)
+            append_coverage_code(testfile, self.coverage)
+
+            exitcode, output, runtime = self.run_test(testfile, timeout)
             expected_failure = test.get("expected-failure", False)
+
+            remove_coverage_code(testfile, self.coverage)
 
             # Timeout happened.
             if exitcode == -1:
                 Reporter.report_timeout(test["name"])
                 self.results["timeout"] += 1
                 continue
+
+            # Show the output.
+            if not self.quiet:
+                print(output, end="")
 
             if (bool(exitcode) == expected_failure):
                 Reporter.report_pass(test["name"], runtime)
@@ -152,13 +215,9 @@ class TestRunner(object):
                 Reporter.report_fail(test["name"], runtime)
                 self.results["fail"] += 1
 
-            # Show the output.
-            if not self.quiet:
-                print(output, end="")
 
-    def run_test(self, testset, test):
-        timeout = test.get("timeout", self.timeout)
-        command = [self.iotjs, fs.join(testset, test["name"])]
+    def run_test(self, testfile, timeout):
+        command = [self.iotjs, testfile]
 
         if self.valgrind:
             valgrind_options = [
@@ -235,6 +294,8 @@ def get_args():
                         help="default timeout for the tests in seconds")
     parser.add_argument("--valgrind", action="store_true", default=False,
                         help="check tests with Valgrind")
+    parser.add_argument("--coverage", action="store_true", default=False,
+                        help="measure JavaScript coverage")
 
     return parser.parse_args()
 

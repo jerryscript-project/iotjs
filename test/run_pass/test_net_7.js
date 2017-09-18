@@ -21,7 +21,19 @@ var timers = require('timers');
 var port = 22707;
 
 var count = 40;
+var connectionCount = 0;
+
+if (process.platform === 'linux' || process.platform === 'darwin') {
+  var maxConnection = 40;
+} else if (process.platform === 'nuttx' || process.platform === 'tizenrt') {
+  var maxConnection = 5;
+} else {
+  assert.fail();
+}
+
 var check = [];
+var queue = [];
+var isClose = false;
 
 function serverListen() {
   var server = net.createServer({
@@ -43,6 +55,7 @@ function serverListen() {
 
       if (cnt == count) {
         server.close();
+        isClose = true;
       }
     });
   });
@@ -50,20 +63,42 @@ function serverListen() {
 
 serverListen();
 
-for (var i = 0; i < count; ++i) {
-  (function(i) {
-    var socket = new net.Socket();
-    var msg = "";
+function connectServer(i) {
+  connectionCount++;
 
-    socket.connect(port, "localhost");
-    socket.on('connect', function() {
-      socket.end(i.toString());
+  var socket = new net.Socket();
+  var msg = "";
+
+  socket.connect(port, "localhost");
+  socket.on('connect', function() {
+    socket.end(i.toString(), function() {
+      connectionCount--;
     });
-    socket.on('data', function(data) {
-      check[data] = true;
-    });
-  })(i);
+  });
+  socket.on('data', function(data) {
+    check[data] = true;
+  });
 }
+
+for (var i = 0; i < count; ++i) {
+  queue.push(i);
+}
+
+var interval = setInterval(function() {
+  if (isClose) {
+    clearInterval(interval);
+  }
+
+  var queueLength = queue.length;
+  if (connectionCount !== 0 && queueLength === 0) {
+    return;
+  }
+
+  var end = maxConnection < queueLength ? maxConnection : queueLength;
+  queue.splice(0, end).forEach(function(val) {
+    connectServer(val);
+  });
+}, 500);
 
 process.on('exit', function(code) {
   assert.equal(code, 0);

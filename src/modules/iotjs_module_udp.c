@@ -372,7 +372,7 @@ JHANDLER_FUNCTION(SetTTL) {
 
 
 JHANDLER_FUNCTION(SetMulticastTTL) {
-#if !defined(__NUTTX__) && !defined(__TIZENRT__)
+#if !defined(__NUTTX__)
   IOTJS_UV_SET_SOCKOPT(uv_udp_set_multicast_ttl);
 #else
   IOTJS_ASSERT(!"Not implemented");
@@ -383,7 +383,7 @@ JHANDLER_FUNCTION(SetMulticastTTL) {
 
 
 JHANDLER_FUNCTION(SetMulticastLoopback) {
-#if !defined(__NUTTX__) && !defined(__TIZENRT__)
+#if !defined(__NUTTX__)
   IOTJS_UV_SET_SOCKOPT(uv_udp_set_multicast_loop);
 #else
   IOTJS_ASSERT(!"Not implemented");
@@ -396,7 +396,7 @@ JHANDLER_FUNCTION(SetMulticastLoopback) {
 
 
 void SetMembership(iotjs_jhandler_t* jhandler, uv_membership membership) {
-#if !defined(__NUTTX__) && !defined(__TIZENRT__)
+#if !defined(__NUTTX__)
   JHANDLER_DECLARE_THIS_PTR(udpwrap, udp_wrap);
   DJHANDLER_CHECK_ARGS(1, string);
 

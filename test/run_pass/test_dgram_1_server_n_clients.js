@@ -41,30 +41,32 @@ server.on('message', function(data, rinfo) {
 
 server.bind(port);
 
+function sendAndRecieve(i) {
+  var client = dgram.createSocket('udp4');
+
+  client.send(i.toString(), port, 'localhost');
+
+  client.on('error', function(err) {
+    assert.fail();
+    client.close();
+  });
+
+  client.on('message', function(data, rinfo) {
+    console.log('client got data : ' + data);
+    assert.equal(port, rinfo.port);
+    assert.equal(data, i.toString());
+    client.close();
+  });
+}
+
 for (var i = 0; i < sockcount; i++) {
-  (function sendAndRecieve(i) {
-    var client = dgram.createSocket('udp4');
-
-    client.send(i.toString(), port, 'localhost');
-
-    client.on('error', function(err) {
-      assert.fail();
-      client.close();
-    });
-
-    client.on('message', function(data, rinfo) {
-      console.log('client got data : ' + data);
-      assert.equal(port, rinfo.port);
-      assert.equal(data, i.toString());
-      client.close();
-    });
-  })(i);
+  setTimeout(sendAndRecieve, 200 * i, i);
 }
 
 process.on('exit', function(code) {
   assert.equal(msg.length, sockcount);
   for (var i = 0; i < sockcount; i++) {
-      if (msg.indexOf(i.toString()) == -1) {
+      if (msg.indexOf(i.toString()) === -1) {
         assert.fail();
       }
   }

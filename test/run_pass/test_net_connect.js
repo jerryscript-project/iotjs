@@ -20,10 +20,7 @@ var port = 5696;
 var msg = 'Hello IoT.js';
 
 var server = net.createServer({
-    allowHalfOpen: true,
-  },
-  function(socket) {
-    server.close();
+    allowHalfOpen: true
   }
 ).listen(port);
 
@@ -45,6 +42,7 @@ var socket = net.connect(port, host, function() {
 
   socket.on('end', function() {
     assert.equal(data, msg);
+    server.close();
   });
 
   socket.end(msg);

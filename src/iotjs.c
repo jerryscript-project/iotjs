@@ -121,15 +121,15 @@ static int iotjs_start(iotjs_environment_t* env) {
   iotjs_binding_initialize();
 
   // Bind environment to global object.
-  const iotjs_jval_t* global = iotjs_jval_get_global_object();
-  iotjs_jval_set_object_native_handle(global, (uintptr_t)(env), NULL);
+  const iotjs_jval_t global = *iotjs_jval_get_global_object();
+  iotjs_jval_set_object_native_handle(&global, (uintptr_t)(env), NULL);
 
   // Initialize builtin modules.
   iotjs_module_list_init();
 
   // Initialize builtin process module.
-  const iotjs_jval_t* process = iotjs_init_process_module();
-  iotjs_jval_set_property_jval(global, "process", process);
+  const iotjs_jval_t process = *iotjs_init_process_module();
+  iotjs_jval_set_property_jval(&global, "process", &process);
 
   // Set running state.
   iotjs_environment_go_state_running_main(env);

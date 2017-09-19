@@ -49,9 +49,7 @@ typedef enum {
   F(function)
 
 
-typedef struct {
-  jerry_value_t value; // JavaScript value representation
-} IOTJS_VALIDATED_STRUCT(iotjs_jval_t);
+typedef jerry_value_t iotjs_jval_t;
 
 typedef struct {
   iotjs_jval_t jfunc;

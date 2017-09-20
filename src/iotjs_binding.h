@@ -53,6 +53,9 @@ typedef struct {
   jerry_value_t value; // JavaScript value representation
 } IOTJS_VALIDATED_STRUCT(iotjs_jval_t);
 
+#define iotjs_jval_auto_t \
+  iotjs_jval_t __attribute__((__cleanup__(iotjs_jval_destroy)))
+
 typedef struct {
   iotjs_jval_t jfunc;
   iotjs_jval_t jthis;

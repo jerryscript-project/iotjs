@@ -158,7 +158,18 @@ HOSTINCLUDES = -I.
 HOSTCFLAGS = -Wall -Wstrict-prototypes -Wshadow -Wundef -g -pipe
 HOSTLDFLAGS =
 
+ifeq ($(CONFIG_ROMFS_SOURCE_DIR),)
+define MAKEROMFS
+	@$(TOPDIR)/../tools/fs/mkromfsimg.sh $(CONFIG_ROMFS_SOURCE_DIR)
+endef
+else
+define MAKEROMFS
+	@echo "CONFIG_ROMFS_SOURCE_DIR undefined, attempting default location"
+	@$(TOPDIR)/../tools/fs/mkromfsimg.sh
+endef
+endif
+
 define DOWNLOAD
-       @$(TOPDIR)/../build/configs/artik053/artik053_download.sh $(1)
+	@$(TOPDIR)/../build/configs/artik053/artik053_download.sh $(1)
 endef
 

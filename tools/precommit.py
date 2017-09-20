@@ -50,6 +50,10 @@ def parse_option():
     parser.add_argument('--buildtype', choices=BUILDTYPES, action='append')
     parser.add_argument('--buildoptions', action='store', default='',
                         help='A comma separated list of extra buildoptions')
+    parser.add_argument("--enable-testsuite", action='store_true',
+                        default=False, help="Append testsuite onto the device")
+    parser.add_argument("--flash", action='store_true', default=False,
+                        help="Flash binary onto the device")
 
     option = parser.parse_args(sys.argv[1:])
     if option.test is None:
@@ -95,6 +99,37 @@ def setup_nuttx_root(nuttx_root):
                     'stm32f4dis',
                     '.config.travis'),
             '.config')
+
+
+def setup_stlink():
+    '''
+    Setup the stlink dependency.
+    '''
+    fs.chdir(path.DEPS_ROOT)
+
+    if not fs.exists('stlink'):
+        ex.check_run_cmd('git', ['clone',
+                                 'https://github.com/texane/stlink.git'])
+
+    if not fs.exists(fs.join(path.DEPS_ROOT, 'stlink/build/Release/st-flash')):
+        fs.chdir(fs.join(path.DEPS_ROOT, 'stlink'))
+        ex.check_run_cmd('make', ['release'])
+
+    fs.chdir(path.PROJECT_ROOT)
+
+
+def flash_nuttx(nuttx_root):
+    '''
+    Flash the NuttX binary onto the board.
+    '''
+    setup_stlink()
+    nuttx_bin = fs.join(nuttx_root, 'nuttx/nuttx.bin')
+
+    if fs.exists(nuttx_bin):
+        fs.chdir(fs.join(path.DEPS_ROOT, 'stlink/build/Release'))
+        options = ['write', nuttx_bin, '0x8000000']
+        ex.check_run_cmd('./st-flash', options)
+        fs.chdir(path.PROJECT_ROOT)
 
 
 def build_nuttx(nuttx_root, buildtype, maketarget):
@@ -164,6 +199,50 @@ def build(buildtype, args=[]):
     ex.check_run_cmd('./tools/build.py', ['--buildtype=' + buildtype] + args)
 
 
+def apply_nuttx_patches(nuttx_root, use_patches=True):
+    '''
+    Apply memstat patches to measure the memory consumption of IoT.js.
+    '''
+    fs.chdir(path.PROJECT_ROOT)
+
+    options = ['apply']
+    if not use_patches:
+        options.append('-R')
+    else:
+        ex.check_run_cmd('git', ['submodule', 'init'])
+        ex.check_run_cmd('git', ['submodule', 'update'])
+
+    patch_dir = fs.join(path.PROJECT_ROOT, 'config', 'nuttx', 'stm32f4dis')
+    ex.check_run_cmd('git', options + [fs.join(patch_dir,
+                                               'iotjs-memstat.diff')])
+    fs.chdir(path.TUV_ROOT)
+    ex.check_run_cmd('git', options + [fs.join(patch_dir,
+                                               'libtuv-memstat.diff')])
+    fs.chdir(path.JERRY_ROOT)
+    ex.check_run_cmd('git', options + [fs.join(patch_dir,
+                                               'jerry-memstat.diff')])
+    fs.chdir(fs.join(nuttx_root, 'nuttx'))
+    ex.check_run_cmd('git', options + [fs.join(patch_dir,
+                                               'nuttx-7.19.diff')])
+    fs.chdir(path.PROJECT_ROOT)
+
+
+def generate_nuttx_romfs(nuttx_root):
+    '''
+    Create a ROMFS image from the contents of the IoT.js test's root directory.
+    '''
+    genromfs_flags = ['-f', 'romfs_img', '-d', path.TEST_ROOT]
+    xxd_flags = ['-i', 'romfs_img', 'nsh_romfsimg.h']
+    sed_flags = ['-ie', 's/unsigned/const\ unsigned/g', 'nsh_romfsimg.h']
+
+    fs.chdir(fs.join(nuttx_root, 'apps/nshlib'))
+    ex.check_run_cmd('genromfs', genromfs_flags)
+    ex.check_run_cmd('xxd', xxd_flags)
+    ex.check_run_cmd('sed', sed_flags)
+
+    fs.chdir(path.PROJECT_ROOT)
+
+
 if __name__ == '__main__':
     option = parse_option()
     config = get_config()
@@ -222,8 +301,15 @@ if __name__ == '__main__':
         elif test == "nuttx":
             current_dir = os.getcwd()
             for buildtype in option.buildtype:
-                nuttx_root=fs.join(path.PROJECT_ROOT, 'deps', 'nuttx')
+                nuttx_root=fs.join(path.DEPS_ROOT, 'nuttx')
                 setup_nuttx_root(nuttx_root)
+
+                if '--jerry-memstat' in build_args:
+                    apply_nuttx_patches(nuttx_root)
+
+                if option.enable_testsuite:
+                    generate_nuttx_romfs(nuttx_root)
+
                 build_nuttx(nuttx_root, buildtype, 'context')
                 build(buildtype, ['--target-arch=arm',
                                 '--target-os=nuttx',
@@ -232,6 +318,14 @@ if __name__ == '__main__':
                                 '--jerry-heaplimit=78']
                                 + os_dependency_module['nuttx'] + build_args)
                 build_nuttx(nuttx_root, buildtype, 'all')
+
+                # Revert memstat patches after the build.
+                if '--jerry-memstat' in build_args:
+                     apply_nuttx_patches(nuttx_root, False)
+
+                if option.flash:
+                    flash_nuttx(nuttx_root)
+
                 fs.chdir(current_dir)
 
         elif test == "misc":

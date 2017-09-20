@@ -1,0 +1,55 @@
+diff --git a/jerry-core/api/jerry.c b/jerry-core/api/jerry.c
+index 1032881..88db6a3 100644
+--- a/jerry-core/api/jerry.c
++++ b/jerry-core/api/jerry.c
+@@ -149,7 +149,7 @@ jerry_init (jerry_init_flag_t flags) /**< combination of Jerry flags */
+   }
+
+   /* Zero out all members. */
+-  memset (&JERRY_CONTEXT (JERRY_CONTEXT_FIRST_MEMBER), 0, sizeof (jerry_context_t));
++  // memset (&JERRY_CONTEXT (JERRY_CONTEXT_FIRST_MEMBER), 0, sizeof (jerry_context_t));
+
+   JERRY_CONTEXT (jerry_init_flags) = flags;
+
+diff --git a/jerry-core/jmem/jmem-heap.c b/jerry-core/jmem/jmem-heap.c
+index f15ba90..8154880 100644
+--- a/jerry-core/jmem/jmem-heap.c
++++ b/jerry-core/jmem/jmem-heap.c
+@@ -113,8 +113,8 @@ JERRY_STATIC_ASSERT (sizeof (jmem_heap_t) <= JMEM_HEAP_SIZE,
+
+ #ifdef JMEM_STATS
+ static void jmem_heap_stat_init (void);
+-static void jmem_heap_stat_alloc (size_t num);
+-static void jmem_heap_stat_free (size_t num);
++void jmem_heap_stat_alloc (size_t num);
++void jmem_heap_stat_free (size_t num);
+
+ #ifndef JERRY_SYSTEM_ALLOCATOR
+ static void jmem_heap_stat_skip (void);
+@@ -580,7 +580,7 @@ jmem_heap_stats_print (void)
+ {
+   jmem_heap_stats_t *heap_stats = &JERRY_CONTEXT (jmem_heap_stats);
+
+-  JERRY_DEBUG_MSG ("Heap stats:\n"
++  printf ("Heap stats:\n"
+                    "  Heap size = %zu bytes\n"
+                    "  Allocated = %zu bytes\n"
+                    "  Peak allocated = %zu bytes\n"
+@@ -632,7 +632,7 @@ jmem_heap_stat_init (void)
+ /**
+  * Account allocation
+  */
+-static void
++void
+ jmem_heap_stat_alloc (size_t size) /**< Size of allocated block */
+ {
+   const size_t aligned_size = (size + JMEM_ALIGNMENT - 1) / JMEM_ALIGNMENT * JMEM_ALIGNMENT;
+@@ -658,7 +658,7 @@ jmem_heap_stat_alloc (size_t size) /**< Size of allocated block */
+ /**
+  * Account freeing
+  */
+-static void
++void
+ jmem_heap_stat_free (size_t size) /**< Size of freed block */
+ {
+   const size_t aligned_size = (size + JMEM_ALIGNMENT - 1) / JMEM_ALIGNMENT * JMEM_ALIGNMENT;

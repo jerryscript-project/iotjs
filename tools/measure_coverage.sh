@@ -37,27 +37,24 @@ print_npm_dep()
   echo ""
 }
 
-check_architecture()
+print_usage()
 {
-  architecture=$(uname -m)
-  case $architecture in
-    i386|i686|x86_32)
-      ;;
-    *)
-      echo "Error: You can measure test coverage only on x86 32-bit."
-      exit 1
-  esac
-}
-
-if [ "$#" -gt "0" ] && ( [ "$1" == "-h" ] || [ "$1" == "--help" ] ); then
     echo "Measure JavaScript and C coverage and create a html report"
     echo "out of the results"
     echo ""
-    echo "Usage: $0 [NODE_MODULES_DIR]"
+    echo "Usage: measure_coverage.sh [ARGUMENTS]"
     echo ""
     echo "Optional Arguments:"
-    echo "  NODE_MODULES_DIR    Specifies the node_module directory, where"
+    echo "  --node-modules-dir  Specifies the node_module directory, where"
     echo "                      the nodejs dependencies are installed."
+    echo ""
+    echo "  --testdriver        Specifies the testrunner that should be used"
+    echo "                      for measuring JavaScript coverage."
+    echo "                      Possible values: jsdriver, pydriver"
+    echo ""
+    echo "  --target-board      Specifies the target board, where the"
+    echo "                      coverage measurement will happen."
+    echo "                      Possible values: rpi2"
     echo ""
     echo "The created html reports can be found in the 'coverage' directory,"
     echo "which will be created in the IoT.js project source dir. The C and"
@@ -71,10 +68,35 @@ if [ "$#" -gt "0" ] && ( [ "$1" == "-h" ] || [ "$1" == "--help" ] ); then
     print_nvm_dep
     print_npm_dep
     exit 0
-fi
+}
 
-# Don't run this script on x86_64 architecture, only on x86_32
-check_architecture
+# Use JS based testrunner by default.
+test_driver="jsdriver"
+
+# Parse the given arguments.
+while [[ $# -gt 0 ]]
+do
+    key="$1"
+
+    case $key in
+        --node-modules-dir)
+            node_modules_dir="$2"
+            shift
+            ;;
+        --testdriver)
+            test_driver="$2"
+            shift
+            ;;
+        --target-board)
+            target_board="$2"
+            shift
+            ;;
+        *)
+            print_usage
+            ;;
+    esac
+    shift
+done
 
 tools_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 iotjs_root=$(readlink -f "$tools_dir/..")
@@ -91,7 +113,7 @@ fi
 . ~/.profile
 
 # Istanbul and babel require node version > 4.0.
-nvm install 6.11.0
+nvm install 4.0
 
 dpkg -l lcov >> /dev/null 2>&1 && \
 dpkg -l gcc-multilib >> /dev/null 2>&1
@@ -103,10 +125,11 @@ fi
 
 modules_dir=$(readlink -f "$(npm bin)/..")
 
-if [ "$#" -gt "0" ]; then
-    path=$(readlink -f $1)
+if [ -v node_modules_dir ];
+then
+    path=$(readlink -f $node_modules_dir)
     if [ ! -d "$path" ] || [ $(basename "$path") != "node_modules" ]; then
-        echo "'$1' is not a node_modules directory"
+        echo "'$node_modules_dir' is not a node_modules directory"
         exit 1
     fi
 
@@ -142,11 +165,35 @@ mv src/cover_js src/js
 # Build iot.js
 # We need to use the system allocator to have enough memory, for now this can
 # only be done with a 32-bit build
-tools/build.py --jerry-cmake-param="-DFEATURE_SYSTEM_ALLOCATOR=ON" \
+if ! [ -v target_board ];
+then
+    tools/build.py --jerry-cmake-param="-DFEATURE_SYSTEM_ALLOCATOR=ON" \
     --target-arch=x86 --compile-flag="-coverage" --no-snapshot --no-check-test
 
-# Run tests
-build/i686-linux/debug/bin/iotjs tools/check_test.js -- output-coverage=yes
+    build_path=${PWD}/build/i686-linux/debug
+elif [ $target_board = "rpi2" ];
+then
+    tools/build.py --jerry-cmake-param="-DFEATURE_SYSTEM_ALLOCATOR=ON" \
+    --target-arch=arm --target-board=rpi2 --compile-flag="-coverage" \
+    --no-snapshot --no-check-test
+
+    build_path=${PWD}/build/arm-linux/debug
+else
+    echo "Not supported target-board: $target_board"
+    exit 1
+fi
+
+# Run the appropriate testrunner.
+if [ $test_driver = "jsdriver" ];
+then
+    ${build_path}/bin/iotjs tools/check_test.js -- output-coverage=yes
+elif [ $test_driver = "pydriver" ];
+then
+    python tools/testrunner.py ${build_path}/bin/iotjs --quiet --coverage
+else
+  echo "Not supported testdriver: $test_driver"
+  exit 1
+fi
 
 # Revert to original module files
 rm -rf src/js
@@ -162,7 +209,7 @@ rm -rf coverage/js
 mv coverage/lcov-report coverage/js
 
 # Generate c coverage report
-lcov -t "c_coverage" -o ".c-coverage.info" -c -d build/i686-linux/debug/
+lcov -t "c_coverage" -o ".c-coverage.info" -c -d $build_path
 lcov --remove ".c-coverage.info" 'iotjs/deps/*' -o ".c-coverage.info"
 genhtml -o coverage/c .c-coverage.info
 rm .c-coverage.info

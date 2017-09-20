@@ -40,7 +40,7 @@ function checkOffset(offset, ext, length) {
 // [5] new Buffer(array)
 function Buffer(subject, encoding) {
   if (!util.isBuffer(this)) {
-    return new Buffer(subject);
+    return new Buffer(subject, encoding);
   }
 
   if (util.isNumber(subject)) {

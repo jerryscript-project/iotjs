@@ -70,8 +70,8 @@ print_usage()
     exit 0
 }
 
-# Use JS based testrunner by default.
-test_driver="jsdriver"
+# Use Python based testrunner by default.
+test_driver="pydriver"
 
 # Parse the given arguments.
 while [[ $# -gt 0 ]]
@@ -113,7 +113,12 @@ fi
 . ~/.profile
 
 # Istanbul and babel require node version > 4.0.
-nvm install 4.0
+nvm ls 4.0.0 >> /dev/null 2>&1
+if [ "$?" -ne "0" ]; then
+    nvm install 4.0
+else
+    nvm use 4.0
+fi
 
 dpkg -l lcov >> /dev/null 2>&1 && \
 dpkg -l gcc-multilib >> /dev/null 2>&1

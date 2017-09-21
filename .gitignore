@@ -26,6 +26,12 @@ vgcore.*
 cscope.*
 *.pyc
 
+# Dependency directories
+node_modules/
+
+# Coverage directory used by tools like istanbul
+coverage
+
 # ctags and ID database
 tags
 ID

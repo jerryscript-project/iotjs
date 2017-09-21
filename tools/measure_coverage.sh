@@ -186,7 +186,7 @@ fi
 # Run the appropriate testrunner.
 if [ $test_driver = "jsdriver" ];
 then
-    ${build_path}/bin/iotjs tools/check_test.js -- output-coverage=yes
+    ${build_path}/bin/iotjs tools/check_test.js output-coverage=yes
 elif [ $test_driver = "pydriver" ];
 then
     python tools/testrunner.py ${build_path}/bin/iotjs --quiet --coverage

@@ -150,8 +150,8 @@ static void iotjs_spi_set_buffer(iotjs_spi_t* spi, const iotjs_jval_t* jtx_buf,
                                  const iotjs_jval_t* jrx_buf) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_spi_t, spi);
 
-  iotjs_bufferwrap_t* tx_buf = iotjs_bufferwrap_from_jbuffer(jtx_buf);
-  iotjs_bufferwrap_t* rx_buf = iotjs_bufferwrap_from_jbuffer(jrx_buf);
+  iotjs_bufferwrap_t* tx_buf = iotjs_bufferwrap_from_jbuffer(*jtx_buf);
+  iotjs_bufferwrap_t* rx_buf = iotjs_bufferwrap_from_jbuffer(*jrx_buf);
 
   _this->tx_buf_data = iotjs_bufferwrap_buffer(tx_buf);
   uint8_t tx_buf_len = iotjs_bufferwrap_length(tx_buf);
@@ -350,13 +350,13 @@ JHANDLER_FUNCTION(TransferArray) {
   DJHANDLER_CHECK_ARGS(2, array, array);
   DJHANDLER_CHECK_ARG_IF_EXIST(2, function);
 
-  const iotjs_jval_t* jcallback = JHANDLER_GET_ARG_IF_EXIST(2, function);
+  const iotjs_jval_t jcallback = JHANDLER_GET_ARG_IF_EXIST(2, function);
 
   iotjs_spi_set_array_buffer(spi, JHANDLER_GET_ARG(0, array),
                              JHANDLER_GET_ARG(1, array));
 
-  if (jcallback) {
-    SPI_ASYNC(transfer, spi, jcallback, kSpiOpTransferArray);
+  if (!jerry_value_is_null(jcallback)) {
+    SPI_ASYNC(transfer, spi, &jcallback, kSpiOpTransferArray);
   } else {
     if (!iotjs_spi_transfer(spi)) {
       JHANDLER_THROW(COMMON, "SPI Transfer Error");
@@ -380,13 +380,13 @@ JHANDLER_FUNCTION(TransferBuffer) {
   DJHANDLER_CHECK_ARGS(2, object, object);
   DJHANDLER_CHECK_ARG_IF_EXIST(2, function);
 
-  const iotjs_jval_t* jcallback = JHANDLER_GET_ARG_IF_EXIST(2, function);
+  const iotjs_jval_t jcallback = JHANDLER_GET_ARG_IF_EXIST(2, function);
 
   iotjs_spi_set_buffer(spi, JHANDLER_GET_ARG(0, object),
                        JHANDLER_GET_ARG(1, object));
 
-  if (jcallback) {
-    SPI_ASYNC(transfer, spi, jcallback, kSpiOpTransferBuffer);
+  if (!jerry_value_is_null(jcallback)) {
+    SPI_ASYNC(transfer, spi, &jcallback, kSpiOpTransferBuffer);
   } else {
     if (!iotjs_spi_transfer(spi)) {
       JHANDLER_THROW(COMMON, "SPI Transfer Error");
@@ -407,10 +407,10 @@ JHANDLER_FUNCTION(Close) {
 
   DJHANDLER_CHECK_ARG_IF_EXIST(0, function);
 
-  const iotjs_jval_t* jcallback = JHANDLER_GET_ARG_IF_EXIST(0, function);
+  const iotjs_jval_t jcallback = JHANDLER_GET_ARG_IF_EXIST(0, function);
 
-  if (jcallback) {
-    SPI_ASYNC(close, spi, jcallback, kSpiOpClose);
+  if (!jerry_value_is_null(jcallback)) {
+    SPI_ASYNC(close, spi, &jcallback, kSpiOpClose);
   } else {
     if (!iotjs_spi_close(spi)) {
       JHANDLER_THROW(COMMON, "SPI Close Error");

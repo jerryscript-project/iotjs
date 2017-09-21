@@ -433,7 +433,7 @@ JHANDLER_FUNCTION(Write) {
   JHANDLER_DECLARE_THIS_PTR(tcpwrap, tcp_wrap);
   DJHANDLER_CHECK_ARGS(2, object, function);
 
-  const iotjs_jval_t* jbuffer = JHANDLER_GET_ARG(0, object);
+  const iotjs_jval_t jbuffer = *JHANDLER_GET_ARG(0, object);
   iotjs_bufferwrap_t* buffer_wrap = iotjs_bufferwrap_from_jbuffer(jbuffer);
   char* buffer = iotjs_bufferwrap_buffer(buffer_wrap);
   size_t len = iotjs_bufferwrap_length(buffer_wrap);
@@ -501,7 +501,7 @@ void OnRead(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
     }
   } else {
     iotjs_jval_t jbuffer = iotjs_bufferwrap_create_buffer((size_t)nread);
-    iotjs_bufferwrap_t* buffer_wrap = iotjs_bufferwrap_from_jbuffer(&jbuffer);
+    iotjs_bufferwrap_t* buffer_wrap = iotjs_bufferwrap_from_jbuffer(jbuffer);
 
     iotjs_bufferwrap_copy(buffer_wrap, buf->base, (size_t)nread);
 

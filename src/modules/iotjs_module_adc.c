@@ -211,17 +211,17 @@ JHANDLER_FUNCTION(AdcConstructor) {
   IOTJS_ASSERT(adc == iotjs_adc_instance_from_jval(jadc));
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_adc_t, adc);
 
-  const iotjs_jval_t* jconfiguration = JHANDLER_GET_ARG_IF_EXIST(0, object);
-  if (jconfiguration == NULL) {
+  const iotjs_jval_t jconfiguration = JHANDLER_GET_ARG_IF_EXIST(0, object);
+  if (jerry_value_is_null(jconfiguration)) {
     JHANDLER_THROW(TYPE, "Bad arguments - configuration should be Object");
     return;
   }
 
 #if defined(__linux__)
-  DJHANDLER_GET_REQUIRED_CONF_VALUE(jconfiguration, _this->device,
+  DJHANDLER_GET_REQUIRED_CONF_VALUE(&jconfiguration, _this->device,
                                     IOTJS_MAGIC_STRING_DEVICE, string);
 #elif defined(__NUTTX__) || defined(__TIZENRT__)
-  DJHANDLER_GET_REQUIRED_CONF_VALUE(jconfiguration, _this->pin,
+  DJHANDLER_GET_REQUIRED_CONF_VALUE(&jconfiguration, _this->pin,
                                     IOTJS_MAGIC_STRING_PIN, number);
 #endif
 
@@ -246,12 +246,12 @@ JHANDLER_FUNCTION(Read) {
   JHANDLER_DECLARE_THIS_PTR(adc, adc);
   DJHANDLER_CHECK_ARG_IF_EXIST(0, function);
 
-  const iotjs_jval_t* jcallback = JHANDLER_GET_ARG_IF_EXIST(0, function);
+  const iotjs_jval_t jcallback = JHANDLER_GET_ARG_IF_EXIST(0, function);
 
-  if (jcallback == NULL) {
+  if (jerry_value_is_null(jcallback)) {
     JHANDLER_THROW(TYPE, "Bad arguments - callback required");
   } else {
-    ADC_ASYNC(read, adc, jcallback, kAdcOpRead);
+    ADC_ASYNC(read, adc, &jcallback, kAdcOpRead);
   }
 }
 
@@ -270,16 +270,15 @@ JHANDLER_FUNCTION(Close) {
   JHANDLER_DECLARE_THIS_PTR(adc, adc);
   DJHANDLER_CHECK_ARG_IF_EXIST(0, function);
 
-  const iotjs_jval_t* jcallback =
-      (iotjs_jval_t*)JHANDLER_GET_ARG_IF_EXIST(0, function);
+  iotjs_jval_t jcallback = JHANDLER_GET_ARG_IF_EXIST(0, function);
 
-  if (jcallback == NULL) {
+  if (jerry_value_is_null(jcallback)) {
     iotjs_jval_t jdummycallback =
         iotjs_jval_create_function(&iotjs_jval_dummy_function);
     ADC_ASYNC(close, adc, &jdummycallback, kAdcOpClose);
     iotjs_jval_destroy(&jdummycallback);
   } else {
-    ADC_ASYNC(close, adc, jcallback, kAdcOpClose);
+    ADC_ASYNC(close, adc, &jcallback, kAdcOpClose);
   }
 
   iotjs_jhandler_return_null(jhandler);

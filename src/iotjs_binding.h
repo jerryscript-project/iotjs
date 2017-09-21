@@ -292,9 +292,9 @@ static inline bool ge(uint16_t a, uint16_t b) {
 #define JHANDLER_GET_ARG_IF_EXIST(index, type)                          \
   ((iotjs_jhandler_get_arg_length(jhandler) > index)                    \
        ? (iotjs_jval_is_##type(iotjs_jhandler_get_arg(jhandler, index)) \
-              ? iotjs_jhandler_get_arg(jhandler, index)                 \
-              : NULL)                                                   \
-       : NULL)
+              ? *iotjs_jhandler_get_arg(jhandler, index)                \
+              : *iotjs_jval_get_null())                                 \
+       : *iotjs_jval_get_null())
 
 #define JHANDLER_GET_THIS(type) \
   iotjs_jval_as_##type(iotjs_jhandler_get_this(jhandler))

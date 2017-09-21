@@ -297,15 +297,15 @@ JHANDLER_FUNCTION(Write) {
   DJHANDLER_CHECK_ARGS(1, string);
   DJHANDLER_CHECK_ARG_IF_EXIST(1, function);
 
-  const iotjs_jval_t* jcallback = JHANDLER_GET_ARG_IF_EXIST(1, function);
+  const iotjs_jval_t jcallback = JHANDLER_GET_ARG_IF_EXIST(1, function);
 
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_uart_t, uart);
 
   _this->buf_data = JHANDLER_GET_ARG(0, string);
   _this->buf_len = iotjs_string_size(&_this->buf_data);
 
-  if (jcallback) {
-    UART_ASYNC(write, uart, jcallback, kUartOpWrite);
+  if (!jerry_value_is_null(jcallback)) {
+    UART_ASYNC(write, uart, &jcallback, kUartOpWrite);
   } else {
     bool result = iotjs_uart_write(uart);
     iotjs_string_destroy(&_this->buf_data);
@@ -324,13 +324,13 @@ JHANDLER_FUNCTION(Close) {
   JHANDLER_DECLARE_THIS_PTR(uart, uart);
   DJHANDLER_CHECK_ARG_IF_EXIST(0, function);
 
-  const iotjs_jval_t* jcallback = JHANDLER_GET_ARG_IF_EXIST(0, function);
+  const iotjs_jval_t jcallback = JHANDLER_GET_ARG_IF_EXIST(0, function);
 
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_uart_t, uart);
   iotjs_jval_destroy(&_this->jemitter_this);
 
-  if (jcallback) {
-    UART_ASYNC(close, uart, jcallback, kUartOpClose);
+  if (!jerry_value_is_null(jcallback)) {
+    UART_ASYNC(close, uart, &jcallback, kUartOpClose);
   } else {
     if (!iotjs_uart_close(uart)) {
       JHANDLER_THROW(COMMON, "UART Close Error");

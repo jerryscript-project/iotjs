@@ -22,6 +22,7 @@ import signal
 import subprocess
 import time
 
+from collections import OrderedDict
 from common_py import path
 from common_py.system.filesystem import FileSystem as fs
 from common_py.system.executor import Executor as ex
@@ -172,7 +173,7 @@ class TestRunner(object):
         }
 
         with open(fs.join(path.TEST_ROOT, "testsets.json")) as testsets_file:
-            testsets = json.load(testsets_file)
+            testsets = json.load(testsets_file, object_pairs_hook=OrderedDict)
 
         for testset, tests in testsets.items():
             self.run_testset(testset, tests)

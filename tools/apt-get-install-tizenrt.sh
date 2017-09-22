@@ -16,5 +16,5 @@
 
 
 sudo apt-get update
-sudo apt-get install gcc-arm-none-eabi
+sudo apt-get install gcc-arm-none-eabi genromfs
 arm-none-eabi-gcc --version

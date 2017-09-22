@@ -17,6 +17,7 @@
 from __future__ import print_function
 
 import argparse
+import glob
 import sys
 import os
 import json
@@ -28,12 +29,13 @@ from check_tidy import check_tidy
 
 TESTS=['host-linux', 'host-darwin', 'rpi2', 'nuttx', 'misc', 'no-snapshot',
        'artik10', 'artik053', 'coverity']
+ROMFS_MODULES=['tests']
 BUILDTYPES=['debug', 'release']
 NUTTXTAG = 'nuttx-7.19'
 
-# This is latest tested TizenRT commit working for IoT.js
-# Title: Merge pull request #496 from sunghan-chang/iotivity
-TIZENRT_COMMIT='0f47277170972bb33b51996a374c483e4ff2c26a'
+TIZENRT_REPO='https://github.com/tadziopazur/TizenRT.git'
+TIZENRT_REVISION='IOTJS_20170920'
+TIZNERT_BUILD_BRANCH='iotjs_build'
 
 def get_config():
     config_path = path.BUILD_MODULE_CONFIG_PATH
@@ -50,12 +52,15 @@ def parse_option():
     parser.add_argument('--buildtype', choices=BUILDTYPES, action='append')
     parser.add_argument('--buildoptions', action='store', default='',
                         help='A comma separated list of extra buildoptions')
+    parser.add_argument('--romfs', choices=ROMFS_MODULES, action='append')
 
     option = parser.parse_args(sys.argv[1:])
     if option.test is None:
         option.test = TESTS
     if option.buildtype is None:
         option.buildtype = BUILDTYPES
+    if option.romfs is None:
+        option.romfs = []
     return option
 
 
@@ -119,17 +124,13 @@ def setup_tizen_root(tizen_root):
 
 def copy_tiznert_stuff(tizenrt_root, iotjs_dir):
     tizenrt_iotjsapp_dir = fs.join(tizenrt_root, 'apps/system/iotjs')
+    iotjs_tizenrt_appdir = fs.join(iotjs_dir, 'config/tizenrt/artik05x/app')
+    ex.check_run_cmd('cp',
+                    ['-rfuT', iotjs_tizenrt_appdir, tizenrt_iotjsapp_dir])
+
+    iotjs_config_dir = fs.join(iotjs_dir, 'config/tizenrt/artik05x/configs')
     tizenrt_config_dir = fs.join(tizenrt_root, 'build/configs/artik053/iotjs')
-    iotjs_tizenrt_appdir = fs.join(iotjs_dir,
-                                  'config/tizenrt/artik05x/app')
-    iotjs_config_dir = \
-        fs.join(iotjs_dir, 'config/tizenrt/artik05x/configs')
-
-    ex.check_run_cmd('cp',
-                    ['-rfu', iotjs_tizenrt_appdir, tizenrt_iotjsapp_dir])
-
-    ex.check_run_cmd('cp',
-                    ['-rfu', iotjs_config_dir, tizenrt_config_dir])
+    ex.check_run_cmd('cp', ['-rfuT', iotjs_config_dir, tizenrt_config_dir])
 
 def setup_tizenrt_repo(tizenrt_root):
     if fs.exists(tizenrt_root):
@@ -137,12 +138,21 @@ def setup_tizenrt_repo(tizenrt_root):
         ex.check_run_cmd('git', ['fetch', 'origin'])
         fs.chdir(path.PROJECT_ROOT)
     else:
-        ex.check_run_cmd('git', ['clone',
-            'https://github.com/Samsung/TizenRT.git',
-            tizenrt_root])
+        ex.check_run_cmd('git', ['clone', TIZENRT_REPO, tizenrt_root])
+
+    # The following two do not have to succeed
+    # Checkout master, so we're not sitting on
+    ex.run_cmd('git', ['--git-dir', tizenrt_root + '/.git/',
+                       '--work-tree', tizenrt_root,
+                       'checkout', 'master'])
+    ex.run_cmd('git', ['--git-dir', tizenrt_root + '/.git/',
+                       '--work-tree', tizenrt_root,
+                       'branch', '-D', TIZNERT_BUILD_BRANCH])
+    # This has to however
     ex.check_run_cmd('git', ['--git-dir', tizenrt_root + '/.git/',
                              '--work-tree', tizenrt_root,
-                             'checkout', TIZENRT_COMMIT])
+                             'checkout', '-b', TIZNERT_BUILD_BRANCH,
+                             TIZENRT_REVISION])
     copy_tiznert_stuff(tizenrt_root, path.PROJECT_ROOT)
 
 def configure_trizenrt(tizenrt_root, buildtype):
@@ -158,6 +168,45 @@ def build_tizenrt(tizenrt_root, iotjs_rootdir, buildtype):
     iotjs_libdir = iotjs_rootdir + '/build/arm-tizenrt/' + buildtype + '/lib'
     ex.check_run_cmd('make', ['IOTJS_ROOT_DIR=' + iotjs_rootdir,
                               'IOTJS_LIB_DIR=' + iotjs_libdir])
+
+def create_romfs_image(romfs_image, source_directory):
+    ex.check_run_cmd('genromfs', ['-f', romfs_image, '-d',
+        source_directory, '-V', 'NuttXBootVol'])
+
+def split_entry(entry):
+    '''Validate romfs.def entry, which should be in the form os 'glob, target',
+       where the target is resolved relative to romfs root directory'''
+    entry = entry.strip();
+    if entry == "" or entry.startswith("#"):
+        return
+    index = entry.rfind(' ')
+    rel_target = None
+    if index > 0:
+        rel_target = entry[index+1:].lstrip('/')
+        entry = entry[0:index]
+
+    # The right place to handle links and such
+    return rel_target, glob.glob(entry)
+
+def create_romfs_srcdir():
+    '''Must be run in $TOPDIR'''
+    srcdirobj = fs.mkdtemp()
+    srcdir = str(srcdirobj)
+    with open(fs.join(path.PROJECT_ROOT, 'config', 'romfs.def')) as f:
+        content = f.readlines()
+    for entry in content:
+        rel_target, dentry_list = split_entry(entry)
+        if dentry_list:
+            if rel_target and rel_target != '/':
+                target = fs.join(srcdir, rel_target)
+                ex.check_run_cmd('mkdir', ['-p', target], True)
+            else:
+                target = srcdir
+            cp_args = ['-rfL']
+            cp_args.extend(dentry_list)
+            cp_args.append(target)
+            ex.check_run_cmd('cp', cp_args)
+    return srcdir
 
 def build(buildtype, args=[]):
     fs.chdir(path.PROJECT_ROOT)
@@ -205,8 +254,8 @@ if __name__ == '__main__':
                                 ] + os_dependency_module['linux'] + build_args)
 
         elif test == "artik053":
+            tizenrt_root = fs.join(path.PROJECT_ROOT, 'deps', 'tizenrt')
             for buildtype in option.buildtype:
-                tizenrt_root = fs.join(path.PROJECT_ROOT, 'deps', 'tizenrt')
                 setup_tizenrt_repo(tizenrt_root)
                 configure_trizenrt(tizenrt_root, buildtype)
                 build(buildtype, ['--target-arch=arm',
@@ -218,6 +267,14 @@ if __name__ == '__main__':
                                 ] + os_dependency_module['tizenrt']
                                 + build_args)
                 build_tizenrt(tizenrt_root, path.PROJECT_ROOT, buildtype)
+                fs.chdir(path.PROJECT_ROOT)
+            # For now only romfs=tests works
+            if 'tests' in option.romfs:
+                romfs_image_file = fs.join(tizenrt_root, "build", "output",
+                                           "bin", "romfs.img")
+                romfs_src_dir = create_romfs_srcdir()
+                create_romfs_image(romfs_image_file, romfs_src_dir)
+                fs.rmtree(romfs_src_dir)
 
         elif test == "nuttx":
             current_dir = os.getcwd()

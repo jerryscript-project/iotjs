@@ -75,7 +75,7 @@ ifeq ($(WINTOOL),y)
 else
   # Linux/Cygwin-native toolchain
   MKDEP = $(TOPDIR)/tools/mkdeps$(HOSTEXEEXT)
-  ARCHINCLUDES = -I. -isystem $(TOPDIR)/include -isystem $(TOPDIR)/../framework/include
+  ARCHINCLUDES = -I. -isystem $(TOPDIR)/include -isystem $(TOPDIR)/../framework/include -isystem $(TOPDIR)/../external/include
   ARCHXXINCLUDES = -I. -isystem $(TOPDIR)/include -isystem $(TOPDIR)/include/cxx -isystem $(TOPDIR)/include/uClibc++
   ARCHSCRIPT = -T$(TOPDIR)/../build/configs/$(CONFIG_ARCH_BOARD)/scripts/$(LDSCRIPT)
 
@@ -132,7 +132,7 @@ CXXFLAGS = $(ARCHCXXFLAGS) $(ARCHWARNINGSXX) $(ARCHOPTIMIZATION) $(ARCHCPUFLAGS)
 CXXPICFLAGS = $(ARCHPICFLAGS) $(CXXFLAGS)
 CPPFLAGS = $(ARCHINCLUDES) $(ARCHDEFINES) $(EXTRADEFINES)
 AFLAGS = $(CFLAGS) -D__ASSEMBLY__
-MAXOPTIMIZATION = -O0
+MAXOPTIMIZATION = -O2
 
 
 NXFLATLDFLAGS1 = -r -d -warn-common
@@ -158,7 +158,18 @@ HOSTINCLUDES = -I.
 HOSTCFLAGS = -Wall -Wstrict-prototypes -Wshadow -Wundef -g -pipe
 HOSTLDFLAGS =
 
+ifeq ($(CONFIG_ROMFS_SOURCE_DIR),)
+define MAKEROMFS
+	@$(TOPDIR)/../tools/fs/mkromfsimg.sh $(CONFIG_ROMFS_SOURCE_DIR)
+endef
+else
+define MAKEROMFS
+	@echo "CONFIG_ROMFS_SOURCE_DIR undefined, attempting default location"
+	@$(TOPDIR)/../tools/fs/mkromfsimg.sh
+endef
+endif
+
 define DOWNLOAD
-       @$(TOPDIR)/../build/configs/artik053/artik053_download.sh $(1)
+	@$(TOPDIR)/../build/configs/artik053/artik053_download.sh $(1)
 endef
 

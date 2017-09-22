@@ -107,7 +107,7 @@
     { "name": "issue-816.js" },
     { "name": "issue-1046.js" },
     { "name": "issue-1077.js" },
-    { "name": "issue-1101.js", "skip": ["all"], "reason": "need to setup test environment" }    
+    { "name": "issue-1101.js", "skip": ["all"], "reason": "need to setup test environment" }
   ],
   "run_fail":  [
     { "name": "test_assert_equal.js", "expected-failure": true },
@@ -133,5 +133,12 @@
     { "name": "test-net-end-without-connect.js" },
     { "name": "test-net-keepalive.js" },
     { "name": "test-timers-clear-null-does-not-throw-error.js" }
+  ],
+  "hardware": [
+    { "name": "test_adc_echo.js", "skip": ["all"], "reason": "need to setup test environment" },
+    { "name": "test_gpio_echo.js", "skip": ["all"], "reason": "need to setup test environment" },
+    { "name": "test_pwm_echo.js",  "skip": ["all"], "reason": "need to setup test environment" },
+    { "name": "test_spi_echo.js", "skip": ["all"], "reason": "need to setup test environment" },
+    { "name": "test_uart_echo.js",  "skip": ["all"], "reason": "need to setup test environment" }
   ]
 }

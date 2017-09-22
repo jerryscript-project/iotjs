@@ -118,6 +118,16 @@ const iotjs_jval_t* iotjs_connect_reqwrap_jcallback(THIS) {
 
 #undef THIS
 
+iotjs_string_t iotjs_create_ip(const iotjs_string_t* address) {
+  const IOTJS_VALIDATED_STRUCT_METHOD(iotjs_string_t, address);
+#if defined(__NUTTX__) || defined(__TIZENRT__)
+  if (strcmp(_this->data, "localhost") == 0) {
+    char* local = "127.0.0.1";
+    return iotjs_string_create_with_size(local, strlen(local) + 1);
+  }
+#endif
+  return iotjs_string_create_with_size(_this->data, _this->size);
+}
 
 #define THIS iotjs_write_reqwrap_t* write_reqwrap
 

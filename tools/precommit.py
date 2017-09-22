@@ -17,6 +17,7 @@
 from __future__ import print_function
 
 import argparse
+import glob
 import sys
 import os
 import json
@@ -33,7 +34,7 @@ BUILDTYPES=['debug', 'release']
 NUTTXTAG = 'nuttx-7.19'
 
 TIZENRT_REPO='https://github.com/tadziopazur/TizenRT.git'
-TIZENRT_REVISION='origin/iotjs_baseline'
+TIZENRT_REVISION='IOTJS_20170920'
 TIZNERT_BUILD_BRANCH='iotjs_build'
 
 def get_config():
@@ -168,9 +169,33 @@ def build_tizenrt(tizenrt_root, iotjs_rootdir, buildtype):
     ex.check_run_cmd('make', ['IOTJS_ROOT_DIR=' + iotjs_rootdir,
                               'IOTJS_LIB_DIR=' + iotjs_libdir])
 
-def build_romfs(romfs_image):
+def create_romfs_image(romfs_image, source_directory):
     ex.check_run_cmd('genromfs', ['-f', romfs_image, '-d',
-        fs.join(path.PROJECT_ROOT, 'test'), '-V', 'NuttXBootVol'])
+        source_directory, '-V', 'NuttXBootVol'])
+
+def canonicalize(entry):
+    '''Validate romfs.def entry, then return its canonicalized value'''
+    entry = entry.strip();
+    if entry == "" or entry.startswith("#"):
+        return
+    # The right place to handle links and such
+    return glob.glob(entry)
+
+def create_romfs_srcdir():
+    '''Must be run in $TOPDIR'''
+    srcdirobj = fs.mkdtemp()
+    srcdir = str(srcdirobj)
+    with open(fs.join(path.PROJECT_ROOT, 'config', 'romfs.def')) as f:
+        content = f.readlines()
+    cp_args = ['-rfL']
+    for entry in content:
+        dentry_list = canonicalize(entry)
+        if dentry_list:
+            cp_args.extend(dentry_list)
+    if len(cp_args) > 1:
+        cp_args.append(srcdir)
+        ex.check_run_cmd('cp', cp_args)
+    return srcdir
 
 def build(buildtype, args=[]):
     fs.chdir(path.PROJECT_ROOT)
@@ -231,11 +256,14 @@ if __name__ == '__main__':
                                 ] + os_dependency_module['tizenrt']
                                 + build_args)
                 build_tizenrt(tizenrt_root, path.PROJECT_ROOT, buildtype)
+                fs.chdir(path.PROJECT_ROOT)
             # For now only romfs=tests works
             if 'tests' in option.romfs:
                 romfs_image_file = fs.join(tizenrt_root, "build", "output",
                                            "bin", "romfs.img")
-                romfs_image_file = build_romfs(romfs_image_file)
+                romfs_src_dir = create_romfs_srcdir()
+                create_romfs_image(romfs_image_file, romfs_src_dir)
+                fs.rmtree(romfs_src_dir)
 
         elif test == "nuttx":
             current_dir = os.getcwd()

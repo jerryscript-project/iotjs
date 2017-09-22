@@ -1,0 +1,3 @@
+test/
+tools/*.js
+tools/common_js

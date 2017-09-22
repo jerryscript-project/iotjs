@@ -31,7 +31,7 @@ iotjs_https_t* iotjs_https_create(const char* URL, const char* method,
                                   const char* ca, const char* cert,
                                   const char* key,
                                   const bool reject_unauthorized,
-                                  const iotjs_jval_t* jthis) {
+                                  iotjs_jval_t jthis) {
   iotjs_https_t* https_data = IOTJS_ALLOC(iotjs_https_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_https_t, https_data);
 
@@ -68,7 +68,7 @@ iotjs_https_t* iotjs_https_create(const char* URL, const char* method,
 
   // Handles
   _this->loop = iotjs_environment_loop(iotjs_environment_get());
-  _this->jthis_native = iotjs_jval_create_copied(jthis);
+  _this->jthis_native = iotjs_jval_create_copied(&jthis);
   iotjs_jval_set_object_native_handle(&(_this->jthis_native),
                                       (uintptr_t)https_data,
                                       &https_native_info);
@@ -181,13 +181,13 @@ void iotjs_https_cleanup(iotjs_https_t* https_data) {
 
   if (_this->to_destroy_read_onwrite) {
     const iotjs_jargs_t* jarg = iotjs_jargs_get_empty();
-    const iotjs_jval_t* jthis = &(_this->jthis_native);
+    iotjs_jval_t jthis = &(_this->jthis_native);
     IOTJS_ASSERT(iotjs_jval_is_function(&(_this->read_onwrite)));
 
     if (!iotjs_jval_is_undefined(&(_this->read_callback)))
-      iotjs_make_callback(&(_this->read_callback), jthis, jarg);
+      iotjs_make_callback(&(_this->read_callback), &jthis, jarg);
 
-    iotjs_make_callback(&(_this->read_onwrite), jthis, jarg);
+    iotjs_make_callback(&(_this->read_onwrite), &jthis, jarg);
     _this->to_destroy_read_onwrite = false;
     iotjs_string_destroy(&(_this->read_chunk));
     iotjs_jval_destroy(&(_this->read_onwrite));
@@ -291,7 +291,7 @@ void iotjs_https_initialize_curl_opts(iotjs_https_t* https_data) {
 }
 
 // Get https.ClientRequest from struct
-iotjs_jval_t* iotjs_https_jthis_from_https(iotjs_https_t* https_data) {
+iotjs_jval_t iotjs_https_jthis_from_https(iotjs_https_t* https_data) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_https_t, https_data);
   return &(_this->jthis_native);
 }
@@ -299,13 +299,13 @@ iotjs_jval_t* iotjs_https_jthis_from_https(iotjs_https_t* https_data) {
 // Call any property of ClientRequest._Incoming
 bool iotjs_https_jcallback(iotjs_https_t* https_data, const char* property,
                            const iotjs_jargs_t* jarg, bool resultvalue) {
-  iotjs_jval_t* jthis = iotjs_https_jthis_from_https(https_data);
+  iotjs_jval_t jthis = iotjs_https_jthis_from_https(https_data);
   bool retval = true;
-  if (iotjs_jval_is_null(jthis))
+  if (iotjs_jval_is_null(&jthis))
     return retval;
 
   iotjs_jval_t jincoming =
-      iotjs_jval_get_property(jthis, IOTJS_MAGIC_STRING__INCOMING);
+      iotjs_jval_get_property(&jthis, IOTJS_MAGIC_STRING__INCOMING);
   iotjs_jval_t cb = iotjs_jval_get_property(&jincoming, property);
 
   IOTJS_ASSERT(iotjs_jval_is_function(&cb));
@@ -332,13 +332,13 @@ void iotjs_https_call_read_onwrite(uv_timer_t* timer) {
   if (iotjs_jval_is_null(&_this->jthis_native))
     return;
   const iotjs_jargs_t* jarg = iotjs_jargs_get_empty();
-  const iotjs_jval_t* jthis = &(_this->jthis_native);
+  iotjs_jval_t jthis = _this->jthis_native;
   IOTJS_ASSERT(iotjs_jval_is_function(&(_this->read_onwrite)));
 
   if (!iotjs_jval_is_undefined(&(_this->read_callback)))
-    iotjs_make_callback(&(_this->read_callback), jthis, jarg);
+    iotjs_make_callback(&(_this->read_callback), &jthis, jarg);
 
-  iotjs_make_callback(&(_this->read_onwrite), jthis, jarg);
+  iotjs_make_callback(&(_this->read_onwrite), &jthis, jarg);
 }
 
 // Call the above method Asynchronously
@@ -365,9 +365,8 @@ void iotjs_https_add_header(iotjs_https_t* https_data,
 
 // Recieved data to write from ClientRequest._write
 void iotjs_https_data_to_write(iotjs_https_t* https_data,
-                               iotjs_string_t read_chunk,
-                               const iotjs_jval_t* callback,
-                               const iotjs_jval_t* onwrite) {
+                               iotjs_string_t read_chunk, iotjs_jval_t callback,
+                               iotjs_jval_t onwrite) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_https_t, https_data);
 
   if (_this->to_destroy_read_onwrite) {
@@ -380,8 +379,8 @@ void iotjs_https_data_to_write(iotjs_https_t* https_data,
   _this->read_chunk = read_chunk;
   _this->data_to_read = true;
 
-  _this->read_callback = iotjs_jval_create_copied(callback);
-  _this->read_onwrite = iotjs_jval_create_copied(onwrite);
+  _this->read_callback = iotjs_jval_create_copied(&callback);
+  _this->read_onwrite = iotjs_jval_create_copied(&onwrite);
   _this->to_destroy_read_onwrite = true;
 
   if (_this->request_done) {
@@ -719,31 +718,31 @@ JHANDLER_FUNCTION(createRequest) {
   DJHANDLER_CHECK_THIS(object);
   DJHANDLER_CHECK_ARGS(1, object);
 
-  const iotjs_jval_t* jthis = JHANDLER_GET_ARG(0, object);
+  const iotjs_jval_t jthis = *JHANDLER_GET_ARG(0, object);
 
-  iotjs_jval_t jhost = iotjs_jval_get_property(jthis, IOTJS_MAGIC_STRING_HOST);
+  iotjs_jval_t jhost = iotjs_jval_get_property(&jthis, IOTJS_MAGIC_STRING_HOST);
   iotjs_string_t host = iotjs_jval_as_string(&jhost);
   iotjs_jval_destroy(&jhost);
 
   iotjs_jval_t jmethod =
-      iotjs_jval_get_property(jthis, IOTJS_MAGIC_STRING_METHOD);
+      iotjs_jval_get_property(&jthis, IOTJS_MAGIC_STRING_METHOD);
   iotjs_string_t method = iotjs_jval_as_string(&jmethod);
   iotjs_jval_destroy(&jmethod);
 
-  iotjs_jval_t jca = iotjs_jval_get_property(jthis, IOTJS_MAGIC_STRING_CA);
+  iotjs_jval_t jca = iotjs_jval_get_property(&jthis, IOTJS_MAGIC_STRING_CA);
   iotjs_string_t ca = iotjs_jval_as_string(&jca);
   iotjs_jval_destroy(&jca);
 
-  iotjs_jval_t jcert = iotjs_jval_get_property(jthis, IOTJS_MAGIC_STRING_CERT);
+  iotjs_jval_t jcert = iotjs_jval_get_property(&jthis, IOTJS_MAGIC_STRING_CERT);
   iotjs_string_t cert = iotjs_jval_as_string(&jcert);
   iotjs_jval_destroy(&jcert);
 
-  iotjs_jval_t jkey = iotjs_jval_get_property(jthis, IOTJS_MAGIC_STRING_KEY);
+  iotjs_jval_t jkey = iotjs_jval_get_property(&jthis, IOTJS_MAGIC_STRING_KEY);
   iotjs_string_t key = iotjs_jval_as_string(&jkey);
   iotjs_jval_destroy(&jkey);
 
   iotjs_jval_t jreject_unauthorized =
-      iotjs_jval_get_property(jthis, IOTJS_MAGIC_STRING_REJECTUNAUTHORIZED);
+      iotjs_jval_get_property(&jthis, IOTJS_MAGIC_STRING_REJECTUNAUTHORIZED);
   const bool reject_unauthorized = iotjs_jval_as_boolean(&jreject_unauthorized);
 
   if (curl_global_init(CURL_GLOBAL_SSL)) {
@@ -752,7 +751,7 @@ JHANDLER_FUNCTION(createRequest) {
   iotjs_https_t* https_data =
       iotjs_https_create(iotjs_string_data(&host), iotjs_string_data(&method),
                          iotjs_string_data(&ca), iotjs_string_data(&cert),
-                         iotjs_string_data(&key), reject_unauthorized, jthis);
+                         iotjs_string_data(&key), reject_unauthorized, &jthis);
 
   iotjs_https_initialize_curl_opts(https_data);
 
@@ -771,9 +770,9 @@ JHANDLER_FUNCTION(addHeader) {
   iotjs_string_t header = JHANDLER_GET_ARG(0, string);
   const char* char_header = iotjs_string_data(&header);
 
-  const iotjs_jval_t* jthis = JHANDLER_GET_ARG(1, object);
+  iotjs_jval_t jthis = *JHANDLER_GET_ARG(1, object);
   iotjs_https_t* https_data =
-      (iotjs_https_t*)iotjs_jval_get_object_native_handle(jthis);
+      (iotjs_https_t*)iotjs_jval_get_object_native_handle(&jthis);
   iotjs_https_add_header(https_data, char_header);
 
   iotjs_string_destroy(&header);
@@ -784,9 +783,9 @@ JHANDLER_FUNCTION(sendRequest) {
   DJHANDLER_CHECK_THIS(object);
 
   DJHANDLER_CHECK_ARG(0, object);
-  const iotjs_jval_t* jthis = JHANDLER_GET_ARG(0, object);
+  iotjs_jval_t jthis = *JHANDLER_GET_ARG(0, object);
   iotjs_https_t* https_data =
-      (iotjs_https_t*)iotjs_jval_get_object_native_handle(jthis);
+      (iotjs_https_t*)iotjs_jval_get_object_native_handle(&jthis);
   iotjs_https_send_request(https_data);
   iotjs_jhandler_return_null(jhandler);
 }
@@ -796,10 +795,10 @@ JHANDLER_FUNCTION(setTimeout) {
   DJHANDLER_CHECK_ARGS(2, number, object);
 
   double ms = JHANDLER_GET_ARG(0, number);
-  const iotjs_jval_t* jthis = JHANDLER_GET_ARG(1, object);
+  iotjs_jval_t jthis = *JHANDLER_GET_ARG(1, object);
 
   iotjs_https_t* https_data =
-      (iotjs_https_t*)iotjs_jval_get_object_native_handle(jthis);
+      (iotjs_https_t*)iotjs_jval_get_object_native_handle(&jthis);
   iotjs_https_set_timeout((long)ms, https_data);
 
   iotjs_jhandler_return_null(jhandler);
@@ -811,14 +810,14 @@ JHANDLER_FUNCTION(_write) {
   // Argument 3 can be null, so not checked directly, checked later
   DJHANDLER_CHECK_ARG(3, function);
 
-  const iotjs_jval_t* jthis = JHANDLER_GET_ARG(0, object);
+  iotjs_jval_t jthis = *JHANDLER_GET_ARG(0, object);
   iotjs_string_t read_chunk = JHANDLER_GET_ARG(1, string);
 
-  const iotjs_jval_t* callback = iotjs_jhandler_get_arg(jhandler, 2);
-  const iotjs_jval_t* onwrite = JHANDLER_GET_ARG(3, function);
+  iotjs_jval_t callback = *iotjs_jhandler_get_arg(jhandler, 2);
+  iotjs_jval_t onwrite = *JHANDLER_GET_ARG(3, function);
 
   iotjs_https_t* https_data =
-      (iotjs_https_t*)iotjs_jval_get_object_native_handle(jthis);
+      (iotjs_https_t*)iotjs_jval_get_object_native_handle(&jthis);
   iotjs_https_data_to_write(https_data, read_chunk, callback, onwrite);
 
   // readchunk was copied to https_data, hence not destroyed.
@@ -829,9 +828,9 @@ JHANDLER_FUNCTION(finishRequest) {
   DJHANDLER_CHECK_THIS(object);
   DJHANDLER_CHECK_ARG(0, object);
 
-  const iotjs_jval_t* jthis = JHANDLER_GET_ARG(0, object);
+  iotjs_jval_t jthis = *JHANDLER_GET_ARG(0, object);
   iotjs_https_t* https_data =
-      (iotjs_https_t*)iotjs_jval_get_object_native_handle(jthis);
+      (iotjs_https_t*)iotjs_jval_get_object_native_handle(&jthis);
   iotjs_https_finish_request(https_data);
 
   iotjs_jhandler_return_null(jhandler);
@@ -841,9 +840,9 @@ JHANDLER_FUNCTION(Abort) {
   DJHANDLER_CHECK_THIS(object);
   DJHANDLER_CHECK_ARG(0, object);
 
-  const iotjs_jval_t* jthis = JHANDLER_GET_ARG(0, object);
+  iotjs_jval_t jthis = *JHANDLER_GET_ARG(0, object);
   iotjs_https_t* https_data =
-      (iotjs_https_t*)iotjs_jval_get_object_native_handle(jthis);
+      (iotjs_https_t*)iotjs_jval_get_object_native_handle(&jthis);
   iotjs_https_cleanup(https_data);
 
   iotjs_jhandler_return_null(jhandler);

@@ -22,12 +22,12 @@ static void iotjs_timerwrap_on_timeout(iotjs_timerwrap_t* timerwrap);
 IOTJS_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(timerwrap);
 
 
-iotjs_timerwrap_t* iotjs_timerwrap_create(const iotjs_jval_t* jtimer) {
+iotjs_timerwrap_t* iotjs_timerwrap_create(const iotjs_jval_t jtimer) {
   iotjs_timerwrap_t* timerwrap = IOTJS_ALLOC(iotjs_timerwrap_t);
   uv_timer_t* uv_timer = IOTJS_ALLOC(uv_timer_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_timerwrap_t, timerwrap);
 
-  iotjs_handlewrap_initialize(&_this->handlewrap, jtimer,
+  iotjs_handlewrap_initialize(&_this->handlewrap, &jtimer,
                               (uv_handle_t*)(uv_timer),
                               &this_module_native_info);
 
@@ -86,10 +86,10 @@ static void iotjs_timerwrap_on_timeout(iotjs_timerwrap_t* timerwrap) {
   IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_timerwrap_t, timerwrap);
 
   // Call javascript timeout handler function.
-  const iotjs_jval_t* jobject = iotjs_timerwrap_jobject(timerwrap);
+  iotjs_jval_t jobject = iotjs_timerwrap_jobject(timerwrap);
   iotjs_jval_t jcallback =
-      iotjs_jval_get_property(jobject, IOTJS_MAGIC_STRING_HANDLETIMEOUT);
-  iotjs_make_callback(&jcallback, jobject, iotjs_jargs_get_empty());
+      iotjs_jval_get_property(&jobject, IOTJS_MAGIC_STRING_HANDLETIMEOUT);
+  iotjs_make_callback(&jcallback, &jobject, iotjs_jargs_get_empty());
   iotjs_jval_destroy(&jcallback);
 }
 
@@ -100,10 +100,10 @@ uv_timer_t* iotjs_timerwrap_handle(iotjs_timerwrap_t* timerwrap) {
 }
 
 
-iotjs_jval_t* iotjs_timerwrap_jobject(iotjs_timerwrap_t* timerwrap) {
+iotjs_jval_t iotjs_timerwrap_jobject(iotjs_timerwrap_t* timerwrap) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_timerwrap_t, timerwrap);
-  iotjs_jval_t* jobject = iotjs_handlewrap_jobject(&_this->handlewrap);
-  IOTJS_ASSERT(iotjs_jval_is_object(jobject));
+  iotjs_jval_t jobject = *iotjs_handlewrap_jobject(&_this->handlewrap);
+  IOTJS_ASSERT(iotjs_jval_is_object(&jobject));
   return jobject;
 }
 
@@ -117,8 +117,8 @@ iotjs_timerwrap_t* iotjs_timerwrap_from_handle(uv_timer_t* timer_handle) {
 }
 
 
-iotjs_timerwrap_t* iotjs_timerwrap_from_jobject(const iotjs_jval_t* jtimer) {
-  iotjs_handlewrap_t* handlewrap = iotjs_handlewrap_from_jobject(jtimer);
+iotjs_timerwrap_t* iotjs_timerwrap_from_jobject(const iotjs_jval_t jtimer) {
+  iotjs_handlewrap_t* handlewrap = iotjs_handlewrap_from_jobject(&jtimer);
   return (iotjs_timerwrap_t*)handlewrap;
 }
 
@@ -151,11 +151,13 @@ JHANDLER_FUNCTION(Stop) {
 JHANDLER_FUNCTION(Timer) {
   JHANDLER_CHECK_THIS(object);
 
-  const iotjs_jval_t* jtimer = JHANDLER_GET_THIS(object);
+  const iotjs_jval_t jtimer = *JHANDLER_GET_THIS(object);
 
   iotjs_timerwrap_t* timer_wrap = iotjs_timerwrap_create(jtimer);
-  IOTJS_ASSERT(iotjs_jval_is_object(iotjs_timerwrap_jobject(timer_wrap)));
-  IOTJS_ASSERT(iotjs_jval_get_object_native_handle(jtimer) != 0);
+
+  iotjs_jval_t jobject = iotjs_timerwrap_jobject(timer_wrap);
+  IOTJS_ASSERT(iotjs_jval_is_object(&jobject));
+  IOTJS_ASSERT(iotjs_jval_get_object_native_handle(&jtimer) != 0);
 }
 
 

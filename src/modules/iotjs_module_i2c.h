@@ -64,12 +64,12 @@ typedef struct {
 } IOTJS_VALIDATED_STRUCT(iotjs_i2c_reqwrap_t);
 
 
-iotjs_i2c_t* iotjs_i2c_instance_from_jval(const iotjs_jval_t* ji2c);
+iotjs_i2c_t* iotjs_i2c_instance_from_jval(const iotjs_jval_t ji2c);
 iotjs_i2c_reqwrap_t* iotjs_i2c_reqwrap_from_request(uv_work_t* req);
 #define THIS iotjs_i2c_reqwrap_t* i2c_reqwrap
 void iotjs_i2c_reqwrap_dispatched(THIS);
 uv_work_t* iotjs_i2c_reqwrap_req(THIS);
-const iotjs_jval_t* iotjs_i2c_reqwrap_jcallback(THIS);
+iotjs_jval_t iotjs_i2c_reqwrap_jcallback(THIS);
 iotjs_i2c_reqdata_t* iotjs_i2c_reqwrap_data(THIS);
 iotjs_i2c_t* iotjs_i2c_instance_from_reqwrap(THIS);
 #undef THIS

@@ -22,7 +22,7 @@ iotjs_jval_t InitStm32f4dis() {
 
 #if defined(__NUTTX__)
 
-  iotjs_stm32f4dis_pin_initialize(&stm32f4dis);
+  iotjs_stm32f4dis_pin_initialize(stm32f4dis);
 
 #endif
 

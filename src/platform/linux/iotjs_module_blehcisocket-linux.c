@@ -297,8 +297,8 @@ void iotjs_blehcisocket_poll(THIS) {
       }
     }
 
-    iotjs_jval_t* jhcisocket = iotjs_jobjectwrap_jobject(&_this->jobjectwrap);
-    iotjs_jval_t jemit = iotjs_jval_get_property(jhcisocket, "emit");
+    iotjs_jval_t jhcisocket = *iotjs_jobjectwrap_jobject(&_this->jobjectwrap);
+    iotjs_jval_t jemit = iotjs_jval_get_property(&jhcisocket, "emit");
     IOTJS_ASSERT(iotjs_jval_is_function(&jemit));
 
     iotjs_jargs_t jargs = iotjs_jargs_create(2);
@@ -309,7 +309,7 @@ void iotjs_blehcisocket_poll(THIS) {
     iotjs_bufferwrap_copy(buf_wrap, data, (size_t)length);
     iotjs_jargs_append_jval(&jargs, &str);
     iotjs_jargs_append_jval(&jargs, &jbuf);
-    iotjs_jhelper_call_ok(&jemit, jhcisocket, &jargs);
+    iotjs_jhelper_call_ok(&jemit, &jhcisocket, &jargs);
 
     iotjs_jval_destroy(&str);
     iotjs_jval_destroy(&jbuf);
@@ -338,8 +338,8 @@ void iotjs_blehcisocket_write(THIS, char* data, size_t length) {
 void iotjs_blehcisocket_emitErrnoError(THIS) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_blehcisocket_t, blehcisocket);
 
-  iotjs_jval_t* jhcisocket = iotjs_jobjectwrap_jobject(&_this->jobjectwrap);
-  iotjs_jval_t jemit = iotjs_jval_get_property(jhcisocket, "emit");
+  iotjs_jval_t jhcisocket = *iotjs_jobjectwrap_jobject(&_this->jobjectwrap);
+  iotjs_jval_t jemit = iotjs_jval_get_property(&jhcisocket, "emit");
   IOTJS_ASSERT(iotjs_jval_is_function(&jemit));
 
   iotjs_jargs_t jargs = iotjs_jargs_create(2);
@@ -347,7 +347,7 @@ void iotjs_blehcisocket_emitErrnoError(THIS) {
   iotjs_jval_t jerror = iotjs_jval_create_error(strerror(errno));
   iotjs_jargs_append_jval(&jargs, &str);
   iotjs_jargs_append_jval(&jargs, &jerror);
-  iotjs_jhelper_call_ok(&jemit, jhcisocket, &jargs);
+  iotjs_jhelper_call_ok(&jemit, &jhcisocket, &jargs);
 
   iotjs_jval_destroy(&str);
   iotjs_jval_destroy(&jerror);

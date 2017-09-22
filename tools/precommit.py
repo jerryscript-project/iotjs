@@ -173,13 +173,20 @@ def create_romfs_image(romfs_image, source_directory):
     ex.check_run_cmd('genromfs', ['-f', romfs_image, '-d',
         source_directory, '-V', 'NuttXBootVol'])
 
-def canonicalize(entry):
-    '''Validate romfs.def entry, then return its canonicalized value'''
+def split_entry(entry):
+    '''Validate romfs.def entry, which should be in the form os 'glob, target',
+       where the target is resolved relative to romfs root directory'''
     entry = entry.strip();
     if entry == "" or entry.startswith("#"):
         return
+    index = entry.rfind(' ')
+    rel_target = None
+    if index > 0:
+        rel_target = entry[index+1:].lstrip('/')
+        entry = entry[0:index]
+
     # The right place to handle links and such
-    return glob.glob(entry)
+    return rel_target, glob.glob(entry)
 
 def create_romfs_srcdir():
     '''Must be run in $TOPDIR'''
@@ -187,14 +194,18 @@ def create_romfs_srcdir():
     srcdir = str(srcdirobj)
     with open(fs.join(path.PROJECT_ROOT, 'config', 'romfs.def')) as f:
         content = f.readlines()
-    cp_args = ['-rfL']
     for entry in content:
-        dentry_list = canonicalize(entry)
+        rel_target, dentry_list = split_entry(entry)
         if dentry_list:
+            if rel_target and rel_target != '/':
+                target = fs.join(srcdir, rel_target)
+                ex.check_run_cmd('mkdir', ['-p', target], True)
+            else:
+                target = srcdir
+            cp_args = ['-rfL']
             cp_args.extend(dentry_list)
-    if len(cp_args) > 1:
-        cp_args.append(srcdir)
-        ex.check_run_cmd('cp', cp_args)
+            cp_args.append(target)
+            ex.check_run_cmd('cp', cp_args)
     return srcdir
 
 def build(buildtype, args=[]):

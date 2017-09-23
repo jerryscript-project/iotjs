@@ -17,6 +17,10 @@ from __future__ import print_function
 import subprocess
 
 
+class TimeoutException(Exception):
+    pass
+
+
 class Executor(object):
     _TERM_RED = "\033[1;31m"
     _TERM_YELLOW = "\033[1;33m"
@@ -44,9 +48,15 @@ class Executor(object):
     @staticmethod
     def run_cmd(cmd, args=[], quiet=False):
         if not quiet:
+            stdout = None
+            stderr = None
             Executor.print_cmd_line(cmd, args)
+        else:
+            stdout = subprocess.PIPE
+            stderr = subprocess.STDOUT
+
         try:
-            return subprocess.call([cmd] + args)
+            return subprocess.call([cmd] + args, stdout=stdout, stderr=stderr)
         except OSError as e:
             Executor.fail("[Failed - %s] %s" % (cmd, e.strerror))
 

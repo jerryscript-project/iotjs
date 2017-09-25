@@ -24,12 +24,12 @@
 #define THIS iotjs_getaddrinfo_reqwrap_t* getaddrinfo_reqwrap
 
 iotjs_getaddrinfo_reqwrap_t* iotjs_getaddrinfo_reqwrap_create(
-    const iotjs_jval_t* jcallback) {
+    const iotjs_jval_t jcallback) {
   iotjs_getaddrinfo_reqwrap_t* getaddrinfo_reqwrap =
       IOTJS_ALLOC(iotjs_getaddrinfo_reqwrap_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_getaddrinfo_reqwrap_t,
                                      getaddrinfo_reqwrap);
-  iotjs_reqwrap_initialize(&_this->reqwrap, jcallback, (uv_req_t*)&_this->req);
+  iotjs_reqwrap_initialize(&_this->reqwrap, &jcallback, (uv_req_t*)&_this->req);
   return getaddrinfo_reqwrap;
 }
 
@@ -56,10 +56,10 @@ uv_getaddrinfo_t* iotjs_getaddrinfo_reqwrap_req(THIS) {
 }
 
 
-const iotjs_jval_t* iotjs_getaddrinfo_reqwrap_jcallback(THIS) {
+iotjs_jval_t iotjs_getaddrinfo_reqwrap_jcallback(THIS) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_getaddrinfo_reqwrap_t,
                                 getaddrinfo_reqwrap);
-  return iotjs_reqwrap_jcallback(&_this->reqwrap);
+  return *iotjs_reqwrap_jcallback(&_this->reqwrap);
 }
 
 #undef THIS
@@ -154,8 +154,8 @@ static void AfterGetAddrInfo(uv_getaddrinfo_t* req, int status,
   uv_freeaddrinfo(res);
 
   // Make the callback into JavaScript
-  iotjs_make_callback(iotjs_getaddrinfo_reqwrap_jcallback(req_wrap),
-                      iotjs_jval_get_undefined(), &args);
+  iotjs_jval_t jcallback = iotjs_getaddrinfo_reqwrap_jcallback(req_wrap);
+  iotjs_make_callback(&jcallback, iotjs_jval_get_undefined(), &args);
 
   iotjs_jargs_destroy(&args);
 
@@ -172,7 +172,7 @@ JHANDLER_FUNCTION(GetAddrInfo) {
   int option = JHANDLER_GET_ARG(1, number);
   int flags = JHANDLER_GET_ARG(2, number);
   int error = 0;
-  const iotjs_jval_t* jcallback = JHANDLER_GET_ARG(3, function);
+  const iotjs_jval_t jcallback = *JHANDLER_GET_ARG(3, function);
 
   int family;
   if (option == 0) {
@@ -216,7 +216,7 @@ JHANDLER_FUNCTION(GetAddrInfo) {
   iotjs_jargs_append_string_raw(&args, ip);
   iotjs_jargs_append_number(&args, option);
 
-  iotjs_make_callback(jcallback, iotjs_jval_get_undefined(), &args);
+  iotjs_make_callback(&jcallback, iotjs_jval_get_undefined(), &args);
   iotjs_jargs_destroy(&args);
   IOTJS_UNUSED(flags);
 #else

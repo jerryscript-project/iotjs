@@ -144,7 +144,7 @@ JHANDLER_FUNCTION(SetFilter) {
   DJHANDLER_CHECK_ARGS(1, object);
 
   iotjs_bufferwrap_t* buffer =
-      iotjs_bufferwrap_from_jbuffer(JHANDLER_GET_ARG(0, object));
+      iotjs_bufferwrap_from_jbuffer(*JHANDLER_GET_ARG(0, object));
 
   iotjs_blehcisocket_setFilter(blehcisocket, iotjs_bufferwrap_buffer(buffer),
                                iotjs_bufferwrap_length(buffer));
@@ -168,7 +168,7 @@ JHANDLER_FUNCTION(Write) {
   DJHANDLER_CHECK_ARGS(1, object);
 
   iotjs_bufferwrap_t* buffer =
-      iotjs_bufferwrap_from_jbuffer(JHANDLER_GET_ARG(0, object));
+      iotjs_bufferwrap_from_jbuffer(*JHANDLER_GET_ARG(0, object));
 
   iotjs_blehcisocket_write(blehcisocket, iotjs_bufferwrap_buffer(buffer),
                            iotjs_bufferwrap_length(buffer));

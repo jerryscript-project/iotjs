@@ -271,13 +271,13 @@ JHANDLER_FUNCTION(SetPeriod) {
   DJHANDLER_CHECK_ARGS(1, number);
   DJHANDLER_CHECK_ARG_IF_EXIST(1, function);
 
-  const iotjs_jval_t* jcallback = JHANDLER_GET_ARG_IF_EXIST(1, function);
+  const iotjs_jval_t jcallback = JHANDLER_GET_ARG_IF_EXIST(1, function);
 
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_pwm_t, pwm);
   _this->period = JHANDLER_GET_ARG(0, number);
 
-  if (jcallback) {
-    PWM_ASYNC_COMMON_WORKER(iotjs_pwm_set_period, pwm, jcallback,
+  if (!jerry_value_is_null(jcallback)) {
+    PWM_ASYNC_COMMON_WORKER(iotjs_pwm_set_period, pwm, &jcallback,
                             kPwmOpSetPeriod);
   } else {
     if (!iotjs_pwm_set_period(pwm)) {
@@ -295,13 +295,13 @@ JHANDLER_FUNCTION(SetDutyCycle) {
   DJHANDLER_CHECK_ARGS(1, number);
   DJHANDLER_CHECK_ARG_IF_EXIST(1, function);
 
-  const iotjs_jval_t* jcallback = JHANDLER_GET_ARG_IF_EXIST(1, function);
+  const iotjs_jval_t jcallback = JHANDLER_GET_ARG_IF_EXIST(1, function);
 
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_pwm_t, pwm);
   _this->duty_cycle = JHANDLER_GET_ARG(0, number);
 
-  if (jcallback) {
-    PWM_ASYNC_COMMON_WORKER(iotjs_pwm_set_dutycycle, pwm, jcallback,
+  if (!jerry_value_is_null(jcallback)) {
+    PWM_ASYNC_COMMON_WORKER(iotjs_pwm_set_dutycycle, pwm, &jcallback,
                             kPwmOpSetDutyCycle);
   } else {
     if (!iotjs_pwm_set_dutycycle(pwm)) {
@@ -319,13 +319,13 @@ JHANDLER_FUNCTION(SetEnable) {
   DJHANDLER_CHECK_ARGS(1, boolean);
   DJHANDLER_CHECK_ARG_IF_EXIST(1, function);
 
-  const iotjs_jval_t* jcallback = JHANDLER_GET_ARG_IF_EXIST(1, function);
+  const iotjs_jval_t jcallback = JHANDLER_GET_ARG_IF_EXIST(1, function);
 
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_pwm_t, pwm);
   _this->enable = JHANDLER_GET_ARG(0, boolean);
 
-  if (jcallback) {
-    PWM_ASYNC_COMMON_WORKER(iotjs_pwm_set_enable, pwm, jcallback,
+  if (!jerry_value_is_null(jcallback)) {
+    PWM_ASYNC_COMMON_WORKER(iotjs_pwm_set_enable, pwm, &jcallback,
                             kPwmOpSetEnable);
   } else {
     if (!iotjs_pwm_set_enable(pwm)) {
@@ -341,10 +341,10 @@ JHANDLER_FUNCTION(Close) {
   JHANDLER_DECLARE_THIS_PTR(pwm, pwm);
   DJHANDLER_CHECK_ARG_IF_EXIST(0, function);
 
-  const iotjs_jval_t* jcallback = JHANDLER_GET_ARG_IF_EXIST(0, function);
+  const iotjs_jval_t jcallback = JHANDLER_GET_ARG_IF_EXIST(0, function);
 
-  if (jcallback) {
-    PWM_ASYNC_COMMON_WORKER(iotjs_pwm_close, pwm, jcallback, kPwmOpClose);
+  if (!jerry_value_is_null(jcallback)) {
+    PWM_ASYNC_COMMON_WORKER(iotjs_pwm_close, pwm, &jcallback, kPwmOpClose);
   } else {
     if (!iotjs_pwm_close(pwm)) {
       JHANDLER_THROW(COMMON, "PWM Close Error");

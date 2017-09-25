@@ -273,12 +273,12 @@ JHANDLER_FUNCTION(Write) {
   DJHANDLER_CHECK_ARGS(1, boolean);
   DJHANDLER_CHECK_ARG_IF_EXIST(1, function);
 
-  const iotjs_jval_t* jcallback = JHANDLER_GET_ARG_IF_EXIST(1, function);
+  const iotjs_jval_t jcallback = JHANDLER_GET_ARG_IF_EXIST(1, function);
 
   bool value = JHANDLER_GET_ARG(0, boolean);
 
-  if (jcallback) {
-    GPIO_ASYNC_WITH_VALUE(write, gpio, jcallback, kGpioOpWrite, value);
+  if (!jerry_value_is_null(jcallback)) {
+    GPIO_ASYNC_WITH_VALUE(write, gpio, &jcallback, kGpioOpWrite, value);
   } else {
     if (!iotjs_gpio_write(gpio, value)) {
       JHANDLER_THROW(COMMON, "GPIO WriteSync Error");
@@ -294,10 +294,10 @@ JHANDLER_FUNCTION(Read) {
   DJHANDLER_CHECK_ARGS(0);
   DJHANDLER_CHECK_ARG_IF_EXIST(0, function);
 
-  const iotjs_jval_t* jcallback = JHANDLER_GET_ARG_IF_EXIST(0, function);
+  const iotjs_jval_t jcallback = JHANDLER_GET_ARG_IF_EXIST(0, function);
 
-  if (jcallback) {
-    GPIO_ASYNC(read, gpio, jcallback, kGpioOpRead);
+  if (!jerry_value_is_null(jcallback)) {
+    GPIO_ASYNC(read, gpio, &jcallback, kGpioOpRead);
     iotjs_jhandler_return_null(jhandler);
   } else {
     int value = iotjs_gpio_read(gpio);
@@ -313,10 +313,10 @@ JHANDLER_FUNCTION(Close) {
   JHANDLER_DECLARE_THIS_PTR(gpio, gpio)
   DJHANDLER_CHECK_ARG_IF_EXIST(0, function);
 
-  const iotjs_jval_t* jcallback = JHANDLER_GET_ARG_IF_EXIST(0, function);
+  const iotjs_jval_t jcallback = JHANDLER_GET_ARG_IF_EXIST(0, function);
 
-  if (jcallback) {
-    GPIO_ASYNC(close, gpio, jcallback, kGpioOpClose);
+  if (!jerry_value_is_null(jcallback)) {
+    GPIO_ASYNC(close, gpio, &jcallback, kGpioOpClose);
   } else {
     if (!iotjs_gpio_close(gpio)) {
       JHANDLER_THROW(COMMON, "GPIO CloseSync Error");

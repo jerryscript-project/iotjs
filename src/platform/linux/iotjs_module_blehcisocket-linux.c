@@ -305,7 +305,7 @@ void iotjs_blehcisocket_poll(THIS) {
     iotjs_jval_t str = iotjs_jval_create_string_raw("data");
     IOTJS_ASSERT(length >= 0);
     iotjs_jval_t jbuf = iotjs_bufferwrap_create_buffer((size_t)length);
-    iotjs_bufferwrap_t* buf_wrap = iotjs_bufferwrap_from_jbuffer(&jbuf);
+    iotjs_bufferwrap_t* buf_wrap = iotjs_bufferwrap_from_jbuffer(jbuf);
     iotjs_bufferwrap_copy(buf_wrap, data, (size_t)length);
     iotjs_jargs_append_jval(&jargs, &str);
     iotjs_jargs_append_jval(&jargs, &jbuf);

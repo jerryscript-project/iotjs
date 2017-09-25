@@ -27,14 +27,13 @@ typedef struct {
 } IOTJS_VALIDATED_STRUCT(iotjs_bufferwrap_t);
 
 
-iotjs_bufferwrap_t* iotjs_bufferwrap_create(const iotjs_jval_t* jbuiltin,
+iotjs_bufferwrap_t* iotjs_bufferwrap_create(const iotjs_jval_t jbuiltin,
                                             size_t length);
 
-iotjs_bufferwrap_t* iotjs_bufferwrap_from_jbuiltin(
-    const iotjs_jval_t* jbuiltin);
-iotjs_bufferwrap_t* iotjs_bufferwrap_from_jbuffer(const iotjs_jval_t* jbuffer);
+iotjs_bufferwrap_t* iotjs_bufferwrap_from_jbuiltin(const iotjs_jval_t jbuiltin);
+iotjs_bufferwrap_t* iotjs_bufferwrap_from_jbuffer(const iotjs_jval_t jbuffer);
 
-iotjs_jval_t* iotjs_bufferwrap_jbuiltin(iotjs_bufferwrap_t* bufferwrap);
+iotjs_jval_t iotjs_bufferwrap_jbuiltin(iotjs_bufferwrap_t* bufferwrap);
 iotjs_jval_t iotjs_bufferwrap_jbuffer(iotjs_bufferwrap_t* bufferwrap);
 
 char* iotjs_bufferwrap_buffer(iotjs_bufferwrap_t* bufferwrap);

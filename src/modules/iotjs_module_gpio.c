@@ -87,7 +87,7 @@ static iotjs_jval_t iotjs_gpio_reqwrap_jcallback(THIS) {
 
 
 static iotjs_gpio_t* iotjs_gpio_instance_from_jval(const iotjs_jval_t jgpio) {
-  uintptr_t handle = iotjs_jval_get_object_native_handle(&jgpio);
+  uintptr_t handle = iotjs_jval_get_object_native_handle(jgpio);
   return (iotjs_gpio_t*)handle;
 }
 
@@ -209,22 +209,22 @@ static void gpio_set_configurable(iotjs_gpio_t* gpio,
 
   iotjs_jval_t jpin =
       iotjs_jval_get_property(&jconfigurable, IOTJS_MAGIC_STRING_PIN);
-  _this->pin = iotjs_jval_as_number(&jpin);
+  _this->pin = iotjs_jval_as_number(jpin);
   iotjs_jval_destroy(&jpin);
 
   iotjs_jval_t jdirection =
       iotjs_jval_get_property(&jconfigurable, IOTJS_MAGIC_STRING_DIRECTION);
-  _this->direction = (GpioDirection)iotjs_jval_as_number(&jdirection);
+  _this->direction = (GpioDirection)iotjs_jval_as_number(jdirection);
   iotjs_jval_destroy(&jdirection);
 
   iotjs_jval_t jmode =
       iotjs_jval_get_property(&jconfigurable, IOTJS_MAGIC_STRING_MODE);
-  _this->mode = (GpioMode)iotjs_jval_as_number(&jmode);
+  _this->mode = (GpioMode)iotjs_jval_as_number(jmode);
   iotjs_jval_destroy(&jmode);
 
   iotjs_jval_t jedge =
       iotjs_jval_get_property(&jconfigurable, IOTJS_MAGIC_STRING_EDGE);
-  _this->edge = (GpioMode)iotjs_jval_as_number(&jedge);
+  _this->edge = (GpioMode)iotjs_jval_as_number(jedge);
   iotjs_jval_destroy(&jedge);
 }
 
@@ -258,13 +258,13 @@ JHANDLER_FUNCTION(GpioConstructor) {
   DJHANDLER_CHECK_ARGS(2, object, function);
 
   // Create GPIO object
-  const iotjs_jval_t jgpio = *JHANDLER_GET_THIS(object);
+  const iotjs_jval_t jgpio = JHANDLER_GET_THIS(object);
   iotjs_gpio_t* gpio = iotjs_gpio_create(jgpio);
   IOTJS_ASSERT(gpio == iotjs_gpio_instance_from_jval(jgpio));
 
-  gpio_set_configurable(gpio, *JHANDLER_GET_ARG(0, object));
+  gpio_set_configurable(gpio, JHANDLER_GET_ARG(0, object));
 
-  const iotjs_jval_t jcallback = *JHANDLER_GET_ARG(1, function);
+  const iotjs_jval_t jcallback = JHANDLER_GET_ARG(1, function);
   GPIO_ASYNC(open, gpio, jcallback, kGpioOpOpen);
 }
 

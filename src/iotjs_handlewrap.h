@@ -64,7 +64,7 @@ iotjs_handlewrap_t* iotjs_handlewrap_from_handle(uv_handle_t* handle);
 iotjs_handlewrap_t* iotjs_handlewrap_from_jobject(const iotjs_jval_t* jobject);
 
 uv_handle_t* iotjs_handlewrap_get_uv_handle(iotjs_handlewrap_t* handlewrap);
-iotjs_jval_t* iotjs_handlewrap_jobject(iotjs_handlewrap_t* handlewrap);
+iotjs_jval_t iotjs_handlewrap_jobject(iotjs_handlewrap_t* handlewrap);
 
 void iotjs_handlewrap_validate(iotjs_handlewrap_t* handlewrap);
 

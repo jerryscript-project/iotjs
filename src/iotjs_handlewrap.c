@@ -56,7 +56,7 @@ iotjs_handlewrap_t* iotjs_handlewrap_from_handle(uv_handle_t* handle) {
 
 iotjs_handlewrap_t* iotjs_handlewrap_from_jobject(const iotjs_jval_t* jobject) {
   iotjs_handlewrap_t* handlewrap =
-      (iotjs_handlewrap_t*)(iotjs_jval_get_object_native_handle(jobject));
+      (iotjs_handlewrap_t*)(iotjs_jval_get_object_native_handle(*jobject));
   iotjs_handlewrap_validate(handlewrap);
   return handlewrap;
 }
@@ -69,7 +69,7 @@ uv_handle_t* iotjs_handlewrap_get_uv_handle(iotjs_handlewrap_t* handlewrap) {
 }
 
 
-iotjs_jval_t* iotjs_handlewrap_jobject(iotjs_handlewrap_t* handlewrap) {
+iotjs_jval_t iotjs_handlewrap_jobject(iotjs_handlewrap_t* handlewrap) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_handlewrap_t, handlewrap);
   iotjs_handlewrap_validate(handlewrap);
   return iotjs_jobjectwrap_jobject(&_this->jobjectwrap);
@@ -90,7 +90,8 @@ static void iotjs_handlewrap_on_close(iotjs_handlewrap_t* handlewrap) {
 
   // Decrease ref count of Javascript object. From now the object can be
   // reclaimed.
-  iotjs_jval_destroy(iotjs_jobjectwrap_jobject(&_this->jobjectwrap));
+  iotjs_jval_t jval = iotjs_jobjectwrap_jobject(&_this->jobjectwrap);
+  iotjs_jval_destroy(&jval);
 }
 
 

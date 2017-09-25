@@ -50,7 +50,7 @@ static void AfterAsync(uv_fs_t* req) {
   IOTJS_ASSERT(&req_wrap->req == req);
 
   const iotjs_jval_t cb = *iotjs_reqwrap_jcallback(&req_wrap->reqwrap);
-  IOTJS_ASSERT(iotjs_jval_is_function(&cb));
+  IOTJS_ASSERT(iotjs_jval_is_function(cb));
 
   iotjs_jargs_t jarg = iotjs_jargs_create(2);
   if (req->result < 0) {
@@ -237,7 +237,7 @@ JHANDLER_FUNCTION(Read) {
   const iotjs_environment_t* env = iotjs_environment_get();
 
   int fd = JHANDLER_GET_ARG(0, number);
-  const iotjs_jval_t jbuffer = *JHANDLER_GET_ARG(1, object);
+  const iotjs_jval_t jbuffer = JHANDLER_GET_ARG(1, object);
   size_t offset = JHANDLER_GET_ARG(2, number);
   size_t length = JHANDLER_GET_ARG(3, number);
   int position = JHANDLER_GET_ARG(4, number);
@@ -276,7 +276,7 @@ JHANDLER_FUNCTION(Write) {
   const iotjs_environment_t* env = iotjs_environment_get();
 
   int fd = JHANDLER_GET_ARG(0, number);
-  const iotjs_jval_t jbuffer = *JHANDLER_GET_ARG(1, object);
+  const iotjs_jval_t jbuffer = JHANDLER_GET_ARG(1, object);
   size_t offset = JHANDLER_GET_ARG(2, number);
   size_t length = JHANDLER_GET_ARG(3, number);
   int position = JHANDLER_GET_ARG(4, number);
@@ -312,7 +312,7 @@ iotjs_jval_t MakeStatObject(uv_stat_t* statbuf) {
 
   iotjs_jval_t stat_prototype =
       iotjs_jval_get_property(&fs, IOTJS_MAGIC_STRING_STATS);
-  IOTJS_ASSERT(iotjs_jval_is_object(&stat_prototype));
+  IOTJS_ASSERT(iotjs_jval_is_object(stat_prototype));
 
   iotjs_jval_t jstat = iotjs_jval_create_object();
   iotjs_jval_set_prototype(&jstat, &stat_prototype);
@@ -482,10 +482,10 @@ JHANDLER_FUNCTION(ReadDir) {
 
 static void StatsIsTypeOf(iotjs_jhandler_t* jhandler, int type) {
   DJHANDLER_CHECK_THIS(object);
-  const iotjs_jval_t stats = *JHANDLER_GET_THIS(object);
+  const iotjs_jval_t stats = JHANDLER_GET_THIS(object);
   iotjs_jval_t mode = iotjs_jval_get_property(&stats, IOTJS_MAGIC_STRING_MODE);
 
-  int mode_number = (int)iotjs_jval_as_number(&mode);
+  int mode_number = (int)iotjs_jval_as_number(mode);
 
   iotjs_jval_destroy(&mode);
 

@@ -161,9 +161,9 @@ iotjs_jval_t* iotjs_jval_get_global_object() {
 }
 
 
-#define TYPE_CHECKER_BODY(jval_type)                        \
-  bool iotjs_jval_is_##jval_type(const iotjs_jval_t* val) { \
-    return jerry_value_is_##jval_type(*val);                \
+#define TYPE_CHECKER_BODY(jval_type)                 \
+  bool iotjs_jval_is_##jval_type(iotjs_jval_t val) { \
+    return jerry_value_is_##jval_type(val);          \
   }
 
 FOR_EACH_JVAL_TYPES(TYPE_CHECKER_BODY)
@@ -171,22 +171,22 @@ FOR_EACH_JVAL_TYPES(TYPE_CHECKER_BODY)
 #undef TYPE_CHECKER_BODY
 
 
-bool iotjs_jval_as_boolean(const iotjs_jval_t* jval) {
+bool iotjs_jval_as_boolean(iotjs_jval_t jval) {
   IOTJS_ASSERT(iotjs_jval_is_boolean(jval));
-  return jerry_get_boolean_value(*jval);
+  return jerry_get_boolean_value(jval);
 }
 
 
-double iotjs_jval_as_number(const iotjs_jval_t* jval) {
+double iotjs_jval_as_number(iotjs_jval_t jval) {
   IOTJS_ASSERT(iotjs_jval_is_number(jval));
-  return jerry_get_number_value(*jval);
+  return jerry_get_number_value(jval);
 }
 
 
-iotjs_string_t iotjs_jval_as_string(const iotjs_jval_t* jval) {
+iotjs_string_t iotjs_jval_as_string(iotjs_jval_t jval) {
   IOTJS_ASSERT(iotjs_jval_is_string(jval));
 
-  jerry_size_t size = jerry_get_string_size(*jval);
+  jerry_size_t size = jerry_get_string_size(jval);
 
   if (size == 0)
     return iotjs_string_create();
@@ -194,7 +194,7 @@ iotjs_string_t iotjs_jval_as_string(const iotjs_jval_t* jval) {
   char* buffer = iotjs_buffer_allocate(size + 1);
   jerry_char_t* jerry_buffer = (jerry_char_t*)(buffer);
 
-  size_t check = jerry_string_to_char_buffer(*jval, jerry_buffer, size);
+  size_t check = jerry_string_to_char_buffer(jval, jerry_buffer, size);
 
   IOTJS_ASSERT(check == size);
   buffer[size] = '\0';
@@ -205,20 +205,20 @@ iotjs_string_t iotjs_jval_as_string(const iotjs_jval_t* jval) {
 }
 
 
-const iotjs_jval_t* iotjs_jval_as_object(const iotjs_jval_t* jval) {
-  IOTJS_ASSERT(iotjs_jval_is_object(jval));
+iotjs_jval_t iotjs_jval_as_object(iotjs_jval_t jval) {
+  IOTJS_ASSERT(jerry_value_is_object(jval));
   return jval;
 }
 
 
-const iotjs_jval_t* iotjs_jval_as_array(const iotjs_jval_t* jval) {
-  IOTJS_ASSERT(iotjs_jval_is_array(jval));
+iotjs_jval_t iotjs_jval_as_array(iotjs_jval_t jval) {
+  IOTJS_ASSERT(jerry_value_is_array(jval));
   return jval;
 }
 
 
-const iotjs_jval_t* iotjs_jval_as_function(const iotjs_jval_t* jval) {
-  IOTJS_ASSERT(iotjs_jval_is_function(jval));
+iotjs_jval_t iotjs_jval_as_function(iotjs_jval_t jval) {
+  IOTJS_ASSERT(jerry_value_is_function(jval));
   return jval;
 }
 
@@ -240,7 +240,7 @@ bool iotjs_jval_set_prototype(const iotjs_jval_t* jobj, iotjs_jval_t* jproto) {
 
 void iotjs_jval_set_method(const iotjs_jval_t* jobj, const char* name,
                            iotjs_native_handler_t handler) {
-  IOTJS_ASSERT(iotjs_jval_is_object(jobj));
+  IOTJS_ASSERT(iotjs_jval_is_object(*jobj));
 
   iotjs_jval_t jfunc = iotjs_jval_create_function_with_dispatch(handler);
   iotjs_jval_set_property_jval(jobj, name, &jfunc);
@@ -250,7 +250,7 @@ void iotjs_jval_set_method(const iotjs_jval_t* jobj, const char* name,
 
 void iotjs_jval_set_property_jval(const iotjs_jval_t* jobj, const char* name,
                                   const iotjs_jval_t* val) {
-  IOTJS_ASSERT(iotjs_jval_is_object(jobj));
+  IOTJS_ASSERT(iotjs_jval_is_object(*jobj));
 
   jerry_value_t prop_name = jerry_create_string((const jerry_char_t*)(name));
   jerry_value_t value = iotjs_jval_as_raw(val);
@@ -305,7 +305,7 @@ void iotjs_jval_set_property_string_raw(const iotjs_jval_t* jobj,
 
 iotjs_jval_t iotjs_jval_get_property(const iotjs_jval_t* jobj,
                                      const char* name) {
-  IOTJS_ASSERT(iotjs_jval_is_object(jobj));
+  IOTJS_ASSERT(iotjs_jval_is_object(*jobj));
 
   jerry_value_t prop_name = jerry_create_string((const jerry_char_t*)(name));
   jerry_value_t res = jerry_get_property(*jobj, prop_name);
@@ -323,18 +323,18 @@ iotjs_jval_t iotjs_jval_get_property(const iotjs_jval_t* jobj,
 void iotjs_jval_set_object_native_handle(const iotjs_jval_t* jobj,
                                          uintptr_t ptr,
                                          JNativeInfoType* native_info) {
-  IOTJS_ASSERT(iotjs_jval_is_object(jobj));
+  IOTJS_ASSERT(iotjs_jval_is_object(*jobj));
 
   jerry_set_object_native_pointer(*jobj, (void*)ptr, native_info);
 }
 
 
-uintptr_t iotjs_jval_get_object_native_handle(const iotjs_jval_t* jobj) {
+uintptr_t iotjs_jval_get_object_native_handle(iotjs_jval_t jobj) {
   IOTJS_ASSERT(iotjs_jval_is_object(jobj));
 
   uintptr_t ptr = 0x0;
   JNativeInfoType* out_info;
-  jerry_get_object_native_pointer(*jobj, (void**)&ptr, &out_info);
+  jerry_get_object_native_pointer(jobj, (void**)&ptr, &out_info);
 
   return ptr;
 }
@@ -342,7 +342,7 @@ uintptr_t iotjs_jval_get_object_native_handle(const iotjs_jval_t* jobj) {
 
 uintptr_t iotjs_jval_get_object_from_jhandler(iotjs_jhandler_t* jhandler,
                                               JNativeInfoType* native_info) {
-  const iotjs_jval_t jval = *JHANDLER_GET_THIS(object);
+  const iotjs_jval_t jval = JHANDLER_GET_THIS(object);
 
   if (!jerry_value_is_object(jval)) {
     return 0;
@@ -395,7 +395,7 @@ uintptr_t iotjs_jval_get_arg_obj_from_jhandler(iotjs_jhandler_t* jhandler,
 
 void iotjs_jval_set_property_by_index(const iotjs_jval_t* jarr, uint32_t idx,
                                       const iotjs_jval_t* jval) {
-  IOTJS_ASSERT(iotjs_jval_is_object(jarr));
+  IOTJS_ASSERT(iotjs_jval_is_object(*jarr));
 
   jerry_value_t value = iotjs_jval_as_raw(jval);
   jerry_value_t ret_val = jerry_set_property_by_index(*jarr, idx, value);
@@ -406,7 +406,7 @@ void iotjs_jval_set_property_by_index(const iotjs_jval_t* jarr, uint32_t idx,
 
 iotjs_jval_t iotjs_jval_get_property_by_index(const iotjs_jval_t* jarr,
                                               uint32_t idx) {
-  IOTJS_ASSERT(iotjs_jval_is_object(jarr));
+  IOTJS_ASSERT(iotjs_jval_is_object(*jarr));
 
   jerry_value_t res = jerry_get_property_by_index(*jarr, idx);
 
@@ -422,7 +422,7 @@ iotjs_jval_t iotjs_jval_get_property_by_index(const iotjs_jval_t* jarr,
 iotjs_jval_t iotjs_jhelper_call(const iotjs_jval_t* jfunc,
                                 const iotjs_jval_t* jthis,
                                 const iotjs_jargs_t* jargs, bool* throws) {
-  IOTJS_ASSERT(iotjs_jval_is_object(jfunc));
+  IOTJS_ASSERT(iotjs_jval_is_object(*jfunc));
 
   jerry_value_t* jargv_ = NULL;
   jerry_length_t jargc_ = iotjs_jargs_length(jargs);
@@ -688,23 +688,23 @@ void iotjs_jhandler_destroy(iotjs_jhandler_t* jhandler) {
 }
 
 
-const iotjs_jval_t* iotjs_jhandler_get_function(iotjs_jhandler_t* jhandler) {
+iotjs_jval_t iotjs_jhandler_get_function(iotjs_jhandler_t* jhandler) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_jhandler_t, jhandler);
-  return &_this->jfunc;
+  return _this->jfunc;
 }
 
 
-const iotjs_jval_t* iotjs_jhandler_get_this(iotjs_jhandler_t* jhandler) {
+iotjs_jval_t iotjs_jhandler_get_this(iotjs_jhandler_t* jhandler) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_jhandler_t, jhandler);
-  return &_this->jthis;
+  return _this->jthis;
 }
 
 
-const iotjs_jval_t* iotjs_jhandler_get_arg(iotjs_jhandler_t* jhandler,
-                                           uint16_t index) {
+iotjs_jval_t iotjs_jhandler_get_arg(iotjs_jhandler_t* jhandler,
+                                    uint16_t index) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_jhandler_t, jhandler);
   IOTJS_ASSERT(index < _this->jargc);
-  return &_this->jargv[index];
+  return _this->jargv[index];
 }
 
 
@@ -831,7 +831,7 @@ void iotjs_binding_initialize() {
   jfalse = iotjs_jval_create_raw(jerry_create_boolean(false));
   jglobal = iotjs_jval_create_raw(jerry_get_global_object());
 
-  IOTJS_ASSERT(iotjs_jval_is_object(&jglobal));
+  IOTJS_ASSERT(iotjs_jval_is_object(jglobal));
 
   iotjs_jargs_initialize_empty(&jargs_empty);
 

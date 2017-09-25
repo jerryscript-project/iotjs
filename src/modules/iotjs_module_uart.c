@@ -212,7 +212,7 @@ static void iotjs_uart_after_worker(uv_work_t* work_req, int status) {
 
 static void iotjs_uart_onread(iotjs_jval_t jthis, char* buf) {
   iotjs_jval_t jemit = iotjs_jval_get_property(&jthis, "emit");
-  IOTJS_ASSERT(iotjs_jval_is_function(&jemit));
+  IOTJS_ASSERT(iotjs_jval_is_function(jemit));
 
   iotjs_jargs_t jargs = iotjs_jargs_create(2);
   iotjs_jval_t str = iotjs_jval_create_string_raw("data");
@@ -258,15 +258,15 @@ JHANDLER_FUNCTION(UartConstructor) {
   DJHANDLER_CHECK_ARGS(3, object, object, function);
 
   // Create UART object
-  iotjs_jval_t juart = *JHANDLER_GET_THIS(object);
+  iotjs_jval_t juart = JHANDLER_GET_THIS(object);
   iotjs_uart_t* uart = iotjs_uart_create(juart);
   IOTJS_ASSERT(uart == iotjs_uart_instance_from_jval(juart));
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_uart_t, uart);
 
-  iotjs_jval_t jconfiguration = *JHANDLER_GET_ARG(0, object);
-  iotjs_jval_t jemitter_this = *JHANDLER_GET_ARG(1, object);
+  iotjs_jval_t jconfiguration = JHANDLER_GET_ARG(0, object);
+  iotjs_jval_t jemitter_this = JHANDLER_GET_ARG(1, object);
   _this->jemitter_this = iotjs_jval_create_copied(&jemitter_this);
-  iotjs_jval_t jcallback = *JHANDLER_GET_ARG(2, function);
+  iotjs_jval_t jcallback = JHANDLER_GET_ARG(2, function);
 
   // set configuration
   iotjs_jval_t jdevice =
@@ -276,9 +276,9 @@ JHANDLER_FUNCTION(UartConstructor) {
   iotjs_jval_t jdata_bits =
       iotjs_jval_get_property(&jconfiguration, IOTJS_MAGIC_STRING_DATABITS);
 
-  _this->device_path = iotjs_jval_as_string(&jdevice);
-  _this->baud_rate = iotjs_jval_as_number(&jbaud_rate);
-  _this->data_bits = iotjs_jval_as_number(&jdata_bits);
+  _this->device_path = iotjs_jval_as_string(jdevice);
+  _this->baud_rate = iotjs_jval_as_number(jbaud_rate);
+  _this->data_bits = iotjs_jval_as_number(jdata_bits);
 
   DDDLOG("%s - path: %s, baudRate: %d, dataBits: %d", __func__,
          iotjs_string_data(&_this->device_path), _this->baud_rate,

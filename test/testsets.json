@@ -51,7 +51,7 @@
     { "name": "test_https_timeout.js", "timeout": 40, "skip": ["all"], "reason": "Implemented only for Tizen" },
     { "name": "test_i2c.js", "skip": ["all"], "reason": "need to setup test environment" },
     { "name": "test_iotjs_promise.js", "skip": ["all"], "reason": "es2015 is off by default" },
-    { "name": "test_module_cache.js", "skip": ["nuttx", "tizenrt"], "reason": "not implemented for nuttx/TizenRT" },
+    { "name": "test_module_cache.js", "skip": ["nuttx"], "reason": "not implemented for nuttx" },
     { "name": "test_module_require.js", "skip": ["nuttx"], "reason": "not implemented for nuttx" },
     { "name": "test_net_1.js" },
     { "name": "test_net_2.js" },

@@ -71,7 +71,8 @@ iotjs_module_t.resolveFilepath = function(id, directories) {
       modulePath = process.cwd() + '/' + modulePath;
     }
 
-    if (process.platform === 'tizenrt' && modulePath.indexOf("..") != -1) {
+    if (process.platform === 'tizenrt' &&
+        (modulePath.indexOf("../") != -1 || modulePath.indexOf("./") != -1)) {
       modulePath = iotjs_module_t.normalizePath(modulePath);
     }
 

@@ -183,7 +183,7 @@ static void GetI2cArray(const iotjs_jval_t jarray,
   req_data->buf_data = iotjs_buffer_allocate(req_data->buf_len);
 
   for (uint8_t i = 0; i < req_data->buf_len; i++) {
-    iotjs_jval_t jdata = iotjs_jval_get_property_by_index(&jarray, i);
+    iotjs_jval_t jdata = iotjs_jval_get_property_by_index(jarray, i);
     req_data->buf_data[i] = iotjs_jval_as_number(jdata);
     iotjs_jval_destroy(&jdata);
   }

@@ -223,9 +223,8 @@ static jerry_value_t iotjs_jval_as_raw(const iotjs_jval_t* jval) {
 }
 
 
-bool iotjs_jval_set_prototype(const iotjs_jval_t* jobj, iotjs_jval_t* jproto) {
-  jerry_value_t ret =
-      jerry_set_prototype(iotjs_jval_as_raw(jobj), iotjs_jval_as_raw(jproto));
+bool iotjs_jval_set_prototype(const iotjs_jval_t jobj, iotjs_jval_t jproto) {
+  jerry_value_t ret = jerry_set_prototype(jobj, jproto);
   bool error_found = jerry_value_has_error_flag(ret);
   jerry_release_value(ret);
 
@@ -397,18 +396,17 @@ void iotjs_jval_set_property_by_index(const iotjs_jval_t* jarr, uint32_t idx,
 }
 
 
-iotjs_jval_t iotjs_jval_get_property_by_index(const iotjs_jval_t* jarr,
-                                              uint32_t idx) {
-  IOTJS_ASSERT(iotjs_jval_is_object(*jarr));
+iotjs_jval_t iotjs_jval_get_property_by_index(iotjs_jval_t jarr, uint32_t idx) {
+  IOTJS_ASSERT(iotjs_jval_is_object(jarr));
 
-  jerry_value_t res = jerry_get_property_by_index(*jarr, idx);
+  jerry_value_t res = jerry_get_property_by_index(jarr, idx);
 
   if (jerry_value_has_error_flag(res)) {
     jerry_release_value(res);
-    return jerry_acquire_value(*iotjs_jval_get_undefined());
+    return *iotjs_jval_get_undefined();
   }
 
-  return iotjs_jval_create_raw(res);
+  return res;
 }
 
 

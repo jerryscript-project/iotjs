@@ -111,7 +111,7 @@ iotjs_jval_t iotjs_jval_as_array(iotjs_jval_t);
 iotjs_jval_t iotjs_jval_as_function(iotjs_jval_t);
 
 /* Methods for General JavaScript Object */
-bool iotjs_jval_set_prototype(const iotjs_jval_t* jobj, iotjs_jval_t* jproto);
+bool iotjs_jval_set_prototype(iotjs_jval_t jobj, iotjs_jval_t jproto);
 void iotjs_jval_set_method(THIS_JVAL, const char* name,
                            iotjs_native_handler_t handler);
 void iotjs_jval_set_property_jval(iotjs_jval_t jobj, const char* name,
@@ -140,7 +140,7 @@ uintptr_t iotjs_jval_get_arg_obj_from_jhandler(iotjs_jhandler_t* jhandler,
 
 void iotjs_jval_set_property_by_index(THIS_JVAL, uint32_t idx,
                                       const iotjs_jval_t* value);
-iotjs_jval_t iotjs_jval_get_property_by_index(THIS_JVAL, uint32_t idx);
+iotjs_jval_t iotjs_jval_get_property_by_index(iotjs_jval_t jarr, uint32_t idx);
 
 
 #undef THIS_JVAL

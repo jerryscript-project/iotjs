@@ -12,7 +12,7 @@ before_install:
   - if [[ "$INSTALL_TIZEN_DEPS" == "yes" ]]; then . tools/apt-get-install-tizen.sh; fi
   - if [[ "$INSTALL_TIZENRT_DEPS" == "yes" ]]; then . tools/apt-get-install-tizenrt.sh; fi
   - if [[ "$INSTALL_TRAVIS_I686_DEPS" == "yes" ]]; then tools/apt-get-install-travis-i686.sh; fi
-  - if [[ "$RUN_DOCKER" == "yes" ]]; then docker pull iotjs/ubuntu:0.1; fi
+  - if [[ "$RUN_DOCKER" == "yes" ]]; then docker pull iotjs/ubuntu:0.3; fi
   - if [ -z "$RUN_DOCKER" ] && [ "$TRAVIS_OS_NAME" == "linux" ]; then tools/apt-get-install-deps.sh; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then tools/brew-install-deps.sh; fi
 
@@ -27,11 +27,11 @@ env:
   global:
     - secure: "lUGzoKK/Yn4/OmpqLQALrIgfY9mQWE51deUawPrCO87UQ2GknfQ4BvwY3UT5QY0XnztPBP1+vRQ2qxbiAU7VWicp280sXDnh0FeuZD14FcE9l0FczraL12reoLu+gY5HWFfbkZncmcBsZkxDEYxhkM14FJU8fxyqGQW2ypJNz+gUGP+8r40Re5J3WjcddCQNe5IG8U+M9B4YeDHhN2QspLdN5pkgn56XtdGa3+qbecO2NpjJG5ltM9j1tTuo/Dg22DxrIFVfeFSFKUj4nfMrgPo5LevRsC/lfaBSCsj751eqrxRcQRh2hkpiIJ7mEBs2LL1EH9O6Mbj+eRh8BvIYqTB85VPNFc43sLWk14apcSVBrxJE5j3kP9sAsOD9Y5JynnkeuxYyISrkywwoX2uxsmCzIfGbwsv5VLToQzrqWlGYrHOAmVXNi8561dLfsWwxxFUjdqkZr1Kgc8UfnBEcBUtSiKCHS86/YUUbBJGkEkjDUS0GiqhFY4bXLQCR7EX4qDX3m6p7Mnh4NVUolpnSmyeYE/MjmqQ+7PJsPLL3EcIYmJ7dtW3mZ3yE2NyaFD0Pym9+TiuCCXRtrNVK1M3Kya64KNv+HbhjT/fTCgXLSeyDmJOKVAqugRlDo3b1KGR1LI0AfegzSA6mEC4e9JLjYiSnHPMUahzgLt8oU0hNFRY="
   matrix:
-    - OPTS="host-linux" RUN_DOCKER=yes
-    - OPTS="rpi2" RUN_DOCKER=yes
+    - OPTS="host-linux" TARGET_OS="linux" RUN_DOCKER=yes
+    - OPTS="rpi2" TARGET_OS="linux" RUN_DOCKER=yes
     - OPTS="--test=nuttx" INSTALL_NUTTX_DEPS=yes
     - OPTS="--test=artik10" INSTALL_TIZEN_DEPS=yes
-    - OPTS="--test=artik053" INSTALL_TIZENRT_DEPS=yes
+    - OPTS="artik053" TARGET_OS="tizenrt" RUN_DOCKER=yes
     - OPTS="--test=misc"
     - OPTS="--test=no-snapshot"
 

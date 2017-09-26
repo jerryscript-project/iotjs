@@ -6,6 +6,7 @@
 * [Events](IoT.js-API-Events.md)
 * [File System](IoT.js-API-File-System.md)
 * [HTTP](IoT.js-API-HTTP.md)
+* [HTTPS](IoT.js-API-HTTPS.md)
 * [Module](IoT.js-API-Module.md)
 * [Net](IoT.js-API-Net.md)
 * [Process](IoT.js-API-Process.md)

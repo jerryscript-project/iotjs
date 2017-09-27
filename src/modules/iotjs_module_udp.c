@@ -459,7 +459,7 @@ iotjs_jval_t InitUdp() {
   iotjs_jval_t udp = iotjs_jval_create_function_with_dispatch(UDP);
 
   iotjs_jval_t prototype = iotjs_jval_create_object();
-  iotjs_jval_set_property_jval(&udp, IOTJS_MAGIC_STRING_PROTOTYPE, &prototype);
+  iotjs_jval_set_property_jval(udp, IOTJS_MAGIC_STRING_PROTOTYPE, prototype);
 
   iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_BIND, Bind);
   iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_RECVSTART, RecvStart);

@@ -323,16 +323,16 @@ iotjs_jval_t MakeStatObject(uv_stat_t* statbuf) {
 #define X(statobj, name) \
   iotjs_jval_set_property_number(statobj, #name, statbuf->st_##name);
 
-  X(&jstat, dev)
-  X(&jstat, mode)
-  X(&jstat, nlink)
-  X(&jstat, uid)
-  X(&jstat, gid)
-  X(&jstat, rdev)
-  X(&jstat, blksize)
-  X(&jstat, ino)
-  X(&jstat, size)
-  X(&jstat, blocks)
+  X(jstat, dev)
+  X(jstat, mode)
+  X(jstat, nlink)
+  X(jstat, uid)
+  X(jstat, gid)
+  X(jstat, rdev)
+  X(jstat, blksize)
+  X(jstat, ino)
+  X(jstat, size)
+  X(jstat, blocks)
 
 #undef X
 
@@ -522,7 +522,7 @@ iotjs_jval_t InitFs() {
   iotjs_jval_set_method(&stats_prototype, IOTJS_MAGIC_STRING_ISFILE,
                         StatsIsFile);
 
-  iotjs_jval_set_property_jval(&fs, IOTJS_MAGIC_STRING_STATS, &stats_prototype);
+  iotjs_jval_set_property_jval(fs, IOTJS_MAGIC_STRING_STATS, stats_prototype);
   iotjs_jval_destroy(&stats_prototype);
 
   return fs;

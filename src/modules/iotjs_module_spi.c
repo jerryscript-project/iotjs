@@ -426,7 +426,7 @@ iotjs_jval_t InitSpi() {
   iotjs_jval_t jspi = iotjs_jval_create_object();
   iotjs_jval_t jspiConstructor =
       iotjs_jval_create_function_with_dispatch(SpiConstructor);
-  iotjs_jval_set_property_jval(&jspi, IOTJS_MAGIC_STRING_SPI, &jspiConstructor);
+  iotjs_jval_set_property_jval(jspi, IOTJS_MAGIC_STRING_SPI, jspiConstructor);
 
   iotjs_jval_t prototype = iotjs_jval_create_object();
   iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_TRANSFERARRAY,
@@ -434,35 +434,34 @@ iotjs_jval_t InitSpi() {
   iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_TRANSFERBUFFER,
                         TransferBuffer);
   iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_CLOSE, Close);
-  iotjs_jval_set_property_jval(&jspiConstructor, IOTJS_MAGIC_STRING_PROTOTYPE,
-                               &prototype);
+  iotjs_jval_set_property_jval(jspiConstructor, IOTJS_MAGIC_STRING_PROTOTYPE,
+                               prototype);
   iotjs_jval_destroy(&prototype);
   iotjs_jval_destroy(&jspiConstructor);
 
   // SPI mode properties
   iotjs_jval_t jmode = iotjs_jval_create_object();
-  iotjs_jval_set_property_number(&jmode, IOTJS_MAGIC_STRING_0, kSpiMode_0);
-  iotjs_jval_set_property_number(&jmode, IOTJS_MAGIC_STRING_1, kSpiMode_1);
-  iotjs_jval_set_property_number(&jmode, IOTJS_MAGIC_STRING_2, kSpiMode_2);
-  iotjs_jval_set_property_number(&jmode, IOTJS_MAGIC_STRING_3, kSpiMode_3);
-  iotjs_jval_set_property_jval(&jspi, IOTJS_MAGIC_STRING_MODE_U, &jmode);
+  iotjs_jval_set_property_number(jmode, IOTJS_MAGIC_STRING_0, kSpiMode_0);
+  iotjs_jval_set_property_number(jmode, IOTJS_MAGIC_STRING_1, kSpiMode_1);
+  iotjs_jval_set_property_number(jmode, IOTJS_MAGIC_STRING_2, kSpiMode_2);
+  iotjs_jval_set_property_number(jmode, IOTJS_MAGIC_STRING_3, kSpiMode_3);
+  iotjs_jval_set_property_jval(jspi, IOTJS_MAGIC_STRING_MODE_U, jmode);
   iotjs_jval_destroy(&jmode);
 
   // SPI mode properties
   iotjs_jval_t jcs = iotjs_jval_create_object();
-  iotjs_jval_set_property_number(&jcs, IOTJS_MAGIC_STRING_NONE, kSpiCsNone);
-  iotjs_jval_set_property_number(&jcs, IOTJS_MAGIC_STRING_HIGH, kSpiCsHigh);
-  iotjs_jval_set_property_jval(&jspi, IOTJS_MAGIC_STRING_CHIPSELECT_U, &jcs);
+  iotjs_jval_set_property_number(jcs, IOTJS_MAGIC_STRING_NONE, kSpiCsNone);
+  iotjs_jval_set_property_number(jcs, IOTJS_MAGIC_STRING_HIGH, kSpiCsHigh);
+  iotjs_jval_set_property_jval(jspi, IOTJS_MAGIC_STRING_CHIPSELECT_U, jcs);
   iotjs_jval_destroy(&jcs);
 
   // SPI order properties
   iotjs_jval_t jbit_order = iotjs_jval_create_object();
-  iotjs_jval_set_property_number(&jbit_order, IOTJS_MAGIC_STRING_MSB,
+  iotjs_jval_set_property_number(jbit_order, IOTJS_MAGIC_STRING_MSB,
                                  kSpiOrderMsb);
-  iotjs_jval_set_property_number(&jbit_order, IOTJS_MAGIC_STRING_LSB,
+  iotjs_jval_set_property_number(jbit_order, IOTJS_MAGIC_STRING_LSB,
                                  kSpiOrderLsb);
-  iotjs_jval_set_property_jval(&jspi, IOTJS_MAGIC_STRING_BITORDER_U,
-                               &jbit_order);
+  iotjs_jval_set_property_jval(jspi, IOTJS_MAGIC_STRING_BITORDER_U, jbit_order);
   iotjs_jval_destroy(&jbit_order);
 
   return jspi;

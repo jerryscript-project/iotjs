@@ -278,8 +278,8 @@ iotjs_jval_t InitI2c() {
   iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_WRITE, Write);
   iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_READ, Read);
 
-  iotjs_jval_set_property_jval(&jI2cCons, IOTJS_MAGIC_STRING_PROTOTYPE,
-                               &prototype);
+  iotjs_jval_set_property_jval(jI2cCons, IOTJS_MAGIC_STRING_PROTOTYPE,
+                               prototype);
 
   iotjs_jval_destroy(&prototype);
 

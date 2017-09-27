@@ -348,8 +348,8 @@ iotjs_jval_t InitUart() {
   iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_WRITE, Write);
   iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_CLOSE, Close);
 
-  iotjs_jval_set_property_jval(&juart_constructor, IOTJS_MAGIC_STRING_PROTOTYPE,
-                               &prototype);
+  iotjs_jval_set_property_jval(juart_constructor, IOTJS_MAGIC_STRING_PROTOTYPE,
+                               prototype);
 
   iotjs_jval_destroy(&prototype);
 

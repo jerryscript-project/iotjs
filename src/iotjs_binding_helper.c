@@ -32,7 +32,7 @@ void iotjs_uncaught_exception(const iotjs_jval_t* jexception) {
 
   bool throws;
   iotjs_jval_t jres =
-      iotjs_jhelper_call(&jonuncaughtexception, &process, &args, &throws);
+      iotjs_jhelper_call(jonuncaughtexception, process, &args, &throws);
 
   iotjs_jargs_destroy(&args);
   iotjs_jval_destroy(&jres);
@@ -60,7 +60,7 @@ void iotjs_process_emit_exit(int code) {
   iotjs_jargs_append_number(&jargs, code);
 
   bool throws;
-  iotjs_jval_t jres = iotjs_jhelper_call(&jexit, &process, &jargs, &throws);
+  iotjs_jval_t jres = iotjs_jhelper_call(jexit, process, &jargs, &throws);
 
   iotjs_jargs_destroy(&jargs);
   iotjs_jval_destroy(&jres);
@@ -87,7 +87,7 @@ bool iotjs_process_next_tick() {
   IOTJS_ASSERT(iotjs_jval_is_function(jon_next_tick));
 
   iotjs_jval_t jres =
-      iotjs_jhelper_call_ok(&jon_next_tick, iotjs_jval_get_undefined(),
+      iotjs_jhelper_call_ok(jon_next_tick, *iotjs_jval_get_undefined(),
                             iotjs_jargs_get_empty());
 
   IOTJS_ASSERT(iotjs_jval_is_boolean(jres));
@@ -117,7 +117,7 @@ iotjs_jval_t iotjs_make_callback_with_result(const iotjs_jval_t* jfunction,
                                              const iotjs_jargs_t* jargs) {
   // Calls back the function.
   bool throws;
-  iotjs_jval_t jres = iotjs_jhelper_call(jfunction, jthis, jargs, &throws);
+  iotjs_jval_t jres = iotjs_jhelper_call(*jfunction, *jthis, jargs, &throws);
   if (throws) {
     iotjs_uncaught_exception(&jres);
   }

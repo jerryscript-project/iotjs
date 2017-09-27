@@ -363,7 +363,7 @@ static void OnConnection(uv_stream_t* handle, int status) {
     IOTJS_ASSERT(iotjs_jval_is_function(jcreate_tcp));
 
     iotjs_jval_t jclient_tcp =
-        iotjs_jhelper_call_ok(&jcreate_tcp, iotjs_jval_get_undefined(),
+        iotjs_jhelper_call_ok(jcreate_tcp, *iotjs_jval_get_undefined(),
                               iotjs_jargs_get_empty());
     IOTJS_ASSERT(iotjs_jval_is_object(jclient_tcp));
 

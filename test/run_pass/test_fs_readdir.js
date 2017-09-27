@@ -23,7 +23,7 @@ var ans = 'DO_NOT_MODIFY_THIS_FOLDER\n'+
           'regular.txt\n';
 
 var res;
-var items;
+var items, i;
 
 res = "";
 items = fs.readdirSync(path);

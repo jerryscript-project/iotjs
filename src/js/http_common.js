@@ -16,7 +16,6 @@
 var util = require('util');
 var HTTPParser = process.binding(process.binding.httpparser).HTTPParser;
 var IncomingMessage = require('http_incoming').IncomingMessage;
-var OutgoingMessage = require('http_outgoing').OutgoingMessage;
 
 
 
@@ -39,12 +38,13 @@ exports.createHTTPParser = createHTTPParser;
 function parserOnMessageComplete() {
   var stream = this.incoming;
 
-  if (stream) {
-    stream.complete = true;
-    // no more data from incoming, stream will emit 'end' event
-    stream.push(null);
+  if (!stream) {
+    return;
   }
 
+  stream.complete = true;
+  // no more data from incoming, stream will emit 'end' event
+  stream.push(null);
   stream.socket.resume();
 }
 

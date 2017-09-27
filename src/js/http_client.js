@@ -16,9 +16,7 @@
 var util = require('util');
 var net = require('net');
 var HTTPParser = process.binding(process.binding.httpparser).HTTPParser;
-var IncomingMessage = require('http_incoming').IncomingMessage;
 var OutgoingMessage = require('http_outgoing').OutgoingMessage;
-var Buffer = require('buffer');
 var common = require('http_common');
 
 

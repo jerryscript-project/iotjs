@@ -71,6 +71,7 @@ static void iotjs_environment_initialize(iotjs_environment_t* env) {
   _this->config.memstat = false;
   _this->config.show_opcode = false;
   _this->config.debugger = false;
+  _this->config.debugger_wait_source = false;
   _this->config.debugger_port = 5001;
 }
 
@@ -115,6 +116,8 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
       char port[port_length];
       memcpy(&port, argv[i] + port_arg_len, port_length);
       sscanf(port, "%d", &(_this->config.debugger_port));
+    } else if (!strcmp(argv[i], "--debugger-wait-source")) {
+      _this->config.debugger_wait_source = true;
     } else {
       fprintf(stderr, "unknown command line option: %s\n", argv[i]);
       return false;
@@ -122,27 +125,29 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
     ++i;
   }
 
-  // There must be at least one argument after processing the IoT.js args.
-  if ((argc - i) < 1) {
+  // There must be at least one argument after processing the IoT.js args,
+  // except when sources are sent over by the debugger client.
+  if ((argc - i) < 1 && !_this->config.debugger_wait_source) {
     fprintf(stderr,
             "Usage: iotjs [options] {script | script.js} [arguments]\n");
     return false;
   }
 
+  // If waiting for source is enabled, there is no need to handle
+  // commandline args.
   // Remaining arguments are for application.
-  _this->argc = 2;
-  size_t buffer_size = ((size_t)(_this->argc + argc - i)) * sizeof(char*);
-  _this->argv = (char**)iotjs_buffer_allocate(buffer_size);
-  _this->argv[0] = argv[0];
-  _this->argv[1] = argv[i++];
-
-  size_t len = 0;
-  while (i < argc) {
-    len = strlen(argv[i]) + 1;
-    _this->argv[_this->argc] = iotjs_buffer_allocate(len);
-    strncpy(_this->argv[_this->argc], argv[i], len);
-    _this->argc++;
-    i++;
+  if (!_this->config.debugger_wait_source) {
+    _this->argc = 2;
+    size_t buffer_size = ((size_t)(_this->argc + argc - i)) * sizeof(char*);
+    _this->argv = (char**)iotjs_buffer_allocate(buffer_size);
+    _this->argv[0] = argv[0];
+    _this->argv[1] = argv[i++];
+    while (i < argc) {
+      _this->argv[_this->argc] = iotjs_buffer_allocate(strlen(argv[i]) + 1);
+      strcpy(_this->argv[_this->argc], argv[i]);
+      _this->argc++;
+      i++;
+    }
   }
 
   return true;

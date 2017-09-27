@@ -79,11 +79,11 @@ static void gpio_set_value_fd(iotjs_gpio_t* gpio, int fd) {
 static void gpio_emit_change_event(iotjs_gpio_t* gpio) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_gpio_t, gpio);
 
-  iotjs_jval_t* jgpio = iotjs_jobjectwrap_jobject(&_this->jobjectwrap);
-  iotjs_jval_t jonChange = iotjs_jval_get_property(jgpio, "onChange");
+  iotjs_jval_t jgpio = *iotjs_jobjectwrap_jobject(&_this->jobjectwrap);
+  iotjs_jval_t jonChange = iotjs_jval_get_property(&jgpio, "onChange");
   IOTJS_ASSERT(iotjs_jval_is_function(&jonChange));
 
-  iotjs_jhelper_call_ok(&jonChange, jgpio, iotjs_jargs_get_empty());
+  iotjs_jhelper_call_ok(&jonChange, &jgpio, iotjs_jargs_get_empty());
 
   iotjs_jval_destroy(&jonChange);
 }

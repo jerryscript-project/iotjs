@@ -20,14 +20,13 @@
 #include "iotjs_objectwrap.h"
 
 
-static iotjs_uart_t* iotjs_uart_instance_from_jval(const iotjs_jval_t* juart);
 IOTJS_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(uart);
 
-static iotjs_uart_t* iotjs_uart_create(const iotjs_jval_t* juart) {
+static iotjs_uart_t* iotjs_uart_create(iotjs_jval_t juart) {
   iotjs_uart_t* uart = IOTJS_ALLOC(iotjs_uart_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_uart_t, uart);
 
-  iotjs_handlewrap_initialize(&_this->handlewrap, juart,
+  iotjs_handlewrap_initialize(&_this->handlewrap, &juart,
                               (uv_handle_t*)(&_this->poll_handle),
                               &this_module_native_info);
 
@@ -46,12 +45,13 @@ static void iotjs_uart_destroy(iotjs_uart_t* uart) {
 #define THIS iotjs_uart_reqwrap_t* uart_reqwrap
 
 
-static iotjs_uart_reqwrap_t* iotjs_uart_reqwrap_create(
-    const iotjs_jval_t* jcallback, iotjs_uart_t* uart, UartOp op) {
+static iotjs_uart_reqwrap_t* iotjs_uart_reqwrap_create(iotjs_jval_t jcallback,
+                                                       iotjs_uart_t* uart,
+                                                       UartOp op) {
   iotjs_uart_reqwrap_t* uart_reqwrap = IOTJS_ALLOC(iotjs_uart_reqwrap_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_uart_reqwrap_t, uart_reqwrap);
 
-  iotjs_reqwrap_initialize(&_this->reqwrap, jcallback, (uv_req_t*)&_this->req);
+  iotjs_reqwrap_initialize(&_this->reqwrap, &jcallback, (uv_req_t*)&_this->req);
 
   _this->req_data.op = op;
   _this->uart_instance = uart;
@@ -79,14 +79,14 @@ static uv_work_t* iotjs_uart_reqwrap_req(THIS) {
 }
 
 
-static const iotjs_jval_t* iotjs_uart_reqwrap_jcallback(THIS) {
+static iotjs_jval_t iotjs_uart_reqwrap_jcallback(THIS) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_uart_reqwrap_t, uart_reqwrap);
-  return iotjs_reqwrap_jcallback(&_this->reqwrap);
+  return *iotjs_reqwrap_jcallback(&_this->reqwrap);
 }
 
 
-static iotjs_uart_t* iotjs_uart_instance_from_jval(const iotjs_jval_t* juart) {
-  iotjs_handlewrap_t* handlewrap = iotjs_handlewrap_from_jobject(juart);
+static iotjs_uart_t* iotjs_uart_instance_from_jval(iotjs_jval_t juart) {
+  iotjs_handlewrap_t* handlewrap = iotjs_handlewrap_from_jobject(&juart);
   return (iotjs_uart_t*)handlewrap;
 }
 
@@ -202,16 +202,16 @@ static void iotjs_uart_after_worker(uv_work_t* work_req, int status) {
     }
   }
 
-  const iotjs_jval_t* jcallback = iotjs_uart_reqwrap_jcallback(req_wrap);
-  iotjs_make_callback(jcallback, iotjs_jval_get_undefined(), &jargs);
+  iotjs_jval_t jcallback = iotjs_uart_reqwrap_jcallback(req_wrap);
+  iotjs_make_callback(&jcallback, iotjs_jval_get_undefined(), &jargs);
 
   iotjs_jargs_destroy(&jargs);
   iotjs_uart_reqwrap_dispatched(req_wrap);
 }
 
 
-static void iotjs_uart_onread(iotjs_jval_t* jthis, char* buf) {
-  iotjs_jval_t jemit = iotjs_jval_get_property(jthis, "emit");
+static void iotjs_uart_onread(iotjs_jval_t jthis, char* buf) {
+  iotjs_jval_t jemit = iotjs_jval_get_property(&jthis, "emit");
   IOTJS_ASSERT(iotjs_jval_is_function(&jemit));
 
   iotjs_jargs_t jargs = iotjs_jargs_create(2);
@@ -219,7 +219,7 @@ static void iotjs_uart_onread(iotjs_jval_t* jthis, char* buf) {
   iotjs_jval_t data = iotjs_jval_create_string_raw(buf);
   iotjs_jargs_append_jval(&jargs, &str);
   iotjs_jargs_append_jval(&jargs, &data);
-  iotjs_jhelper_call_ok(&jemit, jthis, &jargs);
+  iotjs_jhelper_call_ok(&jemit, &jthis, &jargs);
 
   iotjs_jval_destroy(&str);
   iotjs_jval_destroy(&data);
@@ -237,7 +237,7 @@ void iotjs_uart_read_cb(uv_poll_t* req, int status, int events) {
   if (i > 0) {
     buf[i] = '\0';
     DDDLOG("%s - read data: %s", __func__, buf);
-    iotjs_uart_onread(&_this->jemitter_this, buf);
+    iotjs_uart_onread(_this->jemitter_this, buf);
   }
 }
 
@@ -258,23 +258,23 @@ JHANDLER_FUNCTION(UartConstructor) {
   DJHANDLER_CHECK_ARGS(3, object, object, function);
 
   // Create UART object
-  const iotjs_jval_t* juart = JHANDLER_GET_THIS(object);
+  iotjs_jval_t juart = *JHANDLER_GET_THIS(object);
   iotjs_uart_t* uart = iotjs_uart_create(juart);
   IOTJS_ASSERT(uart == iotjs_uart_instance_from_jval(juart));
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_uart_t, uart);
 
-  const iotjs_jval_t* jconfiguration = JHANDLER_GET_ARG(0, object);
-  const iotjs_jval_t* jemitter_this = JHANDLER_GET_ARG(1, object);
-  _this->jemitter_this = iotjs_jval_create_copied(jemitter_this);
-  const iotjs_jval_t* jcallback = JHANDLER_GET_ARG(2, function);
+  iotjs_jval_t jconfiguration = *JHANDLER_GET_ARG(0, object);
+  iotjs_jval_t jemitter_this = *JHANDLER_GET_ARG(1, object);
+  _this->jemitter_this = iotjs_jval_create_copied(&jemitter_this);
+  iotjs_jval_t jcallback = *JHANDLER_GET_ARG(2, function);
 
   // set configuration
   iotjs_jval_t jdevice =
-      iotjs_jval_get_property(jconfiguration, IOTJS_MAGIC_STRING_DEVICE);
+      iotjs_jval_get_property(&jconfiguration, IOTJS_MAGIC_STRING_DEVICE);
   iotjs_jval_t jbaud_rate =
-      iotjs_jval_get_property(jconfiguration, IOTJS_MAGIC_STRING_BAUDRATE);
+      iotjs_jval_get_property(&jconfiguration, IOTJS_MAGIC_STRING_BAUDRATE);
   iotjs_jval_t jdata_bits =
-      iotjs_jval_get_property(jconfiguration, IOTJS_MAGIC_STRING_DATABITS);
+      iotjs_jval_get_property(&jconfiguration, IOTJS_MAGIC_STRING_DATABITS);
 
   _this->device_path = iotjs_jval_as_string(&jdevice);
   _this->baud_rate = iotjs_jval_as_number(&jbaud_rate);
@@ -305,7 +305,7 @@ JHANDLER_FUNCTION(Write) {
   _this->buf_len = iotjs_string_size(&_this->buf_data);
 
   if (!jerry_value_is_null(jcallback)) {
-    UART_ASYNC(write, uart, &jcallback, kUartOpWrite);
+    UART_ASYNC(write, uart, jcallback, kUartOpWrite);
   } else {
     bool result = iotjs_uart_write(uart);
     iotjs_string_destroy(&_this->buf_data);
@@ -330,7 +330,7 @@ JHANDLER_FUNCTION(Close) {
   iotjs_jval_destroy(&_this->jemitter_this);
 
   if (!jerry_value_is_null(jcallback)) {
-    UART_ASYNC(close, uart, &jcallback, kUartOpClose);
+    UART_ASYNC(close, uart, jcallback, kUartOpClose);
   } else {
     if (!iotjs_uart_close(uart)) {
       JHANDLER_THROW(COMMON, "UART Close Error");

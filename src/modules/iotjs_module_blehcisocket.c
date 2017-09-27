@@ -48,11 +48,11 @@
 IOTJS_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(blehcisocket);
 
 
-iotjs_blehcisocket_t* iotjs_blehcisocket_create(const iotjs_jval_t* jble) {
+iotjs_blehcisocket_t* iotjs_blehcisocket_create(iotjs_jval_t jble) {
   THIS = IOTJS_ALLOC(iotjs_blehcisocket_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_blehcisocket_t, blehcisocket);
 
-  iotjs_jobjectwrap_initialize(&_this->jobjectwrap, jble,
+  iotjs_jobjectwrap_initialize(&_this->jobjectwrap, &jble,
                                &this_module_native_info);
 
   iotjs_blehcisocket_initialize(blehcisocket);
@@ -61,9 +61,8 @@ iotjs_blehcisocket_t* iotjs_blehcisocket_create(const iotjs_jval_t* jble) {
 }
 
 
-iotjs_blehcisocket_t* iotjs_blehcisocket_instance_from_jval(
-    const iotjs_jval_t* jble) {
-  iotjs_jobjectwrap_t* jobjectwrap = iotjs_jobjectwrap_from_jobject(jble);
+iotjs_blehcisocket_t* iotjs_blehcisocket_instance_from_jval(iotjs_jval_t jble) {
+  iotjs_jobjectwrap_t* jobjectwrap = iotjs_jobjectwrap_from_jobject(&jble);
   return (iotjs_blehcisocket_t*)jobjectwrap;
 }
 
@@ -94,9 +93,9 @@ JHANDLER_FUNCTION(BindRaw) {
   int devId = 0;
   int* pDevId = NULL;
 
-  const iotjs_jval_t* raw = iotjs_jhandler_get_arg(jhandler, 0);
-  if (iotjs_jval_is_number(raw)) {
-    devId = iotjs_jval_as_number(raw);
+  iotjs_jval_t raw = *iotjs_jhandler_get_arg(jhandler, 0);
+  if (iotjs_jval_is_number(&raw)) {
+    devId = iotjs_jval_as_number(&raw);
     pDevId = &devId;
   }
 
@@ -182,11 +181,11 @@ JHANDLER_FUNCTION(BleHciSocketCons) {
   DJHANDLER_CHECK_ARGS(0);
 
   // Create object
-  const iotjs_jval_t* jblehcisocket = JHANDLER_GET_THIS(object);
+  iotjs_jval_t jblehcisocket = *JHANDLER_GET_THIS(object);
   iotjs_blehcisocket_t* blehcisocket = iotjs_blehcisocket_create(jblehcisocket);
   IOTJS_ASSERT(blehcisocket ==
                (iotjs_blehcisocket_t*)(iotjs_jval_get_object_native_handle(
-                   jblehcisocket)));
+                   &jblehcisocket)));
 }
 
 

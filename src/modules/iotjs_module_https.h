@@ -89,7 +89,7 @@ iotjs_https_t* iotjs_https_create(const char* URL, const char* method,
                                   const char* ca, const char* cert,
                                   const char* key,
                                   const bool reject_unauthorized,
-                                  const iotjs_jval_t* jthis);
+                                  iotjs_jval_t jthis);
 
 #define THIS iotjs_https_t* https_data
 // Some utility functions
@@ -97,7 +97,7 @@ void iotjs_https_check_done(THIS);
 void iotjs_https_cleanup(THIS);
 CURLM* iotjs_https_get_multi_handle(THIS);
 void iotjs_https_initialize_curl_opts(THIS);
-iotjs_jval_t* iotjs_https_jthis_from_https(THIS);
+iotjs_jval_t iotjs_https_jthis_from_https(THIS);
 bool iotjs_https_jcallback(THIS, const char* property,
                            const iotjs_jargs_t* jarg, bool resultvalue);
 void iotjs_https_call_read_onwrite(uv_timer_t* timer);
@@ -106,8 +106,7 @@ void iotjs_https_call_read_onwrite_async(THIS);
 // Functions almost directly called by JS via JHANDLER
 void iotjs_https_add_header(THIS, const char* char_header);
 void iotjs_https_data_to_write(THIS, iotjs_string_t read_chunk,
-                               const iotjs_jval_t* callback,
-                               const iotjs_jval_t* onwrite);
+                               iotjs_jval_t callback, iotjs_jval_t onwrite);
 void iotjs_https_finish_request(THIS);
 void iotjs_https_send_request(THIS);
 void iotjs_https_set_timeout(long ms, THIS);

@@ -49,8 +49,8 @@ static void AfterAsync(uv_fs_t* req) {
   IOTJS_ASSERT(req_wrap != NULL);
   IOTJS_ASSERT(&req_wrap->req == req);
 
-  const iotjs_jval_t* cb = iotjs_reqwrap_jcallback(&req_wrap->reqwrap);
-  IOTJS_ASSERT(iotjs_jval_is_function(cb));
+  const iotjs_jval_t cb = *iotjs_reqwrap_jcallback(&req_wrap->reqwrap);
+  IOTJS_ASSERT(iotjs_jval_is_function(&cb));
 
   iotjs_jargs_t jarg = iotjs_jargs_create(2);
   if (req->result < 0) {
@@ -99,7 +99,7 @@ static void AfterAsync(uv_fs_t* req) {
     }
   }
 
-  iotjs_make_callback(cb, iotjs_jval_get_undefined(), &jarg);
+  iotjs_make_callback(&cb, iotjs_jval_get_undefined(), &jarg);
 
   iotjs_jargs_destroy(&jarg);
   iotjs_fs_reqwrap_destroy(req_wrap);
@@ -308,10 +308,10 @@ JHANDLER_FUNCTION(Write) {
 
 
 iotjs_jval_t MakeStatObject(uv_stat_t* statbuf) {
-  const iotjs_jval_t* fs = iotjs_module_get(MODULE_FS);
+  const iotjs_jval_t fs = *iotjs_module_get(MODULE_FS);
 
   iotjs_jval_t stat_prototype =
-      iotjs_jval_get_property(fs, IOTJS_MAGIC_STRING_STATS);
+      iotjs_jval_get_property(&fs, IOTJS_MAGIC_STRING_STATS);
   IOTJS_ASSERT(iotjs_jval_is_object(&stat_prototype));
 
   iotjs_jval_t jstat = iotjs_jval_create_object();
@@ -482,8 +482,8 @@ JHANDLER_FUNCTION(ReadDir) {
 
 static void StatsIsTypeOf(iotjs_jhandler_t* jhandler, int type) {
   DJHANDLER_CHECK_THIS(object);
-  const iotjs_jval_t* stats = JHANDLER_GET_THIS(object);
-  iotjs_jval_t mode = iotjs_jval_get_property(stats, IOTJS_MAGIC_STRING_MODE);
+  const iotjs_jval_t stats = *JHANDLER_GET_THIS(object);
+  iotjs_jval_t mode = iotjs_jval_get_property(&stats, IOTJS_MAGIC_STRING_MODE);
 
   int mode_number = (int)iotjs_jval_as_number(&mode);
 

@@ -105,6 +105,7 @@ bool iotjs_spi_close(iotjs_spi_t* spi) {
 void iotjs_spi_open_worker(uv_work_t* work_req) {
   SPI_WORKER_INIT;
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_spi_t, spi);
+  IOTJS_UNUSED(_this);
 
   if (!iotjs_spi_open(spi)) {
     DDLOG("%s - SPI open failed %d", __func__, _this->bus);

@@ -309,6 +309,14 @@ if __name__ == '__main__':
 
                 if option.enable_testsuite:
                     generate_nuttx_romfs(nuttx_root)
+                    fs.chdir(fs.join(nuttx_root, 'nuttx'))
+                    fs.copy(fs.join(path.PROJECT_ROOT,
+                                    'config',
+                                    'nuttx',
+                                    'stm32f4dis',
+                                    '.config.alloptions'),
+                            '.config')
+                    fs.chdir(path.PROJECT_ROOT)
 
                 build_nuttx(nuttx_root, buildtype, 'context')
                 build(buildtype, ['--target-arch=arm',

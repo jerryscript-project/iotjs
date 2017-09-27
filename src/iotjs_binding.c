@@ -156,8 +156,8 @@ iotjs_jval_t* iotjs_jval_get_boolean(bool v) {
 }
 
 
-iotjs_jval_t* iotjs_jval_get_global_object() {
-  return &jglobal;
+iotjs_jval_t iotjs_jval_get_global_object() {
+  return jglobal;
 }
 
 

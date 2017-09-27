@@ -121,7 +121,7 @@ static int iotjs_start(iotjs_environment_t* env) {
   iotjs_binding_initialize();
 
   // Bind environment to global object.
-  const iotjs_jval_t global = *iotjs_jval_get_global_object();
+  const iotjs_jval_t global = iotjs_jval_get_global_object();
   iotjs_jval_set_object_native_handle(&global, (uintptr_t)(env), NULL);
 
   // Initialize builtin modules.

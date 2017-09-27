@@ -645,17 +645,17 @@ iotjs_jval_t InitTcp() {
   iotjs_jval_set_property_jval(tcp, IOTJS_MAGIC_STRING_PROTOTYPE, prototype);
   iotjs_jval_set_property_jval(tcp, IOTJS_MAGIC_STRING_ERRNAME, errname);
 
-  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_OPEN, Open);
-  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_CLOSE, Close);
-  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_CONNECT, Connect);
-  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_BIND, Bind);
-  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_LISTEN, Listen);
-  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_WRITE, Write);
-  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_READSTART, ReadStart);
-  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_SHUTDOWN, Shutdown);
-  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_SETKEEPALIVE,
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_OPEN, Open);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_CLOSE, Close);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_CONNECT, Connect);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_BIND, Bind);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_LISTEN, Listen);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_WRITE, Write);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_READSTART, ReadStart);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_SHUTDOWN, Shutdown);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_SETKEEPALIVE,
                         SetKeepAlive);
-  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_GETSOCKNAME,
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_GETSOCKNAME,
                         GetSockeName);
 
   iotjs_jval_destroy(&prototype);

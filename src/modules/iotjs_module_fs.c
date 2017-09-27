@@ -503,23 +503,23 @@ JHANDLER_FUNCTION(StatsIsFile) {
 iotjs_jval_t InitFs() {
   iotjs_jval_t fs = iotjs_jval_create_object();
 
-  iotjs_jval_set_method(&fs, IOTJS_MAGIC_STRING_CLOSE, Close);
-  iotjs_jval_set_method(&fs, IOTJS_MAGIC_STRING_OPEN, Open);
-  iotjs_jval_set_method(&fs, IOTJS_MAGIC_STRING_READ, Read);
-  iotjs_jval_set_method(&fs, IOTJS_MAGIC_STRING_WRITE, Write);
-  iotjs_jval_set_method(&fs, IOTJS_MAGIC_STRING_STAT, Stat);
-  iotjs_jval_set_method(&fs, IOTJS_MAGIC_STRING_FSTAT, Fstat);
-  iotjs_jval_set_method(&fs, IOTJS_MAGIC_STRING_MKDIR, MkDir);
-  iotjs_jval_set_method(&fs, IOTJS_MAGIC_STRING_RMDIR, RmDir);
-  iotjs_jval_set_method(&fs, IOTJS_MAGIC_STRING_UNLINK, Unlink);
-  iotjs_jval_set_method(&fs, IOTJS_MAGIC_STRING_RENAME, Rename);
-  iotjs_jval_set_method(&fs, IOTJS_MAGIC_STRING_READDIR, ReadDir);
+  iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_CLOSE, Close);
+  iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_OPEN, Open);
+  iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_READ, Read);
+  iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_WRITE, Write);
+  iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_STAT, Stat);
+  iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_FSTAT, Fstat);
+  iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_MKDIR, MkDir);
+  iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_RMDIR, RmDir);
+  iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_UNLINK, Unlink);
+  iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_RENAME, Rename);
+  iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_READDIR, ReadDir);
 
   iotjs_jval_t stats_prototype = iotjs_jval_create_object();
 
-  iotjs_jval_set_method(&stats_prototype, IOTJS_MAGIC_STRING_ISDIRECTORY,
+  iotjs_jval_set_method(stats_prototype, IOTJS_MAGIC_STRING_ISDIRECTORY,
                         StatsIsDirectory);
-  iotjs_jval_set_method(&stats_prototype, IOTJS_MAGIC_STRING_ISFILE,
+  iotjs_jval_set_method(stats_prototype, IOTJS_MAGIC_STRING_ISFILE,
                         StatsIsFile);
 
   iotjs_jval_set_property_jval(fs, IOTJS_MAGIC_STRING_STATS, stats_prototype);

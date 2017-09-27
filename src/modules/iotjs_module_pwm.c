@@ -362,11 +362,11 @@ iotjs_jval_t InitPwm() {
 
   iotjs_jval_t jprototype = iotjs_jval_create_object();
 
-  iotjs_jval_set_method(&jprototype, IOTJS_MAGIC_STRING_SETPERIOD, SetPeriod);
-  iotjs_jval_set_method(&jprototype, IOTJS_MAGIC_STRING_SETDUTYCYCLE,
+  iotjs_jval_set_method(jprototype, IOTJS_MAGIC_STRING_SETPERIOD, SetPeriod);
+  iotjs_jval_set_method(jprototype, IOTJS_MAGIC_STRING_SETDUTYCYCLE,
                         SetDutyCycle);
-  iotjs_jval_set_method(&jprototype, IOTJS_MAGIC_STRING_SETENABLE, SetEnable);
-  iotjs_jval_set_method(&jprototype, IOTJS_MAGIC_STRING_CLOSE, Close);
+  iotjs_jval_set_method(jprototype, IOTJS_MAGIC_STRING_SETENABLE, SetEnable);
+  iotjs_jval_set_method(jprototype, IOTJS_MAGIC_STRING_CLOSE, Close);
 
   iotjs_jval_set_property_jval(jpwm_constructor, IOTJS_MAGIC_STRING_PROTOTYPE,
                                jprototype);

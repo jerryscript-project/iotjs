@@ -195,15 +195,14 @@ iotjs_jval_t InitBlehcisocket() {
 
   iotjs_jval_t prototype = iotjs_jval_create_object();
 
-  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_START, Start);
-  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_BINDRAW, BindRaw);
-  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_BINDUSER, BindUser);
-  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_BINDCONTROL,
-                        BindControl);
-  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_ISDEVUP, IsDevUp);
-  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_SETFILTER, SetFilter);
-  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_STOP, Stop);
-  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_WRITE, Write);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_START, Start);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_BINDRAW, BindRaw);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_BINDUSER, BindUser);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_BINDCONTROL, BindControl);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_ISDEVUP, IsDevUp);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_SETFILTER, SetFilter);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_STOP, Stop);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_WRITE, Write);
 
   iotjs_jval_set_property_jval(jblehcisocketCons, IOTJS_MAGIC_STRING_PROTOTYPE,
                                prototype);

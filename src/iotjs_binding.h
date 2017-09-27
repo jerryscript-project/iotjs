@@ -90,8 +90,6 @@ iotjs_jval_t iotjs_jval_get_global_object();
 /* Destructor */
 void iotjs_jval_destroy(iotjs_jval_t* jval);
 
-#define THIS_JVAL const iotjs_jval_t* jval
-
 /* Type Checkers */
 bool iotjs_jval_is_undefined(iotjs_jval_t);
 bool iotjs_jval_is_null(iotjs_jval_t);
@@ -112,7 +110,7 @@ iotjs_jval_t iotjs_jval_as_function(iotjs_jval_t);
 
 /* Methods for General JavaScript Object */
 bool iotjs_jval_set_prototype(iotjs_jval_t jobj, iotjs_jval_t jproto);
-void iotjs_jval_set_method(THIS_JVAL, const char* name,
+void iotjs_jval_set_method(iotjs_jval_t jobj, const char* name,
                            iotjs_native_handler_t handler);
 void iotjs_jval_set_property_jval(iotjs_jval_t jobj, const char* name,
                                   iotjs_jval_t value);
@@ -129,8 +127,6 @@ void iotjs_jval_set_property_string_raw(iotjs_jval_t jobj, const char* name,
 
 iotjs_jval_t iotjs_jval_get_property(iotjs_jval_t jobj, const char* name);
 
-void iotjs_jval_set_object_native_handle(THIS_JVAL, uintptr_t ptr,
-                                         JNativeInfoType* native_info);
 uintptr_t iotjs_jval_get_object_native_handle(iotjs_jval_t jobj);
 uintptr_t iotjs_jval_get_object_from_jhandler(iotjs_jhandler_t* jhandler,
                                               JNativeInfoType* native_info);
@@ -141,9 +137,6 @@ uintptr_t iotjs_jval_get_arg_obj_from_jhandler(iotjs_jhandler_t* jhandler,
 void iotjs_jval_set_property_by_index(iotjs_jval_t jarr, uint32_t idx,
                                       iotjs_jval_t jval);
 iotjs_jval_t iotjs_jval_get_property_by_index(iotjs_jval_t jarr, uint32_t idx);
-
-
-#undef THIS_JVAL
 
 
 typedef struct {

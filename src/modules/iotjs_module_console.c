@@ -49,8 +49,8 @@ JHANDLER_FUNCTION(Stderr) {
 iotjs_jval_t InitConsole() {
   iotjs_jval_t console = iotjs_jval_create_object();
 
-  iotjs_jval_set_method(&console, IOTJS_MAGIC_STRING_STDOUT, Stdout);
-  iotjs_jval_set_method(&console, IOTJS_MAGIC_STRING_STDERR, Stderr);
+  iotjs_jval_set_method(console, IOTJS_MAGIC_STRING_STDOUT, Stdout);
+  iotjs_jval_set_method(console, IOTJS_MAGIC_STRING_STDERR, Stderr);
 
   return console;
 }

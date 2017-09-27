@@ -69,9 +69,8 @@ iotjs_https_t* iotjs_https_create(const char* URL, const char* method,
   // Handles
   _this->loop = iotjs_environment_loop(iotjs_environment_get());
   _this->jthis_native = jerry_acquire_value(jthis);
-  iotjs_jval_set_object_native_handle(&(_this->jthis_native),
-                                      (uintptr_t)https_data,
-                                      &https_native_info);
+  jerry_set_object_native_pointer((_this->jthis_native), https_data,
+                                  https_native_info);
   _this->curl_multi_handle = curl_multi_init();
   _this->curl_easy_handle = curl_easy_init();
   _this->timeout.data = (void*)https_data;
@@ -851,15 +850,13 @@ JHANDLER_FUNCTION(Abort) {
 iotjs_jval_t InitHttps() {
   iotjs_jval_t https = iotjs_jval_create_object();
 
-  iotjs_jval_set_method(&https, IOTJS_MAGIC_STRING_CREATEREQUEST,
-                        createRequest);
-  iotjs_jval_set_method(&https, IOTJS_MAGIC_STRING_ADDHEADER, addHeader);
-  iotjs_jval_set_method(&https, IOTJS_MAGIC_STRING_SENDREQUEST, sendRequest);
-  iotjs_jval_set_method(&https, IOTJS_MAGIC_STRING_SETTIMEOUT, setTimeout);
-  iotjs_jval_set_method(&https, IOTJS_MAGIC_STRING__WRITE, _write);
-  iotjs_jval_set_method(&https, IOTJS_MAGIC_STRING_FINISHREQUEST,
-                        finishRequest);
-  iotjs_jval_set_method(&https, IOTJS_MAGIC_STRING_ABORT, Abort);
+  iotjs_jval_set_method(https, IOTJS_MAGIC_STRING_CREATEREQUEST, createRequest);
+  iotjs_jval_set_method(https, IOTJS_MAGIC_STRING_ADDHEADER, addHeader);
+  iotjs_jval_set_method(https, IOTJS_MAGIC_STRING_SENDREQUEST, sendRequest);
+  iotjs_jval_set_method(https, IOTJS_MAGIC_STRING_SETTIMEOUT, setTimeout);
+  iotjs_jval_set_method(https, IOTJS_MAGIC_STRING__WRITE, _write);
+  iotjs_jval_set_method(https, IOTJS_MAGIC_STRING_FINISHREQUEST, finishRequest);
+  iotjs_jval_set_method(https, IOTJS_MAGIC_STRING_ABORT, Abort);
 
   return https;
 }

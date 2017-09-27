@@ -503,16 +503,15 @@ iotjs_jval_t InitBuffer() {
   iotjs_jval_set_property_jval(buffer, IOTJS_MAGIC_STRING_BYTELENGTH,
                                byte_length);
 
-  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_COMPARE, Compare);
-  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_COPY, Copy);
-  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_WRITE, Write);
-  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_HEXWRITE, HexWrite);
-  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_WRITEUINT8, WriteUInt8);
-  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_READUINT8, ReadUInt8);
-  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_SLICE, Slice);
-  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_TOSTRING, ToString);
-  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_TOHEXSTRING,
-                        ToHexString);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_COMPARE, Compare);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_COPY, Copy);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_WRITE, Write);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_HEXWRITE, HexWrite);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_WRITEUINT8, WriteUInt8);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_READUINT8, ReadUInt8);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_SLICE, Slice);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_TOSTRING, ToString);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_TOHEXSTRING, ToHexString);
 
   iotjs_jval_destroy(&prototype);
   iotjs_jval_destroy(&byte_length);

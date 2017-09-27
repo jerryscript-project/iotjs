@@ -294,16 +294,16 @@ static void SetProcessArgv(iotjs_jval_t process) {
 iotjs_jval_t InitProcess() {
   iotjs_jval_t process = iotjs_jval_create_object();
 
-  iotjs_jval_set_method(&process, IOTJS_MAGIC_STRING_BINDING, Binding);
-  iotjs_jval_set_method(&process, IOTJS_MAGIC_STRING_COMPILE, Compile);
-  iotjs_jval_set_method(&process, IOTJS_MAGIC_STRING_COMPILENATIVEPTR,
+  iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_BINDING, Binding);
+  iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_COMPILE, Compile);
+  iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_COMPILENATIVEPTR,
                         CompileNativePtr);
-  iotjs_jval_set_method(&process, IOTJS_MAGIC_STRING_READSOURCE, ReadSource);
-  iotjs_jval_set_method(&process, IOTJS_MAGIC_STRING_CWD, Cwd);
-  iotjs_jval_set_method(&process, IOTJS_MAGIC_STRING_CHDIR, Chdir);
-  iotjs_jval_set_method(&process, IOTJS_MAGIC_STRING_DEBUGGER_SOURCE_COMPILE,
+  iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_READSOURCE, ReadSource);
+  iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_CWD, Cwd);
+  iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_CHDIR, Chdir);
+  iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_DEBUGGER_SOURCE_COMPILE,
                         DebuggerSourceCompile);
-  iotjs_jval_set_method(&process, IOTJS_MAGIC_STRING_DOEXIT, DoExit);
+  iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_DOEXIT, DoExit);
   SetProcessEnv(process);
 
   // process.native_sources

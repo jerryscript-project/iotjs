@@ -232,12 +232,12 @@ bool iotjs_jval_set_prototype(const iotjs_jval_t jobj, iotjs_jval_t jproto) {
 }
 
 
-void iotjs_jval_set_method(const iotjs_jval_t* jobj, const char* name,
+void iotjs_jval_set_method(iotjs_jval_t jobj, const char* name,
                            iotjs_native_handler_t handler) {
-  IOTJS_ASSERT(iotjs_jval_is_object(*jobj));
+  IOTJS_ASSERT(iotjs_jval_is_object(jobj));
 
   iotjs_jval_t jfunc = iotjs_jval_create_function_with_dispatch(handler);
-  iotjs_jval_set_property_jval(*jobj, name, jfunc);
+  iotjs_jval_set_property_jval(jobj, name, jfunc);
   iotjs_jval_destroy(&jfunc);
 }
 
@@ -308,15 +308,6 @@ iotjs_jval_t iotjs_jval_get_property(iotjs_jval_t jobj, const char* name) {
   }
 
   return iotjs_jval_create_raw(res);
-}
-
-
-void iotjs_jval_set_object_native_handle(const iotjs_jval_t* jobj,
-                                         uintptr_t ptr,
-                                         JNativeInfoType* native_info) {
-  IOTJS_ASSERT(iotjs_jval_is_object(*jobj));
-
-  jerry_set_object_native_pointer(*jobj, (void*)ptr, native_info);
 }
 
 
@@ -808,7 +799,7 @@ iotjs_jval_t iotjs_jval_create_function_with_dispatch(
     iotjs_native_handler_t handler) {
   iotjs_jval_t jfunc =
       iotjs_jval_create_function(iotjs_native_dispatch_function);
-  iotjs_jval_set_object_native_handle(&jfunc, (uintptr_t)handler, NULL);
+  jerry_set_object_native_pointer(jfunc, handler, NULL);
   return jfunc;
 }
 

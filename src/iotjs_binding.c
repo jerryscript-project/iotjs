@@ -385,12 +385,11 @@ uintptr_t iotjs_jval_get_arg_obj_from_jhandler(iotjs_jhandler_t* jhandler,
 }
 
 
-void iotjs_jval_set_property_by_index(const iotjs_jval_t* jarr, uint32_t idx,
-                                      const iotjs_jval_t* jval) {
-  IOTJS_ASSERT(iotjs_jval_is_object(*jarr));
+void iotjs_jval_set_property_by_index(iotjs_jval_t jarr, uint32_t idx,
+                                      iotjs_jval_t jval) {
+  IOTJS_ASSERT(iotjs_jval_is_object(jarr));
 
-  jerry_value_t value = iotjs_jval_as_raw(jval);
-  jerry_value_t ret_val = jerry_set_property_by_index(*jarr, idx, value);
+  jerry_value_t ret_val = jerry_set_property_by_index(jarr, idx, jval);
   IOTJS_ASSERT(!jerry_value_has_error_flag(ret_val));
   jerry_release_value(ret_val);
 }

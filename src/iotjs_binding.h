@@ -138,8 +138,8 @@ uintptr_t iotjs_jval_get_arg_obj_from_jhandler(iotjs_jhandler_t* jhandler,
                                                uint16_t index,
                                                JNativeInfoType* native_info);
 
-void iotjs_jval_set_property_by_index(THIS_JVAL, uint32_t idx,
-                                      const iotjs_jval_t* value);
+void iotjs_jval_set_property_by_index(iotjs_jval_t jarr, uint32_t idx,
+                                      iotjs_jval_t jval);
 iotjs_jval_t iotjs_jval_get_property_by_index(iotjs_jval_t jarr, uint32_t idx);
 
 

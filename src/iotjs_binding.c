@@ -295,12 +295,11 @@ void iotjs_jval_set_property_string_raw(iotjs_jval_t jobj, const char* name,
 }
 
 
-iotjs_jval_t iotjs_jval_get_property(const iotjs_jval_t* jobj,
-                                     const char* name) {
-  IOTJS_ASSERT(iotjs_jval_is_object(*jobj));
+iotjs_jval_t iotjs_jval_get_property(iotjs_jval_t jobj, const char* name) {
+  IOTJS_ASSERT(iotjs_jval_is_object(jobj));
 
   jerry_value_t prop_name = jerry_create_string((const jerry_char_t*)(name));
-  jerry_value_t res = jerry_get_property(*jobj, prop_name);
+  jerry_value_t res = jerry_get_property(jobj, prop_name);
   jerry_release_value(prop_name);
 
   if (jerry_value_has_error_flag(res)) {

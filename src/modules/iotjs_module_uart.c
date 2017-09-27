@@ -211,7 +211,7 @@ static void iotjs_uart_after_worker(uv_work_t* work_req, int status) {
 
 
 static void iotjs_uart_onread(iotjs_jval_t jthis, char* buf) {
-  iotjs_jval_t jemit = iotjs_jval_get_property(&jthis, "emit");
+  iotjs_jval_t jemit = iotjs_jval_get_property(jthis, "emit");
   IOTJS_ASSERT(iotjs_jval_is_function(jemit));
 
   iotjs_jargs_t jargs = iotjs_jargs_create(2);
@@ -270,11 +270,11 @@ JHANDLER_FUNCTION(UartConstructor) {
 
   // set configuration
   iotjs_jval_t jdevice =
-      iotjs_jval_get_property(&jconfiguration, IOTJS_MAGIC_STRING_DEVICE);
+      iotjs_jval_get_property(jconfiguration, IOTJS_MAGIC_STRING_DEVICE);
   iotjs_jval_t jbaud_rate =
-      iotjs_jval_get_property(&jconfiguration, IOTJS_MAGIC_STRING_BAUDRATE);
+      iotjs_jval_get_property(jconfiguration, IOTJS_MAGIC_STRING_BAUDRATE);
   iotjs_jval_t jdata_bits =
-      iotjs_jval_get_property(&jconfiguration, IOTJS_MAGIC_STRING_DATABITS);
+      iotjs_jval_get_property(jconfiguration, IOTJS_MAGIC_STRING_DATABITS);
 
   _this->device_path = iotjs_jval_as_string(jdevice);
   _this->baud_rate = iotjs_jval_as_number(jbaud_rate);

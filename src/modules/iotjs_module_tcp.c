@@ -228,7 +228,7 @@ void AfterClose(uv_handle_t* handle) {
 
   // callback function.
   iotjs_jval_t jcallback =
-      iotjs_jval_get_property(&jtcp, IOTJS_MAGIC_STRING_ONCLOSE);
+      iotjs_jval_get_property(jtcp, IOTJS_MAGIC_STRING_ONCLOSE);
   if (iotjs_jval_is_function(jcallback)) {
     iotjs_make_callback(&jcallback, iotjs_jval_get_undefined(),
                         iotjs_jargs_get_empty());
@@ -347,7 +347,7 @@ static void OnConnection(uv_stream_t* handle, int status) {
 
   // `onconnection` callback.
   iotjs_jval_t jonconnection =
-      iotjs_jval_get_property(&jtcp, IOTJS_MAGIC_STRING_ONCONNECTION);
+      iotjs_jval_get_property(jtcp, IOTJS_MAGIC_STRING_ONCONNECTION);
   IOTJS_ASSERT(iotjs_jval_is_function(jonconnection));
 
   // The callback takes two parameter
@@ -359,7 +359,7 @@ static void OnConnection(uv_stream_t* handle, int status) {
   if (status == 0) {
     // Create client socket handle wrapper.
     iotjs_jval_t jcreate_tcp =
-        iotjs_jval_get_property(&jtcp, IOTJS_MAGIC_STRING_CREATETCP);
+        iotjs_jval_get_property(jtcp, IOTJS_MAGIC_STRING_CREATETCP);
     IOTJS_ASSERT(iotjs_jval_is_function(jcreate_tcp));
 
     iotjs_jval_t jclient_tcp =
@@ -474,12 +474,12 @@ void OnRead(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
 
   // socket object
   iotjs_jval_t jsocket =
-      iotjs_jval_get_property(&jtcp, IOTJS_MAGIC_STRING_OWNER);
+      iotjs_jval_get_property(jtcp, IOTJS_MAGIC_STRING_OWNER);
   IOTJS_ASSERT(iotjs_jval_is_object(jsocket));
 
   // onread callback
   iotjs_jval_t jonread =
-      iotjs_jval_get_property(&jtcp, IOTJS_MAGIC_STRING_ONREAD);
+      iotjs_jval_get_property(jtcp, IOTJS_MAGIC_STRING_ONREAD);
   IOTJS_ASSERT(iotjs_jval_is_function(jonread));
 
   iotjs_jargs_t jargs = iotjs_jargs_create(4);

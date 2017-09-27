@@ -133,7 +133,7 @@ static void iotjs_httpparserwrap_flush(iotjs_httpparserwrap_t* httpparserwrap) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_httpparserwrap_t, httpparserwrap);
   const iotjs_jval_t jobj = iotjs_jobjectwrap_jobject(&_this->jobjectwrap);
   iotjs_jval_t func =
-      iotjs_jval_get_property(&jobj, IOTJS_MAGIC_STRING_ONHEADERS);
+      iotjs_jval_get_property(jobj, IOTJS_MAGIC_STRING_ONHEADERS);
   IOTJS_ASSERT(iotjs_jval_is_function(func));
 
   iotjs_jargs_t argv = iotjs_jargs_create(2);
@@ -242,7 +242,7 @@ static int iotjs_httpparserwrap_on_headers_complete(http_parser* parser) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_httpparserwrap_t, httpparserwrap);
   const iotjs_jval_t jobj = iotjs_jobjectwrap_jobject(&_this->jobjectwrap);
   iotjs_jval_t func =
-      iotjs_jval_get_property(&jobj, IOTJS_MAGIC_STRING_ONHEADERSCOMPLETE);
+      iotjs_jval_get_property(jobj, IOTJS_MAGIC_STRING_ONHEADERSCOMPLETE);
   IOTJS_ASSERT(iotjs_jval_is_function(func));
 
   // URL
@@ -319,7 +319,7 @@ static int iotjs_httpparserwrap_on_body(http_parser* parser, const char* at,
       (iotjs_httpparserwrap_t*)(parser->data);
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_httpparserwrap_t, httpparserwrap);
   const iotjs_jval_t jobj = iotjs_jobjectwrap_jobject(&_this->jobjectwrap);
-  iotjs_jval_t func = iotjs_jval_get_property(&jobj, IOTJS_MAGIC_STRING_ONBODY);
+  iotjs_jval_t func = iotjs_jval_get_property(jobj, IOTJS_MAGIC_STRING_ONBODY);
   IOTJS_ASSERT(iotjs_jval_is_function(func));
 
   iotjs_jargs_t argv = iotjs_jargs_create(3);
@@ -343,7 +343,7 @@ static int iotjs_httpparserwrap_on_message_complete(http_parser* parser) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_httpparserwrap_t, httpparserwrap);
   const iotjs_jval_t jobj = iotjs_jobjectwrap_jobject(&_this->jobjectwrap);
   iotjs_jval_t func =
-      iotjs_jval_get_property(&jobj, IOTJS_MAGIC_STRING_ONMESSAGECOMPLETE);
+      iotjs_jval_get_property(jobj, IOTJS_MAGIC_STRING_ONMESSAGECOMPLETE);
   IOTJS_ASSERT(iotjs_jval_is_function(func));
 
   iotjs_make_callback(&func, &jobj, iotjs_jargs_get_empty());

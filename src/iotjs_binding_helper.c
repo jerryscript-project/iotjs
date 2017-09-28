@@ -20,7 +20,7 @@
 #include <string.h>
 
 
-void iotjs_uncaught_exception(const iotjs_jval_t* jexception) {
+void iotjs_uncaught_exception(iotjs_jval_t jexception) {
   const iotjs_jval_t process = *iotjs_module_get(MODULE_PROCESS);
 
   iotjs_jval_t jonuncaughtexception =
@@ -28,7 +28,7 @@ void iotjs_uncaught_exception(const iotjs_jval_t* jexception) {
   IOTJS_ASSERT(iotjs_jval_is_function(jonuncaughtexception));
 
   iotjs_jargs_t args = iotjs_jargs_create(1);
-  iotjs_jargs_append_jval(&args, *jexception);
+  iotjs_jargs_append_jval(&args, jexception);
 
   bool throws;
   iotjs_jval_t jres =
@@ -119,7 +119,7 @@ iotjs_jval_t iotjs_make_callback_with_result(const iotjs_jval_t* jfunction,
   bool throws;
   iotjs_jval_t jres = iotjs_jhelper_call(*jfunction, *jthis, jargs, &throws);
   if (throws) {
-    iotjs_uncaught_exception(&jres);
+    iotjs_uncaught_exception(jres);
   }
 
   // Calls the next tick callbacks.
@@ -150,6 +150,6 @@ void iotjs_set_process_exitcode(int code) {
 }
 
 
-const iotjs_jval_t* iotjs_init_process_module() {
-  return iotjs_module_initialize_if_necessary(MODULE_PROCESS);
+iotjs_jval_t iotjs_init_process_module() {
+  return *iotjs_module_initialize_if_necessary(MODULE_PROCESS);
 }

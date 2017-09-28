@@ -493,7 +493,7 @@ void OnRead(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
     }
     if (nread < 0) {
       if (nread == UV__EOF) {
-        iotjs_jargs_replace(&jargs, 2, iotjs_jval_get_boolean(true));
+        iotjs_jargs_replace(&jargs, 2, *iotjs_jval_get_boolean(true));
       }
 
       iotjs_make_callback(&jonread, iotjs_jval_get_undefined(), &jargs);

@@ -164,11 +164,7 @@ void iotjs_jargs_append_string_raw(iotjs_jargs_t* jargs, const char* x);
 void iotjs_jargs_append_error(iotjs_jargs_t* jargs, const char* msg);
 
 
-void iotjs_jargs_replace(iotjs_jargs_t* jargs, uint16_t index,
-                         const iotjs_jval_t* x);
-
-const iotjs_jval_t* iotjs_jargs_get(const iotjs_jargs_t* jargs, uint16_t index);
-
+void iotjs_jargs_replace(iotjs_jargs_t* jargs, uint16_t index, iotjs_jval_t x);
 
 // Calls JavaScript function.
 iotjs_jval_t iotjs_jhelper_call(iotjs_jval_t jfunc, iotjs_jval_t jthis,

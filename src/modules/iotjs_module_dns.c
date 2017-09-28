@@ -172,7 +172,7 @@ JHANDLER_FUNCTION(GetAddrInfo) {
   int option = JHANDLER_GET_ARG(1, number);
   int flags = JHANDLER_GET_ARG(2, number);
   int error = 0;
-  const iotjs_jval_t jcallback = *JHANDLER_GET_ARG(3, function);
+  const iotjs_jval_t jcallback = JHANDLER_GET_ARG(3, function);
 
   int family;
   if (option == 0) {

@@ -91,7 +91,7 @@ void AddressToJS(iotjs_jval_t obj, const sockaddr* addr);
     DJHANDLER_CHECK_ARGS(1, object);                                           \
                                                                                \
     iotjs_##wraptype##_t* wrap =                                               \
-        iotjs_##wraptype##_from_jobject(*JHANDLER_GET_THIS(object));           \
+        iotjs_##wraptype##_from_jobject(JHANDLER_GET_THIS(object));            \
     IOTJS_ASSERT(wrap != NULL);                                                \
                                                                                \
     sockaddr_storage storage;                                                  \
@@ -99,7 +99,7 @@ void AddressToJS(iotjs_jval_t obj, const sockaddr* addr);
     sockaddr* const addr = (sockaddr*)(&storage);                              \
     int err = function(iotjs_##wraptype##_##handletype(wrap), addr, &addrlen); \
     if (err == 0)                                                              \
-      AddressToJS(*JHANDLER_GET_ARG(0, object), addr);                         \
+      AddressToJS(JHANDLER_GET_ARG(0, object), addr);                          \
     iotjs_jhandler_return_number(jhandler, err);                               \
   }
 

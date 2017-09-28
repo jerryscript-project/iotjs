@@ -92,7 +92,7 @@ static iotjs_jval_t iotjs_pwm_reqwrap_jcallback(THIS) {
 
 
 static iotjs_pwm_t* iotjs_pwm_instance_from_jval(iotjs_jval_t jpwm) {
-  uintptr_t handle = iotjs_jval_get_object_native_handle(&jpwm);
+  uintptr_t handle = iotjs_jval_get_object_native_handle(jpwm);
   return (iotjs_pwm_t*)handle;
 }
 
@@ -120,24 +120,24 @@ static void iotjs_pwm_set_configuration(iotjs_jval_t jconfiguration,
 
   iotjs_jval_t jpin =
       iotjs_jval_get_property(&jconfiguration, IOTJS_MAGIC_STRING_PIN);
-  _this->pin = iotjs_jval_as_number(&jpin);
+  _this->pin = iotjs_jval_as_number(jpin);
 
 #if defined(__linux__)
   iotjs_jval_t jchip =
       iotjs_jval_get_property(&jconfiguration, IOTJS_MAGIC_STRING_CHIP);
-  _this->chip = iotjs_jval_as_number(&jchip);
+  _this->chip = iotjs_jval_as_number(jchip);
   iotjs_jval_destroy(&jchip);
 #endif
 
   iotjs_jval_t jperiod =
       iotjs_jval_get_property(&jconfiguration, IOTJS_MAGIC_STRING_PERIOD);
-  if (iotjs_jval_is_number(&jperiod))
-    _this->period = iotjs_jval_as_number(&jperiod);
+  if (iotjs_jval_is_number(jperiod))
+    _this->period = iotjs_jval_as_number(jperiod);
 
   iotjs_jval_t jduty_cycle =
       iotjs_jval_get_property(&jconfiguration, IOTJS_MAGIC_STRING_DUTYCYCLE);
-  if (iotjs_jval_is_number(&jduty_cycle))
-    _this->duty_cycle = iotjs_jval_as_number(&jduty_cycle);
+  if (iotjs_jval_is_number(jduty_cycle))
+    _this->duty_cycle = iotjs_jval_as_number(jduty_cycle);
 
   iotjs_jval_destroy(&jpin);
   iotjs_jval_destroy(&jperiod);
@@ -252,12 +252,12 @@ JHANDLER_FUNCTION(PWMConstructor) {
   DJHANDLER_CHECK_ARGS(2, object, function);
 
   // Create PWM object
-  iotjs_jval_t jpwm = *JHANDLER_GET_THIS(object);
+  iotjs_jval_t jpwm = JHANDLER_GET_THIS(object);
   iotjs_pwm_t* pwm = iotjs_pwm_create(jpwm);
   IOTJS_ASSERT(pwm == iotjs_pwm_instance_from_jval(jpwm));
 
-  iotjs_jval_t jconfiguration = *JHANDLER_GET_ARG(0, object);
-  iotjs_jval_t jcallback = *JHANDLER_GET_ARG(1, function);
+  iotjs_jval_t jconfiguration = JHANDLER_GET_ARG(0, object);
+  iotjs_jval_t jcallback = JHANDLER_GET_ARG(1, function);
 
   // Set configuration
   iotjs_pwm_set_configuration(jconfiguration, pwm);

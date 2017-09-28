@@ -102,8 +102,8 @@ uv_timer_t* iotjs_timerwrap_handle(iotjs_timerwrap_t* timerwrap) {
 
 iotjs_jval_t iotjs_timerwrap_jobject(iotjs_timerwrap_t* timerwrap) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_timerwrap_t, timerwrap);
-  iotjs_jval_t jobject = *iotjs_handlewrap_jobject(&_this->handlewrap);
-  IOTJS_ASSERT(iotjs_jval_is_object(&jobject));
+  iotjs_jval_t jobject = iotjs_handlewrap_jobject(&_this->handlewrap);
+  IOTJS_ASSERT(iotjs_jval_is_object(jobject));
   return jobject;
 }
 
@@ -151,13 +151,13 @@ JHANDLER_FUNCTION(Stop) {
 JHANDLER_FUNCTION(Timer) {
   JHANDLER_CHECK_THIS(object);
 
-  const iotjs_jval_t jtimer = *JHANDLER_GET_THIS(object);
+  const iotjs_jval_t jtimer = JHANDLER_GET_THIS(object);
 
   iotjs_timerwrap_t* timer_wrap = iotjs_timerwrap_create(jtimer);
 
   iotjs_jval_t jobject = iotjs_timerwrap_jobject(timer_wrap);
-  IOTJS_ASSERT(iotjs_jval_is_object(&jobject));
-  IOTJS_ASSERT(iotjs_jval_get_object_native_handle(&jtimer) != 0);
+  IOTJS_ASSERT(iotjs_jval_is_object(jobject));
+  IOTJS_ASSERT(iotjs_jval_get_object_native_handle(jtimer) != 0);
 }
 
 

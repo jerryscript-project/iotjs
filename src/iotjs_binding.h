@@ -94,22 +94,22 @@ void iotjs_jval_destroy(iotjs_jval_t* jval);
 #define THIS_JVAL const iotjs_jval_t* jval
 
 /* Type Checkers */
-bool iotjs_jval_is_undefined(THIS_JVAL);
-bool iotjs_jval_is_null(THIS_JVAL);
-bool iotjs_jval_is_boolean(THIS_JVAL);
-bool iotjs_jval_is_number(THIS_JVAL);
-bool iotjs_jval_is_string(THIS_JVAL);
-bool iotjs_jval_is_object(THIS_JVAL);
-bool iotjs_jval_is_array(THIS_JVAL);
-bool iotjs_jval_is_function(THIS_JVAL);
+bool iotjs_jval_is_undefined(iotjs_jval_t);
+bool iotjs_jval_is_null(iotjs_jval_t);
+bool iotjs_jval_is_boolean(iotjs_jval_t);
+bool iotjs_jval_is_number(iotjs_jval_t);
+bool iotjs_jval_is_string(iotjs_jval_t);
+bool iotjs_jval_is_object(iotjs_jval_t);
+bool iotjs_jval_is_array(iotjs_jval_t);
+bool iotjs_jval_is_function(iotjs_jval_t);
 
 /* Type Converters */
-bool iotjs_jval_as_boolean(THIS_JVAL);
-double iotjs_jval_as_number(THIS_JVAL);
-iotjs_string_t iotjs_jval_as_string(THIS_JVAL);
-const iotjs_jval_t* iotjs_jval_as_object(THIS_JVAL);
-const iotjs_jval_t* iotjs_jval_as_array(THIS_JVAL);
-const iotjs_jval_t* iotjs_jval_as_function(THIS_JVAL);
+bool iotjs_jval_as_boolean(iotjs_jval_t);
+double iotjs_jval_as_number(iotjs_jval_t);
+iotjs_string_t iotjs_jval_as_string(iotjs_jval_t);
+iotjs_jval_t iotjs_jval_as_object(iotjs_jval_t);
+iotjs_jval_t iotjs_jval_as_array(iotjs_jval_t);
+iotjs_jval_t iotjs_jval_as_function(iotjs_jval_t);
 
 /* Methods for General JavaScript Object */
 bool iotjs_jval_set_prototype(const iotjs_jval_t* jobj, iotjs_jval_t* jproto);
@@ -130,7 +130,7 @@ iotjs_jval_t iotjs_jval_get_property(THIS_JVAL, const char* name);
 
 void iotjs_jval_set_object_native_handle(THIS_JVAL, uintptr_t ptr,
                                          JNativeInfoType* native_info);
-uintptr_t iotjs_jval_get_object_native_handle(THIS_JVAL);
+uintptr_t iotjs_jval_get_object_native_handle(iotjs_jval_t jobj);
 uintptr_t iotjs_jval_get_object_from_jhandler(iotjs_jhandler_t* jhandler,
                                               JNativeInfoType* native_info);
 uintptr_t iotjs_jval_get_arg_obj_from_jhandler(iotjs_jhandler_t* jhandler,
@@ -205,10 +205,9 @@ void iotjs_jhandler_initialize(iotjs_jhandler_t* jhandler,
 
 void iotjs_jhandler_destroy(iotjs_jhandler_t* jhandler);
 
-const iotjs_jval_t* iotjs_jhandler_get_function(iotjs_jhandler_t* jhandler);
-const iotjs_jval_t* iotjs_jhandler_get_this(iotjs_jhandler_t* jhandler);
-const iotjs_jval_t* iotjs_jhandler_get_arg(iotjs_jhandler_t* jhandler,
-                                           uint16_t index);
+iotjs_jval_t iotjs_jhandler_get_function(iotjs_jhandler_t* jhandler);
+iotjs_jval_t iotjs_jhandler_get_this(iotjs_jhandler_t* jhandler);
+iotjs_jval_t iotjs_jhandler_get_arg(iotjs_jhandler_t* jhandler, uint16_t index);
 uint16_t iotjs_jhandler_get_arg_length(iotjs_jhandler_t* jhandler);
 
 void iotjs_jhandler_return_jval(iotjs_jhandler_t* jhandler,
@@ -289,11 +288,10 @@ static inline bool ge(uint16_t a, uint16_t b) {
 #define JHANDLER_GET_ARG(index, type) \
   iotjs_jval_as_##type(iotjs_jhandler_get_arg(jhandler, index))
 
-#define JHANDLER_GET_ARG_IF_EXIST(index, type)                          \
-  ((iotjs_jhandler_get_arg_length(jhandler) > index)                    \
-       ? (iotjs_jval_is_##type(iotjs_jhandler_get_arg(jhandler, index)) \
-              ? *iotjs_jhandler_get_arg(jhandler, index)                \
-              : *iotjs_jval_get_null())                                 \
+#define JHANDLER_GET_ARG_IF_EXIST(index, type)                           \
+  ((iotjs_jhandler_get_arg_length(jhandler) > index) &&                  \
+           iotjs_jval_is_##type(iotjs_jhandler_get_arg(jhandler, index)) \
+       ? iotjs_jhandler_get_arg(jhandler, index)                         \
        : *iotjs_jval_get_null())
 
 #define JHANDLER_GET_THIS(type) \
@@ -333,11 +331,11 @@ static inline bool ge(uint16_t a, uint16_t b) {
 #define DJHANDLER_GET_REQUIRED_CONF_VALUE(src, target, property, type)        \
   do {                                                                        \
     iotjs_jval_t jtmp = iotjs_jval_get_property(src, property);               \
-    if (iotjs_jval_is_undefined(&jtmp)) {                                     \
+    if (iotjs_jval_is_undefined(jtmp)) {                                      \
       JHANDLER_THROW(TYPE, "Missing argument, required " property);           \
       return;                                                                 \
-    } else if (iotjs_jval_is_##type(&jtmp))                                   \
-      target = iotjs_jval_as_##type(&jtmp);                                   \
+    } else if (iotjs_jval_is_##type(jtmp))                                    \
+      target = iotjs_jval_as_##type(jtmp);                                    \
     else {                                                                    \
       JHANDLER_THROW(TYPE,                                                    \
                      "Bad arguments, required " property " is not a " #type); \

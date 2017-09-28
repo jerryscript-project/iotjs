@@ -85,7 +85,7 @@ static iotjs_jval_t iotjs_adc_reqwrap_jcallback(THIS) {
 
 
 static iotjs_adc_t* iotjs_adc_instance_from_jval(const iotjs_jval_t jadc) {
-  uintptr_t handle = iotjs_jval_get_object_native_handle(&jadc);
+  uintptr_t handle = iotjs_jval_get_object_native_handle(jadc);
   return (iotjs_adc_t*)handle;
 }
 
@@ -206,7 +206,7 @@ JHANDLER_FUNCTION(AdcConstructor) {
   DJHANDLER_CHECK_THIS(object);
 
   // Create ADC object
-  const iotjs_jval_t jadc = *JHANDLER_GET_THIS(object);
+  const iotjs_jval_t jadc = JHANDLER_GET_THIS(object);
   iotjs_adc_t* adc = iotjs_adc_create(jadc);
   IOTJS_ASSERT(adc == iotjs_adc_instance_from_jval(jadc));
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_adc_t, adc);
@@ -226,8 +226,8 @@ JHANDLER_FUNCTION(AdcConstructor) {
 #endif
 
   if (iotjs_jhandler_get_arg_length(jhandler) > 1) {
-    const iotjs_jval_t jcallback = *iotjs_jhandler_get_arg(jhandler, 1);
-    if (iotjs_jval_is_function(&jcallback)) {
+    const iotjs_jval_t jcallback = iotjs_jhandler_get_arg(jhandler, 1);
+    if (iotjs_jval_is_function(jcallback)) {
       ADC_ASYNC(open, adc, jcallback, kAdcOpOpen);
     } else {
       JHANDLER_THROW(TYPE, "Bad arguments - callback should be Function");

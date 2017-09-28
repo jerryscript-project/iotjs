@@ -278,7 +278,7 @@ static void iotjs_spi_after_work(uv_work_t* work_req, int status) {
           // Append read data
           iotjs_jval_t result_data =
               iotjs_jval_create_byte_array(_this->buf_len, _this->rx_buf_data);
-          iotjs_jargs_append_jval(&jargs, &result_data);
+          iotjs_jargs_append_jval(&jargs, result_data);
           iotjs_jval_destroy(&result_data);
         }
 

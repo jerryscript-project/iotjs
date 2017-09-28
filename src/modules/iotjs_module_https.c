@@ -556,7 +556,7 @@ size_t iotjs_https_curl_write_callback(void* contents, size_t size,
     return real_size - 1;
   iotjs_jargs_t jarg = iotjs_jargs_create(1);
   iotjs_jval_t jresult_arr = iotjs_jval_create_byte_array(real_size, contents);
-  iotjs_jargs_append_jval(&jarg, &jresult_arr);
+  iotjs_jargs_append_jval(&jarg, jresult_arr);
 
   bool result =
       iotjs_https_jcallback(https_data, IOTJS_MAGIC_STRING_ONDATA, &jarg, true);

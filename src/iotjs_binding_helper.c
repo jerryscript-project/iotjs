@@ -28,7 +28,7 @@ void iotjs_uncaught_exception(const iotjs_jval_t* jexception) {
   IOTJS_ASSERT(iotjs_jval_is_function(jonuncaughtexception));
 
   iotjs_jargs_t args = iotjs_jargs_create(1);
-  iotjs_jargs_append_jval(&args, jexception);
+  iotjs_jargs_append_jval(&args, *jexception);
 
   bool throws;
   iotjs_jval_t jres =

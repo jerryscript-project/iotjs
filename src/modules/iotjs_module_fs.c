@@ -55,7 +55,7 @@ static void AfterAsync(uv_fs_t* req) {
   iotjs_jargs_t jarg = iotjs_jargs_create(2);
   if (req->result < 0) {
     iotjs_jval_t jerror = iotjs_create_uv_exception(req->result, "open");
-    iotjs_jargs_append_jval(&jarg, &jerror);
+    iotjs_jargs_append_jval(&jarg, jerror);
     iotjs_jval_destroy(&jerror);
   } else {
     iotjs_jargs_append_null(&jarg);
@@ -80,7 +80,7 @@ static void AfterAsync(uv_fs_t* req) {
           iotjs_jval_destroy(&name);
           idx++;
         }
-        iotjs_jargs_append_jval(&jarg, &ret);
+        iotjs_jargs_append_jval(&jarg, ret);
         iotjs_jval_destroy(&ret);
         break;
       }
@@ -88,7 +88,7 @@ static void AfterAsync(uv_fs_t* req) {
       case UV_FS_STAT: {
         uv_stat_t s = (req->statbuf);
         iotjs_jval_t ret = MakeStatObject(&s);
-        iotjs_jargs_append_jval(&jarg, &ret);
+        iotjs_jargs_append_jval(&jarg, ret);
         iotjs_jval_destroy(&ret);
         break;
       }

@@ -162,7 +162,7 @@ static void iotjs_uart_after_worker(uv_work_t* work_req, int status) {
 
   if (status) {
     iotjs_jval_t error = iotjs_jval_create_error("System error");
-    iotjs_jargs_append_jval(&jargs, &error);
+    iotjs_jargs_append_jval(&jargs, error);
     iotjs_jval_destroy(&error);
   } else {
     switch (req_data->op) {
@@ -217,8 +217,8 @@ static void iotjs_uart_onread(iotjs_jval_t jthis, char* buf) {
   iotjs_jargs_t jargs = iotjs_jargs_create(2);
   iotjs_jval_t str = iotjs_jval_create_string_raw("data");
   iotjs_jval_t data = iotjs_jval_create_string_raw(buf);
-  iotjs_jargs_append_jval(&jargs, &str);
-  iotjs_jargs_append_jval(&jargs, &data);
+  iotjs_jargs_append_jval(&jargs, str);
+  iotjs_jargs_append_jval(&jargs, data);
   iotjs_jhelper_call_ok(jemit, jthis, &jargs);
 
   iotjs_jval_destroy(&str);

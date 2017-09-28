@@ -106,7 +106,7 @@ void AfterI2CWork(uv_work_t* work_req, int status) {
 
   if (status) {
     iotjs_jval_t error = iotjs_jval_create_error("System error");
-    iotjs_jargs_append_jval(&jargs, &error);
+    iotjs_jargs_append_jval(&jargs, error);
     iotjs_jval_destroy(&error);
   } else {
     switch (req_data->op) {
@@ -114,7 +114,7 @@ void AfterI2CWork(uv_work_t* work_req, int status) {
         if (req_data->error == kI2cErrOpen) {
           iotjs_jval_t error =
               iotjs_jval_create_error("Failed to open I2C device");
-          iotjs_jargs_append_jval(&jargs, &error);
+          iotjs_jargs_append_jval(&jargs, error);
           iotjs_jval_destroy(&error);
         } else {
           iotjs_jargs_append_null(&jargs);
@@ -125,7 +125,7 @@ void AfterI2CWork(uv_work_t* work_req, int status) {
         if (req_data->error == kI2cErrWrite) {
           iotjs_jval_t error =
               iotjs_jval_create_error("Cannot write to device");
-          iotjs_jargs_append_jval(&jargs, &error);
+          iotjs_jargs_append_jval(&jargs, error);
           iotjs_jval_destroy(&error);
         } else {
           iotjs_jargs_append_null(&jargs);
@@ -136,7 +136,7 @@ void AfterI2CWork(uv_work_t* work_req, int status) {
         if (req_data->error == kI2cErrRead) {
           iotjs_jval_t error =
               iotjs_jval_create_error("Cannot read from device");
-          iotjs_jargs_append_jval(&jargs, &error);
+          iotjs_jargs_append_jval(&jargs, error);
           iotjs_jargs_append_null(&jargs);
           iotjs_jval_destroy(&error);
         } else {
@@ -144,7 +144,7 @@ void AfterI2CWork(uv_work_t* work_req, int status) {
           iotjs_jval_t result =
               iotjs_jval_create_byte_array(req_data->buf_len,
                                            req_data->buf_data);
-          iotjs_jargs_append_jval(&jargs, &result);
+          iotjs_jargs_append_jval(&jargs, result);
           iotjs_jval_destroy(&result);
 
           if (req_data->delay > 0) {

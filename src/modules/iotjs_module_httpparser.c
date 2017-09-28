@@ -138,7 +138,7 @@ static void iotjs_httpparserwrap_flush(iotjs_httpparserwrap_t* httpparserwrap) {
 
   iotjs_jargs_t argv = iotjs_jargs_create(2);
   iotjs_jval_t jheader = iotjs_httpparserwrap_make_header(httpparserwrap);
-  iotjs_jargs_append_jval(&argv, &jheader);
+  iotjs_jargs_append_jval(&argv, jheader);
   iotjs_jval_destroy(&jheader);
   if (_this->parser.type == HTTP_REQUEST &&
       !iotjs_string_is_empty(&_this->url)) {
@@ -291,7 +291,7 @@ static int iotjs_httpparserwrap_on_headers_complete(http_parser* parser) {
                                   http_should_keep_alive(&_this->parser));
 
 
-  iotjs_jargs_append_jval(&argv, &info);
+  iotjs_jargs_append_jval(&argv, info);
 
   iotjs_jval_t res = iotjs_make_callback_with_result(&func, &jobj, &argv);
 
@@ -323,7 +323,7 @@ static int iotjs_httpparserwrap_on_body(http_parser* parser, const char* at,
   IOTJS_ASSERT(iotjs_jval_is_function(func));
 
   iotjs_jargs_t argv = iotjs_jargs_create(3);
-  iotjs_jargs_append_jval(&argv, &_this->cur_jbuf);
+  iotjs_jargs_append_jval(&argv, _this->cur_jbuf);
   iotjs_jargs_append_number(&argv, at - _this->cur_buf);
   iotjs_jargs_append_number(&argv, length);
 

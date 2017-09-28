@@ -197,7 +197,7 @@ static void OnRecv(uv_udp_t* handle, ssize_t nread, const uv_buf_t* buf,
 
   iotjs_jargs_t jargs = iotjs_jargs_create(4);
   iotjs_jargs_append_number(&jargs, nread);
-  iotjs_jargs_append_jval(&jargs, &judp);
+  iotjs_jargs_append_jval(&jargs, judp);
 
   if (nread < 0) {
     if (buf->base != NULL)
@@ -213,11 +213,11 @@ static void OnRecv(uv_udp_t* handle, ssize_t nread, const uv_buf_t* buf,
 
   iotjs_bufferwrap_copy(buffer_wrap, buf->base, (size_t)nread);
 
-  iotjs_jargs_append_jval(&jargs, &jbuffer);
+  iotjs_jargs_append_jval(&jargs, jbuffer);
 
   iotjs_jval_t rinfo = iotjs_jval_create_object();
   AddressToJS(rinfo, addr);
-  iotjs_jargs_append_jval(&jargs, &rinfo);
+  iotjs_jargs_append_jval(&jargs, rinfo);
 
   iotjs_make_callback(&jonmessage, iotjs_jval_get_undefined(), &jargs);
 

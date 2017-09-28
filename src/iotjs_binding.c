@@ -539,35 +539,35 @@ uint16_t iotjs_jargs_length(const iotjs_jargs_t* jargs) {
 }
 
 
-void iotjs_jargs_append_jval(iotjs_jargs_t* jargs, const iotjs_jval_t* x) {
+void iotjs_jargs_append_jval(iotjs_jargs_t* jargs, iotjs_jval_t x) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_jargs_t, jargs);
   IOTJS_ASSERT(_this->argc < _this->capacity);
-  _this->argv[_this->argc++] = jerry_acquire_value(*x);
+  _this->argv[_this->argc++] = jerry_acquire_value(x);
 }
 
 
 void iotjs_jargs_append_undefined(iotjs_jargs_t* jargs) {
   IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_jargs_t, jargs);
-  iotjs_jargs_append_jval(jargs, iotjs_jval_get_undefined());
+  iotjs_jargs_append_jval(jargs, *iotjs_jval_get_undefined());
 }
 
 
 void iotjs_jargs_append_null(iotjs_jargs_t* jargs) {
   IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_jargs_t, jargs);
-  iotjs_jargs_append_jval(jargs, iotjs_jval_get_null());
+  iotjs_jargs_append_jval(jargs, *iotjs_jval_get_null());
 }
 
 
 void iotjs_jargs_append_bool(iotjs_jargs_t* jargs, bool x) {
   IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_jargs_t, jargs);
-  iotjs_jargs_append_jval(jargs, iotjs_jval_get_boolean(x));
+  iotjs_jargs_append_jval(jargs, *iotjs_jval_get_boolean(x));
 }
 
 
 void iotjs_jargs_append_number(iotjs_jargs_t* jargs, double x) {
   IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_jargs_t, jargs);
   iotjs_jval_t jval = iotjs_jval_create_number(x);
-  iotjs_jargs_append_jval(jargs, &jval);
+  iotjs_jargs_append_jval(jargs, jval);
   iotjs_jval_destroy(&jval);
 }
 
@@ -575,7 +575,7 @@ void iotjs_jargs_append_number(iotjs_jargs_t* jargs, double x) {
 void iotjs_jargs_append_string(iotjs_jargs_t* jargs, const iotjs_string_t* x) {
   IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_jargs_t, jargs);
   iotjs_jval_t jval = iotjs_jval_create_string(x);
-  iotjs_jargs_append_jval(jargs, &jval);
+  iotjs_jargs_append_jval(jargs, jval);
   iotjs_jval_destroy(&jval);
 }
 
@@ -583,7 +583,7 @@ void iotjs_jargs_append_string(iotjs_jargs_t* jargs, const iotjs_string_t* x) {
 void iotjs_jargs_append_error(iotjs_jargs_t* jargs, const char* msg) {
   IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_jargs_t, jargs);
   iotjs_jval_t error = iotjs_jval_create_error(msg);
-  iotjs_jargs_append_jval(jargs, &error);
+  iotjs_jargs_append_jval(jargs, error);
   iotjs_jval_destroy(&error);
 }
 
@@ -591,7 +591,7 @@ void iotjs_jargs_append_error(iotjs_jargs_t* jargs, const char* msg) {
 void iotjs_jargs_append_string_raw(iotjs_jargs_t* jargs, const char* x) {
   IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_jargs_t, jargs);
   iotjs_jval_t jval = iotjs_jval_create_string_raw(x);
-  iotjs_jargs_append_jval(jargs, &jval);
+  iotjs_jargs_append_jval(jargs, jval);
   iotjs_jval_destroy(&jval);
 }
 

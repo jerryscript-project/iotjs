@@ -103,8 +103,7 @@ bool iotjs_process_next_tick() {
 // Make a callback for the given `function` with `this_` binding and `args`
 // arguments. The next tick callbacks registered via `process.nextTick()`
 // will be called after the callback function `function` returns.
-void iotjs_make_callback(const iotjs_jval_t* jfunction,
-                         const iotjs_jval_t* jthis,
+void iotjs_make_callback(iotjs_jval_t jfunction, iotjs_jval_t jthis,
                          const iotjs_jargs_t* jargs) {
   iotjs_jval_t result =
       iotjs_make_callback_with_result(jfunction, jthis, jargs);
@@ -112,12 +111,12 @@ void iotjs_make_callback(const iotjs_jval_t* jfunction,
 }
 
 
-iotjs_jval_t iotjs_make_callback_with_result(const iotjs_jval_t* jfunction,
-                                             const iotjs_jval_t* jthis,
+iotjs_jval_t iotjs_make_callback_with_result(iotjs_jval_t jfunction,
+                                             iotjs_jval_t jthis,
                                              const iotjs_jargs_t* jargs) {
   // Calls back the function.
   bool throws;
-  iotjs_jval_t jres = iotjs_jhelper_call(*jfunction, *jthis, jargs, &throws);
+  iotjs_jval_t jres = iotjs_jhelper_call(jfunction, jthis, jargs, &throws);
   if (throws) {
     iotjs_uncaught_exception(jres);
   }

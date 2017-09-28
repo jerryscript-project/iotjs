@@ -184,9 +184,9 @@ void iotjs_https_cleanup(iotjs_https_t* https_data) {
     IOTJS_ASSERT(iotjs_jval_is_function((_this->read_onwrite)));
 
     if (!iotjs_jval_is_undefined((_this->read_callback)))
-      iotjs_make_callback(&(_this->read_callback), &jthis, jarg);
+      iotjs_make_callback(_this->read_callback, jthis, jarg);
 
-    iotjs_make_callback(&(_this->read_onwrite), &jthis, jarg);
+    iotjs_make_callback(_this->read_onwrite, jthis, jarg);
     _this->to_destroy_read_onwrite = false;
     iotjs_string_destroy(&(_this->read_chunk));
     jerry_release_value((_this->read_onwrite));
@@ -309,10 +309,9 @@ bool iotjs_https_jcallback(iotjs_https_t* https_data, const char* property,
 
   IOTJS_ASSERT(iotjs_jval_is_function(cb));
   if (!resultvalue) {
-    iotjs_make_callback(&cb, &jincoming, jarg);
+    iotjs_make_callback(cb, jincoming, jarg);
   } else {
-    iotjs_jval_t result =
-        iotjs_make_callback_with_result(&cb, &jincoming, jarg);
+    iotjs_jval_t result = iotjs_make_callback_with_result(cb, jincoming, jarg);
     retval = iotjs_jval_as_boolean(result);
     jerry_release_value(result);
   }
@@ -335,9 +334,9 @@ void iotjs_https_call_read_onwrite(uv_timer_t* timer) {
   IOTJS_ASSERT(iotjs_jval_is_function((_this->read_onwrite)));
 
   if (!iotjs_jval_is_undefined((_this->read_callback)))
-    iotjs_make_callback(&(_this->read_callback), &jthis, jarg);
+    iotjs_make_callback(_this->read_callback, jthis, jarg);
 
-  iotjs_make_callback(&(_this->read_onwrite), &jthis, jarg);
+  iotjs_make_callback(_this->read_onwrite, jthis, jarg);
 }
 
 // Call the above method Asynchronously

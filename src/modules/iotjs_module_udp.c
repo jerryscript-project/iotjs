@@ -202,7 +202,7 @@ static void OnRecv(uv_udp_t* handle, ssize_t nread, const uv_buf_t* buf,
   if (nread < 0) {
     if (buf->base != NULL)
       iotjs_buffer_release(buf->base);
-    iotjs_make_callback(&jonmessage, iotjs_jval_get_undefined(), &jargs);
+    iotjs_make_callback(jonmessage, *iotjs_jval_get_undefined(), &jargs);
     jerry_release_value(jonmessage);
     iotjs_jargs_destroy(&jargs);
     return;
@@ -219,7 +219,7 @@ static void OnRecv(uv_udp_t* handle, ssize_t nread, const uv_buf_t* buf,
   AddressToJS(rinfo, addr);
   iotjs_jargs_append_jval(&jargs, rinfo);
 
-  iotjs_make_callback(&jonmessage, iotjs_jval_get_undefined(), &jargs);
+  iotjs_make_callback(jonmessage, *iotjs_jval_get_undefined(), &jargs);
 
   jerry_release_value(rinfo);
   jerry_release_value(jbuffer);
@@ -268,7 +268,7 @@ static void OnSend(uv_udp_send_t* req, int status) {
     iotjs_jargs_append_number(&jargs, status);
     iotjs_jargs_append_number(&jargs, iotjs_send_reqwrap_msg_size(req_wrap));
 
-    iotjs_make_callback(&jcallback, iotjs_jval_get_undefined(), &jargs);
+    iotjs_make_callback(jcallback, *iotjs_jval_get_undefined(), &jargs);
     iotjs_jargs_destroy(&jargs);
   }
 

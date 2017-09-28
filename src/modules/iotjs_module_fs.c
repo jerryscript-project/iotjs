@@ -125,7 +125,7 @@ static void AfterSync(uv_fs_t* req, int err, const char* syscall_name,
       case UV_FS_STAT: {
         uv_stat_t* s = &(req->statbuf);
         iotjs_jval_t stat = MakeStatObject(s);
-        iotjs_jhandler_return_jval(jhandler, &stat);
+        iotjs_jhandler_return_jval(jhandler, stat);
         iotjs_jval_destroy(&stat);
         break;
       }
@@ -146,7 +146,7 @@ static void AfterSync(uv_fs_t* req, int err, const char* syscall_name,
           iotjs_jval_destroy(&name);
           idx++;
         }
-        iotjs_jhandler_return_jval(jhandler, &ret);
+        iotjs_jhandler_return_jval(jhandler, ret);
         iotjs_jval_destroy(&ret);
         break;
       }

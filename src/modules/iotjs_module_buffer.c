@@ -426,7 +426,7 @@ JHANDLER_FUNCTION(Slice) {
                                  iotjs_bufferwrap_buffer(buffer_wrap),
                                  start_idx, end_idx, 0);
 
-  iotjs_jhandler_return_jval(jhandler, &jnew_buffer);
+  iotjs_jhandler_return_jval(jhandler, jnew_buffer);
   iotjs_jval_destroy(&jnew_buffer);
 }
 
@@ -486,7 +486,7 @@ JHANDLER_FUNCTION(ByteLength) {
   iotjs_string_t str = JHANDLER_GET_ARG(0, string);
   iotjs_jval_t size = iotjs_jval_get_string_size(&str);
 
-  iotjs_jhandler_return_jval(jhandler, &size);
+  iotjs_jhandler_return_jval(jhandler, size);
   iotjs_string_destroy(&str);
   iotjs_jval_destroy(&size);
 }

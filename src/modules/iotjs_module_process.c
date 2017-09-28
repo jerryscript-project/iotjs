@@ -28,7 +28,7 @@ JHANDLER_FUNCTION(Binding) {
   const iotjs_jval_t jmodule =
       *iotjs_module_initialize_if_necessary(module_kind);
 
-  iotjs_jhandler_return_jval(jhandler, &jmodule);
+  iotjs_jhandler_return_jval(jhandler, jmodule);
 }
 
 
@@ -74,7 +74,7 @@ JHANDLER_FUNCTION(Compile) {
                iotjs_string_size(&source), &throws);
 
   if (!throws) {
-    iotjs_jhandler_return_jval(jhandler, &jres);
+    iotjs_jhandler_return_jval(jhandler, jres);
   } else {
     iotjs_jhandler_throw(jhandler, &jres);
   }
@@ -101,7 +101,7 @@ static jerry_value_t wait_for_source_callback(
                iotjs_string_size(&source), &throws);
 
   if (!throws) {
-    iotjs_jhandler_return_jval(jhandler, &jres);
+    iotjs_jhandler_return_jval(jhandler, jres);
   } else {
     iotjs_jhandler_throw(jhandler, &jres);
   }
@@ -148,7 +148,7 @@ JHANDLER_FUNCTION(CompileNativePtr) {
 #endif
 
     if (!throws) {
-      iotjs_jhandler_return_jval(jhandler, &jres);
+      iotjs_jhandler_return_jval(jhandler, jres);
     } else {
       iotjs_jhandler_throw(jhandler, &jres);
     }

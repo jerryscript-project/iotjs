@@ -110,7 +110,7 @@ static void AfterSync(uv_fs_t* req, int err, const char* syscall_name,
                       iotjs_jhandler_t* jhandler) {
   if (err < 0) {
     iotjs_jval_t jerror = iotjs_create_uv_exception(err, syscall_name);
-    iotjs_jhandler_throw(jhandler, &jerror);
+    iotjs_jhandler_throw(jhandler, jerror);
     iotjs_jval_destroy(&jerror);
   } else {
     switch (req->fs_type) {

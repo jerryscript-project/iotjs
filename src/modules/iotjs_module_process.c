@@ -76,7 +76,7 @@ JHANDLER_FUNCTION(Compile) {
   if (!throws) {
     iotjs_jhandler_return_jval(jhandler, jres);
   } else {
-    iotjs_jhandler_throw(jhandler, &jres);
+    iotjs_jhandler_throw(jhandler, jres);
   }
 
   iotjs_string_destroy(&file);
@@ -103,7 +103,7 @@ static jerry_value_t wait_for_source_callback(
   if (!throws) {
     iotjs_jhandler_return_jval(jhandler, jres);
   } else {
-    iotjs_jhandler_throw(jhandler, &jres);
+    iotjs_jhandler_throw(jhandler, jres);
   }
 
   iotjs_jval_destroy(&jres);
@@ -150,12 +150,12 @@ JHANDLER_FUNCTION(CompileNativePtr) {
     if (!throws) {
       iotjs_jhandler_return_jval(jhandler, jres);
     } else {
-      iotjs_jhandler_throw(jhandler, &jres);
+      iotjs_jhandler_throw(jhandler, jres);
     }
     iotjs_jval_destroy(&jres);
   } else {
     iotjs_jval_t jerror = iotjs_jval_create_error("Unknown native module");
-    iotjs_jhandler_throw(jhandler, &jerror);
+    iotjs_jhandler_throw(jhandler, jerror);
     iotjs_jval_destroy(&jerror);
   }
 

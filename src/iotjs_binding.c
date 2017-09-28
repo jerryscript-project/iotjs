@@ -743,14 +743,14 @@ void iotjs_jhandler_return_string_raw(iotjs_jhandler_t* jhandler,
 }
 
 
-void iotjs_jhandler_throw(iotjs_jhandler_t* jhandler, const iotjs_jval_t* err) {
+void iotjs_jhandler_throw(iotjs_jhandler_t* jhandler, iotjs_jval_t err) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_jhandler_t, jhandler);
 #ifndef NDEBUG
   IOTJS_ASSERT(_this->finished == false);
 #endif
 
   iotjs_jval_destroy(&_this->jret);
-  _this->jret = jerry_acquire_value(*err);
+  _this->jret = jerry_acquire_value(err);
   jerry_value_set_error_flag(&_this->jret);
 
 #ifndef NDEBUG

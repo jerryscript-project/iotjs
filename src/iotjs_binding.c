@@ -126,11 +126,6 @@ iotjs_jval_t iotjs_jval_create_error_type(iotjs_error_t type, const char* msg) {
 }
 
 
-iotjs_jval_t iotjs_jval_create_copied(const iotjs_jval_t* other) {
-  return jerry_acquire_value(*other);
-}
-
-
 static iotjs_jval_t iotjs_jval_create_raw(jerry_value_t val) {
   return val;
 }
@@ -313,7 +308,7 @@ iotjs_jval_t iotjs_jval_get_property(const iotjs_jval_t* jobj,
 
   if (jerry_value_has_error_flag(res)) {
     jerry_release_value(res);
-    return iotjs_jval_create_copied(iotjs_jval_get_undefined());
+    return jerry_acquire_value(*iotjs_jval_get_undefined());
   }
 
   return iotjs_jval_create_raw(res);
@@ -412,7 +407,7 @@ iotjs_jval_t iotjs_jval_get_property_by_index(const iotjs_jval_t* jarr,
 
   if (jerry_value_has_error_flag(res)) {
     jerry_release_value(res);
-    return iotjs_jval_create_copied(iotjs_jval_get_undefined());
+    return jerry_acquire_value(*iotjs_jval_get_undefined());
   }
 
   return iotjs_jval_create_raw(res);
@@ -573,7 +568,7 @@ uint16_t iotjs_jargs_length(const iotjs_jargs_t* jargs) {
 void iotjs_jargs_append_jval(iotjs_jargs_t* jargs, const iotjs_jval_t* x) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_jargs_t, jargs);
   IOTJS_ASSERT(_this->argc < _this->capacity);
-  _this->argv[_this->argc++] = iotjs_jval_create_copied(x);
+  _this->argv[_this->argc++] = jerry_acquire_value(*x);
 }
 
 
@@ -634,7 +629,7 @@ void iotjs_jargs_replace(iotjs_jargs_t* jargs, uint16_t index,
   IOTJS_ASSERT(index < _this->argc);
 
   iotjs_jval_destroy(&_this->argv[index]);
-  _this->argv[index] = iotjs_jval_create_copied(x);
+  _this->argv[index] = jerry_acquire_value(*x);
 }
 
 
@@ -656,7 +651,7 @@ void iotjs_jhandler_initialize(iotjs_jhandler_t* jhandler,
 
   _this->jfunc = iotjs_jval_create_raw(jfunc);
   _this->jthis = iotjs_jval_create_raw(jthis);
-  _this->jret = iotjs_jval_create_copied(iotjs_jval_get_undefined());
+  _this->jret = jerry_acquire_value(*iotjs_jval_get_undefined());
 #ifdef NDEBUG
   _this->jargv = (iotjs_jval_t*)jargv;
 #else
@@ -723,7 +718,7 @@ void iotjs_jhandler_return_jval(iotjs_jhandler_t* jhandler,
 #endif
 
   iotjs_jval_destroy(&_this->jret);
-  _this->jret = iotjs_jval_create_copied(ret);
+  _this->jret = jerry_acquire_value(*ret);
 #ifndef NDEBUG
   _this->finished = true;
 #endif
@@ -781,7 +776,7 @@ void iotjs_jhandler_throw(iotjs_jhandler_t* jhandler, const iotjs_jval_t* err) {
 #endif
 
   iotjs_jval_destroy(&_this->jret);
-  _this->jret = iotjs_jval_create_copied(err);
+  _this->jret = jerry_acquire_value(*err);
   jerry_value_set_error_flag(&_this->jret);
 
 #ifndef NDEBUG

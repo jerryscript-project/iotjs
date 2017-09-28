@@ -79,7 +79,6 @@ jerry_value_t iotjs_jval_dummy_function(const jerry_value_t function_obj,
 iotjs_jval_t iotjs_jval_create_function(JHandlerType handler);
 iotjs_jval_t iotjs_jval_create_error(const char* msg);
 iotjs_jval_t iotjs_jval_create_error_type(iotjs_error_t type, const char* msg);
-iotjs_jval_t iotjs_jval_create_copied(const iotjs_jval_t* other);
 
 iotjs_jval_t iotjs_jval_get_string_size(const iotjs_string_t* str);
 

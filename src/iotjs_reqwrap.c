@@ -22,7 +22,7 @@ void iotjs_reqwrap_initialize(iotjs_reqwrap_t* reqwrap,
                               uv_req_t* request) {
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_reqwrap_t, reqwrap);
   IOTJS_ASSERT(iotjs_jval_is_function(*jcallback));
-  _this->jcallback = iotjs_jval_create_copied(jcallback);
+  _this->jcallback = jerry_acquire_value(*jcallback);
   _this->request = request;
   _this->request->data = reqwrap;
 }

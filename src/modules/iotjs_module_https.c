@@ -68,7 +68,7 @@ iotjs_https_t* iotjs_https_create(const char* URL, const char* method,
 
   // Handles
   _this->loop = iotjs_environment_loop(iotjs_environment_get());
-  _this->jthis_native = iotjs_jval_create_copied(&jthis);
+  _this->jthis_native = jerry_acquire_value(jthis);
   iotjs_jval_set_object_native_handle(&(_this->jthis_native),
                                       (uintptr_t)https_data,
                                       &https_native_info);
@@ -379,8 +379,8 @@ void iotjs_https_data_to_write(iotjs_https_t* https_data,
   _this->read_chunk = read_chunk;
   _this->data_to_read = true;
 
-  _this->read_callback = iotjs_jval_create_copied(&callback);
-  _this->read_onwrite = iotjs_jval_create_copied(&onwrite);
+  _this->read_callback = jerry_acquire_value(callback);
+  _this->read_onwrite = jerry_acquire_value(onwrite);
   _this->to_destroy_read_onwrite = true;
 
   if (_this->request_done) {

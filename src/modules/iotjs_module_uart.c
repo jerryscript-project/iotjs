@@ -265,7 +265,7 @@ JHANDLER_FUNCTION(UartConstructor) {
 
   iotjs_jval_t jconfiguration = JHANDLER_GET_ARG(0, object);
   iotjs_jval_t jemitter_this = JHANDLER_GET_ARG(1, object);
-  _this->jemitter_this = iotjs_jval_create_copied(&jemitter_this);
+  _this->jemitter_this = jerry_acquire_value(jemitter_this);
   iotjs_jval_t jcallback = JHANDLER_GET_ARG(2, function);
 
   // set configuration

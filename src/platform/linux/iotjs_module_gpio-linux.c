@@ -85,7 +85,7 @@ static void gpio_emit_change_event(iotjs_gpio_t* gpio) {
 
   iotjs_jhelper_call_ok(jonChange, jgpio, iotjs_jargs_get_empty());
 
-  iotjs_jval_destroy(&jonChange);
+  jerry_release_value(jonChange);
 }
 
 

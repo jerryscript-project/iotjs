@@ -126,7 +126,7 @@ static void iotjs_pwm_set_configuration(iotjs_jval_t jconfiguration,
   iotjs_jval_t jchip =
       iotjs_jval_get_property(jconfiguration, IOTJS_MAGIC_STRING_CHIP);
   _this->chip = iotjs_jval_as_number(jchip);
-  iotjs_jval_destroy(&jchip);
+  jerry_release_value(jchip);
 #endif
 
   iotjs_jval_t jperiod =
@@ -139,9 +139,9 @@ static void iotjs_pwm_set_configuration(iotjs_jval_t jconfiguration,
   if (iotjs_jval_is_number(jduty_cycle))
     _this->duty_cycle = iotjs_jval_as_number(jduty_cycle);
 
-  iotjs_jval_destroy(&jpin);
-  iotjs_jval_destroy(&jperiod);
-  iotjs_jval_destroy(&jduty_cycle);
+  jerry_release_value(jpin);
+  jerry_release_value(jperiod);
+  jerry_release_value(jduty_cycle);
 }
 
 #undef THIS
@@ -170,7 +170,7 @@ static void iotjs_pwm_after_worker(uv_work_t* work_req, int status) {
   if (status) {
     iotjs_jval_t error = iotjs_jval_create_error("System error");
     iotjs_jargs_append_jval(&jargs, error);
-    iotjs_jval_destroy(&error);
+    jerry_release_value(error);
   } else {
     switch (req_data->op) {
       case kPwmOpOpen:
@@ -371,7 +371,7 @@ iotjs_jval_t InitPwm() {
   iotjs_jval_set_property_jval(jpwm_constructor, IOTJS_MAGIC_STRING_PROTOTYPE,
                                jprototype);
 
-  iotjs_jval_destroy(&jprototype);
+  jerry_release_value(jprototype);
 
   return jpwm_constructor;
 }

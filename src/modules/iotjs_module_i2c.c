@@ -107,7 +107,7 @@ void AfterI2CWork(uv_work_t* work_req, int status) {
   if (status) {
     iotjs_jval_t error = iotjs_jval_create_error("System error");
     iotjs_jargs_append_jval(&jargs, error);
-    iotjs_jval_destroy(&error);
+    jerry_release_value(error);
   } else {
     switch (req_data->op) {
       case kI2cOpOpen: {
@@ -115,7 +115,7 @@ void AfterI2CWork(uv_work_t* work_req, int status) {
           iotjs_jval_t error =
               iotjs_jval_create_error("Failed to open I2C device");
           iotjs_jargs_append_jval(&jargs, error);
-          iotjs_jval_destroy(&error);
+          jerry_release_value(error);
         } else {
           iotjs_jargs_append_null(&jargs);
         }
@@ -126,7 +126,7 @@ void AfterI2CWork(uv_work_t* work_req, int status) {
           iotjs_jval_t error =
               iotjs_jval_create_error("Cannot write to device");
           iotjs_jargs_append_jval(&jargs, error);
-          iotjs_jval_destroy(&error);
+          jerry_release_value(error);
         } else {
           iotjs_jargs_append_null(&jargs);
         }
@@ -138,14 +138,14 @@ void AfterI2CWork(uv_work_t* work_req, int status) {
               iotjs_jval_create_error("Cannot read from device");
           iotjs_jargs_append_jval(&jargs, error);
           iotjs_jargs_append_null(&jargs);
-          iotjs_jval_destroy(&error);
+          jerry_release_value(error);
         } else {
           iotjs_jargs_append_null(&jargs);
           iotjs_jval_t result =
               iotjs_jval_create_byte_array(req_data->buf_len,
                                            req_data->buf_data);
           iotjs_jargs_append_jval(&jargs, result);
-          iotjs_jval_destroy(&result);
+          jerry_release_value(result);
 
           if (req_data->delay > 0) {
             uv_sleep(req_data->delay);
@@ -185,10 +185,10 @@ static void GetI2cArray(const iotjs_jval_t jarray,
   for (uint8_t i = 0; i < req_data->buf_len; i++) {
     iotjs_jval_t jdata = iotjs_jval_get_property_by_index(jarray, i);
     req_data->buf_data[i] = iotjs_jval_as_number(jdata);
-    iotjs_jval_destroy(&jdata);
+    jerry_release_value(jdata);
   }
 
-  iotjs_jval_destroy(&jlength);
+  jerry_release_value(jlength);
 }
 
 #define I2C_ASYNC(op)                                                  \
@@ -281,7 +281,7 @@ iotjs_jval_t InitI2c() {
   iotjs_jval_set_property_jval(jI2cCons, IOTJS_MAGIC_STRING_PROTOTYPE,
                                prototype);
 
-  iotjs_jval_destroy(&prototype);
+  jerry_release_value(prototype);
 
   return jI2cCons;
 }

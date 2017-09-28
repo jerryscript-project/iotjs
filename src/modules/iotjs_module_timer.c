@@ -90,7 +90,7 @@ static void iotjs_timerwrap_on_timeout(iotjs_timerwrap_t* timerwrap) {
   iotjs_jval_t jcallback =
       iotjs_jval_get_property(jobject, IOTJS_MAGIC_STRING_HANDLETIMEOUT);
   iotjs_make_callback(&jcallback, &jobject, iotjs_jargs_get_empty());
-  iotjs_jval_destroy(&jcallback);
+  jerry_release_value(jcallback);
 }
 
 
@@ -170,7 +170,7 @@ iotjs_jval_t InitTimer() {
   iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_START, Start);
   iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_STOP, Stop);
 
-  iotjs_jval_destroy(&prototype);
+  jerry_release_value(prototype);
 
   return timer;
 }

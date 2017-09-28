@@ -50,7 +50,7 @@ void iotjs_module_list_init() {
 
 #define CLENUP_MODULE_LIST(upper, Camel, lower)                  \
   if (!iotjs_jval_is_undefined(modules[MODULE_##upper].jmodule)) \
-    iotjs_jval_destroy(&modules[MODULE_##upper].jmodule);
+    jerry_release_value(modules[MODULE_##upper].jmodule);
 
 void iotjs_module_list_cleanup() {
   MAP_MODULE_LIST(CLENUP_MODULE_LIST)

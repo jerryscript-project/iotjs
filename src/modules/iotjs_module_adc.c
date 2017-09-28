@@ -121,7 +121,7 @@ static void iotjs_adc_after_work(uv_work_t* work_req, int status) {
   if (status) {
     iotjs_jval_t error = iotjs_jval_create_error("System error");
     iotjs_jargs_append_jval(&jargs, error);
-    iotjs_jval_destroy(&error);
+    jerry_release_value(error);
   } else {
     switch (req_data->op) {
       case kAdcOpOpen:
@@ -236,7 +236,7 @@ JHANDLER_FUNCTION(AdcConstructor) {
     iotjs_jval_t jdummycallback =
         iotjs_jval_create_function(&iotjs_jval_dummy_function);
     ADC_ASYNC(open, adc, jdummycallback, kAdcOpOpen);
-    iotjs_jval_destroy(&jdummycallback);
+    jerry_release_value(jdummycallback);
   }
 }
 
@@ -275,7 +275,7 @@ JHANDLER_FUNCTION(Close) {
     iotjs_jval_t jdummycallback =
         iotjs_jval_create_function(&iotjs_jval_dummy_function);
     ADC_ASYNC(close, adc, jdummycallback, kAdcOpClose);
-    iotjs_jval_destroy(&jdummycallback);
+    jerry_release_value(jdummycallback);
   } else {
     ADC_ASYNC(close, adc, jcallback, kAdcOpClose);
   }
@@ -309,8 +309,8 @@ iotjs_jval_t InitAdc() {
   iotjs_jval_set_property_jval(jadcConstructor, IOTJS_MAGIC_STRING_PROTOTYPE,
                                jprototype);
 
-  iotjs_jval_destroy(&jprototype);
-  iotjs_jval_destroy(&jadcConstructor);
+  jerry_release_value(jprototype);
+  jerry_release_value(jadcConstructor);
 
   return jadc;
 }

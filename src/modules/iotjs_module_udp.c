@@ -161,7 +161,7 @@ JHANDLER_FUNCTION(Bind) {
 
   iotjs_jhandler_return_number(jhandler, err);
 
-  iotjs_jval_destroy(&reuse_addr);
+  jerry_release_value(reuse_addr);
   iotjs_string_destroy(&address);
 }
 
@@ -203,7 +203,7 @@ static void OnRecv(uv_udp_t* handle, ssize_t nread, const uv_buf_t* buf,
     if (buf->base != NULL)
       iotjs_buffer_release(buf->base);
     iotjs_make_callback(&jonmessage, iotjs_jval_get_undefined(), &jargs);
-    iotjs_jval_destroy(&jonmessage);
+    jerry_release_value(jonmessage);
     iotjs_jargs_destroy(&jargs);
     return;
   }
@@ -221,9 +221,9 @@ static void OnRecv(uv_udp_t* handle, ssize_t nread, const uv_buf_t* buf,
 
   iotjs_make_callback(&jonmessage, iotjs_jval_get_undefined(), &jargs);
 
-  iotjs_jval_destroy(&rinfo);
-  iotjs_jval_destroy(&jbuffer);
-  iotjs_jval_destroy(&jonmessage);
+  jerry_release_value(rinfo);
+  jerry_release_value(jbuffer);
+  jerry_release_value(jonmessage);
   iotjs_buffer_release(buf->base);
   iotjs_jargs_destroy(&jargs);
 }
@@ -482,7 +482,7 @@ iotjs_jval_t InitUdp() {
   iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_REF, Ref);
   iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_UNREF, Unref);
 
-  iotjs_jval_destroy(&prototype);
+  jerry_release_value(prototype);
 
   return udp;
 }

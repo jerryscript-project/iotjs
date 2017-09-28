@@ -189,8 +189,8 @@ void iotjs_https_cleanup(iotjs_https_t* https_data) {
     iotjs_make_callback(&(_this->read_onwrite), &jthis, jarg);
     _this->to_destroy_read_onwrite = false;
     iotjs_string_destroy(&(_this->read_chunk));
-    iotjs_jval_destroy(&(_this->read_onwrite));
-    iotjs_jval_destroy(&(_this->read_callback));
+    jerry_release_value((_this->read_onwrite));
+    jerry_release_value((_this->read_callback));
   }
   return;
 }
@@ -314,11 +314,11 @@ bool iotjs_https_jcallback(iotjs_https_t* https_data, const char* property,
     iotjs_jval_t result =
         iotjs_make_callback_with_result(&cb, &jincoming, jarg);
     retval = iotjs_jval_as_boolean(result);
-    iotjs_jval_destroy(&result);
+    jerry_release_value(result);
   }
 
-  iotjs_jval_destroy(&jincoming);
-  iotjs_jval_destroy(&cb);
+  jerry_release_value(jincoming);
+  jerry_release_value(cb);
   return retval;
 }
 
@@ -371,8 +371,8 @@ void iotjs_https_data_to_write(iotjs_https_t* https_data,
   if (_this->to_destroy_read_onwrite) {
     _this->to_destroy_read_onwrite = false;
     iotjs_string_destroy(&(_this->read_chunk));
-    iotjs_jval_destroy(&(_this->read_onwrite));
-    iotjs_jval_destroy(&(_this->read_callback));
+    jerry_release_value((_this->read_onwrite));
+    jerry_release_value((_this->read_callback));
   }
 
   _this->read_chunk = read_chunk;
@@ -561,7 +561,7 @@ size_t iotjs_https_curl_write_callback(void* contents, size_t size,
   bool result =
       iotjs_https_jcallback(https_data, IOTJS_MAGIC_STRING_ONDATA, &jarg, true);
 
-  iotjs_jval_destroy(&jresult_arr);
+  jerry_release_value(jresult_arr);
   iotjs_jargs_destroy(&jarg);
 
   if (!result) {
@@ -581,7 +581,7 @@ void iotjs_https_uv_close_callback(uv_handle_t* handle) {
   if (_this->closing_handles <= 0) {
     if (_this->poll_data != NULL)
       iotjs_https_poll_destroy(_this->poll_data);
-    iotjs_jval_destroy(&_this->jthis_native);
+    jerry_release_value(_this->jthis_native);
   }
 }
 
@@ -721,24 +721,24 @@ JHANDLER_FUNCTION(createRequest) {
 
   iotjs_jval_t jhost = iotjs_jval_get_property(jthis, IOTJS_MAGIC_STRING_HOST);
   iotjs_string_t host = iotjs_jval_as_string(jhost);
-  iotjs_jval_destroy(&jhost);
+  jerry_release_value(jhost);
 
   iotjs_jval_t jmethod =
       iotjs_jval_get_property(jthis, IOTJS_MAGIC_STRING_METHOD);
   iotjs_string_t method = iotjs_jval_as_string(jmethod);
-  iotjs_jval_destroy(&jmethod);
+  jerry_release_value(jmethod);
 
   iotjs_jval_t jca = iotjs_jval_get_property(jthis, IOTJS_MAGIC_STRING_CA);
   iotjs_string_t ca = iotjs_jval_as_string(jca);
-  iotjs_jval_destroy(&jca);
+  jerry_release_value(jca);
 
   iotjs_jval_t jcert = iotjs_jval_get_property(jthis, IOTJS_MAGIC_STRING_CERT);
   iotjs_string_t cert = iotjs_jval_as_string(jcert);
-  iotjs_jval_destroy(&jcert);
+  jerry_release_value(jcert);
 
   iotjs_jval_t jkey = iotjs_jval_get_property(jthis, IOTJS_MAGIC_STRING_KEY);
   iotjs_string_t key = iotjs_jval_as_string(jkey);
-  iotjs_jval_destroy(&jkey);
+  jerry_release_value(jkey);
 
   iotjs_jval_t jreject_unauthorized =
       iotjs_jval_get_property(jthis, IOTJS_MAGIC_STRING_REJECTUNAUTHORIZED);

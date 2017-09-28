@@ -56,7 +56,7 @@ static void AfterAsync(uv_fs_t* req) {
   if (req->result < 0) {
     iotjs_jval_t jerror = iotjs_create_uv_exception(req->result, "open");
     iotjs_jargs_append_jval(&jarg, jerror);
-    iotjs_jval_destroy(&jerror);
+    jerry_release_value(jerror);
   } else {
     iotjs_jargs_append_null(&jarg);
     switch (req->fs_type) {
@@ -77,11 +77,11 @@ static void AfterAsync(uv_fs_t* req) {
         while ((r = uv_fs_scandir_next(req, &ent)) != UV_EOF) {
           iotjs_jval_t name = iotjs_jval_create_string_raw(ent.name);
           iotjs_jval_set_property_by_index(ret, idx, name);
-          iotjs_jval_destroy(&name);
+          jerry_release_value(name);
           idx++;
         }
         iotjs_jargs_append_jval(&jarg, ret);
-        iotjs_jval_destroy(&ret);
+        jerry_release_value(ret);
         break;
       }
       case UV_FS_FSTAT:
@@ -89,7 +89,7 @@ static void AfterAsync(uv_fs_t* req) {
         uv_stat_t s = (req->statbuf);
         iotjs_jval_t ret = MakeStatObject(&s);
         iotjs_jargs_append_jval(&jarg, ret);
-        iotjs_jval_destroy(&ret);
+        jerry_release_value(ret);
         break;
       }
       default: {
@@ -111,7 +111,7 @@ static void AfterSync(uv_fs_t* req, int err, const char* syscall_name,
   if (err < 0) {
     iotjs_jval_t jerror = iotjs_create_uv_exception(err, syscall_name);
     iotjs_jhandler_throw(jhandler, jerror);
-    iotjs_jval_destroy(&jerror);
+    jerry_release_value(jerror);
   } else {
     switch (req->fs_type) {
       case UV_FS_CLOSE:
@@ -126,7 +126,7 @@ static void AfterSync(uv_fs_t* req, int err, const char* syscall_name,
         uv_stat_t* s = &(req->statbuf);
         iotjs_jval_t stat = MakeStatObject(s);
         iotjs_jhandler_return_jval(jhandler, stat);
-        iotjs_jval_destroy(&stat);
+        jerry_release_value(stat);
         break;
       }
       case UV_FS_MKDIR:
@@ -143,11 +143,11 @@ static void AfterSync(uv_fs_t* req, int err, const char* syscall_name,
         while ((r = uv_fs_scandir_next(req, &ent)) != UV_EOF) {
           iotjs_jval_t name = iotjs_jval_create_string_raw(ent.name);
           iotjs_jval_set_property_by_index(ret, idx, name);
-          iotjs_jval_destroy(&name);
+          jerry_release_value(name);
           idx++;
         }
         iotjs_jhandler_return_jval(jhandler, ret);
-        iotjs_jval_destroy(&ret);
+        jerry_release_value(ret);
         break;
       }
       default: {
@@ -317,7 +317,7 @@ iotjs_jval_t MakeStatObject(uv_stat_t* statbuf) {
   iotjs_jval_t jstat = iotjs_jval_create_object();
   iotjs_jval_set_prototype(jstat, stat_prototype);
 
-  iotjs_jval_destroy(&stat_prototype);
+  jerry_release_value(stat_prototype);
 
 
 #define X(statobj, name) \
@@ -487,7 +487,7 @@ static void StatsIsTypeOf(iotjs_jhandler_t* jhandler, int type) {
 
   int mode_number = (int)iotjs_jval_as_number(mode);
 
-  iotjs_jval_destroy(&mode);
+  jerry_release_value(mode);
 
   iotjs_jhandler_return_boolean(jhandler, (mode_number & S_IFMT) == type);
 }
@@ -523,7 +523,7 @@ iotjs_jval_t InitFs() {
                         StatsIsFile);
 
   iotjs_jval_set_property_jval(fs, IOTJS_MAGIC_STRING_STATS, stats_prototype);
-  iotjs_jval_destroy(&stats_prototype);
+  jerry_release_value(stats_prototype);
 
   return fs;
 }

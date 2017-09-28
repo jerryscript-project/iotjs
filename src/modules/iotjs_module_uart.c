@@ -163,7 +163,7 @@ static void iotjs_uart_after_worker(uv_work_t* work_req, int status) {
   if (status) {
     iotjs_jval_t error = iotjs_jval_create_error("System error");
     iotjs_jargs_append_jval(&jargs, error);
-    iotjs_jval_destroy(&error);
+    jerry_release_value(error);
   } else {
     switch (req_data->op) {
       case kUartOpOpen: {
@@ -221,10 +221,10 @@ static void iotjs_uart_onread(iotjs_jval_t jthis, char* buf) {
   iotjs_jargs_append_jval(&jargs, data);
   iotjs_jhelper_call_ok(jemit, jthis, &jargs);
 
-  iotjs_jval_destroy(&str);
-  iotjs_jval_destroy(&data);
+  jerry_release_value(str);
+  jerry_release_value(data);
   iotjs_jargs_destroy(&jargs);
-  iotjs_jval_destroy(&jemit);
+  jerry_release_value(jemit);
 }
 
 
@@ -284,9 +284,9 @@ JHANDLER_FUNCTION(UartConstructor) {
          iotjs_string_data(&_this->device_path), _this->baud_rate,
          _this->data_bits);
 
-  iotjs_jval_destroy(&jdevice);
-  iotjs_jval_destroy(&jbaud_rate);
-  iotjs_jval_destroy(&jdata_bits);
+  jerry_release_value(jdevice);
+  jerry_release_value(jbaud_rate);
+  jerry_release_value(jdata_bits);
 
   UART_ASYNC(open, uart, jcallback, kUartOpOpen);
 }
@@ -327,7 +327,7 @@ JHANDLER_FUNCTION(Close) {
   const iotjs_jval_t jcallback = JHANDLER_GET_ARG_IF_EXIST(0, function);
 
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_uart_t, uart);
-  iotjs_jval_destroy(&_this->jemitter_this);
+  jerry_release_value(_this->jemitter_this);
 
   if (!jerry_value_is_null(jcallback)) {
     UART_ASYNC(close, uart, jcallback, kUartOpClose);
@@ -351,7 +351,7 @@ iotjs_jval_t InitUart() {
   iotjs_jval_set_property_jval(juart_constructor, IOTJS_MAGIC_STRING_PROTOTYPE,
                                prototype);
 
-  iotjs_jval_destroy(&prototype);
+  jerry_release_value(prototype);
 
   return juart_constructor;
 }

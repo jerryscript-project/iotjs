@@ -19,7 +19,7 @@ var util = require('util');
 
 function EventEmitter() {
   this._events = {};
-};
+}
 
 module.exports.EventEmitter = EventEmitter;
 

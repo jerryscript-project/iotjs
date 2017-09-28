@@ -22,7 +22,7 @@ function iotjs_module_t(id, parent) {
   this.exports = {};
   this.filename = null;
   this.parent = parent;
-};
+}
 
 module.exports = iotjs_module_t;
 

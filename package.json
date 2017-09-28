@@ -1,0 +1,15 @@
+{
+  "name": "IoT.js",
+  "description": "Platform for Internet of Things with JavaScript",
+  "scripts": {
+    "lint": "eslint src ./*.js -f table --ext .js > eslint.log",
+    "lint-autofix": "eslint src ./*.js -f table --ext .js --fix > eslint.log",
+    "lint-server": "nodemon --watch .eslintrc.js --watch ./src --ext js --exec \"npm run lint\""
+  },
+  "author": "Samsung Electronics Co., Ltd.",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "eslint": "^4.7.2",
+    "nodemon": "^1.12.1"
+  }
+}

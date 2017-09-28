@@ -6,6 +6,7 @@
 /src/iotjs_js.c
 /src/iotjs_string_ext.inl.h
 /test/tmp/*
+eslint.log
 
 # IDE related files
 nbproject

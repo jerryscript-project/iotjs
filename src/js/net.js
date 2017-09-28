@@ -330,7 +330,7 @@ function resetSocketTimeout(socket) {
       clearSocketTimeout(socket);
     }, socket._timeout);
   }
-};
+}
 
 
 function clearSocketTimeout(socket) {
@@ -338,7 +338,7 @@ function clearSocketTimeout(socket) {
     clearTimeout(socket._timer);
     socket._timer = null;
   }
-};
+}
 
 
 function emitError(socket, err) {

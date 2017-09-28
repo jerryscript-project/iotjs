@@ -213,7 +213,7 @@ size_t iotjs_bufferwrap_copy(iotjs_bufferwrap_t* bufferwrap, const char* src,
 
 
 iotjs_jval_t iotjs_bufferwrap_create_buffer(size_t len) {
-  iotjs_jval_t jglobal = *iotjs_jval_get_global_object();
+  iotjs_jval_t jglobal = iotjs_jval_get_global_object();
 
   iotjs_jval_t jbuffer =
       iotjs_jval_get_property(&jglobal, IOTJS_MAGIC_STRING_BUFFER);

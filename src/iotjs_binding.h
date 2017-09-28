@@ -85,7 +85,7 @@ iotjs_jval_t iotjs_jval_get_string_size(const iotjs_string_t* str);
 iotjs_jval_t* iotjs_jval_get_undefined();
 iotjs_jval_t* iotjs_jval_get_null();
 iotjs_jval_t* iotjs_jval_get_boolean(bool v);
-iotjs_jval_t* iotjs_jval_get_global_object();
+iotjs_jval_t iotjs_jval_get_global_object();
 
 /* Destructor */
 void iotjs_jval_destroy(iotjs_jval_t* jval);

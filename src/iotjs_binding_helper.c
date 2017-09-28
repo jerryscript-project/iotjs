@@ -87,7 +87,7 @@ bool iotjs_process_next_tick() {
   IOTJS_ASSERT(iotjs_jval_is_function(jon_next_tick));
 
   iotjs_jval_t jres =
-      iotjs_jhelper_call_ok(jon_next_tick, *iotjs_jval_get_undefined(),
+      iotjs_jhelper_call_ok(jon_next_tick, jerry_create_undefined(),
                             iotjs_jargs_get_empty());
 
   IOTJS_ASSERT(iotjs_jval_is_boolean(jres));

@@ -230,7 +230,7 @@ void AfterClose(uv_handle_t* handle) {
   iotjs_jval_t jcallback =
       iotjs_jval_get_property(jtcp, IOTJS_MAGIC_STRING_ONCLOSE);
   if (iotjs_jval_is_function(jcallback)) {
-    iotjs_make_callback(jcallback, *iotjs_jval_get_undefined(),
+    iotjs_make_callback(jcallback, jerry_create_undefined(),
                         iotjs_jargs_get_empty());
   }
   jerry_release_value(jcallback);
@@ -288,7 +288,7 @@ static void AfterConnect(uv_connect_t* req, int status) {
   iotjs_jargs_append_number(&args, status);
 
   // Make callback.
-  iotjs_make_callback(jcallback, *iotjs_jval_get_undefined(), &args);
+  iotjs_make_callback(jcallback, jerry_create_undefined(), &args);
 
   // Destroy args
   iotjs_jargs_destroy(&args);
@@ -363,7 +363,7 @@ static void OnConnection(uv_stream_t* handle, int status) {
     IOTJS_ASSERT(iotjs_jval_is_function(jcreate_tcp));
 
     iotjs_jval_t jclient_tcp =
-        iotjs_jhelper_call_ok(jcreate_tcp, *iotjs_jval_get_undefined(),
+        iotjs_jhelper_call_ok(jcreate_tcp, jerry_create_undefined(),
                               iotjs_jargs_get_empty());
     IOTJS_ASSERT(iotjs_jval_is_object(jclient_tcp));
 
@@ -418,7 +418,7 @@ void AfterWrite(uv_write_t* req, int status) {
   iotjs_jargs_append_number(&args, status);
 
   // Make callback.
-  iotjs_make_callback(jcallback, *iotjs_jval_get_undefined(), &args);
+  iotjs_make_callback(jcallback, jerry_create_undefined(), &args);
 
   // Destroy args
   iotjs_jargs_destroy(&args);
@@ -493,10 +493,10 @@ void OnRead(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
     }
     if (nread < 0) {
       if (nread == UV__EOF) {
-        iotjs_jargs_replace(&jargs, 2, *iotjs_jval_get_boolean(true));
+        iotjs_jargs_replace(&jargs, 2, jerry_create_boolean(true));
       }
 
-      iotjs_make_callback(jonread, *iotjs_jval_get_undefined(), &jargs);
+      iotjs_make_callback(jonread, jerry_create_undefined(), &jargs);
     }
   } else {
     iotjs_jval_t jbuffer = iotjs_bufferwrap_create_buffer((size_t)nread);
@@ -505,7 +505,7 @@ void OnRead(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
     iotjs_bufferwrap_copy(buffer_wrap, buf->base, (size_t)nread);
 
     iotjs_jargs_append_jval(&jargs, jbuffer);
-    iotjs_make_callback(jonread, *iotjs_jval_get_undefined(), &jargs);
+    iotjs_make_callback(jonread, jerry_create_undefined(), &jargs);
 
     jerry_release_value(jbuffer);
     iotjs_buffer_release(buf->base);
@@ -540,7 +540,7 @@ static void AfterShutdown(uv_shutdown_t* req, int status) {
   iotjs_jargs_t args = iotjs_jargs_create(1);
   iotjs_jargs_append_number(&args, status);
 
-  iotjs_make_callback(jonshutdown, *iotjs_jval_get_undefined(), &args);
+  iotjs_make_callback(jonshutdown, jerry_create_undefined(), &args);
 
   iotjs_jargs_destroy(&args);
 

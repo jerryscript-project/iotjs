@@ -81,10 +81,6 @@ iotjs_jval_t iotjs_jval_create_error(const char* msg);
 iotjs_jval_t iotjs_jval_create_error_type(iotjs_error_t type, const char* msg);
 
 iotjs_jval_t iotjs_jval_get_string_size(const iotjs_string_t* str);
-
-iotjs_jval_t* iotjs_jval_get_undefined();
-iotjs_jval_t* iotjs_jval_get_null();
-iotjs_jval_t* iotjs_jval_get_boolean(bool v);
 iotjs_jval_t iotjs_jval_get_global_object();
 
 
@@ -277,7 +273,7 @@ static inline bool ge(uint16_t a, uint16_t b) {
   ((iotjs_jhandler_get_arg_length(jhandler) > index) &&                  \
            iotjs_jval_is_##type(iotjs_jhandler_get_arg(jhandler, index)) \
        ? iotjs_jhandler_get_arg(jhandler, index)                         \
-       : *iotjs_jval_get_null())
+       : jerry_create_null())
 
 #define JHANDLER_GET_THIS(type) \
   iotjs_jval_as_##type(iotjs_jhandler_get_this(jhandler))

@@ -99,7 +99,7 @@ static void AfterAsync(uv_fs_t* req) {
     }
   }
 
-  iotjs_make_callback(cb, *iotjs_jval_get_undefined(), &jarg);
+  iotjs_make_callback(cb, jerry_create_undefined(), &jarg);
 
   iotjs_jargs_destroy(&jarg);
   iotjs_fs_reqwrap_destroy(req_wrap);

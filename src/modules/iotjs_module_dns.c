@@ -155,7 +155,7 @@ static void AfterGetAddrInfo(uv_getaddrinfo_t* req, int status,
 
   // Make the callback into JavaScript
   iotjs_jval_t jcallback = iotjs_getaddrinfo_reqwrap_jcallback(req_wrap);
-  iotjs_make_callback(jcallback, *iotjs_jval_get_undefined(), &args);
+  iotjs_make_callback(jcallback, jerry_create_undefined(), &args);
 
   iotjs_jargs_destroy(&args);
 
@@ -217,7 +217,7 @@ JHANDLER_FUNCTION(GetAddrInfo) {
   iotjs_jargs_append_string_raw(&args, ip);
   iotjs_jargs_append_number(&args, option);
 
-  iotjs_make_callback(jcallback, *iotjs_jval_get_undefined(), &args);
+  iotjs_make_callback(jcallback, jerry_create_undefined(), &args);
   iotjs_jargs_destroy(&args);
   IOTJS_UNUSED(flags);
 #else

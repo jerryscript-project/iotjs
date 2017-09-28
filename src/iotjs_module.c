@@ -36,9 +36,9 @@ MAP_MODULE_LIST(DECLARE_MODULE_INITIALIZER)
 #undef DECLARE_MODULE_INITIALIZER
 
 
-#define INIT_MODULE_LIST(upper, Camel, lower)                    \
-  modules[MODULE_##upper].kind = MODULE_##upper;                 \
-  modules[MODULE_##upper].jmodule = *iotjs_jval_get_undefined(); \
+#define INIT_MODULE_LIST(upper, Camel, lower)                 \
+  modules[MODULE_##upper].kind = MODULE_##upper;              \
+  modules[MODULE_##upper].jmodule = jerry_create_undefined(); \
   modules[MODULE_##upper].fn_register = Init##Camel;
 
 void iotjs_module_list_init() {

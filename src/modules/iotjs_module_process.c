@@ -212,7 +212,7 @@ JHANDLER_FUNCTION(DoExit) {
 void SetNativeSources(iotjs_jval_t native_sources) {
   for (int i = 0; natives[i].name; i++) {
     iotjs_jval_set_property_jval(native_sources, natives[i].name,
-                                 *iotjs_jval_get_boolean(true));
+                                 jerry_create_boolean(true));
   }
 }
 
@@ -330,7 +330,7 @@ iotjs_jval_t InitProcess() {
     SetProcessArgv(process);
   }
 
-  iotjs_jval_t wait_source_val = *iotjs_jval_get_boolean(wait_source);
+  iotjs_jval_t wait_source_val = jerry_create_boolean(wait_source);
   iotjs_jval_set_property_jval(process, IOTJS_MAGIC_STRING_DEBUGGER_WAIT_SOURCE,
                                wait_source_val);
 

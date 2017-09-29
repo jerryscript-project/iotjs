@@ -71,7 +71,7 @@ function inherits(ctor, superCtor) {
       configurable: true
     }
   });
-};
+}
 
 
 function format(s) {
@@ -172,7 +172,7 @@ function errnoException(err, syscall, original) {
   e.syscall = syscall;
 
   return e;
-};
+}
 
 
 function exceptionWithHostPort(err, syscall, address, port, additional) {
@@ -194,7 +194,7 @@ function exceptionWithHostPort(err, syscall, address, port, additional) {
   }
 
   return ex;
-};
+}
 
 
 exports.isNull = isNull;

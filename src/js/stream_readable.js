@@ -38,7 +38,7 @@ function ReadableState(options) {
 
   // become `true` just before emit 'end' event.
   this.endEmitted = false;
-};
+}
 
 
 function Readable(options) {
@@ -49,7 +49,7 @@ function Readable(options) {
   this._readableState = new ReadableState(options);
 
   Stream.call(this);
-};
+}
 
 util.inherits(Readable, Stream);
 
@@ -164,7 +164,7 @@ function readBuffer(stream, n) {
   }
 
   return res;
-};
+}
 
 
 function emitEnd(stream) {
@@ -177,7 +177,7 @@ function emitEnd(stream) {
     state.endEmitted = true;
     stream.emit('end');
   }
-};
+}
 
 
 function emitData(stream, data) {
@@ -189,7 +189,7 @@ function emitData(stream, data) {
   if (state.ended && state.length == 0) {
     emitEnd(stream);
   }
-};
+}
 
 
 function onEof(stream) {
@@ -200,7 +200,7 @@ function onEof(stream) {
   if (state.length == 0) {
     emitEnd(stream);
   }
-};
+}
 
 
 module.exports = Readable;

@@ -20,7 +20,7 @@ var util = require('util');
 
 function Stream() {
   eventEmitter.call(this);
-};
+}
 
 
 util.inherits(Stream, eventEmitter);

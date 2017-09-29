@@ -462,6 +462,7 @@ JHANDLER_FUNCTION(ToHexString) {
 
   size_t length = iotjs_bufferwrap_length(buffer_wrap);
   const char* data = iotjs_bufferwrap_buffer(buffer_wrap);
+  JHANDLER_CHECK(data != NULL);
 
   char* buffer = iotjs_buffer_allocate(length * 2);
   iotjs_string_t str = iotjs_string_create_with_buffer(buffer, length * 2);

@@ -135,9 +135,12 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
   _this->argv = (char**)iotjs_buffer_allocate(buffer_size);
   _this->argv[0] = argv[0];
   _this->argv[1] = argv[i++];
+
+  size_t len = 0;
   while (i < argc) {
-    _this->argv[_this->argc] = iotjs_buffer_allocate(strlen(argv[i]) + 1);
-    strcpy(_this->argv[_this->argc], argv[i]);
+    len = strlen(argv[i]) + 1;
+    _this->argv[_this->argc] = iotjs_buffer_allocate(len);
+    strncpy(_this->argv[_this->argc], argv[i], len);
     _this->argc++;
     i++;
   }

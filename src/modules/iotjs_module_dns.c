@@ -197,7 +197,7 @@ JHANDLER_FUNCTION(GetAddrInfo) {
   const char* hostname_data = iotjs_string_data(&hostname);
 
   if (strcmp(hostname_data, "localhost") == 0) {
-    strcpy(ip, "127.0.0.1");
+    strncpy(ip, "127.0.0.1", strlen("127.0.0.1") + 1);
   } else {
     struct sockaddr_in addr;
 

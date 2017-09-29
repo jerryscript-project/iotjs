@@ -375,6 +375,7 @@ static void OnConnection(uv_stream_t* handle, int status) {
 
     int err = uv_accept(handle, client_handle);
     if (err) {
+      iotjs_jargs_destroy(&args);
       return;
     }
 

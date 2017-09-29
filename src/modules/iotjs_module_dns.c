@@ -186,6 +186,7 @@ JHANDLER_FUNCTION(GetAddrInfo) {
   } else if (option == 6) {
     family = AF_INET6;
   } else {
+    iotjs_string_destroy(&hostname);
     JHANDLER_THROW(TYPE, "bad address family");
     return;
   }

@@ -121,7 +121,7 @@ static int iotjs_spi_get_array_data(char** buf, iotjs_jval_t jarray) {
   *buf = iotjs_buffer_allocate(length);
 
   for (size_t i = 0; i < length; i++) {
-    iotjs_jval_t jdata = iotjs_jval_get_property_by_index(&jarray, i);
+    iotjs_jval_t jdata = iotjs_jval_get_property_by_index(jarray, i);
     (*buf)[i] = iotjs_jval_as_number(jdata);
     iotjs_jval_destroy(&jdata);
   }

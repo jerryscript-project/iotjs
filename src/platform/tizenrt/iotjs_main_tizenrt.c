@@ -130,7 +130,7 @@ int iotjs(int argc, char *argv[]) {
   pthread_attr_t attr;
   int status;
   struct sched_param sparam;
-  pthread_t tid;
+  pthread_t tid = (pthread_t)0;
   struct iotjs_thread_arg arg;
 
   status = pthread_attr_init(&attr);

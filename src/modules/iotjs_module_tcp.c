@@ -603,10 +603,10 @@ void AddressToJS(iotjs_jval_t obj, const sockaddr* addr) {
       a6 = (const sockaddr_in6*)(addr);
       uv_inet_ntop(AF_INET6, &a6->sin6_addr, ip, sizeof ip);
       port = ntohs(a6->sin6_port);
-      iotjs_jval_set_property_string_raw(&obj, IOTJS_MAGIC_STRING_ADDRESS, ip);
-      iotjs_jval_set_property_string_raw(&obj, IOTJS_MAGIC_STRING_FAMILY,
+      iotjs_jval_set_property_string_raw(obj, IOTJS_MAGIC_STRING_ADDRESS, ip);
+      iotjs_jval_set_property_string_raw(obj, IOTJS_MAGIC_STRING_FAMILY,
                                          IOTJS_MAGIC_STRING_IPV6);
-      iotjs_jval_set_property_number(&obj, IOTJS_MAGIC_STRING_PORT, port);
+      iotjs_jval_set_property_number(obj, IOTJS_MAGIC_STRING_PORT, port);
       break;
     }
 
@@ -614,15 +614,15 @@ void AddressToJS(iotjs_jval_t obj, const sockaddr* addr) {
       a4 = (const sockaddr_in*)(addr);
       uv_inet_ntop(AF_INET, &a4->sin_addr, ip, sizeof ip);
       port = ntohs(a4->sin_port);
-      iotjs_jval_set_property_string_raw(&obj, IOTJS_MAGIC_STRING_ADDRESS, ip);
-      iotjs_jval_set_property_string_raw(&obj, IOTJS_MAGIC_STRING_FAMILY,
+      iotjs_jval_set_property_string_raw(obj, IOTJS_MAGIC_STRING_ADDRESS, ip);
+      iotjs_jval_set_property_string_raw(obj, IOTJS_MAGIC_STRING_FAMILY,
                                          IOTJS_MAGIC_STRING_IPV4);
-      iotjs_jval_set_property_number(&obj, IOTJS_MAGIC_STRING_PORT, port);
+      iotjs_jval_set_property_number(obj, IOTJS_MAGIC_STRING_PORT, port);
       break;
     }
 
     default: {
-      iotjs_jval_set_property_string_raw(&obj, IOTJS_MAGIC_STRING_ADDRESS, "");
+      iotjs_jval_set_property_string_raw(obj, IOTJS_MAGIC_STRING_ADDRESS, "");
       break;
     }
   }
@@ -641,8 +641,8 @@ iotjs_jval_t InitTcp() {
   iotjs_jval_t prototype = iotjs_jval_create_object();
   iotjs_jval_t errname = iotjs_jval_create_function_with_dispatch(ErrName);
 
-  iotjs_jval_set_property_jval(&tcp, IOTJS_MAGIC_STRING_PROTOTYPE, &prototype);
-  iotjs_jval_set_property_jval(&tcp, IOTJS_MAGIC_STRING_ERRNAME, &errname);
+  iotjs_jval_set_property_jval(tcp, IOTJS_MAGIC_STRING_PROTOTYPE, prototype);
+  iotjs_jval_set_property_jval(tcp, IOTJS_MAGIC_STRING_ERRNAME, errname);
 
   iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_OPEN, Open);
   iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_CLOSE, Close);

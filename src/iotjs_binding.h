@@ -114,15 +114,17 @@ iotjs_jval_t iotjs_jval_as_function(iotjs_jval_t);
 bool iotjs_jval_set_prototype(const iotjs_jval_t* jobj, iotjs_jval_t* jproto);
 void iotjs_jval_set_method(THIS_JVAL, const char* name,
                            iotjs_native_handler_t handler);
-void iotjs_jval_set_property_jval(THIS_JVAL, const char* name,
-                                  const iotjs_jval_t* value);
-void iotjs_jval_set_property_null(THIS_JVAL, const char* name);
-void iotjs_jval_set_property_undefined(THIS_JVAL, const char* name);
-void iotjs_jval_set_property_boolean(THIS_JVAL, const char* name, bool v);
-void iotjs_jval_set_property_number(THIS_JVAL, const char* name, double v);
-void iotjs_jval_set_property_string(THIS_JVAL, const char* name,
+void iotjs_jval_set_property_jval(iotjs_jval_t jobj, const char* name,
+                                  iotjs_jval_t value);
+void iotjs_jval_set_property_null(iotjs_jval_t jobj, const char* name);
+void iotjs_jval_set_property_undefined(iotjs_jval_t jobj, const char* name);
+void iotjs_jval_set_property_boolean(iotjs_jval_t jobj, const char* name,
+                                     bool v);
+void iotjs_jval_set_property_number(iotjs_jval_t jobj, const char* name,
+                                    double v);
+void iotjs_jval_set_property_string(iotjs_jval_t jobj, const char* name,
                                     const iotjs_string_t* v);
-void iotjs_jval_set_property_string_raw(THIS_JVAL, const char* name,
+void iotjs_jval_set_property_string_raw(iotjs_jval_t jobj, const char* name,
                                         const char* v);
 
 iotjs_jval_t iotjs_jval_get_property(THIS_JVAL, const char* name);

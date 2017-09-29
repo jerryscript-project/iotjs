@@ -368,8 +368,8 @@ iotjs_jval_t InitPwm() {
   iotjs_jval_set_method(&jprototype, IOTJS_MAGIC_STRING_SETENABLE, SetEnable);
   iotjs_jval_set_method(&jprototype, IOTJS_MAGIC_STRING_CLOSE, Close);
 
-  iotjs_jval_set_property_jval(&jpwm_constructor, IOTJS_MAGIC_STRING_PROTOTYPE,
-                               &jprototype);
+  iotjs_jval_set_property_jval(jpwm_constructor, IOTJS_MAGIC_STRING_PROTOTYPE,
+                               jprototype);
 
   iotjs_jval_destroy(&jprototype);
 

@@ -241,7 +241,7 @@ JHANDLER_FUNCTION(Buffer) {
   const iotjs_jval_t jbuffer = JHANDLER_GET_ARG(0, object);
   size_t length = JHANDLER_GET_ARG(1, number);
 
-  iotjs_jval_set_property_jval(&jbuiltin, IOTJS_MAGIC_STRING__BUFFER, &jbuffer);
+  iotjs_jval_set_property_jval(jbuiltin, IOTJS_MAGIC_STRING__BUFFER, jbuffer);
 
   iotjs_bufferwrap_t* buffer_wrap = iotjs_bufferwrap_create(jbuiltin, length);
   IOTJS_UNUSED(buffer_wrap);
@@ -498,10 +498,9 @@ iotjs_jval_t InitBuffer() {
   iotjs_jval_t byte_length =
       iotjs_jval_create_function_with_dispatch(ByteLength);
 
-  iotjs_jval_set_property_jval(&buffer, IOTJS_MAGIC_STRING_PROTOTYPE,
-                               &prototype);
-  iotjs_jval_set_property_jval(&buffer, IOTJS_MAGIC_STRING_BYTELENGTH,
-                               &byte_length);
+  iotjs_jval_set_property_jval(buffer, IOTJS_MAGIC_STRING_PROTOTYPE, prototype);
+  iotjs_jval_set_property_jval(buffer, IOTJS_MAGIC_STRING_BYTELENGTH,
+                               byte_length);
 
   iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_COMPARE, Compare);
   iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_COPY, Copy);

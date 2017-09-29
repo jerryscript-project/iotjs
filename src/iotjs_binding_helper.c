@@ -146,7 +146,7 @@ int iotjs_process_exitcode() {
 
 
 void iotjs_set_process_exitcode(int code) {
-  const iotjs_jval_t* process = iotjs_module_get(MODULE_PROCESS);
+  iotjs_jval_t process = *iotjs_module_get(MODULE_PROCESS);
   iotjs_jval_set_property_number(process, IOTJS_MAGIC_STRING_EXITCODE, code);
 }
 

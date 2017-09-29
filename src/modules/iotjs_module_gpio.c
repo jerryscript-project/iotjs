@@ -332,59 +332,57 @@ iotjs_jval_t InitGpio() {
   iotjs_jval_t jgpio = iotjs_jval_create_object();
   iotjs_jval_t jgpioConstructor =
       iotjs_jval_create_function_with_dispatch(GpioConstructor);
-  iotjs_jval_set_property_jval(&jgpio, IOTJS_MAGIC_STRING_GPIO,
-                               &jgpioConstructor);
+  iotjs_jval_set_property_jval(jgpio, IOTJS_MAGIC_STRING_GPIO,
+                               jgpioConstructor);
 
   iotjs_jval_t jprototype = iotjs_jval_create_object();
   iotjs_jval_set_method(&jprototype, IOTJS_MAGIC_STRING_WRITE, Write);
   iotjs_jval_set_method(&jprototype, IOTJS_MAGIC_STRING_READ, Read);
   iotjs_jval_set_method(&jprototype, IOTJS_MAGIC_STRING_CLOSE, Close);
-  iotjs_jval_set_property_jval(&jgpioConstructor, IOTJS_MAGIC_STRING_PROTOTYPE,
-                               &jprototype);
+  iotjs_jval_set_property_jval(jgpioConstructor, IOTJS_MAGIC_STRING_PROTOTYPE,
+                               jprototype);
   iotjs_jval_destroy(&jprototype);
   iotjs_jval_destroy(&jgpioConstructor);
 
   // GPIO direction properties
   iotjs_jval_t jdirection = iotjs_jval_create_object();
-  iotjs_jval_set_property_number(&jdirection, IOTJS_MAGIC_STRING_IN,
+  iotjs_jval_set_property_number(jdirection, IOTJS_MAGIC_STRING_IN,
                                  kGpioDirectionIn);
-  iotjs_jval_set_property_number(&jdirection, IOTJS_MAGIC_STRING_OUT,
+  iotjs_jval_set_property_number(jdirection, IOTJS_MAGIC_STRING_OUT,
                                  kGpioDirectionOut);
-  iotjs_jval_set_property_jval(&jgpio, IOTJS_MAGIC_STRING_DIRECTION_U,
-                               &jdirection);
+  iotjs_jval_set_property_jval(jgpio, IOTJS_MAGIC_STRING_DIRECTION_U,
+                               jdirection);
   iotjs_jval_destroy(&jdirection);
 
 
   // GPIO mode properties
   iotjs_jval_t jmode = iotjs_jval_create_object();
-  iotjs_jval_set_property_number(&jmode, IOTJS_MAGIC_STRING_NONE,
-                                 kGpioModeNone);
+  iotjs_jval_set_property_number(jmode, IOTJS_MAGIC_STRING_NONE, kGpioModeNone);
 #if defined(__NUTTX__)
-  iotjs_jval_set_property_number(&jmode, IOTJS_MAGIC_STRING_PULLUP,
+  iotjs_jval_set_property_number(jmode, IOTJS_MAGIC_STRING_PULLUP,
                                  kGpioModePullup);
-  iotjs_jval_set_property_number(&jmode, IOTJS_MAGIC_STRING_PULLDOWN,
+  iotjs_jval_set_property_number(jmode, IOTJS_MAGIC_STRING_PULLDOWN,
                                  kGpioModePulldown);
-  iotjs_jval_set_property_number(&jmode, IOTJS_MAGIC_STRING_FLOAT,
+  iotjs_jval_set_property_number(jmode, IOTJS_MAGIC_STRING_FLOAT,
                                  kGpioModeFloat);
-  iotjs_jval_set_property_number(&jmode, IOTJS_MAGIC_STRING_PUSHPULL,
+  iotjs_jval_set_property_number(jmode, IOTJS_MAGIC_STRING_PUSHPULL,
                                  kGpioModePushpull);
-  iotjs_jval_set_property_number(&jmode, IOTJS_MAGIC_STRING_OPENDRAIN,
+  iotjs_jval_set_property_number(jmode, IOTJS_MAGIC_STRING_OPENDRAIN,
                                  kGpioModeOpendrain);
 #endif
-  iotjs_jval_set_property_jval(&jgpio, IOTJS_MAGIC_STRING_MODE_U, &jmode);
+  iotjs_jval_set_property_jval(jgpio, IOTJS_MAGIC_STRING_MODE_U, jmode);
   iotjs_jval_destroy(&jmode);
 
   // GPIO edge properties
   iotjs_jval_t jedge = iotjs_jval_create_object();
-  iotjs_jval_set_property_number(&jedge, IOTJS_MAGIC_STRING_NONE,
-                                 kGpioEdgeNone);
-  iotjs_jval_set_property_number(&jedge, IOTJS_MAGIC_STRING_RISING_U,
+  iotjs_jval_set_property_number(jedge, IOTJS_MAGIC_STRING_NONE, kGpioEdgeNone);
+  iotjs_jval_set_property_number(jedge, IOTJS_MAGIC_STRING_RISING_U,
                                  kGpioEdgeRising);
-  iotjs_jval_set_property_number(&jedge, IOTJS_MAGIC_STRING_FALLING_U,
+  iotjs_jval_set_property_number(jedge, IOTJS_MAGIC_STRING_FALLING_U,
                                  kGpioEdgeFalling);
-  iotjs_jval_set_property_number(&jedge, IOTJS_MAGIC_STRING_BOTH_U,
+  iotjs_jval_set_property_number(jedge, IOTJS_MAGIC_STRING_BOTH_U,
                                  kGpioEdgeBoth);
-  iotjs_jval_set_property_jval(&jgpio, IOTJS_MAGIC_STRING_EDGE_U, &jedge);
+  iotjs_jval_set_property_jval(jgpio, IOTJS_MAGIC_STRING_EDGE_U, jedge);
   iotjs_jval_destroy(&jedge);
 
   return jgpio;

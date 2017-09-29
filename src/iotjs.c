@@ -129,7 +129,7 @@ static int iotjs_start(iotjs_environment_t* env) {
 
   // Initialize builtin process module.
   const iotjs_jval_t process = *iotjs_init_process_module();
-  iotjs_jval_set_property_jval(&global, "process", &process);
+  iotjs_jval_set_property_jval(global, "process", process);
 
   // Set running state.
   iotjs_environment_go_state_running_main(env);

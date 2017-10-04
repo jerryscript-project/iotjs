@@ -35,12 +35,6 @@ NUTTXTAG = 'nuttx-7.19'
 # Title: Merge pull request #496 from sunghan-chang/iotivity
 TIZENRT_COMMIT='0f47277170972bb33b51996a374c483e4ff2c26a'
 
-def get_config():
-    config_path = path.BUILD_MODULE_CONFIG_PATH
-    with open(config_path, 'r') as f:
-        config = json.loads(f.read().encode('ascii'))
-    return config
-
 
 def parse_option():
     parser = argparse.ArgumentParser(
@@ -245,14 +239,6 @@ def generate_nuttx_romfs(nuttx_root):
 
 if __name__ == '__main__':
     option = parse_option()
-    config = get_config()
-    extend_module = config['module']['supported']['extended']
-    os_dependency_module = {}
-
-    # Travis will test all implemented modules.
-    for os_name in extend_module.keys():
-        os_dependency_module[os_name] = \
-        ['--iotjs-include-module=' + ','.join(extend_module[os_name])]
 
     build_args = []
 
@@ -262,16 +248,18 @@ if __name__ == '__main__':
     for test in option.test:
         if test == "host-linux":
             for buildtype in option.buildtype:
-                build(buildtype, os_dependency_module['linux'] + build_args)
+                build(buildtype, ['--profile=test/profiles/host-linux.profile']
+                      + build_args)
 
         if test == "host-darwin":
             for buildtype in option.buildtype:
-                build(buildtype, os_dependency_module['darwin'] + build_args)
+                build(buildtype, build_args)
 
         elif test == "rpi2":
             for buildtype in option.buildtype:
-                build(buildtype, ['--target-arch=arm', '--target-board=rpi2']
-                                + os_dependency_module['linux'] + build_args)
+                build(buildtype, ['--target-arch=arm', '--target-board=rpi2',
+                                  '--profile=test/profiles/host-darwin.profile']
+                      + build_args)
 
         elif test == "artik10":
             for buildtype in option.buildtype:
@@ -280,8 +268,9 @@ if __name__ == '__main__':
                 build(buildtype, ['--target-arch=arm',
                                 '--target-os=tizen',
                                 '--target-board=artik10',
-                                '--compile-flag=--sysroot=' + tizen_root
-                                ] + os_dependency_module['linux'] + build_args)
+                                '--compile-flag=--sysroot=' + tizen_root,
+                                '--profile=test/profiles/tizen.profile']
+                      + build_args)
 
         elif test == "artik053":
             for buildtype in option.buildtype:
@@ -294,8 +283,8 @@ if __name__ == '__main__':
                                 '--sysroot=' + tizenrt_root + '/os',
                                 '--jerry-heaplimit=128',
                                 '--clean',
-                                ] + os_dependency_module['tizenrt']
-                                + build_args)
+                                '--profile=test/profiles/tizenrt.profile']
+                      + build_args)
                 build_tizenrt(tizenrt_root, path.PROJECT_ROOT, buildtype)
 
         elif test == "nuttx":
@@ -323,8 +312,9 @@ if __name__ == '__main__':
                                 '--target-os=nuttx',
                                 '--nuttx-home=' + fs.join(nuttx_root, 'nuttx'),
                                 '--target-board=stm32f4dis',
-                                '--jerry-heaplimit=78']
-                                + os_dependency_module['nuttx'] + build_args)
+                                '--jerry-heaplimit=78',
+                                '--profile=test/profiles/nuttx.profile']
+                      + build_args)
                 build_nuttx(nuttx_root, buildtype, 'all')
 
                 # Revert memstat patches after the build.
@@ -346,17 +336,16 @@ if __name__ == '__main__':
                 ex.fail("Failed tidy check")
 
             build("debug", build_args)
-            build("debug", ['--iotjs-minimal-profile'] + build_args)
+            build("debug", ['--profile=profiles/minimal.profile',
+                            '--no-check-test'] + build_args)
 
         elif test == "no-snapshot":
             args = []
             if os.getenv('TRAVIS') != None:
                 args = ['--travis']
 
-            build("debug", ['--no-snapshot', '--jerry-lto']
-                        + os_dependency_module['linux'] + build_args)
+            build("debug", ['--no-snapshot', '--jerry-lto'] + build_args)
 
 
         elif test == "coverity":
-            build("debug", ['--no-check-test']
-                        + os_dependency_module['linux'] + build_args)
+            build("debug", ['--no-check-test'] + build_args)

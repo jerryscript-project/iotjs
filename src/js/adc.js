@@ -13,8 +13,6 @@
  * limitations under the License.
  */
 
-var adc = process.binding(process.binding.adc).Adc;
-
 function Adc() {
   if (!(this instanceof Adc)) {
     return new Adc();
@@ -22,7 +20,7 @@ function Adc() {
 }
 
 Adc.prototype.open = function(configuration, callback) {
-  return new adc(configuration, callback);
+  return new native(configuration, callback);
 };
 
 module.exports = Adc;

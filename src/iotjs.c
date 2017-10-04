@@ -100,7 +100,12 @@ static bool iotjs_run(iotjs_environment_t* env) {
   iotjs_jval_t jmain = iotjs_jhelper_eval("iotjs.js", strlen("iotjs.js"),
                                           iotjs_s, iotjs_l, false, &throws);
 #else
-  iotjs_jval_t jmain = iotjs_exec_snapshot(module_iotjs_idx, &throws);
+  iotjs_jval_t jmain =
+      jerry_exec_snapshot_at((const void*)iotjs_js_modules_s,
+                             iotjs_js_modules_l, module_iotjs_idx, false);
+  if (jerry_value_has_error_flag(jmain)) {
+    throws = true;
+  }
 #endif
 
   if (throws) {
@@ -122,7 +127,7 @@ static int iotjs_start(iotjs_environment_t* env) {
   iotjs_module_list_init();
 
   // Initialize builtin process module.
-  const iotjs_jval_t process = iotjs_init_process_module();
+  const iotjs_jval_t process = iotjs_module_get("process");
   iotjs_jval_set_property_jval(global, "process", process);
 
   // Release the global object

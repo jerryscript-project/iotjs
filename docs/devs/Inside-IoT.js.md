@@ -12,8 +12,7 @@ Inside IoT.js
   * iotjs_reqwrap_t
 * [IoT.js Core](#iotjscoe)
   * Life cycle of IoT.js
-  * Builtin
-  * Native module
+  * Builtin modules
   * Event loop
 
 # Design
@@ -110,7 +109,7 @@ Whereas native handler does know that it is being called from Javascript (actual
 
 ## Embedding API
 
-Many Javascript engines these days provide embedding API. IoT.js uses the API to create [builtin module](#builtin) and [native handler](#native-handler). See following link if you want further information about the API:
+Many Javascript engines these days provide embedding API. IoT.js uses the API to create [builtin module](#builtin-modules) and [native handler](#native-handler). See following link if you want further information about the API:
  * [JerryScript API](http://jerryscript.net/api-reference)
  * [Duktape API](http://duktape.org/api.html)
  * [V8 embedder's guide](https://developers.google.com/v8/embed)
@@ -176,23 +175,18 @@ The process of IoT.js can be summarized as follow:
 6. Run [event loop](#event-loop) until there are no more events to be handled.
 7. Clean up.
 
-## Builtin
+## Builtin modules
 
-"Builtin" is Javascript objects fully implemented in C using [embedding API](#embedding-api).
-The list of builtin objects can be found at `MAP_MODULE_LIST` macro in ['iotjs_module.h'](../../src/iotjs_module.h).
+"Builtin" is Javascript objects implemented in C using [embedding API](#embedding-api), in Javascript or both.
+The list of builtin objects can be found in ['modules.json'](../../src/modules.json).
 
-Because methods of builtin modules are implemented as [native handler](#native-handler),
+Native parts of builtin modules are implemented as [native handler](#native-handler), so they
 are able to access underlying system using libuv, C library, and system call.
-Also, builtin modules could be used for optimizing performance of CPU bound routine or reduce binary size.
 
-Builtin modules are initialized during [intializing step of IoT.js](#life-cycle-of-iotjs) and released just before program terminates.
 
-## Native module
-
-The [basic modules and extended modules](../api/IoT.js-API-reference.md) provided by IoT.js are called 'native module' because it will be included IoT.js as binary format.(not as script).
-There is a [tool](../../tools/js2c.py) that transfer Javascript script source file into C file.
-
-Usually a native module needs help from couple of [builtin](#builtin) modules which are implemented in C thus able to access underlying system.
+The [basic modules and extended modules](../api/IoT.js-API-reference.md) provided by IoT.js are called 'Builtin module' because it will be included in the IoT.js binary.
+There is a [tool](../../tools/js2c.py) that transfer Javascript script source file into C file
+and this C file will be compiled into the IoT.js binary.
 
 Some native modules are bound to global object while others are on demand.
 On demand modules will be created at the moment when it is first required and will not released until the program terminates.

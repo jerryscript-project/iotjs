@@ -33,9 +33,6 @@ iotjs_jval_t iotjs_make_callback_with_result(iotjs_jval_t jfunction,
                                              iotjs_jval_t jthis,
                                              const iotjs_jargs_t* jargs);
 
-
-iotjs_jval_t iotjs_init_process_module();
-
 int iotjs_process_exitcode();
 void iotjs_set_process_exitcode(int code);
 

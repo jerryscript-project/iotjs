@@ -14,9 +14,7 @@
  */
 
 /* Just for the testrunner to get runtime information about the build. */
-var native_modules = Object.keys(process.native_sources)
-var binding_modules = Object.keys(process.binding)
-var builtins = native_modules.concat(binding_modules)
+var builtins = process.builtin_modules;
 
 if (process.env.IOTJS_ENV.indexOf("experimental") > -1)
     stability = "experimental"

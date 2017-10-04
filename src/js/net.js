@@ -18,13 +18,11 @@ var EventEmitter = require('events').EventEmitter;
 var stream = require('stream');
 var util = require('util');
 var assert = require('assert');
-
-var TCP = process.binding(process.binding.tcp);
-
+var tcp = require('tcp');
 
 function createTCP() {
-  var tcp = new TCP();
-  return tcp;
+  var _tcp = new tcp();
+  return _tcp;
 }
 
 
@@ -288,14 +286,14 @@ function connect(socket, ip, port) {
     } else {
       socket.destroy();
       emitError(socket, new Error('connect failed - status: ' +
-        TCP.errname(status)));
+        tcp.errname(status)));
     }
   };
 
   var err = socket._handle.connect(ip, port, afterConnect);
   if (err) {
     emitError(socket, new Error('connect failed - status: ' +
-      TCP.errname(err)));
+      tcp.errname(err)));
   }
 }
 
@@ -596,7 +594,7 @@ function onconnection(status, clientHandle) {
   var server = this.owner;
 
   if (status) {
-    server.emit('error', new Error('accept error: ' + TCP.errname(status)));
+    server.emit('error', new Error('accept error: ' + tcp.errname(status)));
     return;
   }
 

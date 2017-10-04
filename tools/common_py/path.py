@@ -57,7 +57,6 @@ CHECKTEST_PATH = fs.join(TOOLS_ROOT, 'check_test.js')
 
 # Build configuration file path.
 BUILD_CONFIG_PATH = fs.join(PROJECT_ROOT, 'build.config')
-BUILD_MODULE_CONFIG_PATH = fs.join(PROJECT_ROOT, 'build.module')
 BUILD_TARGET_CONFIG_PATH = fs.join(PROJECT_ROOT, 'build.target')
 
 # IoT.js build information.

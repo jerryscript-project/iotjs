@@ -16,51 +16,46 @@
 (function() {
   this.global = this;
 
-  function Native(id) {
+  function Module(id) {
     this.id = id;
-    this.filename = id + '.js';
     this.exports = {};
   }
 
 
-  Native.cache = {};
+  Module.cache = {};
 
 
-  Native.require = function(id) {
+  Module.require = function(id) {
     if (id == 'native') {
-      return Native;
+      return Module;
     }
 
-    if (Native.cache[id]) {
-      return Native.cache[id].exports;
+    if (Module.cache[id]) {
+      return Module.cache[id].exports;
     }
 
-    var nativeMod = new Native(id);
+    var module = new Module(id);
 
-    Native.cache[id] = nativeMod;
-    nativeMod.compile();
+    Module.cache[id] = module;
+    module.compile();
 
-    return nativeMod.exports;
+    return module.exports;
   };
 
 
-  Native.prototype.compile = function() {
-    // process.native_sources has a list of pointers to
-    // the source strings defined in 'iotjs_js.h', not
-    // source strings.
-
-    var fn = process.compileNativePtr(this.id);
-    fn(this.exports, Native.require, this);
+  Module.prototype.compile = function() {
+    process.compileModule(this, Module.require);
   };
 
-  global.console = Native.require('console');
-  global.Buffer = Native.require('buffer');
+
+  global.console = Module.require('console');
+  global.Buffer = Module.require('buffer');
 
   var timers = undefined;
 
   var _timeoutHandler = function(mode) {
     if (timers == undefined) {
-      timers = Native.require('timers');
+      timers = Module.require('timers');
     }
     return timers[mode].apply(this, Array.prototype.slice.call(arguments, 1));
   };
@@ -70,7 +65,7 @@
   global.clearTimeout = _timeoutHandler.bind(this, 'clearTimeout');
   global.clearInterval = _timeoutHandler.bind(this, 'clearInterval');
 
-  var EventEmitter = Native.require('events').EventEmitter;
+  var EventEmitter = Module.require('events').EventEmitter;
 
   EventEmitter.call(process);
 
@@ -164,7 +159,6 @@
     }
   };
 
-
-  var module = Native.require('module');
+  var module = Module.require('module');
   module.runMain();
 })();

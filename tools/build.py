@@ -59,7 +59,7 @@ def init_options():
     argv = []
 
     config_option = config['build_option']
-    list_with_commas = ['iotjs-include-module','iotjs-exclude-module']
+    list_with_commas = ['external-modules']
 
     for opt_key in config_option:
         opt_val = config_option[opt_key]
@@ -97,6 +97,8 @@ def init_options():
     parser.add_argument('--config', default=path.BUILD_CONFIG_PATH,
         help='Specify the config file (default: %(default)s)',
         dest='config_path')
+
+    parser.add_argument('--profile', help='Specify the profile file for IoT.js')
 
     parser.add_argument('--target-arch',
         choices=['arm', 'x86', 'i686', 'x86_64', 'x64'],
@@ -145,18 +147,10 @@ def init_options():
         help='Specify additional external shared library '
              '(can be used multiple times)')
 
-    parser.add_argument('--iotjs-include-module',
+    parser.add_argument('--external-modules',
         action='store', default=set(), type=lambda x: set(x.split(',')),
-        help='Specify iotjs modules which should be included '
-             '(format: module_1,module_2,...)')
-    parser.add_argument('--iotjs-exclude-module',
-        action='store', default=set(), type=lambda x: set(x.split(',')),
-        help='Specify iotjs modules which should be excluded '
-             '(format: module_1,module_2,...)')
-
-    parser.add_argument('--iotjs-minimal-profile',
-        action='store_true', default=False,
-        help='Build IoT.js with minimal profile')
+        help='Specify the path of modules.json files which should be processed '
+             '(format: path1,path2,...)')
 
     parser.add_argument('--jerry-cmake-param',
         action='append', default=[],
@@ -237,9 +231,6 @@ def adjust_options(options):
         options.no_check_valgrind = True
     elif options.target_board == 'none':
         options.target_board = None
-
-    if options.iotjs_minimal_profile:
-        options.no_check_test = True
 
     # Then add calculated options.
     options.host_tuple = '%s-%s' % (platform.arch(), platform.os())
@@ -360,14 +351,11 @@ def build_iotjs(options):
         '-DPLATFORM_DESCRIPTOR=%s' % options.target_tuple,
         '-DENABLE_LTO=%s' % get_on_off(options.jerry_lto), # --jerry-lto
         '-DENABLE_SNAPSHOT=%s' % get_on_off(not options.no_snapshot),
-        '-DENABLE_MINIMAL=%s' % get_on_off(options.iotjs_minimal_profile),
         '-DBUILD_LIB_ONLY=%s' % get_on_off(options.buildlib), # --build-lib
         # --jerry-memstat
         '-DFEATURE_MEM_STATS=%s' % get_on_off(options.jerry_memstat),
-        # --iotjs-include-module
-        "-DIOTJS_INCLUDE_MODULE='%s'" % ','.join(options.iotjs_include_module),
-        # --iotjs-exclude-module
-        "-DIOTJS_EXCLUDE_MODULE='%s'" % ','.join(options.iotjs_exclude_module),
+        # --external-modules
+        "-DEXTERNAL_MODULES='%s'" % ';'.join(options.external_modules),
         # --jerry-profile
         "-DFEATURE_PROFILE='%s'" % options.jerry_profile,
     ]
@@ -413,6 +401,10 @@ def build_iotjs(options):
     if options.experimental:
         options.compile_flag.append('-DEXPERIMENTAL')
 
+    # --profile
+    if options.profile:
+        cmake_opt.append("-DIOTJS_PROFILE='%s'" % options.profile)
+
     # Add common cmake options.
     cmake_opt.extend(build_cmake_args(options))
 
@@ -430,9 +422,6 @@ def run_checktest(options):
     # IoT.js executable
     iotjs = fs.join(options.build_root, 'bin', 'iotjs')
     build_args = ['quiet=' + checktest_quiet]
-    if options.iotjs_exclude_module:
-        skip_module = ','.join(options.iotjs_exclude_module)
-        build_args.append('skip-module=' + skip_module)
 
     # experimental
     if options.experimental:

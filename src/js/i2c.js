@@ -44,7 +44,6 @@
  */
 
 var util = require('util');
-var i2c = process.binding(process.binding.i2c);
 
 function I2C() {
   if (!(this instanceof I2C)) {
@@ -90,7 +89,7 @@ function i2cBusOpen(configurable, callback) {
 
       this.address = configurable.address;
 
-      _binding = new i2c(i2cContext, (function(_this) {
+      _binding = new native(i2cContext, (function(_this) {
         return function(err) {
           if (!err) {
             _this.setAddress(configurable.address);

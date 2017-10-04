@@ -13,66 +13,30 @@
  * limitations under the License.
  */
 
-
 #include "iotjs_def.h"
 #include "iotjs_module.h"
+#include "iotjs_module_inl.h"
 
-
-typedef struct {
-  ModuleKind kind;
-  iotjs_jval_t jmodule;
-  register_func fn_register;
-} iotjs_module_t;
-
-
-static iotjs_module_t modules[MODULE_COUNT];
-
-
-#define DECLARE_MODULE_INITIALIZER(upper, Camel, lower) \
-  iotjs_jval_t Init##Camel();
-
-MAP_MODULE_LIST(DECLARE_MODULE_INITIALIZER)
-
-#undef DECLARE_MODULE_INITIALIZER
-
-
-#define INIT_MODULE_LIST(upper, Camel, lower)                 \
-  modules[MODULE_##upper].kind = MODULE_##upper;              \
-  modules[MODULE_##upper].jmodule = jerry_create_undefined(); \
-  modules[MODULE_##upper].fn_register = Init##Camel;
-
-void iotjs_module_list_init() {
-  MAP_MODULE_LIST(INIT_MODULE_LIST)
-}
-
-#undef INIT_MODULE_LIST
-
-
-#define CLEANUP_MODULE_LIST(upper, Camel, lower)                  \
-  if (!jerry_value_is_undefined(modules[MODULE_##upper].jmodule)) \
-    jerry_release_value(modules[MODULE_##upper].jmodule);
+const unsigned iotjs_modules_count = MODULE_COUNT;
 
 void iotjs_module_list_cleanup() {
-  MAP_MODULE_LIST(CLEANUP_MODULE_LIST)
+  for (unsigned i = 0; i < iotjs_modules_count; i++) {
+    if (!jerry_value_is_undefined(iotjs_modules[i].jmodule)) {
+      jerry_release_value(iotjs_modules[i].jmodule);
+    }
+  }
 }
 
-#undef CLEANUP_MODULE_LIST
+iotjs_jval_t iotjs_module_get(const char* name) {
+  for (unsigned i = 0; i < iotjs_modules_count; i++) {
+    if (!strcmp(name, iotjs_modules[i].name)) {
+      if (jerry_value_is_undefined(iotjs_modules[i].jmodule)) {
+        iotjs_modules[i].jmodule = iotjs_modules[i].fn_register();
+      }
 
-
-const iotjs_jval_t* iotjs_module_initialize_if_necessary(ModuleKind kind) {
-  IOTJS_ASSERT(kind < MODULE_COUNT);
-  IOTJS_ASSERT(&modules[kind].fn_register != NULL);
-
-  if (jerry_value_is_undefined(modules[kind].jmodule)) {
-    modules[kind].jmodule = modules[kind].fn_register();
+      return iotjs_modules[i].jmodule;
+    }
   }
 
-  return iotjs_module_get(kind);
-}
-
-
-const iotjs_jval_t* iotjs_module_get(ModuleKind kind) {
-  IOTJS_ASSERT(kind < MODULE_COUNT);
-  IOTJS_ASSERT(!jerry_value_is_undefined(modules[kind].jmodule));
-  return &modules[kind].jmodule;
+  return jerry_create_undefined();
 }

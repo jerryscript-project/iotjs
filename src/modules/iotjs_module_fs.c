@@ -305,7 +305,7 @@ JHANDLER_FUNCTION(Write) {
 
 
 iotjs_jval_t MakeStatObject(uv_stat_t* statbuf) {
-  const iotjs_jval_t fs = *iotjs_module_get(MODULE_FS);
+  const iotjs_jval_t fs = iotjs_module_get("fs");
 
   iotjs_jval_t stat_prototype =
       iotjs_jval_get_property(fs, IOTJS_MAGIC_STRING_STATS);

@@ -137,10 +137,6 @@ iotjs_jval_t iotjs_jhelper_call_ok(iotjs_jval_t jfunc, iotjs_jval_t jthis,
 iotjs_jval_t iotjs_jhelper_eval(const char* name, size_t name_len,
                                 const uint8_t* data, size_t size,
                                 bool strict_mode, bool* throws);
-#ifdef ENABLE_SNAPSHOT
-iotjs_jval_t iotjs_exec_snapshot(uint32_t snapshot_function_idx, bool* throws);
-#endif
-
 
 void iotjs_jhandler_initialize(iotjs_jhandler_t* jhandler,
                                const jerry_value_t jfunc,

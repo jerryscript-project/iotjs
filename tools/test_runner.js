@@ -17,8 +17,7 @@ var assert = require('assert');
 var util = require('util');
 var testdriver = require('testdriver');
 var console_wrapper = require('common_js/module/console');
-var builtin_modules =
-  Object.keys(process.native_sources).concat(Object.keys(process.binding));
+var builtin_modules = Object.keys(process.builtin_modules);
 
 function Runner(driver) {
   this.driver = driver;

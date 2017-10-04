@@ -159,3 +159,6 @@ Hello, IoT.js!
 undefined
 ```
 Note that `console.log(local)` prints `undefined`. It cannot be referred because it is not added in `exports`.
+
+See also:
+* [How to write a new module](Writing-New-Module.md)

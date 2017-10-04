@@ -15,10 +15,9 @@
 
 var util = require('util');
 var net = require('net');
-var HTTPParser = process.binding(process.binding.httpparser).HTTPParser;
 var OutgoingMessage = require('http_outgoing').OutgoingMessage;
 var common = require('http_common');
-
+var HTTPParser = require('httpparser').HTTPParser;
 
 function ClientRequest(options, cb) {
   var self = this;

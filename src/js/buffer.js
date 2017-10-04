@@ -13,8 +13,6 @@
  * limitations under the License.
  */
 
-
-var bufferBuiltin = process.binding(process.binding.buffer);
 var util = require('util');
 
 
@@ -53,7 +51,7 @@ function Buffer(subject, encoding) {
     throw new TypeError('Bad arguments: Buffer(string|number|Buffer|Array)');
   }
 
-  this._builtin = new bufferBuiltin(this, this.length);
+  this._builtin = new native(this, this.length);
 
   if (util.isString(subject)) {
     if (encoding !== undefined && util.isString(encoding)) {
@@ -81,7 +79,7 @@ function Buffer(subject, encoding) {
 
 // Buffer.byteLength(string)
 Buffer.byteLength = function(str, encoding) {
-  var len = bufferBuiltin.byteLength(str);
+  var len = native.byteLength(str);
 
   if (encoding !== undefined && util.isString(encoding)) {
     switch (encoding) {

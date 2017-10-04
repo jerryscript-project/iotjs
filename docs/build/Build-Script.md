@@ -64,6 +64,14 @@ With given this option, build.py will generate IoT.js output as a library.
 ```
 
 --
+#### `--profile`
+With given this option, build.py will use the specified profile for the build.
+
+```
+./tools/build.py --profile=./profiles/minimal.profile
+```
+
+--
 #### `--target-arch`
 * `arm` | `x86` | `i686` | `x86_64` | `x64`
 

@@ -17,7 +17,7 @@
 
 #include <stdint.h>
 
-#include "../iotjs_systemio-nuttx.h"
+#include "iotjs_systemio-nuttx.h"
 #include "stm32_gpio.h"
 
 

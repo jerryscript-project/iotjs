@@ -203,7 +203,7 @@ iotjs_jval_t iotjs_jhandler_get_arg(iotjs_jhandler_t* jhandler, uint16_t index);
 uint16_t iotjs_jhandler_get_arg_length(iotjs_jhandler_t* jhandler);
 
 void iotjs_jhandler_return_jval(iotjs_jhandler_t* jhandler,
-                                const iotjs_jval_t* ret);
+                                iotjs_jval_t ret_value);
 void iotjs_jhandler_return_undefined(iotjs_jhandler_t* jhandler);
 void iotjs_jhandler_return_null(iotjs_jhandler_t* jhandler);
 void iotjs_jhandler_return_boolean(iotjs_jhandler_t* jhandler, bool x);

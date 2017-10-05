@@ -684,7 +684,7 @@ uint16_t iotjs_jhandler_get_arg_length(iotjs_jhandler_t* jhandler) {
 
 
 void iotjs_jhandler_return_jval(iotjs_jhandler_t* jhandler,
-                                const iotjs_jval_t* ret) {
+                                iotjs_jval_t ret_value) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_jhandler_t, jhandler);
 
 #ifndef NDEBUG
@@ -692,7 +692,7 @@ void iotjs_jhandler_return_jval(iotjs_jhandler_t* jhandler,
 #endif
 
   iotjs_jval_destroy(&_this->jret);
-  _this->jret = jerry_acquire_value(*ret);
+  _this->jret = jerry_acquire_value(ret_value);
 #ifndef NDEBUG
   _this->finished = true;
 #endif
@@ -701,26 +701,26 @@ void iotjs_jhandler_return_jval(iotjs_jhandler_t* jhandler,
 
 void iotjs_jhandler_return_undefined(iotjs_jhandler_t* jhandler) {
   IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_jhandler_t, jhandler);
-  iotjs_jhandler_return_jval(jhandler, iotjs_jval_get_undefined());
+  iotjs_jhandler_return_jval(jhandler, *iotjs_jval_get_undefined());
 }
 
 
 void iotjs_jhandler_return_null(iotjs_jhandler_t* jhandler) {
   IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_jhandler_t, jhandler);
-  iotjs_jhandler_return_jval(jhandler, iotjs_jval_get_null());
+  iotjs_jhandler_return_jval(jhandler, *iotjs_jval_get_null());
 }
 
 
 void iotjs_jhandler_return_boolean(iotjs_jhandler_t* jhandler, bool ret) {
   IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_jhandler_t, jhandler);
-  iotjs_jhandler_return_jval(jhandler, iotjs_jval_get_boolean(ret));
+  iotjs_jhandler_return_jval(jhandler, *iotjs_jval_get_boolean(ret));
 }
 
 
 void iotjs_jhandler_return_number(iotjs_jhandler_t* jhandler, double ret) {
   IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_jhandler_t, jhandler);
   iotjs_jval_t jval = iotjs_jval_create_number(ret);
-  iotjs_jhandler_return_jval(jhandler, &jval);
+  iotjs_jhandler_return_jval(jhandler, jval);
   iotjs_jval_destroy(&jval);
 }
 
@@ -729,7 +729,7 @@ void iotjs_jhandler_return_string(iotjs_jhandler_t* jhandler,
                                   const iotjs_string_t* ret) {
   IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_jhandler_t, jhandler);
   iotjs_jval_t jval = iotjs_jval_create_string(ret);
-  iotjs_jhandler_return_jval(jhandler, &jval);
+  iotjs_jhandler_return_jval(jhandler, jval);
   iotjs_jval_destroy(&jval);
 }
 
@@ -738,7 +738,7 @@ void iotjs_jhandler_return_string_raw(iotjs_jhandler_t* jhandler,
                                       const char* ret) {
   IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_jhandler_t, jhandler);
   iotjs_jval_t jval = iotjs_jval_create_string_raw(ret);
-  iotjs_jhandler_return_jval(jhandler, &jval);
+  iotjs_jhandler_return_jval(jhandler, jval);
   iotjs_jval_destroy(&jval);
 }
 

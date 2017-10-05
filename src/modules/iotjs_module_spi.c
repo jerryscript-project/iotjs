@@ -365,7 +365,7 @@ JHANDLER_FUNCTION(TransferArray) {
 
       iotjs_jval_t result =
           iotjs_jval_create_byte_array(_this->buf_len, _this->rx_buf_data);
-      iotjs_jhandler_return_jval(jhandler, &result);
+      iotjs_jhandler_return_jval(jhandler, result);
       iotjs_jval_destroy(&result);
     }
 
@@ -395,7 +395,7 @@ JHANDLER_FUNCTION(TransferBuffer) {
 
       iotjs_jval_t result =
           iotjs_jval_create_byte_array(_this->buf_len, _this->rx_buf_data);
-      iotjs_jhandler_return_jval(jhandler, &result);
+      iotjs_jhandler_return_jval(jhandler, result);
       iotjs_jval_destroy(&result);
     }
   }

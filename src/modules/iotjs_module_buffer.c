@@ -223,7 +223,7 @@ iotjs_jval_t iotjs_bufferwrap_create_buffer(size_t len) {
   iotjs_jargs_append_number(&jargs, len);
 
   iotjs_jval_t jres =
-      iotjs_jhelper_call_ok(&jbuffer, iotjs_jval_get_undefined(), &jargs);
+      iotjs_jhelper_call_ok(jbuffer, *iotjs_jval_get_undefined(), &jargs);
   IOTJS_ASSERT(iotjs_jval_is_object(jres));
 
   iotjs_jargs_destroy(&jargs);

@@ -171,13 +171,11 @@ const iotjs_jval_t* iotjs_jargs_get(const iotjs_jargs_t* jargs, uint16_t index);
 
 
 // Calls JavaScript function.
-iotjs_jval_t iotjs_jhelper_call(const iotjs_jval_t* jfunc,
-                                const iotjs_jval_t* jthis,
+iotjs_jval_t iotjs_jhelper_call(iotjs_jval_t jfunc, iotjs_jval_t jthis,
                                 const iotjs_jargs_t* jargs, bool* throws);
 
 // Calls javascript function.
-iotjs_jval_t iotjs_jhelper_call_ok(const iotjs_jval_t* jfunc,
-                                   const iotjs_jval_t* jthis,
+iotjs_jval_t iotjs_jhelper_call_ok(iotjs_jval_t jfunc, iotjs_jval_t jthis,
                                    const iotjs_jargs_t* jargs);
 
 // Evaluates javascript source file.

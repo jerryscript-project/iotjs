@@ -219,7 +219,7 @@ static void iotjs_uart_onread(iotjs_jval_t jthis, char* buf) {
   iotjs_jval_t data = iotjs_jval_create_string_raw(buf);
   iotjs_jargs_append_jval(&jargs, &str);
   iotjs_jargs_append_jval(&jargs, &data);
-  iotjs_jhelper_call_ok(&jemit, &jthis, &jargs);
+  iotjs_jhelper_call_ok(jemit, jthis, &jargs);
 
   iotjs_jval_destroy(&str);
   iotjs_jval_destroy(&data);

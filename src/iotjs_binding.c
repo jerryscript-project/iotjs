@@ -28,8 +28,6 @@ static iotjs_jval_t jglobal;
 
 static iotjs_jargs_t jargs_empty;
 
-static jerry_value_t iotjs_jval_as_raw(const iotjs_jval_t* jval);
-
 
 iotjs_jval_t iotjs_jval_create_number(double v) {
   return jerry_create_number(v);
@@ -218,11 +216,6 @@ iotjs_jval_t iotjs_jval_as_function(iotjs_jval_t jval) {
 }
 
 
-static jerry_value_t iotjs_jval_as_raw(const iotjs_jval_t* jval) {
-  return *jval;
-}
-
-
 bool iotjs_jval_set_prototype(const iotjs_jval_t jobj, iotjs_jval_t jproto) {
   jerry_value_t ret = jerry_set_prototype(jobj, jproto);
   bool error_found = jerry_value_has_error_flag(ret);
@@ -399,10 +392,9 @@ iotjs_jval_t iotjs_jval_get_property_by_index(iotjs_jval_t jarr, uint32_t idx) {
 }
 
 
-iotjs_jval_t iotjs_jhelper_call(const iotjs_jval_t* jfunc,
-                                const iotjs_jval_t* jthis,
+iotjs_jval_t iotjs_jhelper_call(iotjs_jval_t jfunc, iotjs_jval_t jthis,
                                 const iotjs_jargs_t* jargs, bool* throws) {
-  IOTJS_ASSERT(iotjs_jval_is_object(*jfunc));
+  IOTJS_ASSERT(iotjs_jval_is_object(jfunc));
 
   jerry_value_t* jargv_ = NULL;
   jerry_length_t jargc_ = iotjs_jargs_length(jargs);
@@ -411,17 +403,15 @@ iotjs_jval_t iotjs_jhelper_call(const iotjs_jval_t* jfunc,
   jargv_ = (jerry_value_t*)jargs->unsafe.argv;
 #else
   if (jargc_ > 0) {
-    unsigned buffer_size = sizeof(iotjs_jval_t) * jargc_;
+    unsigned buffer_size = sizeof(jerry_value_t) * jargc_;
     jargv_ = (jerry_value_t*)iotjs_buffer_allocate(buffer_size);
     for (unsigned i = 0; i < jargc_; ++i) {
-      jargv_[i] = iotjs_jval_as_raw(iotjs_jargs_get(jargs, i));
+      jargv_[i] = *iotjs_jargs_get(jargs, i);
     }
   }
 #endif
 
-  jerry_value_t jfunc_ = iotjs_jval_as_raw(jfunc);
-  jerry_value_t jthis_ = iotjs_jval_as_raw(jthis);
-  jerry_value_t res = jerry_call_function(jfunc_, jthis_, jargv_, jargc_);
+  jerry_value_t res = jerry_call_function(jfunc, jthis, jargv_, jargc_);
 
 #ifndef NDEBUG
   if (jargv_) {
@@ -437,8 +427,7 @@ iotjs_jval_t iotjs_jhelper_call(const iotjs_jval_t* jfunc,
 }
 
 
-iotjs_jval_t iotjs_jhelper_call_ok(const iotjs_jval_t* jfunc,
-                                   const iotjs_jval_t* jthis,
+iotjs_jval_t iotjs_jhelper_call_ok(iotjs_jval_t jfunc, iotjs_jval_t jthis,
                                    const iotjs_jargs_t* jargs) {
   bool throws;
   iotjs_jval_t jres = iotjs_jhelper_call(jfunc, jthis, jargs, &throws);

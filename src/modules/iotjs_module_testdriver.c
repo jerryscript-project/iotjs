@@ -33,7 +33,7 @@ JHANDLER_FUNCTION(IsAliveExceptFor) {
     JHANDLER_CHECK(iotjs_jval_is_object(arg0));
 
     iotjs_jval_t jtimer =
-        iotjs_jval_get_property(&arg0, IOTJS_MAGIC_STRING_HANDLER);
+        iotjs_jval_get_property(arg0, IOTJS_MAGIC_STRING_HANDLER);
 
     iotjs_timerwrap_t* timer_wrap = iotjs_timerwrap_from_jobject(jtimer);
     iotjs_jval_destroy(&jtimer);

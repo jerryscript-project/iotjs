@@ -294,7 +294,7 @@ iotjs_jval_t InitProcess() {
 
   // Binding module id.
   iotjs_jval_t jbinding =
-      iotjs_jval_get_property(&process, IOTJS_MAGIC_STRING_BINDING);
+      iotjs_jval_get_property(process, IOTJS_MAGIC_STRING_BINDING);
 
 #define ENUMDEF_MODULE_LIST(upper, Camel, lower) \
   iotjs_jval_set_property_number(jbinding, #lower, MODULE_##upper);

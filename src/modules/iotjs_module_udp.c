@@ -141,7 +141,7 @@ JHANDLER_FUNCTION(Bind) {
   const int port = JHANDLER_GET_ARG(1, number);
   iotjs_jval_t this_obj = JHANDLER_GET_THIS(object);
   iotjs_jval_t reuse_addr =
-      iotjs_jval_get_property(&this_obj, IOTJS_MAGIC_STRING__REUSEADDR);
+      iotjs_jval_get_property(this_obj, IOTJS_MAGIC_STRING__REUSEADDR);
   IOTJS_ASSERT(iotjs_jval_is_boolean(reuse_addr) ||
                iotjs_jval_is_undefined(reuse_addr));
 
@@ -192,7 +192,7 @@ static void OnRecv(uv_udp_t* handle, ssize_t nread, const uv_buf_t* buf,
 
   // onmessage callback
   iotjs_jval_t jonmessage =
-      iotjs_jval_get_property(&judp, IOTJS_MAGIC_STRING_ONMESSAGE);
+      iotjs_jval_get_property(judp, IOTJS_MAGIC_STRING_ONMESSAGE);
   IOTJS_ASSERT(iotjs_jval_is_function(jonmessage));
 
   iotjs_jargs_t jargs = iotjs_jargs_create(4);

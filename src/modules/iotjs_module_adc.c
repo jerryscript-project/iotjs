@@ -217,10 +217,10 @@ JHANDLER_FUNCTION(AdcConstructor) {
   }
 
 #if defined(__linux__)
-  DJHANDLER_GET_REQUIRED_CONF_VALUE(&jconfiguration, _this->device,
+  DJHANDLER_GET_REQUIRED_CONF_VALUE(jconfiguration, _this->device,
                                     IOTJS_MAGIC_STRING_DEVICE, string);
 #elif defined(__NUTTX__) || defined(__TIZENRT__)
-  DJHANDLER_GET_REQUIRED_CONF_VALUE(&jconfiguration, _this->pin,
+  DJHANDLER_GET_REQUIRED_CONF_VALUE(jconfiguration, _this->pin,
                                     IOTJS_MAGIC_STRING_PIN, number);
 #endif
 

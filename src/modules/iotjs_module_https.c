@@ -305,8 +305,8 @@ bool iotjs_https_jcallback(iotjs_https_t* https_data, const char* property,
     return retval;
 
   iotjs_jval_t jincoming =
-      iotjs_jval_get_property(&jthis, IOTJS_MAGIC_STRING__INCOMING);
-  iotjs_jval_t cb = iotjs_jval_get_property(&jincoming, property);
+      iotjs_jval_get_property(jthis, IOTJS_MAGIC_STRING__INCOMING);
+  iotjs_jval_t cb = iotjs_jval_get_property(jincoming, property);
 
   IOTJS_ASSERT(iotjs_jval_is_function(cb));
   if (!resultvalue) {
@@ -720,29 +720,29 @@ JHANDLER_FUNCTION(createRequest) {
 
   const iotjs_jval_t jthis = JHANDLER_GET_ARG(0, object);
 
-  iotjs_jval_t jhost = iotjs_jval_get_property(&jthis, IOTJS_MAGIC_STRING_HOST);
+  iotjs_jval_t jhost = iotjs_jval_get_property(jthis, IOTJS_MAGIC_STRING_HOST);
   iotjs_string_t host = iotjs_jval_as_string(jhost);
   iotjs_jval_destroy(&jhost);
 
   iotjs_jval_t jmethod =
-      iotjs_jval_get_property(&jthis, IOTJS_MAGIC_STRING_METHOD);
+      iotjs_jval_get_property(jthis, IOTJS_MAGIC_STRING_METHOD);
   iotjs_string_t method = iotjs_jval_as_string(jmethod);
   iotjs_jval_destroy(&jmethod);
 
-  iotjs_jval_t jca = iotjs_jval_get_property(&jthis, IOTJS_MAGIC_STRING_CA);
+  iotjs_jval_t jca = iotjs_jval_get_property(jthis, IOTJS_MAGIC_STRING_CA);
   iotjs_string_t ca = iotjs_jval_as_string(jca);
   iotjs_jval_destroy(&jca);
 
-  iotjs_jval_t jcert = iotjs_jval_get_property(&jthis, IOTJS_MAGIC_STRING_CERT);
+  iotjs_jval_t jcert = iotjs_jval_get_property(jthis, IOTJS_MAGIC_STRING_CERT);
   iotjs_string_t cert = iotjs_jval_as_string(jcert);
   iotjs_jval_destroy(&jcert);
 
-  iotjs_jval_t jkey = iotjs_jval_get_property(&jthis, IOTJS_MAGIC_STRING_KEY);
+  iotjs_jval_t jkey = iotjs_jval_get_property(jthis, IOTJS_MAGIC_STRING_KEY);
   iotjs_string_t key = iotjs_jval_as_string(jkey);
   iotjs_jval_destroy(&jkey);
 
   iotjs_jval_t jreject_unauthorized =
-      iotjs_jval_get_property(&jthis, IOTJS_MAGIC_STRING_REJECTUNAUTHORIZED);
+      iotjs_jval_get_property(jthis, IOTJS_MAGIC_STRING_REJECTUNAUTHORIZED);
   const bool reject_unauthorized = iotjs_jval_as_boolean(jreject_unauthorized);
 
   if (curl_global_init(CURL_GLOBAL_SSL)) {

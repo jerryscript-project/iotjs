@@ -88,7 +88,7 @@ static void iotjs_timerwrap_on_timeout(iotjs_timerwrap_t* timerwrap) {
   // Call javascript timeout handler function.
   iotjs_jval_t jobject = iotjs_timerwrap_jobject(timerwrap);
   iotjs_jval_t jcallback =
-      iotjs_jval_get_property(&jobject, IOTJS_MAGIC_STRING_HANDLETIMEOUT);
+      iotjs_jval_get_property(jobject, IOTJS_MAGIC_STRING_HANDLETIMEOUT);
   iotjs_make_callback(&jcallback, &jobject, iotjs_jargs_get_empty());
   iotjs_jval_destroy(&jcallback);
 }

@@ -113,7 +113,7 @@ iotjs_spi_t* iotjs_spi_instance_from_reqwrap(THIS) {
 
 static int iotjs_spi_get_array_data(char** buf, iotjs_jval_t jarray) {
   iotjs_jval_t jlength =
-      iotjs_jval_get_property(&jarray, IOTJS_MAGIC_STRING_LENGTH);
+      iotjs_jval_get_property(jarray, IOTJS_MAGIC_STRING_LENGTH);
   IOTJS_ASSERT(!iotjs_jval_is_undefined(jlength));
 
   size_t length = iotjs_jval_as_number(jlength);
@@ -179,42 +179,41 @@ static void iotjs_spi_set_configuration(iotjs_spi_t* spi,
 
 #if defined(__linux__)
   iotjs_jval_t jdevice =
-      iotjs_jval_get_property(&joptions, IOTJS_MAGIC_STRING_DEVICE);
+      iotjs_jval_get_property(joptions, IOTJS_MAGIC_STRING_DEVICE);
   _this->device = iotjs_jval_as_string(jdevice);
   iotjs_jval_destroy(&jdevice);
 #elif defined(__NUTTX__) || defined(__TIZENRT__)
-  iotjs_jval_t jbus =
-      iotjs_jval_get_property(&joptions, IOTJS_MAGIC_STRING_BUS);
+  iotjs_jval_t jbus = iotjs_jval_get_property(joptions, IOTJS_MAGIC_STRING_BUS);
   _this->bus = iotjs_jval_as_number(jbus);
   iotjs_jval_destroy(&jbus);
 #endif
   iotjs_jval_t jmode =
-      iotjs_jval_get_property(&joptions, IOTJS_MAGIC_STRING_MODE);
+      iotjs_jval_get_property(joptions, IOTJS_MAGIC_STRING_MODE);
   _this->mode = (SpiMode)iotjs_jval_as_number(jmode);
   iotjs_jval_destroy(&jmode);
 
   iotjs_jval_t jchip_select =
-      iotjs_jval_get_property(&joptions, IOTJS_MAGIC_STRING_CHIPSELECT);
+      iotjs_jval_get_property(joptions, IOTJS_MAGIC_STRING_CHIPSELECT);
   _this->chip_select = (SpiChipSelect)iotjs_jval_as_number(jchip_select);
   iotjs_jval_destroy(&jchip_select);
 
   iotjs_jval_t jmax_speed =
-      iotjs_jval_get_property(&joptions, IOTJS_MAGIC_STRING_MAXSPEED);
+      iotjs_jval_get_property(joptions, IOTJS_MAGIC_STRING_MAXSPEED);
   _this->max_speed = iotjs_jval_as_number(jmax_speed);
   iotjs_jval_destroy(&jmax_speed);
 
   iotjs_jval_t jbits_per_word =
-      iotjs_jval_get_property(&joptions, IOTJS_MAGIC_STRING_BITSPERWORD);
+      iotjs_jval_get_property(joptions, IOTJS_MAGIC_STRING_BITSPERWORD);
   _this->bits_per_word = (SpiOrder)iotjs_jval_as_number(jbits_per_word);
   iotjs_jval_destroy(&jbits_per_word);
 
   iotjs_jval_t jbit_order =
-      iotjs_jval_get_property(&joptions, IOTJS_MAGIC_STRING_BITORDER);
+      iotjs_jval_get_property(joptions, IOTJS_MAGIC_STRING_BITORDER);
   _this->bit_order = (SpiOrder)iotjs_jval_as_number(jbit_order);
   iotjs_jval_destroy(&jbit_order);
 
   iotjs_jval_t jloopback =
-      iotjs_jval_get_property(&joptions, IOTJS_MAGIC_STRING_LOOPBACK);
+      iotjs_jval_get_property(joptions, IOTJS_MAGIC_STRING_LOOPBACK);
   _this->loopback = iotjs_jval_as_boolean(jloopback);
   iotjs_jval_destroy(&jloopback);
 }

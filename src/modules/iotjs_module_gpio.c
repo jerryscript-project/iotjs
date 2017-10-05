@@ -208,22 +208,22 @@ static void gpio_set_configurable(iotjs_gpio_t* gpio,
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_gpio_t, gpio);
 
   iotjs_jval_t jpin =
-      iotjs_jval_get_property(&jconfigurable, IOTJS_MAGIC_STRING_PIN);
+      iotjs_jval_get_property(jconfigurable, IOTJS_MAGIC_STRING_PIN);
   _this->pin = iotjs_jval_as_number(jpin);
   iotjs_jval_destroy(&jpin);
 
   iotjs_jval_t jdirection =
-      iotjs_jval_get_property(&jconfigurable, IOTJS_MAGIC_STRING_DIRECTION);
+      iotjs_jval_get_property(jconfigurable, IOTJS_MAGIC_STRING_DIRECTION);
   _this->direction = (GpioDirection)iotjs_jval_as_number(jdirection);
   iotjs_jval_destroy(&jdirection);
 
   iotjs_jval_t jmode =
-      iotjs_jval_get_property(&jconfigurable, IOTJS_MAGIC_STRING_MODE);
+      iotjs_jval_get_property(jconfigurable, IOTJS_MAGIC_STRING_MODE);
   _this->mode = (GpioMode)iotjs_jval_as_number(jmode);
   iotjs_jval_destroy(&jmode);
 
   iotjs_jval_t jedge =
-      iotjs_jval_get_property(&jconfigurable, IOTJS_MAGIC_STRING_EDGE);
+      iotjs_jval_get_property(jconfigurable, IOTJS_MAGIC_STRING_EDGE);
   _this->edge = (GpioMode)iotjs_jval_as_number(jedge);
   iotjs_jval_destroy(&jedge);
 }

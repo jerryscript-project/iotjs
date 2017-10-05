@@ -176,7 +176,7 @@ static void GetI2cArray(const iotjs_jval_t jarray,
   // FIXME
   // Need to implement a function to get array info from iotjs_jval_t Array.
   iotjs_jval_t jlength =
-      iotjs_jval_get_property(&jarray, IOTJS_MAGIC_STRING_LENGTH);
+      iotjs_jval_get_property(jarray, IOTJS_MAGIC_STRING_LENGTH);
   IOTJS_ASSERT(!iotjs_jval_is_undefined(jlength));
 
   req_data->buf_len = iotjs_jval_as_number(jlength);

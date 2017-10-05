@@ -119,23 +119,23 @@ static void iotjs_pwm_set_configuration(iotjs_jval_t jconfiguration,
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_pwm_t, pwm);
 
   iotjs_jval_t jpin =
-      iotjs_jval_get_property(&jconfiguration, IOTJS_MAGIC_STRING_PIN);
+      iotjs_jval_get_property(jconfiguration, IOTJS_MAGIC_STRING_PIN);
   _this->pin = iotjs_jval_as_number(jpin);
 
 #if defined(__linux__)
   iotjs_jval_t jchip =
-      iotjs_jval_get_property(&jconfiguration, IOTJS_MAGIC_STRING_CHIP);
+      iotjs_jval_get_property(jconfiguration, IOTJS_MAGIC_STRING_CHIP);
   _this->chip = iotjs_jval_as_number(jchip);
   iotjs_jval_destroy(&jchip);
 #endif
 
   iotjs_jval_t jperiod =
-      iotjs_jval_get_property(&jconfiguration, IOTJS_MAGIC_STRING_PERIOD);
+      iotjs_jval_get_property(jconfiguration, IOTJS_MAGIC_STRING_PERIOD);
   if (iotjs_jval_is_number(jperiod))
     _this->period = iotjs_jval_as_number(jperiod);
 
   iotjs_jval_t jduty_cycle =
-      iotjs_jval_get_property(&jconfiguration, IOTJS_MAGIC_STRING_DUTYCYCLE);
+      iotjs_jval_get_property(jconfiguration, IOTJS_MAGIC_STRING_DUTYCYCLE);
   if (iotjs_jval_is_number(jduty_cycle))
     _this->duty_cycle = iotjs_jval_as_number(jduty_cycle);
 

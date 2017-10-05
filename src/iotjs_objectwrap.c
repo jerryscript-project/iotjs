@@ -30,8 +30,7 @@ void iotjs_jobjectwrap_initialize(iotjs_jobjectwrap_t* jobjectwrap,
 
   // Set native pointer of the object to be this wrapper.
   // If the object is freed by GC, the wrapper instance should also be freed.
-  iotjs_jval_set_object_native_handle(&_this->jobject, (uintptr_t)jobjectwrap,
-                                      native_info);
+  jerry_set_object_native_pointer(_this->jobject, jobjectwrap, native_info);
 }
 
 

@@ -428,11 +428,11 @@ iotjs_jval_t InitSpi() {
   iotjs_jval_set_property_jval(jspi, IOTJS_MAGIC_STRING_SPI, jspiConstructor);
 
   iotjs_jval_t prototype = iotjs_jval_create_object();
-  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_TRANSFERARRAY,
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_TRANSFERARRAY,
                         TransferArray);
-  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_TRANSFERBUFFER,
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_TRANSFERBUFFER,
                         TransferBuffer);
-  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_CLOSE, Close);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_CLOSE, Close);
   iotjs_jval_set_property_jval(jspiConstructor, IOTJS_MAGIC_STRING_PROTOTYPE,
                                prototype);
   iotjs_jval_destroy(&prototype);

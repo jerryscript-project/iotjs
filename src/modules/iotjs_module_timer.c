@@ -167,8 +167,8 @@ iotjs_jval_t InitTimer() {
   iotjs_jval_t prototype = iotjs_jval_create_object();
   iotjs_jval_set_property_jval(timer, IOTJS_MAGIC_STRING_PROTOTYPE, prototype);
 
-  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_START, Start);
-  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_STOP, Stop);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_START, Start);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_STOP, Stop);
 
   iotjs_jval_destroy(&prototype);
 

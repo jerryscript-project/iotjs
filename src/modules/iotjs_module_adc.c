@@ -302,10 +302,10 @@ iotjs_jval_t InitAdc() {
   iotjs_jval_set_property_jval(jadc, IOTJS_MAGIC_STRING_ADC, jadcConstructor);
 
   iotjs_jval_t jprototype = iotjs_jval_create_object();
-  iotjs_jval_set_method(&jprototype, IOTJS_MAGIC_STRING_READ, Read);
-  iotjs_jval_set_method(&jprototype, IOTJS_MAGIC_STRING_READSYNC, ReadSync);
-  iotjs_jval_set_method(&jprototype, IOTJS_MAGIC_STRING_CLOSE, Close);
-  iotjs_jval_set_method(&jprototype, IOTJS_MAGIC_STRING_CLOSESYNC, CloseSync);
+  iotjs_jval_set_method(jprototype, IOTJS_MAGIC_STRING_READ, Read);
+  iotjs_jval_set_method(jprototype, IOTJS_MAGIC_STRING_READSYNC, ReadSync);
+  iotjs_jval_set_method(jprototype, IOTJS_MAGIC_STRING_CLOSE, Close);
+  iotjs_jval_set_method(jprototype, IOTJS_MAGIC_STRING_CLOSESYNC, CloseSync);
   iotjs_jval_set_property_jval(jadcConstructor, IOTJS_MAGIC_STRING_PROTOTYPE,
                                jprototype);
 

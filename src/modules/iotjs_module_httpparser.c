@@ -494,12 +494,12 @@ iotjs_jval_t InitHttpparser() {
 
   iotjs_jval_t prototype = iotjs_jval_create_object();
 
-  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_EXECUTE, Execute);
-  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_REINITIALIZE,
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_EXECUTE, Execute);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_REINITIALIZE,
                         Reinitialize);
-  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_FINISH, Finish);
-  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_PAUSE, Pause);
-  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_RESUME, Resume);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_FINISH, Finish);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_PAUSE, Pause);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_RESUME, Resume);
 
   iotjs_jval_set_property_jval(jParserCons, IOTJS_MAGIC_STRING_PROTOTYPE,
                                prototype);

@@ -461,26 +461,26 @@ iotjs_jval_t InitUdp() {
   iotjs_jval_t prototype = iotjs_jval_create_object();
   iotjs_jval_set_property_jval(udp, IOTJS_MAGIC_STRING_PROTOTYPE, prototype);
 
-  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_BIND, Bind);
-  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_RECVSTART, RecvStart);
-  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_RECVSTOP, RecvStop);
-  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_SEND, Send);
-  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_CLOSE, Close);
-  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_GETSOCKNAME,
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_BIND, Bind);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_RECVSTART, RecvStart);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_RECVSTOP, RecvStop);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_SEND, Send);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_CLOSE, Close);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_GETSOCKNAME,
                         GetSockeName);
-  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_SETBROADCAST,
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_SETBROADCAST,
                         SetBroadcast);
-  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_SETTTL, SetTTL);
-  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_SETMULTICASTTTL,
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_SETTTL, SetTTL);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_SETMULTICASTTTL,
                         SetMulticastTTL);
-  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_SETMULTICASTLOOPBACK,
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_SETMULTICASTLOOPBACK,
                         SetMulticastLoopback);
-  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_ADDMEMBERSHIP,
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_ADDMEMBERSHIP,
                         AddMembership);
-  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_DROPMEMBERSHIP,
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_DROPMEMBERSHIP,
                         DropMembership);
-  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_REF, Ref);
-  iotjs_jval_set_method(&prototype, IOTJS_MAGIC_STRING_UNREF, Unref);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_REF, Ref);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_UNREF, Unref);
 
   iotjs_jval_destroy(&prototype);
 

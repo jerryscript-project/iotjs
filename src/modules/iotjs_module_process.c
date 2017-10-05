@@ -85,6 +85,42 @@ JHANDLER_FUNCTION(Compile) {
 }
 
 
+// Callback function for DebuggerSourceCompile
+static jerry_value_t wait_for_source_callback(
+    const jerry_char_t* resource_name_p, size_t resource_name_size,
+    const jerry_char_t* source_p, size_t size, void* jhandler) {
+  char* filename = (char*)resource_name_p;
+  iotjs_string_t source =
+      iotjs_string_create_with_buffer((char*)source_p, size);
+
+  jerry_debugger_stop();
+
+  bool throws;
+  iotjs_jval_t jres =
+      WrapEval(filename, resource_name_size, iotjs_string_data(&source),
+               iotjs_string_size(&source), &throws);
+
+  if (!throws) {
+    iotjs_jhandler_return_jval(jhandler, &jres);
+  } else {
+    iotjs_jhandler_throw(jhandler, &jres);
+  }
+
+  iotjs_jval_destroy(&jres);
+  return jerry_create_undefined();
+}
+
+
+// Compile source received from debugger
+JHANDLER_FUNCTION(DebuggerSourceCompile) {
+  jerry_value_t res;
+  jerry_debugger_wait_for_client_source(wait_for_source_callback, jhandler,
+                                        &res);
+
+  jerry_release_value(res);
+}
+
+
 JHANDLER_FUNCTION(CompileNativePtr) {
   DJHANDLER_CHECK_ARGS(1, string);
 
@@ -265,6 +301,8 @@ iotjs_jval_t InitProcess() {
   iotjs_jval_set_method(&process, IOTJS_MAGIC_STRING_READSOURCE, ReadSource);
   iotjs_jval_set_method(&process, IOTJS_MAGIC_STRING_CWD, Cwd);
   iotjs_jval_set_method(&process, IOTJS_MAGIC_STRING_CHDIR, Chdir);
+  iotjs_jval_set_method(&process, IOTJS_MAGIC_STRING_DEBUGGER_SOURCE_COMPILE,
+                        DebuggerSourceCompile);
   iotjs_jval_set_method(&process, IOTJS_MAGIC_STRING_DOEXIT, DoExit);
   SetProcessEnv(process);
 
@@ -290,7 +328,16 @@ iotjs_jval_t InitProcess() {
   // Set iotjs
   SetProcessIotjs(process);
 
-  SetProcessArgv(process);
+  bool wait_source =
+      iotjs_environment_config(iotjs_environment_get())->debugger_wait_source;
+
+  if (!wait_source) {
+    SetProcessArgv(process);
+  }
+
+  iotjs_jval_t wait_source_val = *iotjs_jval_get_boolean(wait_source);
+  iotjs_jval_set_property_jval(process, IOTJS_MAGIC_STRING_DEBUGGER_WAIT_SOURCE,
+                               wait_source_val);
 
   // Binding module id.
   iotjs_jval_t jbinding =
@@ -303,6 +350,7 @@ iotjs_jval_t InitProcess() {
 
 #undef ENUMDEF_MODULE_LIST
 
+  iotjs_jval_destroy(&wait_source_val);
   iotjs_jval_destroy(&jbinding);
 
   return process;

@@ -23,6 +23,7 @@ typedef struct {
   bool memstat;
   bool show_opcode;
   bool debugger;
+  bool debugger_wait_source;
   int debugger_port;
 } Config;
 

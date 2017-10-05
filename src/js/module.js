@@ -206,7 +206,12 @@ iotjs_module_t.prototype.compile = function() {
 
 
 iotjs_module_t.runMain = function() {
-  iotjs_module_t.load(process.argv[1], null, true);
+  if (process.debuggerWaitSource) {
+    var fn = process.debuggerSourceCompile();
+    fn.call();
+  } else {
+    iotjs_module_t.load(process.argv[1], null, true);
+  }
   while (process._onNextTick());
 };
 

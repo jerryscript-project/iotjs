@@ -246,7 +246,7 @@ static void SetProcessArgv(iotjs_jval_t process) {
   for (uint32_t i = 0; i < argc; ++i) {
     const char* argvi = iotjs_environment_argv(env, i);
     iotjs_jval_t arg = iotjs_jval_create_string_raw(argvi);
-    iotjs_jval_set_property_by_index(&argv, i, &arg);
+    iotjs_jval_set_property_by_index(argv, i, arg);
     iotjs_jval_destroy(&arg);
   }
   iotjs_jval_set_property_jval(process, IOTJS_MAGIC_STRING_ARGV, argv);

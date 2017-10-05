@@ -76,7 +76,7 @@ static void AfterAsync(uv_fs_t* req) {
         iotjs_jval_t ret = iotjs_jval_create_array(0);
         while ((r = uv_fs_scandir_next(req, &ent)) != UV_EOF) {
           iotjs_jval_t name = iotjs_jval_create_string_raw(ent.name);
-          iotjs_jval_set_property_by_index(&ret, idx, &name);
+          iotjs_jval_set_property_by_index(ret, idx, name);
           iotjs_jval_destroy(&name);
           idx++;
         }
@@ -142,7 +142,7 @@ static void AfterSync(uv_fs_t* req, int err, const char* syscall_name,
         iotjs_jval_t ret = iotjs_jval_create_array(0);
         while ((r = uv_fs_scandir_next(req, &ent)) != UV_EOF) {
           iotjs_jval_t name = iotjs_jval_create_string_raw(ent.name);
-          iotjs_jval_set_property_by_index(&ret, idx, &name);
+          iotjs_jval_set_property_by_index(ret, idx, name);
           iotjs_jval_destroy(&name);
           idx++;
         }

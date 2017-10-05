@@ -120,8 +120,8 @@ static iotjs_jval_t iotjs_httpparserwrap_make_header(
   for (size_t i = 0; i < _this->n_values; i++) {
     iotjs_jval_t f = iotjs_jval_create_string(&_this->fields[i]);
     iotjs_jval_t v = iotjs_jval_create_string(&_this->values[i]);
-    iotjs_jval_set_property_by_index(&jheader, i * 2, &f);
-    iotjs_jval_set_property_by_index(&jheader, i * 2 + 1, &v);
+    iotjs_jval_set_property_by_index(jheader, i * 2, f);
+    iotjs_jval_set_property_by_index(jheader, i * 2 + 1, v);
     iotjs_jval_destroy(&f);
     iotjs_jval_destroy(&v);
   }

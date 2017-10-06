@@ -48,10 +48,14 @@ iotjs_environment_t* iotjs_environment_get() {
 
 
 /**
- * Release the singleton instance of iotjs_environment_t.
+ * Release the singleton instance of iotjs_environment_t, and debugger config.
  */
 void iotjs_environment_release() {
   if (initialized) {
+    if (iotjs_environment_config(iotjs_environment_get())->debugger != NULL) {
+      iotjs_buffer_release(
+          (char*)iotjs_environment_config(iotjs_environment_get())->debugger);
+    }
     iotjs_environment_destroy(&current_env);
     initialized = false;
   }
@@ -70,9 +74,7 @@ static void iotjs_environment_initialize(iotjs_environment_t* env) {
   _this->state = kInitializing;
   _this->config.memstat = false;
   _this->config.show_opcode = false;
-  _this->config.debugger = false;
-  _this->config.debugger_wait_source = false;
-  _this->config.debugger_port = 5001;
+  _this->config.debugger = NULL;
 }
 
 
@@ -110,14 +112,19 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
     } else if (!strcmp(argv[i], "--show-opcodes")) {
       _this->config.show_opcode = true;
     } else if (!strcmp(argv[i], "--start-debug-server")) {
-      _this->config.debugger = true;
-    } else if (!strncmp(argv[i], "--jerry-debugger-port=", port_arg_len)) {
+      _this->config.debugger =
+          (DebuggerConfig*)iotjs_buffer_allocate(sizeof(DebuggerConfig));
+      _this->config.debugger->port = 5001;
+      _this->config.debugger->wait_source = false;
+    } else if (!strncmp(argv[i], "--jerry-debugger-port=", port_arg_len) &&
+               _this->config.debugger) {
       size_t port_length = sizeof(strlen(argv[i] - port_arg_len - 1));
       char port[port_length];
       memcpy(&port, argv[i] + port_arg_len, port_length);
-      sscanf(port, "%d", &(_this->config.debugger_port));
-    } else if (!strcmp(argv[i], "--debugger-wait-source")) {
-      _this->config.debugger_wait_source = true;
+      sscanf(port, "%d", &(_this->config.debugger->port));
+    } else if (!strcmp(argv[i], "--debugger-wait-source") &&
+               _this->config.debugger) {
+      _this->config.debugger->wait_source = true;
     } else {
       fprintf(stderr, "unknown command line option: %s\n", argv[i]);
       return false;
@@ -127,7 +134,8 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
 
   // There must be at least one argument after processing the IoT.js args,
   // except when sources are sent over by the debugger client.
-  if ((argc - i) < 1 && !_this->config.debugger_wait_source) {
+  if ((argc - i) < 1 && (_this->config.debugger == NULL ||
+                         !_this->config.debugger->wait_source)) {
     fprintf(stderr,
             "Usage: iotjs [options] {script | script.js} [arguments]\n");
     return false;
@@ -136,7 +144,7 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
   // If waiting for source is enabled, there is no need to handle
   // commandline args.
   // Remaining arguments are for application.
-  if (!_this->config.debugger_wait_source) {
+  if (_this->config.debugger == NULL || !_this->config.debugger->wait_source) {
     _this->argc = 2;
     size_t buffer_size = ((size_t)(_this->argc + argc - i)) * sizeof(char*);
     _this->argv = (char**)iotjs_buffer_allocate(buffer_size);

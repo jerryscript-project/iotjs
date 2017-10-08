@@ -392,6 +392,17 @@ iotjs_jval_t iotjs_jval_get_property_by_index(iotjs_jval_t jarr, uint32_t idx) {
 }
 
 
+#ifndef NDEBUG
+static iotjs_jval_t iotjs_jargs_get(const iotjs_jargs_t* jargs,
+                                    uint16_t index) {
+  const IOTJS_VALIDATED_STRUCT_METHOD(iotjs_jargs_t, jargs);
+
+  IOTJS_ASSERT(index < _this->argc);
+  return _this->argv[index];
+}
+#endif
+
+
 iotjs_jval_t iotjs_jhelper_call(iotjs_jval_t jfunc, iotjs_jval_t jthis,
                                 const iotjs_jargs_t* jargs, bool* throws) {
   IOTJS_ASSERT(iotjs_jval_is_object(jfunc));
@@ -406,7 +417,7 @@ iotjs_jval_t iotjs_jhelper_call(iotjs_jval_t jfunc, iotjs_jval_t jthis,
     unsigned buffer_size = sizeof(jerry_value_t) * jargc_;
     jargv_ = (jerry_value_t*)iotjs_buffer_allocate(buffer_size);
     for (unsigned i = 0; i < jargc_; ++i) {
-      jargv_[i] = *iotjs_jargs_get(jargs, i);
+      jargv_[i] = iotjs_jargs_get(jargs, i);
     }
   }
 #endif
@@ -596,23 +607,13 @@ void iotjs_jargs_append_string_raw(iotjs_jargs_t* jargs, const char* x) {
 }
 
 
-void iotjs_jargs_replace(iotjs_jargs_t* jargs, uint16_t index,
-                         const iotjs_jval_t* x) {
+void iotjs_jargs_replace(iotjs_jargs_t* jargs, uint16_t index, iotjs_jval_t x) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_jargs_t, jargs);
 
   IOTJS_ASSERT(index < _this->argc);
 
   iotjs_jval_destroy(&_this->argv[index]);
-  _this->argv[index] = jerry_acquire_value(*x);
-}
-
-
-const iotjs_jval_t* iotjs_jargs_get(const iotjs_jargs_t* jargs,
-                                    uint16_t index) {
-  const IOTJS_VALIDATED_STRUCT_METHOD(iotjs_jargs_t, jargs);
-
-  IOTJS_ASSERT(index < _this->argc);
-  return &_this->argv[index];
+  _this->argv[index] = jerry_acquire_value(x);
 }
 
 

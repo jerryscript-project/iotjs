@@ -379,7 +379,7 @@ static void OnConnection(uv_stream_t* handle, int status) {
       return;
     }
 
-    iotjs_jargs_append_jval(&args, &jclient_tcp);
+    iotjs_jargs_append_jval(&args, jclient_tcp);
     iotjs_jval_destroy(&jcreate_tcp);
     iotjs_jval_destroy(&jclient_tcp);
   }
@@ -483,7 +483,7 @@ void OnRead(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
   IOTJS_ASSERT(iotjs_jval_is_function(jonread));
 
   iotjs_jargs_t jargs = iotjs_jargs_create(4);
-  iotjs_jargs_append_jval(&jargs, &jsocket);
+  iotjs_jargs_append_jval(&jargs, jsocket);
   iotjs_jargs_append_number(&jargs, nread);
   iotjs_jargs_append_bool(&jargs, false);
 
@@ -504,7 +504,7 @@ void OnRead(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
 
     iotjs_bufferwrap_copy(buffer_wrap, buf->base, (size_t)nread);
 
-    iotjs_jargs_append_jval(&jargs, &jbuffer);
+    iotjs_jargs_append_jval(&jargs, jbuffer);
     iotjs_make_callback(&jonread, iotjs_jval_get_undefined(), &jargs);
 
     iotjs_jval_destroy(&jbuffer);

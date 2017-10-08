@@ -120,7 +120,7 @@ static void iotjs_adc_after_work(uv_work_t* work_req, int status) {
 
   if (status) {
     iotjs_jval_t error = iotjs_jval_create_error("System error");
-    iotjs_jargs_append_jval(&jargs, &error);
+    iotjs_jargs_append_jval(&jargs, error);
     iotjs_jval_destroy(&error);
   } else {
     switch (req_data->op) {

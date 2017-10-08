@@ -154,7 +154,7 @@ void iotjs_jargs_destroy(iotjs_jargs_t* jargs);
 
 uint16_t iotjs_jargs_length(const iotjs_jargs_t* jargs);
 
-void iotjs_jargs_append_jval(iotjs_jargs_t* jargs, const iotjs_jval_t* x);
+void iotjs_jargs_append_jval(iotjs_jargs_t* jargs, iotjs_jval_t x);
 void iotjs_jargs_append_undefined(iotjs_jargs_t* jargs);
 void iotjs_jargs_append_null(iotjs_jargs_t* jargs);
 void iotjs_jargs_append_bool(iotjs_jargs_t* jargs, bool x);

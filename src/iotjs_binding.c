@@ -760,6 +760,13 @@ void iotjs_jhandler_throw(iotjs_jhandler_t* jhandler, iotjs_jval_t err) {
 }
 
 
+void iotjs_jhandler_error(iotjs_jhandler_t* jhandler, const char* func_name) {
+  char buffer[64];
+  snprintf(buffer, 63, "Internal error (%s)", func_name);
+  JHANDLER_THROW(COMMON, buffer)
+}
+
+
 static jerry_value_t iotjs_native_dispatch_function(
     const jerry_value_t jfunc, const jerry_value_t jthis,
     const jerry_value_t jargv[], const JRawLengthType jargc) {

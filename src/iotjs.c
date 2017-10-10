@@ -107,7 +107,7 @@ static bool iotjs_run(iotjs_environment_t* env) {
 #endif
 
   if (throws) {
-    iotjs_uncaught_exception(&jmain);
+    iotjs_uncaught_exception(jmain);
   }
 
   iotjs_jval_destroy(&jmain);
@@ -128,7 +128,7 @@ static int iotjs_start(iotjs_environment_t* env) {
   iotjs_module_list_init();
 
   // Initialize builtin process module.
-  const iotjs_jval_t process = *iotjs_init_process_module();
+  const iotjs_jval_t process = iotjs_init_process_module();
   iotjs_jval_set_property_jval(global, "process", process);
 
   // Set running state.

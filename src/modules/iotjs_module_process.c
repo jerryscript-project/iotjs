@@ -34,22 +34,13 @@ JHANDLER_FUNCTION(Binding) {
 
 static iotjs_jval_t WrapEval(const char* name, size_t name_len,
                              const char* source, size_t length, bool* throws) {
-  static const char* wrapper[2] = { "(function(exports, require, module) {",
-                                    "\n});\n" };
+  static const char* args = "exports, require, module";
+  jerry_value_t res =
+      jerry_parse_function((const jerry_char_t*)name, name_len,
+                           (const jerry_char_t*)args, strlen(args),
+                           (const jerry_char_t*)source, length, false);
 
-  size_t len0 = strlen(wrapper[0]);
-  size_t len1 = strlen(wrapper[1]);
-
-  size_t buffer_length = len0 + len1 + length;
-  char* buffer = iotjs_buffer_allocate(buffer_length);
-  memcpy(buffer, wrapper[0], len0);
-  memcpy(buffer + len0, source, length);
-  memcpy(buffer + len0 + length, wrapper[1], len1);
-
-  iotjs_jval_t res = iotjs_jhelper_eval(name, name_len, (uint8_t*)buffer,
-                                        buffer_length, false, throws);
-
-  iotjs_buffer_release(buffer);
+  *throws = jerry_value_has_error_flag(res);
 
   return res;
 }

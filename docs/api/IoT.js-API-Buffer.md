@@ -4,19 +4,19 @@ The following shows Buffer module APIs available for each platform.
 
 |  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | NuttX<br/>(STM32F4-Discovery) | TizenRT<br/>(Artik053) |
 | :---: | :---: | :---: | :---: | :---: |
-| buf.compare | O | O | O | - |
-| buf.copy | O | O | O | - |
-| buf.equals | O | O | O | - |
-| buf.fill | O | O | O | - |
-| buf.slice | O | O | O | - |
-| buf.toString | O | O | O | - |
-| buf.write | O | O | O | - |
-| buf.writeUInt8 | O | O | O | - |
-| buf.writeUInt16LE | O | O | O | - |
-| buf.writeUInt32LE | O | O | O | - |
-| buf.readInt8 | O | O | O | - |
-| buf.readUInt8 | O | O | O | - |
-| buf.readUInt16LE | O | O | O | - |
+| buf.compare | O | O | O | O |
+| buf.copy | O | O | O | O |
+| buf.equals | O | O | O | O |
+| buf.fill | O | O | O | O |
+| buf.slice | O | O | O | O |
+| buf.toString | O | O | O | O |
+| buf.write | O | O | O | O |
+| buf.writeUInt8 | O | O | O | O |
+| buf.writeUInt16LE | O | O | O | O |
+| buf.writeUInt32LE | O | O | O | O |
+| buf.readInt8 | O | O | O | O |
+| buf.readUInt8 | O | O | O | O |
+| buf.readUInt16LE | O | O | O | O |
 
 
 # Buffer

@@ -6,6 +6,7 @@ OSX 10.10 as development host
 * [Build for x86 / Linux](build/Build-for-x86-Linux.md): Ubuntu 14.04 is used as a base platform.
 * [Build for Stm32f4 / NuttX](build/Build-for-STM32F4-NuttX.md)
 * [Build for Raspberry Pi 2 / Linux](build/Build-for-RPi2-Linux.md)
+* [Build for Artik053 / TizenRT](build/Build-for-ARTIK053-TizenRT)
 
 #### H/W boards
 * Current supporting

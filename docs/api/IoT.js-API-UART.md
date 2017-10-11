@@ -4,11 +4,11 @@ The following shows uart module APIs available for each platform.
 
 |  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | NuttX<br/>(STM32F4-Discovery) | TizenRT<br/>(Artik053) |
 | :---: | :---: | :---: | :---: | :---: |
-| uart.open | O | O | O | - |
-| uartport.write | O | O | O | - |
-| uartport.writeSync | O | O | O | - |
-| uartport.close | O | O | X | - |
-| uartport.closeSync | O | O | X | - |
+| uart.open | O | O | O | O |
+| uartport.write | O | O | O | O |
+| uartport.writeSync | O | O | O | O |
+| uartport.close | O | O | X | O |
+| uartport.closeSync | O | O | X | O |
 
 ## Class: UART
 

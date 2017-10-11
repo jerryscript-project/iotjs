@@ -4,10 +4,10 @@ The following shows I2C module APIs available for each platform.
 
 |  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | NuttX<br/>(STM32F4-Discovery) | TizenRT<br/>(Artik053) |
 | :---: | :---: | :---: | :---: | :---: |
-| i2c.open | O | O | O | - |
-| i2cbus.read | O | O | O | - |
-| i2cbus.write | O | O | O | - |
-| i2cbus.close | O | O | O | - |
+| i2c.open | O | O | O | O |
+| i2cbus.read | O | O | O | O |
+| i2cbus.write | O | O | O | O |
+| i2cbus.close | O | O | O | O |
 
 
 # I2C
@@ -31,6 +31,7 @@ var i2c = new I2C();
 ### i2c.open(configuration[, callback])
 * `configuration` {Object} Configuration for open I2CBus.
   * `device` {string(linux)|number(NuttX)} Device path.
+  * `bus` {number} The specified bus number. (TizenRT only)
   * `address` {number} Device address.
 * `callback` {Function}
   * `err` {Error|null}

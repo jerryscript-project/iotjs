@@ -4,12 +4,12 @@ The following shows Event module APIs available for each platform.
 
 |  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | NuttX<br/>(STM32F4-Discovery) | TizenRT<br/>(Artik053) |
 | :---: | :---: | :---: | :---: | :---: |
-| emitter.addListener | O | O | O | - |
-| emitter.on | O | O | O | - |
-| emitter.emit | O | O | O | - |
-| emitter.once | O | O | O | - |
-| emitter.removeListener | O | O | O | - |
-| emitter.removeAllListeners | O | O | O | - |
+| emitter.addListener | O | O | O | O |
+| emitter.on | O | O | O | O |
+| emitter.emit | O | O | O | O |
+| emitter.once | O | O | O | O |
+| emitter.removeListener | O | O | O | O |
+| emitter.removeAllListeners | O | O | O | O |
 
 
 # Events

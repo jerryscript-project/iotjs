@@ -210,6 +210,7 @@ void iotjs_jhandler_return_string_raw(iotjs_jhandler_t* jhandler,
                                       const char* x);
 
 void iotjs_jhandler_throw(iotjs_jhandler_t* jhandler, iotjs_jval_t err);
+void iotjs_jhandler_error(iotjs_jhandler_t* jhandler, const char* func_name);
 
 iotjs_jval_t iotjs_jval_create_function_with_dispatch(
     iotjs_native_handler_t handler);
@@ -220,12 +221,10 @@ iotjs_jval_t iotjs_jval_create_function_with_dispatch(
   iotjs_jhandler_throw(jhandler, e);                                          \
   iotjs_jval_destroy(&e);
 
-#define JHANDLER_CHECK(predicate)                          \
-  if (!(predicate)) {                                      \
-    char buffer[64];                                       \
-    snprintf(buffer, 63, "Internal error (%s)", __func__); \
-    JHANDLER_THROW(COMMON, buffer)                         \
-    return;                                                \
+#define JHANDLER_CHECK(predicate)             \
+  if (!(predicate)) {                         \
+    iotjs_jhandler_error(jhandler, __func__); \
+    return;                                   \
   }
 
 #define JHANDLER_CHECK_TYPE(jval, type) \

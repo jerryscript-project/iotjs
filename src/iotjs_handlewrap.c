@@ -91,7 +91,7 @@ static void iotjs_handlewrap_on_close(iotjs_handlewrap_t* handlewrap) {
   // Decrease ref count of Javascript object. From now the object can be
   // reclaimed.
   iotjs_jval_t jval = iotjs_jobjectwrap_jobject(&_this->jobjectwrap);
-  iotjs_jval_destroy(&jval);
+  jerry_release_value(jval);
 }
 
 

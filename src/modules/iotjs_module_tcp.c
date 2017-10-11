@@ -233,7 +233,7 @@ void AfterClose(uv_handle_t* handle) {
     iotjs_make_callback(&jcallback, iotjs_jval_get_undefined(),
                         iotjs_jargs_get_empty());
   }
-  iotjs_jval_destroy(&jcallback);
+  jerry_release_value(jcallback);
 }
 
 
@@ -380,13 +380,13 @@ static void OnConnection(uv_stream_t* handle, int status) {
     }
 
     iotjs_jargs_append_jval(&args, jclient_tcp);
-    iotjs_jval_destroy(&jcreate_tcp);
-    iotjs_jval_destroy(&jclient_tcp);
+    jerry_release_value(jcreate_tcp);
+    jerry_release_value(jclient_tcp);
   }
 
   iotjs_make_callback(&jonconnection, &jtcp, &args);
 
-  iotjs_jval_destroy(&jonconnection);
+  jerry_release_value(jonconnection);
   iotjs_jargs_destroy(&args);
 }
 
@@ -507,13 +507,13 @@ void OnRead(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
     iotjs_jargs_append_jval(&jargs, jbuffer);
     iotjs_make_callback(&jonread, iotjs_jval_get_undefined(), &jargs);
 
-    iotjs_jval_destroy(&jbuffer);
+    jerry_release_value(jbuffer);
     iotjs_buffer_release(buf->base);
   }
 
   iotjs_jargs_destroy(&jargs);
-  iotjs_jval_destroy(&jonread);
-  iotjs_jval_destroy(&jsocket);
+  jerry_release_value(jonread);
+  jerry_release_value(jsocket);
 }
 
 
@@ -658,8 +658,8 @@ iotjs_jval_t InitTcp() {
   iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_GETSOCKNAME,
                         GetSockeName);
 
-  iotjs_jval_destroy(&prototype);
-  iotjs_jval_destroy(&errname);
+  jerry_release_value(prototype);
+  jerry_release_value(errname);
 
   return tcp;
 }

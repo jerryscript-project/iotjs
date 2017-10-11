@@ -110,7 +110,7 @@ static bool iotjs_run(iotjs_environment_t* env) {
     iotjs_uncaught_exception(jmain);
   }
 
-  iotjs_jval_destroy(&jmain);
+  jerry_release_value(jmain);
 
   return !throws;
 }

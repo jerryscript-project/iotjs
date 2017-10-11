@@ -311,10 +311,10 @@ void iotjs_blehcisocket_poll(THIS) {
     iotjs_jargs_append_jval(&jargs, jbuf);
     iotjs_jhelper_call_ok(jemit, jhcisocket, &jargs);
 
-    iotjs_jval_destroy(&str);
-    iotjs_jval_destroy(&jbuf);
+    jerry_release_value(str);
+    jerry_release_value(jbuf);
     iotjs_jargs_destroy(&jargs);
-    iotjs_jval_destroy(&jemit);
+    jerry_release_value(jemit);
   }
 }
 
@@ -349,10 +349,10 @@ void iotjs_blehcisocket_emitErrnoError(THIS) {
   iotjs_jargs_append_jval(&jargs, jerror);
   iotjs_jhelper_call_ok(jemit, jhcisocket, &jargs);
 
-  iotjs_jval_destroy(&str);
-  iotjs_jval_destroy(&jerror);
+  jerry_release_value(str);
+  jerry_release_value(jerror);
   iotjs_jargs_destroy(&jargs);
-  iotjs_jval_destroy(&jemit);
+  jerry_release_value(jemit);
 }
 
 

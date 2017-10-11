@@ -87,8 +87,6 @@ iotjs_jval_t* iotjs_jval_get_null();
 iotjs_jval_t* iotjs_jval_get_boolean(bool v);
 iotjs_jval_t iotjs_jval_get_global_object();
 
-/* Destructor */
-void iotjs_jval_destroy(iotjs_jval_t* jval);
 
 /* Type Checkers */
 bool iotjs_jval_is_undefined(iotjs_jval_t);
@@ -219,7 +217,7 @@ iotjs_jval_t iotjs_jval_create_function_with_dispatch(
 #define JHANDLER_THROW(TYPE, message)                                         \
   iotjs_jval_t e = iotjs_jval_create_error_type(IOTJS_ERROR_##TYPE, message); \
   iotjs_jhandler_throw(jhandler, e);                                          \
-  iotjs_jval_destroy(&e);
+  jerry_release_value(e);
 
 #define JHANDLER_CHECK(predicate)             \
   if (!(predicate)) {                         \
@@ -328,7 +326,7 @@ static inline bool ge(uint16_t a, uint16_t b) {
                      "Bad arguments, required " property " is not a " #type); \
       return;                                                                 \
     }                                                                         \
-    iotjs_jval_destroy(&jtmp);                                                \
+    jerry_release_value(jtmp);                                                \
   } while (0);
 
 void iotjs_binding_initialize();

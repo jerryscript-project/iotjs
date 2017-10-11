@@ -30,7 +30,7 @@ void iotjs_reqwrap_initialize(iotjs_reqwrap_t* reqwrap,
 
 void iotjs_reqwrap_destroy(iotjs_reqwrap_t* reqwrap) {
   IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_reqwrap_t, reqwrap);
-  iotjs_jval_destroy(&_this->jcallback);
+  jerry_release_value(_this->jcallback);
 }
 
 

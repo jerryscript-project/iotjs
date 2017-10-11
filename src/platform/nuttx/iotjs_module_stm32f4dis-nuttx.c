@@ -143,32 +143,32 @@ static void iotjs_pin_initialize_pwm(iotjs_jval_t jobj) {
   SET_GPIO_CONSTANT_CHANNEL(timer, 4);
 
   SET_GPIO_CONSTANT_TIM_4(1); // PA8, PE9, PA9, PE11, PA10, PE13, PA11, PE14
-  iotjs_jval_destroy(&jtim1);
+  jerry_release_value(jtim1);
   SET_GPIO_CONSTANT_TIM_4(2); // PA0, PA15, PA1, PB3, PA2, PB10, PA3, PB11
   iotjs_jval_set_property_number(jtim2, "CH1_3", GPIO_TIM2_CH1OUT_3); // PA5
-  iotjs_jval_destroy(&jtim2);
+  jerry_release_value(jtim2);
   SET_GPIO_CONSTANT_TIM_4(3); // PA6, PB4, PA7, PB5, PB0, PC8, PB1, PC9
   iotjs_jval_set_property_number(jtim3, "CH1_3", GPIO_TIM3_CH1OUT_3); // PC6
   iotjs_jval_set_property_number(jtim3, "CH2_3", GPIO_TIM3_CH2OUT_3); // PC7
-  iotjs_jval_destroy(&jtim3);
+  jerry_release_value(jtim3);
   SET_GPIO_CONSTANT_TIM_4(4); // PB6, PD12, PB7, PD13, PB8, PD14, PB9, PD15
-  iotjs_jval_destroy(&jtim4);
+  jerry_release_value(jtim4);
   SET_GPIO_CONSTANT_TIM_4(5); // PA0, PH10, PA1, PH11, PA2, PH12, PA3, PI0
-  iotjs_jval_destroy(&jtim5);
+  jerry_release_value(jtim5);
   SET_GPIO_CONSTANT_TIM_4(8); // PC6, PI5, PC7, PI6, PC8, PI7, PC9, PI2
-  iotjs_jval_destroy(&jtim8);
+  jerry_release_value(jtim8);
   SET_GPIO_CONSTANT_TIM_2(9); // PA2, PE5, PA3, PE6
-  iotjs_jval_destroy(&jtim9);
+  jerry_release_value(jtim9);
   SET_GPIO_CONSTANT_TIM_1(10); // PB8, PF6
-  iotjs_jval_destroy(&jtim10);
+  jerry_release_value(jtim10);
   SET_GPIO_CONSTANT_TIM_1(11); // PB9, PF7
-  iotjs_jval_destroy(&jtim11);
+  jerry_release_value(jtim11);
   SET_GPIO_CONSTANT_TIM_2(12); // PH6, PB14, PB15, PH9
-  iotjs_jval_destroy(&jtim12);
+  jerry_release_value(jtim12);
   SET_GPIO_CONSTANT_TIM_1(13); // PA6, PF8
-  iotjs_jval_destroy(&jtim13);
+  jerry_release_value(jtim13);
   SET_GPIO_CONSTANT_TIM_1(14); // PA7, PF9
-  iotjs_jval_destroy(&jtim14);
+  jerry_release_value(jtim14);
 
 #undef SET_GPIO_CONSTANT_TIM_4
 #undef SET_GPIO_CONSTANT_TIM_2
@@ -197,7 +197,7 @@ void iotjs_stm32f4dis_pin_initialize(iotjs_jval_t jobj) {
   iotjs_pin_initialize_pwm(jpin);
 #endif /* ENABLE_MODULE_PWM */
 
-  iotjs_jval_destroy(&jpin);
+  jerry_release_value(jpin);
 }
 
 

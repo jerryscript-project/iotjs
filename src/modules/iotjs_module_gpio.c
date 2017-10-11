@@ -210,22 +210,22 @@ static void gpio_set_configurable(iotjs_gpio_t* gpio,
   iotjs_jval_t jpin =
       iotjs_jval_get_property(jconfigurable, IOTJS_MAGIC_STRING_PIN);
   _this->pin = iotjs_jval_as_number(jpin);
-  iotjs_jval_destroy(&jpin);
+  jerry_release_value(jpin);
 
   iotjs_jval_t jdirection =
       iotjs_jval_get_property(jconfigurable, IOTJS_MAGIC_STRING_DIRECTION);
   _this->direction = (GpioDirection)iotjs_jval_as_number(jdirection);
-  iotjs_jval_destroy(&jdirection);
+  jerry_release_value(jdirection);
 
   iotjs_jval_t jmode =
       iotjs_jval_get_property(jconfigurable, IOTJS_MAGIC_STRING_MODE);
   _this->mode = (GpioMode)iotjs_jval_as_number(jmode);
-  iotjs_jval_destroy(&jmode);
+  jerry_release_value(jmode);
 
   iotjs_jval_t jedge =
       iotjs_jval_get_property(jconfigurable, IOTJS_MAGIC_STRING_EDGE);
   _this->edge = (GpioMode)iotjs_jval_as_number(jedge);
-  iotjs_jval_destroy(&jedge);
+  jerry_release_value(jedge);
 }
 
 
@@ -341,8 +341,8 @@ iotjs_jval_t InitGpio() {
   iotjs_jval_set_method(jprototype, IOTJS_MAGIC_STRING_CLOSE, Close);
   iotjs_jval_set_property_jval(jgpioConstructor, IOTJS_MAGIC_STRING_PROTOTYPE,
                                jprototype);
-  iotjs_jval_destroy(&jprototype);
-  iotjs_jval_destroy(&jgpioConstructor);
+  jerry_release_value(jprototype);
+  jerry_release_value(jgpioConstructor);
 
   // GPIO direction properties
   iotjs_jval_t jdirection = iotjs_jval_create_object();
@@ -352,7 +352,7 @@ iotjs_jval_t InitGpio() {
                                  kGpioDirectionOut);
   iotjs_jval_set_property_jval(jgpio, IOTJS_MAGIC_STRING_DIRECTION_U,
                                jdirection);
-  iotjs_jval_destroy(&jdirection);
+  jerry_release_value(jdirection);
 
 
   // GPIO mode properties
@@ -371,7 +371,7 @@ iotjs_jval_t InitGpio() {
                                  kGpioModeOpendrain);
 #endif
   iotjs_jval_set_property_jval(jgpio, IOTJS_MAGIC_STRING_MODE_U, jmode);
-  iotjs_jval_destroy(&jmode);
+  jerry_release_value(jmode);
 
   // GPIO edge properties
   iotjs_jval_t jedge = iotjs_jval_create_object();
@@ -383,7 +383,7 @@ iotjs_jval_t InitGpio() {
   iotjs_jval_set_property_number(jedge, IOTJS_MAGIC_STRING_BOTH_U,
                                  kGpioEdgeBoth);
   iotjs_jval_set_property_jval(jgpio, IOTJS_MAGIC_STRING_EDGE_U, jedge);
-  iotjs_jval_destroy(&jedge);
+  jerry_release_value(jedge);
 
   return jgpio;
 }

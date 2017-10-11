@@ -4,26 +4,26 @@ The following shows net module APIs available for each platform.
 
 |  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | NuttX<br/>(STM32F4-Discovery) | TizenRT<br/>(Artik053) |
 | :---: | :---: | :---: | :---: | :---: |
-| net.createServer | O | O | △ ¹ | - |
-| net.connect | O | O | △ ¹ | - |
-| net.createConnection | O | O | △ ¹ | - |
-| net.Server.listen | O | O | △ ¹ | - |
-| net.Server.close | O | O | △ ²| - |
-| net.Socket.connect | O | O | △ ¹ | - |
-| net.Socket.write | O | O | △ ¹ | - |
-| net.Socket.end | O | O | △ ¹ ³ | - |
-| net.Socket.destroy | O | O | △ ¹ ³ | - |
-| net.Socket.pause | O | O | △ ¹ | - |
-| net.Socket.resume | O | O | △ ¹ | - |
-| net.Socket.setTimeout | O | O | △ ¹ | - |
-| net.Socket.setKeepAlive | X | X | X | - |
+| net.createServer | O | O | △ ¹ | △ ¹ |
+| net.connect | O | O | △ ¹ | △ ¹ |
+| net.createConnection | O | O | △ ¹ | △ ¹ |
+| net.Server.listen | O | O | △ ¹ | △ ¹ |
+| net.Server.close | O | O | △ ²| O |
+| net.Socket.connect | O | O | △ ¹ | △ ¹ |
+| net.Socket.write | O | O | △ ¹ | △ ¹ |
+| net.Socket.end | O | O | △ ¹ ³ | △ ¹ ³ |
+| net.Socket.destroy | O | O | △ ¹ ³ | △ ¹ ³ |
+| net.Socket.pause | O | O | △ ¹ | △ ¹ |
+| net.Socket.resume | O | O | △ ¹ | △ ¹ |
+| net.Socket.setTimeout | O | O | △ ¹ | △ ¹ |
+| net.Socket.setKeepAlive | X | X | X | X |
 
-1. On NuttX/STM32F4-Discovery, even a couple of sockets/server/requests might not work properly.
+1. On NuttX/STM32F4-Discovery and TizenRT/Artik053, even a couple of sockets/server/requests might not work properly.
 
 2. On NuttX/STM32F4-Discovery, close() may block due to a bug in poll().
 
 3. When writable stream is finished but readable stream is still alive, IoT.js tries to shutdown the socket, not destroy.
-However on `NuttX` due to lack of implementation, it does nothing inside.
+However on `NuttX` and `TizenRT` due to lack of implementation, it does nothing inside.
 
 
 # Net

@@ -4,11 +4,11 @@ The following table shows ADC module APIs available for each platform.
 
 |  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | NuttX<br/>(STM32F4-Discovery) | TizenRT<br/>(Artik053) |
 | :---: | :---: | :---: | :---: | :---: |
-| adc.open | O | X | O | - |
-| adcpin.read | O | X | O | - |
-| adcpin.readSync | O | X | O | - |
-| adcpin.close | O | X | O | - |
-| adcpin.closeSync | O | X | O | - |
+| adc.open | O | X | O | O |
+| adcpin.read | O | X | O | O |
+| adcpin.readSync | O | X | O | O |
+| adcpin.close | O | X | O | O |
+| adcpin.closeSync | O | X | O | O |
 
 
 ## Class: ADC
@@ -25,7 +25,7 @@ On NuttX, you have to know the number of pins that is defined on the target boar
 
 * `configuration` {Object}
   * `device` {string} Mandatory configuration on Linux.
-  * `pin` {int} Mandatory configuration on NuttX.
+  * `pin` {int} Mandatory configuration on NuttX and TizenRT.
 * `callback` {Function}
   * `err`: {Error|null}
 * Returns: `AdcPin` {adc.AdcPin}

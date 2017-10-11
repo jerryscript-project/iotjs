@@ -4,9 +4,9 @@ The following shows BLE module APIs available for each platform.
 
 |  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | NuttX<br/>(STM32F4-Discovery) | TizenRT<br/>(Artik053) |
 | :---: | :---: | :---: | :---: | :---: |
-| ble.startAdvertising | O | O | X | - |
-| ble.stopAdvertising | O | O | X | - |
-| ble.setServices | O | O | X | - |
+| ble.startAdvertising | O | O | X | X |
+| ble.stopAdvertising | O | O | X | X |
+| ble.setServices | O | O | X | X |
 
 
 # BLE - Bluetooth Low Energy

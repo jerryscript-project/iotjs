@@ -4,13 +4,13 @@ The following shows GPIO module APIs available for each platform.
 
 |  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | NuttX<br/>(STM32F4-Discovery) | TizenRT<br/>(Artik053) |
 | :---: | :---: | :---: | :---: | :---: |
-| gpio.open | O | O | O | - |
-| gpiopin.write | O | O | O | - |
-| gpiopin.writeSync | O | O | O | - |
-| gpiopin.read | △ | △ | O | - |
-| gpiopin.readSync | O | O | O | - |
-| gpiopin.close | O | O | O | - |
-| gpiopin.closeSync | O | O | O | - |
+| gpio.open | O | O | O | O |
+| gpiopin.write | O | O | O | O |
+| gpiopin.writeSync | O | O | O | O |
+| gpiopin.read | △ | △ | O | O |
+| gpiopin.readSync | O | O | O | O |
+| gpiopin.close | O | O | O | O |
+| gpiopin.closeSync | O | O | O | O |
 
 
 # GPIO

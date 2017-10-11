@@ -4,17 +4,17 @@ The following shows PWM module APIs available for each platform.
 
 |  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | NuttX<br/>(STM32F4-Discovery) | TizenRT<br/>(Artik053) |
 | :---: | :---: | :---: | :---: | :---: |
-| pwm.open | O | O | O | - |
-| pwmpin.setPeriod | O | O | O | - |
-| pwmpin.setPeriodSync | O | O | O | - |
-| pwmpin.setFrequency | O | O | O | - |
-| pwmpin.setFrequencySync | O | O | O | - |
-| pwmpin.setDutyCycle | O | O | O | - |
-| pwmpin.setDutyCycleSync | O | O | O | - |
-| pwmpin.setEnable | O | O | O | - |
-| pwmpin.setEnableSync | O | O | O | - |
-| pwmpin.close | O | O | O | - |
-| pwmpin.closeSync | O | O | O | - |
+| pwm.open | O | O | O | O |
+| pwmpin.setPeriod | O | O | O | O |
+| pwmpin.setPeriodSync | O | O | O | O |
+| pwmpin.setFrequency | O | O | O | O |
+| pwmpin.setFrequencySync | O | O | O | O |
+| pwmpin.setDutyCycle | O | O | O | O |
+| pwmpin.setDutyCycleSync | O | O | O | O |
+| pwmpin.setEnable | O | O | O | O |
+| pwmpin.setEnableSync | O | O | O | O |
+| pwmpin.close | O | O | O | O |
+| pwmpin.closeSync | O | O | O | O |
 
 
 ## Class: PWM

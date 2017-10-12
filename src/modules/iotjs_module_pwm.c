@@ -216,7 +216,7 @@ static void iotjs_pwm_after_worker(uv_work_t* work_req, int status) {
   }
 
   iotjs_jval_t jcallback = iotjs_pwm_reqwrap_jcallback(req_wrap);
-  iotjs_make_callback(&jcallback, iotjs_jval_get_undefined(), &jargs);
+  iotjs_make_callback(jcallback, *iotjs_jval_get_undefined(), &jargs);
 
   iotjs_jargs_destroy(&jargs);
 

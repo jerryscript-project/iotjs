@@ -54,11 +54,8 @@ static bool iotjs_jerry_initialize(iotjs_environment_t* env) {
   // Initialize jerry.
   jerry_init(jerry_flags);
 
-  if (iotjs_environment_config(env)->debugger) {
-    jerry_debugger_init(iotjs_environment_config(env)->debugger_port);
-  }
-
-  if (iotjs_environment_config(env)->debugger) {
+  if (iotjs_environment_config(env)->debugger != NULL) {
+    jerry_debugger_init(iotjs_environment_config(env)->debugger->port);
     jerry_debugger_continue();
   }
 

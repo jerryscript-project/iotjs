@@ -55,7 +55,7 @@ JHANDLER_FUNCTION(Compile) {
   const char* filename = iotjs_string_data(&file);
   const iotjs_environment_t* env = iotjs_environment_get();
 
-  if (iotjs_environment_config(env)->debugger) {
+  if (iotjs_environment_config(env)->debugger != NULL) {
     jerry_debugger_stop();
   }
 
@@ -318,9 +318,13 @@ iotjs_jval_t InitProcess() {
 
   // Set iotjs
   SetProcessIotjs(process);
-
-  bool wait_source =
-      iotjs_environment_config(iotjs_environment_get())->debugger_wait_source;
+  bool wait_source;
+  if (iotjs_environment_config(iotjs_environment_get())->debugger != NULL) {
+    wait_source = iotjs_environment_config(iotjs_environment_get())
+                      ->debugger->wait_source;
+  } else {
+    wait_source = false;
+  }
 
   if (!wait_source) {
     SetProcessArgv(process);

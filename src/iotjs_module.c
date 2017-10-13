@@ -48,15 +48,15 @@ void iotjs_module_list_init() {
 #undef INIT_MODULE_LIST
 
 
-#define CLENUP_MODULE_LIST(upper, Camel, lower)                  \
+#define CLEANUP_MODULE_LIST(upper, Camel, lower)                 \
   if (!iotjs_jval_is_undefined(modules[MODULE_##upper].jmodule)) \
     jerry_release_value(modules[MODULE_##upper].jmodule);
 
 void iotjs_module_list_cleanup() {
-  MAP_MODULE_LIST(CLENUP_MODULE_LIST)
+  MAP_MODULE_LIST(CLEANUP_MODULE_LIST)
 }
 
-#undef CLENUP_MODULE_LIST
+#undef CLEANUP_MODULE_LIST
 
 
 const iotjs_jval_t* iotjs_module_initialize_if_necessary(ModuleKind kind) {

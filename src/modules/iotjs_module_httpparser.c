@@ -66,7 +66,7 @@ static void iotjs_httpparserwrap_initialize(
   _this->n_fields = 0;
   _this->n_values = 0;
   _this->flushed = false;
-  _this->cur_jbuf = *iotjs_jval_get_null();
+  _this->cur_jbuf = jerry_create_null();
   _this->cur_buf = NULL;
   _this->cur_buf_len = 0;
 }
@@ -426,7 +426,7 @@ JHANDLER_FUNCTION(Execute) {
   size_t nparsed =
       http_parser_execute(nativeparser, &settings, buf_data, buf_len);
 
-  iotjs_httpparserwrap_set_buf(parser, *iotjs_jval_get_null(), NULL, 0);
+  iotjs_httpparserwrap_set_buf(parser, jerry_create_null(), NULL, 0);
 
 
   if (!nativeparser->upgrade && nparsed != buf_len) {

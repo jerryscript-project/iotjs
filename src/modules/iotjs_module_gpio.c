@@ -195,7 +195,7 @@ static void iotjs_gpio_after_worker(uv_work_t* work_req, int status) {
   }
 
   iotjs_jval_t jcallback = iotjs_gpio_reqwrap_jcallback(req_wrap);
-  iotjs_make_callback(jcallback, *iotjs_jval_get_undefined(), &jargs);
+  iotjs_make_callback(jcallback, jerry_create_undefined(), &jargs);
 
   iotjs_jargs_destroy(&jargs);
 

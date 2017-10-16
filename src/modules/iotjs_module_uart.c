@@ -26,7 +26,7 @@ static iotjs_uart_t* iotjs_uart_create(iotjs_jval_t juart) {
   iotjs_uart_t* uart = IOTJS_ALLOC(iotjs_uart_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_uart_t, uart);
 
-  iotjs_handlewrap_initialize(&_this->handlewrap, &juart,
+  iotjs_handlewrap_initialize(&_this->handlewrap, juart,
                               (uv_handle_t*)(&_this->poll_handle),
                               &this_module_native_info);
 
@@ -86,7 +86,7 @@ static iotjs_jval_t iotjs_uart_reqwrap_jcallback(THIS) {
 
 
 static iotjs_uart_t* iotjs_uart_instance_from_jval(iotjs_jval_t juart) {
-  iotjs_handlewrap_t* handlewrap = iotjs_handlewrap_from_jobject(&juart);
+  iotjs_handlewrap_t* handlewrap = iotjs_handlewrap_from_jobject(juart);
   return (iotjs_uart_t*)handlewrap;
 }
 

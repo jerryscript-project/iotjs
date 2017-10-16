@@ -29,7 +29,7 @@ iotjs_tcpwrap_t* iotjs_tcpwrap_create(iotjs_jval_t jtcp) {
   iotjs_tcpwrap_t* tcpwrap = IOTJS_ALLOC(iotjs_tcpwrap_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_tcpwrap_t, tcpwrap);
 
-  iotjs_handlewrap_initialize(&_this->handlewrap, &jtcp,
+  iotjs_handlewrap_initialize(&_this->handlewrap, jtcp,
                               (uv_handle_t*)(&_this->handle),
                               &this_module_native_info);
 
@@ -57,7 +57,7 @@ iotjs_tcpwrap_t* iotjs_tcpwrap_from_handle(uv_tcp_t* tcp_handle) {
 
 
 iotjs_tcpwrap_t* iotjs_tcpwrap_from_jobject(iotjs_jval_t jtcp) {
-  iotjs_handlewrap_t* handlewrap = iotjs_handlewrap_from_jobject(&jtcp);
+  iotjs_handlewrap_t* handlewrap = iotjs_handlewrap_from_jobject(jtcp);
   return (iotjs_tcpwrap_t*)handlewrap;
 }
 

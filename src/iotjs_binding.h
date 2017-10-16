@@ -173,9 +173,7 @@ iotjs_jval_t iotjs_jhelper_eval(const char* name, size_t name_len,
                                 const uint8_t* data, size_t size,
                                 bool strict_mode, bool* throws);
 #ifdef ENABLE_SNAPSHOT
-// Evaluates javascript snapshot.
-iotjs_jval_t iotjs_jhelper_exec_snapshot(const void* snapshot_p,
-                                         size_t snapshot_size, bool* throws);
+iotjs_jval_t iotjs_exec_snapshot(uint32_t snapshot_function_idx, bool* throws);
 #endif
 
 

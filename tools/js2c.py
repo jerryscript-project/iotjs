@@ -55,17 +55,26 @@ def force_str(string):
 
 
 def parse_literals(code):
-    JERRY_SNAPSHOT_VERSION = 7
+    JERRY_SNAPSHOT_VERSION = 8
+    JERRY_SNAPSHOT_MAGIC = 0x5952524A
 
     literals = set()
-
-    header = struct.unpack('IIII', code[0:16])
-    if header[0] != JERRY_SNAPSHOT_VERSION :
+    # header format:
+    # uint32_t magic
+    # uint32_t version
+    # uint32_t global opts
+    # uint32_t literal table offset
+    header = struct.unpack('I' * 4, code[0:4 * 4])
+    if header[0] != JERRY_SNAPSHOT_MAGIC:
+        print('Incorrect snapshot format! Magic number is incorrect')
+        exit(1)
+    if header[1] != JERRY_SNAPSHOT_VERSION:
         print ('Please check jerry snapshot version (Last confirmed: %d)'
                % JERRY_SNAPSHOT_VERSION)
         exit(1)
 
-    code_ptr = header[1] + 8
+    code_ptr = header[3] + 4
+
     while code_ptr < len(code):
         length = struct.unpack('H', code[code_ptr : code_ptr + 2])[0]
         code_ptr = code_ptr + 2
@@ -117,6 +126,25 @@ EMPTY_LINE = '\n'
 
 MAGIC_STRINGS_HEADER = '#define JERRY_MAGIC_STRING_ITEMS \\\n'
 
+MODULE_SNAPSHOT_VARIABLES_H = '''
+extern const char module_{NAME}[];
+extern const uint32_t module_{NAME}_idx;
+'''
+
+MODULE_SNAPSHOT_VARIABLES_C = '''
+#define MODULE_{NAME}_IDX ({IDX})
+const char module_{NAME}[] = "{NAME}";
+const uint32_t module_{NAME}_idx = MODULE_{NAME}_IDX;
+'''
+
+NATIVE_SNAPSHOT_STRUCT_H = '''
+typedef struct {
+  const char* name;
+  const uint32_t idx;
+} iotjs_js_module;
+
+extern const iotjs_js_module natives[];
+'''
 
 MODULE_VARIABLES_H = '''
 extern const char {NAME}_n[];
@@ -168,6 +196,28 @@ def format_code(code, indent):
     return "\n".join(lines)
 
 
+def merge_snapshots(snapshot_infos, snapshot_merger):
+    output_path = fs.join(path.SRC_ROOT, 'js','merged.modules')
+    cmd = [snapshot_merger, "merge", "-o", output_path]
+    cmd.extend([item['path'] for item in snapshot_infos])
+
+    ret = subprocess.call(cmd)
+
+    if ret != 0:
+        msg = "Failed to merge %s: - %d" % (snapshot_infos, ret)
+        print("%s%s%s" % ("\033[1;31m", msg, "\033[0m"))
+        exit(1)
+
+    for item in snapshot_infos:
+        fs.remove(item['path'])
+
+    with open(output_path, 'rb') as snapshot:
+        code = snapshot.read()
+
+    fs.remove(output_path)
+    return code
+
+
 def get_snapshot_contents(module_name, snapshot_generator):
     """ Convert the given module with the snapshot generator
         and return the resulting bytes.
@@ -189,18 +239,15 @@ def get_snapshot_contents(module_name, snapshot_generator):
                            "--save-snapshot-for-eval",
                            snapshot_path,
                            wrapped_path])
+
+    fs.remove(wrapped_path)
     if ret != 0:
         msg = "Failed to dump %s: - %d" % (js_path, ret)
         print("%s%s%s" % ("\033[1;31m", msg, "\033[0m"))
+        fs.remove(snapshot_path)
         exit(1)
 
-    with open(snapshot_path, 'rb') as snapshot:
-        code = snapshot.read()
-
-    fs.remove(wrapped_path)
-    fs.remove(snapshot_path)
-
-    return code
+    return snapshot_path
 
 
 def get_js_contents(name, is_debug_mode=False):
@@ -216,7 +263,8 @@ def get_js_contents(name, is_debug_mode=False):
     return code
 
 
-def js2c(buildtype, no_snapshot, js_modules, js_dumper, verbose=False):
+def js2c(buildtype, no_snapshot, js_modules, js_dumper, snapshot_merger,
+         verbose=False):
     is_debug_mode = buildtype == "debug"
     magic_string_set = set()
 
@@ -236,32 +284,60 @@ def js2c(buildtype, no_snapshot, js_modules, js_dumper, verbose=False):
         fout_c.write(LICENSE)
         fout_c.write(HEADER2)
 
-        for name in sorted(js_modules):
+        snapshot_infos = []
+        for idx, name in enumerate(sorted(js_modules)):
             if verbose:
                 print('Processing module: %s' % name)
 
             if no_snapshot:
                 code = get_js_contents(name, is_debug_mode)
+                code_string = format_code(code, 1)
+
+                fout_h.write(MODULE_VARIABLES_H.format(NAME=name))
+                fout_c.write(MODULE_VARIABLES_C.format(NAME=name,
+                                                       NAME_UPPER=name.upper(),
+                                                       SIZE=len(code),
+                                                       CODE=code_string))
             else:
-                code = get_snapshot_contents(name, js_dumper)
-                magic_string_set |= parse_literals(code)
+                code_path = get_snapshot_contents(name, js_dumper)
+                info = {'name': name, 'path': code_path, 'idx': idx}
+                snapshot_infos.append(info)
 
+                fout_h.write(MODULE_SNAPSHOT_VARIABLES_H.format(NAME=name))
+                fout_c.write(MODULE_SNAPSHOT_VARIABLES_C.format(NAME=name,
+                                                                IDX=idx))
+
+
+        if no_snapshot:
+            modules_struct = [
+               '  {{ {0}_n, {0}_s, SIZE_{1} }},'.format(name, name.upper())
+               for name in sorted(js_modules)
+            ]
+            modules_struct.append('  { NULL, NULL, 0 }')
+        else:
+            code = merge_snapshots(snapshot_infos, snapshot_merger)
             code_string = format_code(code, 1)
+            magic_string_set |= parse_literals(code)
 
+            name = 'iotjs_js_modules'
             fout_h.write(MODULE_VARIABLES_H.format(NAME=name))
             fout_c.write(MODULE_VARIABLES_C.format(NAME=name,
                                                    NAME_UPPER=name.upper(),
                                                    SIZE=len(code),
                                                    CODE=code_string))
+            modules_struct = [
+                '  {{ module_{0}, MODULE_{0}_IDX }},'.format(info['name'])
+                for info in snapshot_infos
+            ]
+            modules_struct.append('  { NULL, 0 }')
 
-        fout_h.write(NATIVE_STRUCT_H)
+        if no_snapshot:
+            native_struct_h = NATIVE_STRUCT_H
+        else:
+            native_struct_h = NATIVE_SNAPSHOT_STRUCT_H
+
+        fout_h.write(native_struct_h)
         fout_h.write(FOOTER1)
-
-        modules_struct = [
-            '  {{ {0}_n, {0}_s, SIZE_{1} }},'.format(name, name.upper())
-            for name in sorted(js_modules)
-        ]
-        modules_struct.append('  { NULL, NULL, 0 }')
 
         fout_c.write(NATIVE_STRUCT_C.format(MODULES="\n".join(modules_struct)))
         fout_c.write(EMPTY_LINE)
@@ -294,12 +370,14 @@ if __name__ == "__main__":
     parser.add_argument('--snapshot-generator', default=None,
         help='Executable to use for generating snapshots from the JS files. '
              'If not specified the JS files will be directly processed.')
+    parser.add_argument('--snapshot-merger', default=None,
+        help='Executable to use to merge snapshots.')
     parser.add_argument('-v', '--verbose', default=False,
         help='Enable verbose output.')
 
     options = parser.parse_args()
 
-    if not options.snapshot_generator:
+    if not options.snapshot_generator or not options.snapshot_merger:
         print('Converting JS modules to C arrays (no snapshot)')
         no_snapshot = True
     else:
@@ -308,4 +386,4 @@ if __name__ == "__main__":
 
     modules = options.modules.replace(',', ' ').split()
     js2c(options.buildtype, no_snapshot, modules, options.snapshot_generator,
-         options.verbose)
+         options.snapshot_merger, options.verbose)

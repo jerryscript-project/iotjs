@@ -20,47 +20,47 @@ var common = require('http_common');
 
 // RFC 7231 (http://tools.ietf.org/html/rfc7231#page-49)
 var STATUS_CODES = exports.STATUS_CODES = {
-  100 : 'Continue',
-  101 : 'Switching Protocols',
-  200 : 'OK',
-  201 : 'Created',
-  202 : 'Accepted',
-  203 : 'Non-Authoritative Information',
-  204 : 'No Content',
-  205 : 'Reset Content',
-  206 : 'Partial Content',
-  300 : 'Multiple Choices',
-  301 : 'Moved Permanently',
-  302 : 'Found',
-  303 : 'See Other',
-  304 : 'Not Modified',
-  305 : 'Use Proxy',
-  307 : 'Temporary Redirect',
-  400 : 'Bad Request',
-  401 : 'Unauthorized',
-  402 : 'Payment Required',
-  403 : 'Forbidden',
-  404 : 'Not Found',
-  405 : 'Method Not Allowed',
-  406 : 'Not Acceptable',
-  407 : 'Proxy Authentication Required',
-  408 : 'Request Timeout',
-  409 : 'Conflict',
-  410 : 'Gone',
-  411 : 'Length Required',
-  412 : 'Precondition Failed',
-  413 : 'Payload Too Large',
-  414 : 'URI Too Large',
-  415 : 'Unsupported Media Type',
-  416 : 'Range Not Satisfiable',
-  417 : 'Expectation Failed',
-  426 : 'Upgrade Required',
-  500 : 'Internal Server Error',
-  501 : 'Not Implemented',
-  502 : 'Bad Gateway',
-  503 : 'Service Unavailable',
-  504 : 'Gateway Time-out',
-  505 : 'HTTP Version Not Supported'
+  100: 'Continue',
+  101: 'Switching Protocols',
+  200: 'OK',
+  201: 'Created',
+  202: 'Accepted',
+  203: 'Non-Authoritative Information',
+  204: 'No Content',
+  205: 'Reset Content',
+  206: 'Partial Content',
+  300: 'Multiple Choices',
+  301: 'Moved Permanently',
+  302: 'Found',
+  303: 'See Other',
+  304: 'Not Modified',
+  305: 'Use Proxy',
+  307: 'Temporary Redirect',
+  400: 'Bad Request',
+  401: 'Unauthorized',
+  402: 'Payment Required',
+  403: 'Forbidden',
+  404: 'Not Found',
+  405: 'Method Not Allowed',
+  406: 'Not Acceptable',
+  407: 'Proxy Authentication Required',
+  408: 'Request Timeout',
+  409: 'Conflict',
+  410: 'Gone',
+  411: 'Length Required',
+  412: 'Precondition Failed',
+  413: 'Payload Too Large',
+  414: 'URI Too Large',
+  415: 'Unsupported Media Type',
+  416: 'Range Not Satisfiable',
+  417: 'Expectation Failed',
+  426: 'Upgrade Required',
+  500: 'Internal Server Error',
+  501: 'Not Implemented',
+  502: 'Bad Gateway',
+  503: 'Service Unavailable',
+  504: 'Gateway Time-out',
+  505: 'HTTP Version Not Supported',
 };
 
 
@@ -89,8 +89,7 @@ ServerResponse.prototype._implicitHeader = function() {
 ServerResponse.prototype.writeHead = function(statusCode, reason, obj) {
   if (util.isString(reason)) {
     this.statusMessage = reason;
-  }
-  else {
+  } else {
     this.statusMessage = STATUS_CODES[statusCode] || 'unknown';
     obj = reason;
   }
@@ -171,7 +170,7 @@ exports.Server = Server;
 
 // TODO: Implement Server.prototype.setTimeout function
 // For this, socket.prototype.setTimeout is needed.
-Server.prototype.setTimeout = function (ms, cb) {
+Server.prototype.setTimeout = function(ms, cb) {
   this.timeout = ms;
   if (cb) {
     this.on('timeout', cb);
@@ -194,11 +193,11 @@ function connectionListener(socket) {
   parser.incoming = null;
   socket.parser = parser;
 
-  socket.on("data", socketOnData);
-  socket.on("end", socketOnEnd);
-  socket.on("close", socketOnClose);
+  socket.on('data', socketOnData);
+  socket.on('end', socketOnEnd);
+  socket.on('close', socketOnClose);
   socket.on('timeout', socketOnTimeout);
-  socket.on("error", socketOnError);
+  socket.on('error', socketOnError);
 
   if (server.timeout) {
     socket.setTimeout(server.timeout);
@@ -267,7 +266,7 @@ function socketOnError(err) {
   var socket = this;
   var server = socket._server;
 
-  server.emit("clientError", err, socket);
+  server.emit('clientError', err, socket);
 }
 
 

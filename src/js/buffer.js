@@ -214,7 +214,7 @@ Buffer.prototype.slice = function(start, end) {
 // * start - default to 0
 // * end - default to buff.length
 Buffer.prototype.toString = function(start, end) {
-  if (util.isString(start) && start === "hex" && end === undefined) {
+  if (util.isString(start) && start === 'hex' && end === undefined) {
       return this._builtin.toHexString();
   }
   start = start === undefined ? 0 : ~~start;

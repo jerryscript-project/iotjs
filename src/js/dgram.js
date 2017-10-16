@@ -152,7 +152,7 @@ Socket.prototype.bind = function(port, address, callback) {
   });
 
   return self;
-}
+};
 
 
 // thin wrapper around `send`, here for compatibility with dgram_legacy.js
@@ -242,11 +242,11 @@ Socket.prototype.send = function(buffer, offset, length, port, address,
 
   if (!util.isArray(buffer)) {
     if (util.isString(buffer)) {
-      list = [ new Buffer(buffer) ];
+      list = [new Buffer(buffer)];
     } else if (!util.isBuffer(buffer)) {
       throw new TypeError('First argument must be a buffer or a string');
     } else {
-      list = [ buffer ];
+      list = [buffer];
     }
   } else if (!(list = fixBufferList(buffer))) {
     throw new TypeError('Buffer list arguments must be buffers or strings');
@@ -298,7 +298,7 @@ function doSend(ex, self, ip, list, address, port, callback) {
 
   var buf = Buffer.concat(list);
 
-  var err = self._handle.send(buf, port, ip, function (err, length) {
+  var err = self._handle.send(buf, port, ip, function(err, length) {
     if (err) {
       err = util.exceptionWithHostPort(err, 'send', address, port);
     } else {

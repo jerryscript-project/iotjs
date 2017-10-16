@@ -104,7 +104,7 @@ Writable.prototype.write = function(chunk, callback) {
 // this method.
 Writable.prototype._write = function(chunk, callback, onwrite) {
   throw new Error('unreachable');
-}
+};
 
 
 Writable.prototype.end = function(chunk, callback) {

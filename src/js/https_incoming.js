@@ -153,7 +153,7 @@ function parserOnMessageComplete() {
   }
 }
 
-//------------ LIBCURL PARSER CALLBACKS -----------------
+// ------------ LIBCURL PARSER CALLBACKS -----------------
 // Called by libcurl when Request is Done. Finish parser and unref
 function cbOnEnd() {
   var incoming = this;

@@ -21,7 +21,7 @@ var fsBuiltin = process.binding(process.binding.fs);
 
 fs.exists = function(path, callback) {
   if (!path || !path.length) {
-    process.nextTick(function () {
+    process.nextTick(function() {
       if (callback) callback(false);
     });
     return;
@@ -213,7 +213,7 @@ fs.readFile = function(path, callback) {
     fs.close(fd, function(err) {
       return callback(err, Buffer.concat(buffers));
     });
-  }
+  };
 };
 
 

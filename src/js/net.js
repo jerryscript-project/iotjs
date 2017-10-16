@@ -105,7 +105,7 @@ Socket.prototype.connect = function() {
   var port = options.port;
   var dnsopts = {
     family: options.family >>> 0,
-    hints: 0
+    hints: 0,
   };
 
   if (!util.isNumber(port) || port < 0 || port > 65535)
@@ -225,7 +225,7 @@ Socket.prototype.destroySoon = function() {
   } else {
     self.once('finish', self.destroy);
   }
-}
+};
 
 
 Socket.prototype.setKeepAlive = function(enable, delay) {
@@ -244,7 +244,7 @@ Socket.prototype.address = function() {
   if (!this._sockname) {
     var out = {};
     var err = this._handle.getsockname(out);
-    if (err) return {};  // FIXME(bnoordhuis) Throw?
+    if (err) return {}; // FIXME(bnoordhuis) Throw?
     this._sockname = out;
   }
   return this._sockname;
@@ -400,7 +400,7 @@ function onread(socket, nread, isEOF, buffer) {
     var err = new Error('read error: ' + nread);
     stream.Readable.prototype.error.call(socket, err);
   } else if (nread > 0) {
-    if (process.platform  !== 'nuttx') {
+    if (process.platform !== 'nuttx') {
       stream.Readable.prototype.push.call(socket, buffer);
       return;
     }
@@ -409,7 +409,7 @@ function onread(socket, nread, isEOF, buffer) {
     var eofNeeded = false;
     if (str.length >= 6
       && str.substr(str.length - 6, str.length) == '\\e\\n\\d') {
-      eofNeeded  = true;
+      eofNeeded = true;
       buffer = buffer.slice(0, str.length - 6);
     }
 
@@ -455,7 +455,6 @@ function onSocketEnd() {
     this.destroySoon();
   }
 }
-
 
 
 function Server(options, connectionListener) {
@@ -604,7 +603,7 @@ function onconnection(status, clientHandle) {
   // Create socket object for connecting client.
   var socket = new Socket({
     handle: clientHandle,
-    allowHalfOpen: server.allowHalfOpen
+    allowHalfOpen: server.allowHalfOpen,
   });
   socket._server = server;
 

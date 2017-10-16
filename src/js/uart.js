@@ -18,13 +18,13 @@ var util = require('util');
 var uart = process.binding(process.binding.uart);
 
 // VALIDATION ARRAYS
-var BAUDRATE = [0, 50, 75, 110, 134, 150, 200, 300, 600, 1200, 1800, 2400
-                , 4800, 9600, 19200, 38400, 57600, 115200, 230400];
+var BAUDRATE = [0, 50, 75, 110, 134, 150, 200, 300, 600, 1200, 1800, 2400,
+                 4800, 9600, 19200, 38400, 57600, 115200, 230400];
 var DATABITS = [5, 6, 7, 8];
 
 var defaultConfiguration = {
   baudRate: 9600,
-  dataBits: 8
+  dataBits: 8,
 };
 
 
@@ -42,7 +42,7 @@ Uart.prototype.open = function(configuration, callback) {
 function uartPortOpen(configuration, callback) {
   var _binding = null;
 
-  function UartPort(configuration, callback) { //constructor
+  function UartPort(configuration, callback) { // constructor
     var self = this;
 
     if (util.isObject(configuration)) {
@@ -57,7 +57,7 @@ function uartPortOpen(configuration, callback) {
     // validate baud rate
     if (configuration.baudRate !== undefined) {
       if (BAUDRATE.indexOf(configuration.baudRate) === -1) {
-        throw new TypeError("Invalid 'baudRate': " + configuration.baudRate);
+        throw new TypeError('Invalid \'baudRate\': ' + configuration.baudRate);
       }
     } else {
       configuration.baudRate = defaultConfiguration.baudRate;
@@ -66,7 +66,7 @@ function uartPortOpen(configuration, callback) {
     // validate data bits
     if (configuration.dataBits !== undefined) {
       if (DATABITS.indexOf(configuration.dataBits) === -1) {
-        throw new TypeError("Invalid 'databits': " + configuration.dataBits);
+        throw new TypeError('Invalid \'databits\': ' + configuration.dataBits);
       }
     } else {
       configuration.dataBits = defaultConfiguration.dataBits;

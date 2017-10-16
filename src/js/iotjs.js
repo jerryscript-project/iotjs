@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-(function () {
+(function() {
   this.global = this;
 
   function Native(id) {
@@ -41,7 +41,7 @@
     nativeMod.compile();
 
     return nativeMod.exports;
-  }
+  };
 
 
   Native.prototype.compile = function() {
@@ -51,7 +51,7 @@
 
     var fn = process.compileNativePtr(this.id);
     fn(this.exports, Native.require, this);
-  }
+  };
 
   global.console = Native.require('console');
   global.Buffer = Native.require('buffer');
@@ -63,7 +63,7 @@
       timers = Native.require('timers');
     }
     return timers[mode].apply(this, Array.prototype.slice.call(arguments, 1));
-  }
+  };
 
   global.setTimeout = _timeoutHandler.bind(this, 'setTimeout');
   global.setInterval = _timeoutHandler.bind(this, 'setInterval');
@@ -150,7 +150,7 @@
       }
       process.emit('exit', process.exitCode || 0);
     }
-  }
+  };
 
 
   process.exit = function(code) {
@@ -162,7 +162,7 @@
     } finally {
       process.doExit(process.exitCode || 0);
     }
-  }
+  };
 
 
   var module = Native.require('module');

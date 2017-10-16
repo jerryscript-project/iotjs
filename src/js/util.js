@@ -68,8 +68,8 @@ function inherits(ctor, superCtor) {
       value: ctor,
       enumerable: false,
       writable: true,
-      configurable: true
-    }
+      configurable: true,
+    },
   });
 }
 
@@ -109,7 +109,7 @@ function format(s) {
         try {
           arg_string = JSON.stringify(args[i]);
         } catch (_) {
-          arg_string = '[Circular]'
+          arg_string = '[Circular]';
         }
         break;
       case '%':
@@ -124,8 +124,7 @@ function format(s) {
 
     if (i >= args.length) {
       str = str + '%' + s.charAt(end + 1);
-    }
-    else {
+    } else {
       i++;
       str += arg_string;
     }
@@ -160,7 +159,7 @@ function stringToNumber(value, default_value) {
 
 
 function errnoException(err, syscall, original) {
-  var errname = "error"; // uv.errname(err);
+  var errname = 'error'; // uv.errname(err);
   var message = syscall + ' ' + errname;
 
   if (original)

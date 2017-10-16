@@ -27,7 +27,7 @@ iotjs_timerwrap_t* iotjs_timerwrap_create(const iotjs_jval_t jtimer) {
   uv_timer_t* uv_timer = IOTJS_ALLOC(uv_timer_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_timerwrap_t, timerwrap);
 
-  iotjs_handlewrap_initialize(&_this->handlewrap, &jtimer,
+  iotjs_handlewrap_initialize(&_this->handlewrap, jtimer,
                               (uv_handle_t*)(uv_timer),
                               &this_module_native_info);
 
@@ -118,7 +118,7 @@ iotjs_timerwrap_t* iotjs_timerwrap_from_handle(uv_timer_t* timer_handle) {
 
 
 iotjs_timerwrap_t* iotjs_timerwrap_from_jobject(const iotjs_jval_t jtimer) {
-  iotjs_handlewrap_t* handlewrap = iotjs_handlewrap_from_jobject(&jtimer);
+  iotjs_handlewrap_t* handlewrap = iotjs_handlewrap_from_jobject(jtimer);
   return (iotjs_timerwrap_t*)handlewrap;
 }
 

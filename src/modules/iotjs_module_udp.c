@@ -30,7 +30,7 @@ iotjs_udpwrap_t* iotjs_udpwrap_create(iotjs_jval_t judp) {
   iotjs_udpwrap_t* udpwrap = IOTJS_ALLOC(iotjs_udpwrap_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_udpwrap_t, udpwrap);
 
-  iotjs_handlewrap_initialize(&_this->handlewrap, &judp,
+  iotjs_handlewrap_initialize(&_this->handlewrap, judp,
                               (uv_handle_t*)(&_this->handle),
                               &this_module_native_info);
 
@@ -58,7 +58,7 @@ iotjs_udpwrap_t* iotjs_udpwrap_from_handle(uv_udp_t* udp_handle) {
 
 
 iotjs_udpwrap_t* iotjs_udpwrap_from_jobject(iotjs_jval_t judp) {
-  iotjs_handlewrap_t* handlewrap = iotjs_handlewrap_from_jobject(&judp);
+  iotjs_handlewrap_t* handlewrap = iotjs_handlewrap_from_jobject(judp);
   return (iotjs_udpwrap_t*)handlewrap;
 }
 

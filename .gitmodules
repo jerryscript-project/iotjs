@@ -7,3 +7,6 @@
 [submodule "deps/libtuv"]
 	path = deps/libtuv
 	url = https://github.com/Samsung/libtuv.git
+[submodule "deps/mbedtls"]
+	path = deps/mbedtls
+	url = https://github.com/ARMmbed/mbedtls.git

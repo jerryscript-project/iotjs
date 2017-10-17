@@ -55,6 +55,7 @@ if(NOT DEFINED ENABLE_LTO)
 endif()
 
 set(ROOT_DIR ${CMAKE_SOURCE_DIR})
+set(ARCHIVE_DIR ${CMAKE_BINARY_DIR}/lib)
 
 # Common compile flags
 set(CFLAGS_COMMON
@@ -72,6 +73,6 @@ include(ExternalProject)
 include(cmake/jerry.cmake)
 include(cmake/http-parser.cmake)
 include(cmake/libtuv.cmake)
+include(cmake/mbedtls.cmake)
 
 include(cmake/iotjs.cmake)
-

@@ -27,7 +27,6 @@ import sys
 import re
 import os
 
-from js2c import js2c
 from common_py import path
 from common_py.system.filesystem import FileSystem as fs
 from common_py.system.executor import Executor as ex

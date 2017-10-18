@@ -1,0 +1,231 @@
+<!--
+/* Copyright 2017-present Samsung Electronics Co., Ltd. and other contributors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+//-->
+<html lang="en">
+  <head>
+    <title>http gpio panel sample</title>
+  </head>
+  <body>
+    <form id="gpioconf">
+      <fieldset>
+        <legend>GPIO Pin configuration</legend>
+        <label>
+          Pin number
+          <input type="number" value="0" name="pin">
+        </label>
+        <label>
+          Direction
+          <select name="direction">
+            <option value="0" selected>IN</option>
+            <option value="1">OUT</option>
+          </select>
+        </label>
+        <label>
+          Mode
+          <select name="mode">
+            <option value="0" selected>NONE</option>
+            <option value="1">PULLUP</option>
+            <option value="2">PULLDOWN</option>
+            <option value="3">FLOAT</option>
+            <option value="4">PUSHPULL</option>
+            <option value="5">OPENDRAIN</option>
+          </select>
+        </label>
+        <label>
+          State
+          <select name="pinValue">
+            <option value="0" selected>LOW</option>
+            <option value="1">HIGH</option>
+          </select>
+        </label>
+        <input type="submit" value="Add">
+      </fieldset>
+    </form>
+    <h3>ACTIVE PINS</h3>
+    <table id="gpioresults">
+      <thead>
+        <tr>
+          <th>Pin</pin>
+          <th>Direction</th>
+          <th>Mode</th>
+          <th>State</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+    <script type="text/javascript">
+      var form = document.getElementById('gpioconf'),
+        results = document.getElementById('gpioresults'),
+        GPIO_DIRECTION = {
+          '0': 'IN',
+          '1': 'OUT'
+        },
+        GPIO_MODE = {
+          '0': 'NONE',
+          '1': 'PULLUP',
+          '2': 'PULLDOWN',
+          '3': 'FLOAT',
+          '4': 'PUSHPULL',
+          '5': 'OPENDRAIN'
+        },
+        currentPins = {};
+
+      // synchronize pins with response from server
+      function syncPins(pins) {
+        var pin = '',
+          updated = {};
+        // handle updates and add
+        for (pin in pins) {
+          if (pins.hasOwnProperty(pin)) {
+            currentPins[pin] = pins[pin];
+          };
+        }
+        // handle removals
+        for (pin in currentPins) {
+          if (currentPins.hasOwnProperty(pin)) {
+            if (pins[pin] !== undefined) {
+              updated[pin] = currentPins[pin];
+            }
+          }
+        }
+        // update data
+        currentPins = updated;
+      }
+
+      // creates <tr> element with pin data in result table
+      function createRowForPin(pin, data) {
+        var row = document.createElement('tr'),
+          checked = !!parseInt(data.value, 0) ? ' checked' : '',
+          disabled = parseInt(data.direction, 10) === 0 ? ' disabled' : '',
+          attrs = checked + disabled;
+
+        row.setAttribute('id', 'pin_' + pin);
+        row.innerHTML = '<td>' + pin + '</td>'
+                      + '<td>' + GPIO_DIRECTION[data.direction] + '</td>'
+                      + '<td>' + GPIO_MODE[data.mode] + '</td>'
+                      + '<td><input name="value" type="checkbox"' + attrs + '></td>'
+                      + '<td><button value="remove">Remove</button></td>';
+
+        results.tBodies[0].appendChild(row);
+      }
+
+      // removes <tr> element for pin
+      function removeRowForPin(pin) {
+        var pinEl = document.getElementById('pin_' + pin);
+        if (pinEl) {
+          pinEl.parentNode.removeChild(pinEl);
+        }
+      }
+
+      // updates <tr> for pin with specified data
+      function updateRowForPin(row, pin, data) {
+        if (parseInt(data.direction, 10) === 0) {
+          row.children[3].children[0].checked = !!parseInt(data.value);
+        }
+      }
+
+      // updates table with new data
+      function updateResults(data) {
+        var pin = '',
+          pinEl = null;
+        syncPins(data);
+        for (pin in currentPins) {
+          if (currentPins.hasOwnProperty(pin)) {
+            pinEl = document.getElementById('pin_' + pin);
+            if (pinEl) {
+              updateRowForPin(pinEl, pin, data[pin]);
+            } else {
+              pinEl = createRowForPin(pin, data[pin]);
+            }
+          }
+        }
+      }
+
+      // polling for data
+      function updateDataPoll(interval) {
+        var xhr = new XMLHttpRequest();
+        xhr.addEventListener('load', function (e) {
+          var updatedData = [];
+          if (e.target.status === 200) {
+            updateResults(JSON.parse(e.target.responseText));
+          }
+          if (interval) {
+            setTimeout(updateDataPoll.bind(null, interval), interval);
+          }
+        });
+        xhr.open('POST', '/update', true);
+        xhr.send(JSON.stringify(currentPins));
+      }
+
+      // handle clicks on "remove" button
+      document.addEventListener('click', function (e) {
+        var pin = '',
+          id = '',
+          prop = '',
+          updated = {};
+        if (e.target.value && e.target.value === 'remove') {
+          id = e.target.parentNode.parentNode.id;
+          pin = id.replace(/[^0-9]+/gi, '');
+          for (prop in currentPins) {
+            if (currentPins.hasOwnProperty(prop) && prop !== pin) {
+              updated[pin] = currentPins[pin];
+            }
+          }
+          removeRowForPin(pin);
+          currentPins = updated;
+          updateDataPoll(0);
+        }
+      });
+
+      // handles changes on state checkboxes
+      document.addEventListener('change', function (e) {
+        var id = '',
+          pin = '';
+        if (e.target.name && e.target.name === 'value') {
+          id = e.target.parentNode.parentNode.id;
+          pin = id.replace(/[^0-9]+/gi, '');
+          if (currentPins[pin] && currentPins[pin].direction === '1') {
+            currentPins[pin].value = e.target.checked ? '1' : '0';
+            updateDataPoll(0);
+          }
+        }
+      });
+
+      // handles adding of new pins
+      form.addEventListener('submit', function (e) {
+        var formElements = e.target.elements;
+        if (currentPins[formElements.pin.value] === undefined) {
+          currentPins[formElements.pin.value] = {
+            mode: formElements.mode.value,
+            direction: formElements.direction.value,
+            value: formElements.pinValue.value
+          }
+          e.target.reset();
+          updateDataPoll(0);
+        } else {
+          alert('pin already exists');
+        }
+
+        e.preventDefault();
+        return false;
+      });
+
+      updateDataPoll(500);
+    </script>
+  </body>
+</html>

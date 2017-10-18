@@ -40,10 +40,10 @@ bool iotjs_gpio_write(iotjs_gpio_t* gpio, bool value) {
 
 int iotjs_gpio_read(iotjs_gpio_t* gpio) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_gpio_t, gpio);
-  int value;
+  uint32_t value;
   int retVal = peripheral_gpio_read(_this->platform->peripheral_gpio, &value);
   if (PERIPHERAL_ERROR_NONE == retVal) {
-    return value;
+    return (int)value;
   } else {
     return -1;
   }
@@ -72,7 +72,7 @@ void iotjs_gpio_open_worker(uv_work_t* work_req) {
   if (_this->direction == kGpioDirectionIn) {
     _direction = PERIPHERAL_GPIO_DIRECTION_IN;
   } else {
-    _direction = PERIPHERAL_GPIO_DIRECTION_OUT;
+    _direction = PERIPHERAL_GPIO_DIRECTION_OUT_INITIALLY_HIGH;
   }
   retVal = peripheral_gpio_set_direction(_gpio, _direction);
   if (retVal != PERIPHERAL_ERROR_NONE) {

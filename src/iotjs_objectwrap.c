@@ -18,15 +18,15 @@
 
 
 void iotjs_jobjectwrap_initialize(iotjs_jobjectwrap_t* jobjectwrap,
-                                  const iotjs_jval_t* jobject,
+                                  iotjs_jval_t jobject,
                                   JNativeInfoType* native_info) {
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_jobjectwrap_t, jobjectwrap);
 
-  IOTJS_ASSERT(iotjs_jval_is_object(*jobject));
+  IOTJS_ASSERT(iotjs_jval_is_object(jobject));
 
   // This wrapper holds pointer to the javascript object but never increases
   // reference count.
-  _this->jobject = *((iotjs_jval_t*)jobject);
+  _this->jobject = jobject;
 
   // Set native pointer of the object to be this wrapper.
   // If the object is freed by GC, the wrapper instance should also be freed.
@@ -51,10 +51,9 @@ iotjs_jval_t iotjs_jobjectwrap_jobject(iotjs_jobjectwrap_t* jobjectwrap) {
 }
 
 
-iotjs_jobjectwrap_t* iotjs_jobjectwrap_from_jobject(
-    const iotjs_jval_t* jobject) {
+iotjs_jobjectwrap_t* iotjs_jobjectwrap_from_jobject(iotjs_jval_t jobject) {
   iotjs_jobjectwrap_t* wrap =
-      (iotjs_jobjectwrap_t*)(iotjs_jval_get_object_native_handle(*jobject));
+      (iotjs_jobjectwrap_t*)(iotjs_jval_get_object_native_handle(jobject));
   IOTJS_ASSERT(iotjs_jval_is_object(iotjs_jobjectwrap_jobject(wrap)));
   return wrap;
 }

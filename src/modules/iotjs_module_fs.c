@@ -29,7 +29,7 @@ typedef struct {
 
 iotjs_fs_reqwrap_t* iotjs_fs_reqwrap_create(const iotjs_jval_t jcallback) {
   iotjs_fs_reqwrap_t* fs_reqwrap = IOTJS_ALLOC(iotjs_fs_reqwrap_t);
-  iotjs_reqwrap_initialize(&fs_reqwrap->reqwrap, &jcallback,
+  iotjs_reqwrap_initialize(&fs_reqwrap->reqwrap, jcallback,
                            (uv_req_t*)&fs_reqwrap->req);
   return fs_reqwrap;
 }
@@ -49,7 +49,7 @@ static void AfterAsync(uv_fs_t* req) {
   IOTJS_ASSERT(req_wrap != NULL);
   IOTJS_ASSERT(&req_wrap->req == req);
 
-  const iotjs_jval_t cb = *iotjs_reqwrap_jcallback(&req_wrap->reqwrap);
+  const iotjs_jval_t cb = iotjs_reqwrap_jcallback(&req_wrap->reqwrap);
   IOTJS_ASSERT(iotjs_jval_is_function(cb));
 
   iotjs_jargs_t jarg = iotjs_jargs_create(2);

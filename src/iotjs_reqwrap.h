@@ -33,12 +33,12 @@ typedef struct {
 } IOTJS_VALIDATED_STRUCT(iotjs_reqwrap_t);
 
 
-void iotjs_reqwrap_initialize(iotjs_reqwrap_t* reqwrap,
-                              const iotjs_jval_t* jcallback, uv_req_t* request);
+void iotjs_reqwrap_initialize(iotjs_reqwrap_t* reqwrap, iotjs_jval_t jcallback,
+                              uv_req_t* request);
 void iotjs_reqwrap_destroy(iotjs_reqwrap_t* reqwrap);
 
 // To retrieve javascript callback function object.
-const iotjs_jval_t* iotjs_reqwrap_jcallback(iotjs_reqwrap_t* reqwrap);
+iotjs_jval_t iotjs_reqwrap_jcallback(iotjs_reqwrap_t* reqwrap);
 
 // To retrieve pointer to uv request.
 uv_req_t* iotjs_reqwrap_req(iotjs_reqwrap_t* reqwrap);

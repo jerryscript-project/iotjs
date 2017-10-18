@@ -25,7 +25,7 @@ IOTJS_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(pwm);
 static iotjs_pwm_t* iotjs_pwm_create(iotjs_jval_t jpwm) {
   iotjs_pwm_t* pwm = IOTJS_ALLOC(iotjs_pwm_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_pwm_t, pwm);
-  iotjs_jobjectwrap_initialize(&_this->jobjectwrap, &jpwm,
+  iotjs_jobjectwrap_initialize(&_this->jobjectwrap, jpwm,
                                &this_module_native_info);
 
   _this->period = -1;
@@ -56,7 +56,7 @@ static iotjs_pwm_reqwrap_t* iotjs_pwm_reqwrap_create(iotjs_jval_t jcallback,
   iotjs_pwm_reqwrap_t* pwm_reqwrap = IOTJS_ALLOC(iotjs_pwm_reqwrap_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_pwm_reqwrap_t, pwm_reqwrap);
 
-  iotjs_reqwrap_initialize(&_this->reqwrap, &jcallback, (uv_req_t*)&_this->req);
+  iotjs_reqwrap_initialize(&_this->reqwrap, jcallback, (uv_req_t*)&_this->req);
 
   _this->req_data.op = op;
   _this->pwm_instance = pwm;
@@ -87,7 +87,7 @@ static uv_work_t* iotjs_pwm_reqwrap_req(THIS) {
 
 static iotjs_jval_t iotjs_pwm_reqwrap_jcallback(THIS) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_pwm_reqwrap_t, pwm_reqwrap);
-  return *iotjs_reqwrap_jcallback(&_this->reqwrap);
+  return iotjs_reqwrap_jcallback(&_this->reqwrap);
 }
 
 

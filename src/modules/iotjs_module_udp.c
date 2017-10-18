@@ -83,7 +83,7 @@ iotjs_send_reqwrap_t* iotjs_send_reqwrap_create(iotjs_jval_t jcallback,
   iotjs_send_reqwrap_t* send_reqwrap = IOTJS_ALLOC(iotjs_send_reqwrap_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_send_reqwrap_t, send_reqwrap);
 
-  iotjs_reqwrap_initialize(&_this->reqwrap, &jcallback, (uv_req_t*)&_this->req);
+  iotjs_reqwrap_initialize(&_this->reqwrap, jcallback, (uv_req_t*)&_this->req);
   _this->msg_size = msg_size;
 
   return send_reqwrap;
@@ -111,7 +111,7 @@ uv_udp_send_t* iotjs_send_reqwrap_req(THIS) {
 
 iotjs_jval_t iotjs_send_reqwrap_jcallback(THIS) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_send_reqwrap_t, send_reqwrap);
-  return *iotjs_reqwrap_jcallback(&_this->reqwrap);
+  return iotjs_reqwrap_jcallback(&_this->reqwrap);
 }
 
 

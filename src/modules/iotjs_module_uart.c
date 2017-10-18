@@ -51,7 +51,7 @@ static iotjs_uart_reqwrap_t* iotjs_uart_reqwrap_create(iotjs_jval_t jcallback,
   iotjs_uart_reqwrap_t* uart_reqwrap = IOTJS_ALLOC(iotjs_uart_reqwrap_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_uart_reqwrap_t, uart_reqwrap);
 
-  iotjs_reqwrap_initialize(&_this->reqwrap, &jcallback, (uv_req_t*)&_this->req);
+  iotjs_reqwrap_initialize(&_this->reqwrap, jcallback, (uv_req_t*)&_this->req);
 
   _this->req_data.op = op;
   _this->uart_instance = uart;
@@ -81,7 +81,7 @@ static uv_work_t* iotjs_uart_reqwrap_req(THIS) {
 
 static iotjs_jval_t iotjs_uart_reqwrap_jcallback(THIS) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_uart_reqwrap_t, uart_reqwrap);
-  return *iotjs_reqwrap_jcallback(&_this->reqwrap);
+  return iotjs_reqwrap_jcallback(&_this->reqwrap);
 }
 
 

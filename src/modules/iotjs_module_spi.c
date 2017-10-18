@@ -25,7 +25,7 @@ IOTJS_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(spi);
 static iotjs_spi_t* iotjs_spi_create(iotjs_jval_t jspi) {
   iotjs_spi_t* spi = IOTJS_ALLOC(iotjs_spi_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_spi_t, spi);
-  iotjs_jobjectwrap_initialize(&_this->jobjectwrap, &jspi,
+  iotjs_jobjectwrap_initialize(&_this->jobjectwrap, jspi,
                                &this_module_native_info);
 
 #if defined(__linux__)
@@ -57,7 +57,7 @@ static iotjs_spi_reqwrap_t* iotjs_spi_reqwrap_create(iotjs_jval_t jcallback,
   iotjs_spi_reqwrap_t* spi_reqwrap = IOTJS_ALLOC(iotjs_spi_reqwrap_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_spi_reqwrap_t, spi_reqwrap);
 
-  iotjs_reqwrap_initialize(&_this->reqwrap, &jcallback, (uv_req_t*)&_this->req);
+  iotjs_reqwrap_initialize(&_this->reqwrap, jcallback, (uv_req_t*)&_this->req);
 
   _this->req_data.op = op;
   _this->spi_instance = spi;
@@ -87,7 +87,7 @@ static uv_work_t* iotjs_spi_reqwrap_req(THIS) {
 
 static iotjs_jval_t iotjs_spi_reqwrap_jcallback(THIS) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_spi_reqwrap_t, spi_reqwrap);
-  return *iotjs_reqwrap_jcallback(&_this->reqwrap);
+  return iotjs_reqwrap_jcallback(&_this->reqwrap);
 }
 
 

@@ -27,14 +27,13 @@ typedef struct {
 } IOTJS_VALIDATED_STRUCT(iotjs_jobjectwrap_t);
 
 void iotjs_jobjectwrap_initialize(iotjs_jobjectwrap_t* jobjectwrap,
-                                  const iotjs_jval_t* jobject,
+                                  iotjs_jval_t jobject,
                                   JNativeInfoType* native_info);
 
 void iotjs_jobjectwrap_destroy(iotjs_jobjectwrap_t* jobjectwrap);
 
 iotjs_jval_t iotjs_jobjectwrap_jobject(iotjs_jobjectwrap_t* jobjectwrap);
-iotjs_jobjectwrap_t* iotjs_jobjectwrap_from_jobject(
-    const iotjs_jval_t* jobject);
+iotjs_jobjectwrap_t* iotjs_jobjectwrap_from_jobject(iotjs_jval_t jobject);
 
 #define IOTJS_DEFINE_NATIVE_HANDLE_INFO(module)                              \
   static const jerry_object_native_info_t module##_native_info = {           \

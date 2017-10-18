@@ -29,7 +29,7 @@ iotjs_getaddrinfo_reqwrap_t* iotjs_getaddrinfo_reqwrap_create(
       IOTJS_ALLOC(iotjs_getaddrinfo_reqwrap_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_getaddrinfo_reqwrap_t,
                                      getaddrinfo_reqwrap);
-  iotjs_reqwrap_initialize(&_this->reqwrap, &jcallback, (uv_req_t*)&_this->req);
+  iotjs_reqwrap_initialize(&_this->reqwrap, jcallback, (uv_req_t*)&_this->req);
   return getaddrinfo_reqwrap;
 }
 
@@ -59,7 +59,7 @@ uv_getaddrinfo_t* iotjs_getaddrinfo_reqwrap_req(THIS) {
 iotjs_jval_t iotjs_getaddrinfo_reqwrap_jcallback(THIS) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_getaddrinfo_reqwrap_t,
                                 getaddrinfo_reqwrap);
-  return *iotjs_reqwrap_jcallback(&_this->reqwrap);
+  return iotjs_reqwrap_jcallback(&_this->reqwrap);
 }
 
 #undef THIS

@@ -17,12 +17,11 @@
 #include "iotjs_reqwrap.h"
 
 
-void iotjs_reqwrap_initialize(iotjs_reqwrap_t* reqwrap,
-                              const iotjs_jval_t* jcallback,
+void iotjs_reqwrap_initialize(iotjs_reqwrap_t* reqwrap, iotjs_jval_t jcallback,
                               uv_req_t* request) {
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_reqwrap_t, reqwrap);
-  IOTJS_ASSERT(iotjs_jval_is_function(*jcallback));
-  _this->jcallback = jerry_acquire_value(*jcallback);
+  IOTJS_ASSERT(iotjs_jval_is_function(jcallback));
+  _this->jcallback = jerry_acquire_value(jcallback);
   _this->request = request;
   _this->request->data = reqwrap;
 }
@@ -40,10 +39,10 @@ static void iotjs_reqwrap_validate(iotjs_reqwrap_t* reqwrap) {
 }
 
 
-const iotjs_jval_t* iotjs_reqwrap_jcallback(iotjs_reqwrap_t* reqwrap) {
+iotjs_jval_t iotjs_reqwrap_jcallback(iotjs_reqwrap_t* reqwrap) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_reqwrap_t, reqwrap);
   iotjs_reqwrap_validate(reqwrap);
-  return &_this->jcallback;
+  return _this->jcallback;
 }
 
 

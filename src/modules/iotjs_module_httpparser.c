@@ -79,7 +79,7 @@ static void iotjs_httpparserwrap_create(const iotjs_jval_t jparser,
                                         http_parser_type type) {
   iotjs_httpparserwrap_t* httpparserwrap = IOTJS_ALLOC(iotjs_httpparserwrap_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_httpparserwrap_t, httpparserwrap);
-  iotjs_jobjectwrap_initialize(&_this->jobjectwrap, &jparser,
+  iotjs_jobjectwrap_initialize(&_this->jobjectwrap, jparser,
                                &this_module_native_info);
 
   _this->url = iotjs_string_create();

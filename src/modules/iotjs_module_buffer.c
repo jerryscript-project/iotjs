@@ -29,7 +29,7 @@ iotjs_bufferwrap_t* iotjs_bufferwrap_create(const iotjs_jval_t jbuiltin,
   iotjs_bufferwrap_t* bufferwrap = IOTJS_ALLOC(iotjs_bufferwrap_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_bufferwrap_t, bufferwrap);
 
-  iotjs_jobjectwrap_initialize(&_this->jobjectwrap, &jbuiltin,
+  iotjs_jobjectwrap_initialize(&_this->jobjectwrap, jbuiltin,
                                &this_module_native_info);
   if (length > 0) {
     _this->length = length;

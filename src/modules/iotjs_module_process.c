@@ -130,8 +130,7 @@ JHANDLER_FUNCTION(CompileNativePtr) {
   if (natives[i].name != NULL) {
     bool throws;
 #ifdef ENABLE_SNAPSHOT
-    iotjs_jval_t jres = iotjs_jhelper_exec_snapshot(natives[i].code,
-                                                    natives[i].length, &throws);
+    jerry_value_t jres = iotjs_exec_snapshot(natives[i].idx, &throws);
 #else
     iotjs_jval_t jres =
         WrapEval(name, iotjs_string_size(&id), (const char*)natives[i].code,

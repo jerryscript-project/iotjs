@@ -95,7 +95,8 @@ if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
 endif()
 
 if(ENABLE_SNAPSHOT)
-  set(JS2C_SNAPSHOT_ARG --snapshot-generator=${JERRY_HOST})
+  set(JS2C_SNAPSHOT_ARG --snapshot-generator=${JERRY_HOST}
+                        --snapshot-merger=${JERRY_HOST}-snapshot)
   set(IOTJS_CFLAGS ${IOTJS_CFLAGS} -DENABLE_SNAPSHOT)
 endif()
 

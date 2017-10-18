@@ -100,7 +100,7 @@ static bool iotjs_run(iotjs_environment_t* env) {
   iotjs_jval_t jmain = iotjs_jhelper_eval("iotjs.js", strlen("iotjs.js"),
                                           iotjs_s, iotjs_l, false, &throws);
 #else
-  iotjs_jval_t jmain = iotjs_jhelper_exec_snapshot(iotjs_s, iotjs_l, &throws);
+  iotjs_jval_t jmain = iotjs_exec_snapshot(module_iotjs_idx, &throws);
 #endif
 
   if (throws) {

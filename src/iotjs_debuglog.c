@@ -56,7 +56,7 @@ void init_debug_settings() {
 
 void release_debug_settings() {
 #ifdef ENABLE_DEBUG_LOG
-  if (iotjs_log_stream != stderr || iotjs_log_stream != stdout) {
+  if (iotjs_log_stream != stderr && iotjs_log_stream != stdout) {
     fclose(iotjs_log_stream);
   }
   // some embed systems(ex, nuttx) may need this

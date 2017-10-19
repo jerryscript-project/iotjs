@@ -69,7 +69,7 @@ function fail(actual, expected, message, operator) {
     message: message,
     actual: actual,
     expected: expected,
-    operator: operator
+    operator: operator,
   });
 }
 

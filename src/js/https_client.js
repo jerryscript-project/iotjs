@@ -55,7 +55,7 @@ function ClientRequest(options, cb) {
   }
 
   if (!isMethodGood) {
-    var err = new Error('Incorrect options.method.')
+    var err = new Error('Incorrect options.method.');
     this.emit('error', err);
     return;
   }
@@ -135,7 +135,7 @@ function toBase64(input) {
   var output = '';
   var chr1, chr2, chr3, enc1, enc2, enc3, enc4;
   var i = 0;
-  //Convert to UTF-8
+  // Convert to UTF-8
   input = Buffer(input).toString();
   var _keyStr = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz' +
     '0123456789+/=';

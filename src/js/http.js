@@ -26,7 +26,7 @@ exports.request = function(options, cb) {
 };
 
 
-exports.createServer = function(requestListener){
+exports.createServer = function(requestListener) {
   return new Server(requestListener);
 };
 

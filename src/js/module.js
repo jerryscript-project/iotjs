@@ -37,16 +37,16 @@ try {
   cwd = process.cwd();
 } catch (e) { }
 
-var moduledirs = [""];
+var moduledirs = [''];
 if (cwd) {
-  moduledirs.push(cwd + "/");
-  moduledirs.push(cwd + "/iotjs_modules/");
+  moduledirs.push(cwd + '/');
+  moduledirs.push(cwd + '/iotjs_modules/');
 }
 if (process.env.HOME) {
-  moduledirs.push(process.env.HOME + "/iotjs_modules/");
+  moduledirs.push(process.env.HOME + '/iotjs_modules/');
 }
 if (process.env.IOTJS_PATH) {
-  moduledirs.push(process.env.IOTJS_PATH + "/iotjs_modules/");
+  moduledirs.push(process.env.IOTJS_PATH + '/iotjs_modules/');
 }
 
 
@@ -72,7 +72,7 @@ iotjs_module_t.resolveFilepath = function(id, directories) {
     }
 
     if (process.platform === 'tizenrt' &&
-        (modulePath.indexOf("../") != -1 || modulePath.indexOf("./") != -1)) {
+        (modulePath.indexOf('../') != -1 || modulePath.indexOf('./') != -1)) {
       modulePath = iotjs_module_t.normalizePath(modulePath);
     }
 
@@ -91,17 +91,17 @@ iotjs_module_t.resolveFilepath = function(id, directories) {
     }
 
     // 3. package path id/
-    var jsonpath = modulePath + "/package.json";
+    var jsonpath = modulePath + '/package.json';
     filepath = iotjs_module_t.tryPath(jsonpath);
     if (filepath) {
       var pkgSrc = process.readSource(jsonpath);
       var pkgMainFile = JSON.parse(pkgSrc).main;
-      filepath = iotjs_module_t.tryPath(modulePath + "/" + pkgMainFile);
+      filepath = iotjs_module_t.tryPath(modulePath + '/' + pkgMainFile);
       if (filepath) {
         return filepath;
       }
       // index.js
-      filepath = iotjs_module_t.tryPath(modulePath + "/" + "index.js");
+      filepath = iotjs_module_t.tryPath(modulePath + '/' + 'index.js');
       if (filepath) {
         return filepath;
       }

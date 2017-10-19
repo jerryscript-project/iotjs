@@ -21,7 +21,7 @@ var util = require('util');
 var defaultConfiguration = {
   direction: gpio.DIRECTION.OUT,
   mode: gpio.MODE.NONE,
-  edge: gpio.EDGE.NONE
+  edge: gpio.EDGE.NONE,
 };
 
 
@@ -53,7 +53,7 @@ function gpioPinOpen(configuration, callback) {
         throw new TypeError('Bad configuration - pin is mandatory and number');
       }
     } else {
-      throw new TypeError('Bad arguments - configuration should be Object')
+      throw new TypeError('Bad arguments - configuration should be Object');
     }
 
     // validate direction

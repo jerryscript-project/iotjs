@@ -106,8 +106,7 @@ function socketOnClose() {
       res.emit('close');
     });
     res.push(null);
-  }
-  else if (!req.res) {
+  } else if (!req.res) {
     // socket closed before response starts.
     var err = new Error('socket hang up');
     req.emit('error', err);
@@ -173,7 +172,6 @@ function socketOnEnd() {
 }
 
 
-
 // This is called by parserOnHeadersComplete after response header is parsed.
 // TODO: keepalive support
 function parserOnIncomingClient(res, shouldKeepAlive) {
@@ -194,7 +192,7 @@ function parserOnIncomingClient(res, shouldKeepAlive) {
   req.emit('response', res);
 
   // response to HEAD req has no body
-  var isHeadResponse =  (req.method == 'HEAD');
+  var isHeadResponse = (req.method == 'HEAD');
 
   return isHeadResponse;
 

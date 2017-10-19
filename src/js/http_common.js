@@ -18,7 +18,6 @@ var HTTPParser = process.binding(process.binding.httpparser).HTTPParser;
 var IncomingMessage = require('http_incoming').IncomingMessage;
 
 
-
 var createHTTPParser = function() {
   // REQUEST is the default type.
   // For RESPONSE, use HTTPParser.reinitialize(HTTPParser.RESPONSE)
@@ -56,7 +55,7 @@ function parserOnHeadersComplete(info) {
 
   if (!url) {
     url = this._url;
-    this.url = "";
+    this.url = '';
   }
 
   if (!headers) {

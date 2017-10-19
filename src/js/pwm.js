@@ -38,7 +38,7 @@ function pwmPinOpen(configuration, callback) {
     if (util.isObject(configuration)) {
       if (process.platform === 'linux') {
         if (util.isNumber(configuration.chip)) {
-          self._configuration.chip = configuration.chip
+          self._configuration.chip = configuration.chip;
         } else {
           self._configuration.chip = 0;
         }
@@ -51,7 +51,7 @@ function pwmPinOpen(configuration, callback) {
         self._configuration.pin = configuration.pin;
       }
     } else {
-      throw new TypeError('Bad arguments - configuration should be Object')
+      throw new TypeError('Bad arguments - configuration should be Object');
     }
 
     // validate configuration

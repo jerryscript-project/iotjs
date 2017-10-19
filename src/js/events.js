@@ -35,7 +35,7 @@ EventEmitter.prototype.emit = function(type) {
     if (err instanceof Error) {
       throw err;
     } else {
-      throw Error("Uncaught 'error' event");
+      throw Error('Uncaught \'error\' event');
     }
   }
 

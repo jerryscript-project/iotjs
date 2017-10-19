@@ -17,12 +17,12 @@ var util = require('util');
 var spi = process.binding(process.binding.spi);
 
 var defaultConfiguration = {
-  mode : spi.MODE[0],
-  chipSelect : spi.CHIPSELECT.NONE,
-  maxSpeed : 500000,
-  bitsPerWord : 8,
-  bitOrder : spi.BITORDER.MSB,
-  loopback : false
+  mode: spi.MODE[0],
+  chipSelect: spi.CHIPSELECT.NONE,
+  maxSpeed: 500000,
+  bitsPerWord: 8,
+  bitOrder: spi.BITORDER.MSB,
+  loopback: false,
 };
 
 
@@ -87,7 +87,7 @@ function spiBusOpen(configuration, callback) {
         throw new TypeError('Bad arguments - maxSpeed should be Number');
       }
     } else {
-      configuration.maxSpeed = defaultConfiguration.maxSpeed
+      configuration.maxSpeed = defaultConfiguration.maxSpeed;
     }
 
     // validate bits per word

@@ -52,7 +52,7 @@ iotjs_blehcisocket_t* iotjs_blehcisocket_create(iotjs_jval_t jble) {
   THIS = IOTJS_ALLOC(iotjs_blehcisocket_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_blehcisocket_t, blehcisocket);
 
-  iotjs_jobjectwrap_initialize(&_this->jobjectwrap, &jble,
+  iotjs_jobjectwrap_initialize(&_this->jobjectwrap, jble,
                                &this_module_native_info);
 
   iotjs_blehcisocket_initialize(blehcisocket);
@@ -62,7 +62,7 @@ iotjs_blehcisocket_t* iotjs_blehcisocket_create(iotjs_jval_t jble) {
 
 
 iotjs_blehcisocket_t* iotjs_blehcisocket_instance_from_jval(iotjs_jval_t jble) {
-  iotjs_jobjectwrap_t* jobjectwrap = iotjs_jobjectwrap_from_jobject(&jble);
+  iotjs_jobjectwrap_t* jobjectwrap = iotjs_jobjectwrap_from_jobject(jble);
   return (iotjs_blehcisocket_t*)jobjectwrap;
 }
 

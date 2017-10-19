@@ -33,7 +33,7 @@ static iotjs_i2c_t* iotjs_i2c_create(iotjs_jhandler_t* jhandler,
   iotjs_i2c_t* i2c = IOTJS_ALLOC(iotjs_i2c_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_i2c_t, i2c);
   i2c_create_platform_data(jhandler, i2c, &_this->platform_data);
-  iotjs_jobjectwrap_initialize(&_this->jobjectwrap, &ji2c,
+  iotjs_jobjectwrap_initialize(&_this->jobjectwrap, ji2c,
                                &this_module_native_info);
   return i2c;
 }
@@ -43,7 +43,7 @@ static iotjs_i2c_reqwrap_t* iotjs_i2c_reqwrap_create(
   iotjs_i2c_reqwrap_t* i2c_reqwrap = IOTJS_ALLOC(iotjs_i2c_reqwrap_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_i2c_reqwrap_t, i2c_reqwrap);
 
-  iotjs_reqwrap_initialize(&_this->reqwrap, &jcallback, (uv_req_t*)&_this->req);
+  iotjs_reqwrap_initialize(&_this->reqwrap, jcallback, (uv_req_t*)&_this->req);
 
   _this->req_data.op = op;
   _this->i2c_data = i2c;
@@ -68,7 +68,7 @@ uv_work_t* iotjs_i2c_reqwrap_req(THIS) {
 
 iotjs_jval_t iotjs_i2c_reqwrap_jcallback(THIS) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_i2c_reqwrap_t, i2c_reqwrap);
-  return *iotjs_reqwrap_jcallback(&_this->reqwrap);
+  return iotjs_reqwrap_jcallback(&_this->reqwrap);
 }
 
 iotjs_i2c_reqwrap_t* iotjs_i2c_reqwrap_from_request(uv_work_t* req) {
@@ -94,7 +94,7 @@ static void iotjs_i2c_destroy(iotjs_i2c_t* i2c) {
 }
 
 iotjs_i2c_t* iotjs_i2c_instance_from_jval(const iotjs_jval_t ji2c) {
-  iotjs_jobjectwrap_t* jobjectwrap = iotjs_jobjectwrap_from_jobject(&ji2c);
+  iotjs_jobjectwrap_t* jobjectwrap = iotjs_jobjectwrap_from_jobject(ji2c);
   return (iotjs_i2c_t*)jobjectwrap;
 }
 

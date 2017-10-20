@@ -13,7 +13,8 @@
     },
     "disabled": {
       "board": {
-        "rp2": ["adc"],
+        "x86-linux": ["adc", "ble", "dgram", "gpio", "i2c", "pwm", "spi", "uart"],
+        "rpi2": ["adc"],
         "stm32f4dis": ["ble"],
         "artik05x": ["ble"],
         "artik10": []

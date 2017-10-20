@@ -58,12 +58,20 @@ def set_release_config_tizenrt():
     exec_docker(DOCKER_ROOT_PATH, ['cp', 'tizenrt_release_config',
                                    fs.join(DOCKER_TIZENRT_OS_PATH, '.config')])
 
+def get_include_module_option(target_os, target_board):
+    config = get_config()
+    extend_module = config['module']['supported']['extended']
+    disabled_module = config['module']['disabled']['board']
+
+    include_module = [module for module in extend_module[target_os] \
+                        if module not in disabled_module[target_board]]
+    dependency_module_option = \
+        '--iotjs-include-module=' + ','.join(include_module)
+    return dependency_module_option
+
 if __name__ == '__main__':
     # Get os dependency module list
     target_os = os.environ['TARGET_OS']
-    extend_module = get_config()['module']['supported']['extended']
-    dependency_module_option = \
-        '--iotjs-include-module=' + ','.join(extend_module[target_os])
 
     run_docker()
 
@@ -74,7 +82,8 @@ if __name__ == '__main__':
                                      '--buildtype=%s' % buildtype])
     elif test == 'rpi2':
         build_options = ['--clean', '--target-arch=arm', '--target-board=rpi2',
-                         dependency_module_option]
+                         get_include_module_option(target_os, 'rpi2')]
+
         for buildtype in BUILDTYPES:
             exec_docker(DOCKER_IOTJS_PATH, ['./tools/build.py',
                                             '--buildtype=%s' % buildtype] +
@@ -92,4 +101,5 @@ if __name__ == '__main__':
                 set_release_config_tizenrt()
             exec_docker(DOCKER_TIZENRT_OS_PATH,
                         ['make', 'IOTJS_ROOT_DIR=../../iotjs',
-                        'IOTJS_BUILD_OPTION=' + dependency_module_option])
+                        'IOTJS_BUILD_OPTION=' +
+                        get_include_module_option(target_os, 'artik05x')])

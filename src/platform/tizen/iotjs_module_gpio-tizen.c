@@ -23,8 +23,7 @@ struct _iotjs_gpio_module_platform_t {
 };
 
 void iotjs_gpio_platform_create(iotjs_gpio_t_impl_t* _this) {
-  size_t private_mem = sizeof(struct _iotjs_gpio_module_platform_t);
-  _this->platform = (iotjs_gpio_module_platform_t)malloc(private_mem);
+  _this->platform = IOTJS_ALLOC(struct _iotjs_gpio_module_platform_t);
 }
 
 void iotjs_gpio_platform_destroy(iotjs_gpio_t_impl_t* _this) {

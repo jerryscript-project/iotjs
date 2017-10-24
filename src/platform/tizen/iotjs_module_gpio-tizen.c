@@ -27,7 +27,7 @@ void iotjs_gpio_platform_create(iotjs_gpio_t_impl_t* _this) {
 }
 
 void iotjs_gpio_platform_destroy(iotjs_gpio_t_impl_t* _this) {
-  iotjs_buffer_release((char*)_this->platform);
+  IOTJS_RELEASE(_this->platform);
 }
 
 bool iotjs_gpio_write(iotjs_gpio_t* gpio, bool value) {

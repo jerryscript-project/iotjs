@@ -120,11 +120,6 @@ iotjs_jval_t iotjs_jval_create_error_type(iotjs_error_t type, const char* msg) {
 }
 
 
-static iotjs_jval_t iotjs_jval_create_raw(jerry_value_t val) {
-  return val;
-}
-
-
 iotjs_jval_t iotjs_jval_get_global_object() {
   return jglobal;
 }
@@ -276,7 +271,7 @@ iotjs_jval_t iotjs_jval_get_property(iotjs_jval_t jobj, const char* name) {
     return jerry_acquire_value(jerry_create_undefined());
   }
 
-  return iotjs_jval_create_raw(res);
+  return res;
 }
 
 
@@ -410,7 +405,7 @@ iotjs_jval_t iotjs_jhelper_call(iotjs_jval_t jfunc, iotjs_jval_t jthis,
 
   jerry_value_clear_error_flag(&res);
 
-  return iotjs_jval_create_raw(res);
+  return res;
 }
 
 
@@ -442,7 +437,7 @@ iotjs_jval_t iotjs_jhelper_eval(const char* name, size_t name_len,
 
   jerry_value_clear_error_flag(&res);
 
-  return iotjs_jval_create_raw(res);
+  return res;
 }
 
 
@@ -599,8 +594,8 @@ void iotjs_jhandler_initialize(iotjs_jhandler_t* jhandler,
                                const uint16_t jargc) {
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_jhandler_t, jhandler);
 
-  _this->jfunc = iotjs_jval_create_raw(jfunc);
-  _this->jthis = iotjs_jval_create_raw(jthis);
+  _this->jfunc = jfunc;
+  _this->jthis = jthis;
   _this->jret = jerry_acquire_value(jerry_create_undefined());
 #ifdef NDEBUG
   _this->jargv = (iotjs_jval_t*)jargv;
@@ -609,7 +604,7 @@ void iotjs_jhandler_initialize(iotjs_jhandler_t* jhandler,
     unsigned buffer_size = sizeof(iotjs_jval_t) * jargc;
     _this->jargv = (iotjs_jval_t*)iotjs_buffer_allocate(buffer_size);
     for (int i = 0; i < jargc; ++i) {
-      _this->jargv[i] = iotjs_jval_create_raw(jargv[i]);
+      _this->jargv[i] = jargv[i];
     }
   } else {
     _this->jargv = NULL;

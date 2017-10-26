@@ -93,7 +93,7 @@ static void iotjs_httpparserwrap_create(const iotjs_jval_t jparser,
   _this->parser.data = httpparserwrap;
 
   IOTJS_ASSERT(
-      iotjs_jval_is_object(iotjs_jobjectwrap_jobject(&_this->jobjectwrap)));
+      jerry_value_is_object(iotjs_jobjectwrap_jobject(&_this->jobjectwrap)));
 }
 
 
@@ -134,7 +134,7 @@ static void iotjs_httpparserwrap_flush(iotjs_httpparserwrap_t* httpparserwrap) {
   const iotjs_jval_t jobj = iotjs_jobjectwrap_jobject(&_this->jobjectwrap);
   iotjs_jval_t func =
       iotjs_jval_get_property(jobj, IOTJS_MAGIC_STRING_ONHEADERS);
-  IOTJS_ASSERT(iotjs_jval_is_function(func));
+  IOTJS_ASSERT(jerry_value_is_function(func));
 
   iotjs_jargs_t argv = iotjs_jargs_create(2);
   iotjs_jval_t jheader = iotjs_httpparserwrap_make_header(httpparserwrap);
@@ -243,7 +243,7 @@ static int iotjs_httpparserwrap_on_headers_complete(http_parser* parser) {
   const iotjs_jval_t jobj = iotjs_jobjectwrap_jobject(&_this->jobjectwrap);
   iotjs_jval_t func =
       iotjs_jval_get_property(jobj, IOTJS_MAGIC_STRING_ONHEADERSCOMPLETE);
-  IOTJS_ASSERT(iotjs_jval_is_function(func));
+  IOTJS_ASSERT(jerry_value_is_function(func));
 
   // URL
   iotjs_jargs_t argv = iotjs_jargs_create(1);
@@ -296,9 +296,9 @@ static int iotjs_httpparserwrap_on_headers_complete(http_parser* parser) {
   iotjs_jval_t res = iotjs_make_callback_with_result(func, jobj, &argv);
 
   int ret = 1;
-  if (iotjs_jval_is_boolean(res)) {
+  if (jerry_value_is_boolean(res)) {
     ret = iotjs_jval_as_boolean(res);
-  } else if (iotjs_jval_is_object(res)) {
+  } else if (jerry_value_is_object(res)) {
     // if exception throw occurs in iotjs_make_callback_with_result, then the
     // result can be an object.
     ret = 0;
@@ -320,7 +320,7 @@ static int iotjs_httpparserwrap_on_body(http_parser* parser, const char* at,
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_httpparserwrap_t, httpparserwrap);
   const iotjs_jval_t jobj = iotjs_jobjectwrap_jobject(&_this->jobjectwrap);
   iotjs_jval_t func = iotjs_jval_get_property(jobj, IOTJS_MAGIC_STRING_ONBODY);
-  IOTJS_ASSERT(iotjs_jval_is_function(func));
+  IOTJS_ASSERT(jerry_value_is_function(func));
 
   iotjs_jargs_t argv = iotjs_jargs_create(3);
   iotjs_jargs_append_jval(&argv, _this->cur_jbuf);
@@ -344,7 +344,7 @@ static int iotjs_httpparserwrap_on_message_complete(http_parser* parser) {
   const iotjs_jval_t jobj = iotjs_jobjectwrap_jobject(&_this->jobjectwrap);
   iotjs_jval_t func =
       iotjs_jval_get_property(jobj, IOTJS_MAGIC_STRING_ONMESSAGECOMPLETE);
-  IOTJS_ASSERT(iotjs_jval_is_function(func));
+  IOTJS_ASSERT(jerry_value_is_function(func));
 
   iotjs_make_callback(func, jobj, iotjs_jargs_get_empty());
 

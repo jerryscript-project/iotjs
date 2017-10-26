@@ -114,7 +114,7 @@ iotjs_spi_t* iotjs_spi_instance_from_reqwrap(THIS) {
 static int iotjs_spi_get_array_data(char** buf, iotjs_jval_t jarray) {
   iotjs_jval_t jlength =
       iotjs_jval_get_property(jarray, IOTJS_MAGIC_STRING_LENGTH);
-  IOTJS_ASSERT(!iotjs_jval_is_undefined(jlength));
+  IOTJS_ASSERT(!jerry_value_is_undefined(jlength));
 
   size_t length = iotjs_jval_as_number(jlength);
   IOTJS_ASSERT((int)length >= 0);

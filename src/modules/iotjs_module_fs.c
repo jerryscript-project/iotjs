@@ -50,7 +50,7 @@ static void AfterAsync(uv_fs_t* req) {
   IOTJS_ASSERT(&req_wrap->req == req);
 
   const iotjs_jval_t cb = iotjs_reqwrap_jcallback(&req_wrap->reqwrap);
-  IOTJS_ASSERT(iotjs_jval_is_function(cb));
+  IOTJS_ASSERT(jerry_value_is_function(cb));
 
   iotjs_jargs_t jarg = iotjs_jargs_create(2);
   if (req->result < 0) {
@@ -309,7 +309,7 @@ iotjs_jval_t MakeStatObject(uv_stat_t* statbuf) {
 
   iotjs_jval_t stat_prototype =
       iotjs_jval_get_property(fs, IOTJS_MAGIC_STRING_STATS);
-  IOTJS_ASSERT(iotjs_jval_is_object(stat_prototype));
+  IOTJS_ASSERT(jerry_value_is_object(stat_prototype));
 
   iotjs_jval_t jstat = iotjs_jval_create_object();
   iotjs_jval_set_prototype(jstat, stat_prototype);

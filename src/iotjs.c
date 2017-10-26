@@ -114,11 +114,8 @@ static bool iotjs_run(iotjs_environment_t* env) {
 
 
 static int iotjs_start(iotjs_environment_t* env) {
-  // Initialize commonly used jerry values.
-  iotjs_binding_initialize();
-
   // Bind environment to global object.
-  const iotjs_jval_t global = iotjs_jval_get_global_object();
+  const iotjs_jval_t global = jerry_get_global_object();
   jerry_set_object_native_pointer(global, env, NULL);
 
   // Initialize builtin modules.
@@ -127,6 +124,9 @@ static int iotjs_start(iotjs_environment_t* env) {
   // Initialize builtin process module.
   const iotjs_jval_t process = iotjs_init_process_module();
   iotjs_jval_set_property_jval(global, "process", process);
+
+  // Release the global object
+  jerry_release_value(global);
 
   // Set running state.
   iotjs_environment_go_state_running_main(env);
@@ -215,9 +215,6 @@ int iotjs_entry(int argc, char** argv) {
 
   int res = uv_loop_close(iotjs_environment_loop(env));
   IOTJS_ASSERT(res == 0);
-
-  // Release commonly used jerry values.
-  iotjs_binding_finalize();
 
   // Release JerryScript engine.
   iotjs_jerry_release(env);

@@ -28,7 +28,7 @@ JHANDLER_FUNCTION(Binding) {
   const iotjs_jval_t jmodule =
       *iotjs_module_initialize_if_necessary(module_kind);
 
-  iotjs_jhandler_return_jval(jhandler, jmodule);
+  iotjs_jhandler_return_jval(jhandler, jerry_acquire_value(jmodule));
 }
 
 
@@ -72,7 +72,6 @@ JHANDLER_FUNCTION(Compile) {
 
   iotjs_string_destroy(&file);
   iotjs_string_destroy(&source);
-  jerry_release_value(jres);
 }
 
 
@@ -97,7 +96,6 @@ static jerry_value_t wait_for_source_callback(
     iotjs_jhandler_throw(jhandler, jres);
   }
 
-  jerry_release_value(jres);
   return jerry_create_undefined();
 }
 
@@ -142,11 +140,9 @@ JHANDLER_FUNCTION(CompileNativePtr) {
     } else {
       iotjs_jhandler_throw(jhandler, jres);
     }
-    jerry_release_value(jres);
   } else {
     iotjs_jval_t jerror = iotjs_jval_create_error("Unknown native module");
     iotjs_jhandler_throw(jhandler, jerror);
-    jerry_release_value(jerror);
   }
 
   iotjs_string_destroy(&id);

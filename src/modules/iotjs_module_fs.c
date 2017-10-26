@@ -111,7 +111,6 @@ static void AfterSync(uv_fs_t* req, int err, const char* syscall_name,
   if (err < 0) {
     iotjs_jval_t jerror = iotjs_create_uv_exception(err, syscall_name);
     iotjs_jhandler_throw(jhandler, jerror);
-    jerry_release_value(jerror);
   } else {
     switch (req->fs_type) {
       case UV_FS_CLOSE:
@@ -126,7 +125,6 @@ static void AfterSync(uv_fs_t* req, int err, const char* syscall_name,
         uv_stat_t* s = &(req->statbuf);
         iotjs_jval_t stat = MakeStatObject(s);
         iotjs_jhandler_return_jval(jhandler, stat);
-        jerry_release_value(stat);
         break;
       }
       case UV_FS_MKDIR:
@@ -147,7 +145,6 @@ static void AfterSync(uv_fs_t* req, int err, const char* syscall_name,
           idx++;
         }
         iotjs_jhandler_return_jval(jhandler, ret);
-        jerry_release_value(ret);
         break;
       }
       default: {

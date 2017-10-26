@@ -210,8 +210,7 @@ iotjs_jval_t iotjs_jval_create_function_with_dispatch(
 
 #define JHANDLER_THROW(TYPE, message)                                         \
   iotjs_jval_t e = iotjs_jval_create_error_type(IOTJS_ERROR_##TYPE, message); \
-  iotjs_jhandler_throw(jhandler, e);                                          \
-  jerry_release_value(e);
+  iotjs_jhandler_throw(jhandler, e);
 
 #define JHANDLER_CHECK(predicate)             \
   if (!(predicate)) {                         \

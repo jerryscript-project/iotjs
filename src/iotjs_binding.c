@@ -663,7 +663,7 @@ void iotjs_jhandler_return_jval(iotjs_jhandler_t* jhandler,
 #endif
 
   jerry_release_value(_this->jret);
-  _this->jret = jerry_acquire_value(ret_value);
+  _this->jret = ret_value;
 #ifndef NDEBUG
   _this->finished = true;
 #endif
@@ -692,7 +692,6 @@ void iotjs_jhandler_return_number(iotjs_jhandler_t* jhandler, double ret) {
   IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_jhandler_t, jhandler);
   iotjs_jval_t jval = iotjs_jval_create_number(ret);
   iotjs_jhandler_return_jval(jhandler, jval);
-  jerry_release_value(jval);
 }
 
 
@@ -701,7 +700,6 @@ void iotjs_jhandler_return_string(iotjs_jhandler_t* jhandler,
   IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_jhandler_t, jhandler);
   iotjs_jval_t jval = iotjs_jval_create_string(ret);
   iotjs_jhandler_return_jval(jhandler, jval);
-  jerry_release_value(jval);
 }
 
 
@@ -710,7 +708,6 @@ void iotjs_jhandler_return_string_raw(iotjs_jhandler_t* jhandler,
   IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_jhandler_t, jhandler);
   iotjs_jval_t jval = iotjs_jval_create_string_raw(ret);
   iotjs_jhandler_return_jval(jhandler, jval);
-  jerry_release_value(jval);
 }
 
 
@@ -721,7 +718,7 @@ void iotjs_jhandler_throw(iotjs_jhandler_t* jhandler, iotjs_jval_t err) {
 #endif
 
   jerry_release_value(_this->jret);
-  _this->jret = jerry_acquire_value(err);
+  _this->jret = err;
   jerry_value_set_error_flag(&_this->jret);
 
 #ifndef NDEBUG

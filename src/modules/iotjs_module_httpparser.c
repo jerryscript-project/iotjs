@@ -396,7 +396,6 @@ JHANDLER_FUNCTION(Reinitialize) {
 
 JHANDLER_FUNCTION(Finish) {
   JHANDLER_DECLARE_THIS_PTR(httpparserwrap, parser);
-  DJHANDLER_CHECK_ARGS(0);
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_httpparserwrap_t, parser);
 
   http_parser* nativeparser = &_this->parser;
@@ -439,7 +438,6 @@ JHANDLER_FUNCTION(Execute) {
 
 static void iotjs_httpparser_pause(iotjs_jhandler_t* jhandler, int paused) {
   JHANDLER_DECLARE_THIS_PTR(httpparserwrap, parser);
-  DJHANDLER_CHECK_ARGS(0);
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_httpparserwrap_t, parser);
 
   http_parser* nativeparser = &_this->parser;

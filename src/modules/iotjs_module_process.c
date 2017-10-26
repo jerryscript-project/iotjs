@@ -167,8 +167,6 @@ JHANDLER_FUNCTION(ReadSource) {
 
 
 JHANDLER_FUNCTION(Cwd) {
-  DJHANDLER_CHECK_ARGS(0);
-
   char path[IOTJS_MAX_PATH_SIZE];
   size_t size_path = sizeof(path);
   int err = uv_cwd(path, &size_path);

@@ -78,7 +78,6 @@ static void iotjs_blehcisocket_destroy(THIS) {
 
 JHANDLER_FUNCTION(Start) {
   JHANDLER_DECLARE_THIS_PTR(blehcisocket, blehcisocket);
-  DJHANDLER_CHECK_ARGS(0);
 
   iotjs_blehcisocket_start(blehcisocket);
 
@@ -88,7 +87,7 @@ JHANDLER_FUNCTION(Start) {
 
 JHANDLER_FUNCTION(BindRaw) {
   JHANDLER_DECLARE_THIS_PTR(blehcisocket, blehcisocket);
-  JHANDLER_CHECK(ge(iotjs_jhandler_get_arg_length(jhandler), 1));
+  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) >= 1);
 
   int devId = 0;
   int* pDevId = NULL;
@@ -120,7 +119,6 @@ JHANDLER_FUNCTION(BindUser) {
 
 JHANDLER_FUNCTION(BindControl) {
   JHANDLER_DECLARE_THIS_PTR(blehcisocket, blehcisocket);
-  DJHANDLER_CHECK_ARGS(0);
 
   iotjs_blehcisocket_bindControl(blehcisocket);
 
@@ -130,7 +128,6 @@ JHANDLER_FUNCTION(BindControl) {
 
 JHANDLER_FUNCTION(IsDevUp) {
   JHANDLER_DECLARE_THIS_PTR(blehcisocket, blehcisocket);
-  DJHANDLER_CHECK_ARGS(0);
 
   bool ret = iotjs_blehcisocket_isDevUp(blehcisocket);
 
@@ -154,7 +151,6 @@ JHANDLER_FUNCTION(SetFilter) {
 
 JHANDLER_FUNCTION(Stop) {
   JHANDLER_DECLARE_THIS_PTR(blehcisocket, blehcisocket);
-  DJHANDLER_CHECK_ARGS(0);
 
   iotjs_blehcisocket_stop(blehcisocket);
 
@@ -178,7 +174,6 @@ JHANDLER_FUNCTION(Write) {
 
 JHANDLER_FUNCTION(BleHciSocketCons) {
   DJHANDLER_CHECK_THIS(object);
-  DJHANDLER_CHECK_ARGS(0);
 
   // Create object
   iotjs_jval_t jblehcisocket = JHANDLER_GET_THIS(object);

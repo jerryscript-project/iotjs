@@ -207,7 +207,6 @@ iotjs_jval_t iotjs_shutdown_reqwrap_jcallback(THIS) {
 
 JHANDLER_FUNCTION(TCP) {
   DJHANDLER_CHECK_THIS(object);
-  DJHANDLER_CHECK_ARGS(0);
 
   iotjs_jval_t jtcp = JHANDLER_GET_THIS(object);
   iotjs_tcpwrap_t* tcp_wrap = iotjs_tcpwrap_create(jtcp);
@@ -240,7 +239,6 @@ void AfterClose(uv_handle_t* handle) {
 // Close socket
 JHANDLER_FUNCTION(Close) {
   JHANDLER_DECLARE_THIS_PTR(handlewrap, wrap);
-  DJHANDLER_CHECK_ARGS(0);
 
   // close uv handle, `AfterClose` will be called after socket closed.
   iotjs_handlewrap_close(wrap, AfterClose);

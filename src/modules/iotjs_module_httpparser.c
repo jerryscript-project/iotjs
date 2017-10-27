@@ -368,54 +368,57 @@ const struct http_parser_settings settings = {
 };
 
 
-static void iotjs_httpparser_return_parserrror(iotjs_jhandler_t* jhandler,
-                                               http_parser* nativeparser) {
+static iotjs_jval_t iotjs_httpparser_return_parserrror(
+    http_parser* nativeparser) {
   enum http_errno err = HTTP_PARSER_ERRNO(nativeparser);
 
   iotjs_jval_t eobj = iotjs_jval_create_error("Parse Error");
   iotjs_jval_set_property_number(eobj, IOTJS_MAGIC_STRING_BYTEPARSED, 0);
   iotjs_jval_set_property_string_raw(eobj, IOTJS_MAGIC_STRING_CODE,
                                      http_errno_name(err));
-  iotjs_jhandler_return_jval(jhandler, eobj);
+  return eobj;
 }
 
 
-JHANDLER_FUNCTION(Reinitialize) {
-  JHANDLER_DECLARE_THIS_PTR(httpparserwrap, parser);
-  DJHANDLER_CHECK_ARGS(1, number);
+JS_FUNCTION(Reinitialize) {
+  JS_DECLARE_THIS_PTR(httpparserwrap, parser);
+  DJS_CHECK_ARGS(1, number);
 
-  http_parser_type httpparser_type =
-      (http_parser_type)(JHANDLER_GET_ARG(0, number));
+  http_parser_type httpparser_type = (http_parser_type)(JS_GET_ARG(0, number));
   IOTJS_ASSERT(httpparser_type == HTTP_REQUEST ||
                httpparser_type == HTTP_RESPONSE);
 
   iotjs_httpparserwrap_initialize(parser, httpparser_type);
+
+  return jerry_create_undefined();
 }
 
 
-JHANDLER_FUNCTION(Finish) {
-  JHANDLER_DECLARE_THIS_PTR(httpparserwrap, parser);
+JS_FUNCTION(Finish) {
+  JS_DECLARE_THIS_PTR(httpparserwrap, parser);
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_httpparserwrap_t, parser);
 
   http_parser* nativeparser = &_this->parser;
   size_t rv = http_parser_execute(nativeparser, &settings, NULL, 0);
 
   if (rv != 0) {
-    iotjs_httpparser_return_parserrror(jhandler, nativeparser);
+    return iotjs_httpparser_return_parserrror(nativeparser);
   }
+
+  return jerry_create_undefined();
 }
 
 
-JHANDLER_FUNCTION(Execute) {
-  JHANDLER_DECLARE_THIS_PTR(httpparserwrap, parser);
-  DJHANDLER_CHECK_ARGS(1, object);
+JS_FUNCTION(Execute) {
+  JS_DECLARE_THIS_PTR(httpparserwrap, parser);
+  DJS_CHECK_ARGS(1, object);
 
-  iotjs_jval_t jbuffer = JHANDLER_GET_ARG(0, object);
+  iotjs_jval_t jbuffer = JS_GET_ARG(0, object);
   iotjs_bufferwrap_t* buffer_wrap = iotjs_bufferwrap_from_jbuffer(jbuffer);
   char* buf_data = iotjs_bufferwrap_buffer(buffer_wrap);
   size_t buf_len = iotjs_bufferwrap_length(buffer_wrap);
-  JHANDLER_CHECK(buf_data != NULL);
-  JHANDLER_CHECK(buf_len > 0);
+  JS_CHECK(buf_data != NULL);
+  JS_CHECK(buf_len > 0);
 
   iotjs_httpparserwrap_set_buf(parser, jbuffer, buf_data, buf_len);
 
@@ -429,49 +432,51 @@ JHANDLER_FUNCTION(Execute) {
 
   if (!nativeparser->upgrade && nparsed != buf_len) {
     // nparsed should equal to buf_len except UPGRADE protocol
-    iotjs_httpparser_return_parserrror(jhandler, nativeparser);
+    return iotjs_httpparser_return_parserrror(nativeparser);
   } else {
-    iotjs_jhandler_return_number(jhandler, nparsed);
+    return jerry_create_number(nparsed);
   }
 }
 
-static void iotjs_httpparser_pause(iotjs_jhandler_t* jhandler, int paused) {
-  JHANDLER_DECLARE_THIS_PTR(httpparserwrap, parser);
+
+static iotjs_jval_t iotjs_httpparser_pause(jerry_value_t jthis, int paused) {
+  JS_DECLARE_THIS_PTR(httpparserwrap, parser);
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_httpparserwrap_t, parser);
 
   http_parser* nativeparser = &_this->parser;
   http_parser_pause(nativeparser, paused);
-}
-
-JHANDLER_FUNCTION(Pause) {
-  iotjs_httpparser_pause(jhandler, 1);
+  return jerry_create_undefined();
 }
 
 
-JHANDLER_FUNCTION(Resume) {
-  iotjs_httpparser_pause(jhandler, 0);
+JS_FUNCTION(Pause) {
+  return iotjs_httpparser_pause(jthis, 1);
 }
 
 
-JHANDLER_FUNCTION(HTTPParserCons) {
-  DJHANDLER_CHECK_THIS(object);
-  DJHANDLER_CHECK_ARGS(1, number);
+JS_FUNCTION(Resume) {
+  return iotjs_httpparser_pause(jthis, 0);
+}
 
-  const iotjs_jval_t jparser = JHANDLER_GET_THIS(object);
 
-  http_parser_type httpparser_type =
-      (http_parser_type)(JHANDLER_GET_ARG(0, number));
+JS_FUNCTION(HTTPParserCons) {
+  DJS_CHECK_THIS(object);
+  DJS_CHECK_ARGS(1, number);
+
+  const iotjs_jval_t jparser = JS_GET_THIS(object);
+
+  http_parser_type httpparser_type = (http_parser_type)(JS_GET_ARG(0, number));
   IOTJS_ASSERT(httpparser_type == HTTP_REQUEST ||
                httpparser_type == HTTP_RESPONSE);
   iotjs_httpparserwrap_create(jparser, httpparser_type);
+  return jerry_create_undefined();
 }
 
 
 iotjs_jval_t InitHttpparser() {
   iotjs_jval_t httpparser = iotjs_jval_create_object();
 
-  iotjs_jval_t jParserCons =
-      iotjs_jval_create_function_with_dispatch(HTTPParserCons);
+  iotjs_jval_t jParserCons = jerry_create_external_function(HTTPParserCons);
   iotjs_jval_set_property_jval(httpparser, IOTJS_MAGIC_STRING_HTTPPARSER,
                                jParserCons);
 

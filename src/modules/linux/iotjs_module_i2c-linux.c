@@ -75,15 +75,11 @@ struct iotjs_i2c_platform_data_s {
   uint8_t addr;
 };
 
-void i2c_create_platform_data(iotjs_jhandler_t* jhandler, iotjs_i2c_t* i2c,
+void i2c_create_platform_data(void* device, iotjs_i2c_t* i2c,
                               iotjs_i2c_platform_data_t** ppdata) {
   iotjs_i2c_platform_data_t* pdata = IOTJS_ALLOC(iotjs_i2c_platform_data_t);
 
-  pdata->device = iotjs_string_create("");
-  DJHANDLER_CHECK_ARGS(2, string, function);
-  iotjs_string_t device = JHANDLER_GET_ARG(0, string);
-  iotjs_string_append(&pdata->device, iotjs_string_data(&device),
-                      iotjs_string_size(&device));
+  pdata->device = *((iotjs_string_t*)device);
   pdata->device_fd = -1;
   *ppdata = pdata;
 }

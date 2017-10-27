@@ -247,118 +247,120 @@ static void iotjs_pwm_after_worker(uv_work_t* work_req, int status) {
   } while (0)
 
 
-JHANDLER_FUNCTION(PWMConstructor) {
-  DJHANDLER_CHECK_THIS(object);
-  DJHANDLER_CHECK_ARGS(2, object, function);
+JS_FUNCTION(PWMConstructor) {
+  DJS_CHECK_THIS(object);
+  DJS_CHECK_ARGS(2, object, function);
 
   // Create PWM object
-  iotjs_jval_t jpwm = JHANDLER_GET_THIS(object);
+  iotjs_jval_t jpwm = JS_GET_THIS(object);
   iotjs_pwm_t* pwm = iotjs_pwm_create(jpwm);
   IOTJS_ASSERT(pwm == iotjs_pwm_instance_from_jval(jpwm));
 
-  iotjs_jval_t jconfiguration = JHANDLER_GET_ARG(0, object);
-  iotjs_jval_t jcallback = JHANDLER_GET_ARG(1, function);
+  iotjs_jval_t jconfiguration = JS_GET_ARG(0, object);
+  iotjs_jval_t jcallback = JS_GET_ARG(1, function);
 
   // Set configuration
   iotjs_pwm_set_configuration(jconfiguration, pwm);
 
   PWM_ASYNC(open, pwm, jcallback, kPwmOpOpen);
+
+  return jerry_create_undefined();
 }
 
 
-JHANDLER_FUNCTION(SetPeriod) {
-  JHANDLER_DECLARE_THIS_PTR(pwm, pwm);
+JS_FUNCTION(SetPeriod) {
+  JS_DECLARE_THIS_PTR(pwm, pwm);
 
-  DJHANDLER_CHECK_ARGS(1, number);
-  DJHANDLER_CHECK_ARG_IF_EXIST(1, function);
+  DJS_CHECK_ARGS(1, number);
+  DJS_CHECK_ARG_IF_EXIST(1, function);
 
-  iotjs_jval_t jcallback = JHANDLER_GET_ARG_IF_EXIST(1, function);
+  iotjs_jval_t jcallback = JS_GET_ARG_IF_EXIST(1, function);
 
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_pwm_t, pwm);
-  _this->period = JHANDLER_GET_ARG(0, number);
+  _this->period = JS_GET_ARG(0, number);
 
   if (!jerry_value_is_null(jcallback)) {
     PWM_ASYNC_COMMON_WORKER(iotjs_pwm_set_period, pwm, jcallback,
                             kPwmOpSetPeriod);
   } else {
     if (!iotjs_pwm_set_period(pwm)) {
-      JHANDLER_THROW(COMMON, "PWM SetPeriod Error");
+      return JS_CREATE_ERROR(COMMON, "PWM SetPeriod Error");
     }
   }
 
-  iotjs_jhandler_return_null(jhandler);
+  return jerry_create_null();
 }
 
 
-JHANDLER_FUNCTION(SetDutyCycle) {
-  JHANDLER_DECLARE_THIS_PTR(pwm, pwm);
+JS_FUNCTION(SetDutyCycle) {
+  JS_DECLARE_THIS_PTR(pwm, pwm);
 
-  DJHANDLER_CHECK_ARGS(1, number);
-  DJHANDLER_CHECK_ARG_IF_EXIST(1, function);
+  DJS_CHECK_ARGS(1, number);
+  DJS_CHECK_ARG_IF_EXIST(1, function);
 
-  iotjs_jval_t jcallback = JHANDLER_GET_ARG_IF_EXIST(1, function);
+  iotjs_jval_t jcallback = JS_GET_ARG_IF_EXIST(1, function);
 
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_pwm_t, pwm);
-  _this->duty_cycle = JHANDLER_GET_ARG(0, number);
+  _this->duty_cycle = JS_GET_ARG(0, number);
 
   if (!jerry_value_is_null(jcallback)) {
     PWM_ASYNC_COMMON_WORKER(iotjs_pwm_set_dutycycle, pwm, jcallback,
                             kPwmOpSetDutyCycle);
   } else {
     if (!iotjs_pwm_set_dutycycle(pwm)) {
-      JHANDLER_THROW(COMMON, "PWM SetDutyCycle Error");
+      return JS_CREATE_ERROR(COMMON, "PWM SetDutyCycle Error");
     }
   }
 
-  iotjs_jhandler_return_null(jhandler);
+  return jerry_create_null();
 }
 
 
-JHANDLER_FUNCTION(SetEnable) {
-  JHANDLER_DECLARE_THIS_PTR(pwm, pwm);
+JS_FUNCTION(SetEnable) {
+  JS_DECLARE_THIS_PTR(pwm, pwm);
 
-  DJHANDLER_CHECK_ARGS(1, boolean);
-  DJHANDLER_CHECK_ARG_IF_EXIST(1, function);
+  DJS_CHECK_ARGS(1, boolean);
+  DJS_CHECK_ARG_IF_EXIST(1, function);
 
-  iotjs_jval_t jcallback = JHANDLER_GET_ARG_IF_EXIST(1, function);
+  iotjs_jval_t jcallback = JS_GET_ARG_IF_EXIST(1, function);
 
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_pwm_t, pwm);
-  _this->enable = JHANDLER_GET_ARG(0, boolean);
+  _this->enable = JS_GET_ARG(0, boolean);
 
   if (!jerry_value_is_null(jcallback)) {
     PWM_ASYNC_COMMON_WORKER(iotjs_pwm_set_enable, pwm, jcallback,
                             kPwmOpSetEnable);
   } else {
     if (!iotjs_pwm_set_enable(pwm)) {
-      JHANDLER_THROW(COMMON, "PWM SetEnabe Error");
+      return JS_CREATE_ERROR(COMMON, "PWM SetEnabe Error");
     }
   }
 
-  iotjs_jhandler_return_null(jhandler);
+  return jerry_create_null();
 }
 
 
-JHANDLER_FUNCTION(Close) {
-  JHANDLER_DECLARE_THIS_PTR(pwm, pwm);
-  DJHANDLER_CHECK_ARG_IF_EXIST(0, function);
+JS_FUNCTION(Close) {
+  JS_DECLARE_THIS_PTR(pwm, pwm);
+  DJS_CHECK_ARG_IF_EXIST(0, function);
 
-  iotjs_jval_t jcallback = JHANDLER_GET_ARG_IF_EXIST(0, function);
+  iotjs_jval_t jcallback = JS_GET_ARG_IF_EXIST(0, function);
 
   if (!jerry_value_is_null(jcallback)) {
     PWM_ASYNC_COMMON_WORKER(iotjs_pwm_close, pwm, jcallback, kPwmOpClose);
   } else {
     if (!iotjs_pwm_close(pwm)) {
-      JHANDLER_THROW(COMMON, "PWM Close Error");
+      return JS_CREATE_ERROR(COMMON, "PWM Close Error");
     }
   }
 
-  iotjs_jhandler_return_null(jhandler);
+  return jerry_create_null();
 }
 
 
 iotjs_jval_t InitPwm() {
   iotjs_jval_t jpwm_constructor =
-      iotjs_jval_create_function_with_dispatch(PWMConstructor);
+      jerry_create_external_function(PWMConstructor);
 
   iotjs_jval_t jprototype = iotjs_jval_create_object();
 

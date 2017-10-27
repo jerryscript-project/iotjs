@@ -17,10 +17,10 @@
 
 // This function should be able to print utf8 encoded string
 // as utf8 is internal string representation in Jerryscript
-static void Print(iotjs_jhandler_t* jhandler, FILE* out_fd) {
-  JHANDLER_CHECK_ARGS(1, string);
-
-  iotjs_string_t msg = JHANDLER_GET_ARG(0, string);
+static iotjs_jval_t Print(const jerry_value_t* jargv,
+                          const jerry_length_t jargc, FILE* out_fd) {
+  JS_CHECK_ARGS(1, string);
+  iotjs_string_t msg = JS_GET_ARG(0, string);
   const char* str = iotjs_string_data(&msg);
   unsigned str_len = iotjs_string_size(&msg);
   unsigned idx = 0;
@@ -33,16 +33,17 @@ static void Print(iotjs_jhandler_t* jhandler, FILE* out_fd) {
     }
   }
   iotjs_string_destroy(&msg);
+  return jerry_create_undefined();
 }
 
 
-JHANDLER_FUNCTION(Stdout) {
-  Print(jhandler, stdout);
+JS_FUNCTION(Stdout) {
+  return Print(jargv, jargc, stdout);
 }
 
 
-JHANDLER_FUNCTION(Stderr) {
-  Print(jhandler, stderr);
+JS_FUNCTION(Stderr) {
+  return Print(jargv, jargc, stderr);
 }
 
 

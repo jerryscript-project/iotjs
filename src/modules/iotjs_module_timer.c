@@ -123,46 +123,48 @@ iotjs_timerwrap_t* iotjs_timerwrap_from_jobject(const iotjs_jval_t jtimer) {
 }
 
 
-JHANDLER_FUNCTION(Start) {
+JS_FUNCTION(Start) {
   // Check parameters.
-  JHANDLER_DECLARE_THIS_PTR(timerwrap, timer_wrap);
-  DJHANDLER_CHECK_ARGS(2, number, number);
+  JS_DECLARE_THIS_PTR(timerwrap, timer_wrap);
+  DJS_CHECK_ARGS(2, number, number);
 
   // parameters.
-  uint64_t timeout = JHANDLER_GET_ARG(0, number);
-  uint64_t repeat = JHANDLER_GET_ARG(1, number);
+  uint64_t timeout = JS_GET_ARG(0, number);
+  uint64_t repeat = JS_GET_ARG(1, number);
 
   // Start timer.
   int res = iotjs_timerwrap_start(timer_wrap, timeout, repeat);
 
-  iotjs_jhandler_return_number(jhandler, res);
+  return jerry_create_number(res);
 }
 
 
-JHANDLER_FUNCTION(Stop) {
-  JHANDLER_DECLARE_THIS_PTR(timerwrap, timer_wrap);
+JS_FUNCTION(Stop) {
+  JS_DECLARE_THIS_PTR(timerwrap, timer_wrap);
   // Stop timer.
   int res = iotjs_timerwrap_stop(timer_wrap);
 
-  iotjs_jhandler_return_number(jhandler, res);
+  return jerry_create_number(res);
 }
 
 
-JHANDLER_FUNCTION(Timer) {
-  JHANDLER_CHECK_THIS(object);
+JS_FUNCTION(Timer) {
+  JS_CHECK_THIS(object);
 
-  const iotjs_jval_t jtimer = JHANDLER_GET_THIS(object);
+  const iotjs_jval_t jtimer = JS_GET_THIS(object);
 
   iotjs_timerwrap_t* timer_wrap = iotjs_timerwrap_create(jtimer);
 
   iotjs_jval_t jobject = iotjs_timerwrap_jobject(timer_wrap);
   IOTJS_ASSERT(jerry_value_is_object(jobject));
   IOTJS_ASSERT(iotjs_jval_get_object_native_handle(jtimer) != 0);
+
+  return jerry_create_undefined();
 }
 
 
 iotjs_jval_t InitTimer() {
-  iotjs_jval_t timer = iotjs_jval_create_function_with_dispatch(Timer);
+  iotjs_jval_t timer = jerry_create_external_function(Timer);
 
   iotjs_jval_t prototype = iotjs_jval_create_object();
   iotjs_jval_set_property_jval(timer, IOTJS_MAGIC_STRING_PROTOTYPE, prototype);

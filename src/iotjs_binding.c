@@ -41,8 +41,7 @@ iotjs_jval_t iotjs_jval_create_string(const iotjs_string_t* v) {
   if (jerry_is_valid_utf8_string(data, size)) {
     jval = jerry_create_string_sz_from_utf8(data, size);
   } else {
-    jval = jerry_create_error(JERRY_ERROR_TYPE,
-                              (const jerry_char_t*)"Invalid UTF-8 string");
+    jval = JS_CREATE_ERROR(TYPE, "Invalid UTF-8 string");
   }
 
   return jval;
@@ -184,10 +183,10 @@ bool iotjs_jval_set_prototype(const iotjs_jval_t jobj, iotjs_jval_t jproto) {
 
 
 void iotjs_jval_set_method(iotjs_jval_t jobj, const char* name,
-                           iotjs_native_handler_t handler) {
+                           jerry_external_handler_t handler) {
   IOTJS_ASSERT(jerry_value_is_object(jobj));
 
-  iotjs_jval_t jfunc = iotjs_jval_create_function_with_dispatch(handler);
+  iotjs_jval_t jfunc = jerry_create_external_function(handler);
   iotjs_jval_set_property_jval(jobj, name, jfunc);
   jerry_release_value(jfunc);
 }
@@ -270,59 +269,6 @@ uintptr_t iotjs_jval_get_object_native_handle(iotjs_jval_t jobj) {
   jerry_get_object_native_pointer(jobj, (void**)&ptr, &out_info);
 
   return ptr;
-}
-
-
-uintptr_t iotjs_jval_get_object_from_jhandler(iotjs_jhandler_t* jhandler,
-                                              JNativeInfoType* native_info) {
-  const iotjs_jval_t jval = JHANDLER_GET_THIS(object);
-
-  if (!jerry_value_is_object(jval)) {
-    return 0;
-  }
-
-  uintptr_t ptr = 0;
-  JNativeInfoType* out_native_info;
-
-  if (jerry_get_object_native_pointer(jval, (void**)&ptr, &out_native_info)) {
-    if (ptr && out_native_info == native_info) {
-      return ptr;
-    }
-  }
-
-  JHANDLER_THROW(COMMON, "Unsafe access");
-
-  return 0;
-}
-
-
-uintptr_t iotjs_jval_get_arg_obj_from_jhandler(iotjs_jhandler_t* jhandler,
-                                               uint16_t index,
-                                               JNativeInfoType* native_info) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_jhandler_t, jhandler);
-
-  if (index >= _this->jargc) {
-    return 0;
-  }
-
-  const iotjs_jval_t jobj = _this->jargv[index];
-
-  if (!jerry_value_is_object(jobj)) {
-    return 0;
-  }
-
-  uintptr_t ptr = 0;
-  JNativeInfoType* out_native_info;
-
-  if (jerry_get_object_native_pointer(jobj, (void**)&ptr, &out_native_info)) {
-    if (ptr && out_native_info == native_info) {
-      return ptr;
-    }
-  }
-
-  JHANDLER_THROW(COMMON, "Unsafe access");
-
-  return 0;
 }
 
 
@@ -548,185 +494,4 @@ void iotjs_jargs_replace(iotjs_jargs_t* jargs, uint16_t index, iotjs_jval_t x) {
 
   jerry_release_value(_this->argv[index]);
   _this->argv[index] = jerry_acquire_value(x);
-}
-
-
-void iotjs_jhandler_initialize(iotjs_jhandler_t* jhandler,
-                               const jerry_value_t jfunc,
-                               const jerry_value_t jthis,
-                               const jerry_value_t jargv[],
-                               const uint16_t jargc) {
-  IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_jhandler_t, jhandler);
-
-  _this->jfunc = jfunc;
-  _this->jthis = jthis;
-  _this->jret = jerry_acquire_value(jerry_create_undefined());
-#ifdef NDEBUG
-  _this->jargv = (iotjs_jval_t*)jargv;
-#else
-  if (jargc > 0) {
-    unsigned buffer_size = sizeof(iotjs_jval_t) * jargc;
-    _this->jargv = (iotjs_jval_t*)iotjs_buffer_allocate(buffer_size);
-    for (int i = 0; i < jargc; ++i) {
-      _this->jargv[i] = jargv[i];
-    }
-  } else {
-    _this->jargv = NULL;
-  }
-  _this->finished = false;
-#endif
-
-  _this->jargc = jargc;
-}
-
-
-void iotjs_jhandler_destroy(iotjs_jhandler_t* jhandler) {
-#ifndef NDEBUG
-  IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_jhandler_t, jhandler);
-  if (_this->jargc > 0) {
-    iotjs_buffer_release((char*)(_this->jargv));
-  } else {
-    IOTJS_ASSERT(_this->jargv == NULL);
-  }
-#endif
-}
-
-
-iotjs_jval_t iotjs_jhandler_get_function(iotjs_jhandler_t* jhandler) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_jhandler_t, jhandler);
-  return _this->jfunc;
-}
-
-
-iotjs_jval_t iotjs_jhandler_get_this(iotjs_jhandler_t* jhandler) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_jhandler_t, jhandler);
-  return _this->jthis;
-}
-
-
-iotjs_jval_t iotjs_jhandler_get_arg(iotjs_jhandler_t* jhandler,
-                                    uint16_t index) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_jhandler_t, jhandler);
-  IOTJS_ASSERT(index < _this->jargc);
-  return _this->jargv[index];
-}
-
-
-uint16_t iotjs_jhandler_get_arg_length(iotjs_jhandler_t* jhandler) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_jhandler_t, jhandler);
-  return _this->jargc;
-}
-
-
-void iotjs_jhandler_return_jval(iotjs_jhandler_t* jhandler,
-                                iotjs_jval_t ret_value) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_jhandler_t, jhandler);
-
-#ifndef NDEBUG
-  IOTJS_ASSERT(_this->finished == false);
-#endif
-
-  jerry_release_value(_this->jret);
-  _this->jret = ret_value;
-#ifndef NDEBUG
-  _this->finished = true;
-#endif
-}
-
-
-void iotjs_jhandler_return_undefined(iotjs_jhandler_t* jhandler) {
-  IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_jhandler_t, jhandler);
-  iotjs_jhandler_return_jval(jhandler, jerry_create_undefined());
-}
-
-
-void iotjs_jhandler_return_null(iotjs_jhandler_t* jhandler) {
-  IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_jhandler_t, jhandler);
-  iotjs_jhandler_return_jval(jhandler, jerry_create_null());
-}
-
-
-void iotjs_jhandler_return_boolean(iotjs_jhandler_t* jhandler, bool ret) {
-  IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_jhandler_t, jhandler);
-  iotjs_jhandler_return_jval(jhandler, jerry_create_boolean(ret));
-}
-
-
-void iotjs_jhandler_return_number(iotjs_jhandler_t* jhandler, double ret) {
-  IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_jhandler_t, jhandler);
-  iotjs_jval_t jval = iotjs_jval_create_number(ret);
-  iotjs_jhandler_return_jval(jhandler, jval);
-}
-
-
-void iotjs_jhandler_return_string(iotjs_jhandler_t* jhandler,
-                                  const iotjs_string_t* ret) {
-  IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_jhandler_t, jhandler);
-  iotjs_jval_t jval = iotjs_jval_create_string(ret);
-  iotjs_jhandler_return_jval(jhandler, jval);
-}
-
-
-void iotjs_jhandler_return_string_raw(iotjs_jhandler_t* jhandler,
-                                      const char* ret) {
-  IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_jhandler_t, jhandler);
-  iotjs_jval_t jval = iotjs_jval_create_string_raw(ret);
-  iotjs_jhandler_return_jval(jhandler, jval);
-}
-
-
-void iotjs_jhandler_throw(iotjs_jhandler_t* jhandler, iotjs_jval_t err) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_jhandler_t, jhandler);
-#ifndef NDEBUG
-  IOTJS_ASSERT(_this->finished == false);
-#endif
-
-  jerry_release_value(_this->jret);
-  _this->jret = err;
-  jerry_value_set_error_flag(&_this->jret);
-
-#ifndef NDEBUG
-  _this->finished = true;
-#endif
-}
-
-
-void iotjs_jhandler_error(iotjs_jhandler_t* jhandler, const char* func_name) {
-  char buffer[64];
-  snprintf(buffer, 63, "Internal error (%s)", func_name);
-  JHANDLER_THROW(COMMON, buffer)
-}
-
-
-static jerry_value_t iotjs_native_dispatch_function(
-    const jerry_value_t jfunc, const jerry_value_t jthis,
-    const jerry_value_t jargv[], const JRawLengthType jargc) {
-  uintptr_t target_function_ptr = 0x0;
-  JNativeInfoType* out_info;
-
-  if (!jerry_get_object_native_pointer(jfunc, (void**)&target_function_ptr,
-                                       &out_info)) {
-    const jerry_char_t* jmsg = (const jerry_char_t*)("Internal dispatch error");
-    return jerry_create_error(JERRY_ERROR_COMMON, jmsg);
-  }
-
-  IOTJS_ASSERT(target_function_ptr != 0x0);
-
-  iotjs_jhandler_t jhandler;
-  iotjs_jhandler_initialize(&jhandler, jfunc, jthis, jargv, jargc);
-
-  ((iotjs_native_handler_t)target_function_ptr)(&jhandler);
-
-  jerry_value_t ret_val = jhandler.unsafe.jret;
-  iotjs_jhandler_destroy(&jhandler);
-  return ret_val;
-}
-
-
-iotjs_jval_t iotjs_jval_create_function_with_dispatch(
-    iotjs_native_handler_t handler) {
-  iotjs_jval_t jfunc =
-      iotjs_jval_create_function(iotjs_native_dispatch_function);
-  jerry_set_object_native_pointer(jfunc, handler, NULL);
-  return jfunc;
 }

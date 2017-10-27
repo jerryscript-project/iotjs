@@ -253,20 +253,20 @@ void iotjs_uart_read_cb(uv_poll_t* req, int status, int events) {
   } while (0)
 
 
-JHANDLER_FUNCTION(UartConstructor) {
-  DJHANDLER_CHECK_THIS(object);
-  DJHANDLER_CHECK_ARGS(3, object, object, function);
+JS_FUNCTION(UartConstructor) {
+  DJS_CHECK_THIS(object);
+  DJS_CHECK_ARGS(3, object, object, function);
 
   // Create UART object
-  iotjs_jval_t juart = JHANDLER_GET_THIS(object);
+  iotjs_jval_t juart = JS_GET_THIS(object);
   iotjs_uart_t* uart = iotjs_uart_create(juart);
   IOTJS_ASSERT(uart == iotjs_uart_instance_from_jval(juart));
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_uart_t, uart);
 
-  iotjs_jval_t jconfiguration = JHANDLER_GET_ARG(0, object);
-  iotjs_jval_t jemitter_this = JHANDLER_GET_ARG(1, object);
+  iotjs_jval_t jconfiguration = JS_GET_ARG(0, object);
+  iotjs_jval_t jemitter_this = JS_GET_ARG(1, object);
   _this->jemitter_this = jerry_acquire_value(jemitter_this);
-  iotjs_jval_t jcallback = JHANDLER_GET_ARG(2, function);
+  iotjs_jval_t jcallback = JS_GET_ARG(2, function);
 
   // set configuration
   iotjs_jval_t jdevice =
@@ -289,19 +289,21 @@ JHANDLER_FUNCTION(UartConstructor) {
   jerry_release_value(jdata_bits);
 
   UART_ASYNC(open, uart, jcallback, kUartOpOpen);
+
+  return jerry_create_undefined();
 }
 
 
-JHANDLER_FUNCTION(Write) {
-  JHANDLER_DECLARE_THIS_PTR(uart, uart);
-  DJHANDLER_CHECK_ARGS(1, string);
-  DJHANDLER_CHECK_ARG_IF_EXIST(1, function);
+JS_FUNCTION(Write) {
+  JS_DECLARE_THIS_PTR(uart, uart);
+  DJS_CHECK_ARGS(1, string);
+  DJS_CHECK_ARG_IF_EXIST(1, function);
 
-  const iotjs_jval_t jcallback = JHANDLER_GET_ARG_IF_EXIST(1, function);
+  const iotjs_jval_t jcallback = JS_GET_ARG_IF_EXIST(1, function);
 
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_uart_t, uart);
 
-  _this->buf_data = JHANDLER_GET_ARG(0, string);
+  _this->buf_data = JS_GET_ARG(0, string);
   _this->buf_len = iotjs_string_size(&_this->buf_data);
 
   if (!jerry_value_is_null(jcallback)) {
@@ -311,20 +313,19 @@ JHANDLER_FUNCTION(Write) {
     iotjs_string_destroy(&_this->buf_data);
 
     if (!result) {
-      JHANDLER_THROW(COMMON, "UART Write Error");
-      return;
+      return JS_CREATE_ERROR(COMMON, "UART Write Error");
     }
   }
 
-  iotjs_jhandler_return_null(jhandler);
+  return jerry_create_null();
 }
 
 
-JHANDLER_FUNCTION(Close) {
-  JHANDLER_DECLARE_THIS_PTR(uart, uart);
-  DJHANDLER_CHECK_ARG_IF_EXIST(0, function);
+JS_FUNCTION(Close) {
+  JS_DECLARE_THIS_PTR(uart, uart);
+  DJS_CHECK_ARG_IF_EXIST(0, function);
 
-  const iotjs_jval_t jcallback = JHANDLER_GET_ARG_IF_EXIST(0, function);
+  const iotjs_jval_t jcallback = JS_GET_ARG_IF_EXIST(0, function);
 
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_uart_t, uart);
   jerry_release_value(_this->jemitter_this);
@@ -333,15 +334,17 @@ JHANDLER_FUNCTION(Close) {
     UART_ASYNC(close, uart, jcallback, kUartOpClose);
   } else {
     if (!iotjs_uart_close(uart)) {
-      JHANDLER_THROW(COMMON, "UART Close Error");
+      return JS_CREATE_ERROR(COMMON, "UART Close Error");
     }
   }
+
+  return jerry_create_undefined();
 }
 
 
 iotjs_jval_t InitUart() {
   iotjs_jval_t juart_constructor =
-      iotjs_jval_create_function_with_dispatch(UartConstructor);
+      jerry_create_external_function(UartConstructor);
 
   iotjs_jval_t prototype = iotjs_jval_create_object();
 

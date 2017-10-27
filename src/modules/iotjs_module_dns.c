@@ -164,15 +164,15 @@ static void AfterGetAddrInfo(uv_getaddrinfo_t* req, int status,
 #endif
 
 
-JHANDLER_FUNCTION(GetAddrInfo) {
-  DJHANDLER_CHECK_THIS(object);
-  DJHANDLER_CHECK_ARGS(4, string, number, number, function);
+JS_FUNCTION(GetAddrInfo) {
+  DJS_CHECK_THIS(object);
+  DJS_CHECK_ARGS(4, string, number, number, function);
 
-  iotjs_string_t hostname = JHANDLER_GET_ARG(0, string);
-  int option = JHANDLER_GET_ARG(1, number);
-  int flags = JHANDLER_GET_ARG(2, number);
+  iotjs_string_t hostname = JS_GET_ARG(0, string);
+  int option = JS_GET_ARG(1, number);
+  int flags = JS_GET_ARG(2, number);
   int error = 0;
-  const iotjs_jval_t jcallback = JHANDLER_GET_ARG(3, function);
+  const iotjs_jval_t jcallback = JS_GET_ARG(3, function);
 
   int family;
   if (option == 0) {
@@ -187,8 +187,7 @@ JHANDLER_FUNCTION(GetAddrInfo) {
     family = AF_INET6;
   } else {
     iotjs_string_destroy(&hostname);
-    JHANDLER_THROW(TYPE, "bad address family");
-    return;
+    return JS_CREATE_ERROR(TYPE, "bad address family");
   }
 
 #if defined(__NUTTX__) || defined(__TIZENRT__)
@@ -240,9 +239,10 @@ JHANDLER_FUNCTION(GetAddrInfo) {
   }
 #endif
 
-  iotjs_jhandler_return_number(jhandler, error);
 
   iotjs_string_destroy(&hostname);
+
+  return jerry_create_number(error);
 }
 
 

@@ -243,8 +243,7 @@ JHANDLER_FUNCTION(Buffer) {
 
   iotjs_jval_set_property_jval(jbuiltin, IOTJS_MAGIC_STRING__BUFFER, jbuffer);
 
-  iotjs_bufferwrap_t* buffer_wrap = iotjs_bufferwrap_create(jbuiltin, length);
-  IOTJS_UNUSED(buffer_wrap);
+  iotjs_bufferwrap_create(jbuiltin, length);
 }
 
 

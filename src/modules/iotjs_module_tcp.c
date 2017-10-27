@@ -209,8 +209,7 @@ JHANDLER_FUNCTION(TCP) {
   DJHANDLER_CHECK_THIS(object);
 
   iotjs_jval_t jtcp = JHANDLER_GET_THIS(object);
-  iotjs_tcpwrap_t* tcp_wrap = iotjs_tcpwrap_create(jtcp);
-  IOTJS_UNUSED(tcp_wrap);
+  iotjs_tcpwrap_create(jtcp);
 }
 
 

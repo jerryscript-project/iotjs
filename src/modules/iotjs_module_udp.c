@@ -128,8 +128,7 @@ JHANDLER_FUNCTION(UDP) {
   DJHANDLER_CHECK_ARGS(0);
 
   iotjs_jval_t judp = JHANDLER_GET_THIS(object);
-  iotjs_udpwrap_t* udp_wrap = iotjs_udpwrap_create(judp);
-  IOTJS_UNUSED(udp_wrap);
+  iotjs_udpwrap_create(judp);
 }
 
 

@@ -225,7 +225,6 @@ JHANDLER_FUNCTION(SetAddress) {
 
 JHANDLER_FUNCTION(Close) {
   JHANDLER_DECLARE_THIS_PTR(i2c, i2c);
-  DJHANDLER_CHECK_ARGS(0);
 
   I2cClose(i2c);
   iotjs_i2c_destroy(i2c);

@@ -252,13 +252,8 @@ iotjs_jval_t iotjs_jval_create_function_with_dispatch(
   JHANDLER_CHECK_ARGS_4(type0, type1, type2, type3);             \
   JHANDLER_CHECK_ARG(4, type4);
 
-// Workaround for GCC type-limits warning
-static inline bool ge(uint16_t a, uint16_t b) {
-  return a >= b;
-}
-
-#define JHANDLER_CHECK_ARGS(argc, ...)                               \
-  JHANDLER_CHECK(ge(iotjs_jhandler_get_arg_length(jhandler), argc)); \
+#define JHANDLER_CHECK_ARGS(argc, ...)                             \
+  JHANDLER_CHECK(iotjs_jhandler_get_arg_length(jhandler) >= argc); \
   JHANDLER_CHECK_ARGS_##argc(__VA_ARGS__)
 
 #define JHANDLER_CHECK_THIS(type) \

@@ -292,7 +292,6 @@ JHANDLER_FUNCTION(Write) {
 
 JHANDLER_FUNCTION(Read) {
   JHANDLER_DECLARE_THIS_PTR(gpio, gpio);
-  DJHANDLER_CHECK_ARGS(0);
   DJHANDLER_CHECK_ARG_IF_EXIST(0, function);
 
   const iotjs_jval_t jcallback = JHANDLER_GET_ARG_IF_EXIST(0, function);

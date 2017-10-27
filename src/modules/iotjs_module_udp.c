@@ -125,7 +125,6 @@ size_t iotjs_send_reqwrap_msg_size(THIS) {
 
 JHANDLER_FUNCTION(UDP) {
   DJHANDLER_CHECK_THIS(object);
-  DJHANDLER_CHECK_ARGS(0);
 
   iotjs_jval_t judp = JHANDLER_GET_THIS(object);
   iotjs_udpwrap_t* udp_wrap = iotjs_udpwrap_create(judp);
@@ -231,7 +230,6 @@ static void OnRecv(uv_udp_t* handle, ssize_t nread, const uv_buf_t* buf,
 
 JHANDLER_FUNCTION(RecvStart) {
   JHANDLER_DECLARE_THIS_PTR(udpwrap, udp_wrap);
-  DJHANDLER_CHECK_ARGS(0);
 
   int err =
       uv_udp_recv_start(iotjs_udpwrap_udp_handle(udp_wrap), OnAlloc, OnRecv);
@@ -246,7 +244,6 @@ JHANDLER_FUNCTION(RecvStart) {
 
 JHANDLER_FUNCTION(RecvStop) {
   JHANDLER_DECLARE_THIS_PTR(udpwrap, udp_wrap);
-  DJHANDLER_CHECK_ARGS(0);
 
   int r = uv_udp_recv_stop(iotjs_udpwrap_udp_handle(udp_wrap));
 
@@ -325,7 +322,6 @@ JHANDLER_FUNCTION(Send) {
 // Close socket
 JHANDLER_FUNCTION(Close) {
   JHANDLER_DECLARE_THIS_PTR(handlewrap, wrap);
-  DJHANDLER_CHECK_ARGS(0);
 
   iotjs_handlewrap_close(wrap, NULL);
 }

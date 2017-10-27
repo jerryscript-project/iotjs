@@ -427,7 +427,6 @@ JHANDLER_FUNCTION(Slice) {
                                  start_idx, end_idx, 0);
 
   iotjs_jhandler_return_jval(jhandler, jnew_buffer);
-  jerry_release_value(jnew_buffer);
 }
 
 
@@ -488,7 +487,6 @@ JHANDLER_FUNCTION(ByteLength) {
 
   iotjs_jhandler_return_jval(jhandler, size);
   iotjs_string_destroy(&str);
-  jerry_release_value(size);
 }
 
 

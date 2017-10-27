@@ -377,7 +377,6 @@ static void iotjs_httpparser_return_parserrror(iotjs_jhandler_t* jhandler,
   iotjs_jval_set_property_string_raw(eobj, IOTJS_MAGIC_STRING_CODE,
                                      http_errno_name(err));
   iotjs_jhandler_return_jval(jhandler, eobj);
-  jerry_release_value(eobj);
 }
 
 

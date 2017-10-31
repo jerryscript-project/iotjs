@@ -212,7 +212,7 @@ static void iotjs_uart_after_worker(uv_work_t* work_req, int status) {
 
 static void iotjs_uart_onread(iotjs_jval_t jthis, char* buf) {
   iotjs_jval_t jemit = iotjs_jval_get_property(jthis, "emit");
-  IOTJS_ASSERT(iotjs_jval_is_function(jemit));
+  IOTJS_ASSERT(jerry_value_is_function(jemit));
 
   iotjs_jargs_t jargs = iotjs_jargs_create(2);
   iotjs_jval_t str = iotjs_jval_create_string_raw("data");

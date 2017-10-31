@@ -93,7 +93,7 @@ JHANDLER_FUNCTION(BindRaw) {
   int* pDevId = NULL;
 
   iotjs_jval_t raw = iotjs_jhandler_get_arg(jhandler, 0);
-  if (iotjs_jval_is_number(raw)) {
+  if (jerry_value_is_number(raw)) {
     devId = iotjs_jval_as_number(raw);
     pDevId = &devId;
   }

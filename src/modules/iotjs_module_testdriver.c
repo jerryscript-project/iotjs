@@ -25,12 +25,12 @@ JHANDLER_FUNCTION(IsAliveExceptFor) {
 
   const iotjs_jval_t arg0 = iotjs_jhandler_get_arg(jhandler, 0);
 
-  if (iotjs_jval_is_null(arg0)) {
+  if (jerry_value_is_null(arg0)) {
     int alive = uv_loop_alive(loop);
 
     iotjs_jhandler_return_boolean(jhandler, alive);
   } else {
-    JHANDLER_CHECK(iotjs_jval_is_object(arg0));
+    JHANDLER_CHECK(jerry_value_is_object(arg0));
 
     iotjs_jval_t jtimer =
         iotjs_jval_get_property(arg0, IOTJS_MAGIC_STRING_HANDLER);

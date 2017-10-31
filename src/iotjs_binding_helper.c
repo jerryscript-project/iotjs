@@ -25,7 +25,7 @@ void iotjs_uncaught_exception(iotjs_jval_t jexception) {
 
   iotjs_jval_t jonuncaughtexception =
       iotjs_jval_get_property(process, IOTJS_MAGIC_STRING__ONUNCAUGHTEXCEPTION);
-  IOTJS_ASSERT(iotjs_jval_is_function(jonuncaughtexception));
+  IOTJS_ASSERT(jerry_value_is_function(jonuncaughtexception));
 
   iotjs_jargs_t args = iotjs_jargs_create(1);
   iotjs_jargs_append_jval(&args, jexception);
@@ -54,7 +54,7 @@ void iotjs_process_emit_exit(int code) {
 
   iotjs_jval_t jexit =
       iotjs_jval_get_property(process, IOTJS_MAGIC_STRING_EMITEXIT);
-  IOTJS_ASSERT(iotjs_jval_is_function(jexit));
+  IOTJS_ASSERT(jerry_value_is_function(jexit));
 
   iotjs_jargs_t jargs = iotjs_jargs_create(1);
   iotjs_jargs_append_number(&jargs, code);
@@ -84,13 +84,13 @@ bool iotjs_process_next_tick() {
 
   iotjs_jval_t jon_next_tick =
       iotjs_jval_get_property(process, IOTJS_MAGIC_STRING__ONNEXTTICK);
-  IOTJS_ASSERT(iotjs_jval_is_function(jon_next_tick));
+  IOTJS_ASSERT(jerry_value_is_function(jon_next_tick));
 
   iotjs_jval_t jres =
       iotjs_jhelper_call_ok(jon_next_tick, jerry_create_undefined(),
                             iotjs_jargs_get_empty());
 
-  IOTJS_ASSERT(iotjs_jval_is_boolean(jres));
+  IOTJS_ASSERT(jerry_value_is_boolean(jres));
 
   bool ret = iotjs_jval_as_boolean(jres);
   jerry_release_value(jres);
@@ -134,7 +134,7 @@ int iotjs_process_exitcode() {
 
   iotjs_jval_t jexitcode =
       iotjs_jval_get_property(process, IOTJS_MAGIC_STRING_EXITCODE);
-  IOTJS_ASSERT(iotjs_jval_is_number(jexitcode));
+  IOTJS_ASSERT(jerry_value_is_number(jexitcode));
 
   const int exitcode = (int)iotjs_jval_as_number(jexitcode);
   jerry_release_value(jexitcode);

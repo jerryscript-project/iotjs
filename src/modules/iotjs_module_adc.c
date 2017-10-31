@@ -226,7 +226,7 @@ JHANDLER_FUNCTION(AdcConstructor) {
 
   if (iotjs_jhandler_get_arg_length(jhandler) > 1) {
     const iotjs_jval_t jcallback = iotjs_jhandler_get_arg(jhandler, 1);
-    if (iotjs_jval_is_function(jcallback)) {
+    if (jerry_value_is_function(jcallback)) {
       ADC_ASYNC(open, adc, jcallback, kAdcOpOpen);
     } else {
       JHANDLER_THROW(TYPE, "Bad arguments - callback should be Function");

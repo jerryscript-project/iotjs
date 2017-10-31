@@ -25,30 +25,6 @@
 typedef jerry_external_handler_t JHandlerType;
 typedef const jerry_object_native_info_t JNativeInfoType;
 typedef jerry_length_t JRawLengthType;
-
-
-typedef enum {
-  IOTJS_ERROR_COMMON = JERRY_ERROR_COMMON,
-  IOTJS_ERROR_EVAL = JERRY_ERROR_EVAL,
-  IOTJS_ERROR_RANGE = JERRY_ERROR_RANGE,
-  IOTJS_ERROR_REFERENCE = JERRY_ERROR_REFERENCE,
-  IOTJS_ERROR_SYNTAX = JERRY_ERROR_SYNTAX,
-  IOTJS_ERROR_TYPE = JERRY_ERROR_TYPE,
-  IOTJS_ERROR_URI = JERRY_ERROR_URI
-} iotjs_error_t;
-
-
-#define FOR_EACH_JVAL_TYPES(F) \
-  F(undefined)                 \
-  F(null)                      \
-  F(boolean)                   \
-  F(number)                    \
-  F(string)                    \
-  F(object)                    \
-  F(array)                     \
-  F(function)
-
-
 typedef jerry_value_t iotjs_jval_t;
 
 typedef struct {
@@ -78,21 +54,10 @@ jerry_value_t iotjs_jval_dummy_function(const jerry_value_t function_obj,
                                         const jerry_length_t args_count);
 iotjs_jval_t iotjs_jval_create_function(JHandlerType handler);
 iotjs_jval_t iotjs_jval_create_error(const char* msg);
-iotjs_jval_t iotjs_jval_create_error_type(iotjs_error_t type, const char* msg);
+iotjs_jval_t iotjs_jval_create_error_type(jerry_error_t type, const char* msg);
 
 iotjs_jval_t iotjs_jval_get_string_size(const iotjs_string_t* str);
-iotjs_jval_t iotjs_jval_get_global_object();
 
-
-/* Type Checkers */
-bool iotjs_jval_is_undefined(iotjs_jval_t);
-bool iotjs_jval_is_null(iotjs_jval_t);
-bool iotjs_jval_is_boolean(iotjs_jval_t);
-bool iotjs_jval_is_number(iotjs_jval_t);
-bool iotjs_jval_is_string(iotjs_jval_t);
-bool iotjs_jval_is_object(iotjs_jval_t);
-bool iotjs_jval_is_array(iotjs_jval_t);
-bool iotjs_jval_is_function(iotjs_jval_t);
 
 /* Type Converters */
 bool iotjs_jval_as_boolean(iotjs_jval_t);
@@ -209,7 +174,7 @@ iotjs_jval_t iotjs_jval_create_function_with_dispatch(
 
 
 #define JHANDLER_THROW(TYPE, message)                                         \
-  iotjs_jval_t e = iotjs_jval_create_error_type(IOTJS_ERROR_##TYPE, message); \
+  iotjs_jval_t e = iotjs_jval_create_error_type(JERRY_ERROR_##TYPE, message); \
   iotjs_jhandler_throw(jhandler, e);
 
 #define JHANDLER_CHECK(predicate)             \
@@ -219,7 +184,7 @@ iotjs_jval_t iotjs_jval_create_function_with_dispatch(
   }
 
 #define JHANDLER_CHECK_TYPE(jval, type) \
-  JHANDLER_CHECK(iotjs_jval_is_##type(jval));
+  JHANDLER_CHECK(jerry_value_is_##type(jval));
 
 #define JHANDLER_CHECK_ARG(index, type) \
   JHANDLER_CHECK_TYPE(iotjs_jhandler_get_arg(jhandler, index), type);
@@ -261,10 +226,10 @@ iotjs_jval_t iotjs_jval_create_function_with_dispatch(
 #define JHANDLER_GET_ARG(index, type) \
   iotjs_jval_as_##type(iotjs_jhandler_get_arg(jhandler, index))
 
-#define JHANDLER_GET_ARG_IF_EXIST(index, type)                           \
-  ((iotjs_jhandler_get_arg_length(jhandler) > index) &&                  \
-           iotjs_jval_is_##type(iotjs_jhandler_get_arg(jhandler, index)) \
-       ? iotjs_jhandler_get_arg(jhandler, index)                         \
+#define JHANDLER_GET_ARG_IF_EXIST(index, type)                            \
+  ((iotjs_jhandler_get_arg_length(jhandler) > index) &&                   \
+           jerry_value_is_##type(iotjs_jhandler_get_arg(jhandler, index)) \
+       ? iotjs_jhandler_get_arg(jhandler, index)                          \
        : jerry_create_null())
 
 #define JHANDLER_GET_THIS(type) \
@@ -304,10 +269,10 @@ iotjs_jval_t iotjs_jval_create_function_with_dispatch(
 #define DJHANDLER_GET_REQUIRED_CONF_VALUE(src, target, property, type)        \
   do {                                                                        \
     iotjs_jval_t jtmp = iotjs_jval_get_property(src, property);               \
-    if (iotjs_jval_is_undefined(jtmp)) {                                      \
+    if (jerry_value_is_undefined(jtmp)) {                                     \
       JHANDLER_THROW(TYPE, "Missing argument, required " property);           \
       return;                                                                 \
-    } else if (iotjs_jval_is_##type(jtmp))                                    \
+    } else if (jerry_value_is_##type(jtmp))                                   \
       target = iotjs_jval_as_##type(jtmp);                                    \
     else {                                                                    \
       JHANDLER_THROW(TYPE,                                                    \
@@ -316,9 +281,6 @@ iotjs_jval_t iotjs_jval_create_function_with_dispatch(
     }                                                                         \
     jerry_release_value(jtmp);                                                \
   } while (0);
-
-void iotjs_binding_initialize();
-void iotjs_binding_finalize();
 
 jerry_value_t vm_exec_stop_callback(void* user_p);
 

@@ -227,7 +227,7 @@ void AfterClose(uv_handle_t* handle) {
   // callback function.
   iotjs_jval_t jcallback =
       iotjs_jval_get_property(jtcp, IOTJS_MAGIC_STRING_ONCLOSE);
-  if (iotjs_jval_is_function(jcallback)) {
+  if (jerry_value_is_function(jcallback)) {
     iotjs_make_callback(jcallback, jerry_create_undefined(),
                         iotjs_jargs_get_empty());
   }
@@ -278,7 +278,7 @@ static void AfterConnect(uv_connect_t* req, int status) {
   // Take callback function object.
   // function afterConnect(status)
   iotjs_jval_t jcallback = iotjs_connect_reqwrap_jcallback(req_wrap);
-  IOTJS_ASSERT(iotjs_jval_is_function(jcallback));
+  IOTJS_ASSERT(jerry_value_is_function(jcallback));
 
   // Only parameter is status code.
   iotjs_jargs_t args = iotjs_jargs_create(1);
@@ -345,7 +345,7 @@ static void OnConnection(uv_stream_t* handle, int status) {
   // `onconnection` callback.
   iotjs_jval_t jonconnection =
       iotjs_jval_get_property(jtcp, IOTJS_MAGIC_STRING_ONCONNECTION);
-  IOTJS_ASSERT(iotjs_jval_is_function(jonconnection));
+  IOTJS_ASSERT(jerry_value_is_function(jonconnection));
 
   // The callback takes two parameter
   // [0] status
@@ -357,12 +357,12 @@ static void OnConnection(uv_stream_t* handle, int status) {
     // Create client socket handle wrapper.
     iotjs_jval_t jcreate_tcp =
         iotjs_jval_get_property(jtcp, IOTJS_MAGIC_STRING_CREATETCP);
-    IOTJS_ASSERT(iotjs_jval_is_function(jcreate_tcp));
+    IOTJS_ASSERT(jerry_value_is_function(jcreate_tcp));
 
     iotjs_jval_t jclient_tcp =
         iotjs_jhelper_call_ok(jcreate_tcp, jerry_create_undefined(),
                               iotjs_jargs_get_empty());
-    IOTJS_ASSERT(iotjs_jval_is_object(jclient_tcp));
+    IOTJS_ASSERT(jerry_value_is_object(jclient_tcp));
 
     iotjs_tcpwrap_t* tcp_wrap_client =
         (iotjs_tcpwrap_t*)(iotjs_jval_get_object_native_handle(jclient_tcp));
@@ -472,12 +472,12 @@ void OnRead(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
   // socket object
   iotjs_jval_t jsocket =
       iotjs_jval_get_property(jtcp, IOTJS_MAGIC_STRING_OWNER);
-  IOTJS_ASSERT(iotjs_jval_is_object(jsocket));
+  IOTJS_ASSERT(jerry_value_is_object(jsocket));
 
   // onread callback
   iotjs_jval_t jonread =
       iotjs_jval_get_property(jtcp, IOTJS_MAGIC_STRING_ONREAD);
-  IOTJS_ASSERT(iotjs_jval_is_function(jonread));
+  IOTJS_ASSERT(jerry_value_is_function(jonread));
 
   iotjs_jargs_t jargs = iotjs_jargs_create(4);
   iotjs_jargs_append_jval(&jargs, jsocket);
@@ -532,7 +532,7 @@ static void AfterShutdown(uv_shutdown_t* req, int status) {
 
   // function onShutdown(status)
   iotjs_jval_t jonshutdown = iotjs_shutdown_reqwrap_jcallback(req_wrap);
-  IOTJS_ASSERT(iotjs_jval_is_function(jonshutdown));
+  IOTJS_ASSERT(jerry_value_is_function(jonshutdown));
 
   iotjs_jargs_t args = iotjs_jargs_create(1);
   iotjs_jargs_append_number(&args, status);

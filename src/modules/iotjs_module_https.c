@@ -180,9 +180,9 @@ void iotjs_https_cleanup(iotjs_https_t* https_data) {
   if (_this->to_destroy_read_onwrite) {
     const iotjs_jargs_t* jarg = iotjs_jargs_get_empty();
     iotjs_jval_t jthis = _this->jthis_native;
-    IOTJS_ASSERT(iotjs_jval_is_function((_this->read_onwrite)));
+    IOTJS_ASSERT(jerry_value_is_function((_this->read_onwrite)));
 
-    if (!iotjs_jval_is_undefined((_this->read_callback)))
+    if (!jerry_value_is_undefined((_this->read_callback)))
       iotjs_make_callback(_this->read_callback, jthis, jarg);
 
     iotjs_make_callback(_this->read_onwrite, jthis, jarg);
@@ -299,14 +299,14 @@ bool iotjs_https_jcallback(iotjs_https_t* https_data, const char* property,
                            const iotjs_jargs_t* jarg, bool resultvalue) {
   iotjs_jval_t jthis = iotjs_https_jthis_from_https(https_data);
   bool retval = true;
-  if (iotjs_jval_is_null(jthis))
+  if (jerry_value_is_null(jthis))
     return retval;
 
   iotjs_jval_t jincoming =
       iotjs_jval_get_property(jthis, IOTJS_MAGIC_STRING__INCOMING);
   iotjs_jval_t cb = iotjs_jval_get_property(jincoming, property);
 
-  IOTJS_ASSERT(iotjs_jval_is_function(cb));
+  IOTJS_ASSERT(jerry_value_is_function(cb));
   if (!resultvalue) {
     iotjs_make_callback(cb, jincoming, jarg);
   } else {
@@ -326,13 +326,13 @@ void iotjs_https_call_read_onwrite(uv_timer_t* timer) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_https_t, https_data);
 
   uv_timer_stop(&(_this->async_read_onwrite));
-  if (iotjs_jval_is_null(_this->jthis_native))
+  if (jerry_value_is_null(_this->jthis_native))
     return;
   const iotjs_jargs_t* jarg = iotjs_jargs_get_empty();
   iotjs_jval_t jthis = _this->jthis_native;
-  IOTJS_ASSERT(iotjs_jval_is_function((_this->read_onwrite)));
+  IOTJS_ASSERT(jerry_value_is_function((_this->read_onwrite)));
 
-  if (!iotjs_jval_is_undefined((_this->read_callback)))
+  if (!jerry_value_is_undefined((_this->read_callback)))
     iotjs_make_callback(_this->read_callback, jthis, jarg);
 
   iotjs_make_callback(_this->read_onwrite, jthis, jarg);
@@ -550,7 +550,7 @@ size_t iotjs_https_curl_write_callback(void* contents, size_t size,
   iotjs_https_t* https_data = (iotjs_https_t*)userp;
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_https_t, https_data);
   size_t real_size = size * nmemb;
-  if (iotjs_jval_is_null(_this->jthis_native))
+  if (jerry_value_is_null(_this->jthis_native))
     return real_size - 1;
   iotjs_jargs_t jarg = iotjs_jargs_create(1);
   iotjs_jval_t jresult_arr = iotjs_jval_create_byte_array(real_size, contents);

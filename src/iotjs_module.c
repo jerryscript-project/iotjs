@@ -48,8 +48,8 @@ void iotjs_module_list_init() {
 #undef INIT_MODULE_LIST
 
 
-#define CLEANUP_MODULE_LIST(upper, Camel, lower)                 \
-  if (!iotjs_jval_is_undefined(modules[MODULE_##upper].jmodule)) \
+#define CLEANUP_MODULE_LIST(upper, Camel, lower)                  \
+  if (!jerry_value_is_undefined(modules[MODULE_##upper].jmodule)) \
     jerry_release_value(modules[MODULE_##upper].jmodule);
 
 void iotjs_module_list_cleanup() {
@@ -63,7 +63,7 @@ const iotjs_jval_t* iotjs_module_initialize_if_necessary(ModuleKind kind) {
   IOTJS_ASSERT(kind < MODULE_COUNT);
   IOTJS_ASSERT(&modules[kind].fn_register != NULL);
 
-  if (iotjs_jval_is_undefined(modules[kind].jmodule)) {
+  if (jerry_value_is_undefined(modules[kind].jmodule)) {
     modules[kind].jmodule = modules[kind].fn_register();
   }
 
@@ -73,6 +73,6 @@ const iotjs_jval_t* iotjs_module_initialize_if_necessary(ModuleKind kind) {
 
 const iotjs_jval_t* iotjs_module_get(ModuleKind kind) {
   IOTJS_ASSERT(kind < MODULE_COUNT);
-  IOTJS_ASSERT(!iotjs_jval_is_undefined(modules[kind].jmodule));
+  IOTJS_ASSERT(!jerry_value_is_undefined(modules[kind].jmodule));
   return &modules[kind].jmodule;
 }

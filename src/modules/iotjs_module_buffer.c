@@ -60,7 +60,7 @@ static void iotjs_bufferwrap_destroy(iotjs_bufferwrap_t* bufferwrap) {
 
 iotjs_bufferwrap_t* iotjs_bufferwrap_from_jbuiltin(
     const iotjs_jval_t jbuiltin) {
-  IOTJS_ASSERT(iotjs_jval_is_object(jbuiltin));
+  IOTJS_ASSERT(jerry_value_is_object(jbuiltin));
   iotjs_bufferwrap_t* buffer =
       (iotjs_bufferwrap_t*)iotjs_jval_get_object_native_handle(jbuiltin);
   IOTJS_ASSERT(buffer != NULL);
@@ -69,7 +69,7 @@ iotjs_bufferwrap_t* iotjs_bufferwrap_from_jbuiltin(
 
 
 iotjs_bufferwrap_t* iotjs_bufferwrap_from_jbuffer(const iotjs_jval_t jbuffer) {
-  IOTJS_ASSERT(iotjs_jval_is_object(jbuffer));
+  IOTJS_ASSERT(jerry_value_is_object(jbuffer));
   iotjs_jval_t jbuiltin =
       iotjs_jval_get_property(jbuffer, IOTJS_MAGIC_STRING__BUILTIN);
   iotjs_bufferwrap_t* buffer = iotjs_bufferwrap_from_jbuiltin(jbuiltin);
@@ -213,18 +213,19 @@ size_t iotjs_bufferwrap_copy(iotjs_bufferwrap_t* bufferwrap, const char* src,
 
 
 iotjs_jval_t iotjs_bufferwrap_create_buffer(size_t len) {
-  iotjs_jval_t jglobal = iotjs_jval_get_global_object();
+  iotjs_jval_t jglobal = jerry_get_global_object();
 
   iotjs_jval_t jbuffer =
       iotjs_jval_get_property(jglobal, IOTJS_MAGIC_STRING_BUFFER);
-  IOTJS_ASSERT(iotjs_jval_is_function(jbuffer));
+  jerry_release_value(jglobal);
+  IOTJS_ASSERT(jerry_value_is_function(jbuffer));
 
   iotjs_jargs_t jargs = iotjs_jargs_create(1);
   iotjs_jargs_append_number(&jargs, len);
 
   iotjs_jval_t jres =
       iotjs_jhelper_call_ok(jbuffer, jerry_create_undefined(), &jargs);
-  IOTJS_ASSERT(iotjs_jval_is_object(jres));
+  IOTJS_ASSERT(jerry_value_is_object(jres));
 
   iotjs_jargs_destroy(&jargs);
   jerry_release_value(jbuffer);

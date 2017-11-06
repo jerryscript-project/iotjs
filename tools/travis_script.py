@@ -33,16 +33,9 @@ DOCKER_TIZENRT_PATH = fs.join(DOCKER_ROOT_PATH, 'TizenRT')
 DOCKER_TIZENRT_OS_PATH = fs.join(DOCKER_TIZENRT_PATH, 'os')
 DOCKER_TIZENRT_OS_TOOLS_PATH = fs.join(DOCKER_TIZENRT_OS_PATH, 'tools')
 
-IOTJS_BUILD_MODULE_PATH = fs.join(TRAVIS_BUILD_PATH, 'build.module')
-
 DOCKER_NAME = 'iotjs_docker'
 
 BUILDTYPES = ['debug', 'release']
-
-def get_config():
-    with open(IOTJS_BUILD_MODULE_PATH, 'r') as file:
-        config = json.loads(file.read().encode('ascii'))
-    return config
 
 def run_docker():
     ex.check_run_cmd('docker', ['run', '-dit', '--name', DOCKER_NAME, '-v',
@@ -58,31 +51,20 @@ def set_release_config_tizenrt():
     exec_docker(DOCKER_ROOT_PATH, ['cp', 'tizenrt_release_config',
                                    fs.join(DOCKER_TIZENRT_OS_PATH, '.config')])
 
-def get_include_module_option(target_os, target_board):
-    config = get_config()
-    extend_module = config['module']['supported']['extended']
-    disabled_module = config['module']['disabled']['board']
-
-    include_module = [module for module in extend_module[target_os] \
-                        if module not in disabled_module[target_board]]
-    dependency_module_option = \
-        '--iotjs-include-module=' + ','.join(include_module)
-    return dependency_module_option
-
 if __name__ == '__main__':
-    # Get os dependency module list
-    target_os = os.environ['TARGET_OS']
-
     run_docker()
 
     test = os.environ['OPTS']
     if test == 'host-linux':
         for buildtype in BUILDTYPES:
-            exec_docker(DOCKER_IOTJS_PATH, ['./tools/build.py',
-                                     '--buildtype=%s' % buildtype])
+            exec_docker(DOCKER_IOTJS_PATH,
+                        ['./tools/build.py',
+                         '--buildtype=%s' % buildtype,
+                         '--profile=test/profiles/host-linux.profile'])
+
     elif test == 'rpi2':
         build_options = ['--clean', '--target-arch=arm', '--target-board=rpi2',
-                         get_include_module_option(target_os, 'rpi2')]
+                         '--profile=test/profiles/rpi2-linux.profile']
 
         for buildtype in BUILDTYPES:
             exec_docker(DOCKER_IOTJS_PATH, ['./tools/build.py',
@@ -101,5 +83,5 @@ if __name__ == '__main__':
                 set_release_config_tizenrt()
             exec_docker(DOCKER_TIZENRT_OS_PATH,
                         ['make', 'IOTJS_ROOT_DIR=../../iotjs',
-                        'IOTJS_BUILD_OPTION=' +
-                        get_include_module_option(target_os, 'artik05x')])
+                         'IOTJS_BUILD_OPTION='
+                         '--profile=test/profiles/tizenrt.profile'])

@@ -67,6 +67,7 @@ buildtype=debug|release (debug is default)
 builddir=build (build is default)
 clean
 buildlib (default is False)
+profile=path-to-profile (default: profiles/default.profile)
 target-arch=x86|x86_64|x64|i686|arm (depends on your host platform)
 target-os=linux|nuttx|darwin|osx (linux is default)
 target-board
@@ -76,8 +77,6 @@ link_flag
 external-include-dir
 external-static-lib
 external-shared-lib
-iotjs-include-module
-iotjs-exclude-module
 jerry-cmake-param
 jerry-compile-flag
 jerry-link-flag
@@ -110,13 +109,24 @@ If you want to know more details about options, please check the [Build Script](
 #### Include extended module
 There are two ways to include [extended module](../api/IoT.js-API-reference.md).
 
-The first way is to modify a property value of module in `build.config` file. You can move a module name from 'exclude' to 'include'.
-
-The second way is by using build options which is `--iotjs-include-module`.
-If you enter several modules, separate them with a comma.
+The first way is to specify the `ENABLE_MODULE_[NAME]=ON` CMake parameter, where `[NAME]` is the uppercase name of the module.
 
 ```
-./tools/build.py --iotjs-include-module=dgram,pin,gpio
+./tools/build.py --cmake-param=-DENABLE_MODULE_DGRAM=ON
+```
+
+The second way is by using profile descriptors, where a profile file contains the list of enabled modules. E.g.:
+
+**my-profile**
+```
+ENABLE_MODULE_IOTJS_CORE_MODULES
+ENABLE_MODULE_IOTJS_BASIC_MODULES
+ENABLE_MODULE_DGRAM
+```
+
+
+```
+./tools/build.py --profile=./my-profile
 ```
 
 

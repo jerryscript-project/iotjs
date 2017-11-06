@@ -21,7 +21,7 @@
 
 
 void iotjs_uncaught_exception(iotjs_jval_t jexception) {
-  const iotjs_jval_t process = *iotjs_module_get(MODULE_PROCESS);
+  const iotjs_jval_t process = iotjs_module_get("process");
 
   iotjs_jval_t jonuncaughtexception =
       iotjs_jval_get_property(process, IOTJS_MAGIC_STRING__ONUNCAUGHTEXCEPTION);
@@ -50,7 +50,7 @@ void iotjs_uncaught_exception(iotjs_jval_t jexception) {
 
 
 void iotjs_process_emit_exit(int code) {
-  const iotjs_jval_t process = *iotjs_module_get(MODULE_PROCESS);
+  const iotjs_jval_t process = iotjs_module_get("process");
 
   iotjs_jval_t jexit =
       iotjs_jval_get_property(process, IOTJS_MAGIC_STRING_EMITEXIT);
@@ -80,7 +80,7 @@ bool iotjs_process_next_tick() {
     return false;
   }
 
-  const iotjs_jval_t process = *iotjs_module_get(MODULE_PROCESS);
+  const iotjs_jval_t process = iotjs_module_get("process");
 
   iotjs_jval_t jon_next_tick =
       iotjs_jval_get_property(process, IOTJS_MAGIC_STRING__ONNEXTTICK);
@@ -130,7 +130,7 @@ iotjs_jval_t iotjs_make_callback_with_result(iotjs_jval_t jfunction,
 
 
 int iotjs_process_exitcode() {
-  const iotjs_jval_t process = *iotjs_module_get(MODULE_PROCESS);
+  const iotjs_jval_t process = iotjs_module_get("process");
 
   iotjs_jval_t jexitcode =
       iotjs_jval_get_property(process, IOTJS_MAGIC_STRING_EXITCODE);
@@ -144,11 +144,6 @@ int iotjs_process_exitcode() {
 
 
 void iotjs_set_process_exitcode(int code) {
-  iotjs_jval_t process = *iotjs_module_get(MODULE_PROCESS);
+  const iotjs_jval_t process = iotjs_module_get("process");
   iotjs_jval_set_property_number(process, IOTJS_MAGIC_STRING_EXITCODE, code);
-}
-
-
-iotjs_jval_t iotjs_init_process_module() {
-  return *iotjs_module_initialize_if_necessary(MODULE_PROCESS);
 }

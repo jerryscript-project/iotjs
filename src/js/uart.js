@@ -15,7 +15,6 @@
 
 var EventEmitter = require('events').EventEmitter;
 var util = require('util');
-var uart = process.binding(process.binding.uart);
 
 // VALIDATION ARRAYS
 var BAUDRATE = [0, 50, 75, 110, 134, 150, 200, 300, 600, 1200, 1800, 2400,
@@ -74,7 +73,7 @@ function uartPortOpen(configuration, callback) {
 
     EventEmitter.call(this);
 
-    _binding = new uart(configuration, this, function(err) {
+    _binding = new native(configuration, this, function(err) {
       util.isFunction(callback) && callback.call(self, err);
     });
 

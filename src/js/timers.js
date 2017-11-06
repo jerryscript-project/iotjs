@@ -13,8 +13,6 @@
  * limitations under the License.
  */
 
-var Timer = process.binding(process.binding.timer);
-
 var util = require('util');
 
 var TIMEOUT_MAX = 2147483647; // 2^31-1
@@ -28,8 +26,8 @@ function Timeout(after) {
 }
 
 
-Timer.prototype.handleTimeout = function() {
-  var timeout = this.timeoutObj; // 'this' is Timer object
+native.prototype.handleTimeout = function() {
+  var timeout = this.timeoutObj; // 'this' is native object
   if (timeout && timeout.callback) {
     timeout.callback();
     if (!timeout.isrepeat) {
@@ -41,7 +39,7 @@ Timer.prototype.handleTimeout = function() {
 
 Timeout.prototype.ref = function() {
   var repeat = 0;
-  var handler = new Timer();
+  var handler = new native();
 
   if (this.isrepeat) {
     repeat = this.after;

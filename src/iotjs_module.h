@@ -18,59 +18,20 @@
 
 #include "iotjs_binding.h"
 
-
 typedef iotjs_jval_t (*register_func)();
 
+typedef struct {
+  const char* name;
+  iotjs_jval_t jmodule;
+  register_func fn_register;
+} iotjs_module_t;
 
-#define CONCATENATE(x, ...) x##__VA_ARGS__
-
-#define IF(c) CONCATENATE(IF_, c)
-#define IF_1(expr) expr
-#define IF_0(expr)
-
-// Check if specific module is enabled
-#define E(F, UPPER, Camel, lower) \
-  IF(ENABLE_MODULE_##UPPER)(F(UPPER, Camel, lower))
-
-// List of builtin modules
-#define MAP_MODULE_LIST(F)                       \
-  E(F, ADC, Adc, adc)                            \
-  E(F, BLEHCISOCKET, Blehcisocket, blehcisocket) \
-  E(F, BUFFER, Buffer, buffer)                   \
-  E(F, CONSOLE, Console, console)                \
-  E(F, CONSTANTS, Constants, constants)          \
-  E(F, DNS, Dns, dns)                            \
-  E(F, FS, Fs, fs)                               \
-  E(F, GPIO, Gpio, gpio)                         \
-  E(F, HTTPPARSER, Httpparser, httpparser)       \
-  E(F, HTTPS, Https, https)                      \
-  E(F, I2C, I2c, i2c)                            \
-  E(F, PROCESS, Process, process)                \
-  E(F, PWM, Pwm, pwm)                            \
-  E(F, SPI, Spi, spi)                            \
-  E(F, STM32F4DIS, Stm32f4dis, stm32f4dis)       \
-  E(F, TESTDRIVER, Testdriver, testdriver)       \
-  E(F, TCP, Tcp, tcp)                            \
-  E(F, TIMER, Timer, timer)                      \
-  E(F, UART, Uart, uart)                         \
-  E(F, UDP, Udp, udp)
-
-#define ENUMDEF_MODULE_LIST(upper, Camel, lower) MODULE_##upper,
-
-typedef enum {
-  MAP_MODULE_LIST(ENUMDEF_MODULE_LIST) // enumerate modules
-  MODULE_COUNT,
-} ModuleKind;
-
-#undef ENUMDEF_MODULE_LIST
-
+extern const unsigned iotjs_modules_count;
+extern iotjs_module_t iotjs_modules[];
 
 void iotjs_module_list_init();
-
 void iotjs_module_list_cleanup();
 
-const iotjs_jval_t* iotjs_module_initialize_if_necessary(ModuleKind kind);
-const iotjs_jval_t* iotjs_module_get(ModuleKind kind);
-
+iotjs_jval_t iotjs_module_get(const char* name);
 
 #endif /* IOTJS_MODULE_H */

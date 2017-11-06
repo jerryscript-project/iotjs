@@ -13,7 +13,7 @@ You need to make IoT.js using our build script, ["build.py"](https://github.com/
  ```bash
  tools/build.py --experimental
 
- tools/build.py -e --iotjs-include-module experimental-module
+ tools/build.py -e --cmake-param=-DENABLE_MODULE_EXPERIMENTAL-MODULE=ON
 
  tools/build.py -e --config=build.experimental.config
  ```

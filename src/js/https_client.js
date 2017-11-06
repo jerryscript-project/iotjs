@@ -17,7 +17,7 @@ var util = require('util');
 var incoming = require('https_incoming');
 var stream = require('stream');
 var Buffer = require('buffer');
-var httpsNative = process.binding(process.binding.https);
+var httpsNative = require('https_native');
 
 var methods = {'0': 'DELETE', '1': 'GET', '2': 'HEAD', '3': 'POST',
     '4': 'PUT', '5': 'CONNECT', '6': 'OPTIONS', '7': 'TRACE'};

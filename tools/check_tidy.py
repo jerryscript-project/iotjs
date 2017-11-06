@@ -171,6 +171,7 @@ def check_tidy(src_dir, options=None):
     skip_dirs = ['deps', 'build', '.git', 'node_modules', 'coverage']
     skip_files = ['check_signed_off.sh', '__init__.py',
                   'iotjs_js.c', 'iotjs_js.h', 'iotjs_string_ext.inl.h',
+                  "iotjs_module_inl.h",
                   'ble.js',
                   'ble_hci_socket_acl_stream.js',
                   'ble_hci_socket_smp.js',

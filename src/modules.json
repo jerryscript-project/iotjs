@@ -1,0 +1,343 @@
+{
+  "modules": {
+    "iotjs_basic_modules": {
+      "require": ["assert", "dns", "http", "net", "stream", "testdriver"]
+    },
+    "iotjs_core_modules": {
+      "require": ["buffer", "console", "events", "fs", "module", "process",
+                  "timers"]
+    },
+    "adc": {
+      "platforms": {
+        "linux": {
+          "native_files": ["modules/linux/iotjs_module_adc-linux.c"]
+        },
+        "nuttx": {
+          "native_files": ["modules/nuttx/iotjs_module_adc-nuttx.c"]
+        },
+        "tizenrt": {
+          "native_files": ["modules/tizenrt/iotjs_module_adc-tizenrt.c"]
+        },
+        "undefined": {
+          "native_files": ["modules/iotjs_module_adc.c"]
+        }
+      },
+      "native_files": ["modules/iotjs_module_adc.c"],
+      "init": "InitAdc",
+      "js_file": "js/adc.js"
+    },
+    "assert": {
+      "js_file": "js/assert.js",
+      "require": ["util"]
+    },
+    "ble": {
+      "js_file": "js/ble.js",
+      "require": ["blehcisocket", "ble_characteristic", "ble_descriptor",
+                  "ble_hci_socket_acl_stream", "ble_hci_socket_bindings",
+                  "ble_hci_socket_crypto", "ble_hci_socket_gap",
+                  "ble_hci_socket_gatt", "ble_hci_socket_hci",
+                  "ble_hci_socket_hci_status", "ble_hci_socket_mgmt",
+                  "ble_hci_socket_smp", "ble_primary_service", "ble_uuid_util"]
+    },
+    "ble_characteristic": {
+      "js_file": "js/ble_characteristic.js",
+      "require": ["events", "util"]
+    },
+    "ble_descriptor": {
+      "js_file": "js/ble_descriptor.js",
+      "require": ["console"]
+    },
+    "ble_hci_socket_acl_stream": {
+      "js_file": "js/ble_hci_socket_acl_stream.js",
+      "require": ["events", "util"]
+    },
+    "ble_hci_socket_bindings": {
+      "js_file": "js/ble_hci_socket_bindings.js",
+      "require": ["console", "events", "util", "ble_hci_socket_acl_stream",
+                  "ble_hci_socket_hci", "ble_hci_socket_gap",
+                  "ble_hci_socket_gatt"]
+    },
+    "ble_hci_socket_crypto": {
+      "js_file": "js/ble_hci_socket_crypto.js"
+    },
+    "ble_hci_socket_gap": {
+      "js_file": "js/ble_hci_socket_gap.js",
+      "require": ["console", "events", "util", "ble_hci_socket_hci",
+                  "ble_uuid_util"]
+    },
+    "ble_hci_socket_gatt": {
+      "js_file": "js/ble_hci_socket_gatt.js",
+      "require": ["console", "events", "util", "ble_uuid_util"]
+    },
+    "ble_hci_socket_hci": {
+      "js_file": "js/ble_hci_socket_hci.js",
+      "require": ["console", "events", "util", "ble_uuid_util",
+                  "blehcisocket"]
+    },
+    "ble_hci_socket_hci_status": {
+      "js_file": "js/ble_hci_socket_hci_status.js"
+    },
+    "ble_hci_socket_mgmt": {
+      "js_file": "js/ble_hci_socket_mgmt.js",
+      "require": ["console", "events", "util", "blehcisocket"]
+    },
+    "ble_hci_socket_smp": {
+      "js_file": "js/ble_hci_socket_smp.js",
+      "require": ["events", "util", "ble_hci_socket_crypto",
+                  "ble_hci_socket_mgmt"]
+    },
+    "ble_primary_service": {
+      "js_file": "js/ble_primary_service.js",
+      "require": ["events", "util", "ble_uuid_util"]
+    },
+    "ble_uuid_util": {
+      "js_file": "js/ble_uuid_util.js"
+    },
+    "blehcisocket": {
+      "platforms": {
+        "linux": {
+          "native_files": ["modules/linux/iotjs_module_blehcisocket-linux.c"]
+        },
+        "nuttx": {
+          "native_files": ["modules/nuttx/iotjs_module_blehcisocket-nuttx.c"]
+        }
+      },
+      "native_files": ["modules/iotjs_module_blehcisocket.c"],
+      "init": "InitBlehcisocket",
+      "js_file": "js/ble_hci_socket.js",
+      "require": ["events"]
+    },
+    "buffer": {
+      "native_files": ["modules/iotjs_module_buffer.c"],
+      "init": "InitBuffer",
+      "js_file": "js/buffer.js",
+      "require": ["util"]
+    },
+    "console": {
+      "native_files": ["modules/iotjs_module_console.c"],
+      "init": "InitConsole",
+      "js_file": "js/console.js",
+      "require": ["util"]
+    },
+    "constants": {
+      "native_files": ["modules/iotjs_module_constants.c"],
+      "init": "InitConstants"
+    },
+    "dgram": {
+      "js_file": "js/dgram.js",
+      "require": ["events", "udp", "util"]
+    },
+    "dns": {
+      "native_files": ["modules/iotjs_module_dns.c"],
+      "init": "InitDns",
+      "js_file": "js/dns.js",
+      "require": ["util"]
+    },
+    "events": {
+      "js_file": "js/events.js",
+      "require": ["util"]
+    },
+    "fs": {
+      "native_files": ["modules/iotjs_module_fs.c"],
+      "init": "InitFs",
+      "js_file": "js/fs.js",
+      "require": ["constants", "util"]
+    },
+    "gpio": {
+      "platforms": {
+        "linux": {
+          "native_files": ["modules/linux/iotjs_module_gpio-linux.c"]
+        },
+        "nuttx": {
+          "native_files": ["modules/nuttx/stm32f4dis/iotjs_module_gpio-nuttx-stm32f4dis.c"]
+        },
+        "tizen": {
+          "native_files": ["modules/tizen/iotjs_module_gpio-tizen.c"]
+        },
+        "tizenrt": {
+          "native_files": ["modules/tizenrt/iotjs_module_gpio-tizenrt.c"]
+        }
+      },
+      "native_files": ["modules/iotjs_module_gpio.c"],
+      "init": "InitGpio",
+      "js_file": "js/gpio.js",
+      "require": ["events", "util"]
+    },
+    "http": {
+      "js_file": "js/http.js",
+      "require": ["http_client", "http_common", "http_incoming",
+                  "http_outgoing", "http_server", "httpparser"]
+    },
+    "http_client": {
+      "js_file": "js/http_client.js",
+      "require": ["http_common", "http_outgoing", "httpparser", "net", "util"]
+    },
+    "http_common": {
+      "js_file": "js/http_common.js",
+      "require": ["http_incoming", "httpparser"]
+    },
+    "http_incoming": {
+      "js_file": "js/http_incoming.js",
+      "require": ["stream", "util"]
+    },
+    "http_outgoing": {
+      "js_file": "js/http_outgoing.js",
+      "require": ["stream", "util"]
+    },
+    "http_server": {
+      "js_file": "js/http_server.js",
+      "require": ["http_common", "http_outgoing", "net", "util"]
+    },
+    "httpparser": {
+      "native_files": ["modules/iotjs_module_httpparser.c"],
+      "init": "InitHttpparser"
+    },
+    "https": {
+      "js_file": "js/https.js",
+      "require": ["https_client", "https_incoming", "https_native"]
+    },
+    "https_client": {
+      "js_file": "js/https_client.js",
+      "require": ["buffer", "https_incoming", "stream", "util"]
+    },
+    "https_incoming": {
+      "js_file": "js/https_incoming.js",
+      "require": ["buffer", "stream", "util"]
+    },
+    "https_native": {
+      "native_files": ["modules/iotjs_module_https.c"],
+      "init": "InitHttps"
+    },
+    "i2c": {
+      "platforms": {
+        "linux": {
+          "native_files": ["modules/linux/iotjs_module_i2c-linux.c"]
+        },
+        "nuttx": {
+          "native_files": ["modules/nuttx/iotjs_module_i2c-nuttx.c"]
+        },
+        "tizen": {
+          "native_files": ["modules/tizen/iotjs_module_i2c-tizen.c"]
+        },
+        "tizenrt": {
+          "native_files": ["modules/tizenrt/iotjs_module_i2c-tizenrt.c"]
+        }
+      },
+      "native_files": ["modules/iotjs_module_i2c.c"],
+      "init": "InitI2c",
+      "js_file": "js/i2c.js",
+      "require": ["util"]
+    },
+    "module": {
+      "js_file": "js/module.js",
+      "require": ["fs"]
+    },
+    "net": {
+      "js_file": "js/net.js",
+      "require": ["assert", "events", "stream", "tcp", "util"]
+    },
+    "process": {
+      "native_files": ["modules/iotjs_module_process.c"],
+      "init": "InitProcess"
+    },
+    "pwm": {
+      "platforms": {
+        "linux": {
+          "native_files": ["modules/linux/iotjs_module_pwm-linux.c"]
+        },
+        "nuttx": {
+          "native_files": ["modules/nuttx/iotjs_module_pwm-nuttx.c"]
+        },
+        "tizenrt": {
+          "native_files": ["modules/tizenrt/iotjs_module_pwm-tizenrt.c"]
+        }
+      },
+      "native_files": ["modules/iotjs_module_pwm.c"],
+      "init": "InitPwm",
+      "js_file": "js/pwm.js",
+      "require": ["util"]
+    },
+    "spi": {
+      "platforms": {
+        "linux": {
+          "native_files": ["modules/linux/iotjs_module_spi-linux.c"]
+        },
+        "nuttx": {
+          "native_files": ["modules/nuttx/iotjs_module_spi-nuttx.c"]
+        },
+        "tizenrt": {
+          "native_files": ["modules/tizenrt/iotjs_module_spi-tizenrt.c"]
+        }
+      },
+      "native_files": ["modules/iotjs_module_spi.c"],
+      "init": "InitSpi",
+      "js_file": "js/spi.js",
+      "require": ["util"]
+    },
+    "stm32f4dis": {
+      "platforms": {
+        "nuttx": {
+          "native_files": ["modules/nuttx/iotjs_module_stm32f4dis-nuttx.c"]
+        }
+      },
+      "native_files": ["modules/iotjs_module_stm32f4dis.c"],
+      "init": "InitStm32f4dis"
+    },
+    "stream": {
+      "js_file": "js/stream.js",
+      "require": ["events", "stream_duplex", "stream_readable",
+                  "stream_writable", "util"]
+    },
+    "stream_duplex": {
+      "js_file": "js/stream_duplex.js",
+      "require": ["stream_readable", "stream_writable", "util"]
+    },
+    "stream_readable": {
+      "js_file": "js/stream_readable.js",
+      "require": ["assert", "util"]
+    },
+    "stream_writable": {
+      "js_file": "js/stream_writable.js",
+      "require": ["util"]
+    },
+    "tcp": {
+      "native_files": ["modules/iotjs_module_tcp.c"],
+      "init": "InitTcp"
+    },
+    "testdriver": {
+      "native_files": ["modules/iotjs_module_testdriver.c"],
+      "init": "InitTestdriver",
+      "require": ["assert"]
+    },
+    "timers": {
+      "native_files": ["modules/iotjs_module_timer.c"],
+      "init": "InitTimer",
+      "js_file": "js/timers.js",
+      "require": ["util"]
+    },
+    "uart": {
+      "platforms": {
+        "linux": {
+          "native_files": ["modules/linux/iotjs_module_uart-linux.c"]
+        },
+        "nuttx": {
+          "native_files": ["modules/nuttx/iotjs_module_uart-nuttx.c"]
+        },
+        "tizenrt": {
+          "native_files": ["modules/tizenrt/iotjs_module_uart-tizenrt.c"]
+        }
+      },
+      "native_files": ["modules/iotjs_module_uart.c"],
+      "init": "InitUart",
+      "js_file": "js/uart.js",
+      "require": ["events", "util"]
+    },
+    "udp": {
+      "native_files": ["modules/iotjs_module_udp.c"],
+      "init": "InitUdp"
+    },
+    "util": {
+      "js_file": "js/util.js"
+    }
+  }
+}

@@ -172,7 +172,7 @@ iotjs_module_t.tryPath = function(path) {
 
 
 iotjs_module_t.load = function(id, parent) {
-  if (process.native_sources[id]) {
+  if (process.builtin_modules[id]) {
     return Native.require(id);
   }
   var module = new iotjs_module_t(id, parent);

@@ -196,9 +196,9 @@ def format_code(code, indent):
     return "\n".join(lines)
 
 
-def merge_snapshots(snapshot_infos, snapshot_merger):
+def merge_snapshots(snapshot_infos, snapshot_tool):
     output_path = fs.join(path.SRC_ROOT, 'js','merged.modules')
-    cmd = [snapshot_merger, "merge", "-o", output_path]
+    cmd = [snapshot_tool, "merge", "-o", output_path]
     cmd.extend([item['path'] for item in snapshot_infos])
 
     ret = subprocess.call(cmd)
@@ -218,7 +218,7 @@ def merge_snapshots(snapshot_infos, snapshot_merger):
     return code
 
 
-def get_snapshot_contents(js_path, snapshot_generator):
+def get_snapshot_contents(js_path, snapshot_tool):
     """ Convert the given module with the snapshot generator
         and return the resulting bytes.
     """
@@ -235,9 +235,10 @@ def get_snapshot_contents(js_path, snapshot_generator):
         if module_name != "iotjs":
             fwrapped.write("});\n")
 
-    ret = subprocess.call([snapshot_generator,
-                           "--save-snapshot-for-eval",
-                           snapshot_path,
+    ret = subprocess.call([snapshot_tool,
+                           "generate",
+                           "--context", "eval",
+                           "-o", snapshot_path,
                            wrapped_path])
 
     fs.remove(wrapped_path)
@@ -262,9 +263,9 @@ def get_js_contents(js_path, is_debug_mode=False):
     return code
 
 
-def js2c(buildtype, no_snapshot, js_modules, js_dumper, snapshot_merger,
-         verbose=False):
-    is_debug_mode = buildtype == "debug"
+def js2c(buildtype, js_modules, snapshot_tool=None, verbose=False):
+    is_debug_mode = (buildtype == "debug")
+    no_snapshot = (snapshot_tool == None)
     magic_string_set = set()
 
     str_const_regex = re.compile('^#define IOTJS_MAGIC_STRING_\w+\s+"(\w+)"$')
@@ -301,7 +302,7 @@ def js2c(buildtype, no_snapshot, js_modules, js_dumper, snapshot_merger,
                                                        SIZE=len(code),
                                                        CODE=code_string))
             else:
-                code_path = get_snapshot_contents(js_path, js_dumper)
+                code_path = get_snapshot_contents(js_path, snapshot_tool)
                 info = {'name': name, 'path': code_path, 'idx': idx}
                 snapshot_infos.append(info)
 
@@ -316,7 +317,7 @@ def js2c(buildtype, no_snapshot, js_modules, js_dumper, snapshot_merger,
             ]
             modules_struct.append('  { NULL, NULL, 0 }')
         else:
-            code = merge_snapshots(snapshot_infos, snapshot_merger)
+            code = merge_snapshots(snapshot_infos, snapshot_tool)
             code_string = format_code(code, 1)
             magic_string_set |= parse_literals(code)
 
@@ -369,23 +370,19 @@ if __name__ == "__main__":
     parser.add_argument('--modules', required=True,
         help='List of JS files to process. Format: '
              '<module_name1>=<js_file1>,<module_name2>=<js_file2>,...')
-    parser.add_argument('--snapshot-generator', default=None,
-        help='Executable to use for generating snapshots from the JS files. '
+    parser.add_argument('--snapshot-tool', default=None,
+        help='Executable to use for generating snapshots and merging them '
+             '(ex.: the JerryScript snapshot tool). '
              'If not specified the JS files will be directly processed.')
-    parser.add_argument('--snapshot-merger', default=None,
-        help='Executable to use to merge snapshots.')
     parser.add_argument('-v', '--verbose', default=False,
         help='Enable verbose output.')
 
     options = parser.parse_args()
 
-    if not options.snapshot_generator or not options.snapshot_merger:
+    if not options.snapshot_tool:
         print('Converting JS modules to C arrays (no snapshot)')
-        no_snapshot = True
     else:
-        print('Using "%s" as snapshot generator' % options.snapshot_generator)
-        no_snapshot = False
+        print('Using "%s" as snapshot tool' % options.snapshot_tool)
 
     modules = options.modules.replace(',', ' ').split()
-    js2c(options.buildtype, no_snapshot, modules, options.snapshot_generator,
-         options.snapshot_merger, options.verbose)
+    js2c(options.buildtype, modules, options.snapshot_tool, options.verbose)

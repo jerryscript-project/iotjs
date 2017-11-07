@@ -25,17 +25,18 @@ ExternalProject_Add(hostjerry
   CMAKE_ARGS
     -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
     -DJERRY_LIBC=OFF
-    -DJERRY_CMDLINE=ON
+    -DJERRY_CMDLINE=OFF
     -DJERRY_CMDLINE_MINIMAL=OFF
     -DJERRY_CMDLINE_SNAPSHOT=ON
     -DFEATURE_SNAPSHOT_SAVE=${ENABLE_SNAPSHOT}
     -DFEATURE_PROFILE=es5.1
 )
-add_executable(jerry IMPORTED)
-add_dependencies(jerry hostjerry)
-set_property(TARGET jerry PROPERTY
-  IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/${DEPS_HOST_JERRY}/bin/jerry)
-set(JERRY_HOST ${CMAKE_BINARY_DIR}/${DEPS_HOST_JERRY}/bin/jerry)
+set(JERRY_HOST_SNAPSHOT
+    ${CMAKE_BINARY_DIR}/${DEPS_HOST_JERRY}/bin/jerry-snapshot)
+add_executable(jerry-snapshot IMPORTED)
+add_dependencies(jerry-snapshot hostjerry)
+set_property(TARGET jerry-snapshot PROPERTY
+  IMPORTED_LOCATION ${JERRY_HOST_SNAPSHOT})
 
 # Utility method to add -D<KEY>=<KEY_Value>
 macro(add_cmake_arg TARGET_ARG KEY)

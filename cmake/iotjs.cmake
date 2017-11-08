@@ -37,8 +37,7 @@ endif()
 set(IOTJS_CFLAGS ${CFLAGS_COMMON})
 
 if(ENABLE_SNAPSHOT)
-  set(JS2C_SNAPSHOT_ARG --snapshot-generator=${JERRY_HOST}
-                        --snapshot-merger=${JERRY_HOST}-snapshot)
+  set(JS2C_SNAPSHOT_ARG --snapshot-tool=${JERRY_HOST_SNAPSHOT})
   set(IOTJS_CFLAGS ${IOTJS_CFLAGS} -DENABLE_SNAPSHOT)
 endif()
 
@@ -319,7 +318,7 @@ add_custom_command(
        --modules '${IOTJS_JS_MODULES}'
        ${JS2C_SNAPSHOT_ARG}
   DEPENDS ${ROOT_DIR}/tools/js2c.py
-          jerry
+          jerry-snapshot
           ${IOTJS_SOURCE_DIR}/js/*.js
 )
 

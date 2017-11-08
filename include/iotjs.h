@@ -13,6 +13,19 @@
  * limitations under the License.
  */
 
+/**
+ * @defgroup IOTJS IOTJS
+ * @ingroup IOTJS
+ * @{
+ */
+
+/**
+ * @file iotjs.h
+ * @brief IoT.js is Open Source software under the Apache 2.0 license. Complete license and copyright information can be found within the code.\n\n
+ * Official website : http://iotjs.net\n
+ * Online API Reference : https://github.com/Samsung/iotjs/blob/master/docs/api/IoT.js-API-reference.md\n
+ */
+
 #ifndef IOTJS_IOTJS_H
 #define IOTJS_IOTJS_H
 
@@ -30,3 +43,4 @@ IOTJS_EXTERN_C void iotjs_conf_console_out(int (*fp)(int level, const char* fmt,
                                                      ...));
 
 #endif /* IOTJS_IOTJS_H */
+/** @} */ // end of IOTJS group

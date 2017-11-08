@@ -24,6 +24,7 @@ console.log([1, 2, 3]);
 console.log(1, 2, 3);
 console.log('a', 1, 'b', 2, 'c', 3);
 console.log("test", null, undefined);
+console.log({ a: '123', b: 123, c: [1, 2, 3]});
 
 console.error("Hello IoT.js!!");
 console.error(1);

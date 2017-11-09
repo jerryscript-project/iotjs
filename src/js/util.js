@@ -146,6 +146,10 @@ function formatValue(v) {
     return 'undefined';
   } else if (v === null) {
     return 'null';
+  } else if (Array.isArray(v) || v instanceof Error) {
+    return v.toString();
+  } else if (typeof v === 'object') {
+    return JSON.stringify(v, null, 2);
   } else {
     return v.toString();
   }

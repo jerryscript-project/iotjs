@@ -104,6 +104,7 @@ static bool iotjs_run(iotjs_environment_t* env) {
       jerry_exec_snapshot_at((const void*)iotjs_js_modules_s,
                              iotjs_js_modules_l, module_iotjs_idx, false);
   if (jerry_value_has_error_flag(jmain)) {
+    jerry_value_clear_error_flag(&jmain);
     throws = true;
   }
 #endif

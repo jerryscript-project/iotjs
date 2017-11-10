@@ -20,7 +20,7 @@ function Adc() {
 }
 
 Adc.prototype.open = function(configuration, callback) {
-  return new native(configuration, callback);
+  return new native.Adc(configuration, callback);
 };
 
 module.exports = Adc;

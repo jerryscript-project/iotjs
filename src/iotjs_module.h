@@ -22,14 +22,12 @@ typedef iotjs_jval_t (*register_func)();
 
 typedef struct {
   const char* name;
-  iotjs_jval_t jmodule;
   register_func fn_register;
 } iotjs_module_t;
 
 extern const unsigned iotjs_modules_count;
-extern iotjs_module_t iotjs_modules[];
+extern const iotjs_module_t iotjs_modules[];
 
-void iotjs_module_list_init();
 void iotjs_module_list_cleanup();
 
 iotjs_jval_t iotjs_module_get(const char* name);

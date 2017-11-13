@@ -251,42 +251,43 @@ endforeach(MODULE)
 list(APPEND IOTJS_JS_MODULES "iotjs=${IOTJS_SOURCE_DIR}/js/iotjs.js")
 
 # Generate src/iotjs_module_inl.h
-list(LENGTH IOTJS_NATIVE_MODULES IOTJS_MODULE_COUNT)
-
-set(IOTJS_MODULE_INL_H
-"#define MODULE_COUNT ${IOTJS_MODULE_COUNT}
-iotjs_module_t iotjs_modules[MODULE_COUNT];
-")
-
+# Build up init function prototypes
+set(IOTJS_MODULE_INITIALIZERS "")
 foreach(MODULE ${IOTJS_NATIVE_MODULES})
   set(IOTJS_MODULES_JSON ${IOTJS_MODULE_${MODULE}_JSON})
   string(TOLOWER ${MODULE} module)
-  set(IOTJS_MODULE_INL_H
-  "${IOTJS_MODULE_INL_H}
-iotjs_jval_t ${${IOTJS_MODULES_JSON}.modules.${module}.init}();")
+
+  set(IOTJS_MODULE_INITIALIZERS "${IOTJS_MODULE_INITIALIZERS}
+extern iotjs_jval_t ${${IOTJS_MODULES_JSON}.modules.${module}.init}();")
 endforeach()
 
-set(IOTJS_MODULE_INL_H
-"${IOTJS_MODULE_INL_H}
-
-void iotjs_module_list_init() {")
-
-set(index 0)
+# Build up module entries
+set(IOTJS_MODULE_ENTRIES "")
+set(IOTJS_MODULE_OBJECTS "")
 foreach(MODULE ${IOTJS_NATIVE_MODULES})
   set(IOTJS_MODULES_JSON ${IOTJS_MODULE_${MODULE}_JSON})
   string(TOLOWER ${MODULE} module)
   set(INIT_FUNC ${${IOTJS_MODULES_JSON}.modules.${module}.init})
-  set(IOTJS_MODULE_INL_H
-  "${IOTJS_MODULE_INL_H}
-  iotjs_modules[${index}].name = \"${module}\";
-  iotjs_modules[${index}].jmodule = jerry_create_undefined();
-  iotjs_modules[${index}].fn_register = ${INIT_FUNC};")
-  math(EXPR index "${index} + 1")
+
+  set(IOTJS_MODULE_ENTRIES  "${IOTJS_MODULE_ENTRIES}
+  { \"${module}\", ${INIT_FUNC} },")
+  set(IOTJS_MODULE_OBJECTS "${IOTJS_MODULE_OBJECTS}
+    { 0 },")
 endforeach()
 
-set(IOTJS_MODULE_INL_H
-"${IOTJS_MODULE_INL_H}
-}")
+# Build up the contents of src/iotjs_module_inl.h
+list(LENGTH IOTJS_NATIVE_MODULES IOTJS_MODULE_COUNT)
+set(IOTJS_MODULE_INL_H "/* File generated via iotjs.cmake */
+${IOTJS_MODULE_INITIALIZERS}
+
+const
+iotjs_module_t iotjs_modules[${IOTJS_MODULE_COUNT}] = {${IOTJS_MODULE_ENTRIES}
+};
+
+iotjs_module_objects_t iotjs_module_objects[${IOTJS_MODULE_COUNT}] = {
+${IOTJS_MODULE_OBJECTS}
+};
+")
 
 file(WRITE ${IOTJS_SOURCE_DIR}/iotjs_module_inl.h "${IOTJS_MODULE_INL_H}")
 

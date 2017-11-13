@@ -82,7 +82,7 @@ void ReadWorker(uv_work_t* work_req);
 
 // Platform-related functions; they are implemented
 // by platform code (i.e.: linux, nuttx, tizen).
-void i2c_create_platform_data(iotjs_jhandler_t* jhandler, iotjs_i2c_t* i2c,
+void i2c_create_platform_data(void* device, iotjs_i2c_t* i2c,
                               iotjs_i2c_platform_data_t** ppdata);
 void i2c_destroy_platform_data(iotjs_i2c_platform_data_t* platform_data);
 

@@ -32,11 +32,11 @@ static iotjs_jval_t WrapEval(const char* name, size_t name_len,
 }
 
 
-JHANDLER_FUNCTION(Compile) {
-  DJHANDLER_CHECK_ARGS(2, string, string);
+JS_FUNCTION(Compile) {
+  DJS_CHECK_ARGS(2, string, string);
 
-  iotjs_string_t file = JHANDLER_GET_ARG(0, string);
-  iotjs_string_t source = JHANDLER_GET_ARG(1, string);
+  iotjs_string_t file = JS_GET_ARG(0, string);
+  iotjs_string_t source = JS_GET_ARG(1, string);
 
   const char* filename = iotjs_string_data(&file);
   const iotjs_environment_t* env = iotjs_environment_get();
@@ -49,58 +49,45 @@ JHANDLER_FUNCTION(Compile) {
       WrapEval(filename, strlen(filename), iotjs_string_data(&source),
                iotjs_string_size(&source));
 
-  if (!jerry_value_has_error_flag(jres)) {
-    iotjs_jhandler_return_jval(jhandler, jres);
-  } else {
-    iotjs_jhandler_throw(jhandler, jres);
-  }
-
   iotjs_string_destroy(&file);
   iotjs_string_destroy(&source);
+
+  return jres;
 }
 
 
 // Callback function for DebuggerSourceCompile
 static jerry_value_t wait_for_source_callback(
     const jerry_char_t* resource_name_p, size_t resource_name_size,
-    const jerry_char_t* source_p, size_t size, void* jhandler) {
+    const jerry_char_t* source_p, size_t size, void* data) {
+  IOTJS_UNUSED(data);
+
   char* filename = (char*)resource_name_p;
   iotjs_string_t source =
       iotjs_string_create_with_buffer((char*)source_p, size);
 
   jerry_debugger_stop();
 
-  iotjs_jval_t jres =
-      WrapEval(filename, resource_name_size, iotjs_string_data(&source),
-               iotjs_string_size(&source));
-
-  if (!jerry_value_has_error_flag(jres)) {
-    iotjs_jhandler_return_jval(jhandler, jres);
-  } else {
-    iotjs_jhandler_throw(jhandler, jres);
-  }
-
-  return jerry_create_undefined();
+  return WrapEval(filename, resource_name_size, iotjs_string_data(&source),
+                  iotjs_string_size(&source));
 }
 
 
 // Compile source received from debugger
-JHANDLER_FUNCTION(DebuggerSourceCompile) {
+JS_FUNCTION(DebuggerSourceCompile) {
   jerry_value_t res;
-  jerry_debugger_wait_for_client_source(wait_for_source_callback, jhandler,
-                                        &res);
-
-  jerry_release_value(res);
+  jerry_debugger_wait_for_client_source(wait_for_source_callback, NULL, &res);
+  return res;
 }
 
 
-JHANDLER_FUNCTION(CompileModule) {
-  DJHANDLER_CHECK_ARGS(2, object, function);
+JS_FUNCTION(CompileModule) {
+  DJS_CHECK_ARGS(2, object, function);
 
-  iotjs_jval_t jthis = JHANDLER_GET_ARG(0, object);
-  iotjs_jval_t jrequire = JHANDLER_GET_ARG(1, function);
+  iotjs_jval_t jmodule = JS_GET_ARG(0, object);
+  iotjs_jval_t jrequire = JS_GET_ARG(1, function);
 
-  iotjs_jval_t jid = iotjs_jval_get_property(jthis, "id");
+  iotjs_jval_t jid = iotjs_jval_get_property(jmodule, "id");
   iotjs_string_t id = iotjs_jval_as_string(jid);
   jerry_release_value(jid);
   const char* name = iotjs_string_data(&id);
@@ -116,97 +103,94 @@ JHANDLER_FUNCTION(CompileModule) {
 
   iotjs_jval_t native_module_jval = iotjs_module_get(name);
   if (jerry_value_has_error_flag(native_module_jval)) {
-    iotjs_jhandler_throw(jhandler, native_module_jval);
-    return;
+    return native_module_jval;
   }
 
-  iotjs_jval_t jexports = iotjs_jval_get_property(jthis, "exports");
+  iotjs_jval_t jexports = iotjs_jval_get_property(jmodule, "exports");
+  iotjs_jval_t jres = jerry_create_undefined();
 
   if (js_modules[i].name != NULL) {
 #ifdef ENABLE_SNAPSHOT
-    jerry_value_t jres =
-        jerry_exec_snapshot_at((const void*)iotjs_js_modules_s,
-                               iotjs_js_modules_l, js_modules[i].idx, false);
+    jres = jerry_exec_snapshot_at((const void*)iotjs_js_modules_s,
+                                  iotjs_js_modules_l, js_modules[i].idx, false);
 #else
-    iotjs_jval_t jres =
-        WrapEval(name, iotjs_string_size(&id), (const char*)js_modules[i].code,
-                 js_modules[i].length);
+    jres = WrapEval(name, iotjs_string_size(&id),
+                    (const char*)js_modules[i].code, js_modules[i].length);
 #endif
 
-    if (jerry_value_has_error_flag(jres)) {
-      iotjs_jhandler_throw(jhandler, jres);
-      jerry_release_value(jexports);
-      iotjs_string_destroy(&id);
-      return;
+    if (!jerry_value_has_error_flag(jres)) {
+      iotjs_jval_t args[] = { jexports, jrequire, jmodule, native_module_jval };
+
+      iotjs_jval_t jfunc = jres;
+      jres = jerry_call_function(jfunc, jerry_create_undefined(), args,
+                                 sizeof(args) / sizeof(iotjs_jval_t));
+      jerry_release_value(jfunc);
     }
-
-    iotjs_jval_t args[] = { jexports, jrequire, jthis, native_module_jval };
-
-    jerry_call_function(jres, jerry_create_undefined(), args,
-                        sizeof(args) / sizeof(iotjs_jval_t));
-    jerry_release_value(jres);
   } else if (!jerry_value_is_undefined(native_module_jval)) {
-    iotjs_jval_set_property_jval(jthis, "exports", native_module_jval);
+    iotjs_jval_set_property_jval(jmodule, "exports", native_module_jval);
   } else {
-    iotjs_jval_t jerror = iotjs_jval_create_error("Unknown native module");
-    iotjs_jhandler_throw(jhandler, jerror);
+    jres = iotjs_jval_create_error("Unknown native module");
   }
 
   jerry_release_value(jexports);
   iotjs_string_destroy(&id);
+  return jres;
 }
 
 
-JHANDLER_FUNCTION(ReadSource) {
-  DJHANDLER_CHECK_ARGS(1, string);
+JS_FUNCTION(ReadSource) {
+  DJS_CHECK_ARGS(1, string);
 
-  iotjs_string_t path = JHANDLER_GET_ARG(0, string);
+  iotjs_string_t path = JS_GET_ARG(0, string);
   iotjs_string_t code = iotjs_file_read(iotjs_string_data(&path));
 
-  iotjs_jhandler_return_string(jhandler, &code);
+  iotjs_jval_t ret_val = iotjs_jval_create_string(&code);
 
   iotjs_string_destroy(&path);
   iotjs_string_destroy(&code);
+
+  return ret_val;
 }
 
 
-JHANDLER_FUNCTION(Cwd) {
+JS_FUNCTION(Cwd) {
   char path[IOTJS_MAX_PATH_SIZE];
   size_t size_path = sizeof(path);
   int err = uv_cwd(path, &size_path);
   if (err) {
-    JHANDLER_THROW(COMMON, "cwd error");
-    return;
+    return JS_CREATE_ERROR(COMMON, "cwd error");
   }
-  iotjs_jhandler_return_string_raw(jhandler, path);
+
+  return jerry_create_string_from_utf8((const jerry_char_t*)path);
 }
 
-JHANDLER_FUNCTION(Chdir) {
-  DJHANDLER_CHECK_ARGS(1, string);
+JS_FUNCTION(Chdir) {
+  DJS_CHECK_ARGS(1, string);
 
-  iotjs_string_t path = JHANDLER_GET_ARG(0, string);
+  iotjs_string_t path = JS_GET_ARG(0, string);
   int err = uv_chdir(iotjs_string_data(&path));
 
   if (err) {
     iotjs_string_destroy(&path);
-    JHANDLER_THROW(COMMON, "chdir error");
-    return;
+    return JS_CREATE_ERROR(COMMON, "chdir error");
   }
 
   iotjs_string_destroy(&path);
+  return jerry_create_undefined();
 }
 
 
-JHANDLER_FUNCTION(DoExit) {
+JS_FUNCTION(DoExit) {
   iotjs_environment_t* env = iotjs_environment_get();
 
   if (!iotjs_environment_is_exiting(env)) {
-    DJHANDLER_CHECK_ARGS(1, number);
-    int exit_code = JHANDLER_GET_ARG(0, number);
+    DJS_CHECK_ARGS(1, number);
+    int exit_code = JS_GET_ARG(0, number);
 
     iotjs_set_process_exitcode(exit_code);
     iotjs_environment_go_state_exiting(env);
   }
+  return jerry_create_undefined();
 }
 
 

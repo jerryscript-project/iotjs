@@ -325,104 +325,102 @@ iotjs_spi_t* iotjs_spi_get_instance(iotjs_jval_t jspi) {
   } while (0)
 
 
-JHANDLER_FUNCTION(SpiConstructor) {
-  DJHANDLER_CHECK_THIS(object);
-  DJHANDLER_CHECK_ARGS(2, object, function);
+JS_FUNCTION(SpiConstructor) {
+  DJS_CHECK_THIS(object);
+  DJS_CHECK_ARGS(2, object, function);
 
   // Create SPI object
-  iotjs_jval_t jspi = JHANDLER_GET_THIS(object);
+  iotjs_jval_t jspi = JS_GET_THIS(object);
   iotjs_spi_t* spi = iotjs_spi_create(jspi);
   IOTJS_ASSERT(spi == iotjs_spi_get_instance(jspi));
 
   // Set configuration
-  iotjs_jval_t jconfiguration = JHANDLER_GET_ARG(0, object);
+  iotjs_jval_t jconfiguration = JS_GET_ARG(0, object);
   iotjs_spi_set_configuration(spi, jconfiguration);
 
-  iotjs_jval_t jcallback = JHANDLER_GET_ARG(1, function);
+  iotjs_jval_t jcallback = JS_GET_ARG(1, function);
   SPI_ASYNC(open, spi, jcallback, kSpiOpOpen);
+
+  return jerry_create_undefined();
 }
 
 
 // FIXME: do not need transferArray if array buffer is implemented.
-JHANDLER_FUNCTION(TransferArray) {
-  JHANDLER_DECLARE_THIS_PTR(spi, spi);
+JS_FUNCTION(TransferArray) {
+  JS_DECLARE_THIS_PTR(spi, spi);
 
-  DJHANDLER_CHECK_ARGS(2, array, array);
-  DJHANDLER_CHECK_ARG_IF_EXIST(2, function);
+  DJS_CHECK_ARGS(2, array, array);
+  DJS_CHECK_ARG_IF_EXIST(2, function);
 
-  iotjs_jval_t jcallback = JHANDLER_GET_ARG_IF_EXIST(2, function);
+  iotjs_jval_t jcallback = JS_GET_ARG_IF_EXIST(2, function);
 
-  iotjs_spi_set_array_buffer(spi, JHANDLER_GET_ARG(0, array),
-                             JHANDLER_GET_ARG(1, array));
+  iotjs_spi_set_array_buffer(spi, JS_GET_ARG(0, array), JS_GET_ARG(1, array));
 
+  iotjs_jval_t result = jerry_create_undefined();
   if (!jerry_value_is_null(jcallback)) {
     SPI_ASYNC(transfer, spi, jcallback, kSpiOpTransferArray);
   } else {
     if (!iotjs_spi_transfer(spi)) {
-      JHANDLER_THROW(COMMON, "SPI Transfer Error");
+      result = JS_CREATE_ERROR(COMMON, "SPI Transfer Error");
     } else {
       IOTJS_VALIDATED_STRUCT_METHOD(iotjs_spi_t, spi);
 
-      iotjs_jval_t result =
-          iotjs_jval_create_byte_array(_this->buf_len, _this->rx_buf_data);
-      iotjs_jhandler_return_jval(jhandler, result);
+      result = iotjs_jval_create_byte_array(_this->buf_len, _this->rx_buf_data);
     }
 
     iotjs_spi_release_buffer(spi);
   }
+
+  return result;
 }
 
 
-JHANDLER_FUNCTION(TransferBuffer) {
-  JHANDLER_DECLARE_THIS_PTR(spi, spi);
+JS_FUNCTION(TransferBuffer) {
+  JS_DECLARE_THIS_PTR(spi, spi);
 
-  DJHANDLER_CHECK_ARGS(2, object, object);
-  DJHANDLER_CHECK_ARG_IF_EXIST(2, function);
+  DJS_CHECK_ARGS(2, object, object);
+  DJS_CHECK_ARG_IF_EXIST(2, function);
 
-  iotjs_jval_t jcallback = JHANDLER_GET_ARG_IF_EXIST(2, function);
+  iotjs_jval_t jcallback = JS_GET_ARG_IF_EXIST(2, function);
 
-  iotjs_spi_set_buffer(spi, JHANDLER_GET_ARG(0, object),
-                       JHANDLER_GET_ARG(1, object));
+  iotjs_spi_set_buffer(spi, JS_GET_ARG(0, object), JS_GET_ARG(1, object));
 
   if (!jerry_value_is_null(jcallback)) {
     SPI_ASYNC(transfer, spi, jcallback, kSpiOpTransferBuffer);
-  } else {
-    if (!iotjs_spi_transfer(spi)) {
-      JHANDLER_THROW(COMMON, "SPI Transfer Error");
-    } else {
-      IOTJS_VALIDATED_STRUCT_METHOD(iotjs_spi_t, spi);
-
-      iotjs_jval_t result =
-          iotjs_jval_create_byte_array(_this->buf_len, _this->rx_buf_data);
-      iotjs_jhandler_return_jval(jhandler, result);
-    }
+    return jerry_create_undefined();
   }
+
+  if (!iotjs_spi_transfer(spi)) {
+    return JS_CREATE_ERROR(COMMON, "SPI Transfer Error");
+  }
+
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_spi_t, spi);
+  return iotjs_jval_create_byte_array(_this->buf_len, _this->rx_buf_data);
 }
 
 
-JHANDLER_FUNCTION(Close) {
-  JHANDLER_DECLARE_THIS_PTR(spi, spi);
+JS_FUNCTION(Close) {
+  JS_DECLARE_THIS_PTR(spi, spi);
 
-  DJHANDLER_CHECK_ARG_IF_EXIST(0, function);
+  DJS_CHECK_ARG_IF_EXIST(0, function);
 
-  iotjs_jval_t jcallback = JHANDLER_GET_ARG_IF_EXIST(0, function);
+  iotjs_jval_t jcallback = JS_GET_ARG_IF_EXIST(0, function);
 
   if (!jerry_value_is_null(jcallback)) {
     SPI_ASYNC(close, spi, jcallback, kSpiOpClose);
   } else {
     if (!iotjs_spi_close(spi)) {
-      JHANDLER_THROW(COMMON, "SPI Close Error");
+      return JS_CREATE_ERROR(COMMON, "SPI Close Error");
     }
   }
 
-  iotjs_jhandler_return_null(jhandler);
+  return jerry_create_null();
 }
 
 
 iotjs_jval_t InitSpi() {
   iotjs_jval_t jspi = iotjs_jval_create_object();
-  iotjs_jval_t jspiConstructor =
-      iotjs_jval_create_function_with_dispatch(SpiConstructor);
+  iotjs_jval_t jspiConstructor = jerry_create_external_function(SpiConstructor);
   iotjs_jval_set_property_jval(jspi, IOTJS_MAGIC_STRING_SPI, jspiConstructor);
 
   iotjs_jval_t prototype = iotjs_jval_create_object();

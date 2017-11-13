@@ -205,15 +205,17 @@ iotjs_jval_t iotjs_shutdown_reqwrap_jcallback(THIS) {
 #undef THIS
 
 
-JHANDLER_FUNCTION(TCP) {
-  DJHANDLER_CHECK_THIS(object);
+JS_FUNCTION(TCP) {
+  DJS_CHECK_THIS(object);
 
-  iotjs_jval_t jtcp = JHANDLER_GET_THIS(object);
+  iotjs_jval_t jtcp = JS_GET_THIS(object);
   iotjs_tcpwrap_create(jtcp);
+  return jerry_create_undefined();
 }
 
 
-JHANDLER_FUNCTION(Open) {
+JS_FUNCTION(Open) {
+  return jerry_create_undefined();
 }
 
 
@@ -236,11 +238,12 @@ void AfterClose(uv_handle_t* handle) {
 
 
 // Close socket
-JHANDLER_FUNCTION(Close) {
-  JHANDLER_DECLARE_THIS_PTR(handlewrap, wrap);
+JS_FUNCTION(Close) {
+  JS_DECLARE_THIS_PTR(handlewrap, wrap);
 
   // close uv handle, `AfterClose` will be called after socket closed.
   iotjs_handlewrap_close(wrap, AfterClose);
+  return jerry_create_undefined();
 }
 
 
@@ -248,13 +251,13 @@ JHANDLER_FUNCTION(Close) {
 // start listening.
 // [0] address
 // [1] port
-JHANDLER_FUNCTION(Bind) {
-  JHANDLER_DECLARE_THIS_PTR(tcpwrap, tcp_wrap);
+JS_FUNCTION(Bind) {
+  JS_DECLARE_THIS_PTR(tcpwrap, tcp_wrap);
 
-  DJHANDLER_CHECK_ARGS(2, string, number);
+  DJS_CHECK_ARGS(2, string, number);
 
-  iotjs_string_t address = JHANDLER_GET_ARG(0, string);
-  int port = JHANDLER_GET_ARG(1, number);
+  iotjs_string_t address = JS_GET_ARG(0, string);
+  int port = JS_GET_ARG(1, number);
 
   sockaddr_in addr;
   int err = uv_ip4_addr(iotjs_string_data(&address), port, &addr);
@@ -264,9 +267,9 @@ JHANDLER_FUNCTION(Bind) {
                       (const sockaddr*)(&addr), 0);
   }
 
-  iotjs_jhandler_return_number(jhandler, err);
-
   iotjs_string_destroy(&address);
+
+  return jerry_create_number(err);
 }
 
 
@@ -299,14 +302,14 @@ static void AfterConnect(uv_connect_t* req, int status) {
 // [0] address
 // [1] port
 // [2] callback
-JHANDLER_FUNCTION(Connect) {
-  JHANDLER_DECLARE_THIS_PTR(tcpwrap, tcp_wrap);
+JS_FUNCTION(Connect) {
+  JS_DECLARE_THIS_PTR(tcpwrap, tcp_wrap);
 
-  DJHANDLER_CHECK_ARGS(3, string, number, function);
+  DJS_CHECK_ARGS(3, string, number, function);
 
-  iotjs_string_t address = JHANDLER_GET_ARG(0, string);
-  int port = JHANDLER_GET_ARG(1, number);
-  iotjs_jval_t jcallback = JHANDLER_GET_ARG(2, function);
+  iotjs_string_t address = JS_GET_ARG(0, string);
+  int port = JS_GET_ARG(1, number);
+  iotjs_jval_t jcallback = JS_GET_ARG(2, function);
 
   sockaddr_in addr;
   int err = uv_ip4_addr(iotjs_string_data(&address), port, &addr);
@@ -325,9 +328,9 @@ JHANDLER_FUNCTION(Connect) {
     }
   }
 
-  iotjs_jhandler_return_number(jhandler, err);
-
   iotjs_string_destroy(&address);
+
+  return jerry_create_number(err);
 }
 
 
@@ -388,16 +391,16 @@ static void OnConnection(uv_stream_t* handle, int status) {
 }
 
 
-JHANDLER_FUNCTION(Listen) {
-  JHANDLER_DECLARE_THIS_PTR(tcpwrap, tcp_wrap);
-  DJHANDLER_CHECK_ARGS(1, number);
+JS_FUNCTION(Listen) {
+  JS_DECLARE_THIS_PTR(tcpwrap, tcp_wrap);
+  DJS_CHECK_ARGS(1, number);
 
-  int backlog = JHANDLER_GET_ARG(0, number);
+  int backlog = JS_GET_ARG(0, number);
 
   int err = uv_listen((uv_stream_t*)(iotjs_tcpwrap_tcp_handle(tcp_wrap)),
                       backlog, OnConnection);
 
-  iotjs_jhandler_return_number(jhandler, err);
+  return jerry_create_number(err);
 }
 
 
@@ -425,11 +428,11 @@ void AfterWrite(uv_write_t* req, int status) {
 }
 
 
-JHANDLER_FUNCTION(Write) {
-  JHANDLER_DECLARE_THIS_PTR(tcpwrap, tcp_wrap);
-  DJHANDLER_CHECK_ARGS(2, object, function);
+JS_FUNCTION(Write) {
+  JS_DECLARE_THIS_PTR(tcpwrap, tcp_wrap);
+  DJS_CHECK_ARGS(2, object, function);
 
-  const iotjs_jval_t jbuffer = JHANDLER_GET_ARG(0, object);
+  const iotjs_jval_t jbuffer = JS_GET_ARG(0, object);
   iotjs_bufferwrap_t* buffer_wrap = iotjs_bufferwrap_from_jbuffer(jbuffer);
   char* buffer = iotjs_bufferwrap_buffer(buffer_wrap);
   size_t len = iotjs_bufferwrap_length(buffer_wrap);
@@ -438,7 +441,7 @@ JHANDLER_FUNCTION(Write) {
   buf.base = buffer;
   buf.len = len;
 
-  iotjs_jval_t arg1 = JHANDLER_GET_ARG(1, object);
+  iotjs_jval_t arg1 = JS_GET_ARG(1, object);
   iotjs_write_reqwrap_t* req_wrap = iotjs_write_reqwrap_create(arg1);
 
   int err = uv_write(iotjs_write_reqwrap_req(req_wrap),
@@ -449,7 +452,7 @@ JHANDLER_FUNCTION(Write) {
     iotjs_write_reqwrap_dispatched(req_wrap);
   }
 
-  iotjs_jhandler_return_number(jhandler, err);
+  return jerry_create_number(err);
 }
 
 
@@ -514,13 +517,13 @@ void OnRead(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
 }
 
 
-JHANDLER_FUNCTION(ReadStart) {
-  JHANDLER_DECLARE_THIS_PTR(tcpwrap, tcp_wrap);
+JS_FUNCTION(ReadStart) {
+  JS_DECLARE_THIS_PTR(tcpwrap, tcp_wrap);
 
   int err = uv_read_start((uv_stream_t*)(iotjs_tcpwrap_tcp_handle(tcp_wrap)),
                           OnAlloc, OnRead);
 
-  iotjs_jhandler_return_number(jhandler, err);
+  return jerry_create_number(err);
 }
 
 
@@ -545,12 +548,12 @@ static void AfterShutdown(uv_shutdown_t* req, int status) {
 }
 
 
-JHANDLER_FUNCTION(Shutdown) {
-  JHANDLER_DECLARE_THIS_PTR(tcpwrap, tcp_wrap);
+JS_FUNCTION(Shutdown) {
+  JS_DECLARE_THIS_PTR(tcpwrap, tcp_wrap);
 
-  DJHANDLER_CHECK_ARGS(1, function);
+  DJS_CHECK_ARGS(1, function);
 
-  iotjs_jval_t arg0 = JHANDLER_GET_ARG(0, object);
+  iotjs_jval_t arg0 = JS_GET_ARG(0, object);
   iotjs_shutdown_reqwrap_t* req_wrap = iotjs_shutdown_reqwrap_create(arg0);
 
   int err = uv_shutdown(iotjs_shutdown_reqwrap_req(req_wrap),
@@ -561,32 +564,33 @@ JHANDLER_FUNCTION(Shutdown) {
     iotjs_shutdown_reqwrap_dispatched(req_wrap);
   }
 
-  iotjs_jhandler_return_number(jhandler, err);
+  return jerry_create_number(err);
 }
 
 
 // Enable/Disable keepalive option.
 // [0] enable
 // [1] delay
-JHANDLER_FUNCTION(SetKeepAlive) {
-  JHANDLER_DECLARE_THIS_PTR(tcpwrap, tcp_wrap);
+JS_FUNCTION(SetKeepAlive) {
+  JS_DECLARE_THIS_PTR(tcpwrap, tcp_wrap);
 
-  DJHANDLER_CHECK_ARGS(2, number, number);
+  DJS_CHECK_ARGS(2, number, number);
 
-  int enable = JHANDLER_GET_ARG(0, number);
-  unsigned delay = JHANDLER_GET_ARG(1, number);
+  int enable = JS_GET_ARG(0, number);
+  unsigned delay = JS_GET_ARG(1, number);
 
   int err = uv_tcp_keepalive(iotjs_tcpwrap_tcp_handle(tcp_wrap), enable, delay);
 
-  iotjs_jhandler_return_number(jhandler, err);
+  return jerry_create_number(err);
 }
 
-JHANDLER_FUNCTION(ErrName) {
-  DJHANDLER_CHECK_THIS(object);
-  DJHANDLER_CHECK_ARGS(1, number);
+JS_FUNCTION(ErrName) {
+  DJS_CHECK_THIS(object);
+  DJS_CHECK_ARGS(1, number);
 
-  int errorcode = JHANDLER_GET_ARG(0, number);
-  iotjs_jhandler_return_string_raw(jhandler, uv_err_name(errorcode));
+  int errorcode = JS_GET_ARG(0, number);
+  return jerry_create_string_from_utf8(
+      (const jerry_char_t*)uv_err_name(errorcode));
 }
 
 // used in iotjs_module_udp.cpp
@@ -626,21 +630,29 @@ void AddressToJS(iotjs_jval_t obj, const sockaddr* addr) {
   }
 }
 
-GetSockNameFunction(tcpwrap, tcp_handle, uv_tcp_getsockname);
 
+JS_FUNCTION(GetSockeName) {
+  DJS_CHECK_ARGS(1, object);
 
-JHANDLER_FUNCTION(GetSockeName) {
-  DoGetSockName(jhandler);
+  iotjs_tcpwrap_t* wrap = iotjs_tcpwrap_from_jobject(JS_GET_THIS(object));
+  IOTJS_ASSERT(wrap != NULL);
+
+  sockaddr_storage storage;
+  int addrlen = sizeof(storage);
+  sockaddr* const addr = (sockaddr*)(&storage);
+  int err = uv_tcp_getsockname(iotjs_tcpwrap_tcp_handle(wrap), addr, &addrlen);
+  if (err == 0)
+    AddressToJS(JS_GET_ARG(0, object), addr);
+  return jerry_create_number(err);
 }
 
 iotjs_jval_t InitTcp() {
-  iotjs_jval_t tcp = iotjs_jval_create_function_with_dispatch(TCP);
+  iotjs_jval_t tcp = jerry_create_external_function(TCP);
 
   iotjs_jval_t prototype = iotjs_jval_create_object();
-  iotjs_jval_t errname = iotjs_jval_create_function_with_dispatch(ErrName);
 
   iotjs_jval_set_property_jval(tcp, IOTJS_MAGIC_STRING_PROTOTYPE, prototype);
-  iotjs_jval_set_property_jval(tcp, IOTJS_MAGIC_STRING_ERRNAME, errname);
+  iotjs_jval_set_method(tcp, IOTJS_MAGIC_STRING_ERRNAME, ErrName);
 
   iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_OPEN, Open);
   iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_CLOSE, Close);
@@ -656,7 +668,6 @@ iotjs_jval_t InitTcp() {
                         GetSockeName);
 
   jerry_release_value(prototype);
-  jerry_release_value(errname);
 
   return tcp;
 }

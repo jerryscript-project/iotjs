@@ -28,11 +28,10 @@ static void i2c_destroy_data(iotjs_i2c_t* i2c) {
   i2c_destroy_platform_data(_this->platform_data);
 }
 
-static iotjs_i2c_t* iotjs_i2c_create(iotjs_jhandler_t* jhandler,
-                                     const iotjs_jval_t ji2c) {
+static iotjs_i2c_t* iotjs_i2c_create(void* device, const iotjs_jval_t ji2c) {
   iotjs_i2c_t* i2c = IOTJS_ALLOC(iotjs_i2c_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_i2c_t, i2c);
-  i2c_create_platform_data(jhandler, i2c, &_this->platform_data);
+  i2c_create_platform_data(device, i2c, &_this->platform_data);
   iotjs_jobjectwrap_initialize(&_this->jobjectwrap, ji2c,
                                &this_module_native_info);
   return i2c;
@@ -198,77 +197,88 @@ static void GetI2cArray(const iotjs_jval_t jarray,
     uv_queue_work(loop, req, op##Worker, AfterI2CWork);                \
   } while (0)
 
-JHANDLER_FUNCTION(I2cCons) {
-  DJHANDLER_CHECK_THIS(object);
+JS_FUNCTION(I2cCons) {
+  DJS_CHECK_THIS(object);
   // Create I2C object
-  const iotjs_jval_t ji2c = JHANDLER_GET_THIS(object);
-  iotjs_i2c_t* i2c = iotjs_i2c_create(jhandler, ji2c);
+  const iotjs_jval_t ji2c = JS_GET_THIS(object);
+#ifdef __linux__
+  DJS_CHECK_ARGS(2, string, function);
+  iotjs_string_t device = JS_GET_ARG(0, string);
+  iotjs_i2c_t* i2c = iotjs_i2c_create(&device, ji2c);
+  iotjs_string_destroy(&device);
+#else
+  DJS_CHECK_ARGS(2, number, function);
+  double device = JS_GET_ARG(0, number);
+  iotjs_i2c_t* i2c = iotjs_i2c_create(&device, ji2c);
+#endif
   IOTJS_ASSERT(i2c ==
                (iotjs_i2c_t*)(iotjs_jval_get_object_native_handle(ji2c)));
 
   // Create I2C request wrap
-  const iotjs_jval_t jcallback = JHANDLER_GET_ARG(1, function);
+  const iotjs_jval_t jcallback = JS_GET_ARG(1, function);
   iotjs_i2c_reqwrap_t* req_wrap =
       iotjs_i2c_reqwrap_create(jcallback, i2c, kI2cOpOpen);
 
   I2C_ASYNC(Open);
+
+  return jerry_create_undefined();
 }
 
-JHANDLER_FUNCTION(SetAddress) {
-  JHANDLER_DECLARE_THIS_PTR(i2c, i2c);
-  DJHANDLER_CHECK_ARGS(1, number);
+JS_FUNCTION(SetAddress) {
+  JS_DECLARE_THIS_PTR(i2c, i2c);
+  DJS_CHECK_ARGS(1, number);
 
-  I2cSetAddress(i2c, JHANDLER_GET_ARG(0, number));
+  I2cSetAddress(i2c, JS_GET_ARG(0, number));
 
-  iotjs_jhandler_return_null(jhandler);
+  return jerry_create_null();
 }
 
-JHANDLER_FUNCTION(Close) {
-  JHANDLER_DECLARE_THIS_PTR(i2c, i2c);
+JS_FUNCTION(Close) {
+  JS_DECLARE_THIS_PTR(i2c, i2c);
 
   I2cClose(i2c);
   iotjs_i2c_destroy(i2c);
 
-  iotjs_jhandler_return_null(jhandler);
+  return jerry_create_null();
 }
 
-JHANDLER_FUNCTION(Write) {
-  JHANDLER_DECLARE_THIS_PTR(i2c, i2c);
-  DJHANDLER_CHECK_ARGS(2, array, function);
+JS_FUNCTION(Write) {
+  JS_DECLARE_THIS_PTR(i2c, i2c);
+  DJS_CHECK_ARGS(2, array, function);
 
-  const iotjs_jval_t jcallback = JHANDLER_GET_ARG(1, function);
+  const iotjs_jval_t jcallback = JS_GET_ARG(1, function);
 
   iotjs_i2c_reqwrap_t* req_wrap =
       iotjs_i2c_reqwrap_create(jcallback, i2c, kI2cOpWrite);
   iotjs_i2c_reqdata_t* req_data = iotjs_i2c_reqwrap_data(req_wrap);
 
-  GetI2cArray(JHANDLER_GET_ARG(0, array), req_data);
+  GetI2cArray(JS_GET_ARG(0, array), req_data);
 
   I2C_ASYNC(Write);
 
-  iotjs_jhandler_return_null(jhandler);
+  return jerry_create_null();
 }
 
-JHANDLER_FUNCTION(Read) {
-  JHANDLER_DECLARE_THIS_PTR(i2c, i2c);
-  DJHANDLER_CHECK_ARGS(2, number, function);
+JS_FUNCTION(Read) {
+  JS_DECLARE_THIS_PTR(i2c, i2c);
+  DJS_CHECK_ARGS(2, number, function);
 
-  const iotjs_jval_t jcallback = JHANDLER_GET_ARG(1, function);
+  const iotjs_jval_t jcallback = JS_GET_ARG(1, function);
 
   iotjs_i2c_reqwrap_t* req_wrap =
       iotjs_i2c_reqwrap_create(jcallback, i2c, kI2cOpRead);
 
   iotjs_i2c_reqdata_t* req_data = iotjs_i2c_reqwrap_data(req_wrap);
-  req_data->buf_len = JHANDLER_GET_ARG(0, number);
+  req_data->buf_len = JS_GET_ARG(0, number);
   req_data->delay = 0;
 
   I2C_ASYNC(Read);
 
-  iotjs_jhandler_return_null(jhandler);
+  return jerry_create_null();
 }
 
 iotjs_jval_t InitI2c() {
-  iotjs_jval_t jI2cCons = iotjs_jval_create_function_with_dispatch(I2cCons);
+  iotjs_jval_t jI2cCons = jerry_create_external_function(I2cCons);
 
   iotjs_jval_t prototype = iotjs_jval_create_object();
 

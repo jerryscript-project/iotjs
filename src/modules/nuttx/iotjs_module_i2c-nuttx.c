@@ -32,12 +32,11 @@ struct iotjs_i2c_platform_data_s {
   struct i2c_config_s config;
 };
 
-void i2c_create_platform_data(iotjs_jhandler_t* jhandler, iotjs_i2c_t* i2c,
+void i2c_create_platform_data(void* device, iotjs_i2c_t* i2c,
                               iotjs_i2c_platform_data_t** ppdata) {
   iotjs_i2c_platform_data_t* pdata = IOTJS_ALLOC(iotjs_i2c_platform_data_t);
 
-  DJHANDLER_CHECK_ARGS(2, number, function);
-  pdata->device = JHANDLER_GET_ARG(0, number);
+  pdata->device = *(int*)device;
   pdata->i2c_master = NULL;
   *ppdata = pdata;
 }

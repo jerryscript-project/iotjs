@@ -15,14 +15,24 @@
 
 #include "iotjs_def.h"
 #include "iotjs_module.h"
+
+typedef struct { iotjs_jval_t jmodule; } iotjs_module_objects_t;
+
 #include "iotjs_module_inl.h"
 
-const unsigned iotjs_modules_count = MODULE_COUNT;
+/**
+ * iotjs_module_inl.h provides:
+ *  - iotjs_modules[]
+ *  - iotjs_module_objects[]
+ */
+
+const unsigned iotjs_modules_count =
+    sizeof(iotjs_modules) / sizeof(iotjs_module_t);
 
 void iotjs_module_list_cleanup() {
   for (unsigned i = 0; i < iotjs_modules_count; i++) {
-    if (!jerry_value_is_undefined(iotjs_modules[i].jmodule)) {
-      jerry_release_value(iotjs_modules[i].jmodule);
+    if (iotjs_module_objects[i].jmodule != 0) {
+      jerry_release_value(iotjs_module_objects[i].jmodule);
     }
   }
 }
@@ -30,11 +40,11 @@ void iotjs_module_list_cleanup() {
 iotjs_jval_t iotjs_module_get(const char* name) {
   for (unsigned i = 0; i < iotjs_modules_count; i++) {
     if (!strcmp(name, iotjs_modules[i].name)) {
-      if (jerry_value_is_undefined(iotjs_modules[i].jmodule)) {
-        iotjs_modules[i].jmodule = iotjs_modules[i].fn_register();
+      if (iotjs_module_objects[i].jmodule == 0) {
+        iotjs_module_objects[i].jmodule = iotjs_modules[i].fn_register();
       }
 
-      return iotjs_modules[i].jmodule;
+      return iotjs_module_objects[i].jmodule;
     }
   }
 

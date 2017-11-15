@@ -124,9 +124,6 @@ static int iotjs_start(iotjs_environment_t* env) {
   const iotjs_jval_t global = jerry_get_global_object();
   jerry_set_object_native_pointer(global, env, NULL);
 
-  // Initialize builtin modules.
-  iotjs_module_list_init();
-
   // Initialize builtin process module.
   const iotjs_jval_t process = iotjs_module_get("process");
   iotjs_jval_set_property_jval(global, "process", process);

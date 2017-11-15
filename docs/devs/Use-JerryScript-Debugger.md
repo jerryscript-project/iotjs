@@ -12,6 +12,19 @@ intergrated into the binary of IoT.js.
 ### Usage
 
 To start the debugger-server: `<iotjs binary> --start-debug-server test.js`
+
+It is important to note that optional parameters (such as `--debugger-wait-source` or
+`--jerry-debugger-port=...`) should be specified after `--start-debug-server` in order to work properly.
+
+#### Sending source to the debugger remotely
+
+The `--debugger-wait-source` makes the client wait until the source code is sent by the debugger-client.
+The file argument is ignored in this case, therefore doesn't need to be specified. IoT.js is also capable of resetting the context,
+thus, there's no need to restart the environment if the remote source is changed.
+*Note*: Only one remote source file is supported at the moment.
+
+#### Setting the debugger port
+
 If you want to specify the port number of the debugger-server (default: 5001),
 you can do so with the `--jerry-debugger-port=<PORT>` option:
 `<iotjs binary> --start-debug-server --jerry-debugger-port=8080 test.js`

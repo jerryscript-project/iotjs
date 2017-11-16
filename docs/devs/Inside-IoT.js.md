@@ -127,7 +127,7 @@ You can read [libuv design document](http://docs.libuv.org/en/v1.x/design.html) 
 `iotjs_handlewrap_t` is to bind a Javascript object and a libuv handle (e.g. file descriptor) together.
 `iotjs_handlewrap_t` inherits `iotjs_jobjectwrap_t` since it is linked with a Javascript object.
 
-Unlike `iotjs_jobjectwrap_t`, `iotjs_jobjectwrap_t` increases RC for the Javascript object when an instance of it is created to prevent GC while the handle is alive. The reference counter will be decreased after the handle is closed, allowing GC.
+Unlike `iotjs_jobjectwrap_t`, `iotjs_handlewrap_t` increases RC for the Javascript object when an instance of it is created to prevent GC while the handle is alive. The reference counter will be decreased after the handle is closed, allowing GC.
 
 ## iotjs_reqwrap_t
 

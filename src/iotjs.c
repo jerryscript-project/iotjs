@@ -146,12 +146,14 @@ static int iotjs_start(iotjs_environment_t* env) {
     do {
       more = uv_run(iotjs_environment_loop(env), UV_RUN_ONCE);
       more |= iotjs_process_next_tick();
-      if (more == false) {
-        more = uv_loop_alive(iotjs_environment_loop(env));
-      }
+
       jerry_value_t ret_val = jerry_run_all_enqueued_jobs();
       if (jerry_value_has_error_flag(ret_val)) {
         DLOG("jerry_run_all_enqueued_jobs() failed");
+      }
+
+      if (more == false) {
+        more = uv_loop_alive(iotjs_environment_loop(env));
       }
     } while (more && !iotjs_environment_is_exiting(env));
 

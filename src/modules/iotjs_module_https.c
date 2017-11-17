@@ -23,6 +23,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "iotjs_module_buffer.h"
+
 IOTJS_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(https);
 
 //-------------Constructor------------
@@ -552,14 +554,19 @@ size_t iotjs_https_curl_write_callback(void* contents, size_t size,
   size_t real_size = size * nmemb;
   if (jerry_value_is_null(_this->jthis_native))
     return real_size - 1;
+
   iotjs_jargs_t jarg = iotjs_jargs_create(1);
-  iotjs_jval_t jresult_arr = iotjs_jval_create_byte_array(real_size, contents);
-  iotjs_jargs_append_jval(&jarg, jresult_arr);
+
+  iotjs_jval_t jbuffer = iotjs_bufferwrap_create_buffer((size_t)real_size);
+  iotjs_bufferwrap_t* buffer_wrap = iotjs_bufferwrap_from_jbuffer(jbuffer);
+  iotjs_bufferwrap_copy(buffer_wrap, contents, (size_t)real_size);
+
+  iotjs_jargs_append_jval(&jarg, jbuffer);
 
   bool result =
       iotjs_https_jcallback(https_data, IOTJS_MAGIC_STRING_ONDATA, &jarg, true);
 
-  jerry_release_value(jresult_arr);
+  jerry_release_value(jbuffer);
   iotjs_jargs_destroy(&jarg);
 
   if (!result) {

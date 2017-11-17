@@ -48,11 +48,15 @@ iotjs-tizenrt
 
 #### 2. Configure IoT.js
 
-This step is optional. You can edit the build config of IoT.js in `iotjs/build.config`.
-For example, edit `iotjs-include-module` to add modules as below.
+This step is optional. You can edit the build config of IoT.js in `iotjs/build.config`. In order to enable modules you want, you can configure your own profile file, or you can add them as an option to the build command. For more details, please find the `ENABLE_MODULE_[NAME]` section in [How to write a new module](../devs/Writing-New-Module.md#enable_module_name).
 
 ```
-"iotjs-include-module": ["adc", "gpio"]
+ENABLE_MODULE_ADC
+ENABLE_MODULE_GPIO
+```
+
+```
+$ ./tools/build.py --external-modules=./my-module --cmake-param=-DENABLE_MODULE_MYMODULE=ON
 ```
 
 #### 3. Configure TizenRT

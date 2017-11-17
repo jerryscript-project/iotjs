@@ -49,6 +49,10 @@ if (process.env.IOTJS_PATH) {
   moduledirs.push(process.env.IOTJS_PATH + '/iotjs_modules/');
 }
 
+function tryPath(modulePath, ext) {
+  return iotjs_module_t.tryPath(modulePath) ||
+         iotjs_module_t.tryPath(modulePath + ext);
+}
 
 iotjs_module_t.resolveDirectories = function(id, parent) {
   var dirs = moduledirs;
@@ -76,17 +80,11 @@ iotjs_module_t.resolveFilepath = function(id, directories) {
       modulePath = iotjs_module_t.normalizePath(modulePath);
     }
 
-    // 1. 'id'
-    var filepath = iotjs_module_t.tryPath(modulePath);
+    var filepath,
+        ext = '.js';
 
-    if (filepath) {
-      return filepath;
-    }
-
-    // 2. 'id.js'
-    filepath = iotjs_module_t.tryPath(modulePath + '.js');
-
-    if (filepath) {
+    // id[.ext]
+    if (filepath = tryPath(modulePath, ext)) {
       return filepath;
     }
 
@@ -96,13 +94,14 @@ iotjs_module_t.resolveFilepath = function(id, directories) {
     if (filepath) {
       var pkgSrc = process.readSource(jsonpath);
       var pkgMainFile = JSON.parse(pkgSrc).main;
-      filepath = iotjs_module_t.tryPath(modulePath + '/' + pkgMainFile);
-      if (filepath) {
+
+      // pkgmain[.ext]
+      if (filepath = tryPath(modulePath + '/' + pkgMainFile, ext)) {
         return filepath;
       }
-      // index.js
-      filepath = iotjs_module_t.tryPath(modulePath + '/' + 'index.js');
-      if (filepath) {
+
+      // index[.ext] as default
+      if (filepath = tryPath(modulePath + '/index', ext)) {
         return filepath;
       }
     }

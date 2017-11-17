@@ -32,6 +32,11 @@ assert.equal(pkg2.add(22, 44), 66);
 assert.equal(pkg2.multi(22, 44), 968);
 assert.equal(pkg2.add2(22, 44), 66);
 
+var pkg3 = require(dir + "test_index2");
+assert.equal(pkg3.add(22, 44), 66);
+assert.equal(pkg3.multi(22, 44), 968);
+assert.equal(pkg3.add2(22, 44), 66);
+
 // Load invalid modules.
 assert.throws(function() {
   var test3 = require('run_pass/require1/babel-template');

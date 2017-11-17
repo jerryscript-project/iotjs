@@ -5,13 +5,13 @@ This document provides a guide on how to write a module for IoT.js.
 Contents
 * Writing JavaScript Module
 * Writing Native Module
- * Platform dependent native parts
- * Native handler
-  * Arguments and Return
-  * Wrapping native object with JS object
-  * Callback
-* Writing "Mixed" Modules
- * Using native module in JavaScript module
+  * Platform dependent native parts
+  * Native handler
+    * Arguments and Return
+    * Wrapping native object with JS object
+    * Callback
+* Writing "Mixed" Module
+  * Using native module in JavaScript module
 
 See also:
 * [Inside IoT.js](Inside-IoT.js.md)
@@ -198,18 +198,20 @@ Native handler reads arguments from JavaScript, executes native operations, and 
 Let's see an example in `src/module/iotjs_module_console.c`:
 
 ```c
-JHANDLER_FUNCTION(Stdout) {
-  JHANDLER_CHECK_ARGS(1, string);
+JS_FUNCTION(Stdout) {
+  DJS_CHECK_ARGS(1, string);
 
-  iotjs_string_t msg = JHANDLER_GET_ARG(0, string);
+  iotjs_string_t msg = JS_GET_ARG(0, string);
   fprintf(stdout, "%s", iotjs_string_data(&msg));
   iotjs_string_destroy(&msg);
+
+  return jerry_create_undefined();
 }
 ```
 
-Using `JHANDLER_GET_ARG(index, type)` macro inside `JHANDLER_FUNCTION()` will read JS-side argument. Since JavaScript values can have dynamic types, you must check if argument has valid type with `JHANDLER_CHECK_ARGS(number_of_arguments, type1, type2, type3, ...)` macro, which throws JavaScript TypeError when given condition is not satisfied.
+Using `JS_GET_ARG(index, type)` macro inside `JS_FUNCTION()` will read JS-side argument. Since JavaScript values can have dynamic types, you must check if argument has valid type with `DJS_CHECK_ARGS(number_of_arguments, type1, type2, type3, ...)` macro, which throws JavaScript TypeError when given condition is not satisfied.
 
-Calling `void iotjs_jhandler_return_*()` function inside `JHANDLER_FUNCTION()` will return value into JS-side. `undefined` will be returned if you didn't explicitly returned something, like normal JavaScript function does. Console methods doesn't have to return values, but you can easily find more examples from other modules.
+`JS_FUNCTION()` must return with an `iotjs_jval_t` into JS-side.
 
 #### Wrapping native object with JS object
 

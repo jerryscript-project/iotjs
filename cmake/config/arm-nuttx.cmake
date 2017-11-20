@@ -12,11 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-include(CMakeForceCompiler)
-
 set(CMAKE_SYSTEM_NAME Nuttx)
 set(CMAKE_SYSTEM_PROCESSOR armv7l)
 
-set(EXTERNAL_CMAKE_C_COMPILER arm-none-eabi-gcc)
-
-CMAKE_FORCE_C_COMPILER(${EXTERNAL_CMAKE_C_COMPILER} GNU)
+set(CMAKE_C_COMPILER arm-none-eabi-gcc)
+set(CMAKE_C_COMPILER_WORKS TRUE)

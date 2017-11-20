@@ -53,6 +53,7 @@
     { "name": "test_iotjs_promise.js", "skip": ["all"], "reason": "es2015 is off by default" },
     { "name": "test_iotjs_promise_chain_calls.js", "skip": ["all"], "reason": "es2015 is off by default" },
     { "name": "test_module_cache.js", "skip": ["nuttx"], "reason": "not implemented for nuttx" },
+    { "name": "test_module_json.js" },
     { "name": "test_module_require.js", "skip": ["nuttx"], "reason": "not implemented for nuttx" },
     { "name": "test_net_1.js" },
     { "name": "test_net_2.js" },

@@ -56,7 +56,6 @@ iotjs_jval_t iotjs_jval_as_function(iotjs_jval_t);
 /* Methods for General JavaScript Object */
 void iotjs_jval_set_method(iotjs_jval_t jobj, const char* name,
                            jerry_external_handler_t handler);
-bool iotjs_jval_set_prototype(iotjs_jval_t jobj, iotjs_jval_t jproto);
 void iotjs_jval_set_property_jval(iotjs_jval_t jobj, const char* name,
                                   iotjs_jval_t value);
 void iotjs_jval_set_property_null(iotjs_jval_t jobj, const char* name);

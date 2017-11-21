@@ -313,7 +313,7 @@ iotjs_jval_t MakeStatObject(uv_stat_t* statbuf) {
   IOTJS_ASSERT(jerry_value_is_object(stat_prototype));
 
   iotjs_jval_t jstat = iotjs_jval_create_object();
-  iotjs_jval_set_prototype(jstat, stat_prototype);
+  jerry_set_prototype(jstat, stat_prototype);
 
   jerry_release_value(stat_prototype);
 

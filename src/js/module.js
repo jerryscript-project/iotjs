@@ -189,7 +189,15 @@ iotjs_module_t.load = function(id, parent) {
 
   module.filename = modPath;
   module.dirs = [modPath.substring(0, modPath.lastIndexOf('/') + 1)];
-  module.compile();
+
+  var ext = modPath.substr(modPath.lastIndexOf('.') + 1);
+
+  if (ext === 'js') {
+    module.compile();
+  } else if (ext === 'json') {
+    var source = process.readSource(modPath);
+    module.exports = JSON.parse(source);
+  }
 
   iotjs_module_t.cache[modPath] = module;
 

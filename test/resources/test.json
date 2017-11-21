@@ -1,0 +1,8 @@
+{
+  "name": "IoT.js",
+  "description": "Platform for Internet of Things with JavaScript",
+  "author": "Samsung Electronics Co., Ltd.",
+  "license": "Apache-2.0",
+  "number": 123,
+  "array": [1,2,3,4]
+}

@@ -33,6 +33,7 @@ void iotjs_module_list_cleanup() {
   for (unsigned i = 0; i < iotjs_modules_count; i++) {
     if (iotjs_module_objects[i].jmodule != 0) {
       jerry_release_value(iotjs_module_objects[i].jmodule);
+      iotjs_module_objects[i].jmodule = 0;
     }
   }
 }

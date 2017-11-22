@@ -16,8 +16,6 @@
 #include "iotjs_def.h"
 
 #include "iotjs_module_buffer.h"
-
-#include "iotjs_exception.h"
 #include "iotjs_reqwrap.h"
 
 
@@ -42,6 +40,14 @@ static void iotjs_fs_reqwrap_destroy(iotjs_fs_reqwrap_t* fs_reqwrap) {
 }
 
 jerry_value_t MakeStatObject(uv_stat_t* statbuf);
+
+
+static jerry_value_t iotjs_create_uv_exception(int errorno,
+                                               const char* syscall) {
+  static char msg[256];
+  snprintf(msg, sizeof(msg), "'%s' %s", syscall, uv_strerror(errorno));
+  return iotjs_jval_create_error_without_error_flag(msg);
+}
 
 
 static void AfterAsync(uv_fs_t* req) {

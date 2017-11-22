@@ -70,12 +70,14 @@ jerry_value_t iotjs_jval_create_byte_array(uint32_t len, const char* data) {
   return jval;
 }
 
+
 jerry_value_t iotjs_jval_dummy_function(const jerry_value_t function_obj,
                                         const jerry_value_t this_val,
                                         const jerry_value_t args_p[],
                                         const jerry_length_t args_count) {
   return this_val;
 }
+
 
 jerry_value_t iotjs_jval_create_function(jerry_external_handler_t handler) {
   jerry_value_t jval = jerry_create_external_function(handler);
@@ -86,17 +88,9 @@ jerry_value_t iotjs_jval_create_function(jerry_external_handler_t handler) {
 }
 
 
-jerry_value_t iotjs_jval_create_error(const char* msg) {
-  return iotjs_jval_create_error_type(JERRY_ERROR_COMMON, msg);
-}
-
-
-jerry_value_t iotjs_jval_create_error_type(jerry_error_t type,
-                                           const char* msg) {
-  jerry_value_t jval;
-
-  const jerry_char_t* jmsg = (const jerry_char_t*)(msg);
-  jval = jerry_create_error(type, jmsg);
+jerry_value_t iotjs_jval_create_error_without_error_flag(const char* msg) {
+  jerry_value_t jval =
+      jerry_create_error(JERRY_ERROR_COMMON, (const jerry_char_t*)(msg));
   jerry_value_clear_error_flag(&jval);
 
   return jval;
@@ -291,7 +285,7 @@ static jerry_value_t iotjs_jargs_get(const iotjs_jargs_t* jargs,
 
 
 jerry_value_t iotjs_jhelper_call(jerry_value_t jfunc, jerry_value_t jthis,
-                                 const iotjs_jargs_t* jargs, bool* throws) {
+                                 const iotjs_jargs_t* jargs) {
   IOTJS_ASSERT(jerry_value_is_object(jfunc));
 
   jerry_value_t* jargv_ = NULL;
@@ -309,7 +303,7 @@ jerry_value_t iotjs_jhelper_call(jerry_value_t jfunc, jerry_value_t jthis,
   }
 #endif
 
-  jerry_value_t res = jerry_call_function(jfunc, jthis, jargv_, jargc_);
+  jerry_value_t jres = jerry_call_function(jfunc, jthis, jargv_, jargc_);
 
 #ifndef NDEBUG
   if (jargv_) {
@@ -317,43 +311,32 @@ jerry_value_t iotjs_jhelper_call(jerry_value_t jfunc, jerry_value_t jthis,
   }
 #endif
 
-  *throws = jerry_value_has_error_flag(res);
-
-  jerry_value_clear_error_flag(&res);
-
-  return res;
+  return jres;
 }
 
 
 jerry_value_t iotjs_jhelper_call_ok(jerry_value_t jfunc, jerry_value_t jthis,
                                     const iotjs_jargs_t* jargs) {
-  bool throws;
-  jerry_value_t jres = iotjs_jhelper_call(jfunc, jthis, jargs, &throws);
-  IOTJS_ASSERT(!throws);
+  jerry_value_t jres = iotjs_jhelper_call(jfunc, jthis, jargs);
+  IOTJS_ASSERT(!jerry_value_has_error_flag(jres));
   return jres;
 }
 
 
 jerry_value_t iotjs_jhelper_eval(const char* name, size_t name_len,
                                  const uint8_t* data, size_t size,
-                                 bool strict_mode, bool* throws) {
-  jerry_value_t res =
+                                 bool strict_mode) {
+  jerry_value_t jres =
       jerry_parse_named_resource((const jerry_char_t*)name, name_len,
                                  (const jerry_char_t*)data, size, strict_mode);
 
-  *throws = jerry_value_has_error_flag(res);
-
-  if (!*throws) {
-    jerry_value_t func = res;
-    res = jerry_run(func);
+  if (!jerry_value_has_error_flag(jres)) {
+    jerry_value_t func = jres;
+    jres = jerry_run(func);
     jerry_release_value(func);
-
-    *throws = jerry_value_has_error_flag(res);
   }
 
-  jerry_value_clear_error_flag(&res);
-
-  return res;
+  return jres;
 }
 
 
@@ -456,7 +439,7 @@ void iotjs_jargs_append_string(iotjs_jargs_t* jargs, const iotjs_string_t* x) {
 
 void iotjs_jargs_append_error(iotjs_jargs_t* jargs, const char* msg) {
   IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_jargs_t, jargs);
-  jerry_value_t error = iotjs_jval_create_error(msg);
+  jerry_value_t error = iotjs_jval_create_error_without_error_flag(msg);
   iotjs_jargs_append_jval(jargs, error);
   jerry_release_value(error);
 }

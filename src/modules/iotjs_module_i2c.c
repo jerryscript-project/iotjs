@@ -204,13 +204,12 @@ JS_FUNCTION(I2cCons) {
 #ifdef __linux__
   DJS_CHECK_ARGS(2, string, function);
   iotjs_string_t device = JS_GET_ARG(0, string);
-  iotjs_i2c_t* i2c = iotjs_i2c_create(&device, ji2c);
-  iotjs_string_destroy(&device);
 #else
   DJS_CHECK_ARGS(2, number, function);
   double device = JS_GET_ARG(0, number);
-  iotjs_i2c_t* i2c = iotjs_i2c_create(&device, ji2c);
 #endif
+  iotjs_i2c_t* i2c = iotjs_i2c_create(&device, ji2c);
+
   IOTJS_ASSERT(i2c ==
                (iotjs_i2c_t*)(iotjs_jval_get_object_native_handle(ji2c)));
 

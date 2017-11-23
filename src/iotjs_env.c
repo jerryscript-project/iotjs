@@ -116,6 +116,7 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
           (DebuggerConfig*)iotjs_buffer_allocate(sizeof(DebuggerConfig));
       _this->config.debugger->port = 5001;
       _this->config.debugger->wait_source = false;
+      _this->config.debugger->context_reset = false;
     } else if (!strncmp(argv[i], "--jerry-debugger-port=", port_arg_len) &&
                _this->config.debugger) {
       size_t port_length = sizeof(strlen(argv[i] - port_arg_len - 1));

@@ -20,6 +20,7 @@
 
 typedef struct {
   bool wait_source;
+  bool context_reset;
   int port;
 } DebuggerConfig;
 

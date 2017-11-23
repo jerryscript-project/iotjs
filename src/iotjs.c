@@ -88,7 +88,7 @@ static bool iotjs_jerry_init(iotjs_environment_t* env) {
 }
 
 
-static void iotjs_run() {
+static void iotjs_run(iotjs_environment_t* env) {
 // Evaluating 'iotjs.js' returns a function.
 #ifndef ENABLE_SNAPSHOT
   jerry_value_t jmain = iotjs_jhelper_eval("iotjs.js", strlen("iotjs.js"),
@@ -98,7 +98,8 @@ static void iotjs_run() {
       jerry_exec_snapshot_at((const void*)iotjs_js_modules_s,
                              iotjs_js_modules_l, module_iotjs_idx, false);
 #endif
-  if (jerry_value_has_error_flag(jmain)) {
+
+  if (jerry_value_has_error_flag(jmain) && !iotjs_environment_is_exiting(env)) {
     jerry_value_t errval = jerry_get_value_without_error_flag(jmain);
     iotjs_uncaught_exception(errval);
     jerry_release_value(errval);
@@ -123,7 +124,7 @@ static int iotjs_start(iotjs_environment_t* env) {
   iotjs_environment_set_state(env, kRunningMain);
 
   // Load and call iotjs.js.
-  iotjs_run();
+  iotjs_run(env);
 
   int exit_code = 0;
   if (!iotjs_environment_is_exiting(env)) {

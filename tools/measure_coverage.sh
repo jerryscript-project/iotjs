@@ -39,35 +39,41 @@ print_npm_dep()
 
 print_usage()
 {
-    echo "Measure JavaScript and C coverage and create a html report"
-    echo "out of the results"
-    echo ""
-    echo "Usage: measure_coverage.sh [ARGUMENTS]"
-    echo ""
-    echo "Optional Arguments:"
-    echo "  --node-modules-dir  Specifies the node_module directory, where"
-    echo "                      the nodejs dependencies are installed."
-    echo ""
-    echo "  --testdriver        Specifies the testrunner that should be used"
-    echo "                      for measuring JavaScript coverage."
-    echo "                      Possible values: jsdriver, pydriver"
-    echo ""
-    echo "  --target-board      Specifies the target board, where the"
-    echo "                      coverage measurement will happen."
-    echo "                      Possible values: rpi2"
-    echo ""
-    echo "The created html reports can be found in the 'coverage' directory,"
-    echo "which will be created in the IoT.js project source dir. The C and"
-    echo "JavaScript coverage reports are in the 'c' and 'js' subdirectories"
-    echo "respectively. The reports can be viewed by opening the 'index.html'"
-    echo "file in a web browser of your choice."
-    echo ""
-    echo "Running the script will require some additional dependencies."
-    echo ""
-    print_dep
-    print_nvm_dep
-    print_npm_dep
-    exit 0
+  echo "Measure JavaScript and C coverage and create a html report"
+  echo "out of the results"
+  echo ""
+  echo "Usage: measure_coverage.sh [ARGUMENTS]"
+  echo ""
+  echo "Optional Arguments:"
+  echo "  --node-modules-dir  Specifies the node_module directory, where"
+  echo "                      the nodejs dependencies are installed."
+  echo ""
+  echo "  --testdriver        Specifies the testrunner that should be used"
+  echo "                      for measuring JavaScript coverage."
+  echo "                      Possible values: jsdriver, pydriver"
+  echo ""
+  echo "  --target-board      Specifies the target board, where the"
+  echo "                      coverage measurement will happen."
+  echo "                      Possible values: rpi2"
+  echo ""
+  echo "The created html reports can be found in the 'coverage' directory,"
+  echo "which will be created in the IoT.js project source dir. The C and"
+  echo "JavaScript coverage reports are in the 'c' and 'js' subdirectories"
+  echo "respectively. The reports can be viewed by opening the 'index.html'"
+  echo "file in a web browser of your choice."
+  echo ""
+  echo "Running the script will require some additional dependencies."
+  echo ""
+  print_dep
+  print_nvm_dep
+  print_npm_dep
+  exit 0
+}
+
+fail_with_msg()
+{
+  echo "$1"
+  exit 1
 }
 
 # Use Python based testrunner by default.
@@ -134,8 +140,7 @@ if [ -v node_modules_dir ];
 then
     path=$(readlink -f $node_modules_dir)
     if [ ! -d "$path" ] || [ $(basename "$path") != "node_modules" ]; then
-        echo "'$node_modules_dir' is not a node_modules directory"
-        exit 1
+        fail_with_msg "'$node_modules_dir' is not a node_modules directory"
     fi
 
     test -e $path/.bin/nyc && \
@@ -170,22 +175,33 @@ mv src/cover_js src/js
 # Build iot.js
 # We need to use the system allocator to have enough memory, for now this can
 # only be done with a 32-bit build
+common_build_opts="--jerry-cmake-param=-DFEATURE_SYSTEM_ALLOCATOR=ON
+--compile-flag=-coverage
+--no-snapshot
+--no-check-test"
+
 if ! [ -v target_board ];
 then
-    tools/build.py --jerry-cmake-param="-DFEATURE_SYSTEM_ALLOCATOR=ON" \
-    --target-arch=x86 --compile-flag="-coverage" --no-snapshot --no-check-test
+    tools/build.py $common_build_opts --target-arch=x86 \
+    --profile=test/profiles/host-linux.profile
+
+    if [ $? -ne 0 ]; then
+        fail_with_msg "x86 build failed."
+    fi
 
     build_path=${PWD}/build/i686-linux/debug
 elif [ $target_board = "rpi2" ];
 then
-    tools/build.py --jerry-cmake-param="-DFEATURE_SYSTEM_ALLOCATOR=ON" \
-    --target-arch=arm --target-board=rpi2 --compile-flag="-coverage" \
-    --no-snapshot --no-check-test
+    tools/build.py $common_build_opts --target-arch=arm --target-board=rpi2 \
+    --profile=test/profiles/rpi2-linux.profile
+
+    if [ $? -ne 0 ]; then
+        fail_with_msg "RPi2 build failed."
+    fi
 
     build_path=${PWD}/build/arm-linux/debug
 else
-    echo "Not supported target-board: $target_board"
-    exit 1
+    fail_with_msg "Not supported target-board: $target_board"
 fi
 
 # Run the appropriate testrunner.
@@ -196,8 +212,7 @@ elif [ $test_driver = "pydriver" ];
 then
     python tools/testrunner.py ${build_path}/bin/iotjs --quiet --coverage
 else
-  echo "Not supported testdriver: $test_driver"
-  exit 1
+    fail_with_msg "Not supported testdriver: $test_driver"
 fi
 
 # Revert to original module files

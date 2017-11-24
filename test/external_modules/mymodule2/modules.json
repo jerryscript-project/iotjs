@@ -1,0 +1,9 @@
+{
+  "modules": {
+    "mymodule2": {
+      "native_files": ["my_module.c"],
+      "init": "InitMyNativeModule"
+    }
+  }
+}
+

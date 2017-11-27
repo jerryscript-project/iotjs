@@ -26,8 +26,10 @@ from common_py.system.executor import Executor as ex
 from common_py.system.platform import Platform
 from check_tidy import check_tidy
 
-TESTS=['host-linux', 'host-darwin', 'rpi2', 'nuttx', 'misc', 'no-snapshot',
-       'artik10', 'artik053', 'coverity']
+platform = Platform()
+
+TESTS=['artik10', 'artik053', 'coverity', 'external-modules',
+       'host-linux', 'host-darwin', 'nuttx', 'misc', 'no-snapshot', 'rpi2']
 BUILDTYPES=['debug', 'release']
 NUTTXTAG = 'nuttx-7.19'
 
@@ -349,3 +351,20 @@ if __name__ == '__main__':
 
         elif test == "coverity":
             build("debug", ['--no-check-test'] + build_args)
+
+        elif test == "external-modules":
+            for buildtype in option.buildtype:
+                build(buildtype, ['--profile=test/profiles/host-linux.profile',
+                                  '--external-modules=test/external_modules/'
+                                  'mymodule1,test/external_modules/mymodule2',
+                                  '--cmake-param=-DENABLE_MODULE_MYMODULE1=ON',
+                                  '--cmake-param=-DENABLE_MODULE_MYMODULE2=ON']
+                      + build_args)
+                binary = fs.join('build', platform.arch() + '-'
+                                 + platform.os(), buildtype, 'bin', 'iotjs')
+                ext_mod_tests = [
+                    'test/external_modules/test_external_module1.js',
+                    'test/external_modules/test_external_module2.js']
+                # TODO: Use testrunner to run an extended test set
+                for test in ext_mod_tests:
+                    ex.check_run_cmd(binary, [test])

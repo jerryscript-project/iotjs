@@ -42,13 +42,13 @@ if(ENABLE_SNAPSHOT)
 endif()
 
 # Module configuration - listup all possible native C modules
-function(getListOfVarsStartWith prefix varResult)
+function(getListOfVars prefix pattern varResult)
     set(moduleNames)
     get_cmake_property(vars VARIABLES)
     string(REPLACE "." "\\." prefix ${prefix})
     foreach(var ${vars})
       string(REGEX MATCH
-             "(^|;)${prefix}([A-Za-z0-9_]+[A-Za-z]+)[A-Za-z0-9_.]*"
+             "(^|;)${prefix}${pattern}($|;)"
              matchedVar "${var}")
       if(matchedVar)
         list(APPEND moduleNames ${CMAKE_MATCH_2})
@@ -73,7 +73,7 @@ function(addModuleDependencies module varResult)
         list(APPEND moduleDefines ENABLE_MODULE_${DEPENDENCY})
         addModuleDependencies(${dependency} deps)
         list(APPEND varResult ${deps})
-        list(REMOVE_DUPLICATES moduleDefines)
+        list(REMOVE_DUPLICATES varResult)
       endif()
     endforeach()
   endif()
@@ -123,8 +123,8 @@ foreach(module_descriptor ${EXTERNAL_MODULES})
 
   file(READ "${MODULE_DIR}/modules.json" IOTJS_MODULES_JSON_FILE)
   sbeParseJson(${CURR_JSON} IOTJS_MODULES_JSON_FILE)
-
-  getListOfVarsStartWith("${CURR_JSON}.modules." _IOTJS_MODULES)
+  getListOfVars("${CURR_JSON}.modules." "([A-Za-z0-9_]+)[A-Za-z0-9_.]*"
+                _IOTJS_MODULES)
   list(APPEND IOTJS_MODULES ${_IOTJS_MODULES})
 
   foreach(module ${_IOTJS_MODULES})
@@ -161,7 +161,7 @@ set(IOTJS_MODULE_SRC)
 set(IOTJS_MODULE_DEFINES)
 
 message("IoT.js module configuration:")
-getListOfVarsStartWith("ENABLE_MODULE_" IOTJS_ENABLED_MODULES)
+getListOfVars("ENABLE_MODULE_" "([A-Za-z0-9_]+)" IOTJS_ENABLED_MODULES)
 foreach(MODULE ${IOTJS_ENABLED_MODULES})
   set(MODULE_DEFINE_VAR "ENABLE_MODULE_${MODULE}")
   message(STATUS "${MODULE_DEFINE_VAR} = ${${MODULE_DEFINE_VAR}}")
@@ -210,12 +210,14 @@ foreach(MODULE ${IOTJS_ENABLED_MODULES})
       endif()
     endforeach()
 
-    getListOfVarsStartWith("${MODULE_PREFIX}" MODULE_KEYS)
+    getListOfVars("${MODULE_PREFIX}" "([A-Za-z0-9_]+[A-Za-z])[A-Za-z0-9_.]*"
+                  MODULE_KEYS)
     list(FIND MODULE_KEYS "platforms" PLATFORMS_KEY)
 
     set(PLATFORMS_PREFIX ${MODULE_PREFIX}platforms.)
     if(${PLATFORMS_KEY} GREATER -1)
-      getListOfVarsStartWith("${PLATFORMS_PREFIX}" MODULE_PLATFORMS)
+      getListOfVars("${PLATFORMS_PREFIX}"
+                    "([A-Za-z0-9_]+[A-Za-z])[A-Za-z0-9_.]*" MODULE_PLATFORMS)
       list(FIND MODULE_PLATFORMS ${IOTJS_SYSTEM_OS} PLATFORM_NATIVES)
 
       # Add plaform-dependant native source if exists...

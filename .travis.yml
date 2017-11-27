@@ -32,6 +32,7 @@ env:
     - OPTS="--test=nuttx" INSTALL_NUTTX_DEPS=yes
     - OPTS="--test=artik10" INSTALL_TIZEN_DEPS=yes
     - OPTS="artik053" TARGET_OS="tizenrt" RUN_DOCKER=yes
+    - OPTS="--test=external-modules"
     - OPTS="--test=misc"
     - OPTS="--test=no-snapshot"
 

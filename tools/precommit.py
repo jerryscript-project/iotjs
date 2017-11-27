@@ -91,7 +91,7 @@ def setup_nuttx_root(nuttx_root):
                     'config',
                     'nuttx',
                     'stm32f4dis',
-                    '.config.travis'),
+                    'config.travis'),
             '.config')
 
 
@@ -303,7 +303,7 @@ if __name__ == '__main__':
                                     'config',
                                     'nuttx',
                                     'stm32f4dis',
-                                    '.config.alloptions'),
+                                    'config.alloptions'),
                             '.config')
                     fs.chdir(path.PROJECT_ROOT)
 

@@ -37,6 +37,8 @@ DOCKER_NAME = 'iotjs_docker'
 
 BUILDTYPES = ['debug', 'release']
 
+TIZENRT_TAG = '1.1_Public_Release'
+
 def run_docker():
     ex.check_run_cmd('docker', ['run', '-dit', '--name', DOCKER_NAME, '-v',
                      '%s:%s' % (TRAVIS_BUILD_PATH, DOCKER_IOTJS_PATH),
@@ -72,8 +74,8 @@ if __name__ == '__main__':
                                             build_options)
 
     elif test == 'artik053':
-        # Update latest commit
-        exec_docker(DOCKER_TIZENRT_PATH, ['git', 'pull'])
+        # Checkout specified tag
+        exec_docker(DOCKER_TIZENRT_PATH, ['git', 'checkout', TIZENRT_TAG])
         # Set configure
         exec_docker(DOCKER_TIZENRT_OS_TOOLS_PATH, ['./configure.sh',
                                                    'artik053/iotjs'])

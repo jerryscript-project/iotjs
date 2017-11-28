@@ -206,7 +206,7 @@ JS_FUNCTION(I2cCons) {
   iotjs_string_t device = JS_GET_ARG(0, string);
 #else
   DJS_CHECK_ARGS(2, number, function);
-  double device = JS_GET_ARG(0, number);
+  int device = JS_GET_ARG(0, number);
 #endif
   iotjs_i2c_t* i2c = iotjs_i2c_create(&device, ji2c);
 

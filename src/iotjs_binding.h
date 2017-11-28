@@ -28,11 +28,7 @@ typedef jerry_length_t JRawLengthType;
 typedef jerry_value_t iotjs_jval_t;
 
 /* Constructors */
-iotjs_jval_t iotjs_jval_create_number(double v);
 iotjs_jval_t iotjs_jval_create_string(const iotjs_string_t* v);
-iotjs_jval_t iotjs_jval_create_string_raw(const char* data);
-iotjs_jval_t iotjs_jval_create_object();
-iotjs_jval_t iotjs_jval_create_array(uint32_t len);
 iotjs_jval_t iotjs_jval_create_byte_array(uint32_t len, const char* data);
 jerry_value_t iotjs_jval_dummy_function(const jerry_value_t function_obj,
                                         const jerry_value_t this_val,

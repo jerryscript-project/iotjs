@@ -419,11 +419,11 @@ JS_FUNCTION(Close) {
 
 
 iotjs_jval_t InitSpi() {
-  iotjs_jval_t jspi = iotjs_jval_create_object();
+  iotjs_jval_t jspi = jerry_create_object();
   iotjs_jval_t jspiConstructor = jerry_create_external_function(SpiConstructor);
   iotjs_jval_set_property_jval(jspi, IOTJS_MAGIC_STRING_SPI, jspiConstructor);
 
-  iotjs_jval_t prototype = iotjs_jval_create_object();
+  iotjs_jval_t prototype = jerry_create_object();
   iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_TRANSFERARRAY,
                         TransferArray);
   iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_TRANSFERBUFFER,
@@ -435,7 +435,7 @@ iotjs_jval_t InitSpi() {
   jerry_release_value(jspiConstructor);
 
   // SPI mode properties
-  iotjs_jval_t jmode = iotjs_jval_create_object();
+  iotjs_jval_t jmode = jerry_create_object();
   iotjs_jval_set_property_number(jmode, IOTJS_MAGIC_STRING_0, kSpiMode_0);
   iotjs_jval_set_property_number(jmode, IOTJS_MAGIC_STRING_1, kSpiMode_1);
   iotjs_jval_set_property_number(jmode, IOTJS_MAGIC_STRING_2, kSpiMode_2);
@@ -444,14 +444,14 @@ iotjs_jval_t InitSpi() {
   jerry_release_value(jmode);
 
   // SPI mode properties
-  iotjs_jval_t jcs = iotjs_jval_create_object();
+  iotjs_jval_t jcs = jerry_create_object();
   iotjs_jval_set_property_number(jcs, IOTJS_MAGIC_STRING_NONE, kSpiCsNone);
   iotjs_jval_set_property_number(jcs, IOTJS_MAGIC_STRING_HIGH, kSpiCsHigh);
   iotjs_jval_set_property_jval(jspi, IOTJS_MAGIC_STRING_CHIPSELECT_U, jcs);
   jerry_release_value(jcs);
 
   // SPI order properties
-  iotjs_jval_t jbit_order = iotjs_jval_create_object();
+  iotjs_jval_t jbit_order = jerry_create_object();
   iotjs_jval_set_property_number(jbit_order, IOTJS_MAGIC_STRING_MSB,
                                  kSpiOrderMsb);
   iotjs_jval_set_property_number(jbit_order, IOTJS_MAGIC_STRING_LSB,

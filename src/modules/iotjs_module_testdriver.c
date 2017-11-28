@@ -61,7 +61,7 @@ JS_FUNCTION(IsAliveExceptFor) {
 
 
 iotjs_jval_t InitTestdriver() {
-  iotjs_jval_t testdriver = iotjs_jval_create_object();
+  iotjs_jval_t testdriver = jerry_create_object();
   iotjs_jval_set_method(testdriver, IOTJS_MAGIC_STRING_ISALIVEEXCEPTFOR,
                         IsAliveExceptFor);
 

@@ -116,7 +116,7 @@ static void iotjs_httpparserwrap_destroy(
 static iotjs_jval_t iotjs_httpparserwrap_make_header(
     iotjs_httpparserwrap_t* httpparserwrap) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_httpparserwrap_t, httpparserwrap);
-  iotjs_jval_t jheader = iotjs_jval_create_array(_this->n_values * 2);
+  iotjs_jval_t jheader = jerry_create_array(_this->n_values * 2);
   for (size_t i = 0; i < _this->n_values; i++) {
     iotjs_jval_t f = iotjs_jval_create_string(&_this->fields[i]);
     iotjs_jval_t v = iotjs_jval_create_string(&_this->values[i]);
@@ -247,7 +247,7 @@ static int iotjs_httpparserwrap_on_headers_complete(http_parser* parser) {
 
   // URL
   iotjs_jargs_t argv = iotjs_jargs_create(1);
-  iotjs_jval_t info = iotjs_jval_create_object();
+  iotjs_jval_t info = jerry_create_object();
 
   if (_this->flushed) {
     // If some headers already are flushed,
@@ -474,7 +474,7 @@ JS_FUNCTION(HTTPParserCons) {
 
 
 iotjs_jval_t InitHttpparser() {
-  iotjs_jval_t httpparser = iotjs_jval_create_object();
+  iotjs_jval_t httpparser = jerry_create_object();
 
   iotjs_jval_t jParserCons = jerry_create_external_function(HTTPParserCons);
   iotjs_jval_set_property_jval(httpparser, IOTJS_MAGIC_STRING_HTTPPARSER,
@@ -485,7 +485,7 @@ iotjs_jval_t InitHttpparser() {
   iotjs_jval_set_property_number(jParserCons, IOTJS_MAGIC_STRING_RESPONSE,
                                  HTTP_RESPONSE);
 
-  iotjs_jval_t methods = iotjs_jval_create_object();
+  iotjs_jval_t methods = jerry_create_object();
 #define V(num, name, string) \
   iotjs_jval_set_property_string_raw(methods, #num, #string);
   HTTP_METHOD_MAP(V)
@@ -494,7 +494,7 @@ iotjs_jval_t InitHttpparser() {
   iotjs_jval_set_property_jval(jParserCons, IOTJS_MAGIC_STRING_METHODS,
                                methods);
 
-  iotjs_jval_t prototype = iotjs_jval_create_object();
+  iotjs_jval_t prototype = jerry_create_object();
 
   iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_EXECUTE, Execute);
   iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_REINITIALIZE,

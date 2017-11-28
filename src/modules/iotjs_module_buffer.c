@@ -497,7 +497,7 @@ JS_FUNCTION(ByteLength) {
 iotjs_jval_t InitBuffer() {
   iotjs_jval_t buffer = jerry_create_external_function(Buffer);
 
-  iotjs_jval_t prototype = iotjs_jval_create_object();
+  iotjs_jval_t prototype = jerry_create_object();
   iotjs_jval_set_property_jval(buffer, IOTJS_MAGIC_STRING_PROTOTYPE, prototype);
   iotjs_jval_set_method(buffer, IOTJS_MAGIC_STRING_BYTELENGTH, ByteLength);
 

@@ -215,7 +215,7 @@ static void OnRecv(uv_udp_t* handle, ssize_t nread, const uv_buf_t* buf,
 
   iotjs_jargs_append_jval(&jargs, jbuffer);
 
-  iotjs_jval_t rinfo = iotjs_jval_create_object();
+  iotjs_jval_t rinfo = jerry_create_object();
   AddressToJS(rinfo, addr);
   iotjs_jargs_append_jval(&jargs, rinfo);
 
@@ -466,7 +466,7 @@ JS_FUNCTION(Unref) {
 iotjs_jval_t InitUdp() {
   iotjs_jval_t udp = jerry_create_external_function(UDP);
 
-  iotjs_jval_t prototype = iotjs_jval_create_object();
+  iotjs_jval_t prototype = jerry_create_object();
   iotjs_jval_set_property_jval(udp, IOTJS_MAGIC_STRING_PROTOTYPE, prototype);
 
   iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_BIND, Bind);

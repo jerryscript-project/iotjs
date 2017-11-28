@@ -279,7 +279,7 @@ JS_FUNCTION(Read) {
 iotjs_jval_t InitI2c() {
   iotjs_jval_t jI2cCons = jerry_create_external_function(I2cCons);
 
-  iotjs_jval_t prototype = iotjs_jval_create_object();
+  iotjs_jval_t prototype = jerry_create_object();
 
   iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_SETADDRESS, SetAddress);
   iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_CLOSE, Close);

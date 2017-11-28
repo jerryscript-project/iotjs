@@ -188,7 +188,7 @@ iotjs_jval_t InitBlehcisocket() {
   iotjs_jval_t jblehcisocketCons =
       jerry_create_external_function(BleHciSocketCons);
 
-  iotjs_jval_t prototype = iotjs_jval_create_object();
+  iotjs_jval_t prototype = jerry_create_object();
 
   iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_START, Start);
   iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_BINDRAW, BindRaw);

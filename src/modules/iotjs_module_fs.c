@@ -73,9 +73,10 @@ static void AfterAsync(uv_fs_t* req) {
         int r;
         uv_dirent_t ent;
         uint32_t idx = 0;
-        iotjs_jval_t ret = iotjs_jval_create_array(0);
+        iotjs_jval_t ret = jerry_create_array(0);
         while ((r = uv_fs_scandir_next(req, &ent)) != UV_EOF) {
-          iotjs_jval_t name = iotjs_jval_create_string_raw(ent.name);
+          iotjs_jval_t name =
+              jerry_create_string((const jerry_char_t*)ent.name);
           iotjs_jval_set_property_by_index(ret, idx, name);
           jerry_release_value(name);
           idx++;
@@ -133,9 +134,10 @@ static iotjs_jval_t AfterSync(uv_fs_t* req, int err, const char* syscall_name) {
         int r;
         uv_dirent_t ent;
         uint32_t idx = 0;
-        iotjs_jval_t ret = iotjs_jval_create_array(0);
+        iotjs_jval_t ret = jerry_create_array(0);
         while ((r = uv_fs_scandir_next(req, &ent)) != UV_EOF) {
-          iotjs_jval_t name = iotjs_jval_create_string_raw(ent.name);
+          iotjs_jval_t name =
+              jerry_create_string((const jerry_char_t*)ent.name);
           iotjs_jval_set_property_by_index(ret, idx, name);
           jerry_release_value(name);
           idx++;
@@ -312,7 +314,7 @@ iotjs_jval_t MakeStatObject(uv_stat_t* statbuf) {
       iotjs_jval_get_property(fs, IOTJS_MAGIC_STRING_STATS);
   IOTJS_ASSERT(jerry_value_is_object(stat_prototype));
 
-  iotjs_jval_t jstat = iotjs_jval_create_object();
+  iotjs_jval_t jstat = jerry_create_object();
   iotjs_jval_set_prototype(jstat, stat_prototype);
 
   jerry_release_value(stat_prototype);
@@ -515,7 +517,7 @@ JS_FUNCTION(StatsIsFile) {
 }
 
 iotjs_jval_t InitFs() {
-  iotjs_jval_t fs = iotjs_jval_create_object();
+  iotjs_jval_t fs = jerry_create_object();
 
   iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_CLOSE, Close);
   iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_OPEN, Open);
@@ -529,7 +531,7 @@ iotjs_jval_t InitFs() {
   iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_RENAME, Rename);
   iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_READDIR, ReadDir);
 
-  iotjs_jval_t stats_prototype = iotjs_jval_create_object();
+  iotjs_jval_t stats_prototype = jerry_create_object();
 
   iotjs_jval_set_method(stats_prototype, IOTJS_MAGIC_STRING_ISDIRECTORY,
                         StatsIsDirectory);

@@ -225,7 +225,7 @@ static void SetProcessEnv(iotjs_jval_t process) {
   iotjsenv = "";
 #endif
 
-  iotjs_jval_t env = iotjs_jval_create_object();
+  iotjs_jval_t env = jerry_create_object();
   iotjs_jval_set_property_string_raw(env, IOTJS_MAGIC_STRING_HOME, homedir);
   iotjs_jval_set_property_string_raw(env, IOTJS_MAGIC_STRING_IOTJS_PATH,
                                      iotjspath);
@@ -240,7 +240,7 @@ static void SetProcessEnv(iotjs_jval_t process) {
 
 static void SetProcessIotjs(iotjs_jval_t process) {
   // IoT.js specific
-  iotjs_jval_t iotjs = iotjs_jval_create_object();
+  iotjs_jval_t iotjs = jerry_create_object();
   iotjs_jval_set_property_jval(process, IOTJS_MAGIC_STRING_IOTJS, iotjs);
 
   iotjs_jval_set_property_string_raw(iotjs, IOTJS_MAGIC_STRING_BOARD,
@@ -253,11 +253,11 @@ static void SetProcessArgv(iotjs_jval_t process) {
   const iotjs_environment_t* env = iotjs_environment_get();
   uint32_t argc = iotjs_environment_argc(env);
 
-  iotjs_jval_t argv = iotjs_jval_create_array(argc);
+  iotjs_jval_t argv = jerry_create_array(argc);
 
   for (uint32_t i = 0; i < argc; ++i) {
     const char* argvi = iotjs_environment_argv(env, i);
-    iotjs_jval_t arg = iotjs_jval_create_string_raw(argvi);
+    iotjs_jval_t arg = jerry_create_string((const jerry_char_t*)argvi);
     iotjs_jval_set_property_by_index(argv, i, arg);
     jerry_release_value(arg);
   }
@@ -280,7 +280,7 @@ static void SetBuiltinModules(iotjs_jval_t builtin_modules) {
 
 
 iotjs_jval_t InitProcess() {
-  iotjs_jval_t process = iotjs_jval_create_object();
+  iotjs_jval_t process = jerry_create_object();
 
   iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_COMPILE, Compile);
   iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_COMPILENATIVEPTR,
@@ -294,7 +294,7 @@ iotjs_jval_t InitProcess() {
   SetProcessEnv(process);
 
   // process.builtin_modules
-  iotjs_jval_t builtin_modules = iotjs_jval_create_object();
+  iotjs_jval_t builtin_modules = jerry_create_object();
   SetBuiltinModules(builtin_modules);
   iotjs_jval_set_property_jval(process, IOTJS_MAGIC_STRING_BUILTIN_MODULES,
                                builtin_modules);

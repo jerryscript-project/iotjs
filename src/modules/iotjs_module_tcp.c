@@ -649,7 +649,7 @@ JS_FUNCTION(GetSockeName) {
 iotjs_jval_t InitTcp() {
   iotjs_jval_t tcp = jerry_create_external_function(TCP);
 
-  iotjs_jval_t prototype = iotjs_jval_create_object();
+  iotjs_jval_t prototype = jerry_create_object();
 
   iotjs_jval_set_property_jval(tcp, IOTJS_MAGIC_STRING_PROTOTYPE, prototype);
   iotjs_jval_set_method(tcp, IOTJS_MAGIC_STRING_ERRNAME, ErrName);

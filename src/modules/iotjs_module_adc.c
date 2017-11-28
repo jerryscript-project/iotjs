@@ -300,11 +300,11 @@ JS_FUNCTION(CloseSync) {
 }
 
 iotjs_jval_t InitAdc() {
-  iotjs_jval_t jadc = iotjs_jval_create_object();
+  iotjs_jval_t jadc = jerry_create_object();
   iotjs_jval_t jadcConstructor = jerry_create_external_function(AdcConstructor);
   iotjs_jval_set_property_jval(jadc, IOTJS_MAGIC_STRING_ADC, jadcConstructor);
 
-  iotjs_jval_t jprototype = iotjs_jval_create_object();
+  iotjs_jval_t jprototype = jerry_create_object();
   iotjs_jval_set_method(jprototype, IOTJS_MAGIC_STRING_READ, Read);
   iotjs_jval_set_method(jprototype, IOTJS_MAGIC_STRING_READSYNC, ReadSync);
   iotjs_jval_set_method(jprototype, IOTJS_MAGIC_STRING_CLOSE, Close);

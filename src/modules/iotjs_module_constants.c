@@ -23,7 +23,7 @@
   } while (0)
 
 iotjs_jval_t InitConstants() {
-  iotjs_jval_t constants = iotjs_jval_create_object();
+  iotjs_jval_t constants = jerry_create_object();
 
   SET_CONSTANT(constants, O_APPEND);
   SET_CONSTANT(constants, O_CREAT);

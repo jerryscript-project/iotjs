@@ -857,7 +857,7 @@ JS_FUNCTION(Abort) {
 }
 
 iotjs_jval_t InitHttps() {
-  iotjs_jval_t https = iotjs_jval_create_object();
+  iotjs_jval_t https = jerry_create_object();
 
   iotjs_jval_set_method(https, IOTJS_MAGIC_STRING_CREATEREQUEST, createRequest);
   iotjs_jval_set_method(https, IOTJS_MAGIC_STRING_ADDHEADER, addHeader);

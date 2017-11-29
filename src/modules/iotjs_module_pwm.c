@@ -362,7 +362,7 @@ iotjs_jval_t InitPwm() {
   iotjs_jval_t jpwm_constructor =
       jerry_create_external_function(PWMConstructor);
 
-  iotjs_jval_t jprototype = iotjs_jval_create_object();
+  iotjs_jval_t jprototype = jerry_create_object();
 
   iotjs_jval_set_method(jprototype, IOTJS_MAGIC_STRING_SETPERIOD, SetPeriod);
   iotjs_jval_set_method(jprototype, IOTJS_MAGIC_STRING_SETDUTYCYCLE,

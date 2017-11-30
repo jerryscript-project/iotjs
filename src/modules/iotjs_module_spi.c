@@ -326,11 +326,11 @@ iotjs_spi_t* iotjs_spi_get_instance(iotjs_jval_t jspi) {
 
 
 JS_FUNCTION(SpiConstructor) {
-  DJS_CHECK_THIS(object);
+  DJS_CHECK_THIS();
   DJS_CHECK_ARGS(2, object, function);
 
   // Create SPI object
-  iotjs_jval_t jspi = JS_GET_THIS(object);
+  iotjs_jval_t jspi = JS_GET_THIS();
   iotjs_spi_t* spi = iotjs_spi_create(jspi);
   IOTJS_ASSERT(spi == iotjs_spi_get_instance(jspi));
 

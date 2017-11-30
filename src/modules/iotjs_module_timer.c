@@ -149,9 +149,9 @@ JS_FUNCTION(Stop) {
 
 
 JS_FUNCTION(Timer) {
-  JS_CHECK_THIS(object);
+  JS_CHECK_THIS();
 
-  const iotjs_jval_t jtimer = JS_GET_THIS(object);
+  const iotjs_jval_t jtimer = JS_GET_THIS();
 
   iotjs_timerwrap_t* timer_wrap = iotjs_timerwrap_create(jtimer);
 

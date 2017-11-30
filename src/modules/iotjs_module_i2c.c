@@ -198,9 +198,9 @@ static void GetI2cArray(const iotjs_jval_t jarray,
   } while (0)
 
 JS_FUNCTION(I2cCons) {
-  DJS_CHECK_THIS(object);
+  DJS_CHECK_THIS();
   // Create I2C object
-  const iotjs_jval_t ji2c = JS_GET_THIS(object);
+  const iotjs_jval_t ji2c = JS_GET_THIS();
 #ifdef __linux__
   DJS_CHECK_ARGS(2, string, function);
   iotjs_string_t device = JS_GET_ARG(0, string);

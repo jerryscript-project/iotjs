@@ -206,9 +206,9 @@ iotjs_jval_t iotjs_shutdown_reqwrap_jcallback(THIS) {
 
 
 JS_FUNCTION(TCP) {
-  DJS_CHECK_THIS(object);
+  DJS_CHECK_THIS();
 
-  iotjs_jval_t jtcp = JS_GET_THIS(object);
+  iotjs_jval_t jtcp = JS_GET_THIS();
   iotjs_tcpwrap_create(jtcp);
   return jerry_create_undefined();
 }
@@ -585,7 +585,7 @@ JS_FUNCTION(SetKeepAlive) {
 }
 
 JS_FUNCTION(ErrName) {
-  DJS_CHECK_THIS(object);
+  DJS_CHECK_THIS();
   DJS_CHECK_ARGS(1, number);
 
   int errorcode = JS_GET_ARG(0, number);
@@ -634,7 +634,7 @@ void AddressToJS(iotjs_jval_t obj, const sockaddr* addr) {
 JS_FUNCTION(GetSockeName) {
   DJS_CHECK_ARGS(1, object);
 
-  iotjs_tcpwrap_t* wrap = iotjs_tcpwrap_from_jobject(JS_GET_THIS(object));
+  iotjs_tcpwrap_t* wrap = iotjs_tcpwrap_from_jobject(JS_GET_THIS());
   IOTJS_ASSERT(wrap != NULL);
 
   sockaddr_storage storage;

@@ -158,7 +158,7 @@ iotjs_jval_t iotjs_jhelper_eval(const char* name, size_t name_len,
   JS_CHECK(jargc >= argc);       \
   JS_CHECK_ARGS_##argc(__VA_ARGS__)
 
-#define JS_CHECK_THIS(type) JS_CHECK_TYPE(jthis, type);
+#define JS_CHECK_THIS() JS_CHECK_TYPE(jthis, object);
 
 #define JS_GET_ARG(index, type) iotjs_jval_as_##type(jargv[index])
 
@@ -167,7 +167,7 @@ iotjs_jval_t iotjs_jhelper_eval(const char* name, size_t name_len,
        ? jargv[index]                                     \
        : jerry_create_null())
 
-#define JS_GET_THIS(type) iotjs_jval_as_##type(jthis)
+#define JS_GET_THIS() iotjs_jval_as_object(jthis)
 
 #define JS_FUNCTION(name)                                \
   static jerry_value_t name(const jerry_value_t jfunc,   \
@@ -180,12 +180,12 @@ iotjs_jval_t iotjs_jhelper_eval(const char* name, size_t name_len,
 // This code branch is to be in #ifdef NDEBUG
 #define DJS_CHECK_ARG(index, type) ((void)0)
 #define DJS_CHECK_ARGS(argc, ...) ((void)0)
-#define DJS_CHECK_THIS(type) ((void)0)
+#define DJS_CHECK_THIS() ((void)0)
 #define DJS_CHECK_ARG_IF_EXIST(index, type) ((void)0)
 #else
 #define DJS_CHECK_ARG(index, type) JS_CHECK_ARG(index, type)
 #define DJS_CHECK_ARGS(argc, ...) JS_CHECK_ARGS(argc, __VA_ARGS__)
-#define DJS_CHECK_THIS(type) JS_CHECK_THIS(type)
+#define DJS_CHECK_THIS() JS_CHECK_THIS()
 #define DJS_CHECK_ARG_IF_EXIST(index, type) JS_CHECK_ARG_IF_EXIST(index, type)
 #endif
 

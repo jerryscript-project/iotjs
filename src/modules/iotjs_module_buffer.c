@@ -235,10 +235,10 @@ iotjs_jval_t iotjs_bufferwrap_create_buffer(size_t len) {
 
 
 JS_FUNCTION(Buffer) {
-  DJS_CHECK_THIS(object);
+  DJS_CHECK_THIS();
   DJS_CHECK_ARGS(2, object, number);
 
-  const iotjs_jval_t jbuiltin = JS_GET_THIS(object);
+  const iotjs_jval_t jbuiltin = JS_GET_THIS();
   const iotjs_jval_t jbuffer = JS_GET_ARG(0, object);
   size_t length = JS_GET_ARG(1, number);
 
@@ -483,7 +483,7 @@ JS_FUNCTION(ToHexString) {
 
 
 JS_FUNCTION(ByteLength) {
-  DJS_CHECK_THIS(object);
+  DJS_CHECK_THIS();
   DJS_CHECK_ARGS(1, string);
 
   iotjs_string_t str = JS_GET_ARG(0, string);

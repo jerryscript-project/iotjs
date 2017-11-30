@@ -460,10 +460,10 @@ JS_FUNCTION(Resume) {
 
 
 JS_FUNCTION(HTTPParserCons) {
-  DJS_CHECK_THIS(object);
+  DJS_CHECK_THIS();
   DJS_CHECK_ARGS(1, number);
 
-  const iotjs_jval_t jparser = JS_GET_THIS(object);
+  const iotjs_jval_t jparser = JS_GET_THIS();
 
   http_parser_type httpparser_type = (http_parser_type)(JS_GET_ARG(0, number));
   IOTJS_ASSERT(httpparser_type == HTTP_REQUEST ||

@@ -124,9 +124,9 @@ size_t iotjs_send_reqwrap_msg_size(THIS) {
 
 
 JS_FUNCTION(UDP) {
-  DJS_CHECK_THIS(object);
+  DJS_CHECK_THIS();
 
-  iotjs_jval_t judp = JS_GET_THIS(object);
+  iotjs_jval_t judp = JS_GET_THIS();
   iotjs_udpwrap_create(judp);
 
   return jerry_create_undefined();
@@ -139,7 +139,7 @@ JS_FUNCTION(Bind) {
 
   iotjs_string_t address = JS_GET_ARG(0, string);
   const int port = JS_GET_ARG(1, number);
-  iotjs_jval_t this_obj = JS_GET_THIS(object);
+  iotjs_jval_t this_obj = JS_GET_THIS();
   iotjs_jval_t reuse_addr =
       iotjs_jval_get_property(this_obj, IOTJS_MAGIC_STRING__REUSEADDR);
   IOTJS_ASSERT(jerry_value_is_boolean(reuse_addr) ||
@@ -332,7 +332,7 @@ JS_FUNCTION(Close) {
 
 JS_FUNCTION(GetSockeName) {
   DJS_CHECK_ARGS(1, object);
-  iotjs_udpwrap_t* wrap = iotjs_udpwrap_from_jobject(JS_GET_THIS(object));
+  iotjs_udpwrap_t* wrap = iotjs_udpwrap_from_jobject(JS_GET_THIS());
   IOTJS_ASSERT(wrap != NULL);
 
   sockaddr_storage storage;

@@ -202,10 +202,10 @@ static void iotjs_adc_close_worker(uv_work_t* work_req) {
   } while (0)
 
 JS_FUNCTION(AdcConstructor) {
-  DJS_CHECK_THIS(object);
+  DJS_CHECK_THIS();
 
   // Create ADC object
-  const iotjs_jval_t jadc = JS_GET_THIS(object);
+  const iotjs_jval_t jadc = JS_GET_THIS();
   iotjs_adc_t* adc = iotjs_adc_create(jadc);
   IOTJS_ASSERT(adc == iotjs_adc_instance_from_jval(jadc));
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_adc_t, adc);

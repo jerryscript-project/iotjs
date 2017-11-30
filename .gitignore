@@ -1,5 +1,6 @@
 # Produced files
 
+/samples/cloud-plant-watering/configuration.json
 /build
 /build/*
 /src/iotjs_js.h

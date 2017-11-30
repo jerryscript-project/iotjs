@@ -1,0 +1,35 @@
+{
+  "name": "gardener-device",
+  "version": "1.0.0",
+  "description": "Simple gardener device which connects to ArtikCloud to post data",
+  "main": "gardener.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Samsung/iotjs.git"
+  },
+  "keywords": [
+    "artik",
+    "cloud",
+    "iotjs"
+  ],
+  "engines": {
+    "node": "*",
+    "iotjs": "*"
+  },
+  "os": [
+    "linux",
+    "tizenrt"
+  ],
+  "author": "Krzysztof Antoszek <k.antoszek@samsung.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Samsung/iotjs/issues"
+  },
+  "homepage": "https://github.com/Samsung/iotjs#readme",
+  "dependencies": {
+    "querystring": "0.2.0"
+  }
+}

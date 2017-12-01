@@ -16,7 +16,7 @@ var assert = require('assert');
 var fulfill_ret;
 var p = new Promise(function(resolve, reject) {
   // mimic asynchronous operation via setTimeout
-  setTimeout(function() { resolve("Resolved") }, 100);;
+  setTimeout(function() { resolve("Resolved") }, 100);
 });
 
 p.then(function (msg) {
@@ -26,4 +26,4 @@ p.then(function (msg) {
 });
 
 // If Promise's fulfill worked well, assertion must be valid.
-setTimeout(function() { assert.equal(fulfill_ret, "Resolved"); }, 200);
+setTimeout(function() { assert.equal(fulfill_ret, "Resolved"); }, 1000);

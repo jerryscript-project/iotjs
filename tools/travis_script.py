@@ -60,7 +60,7 @@ def run_docker():
     ex.check_run_cmd('docker', ['run', '-dit', '--privileged',
                      '--name', DOCKER_NAME, '-v',
                      '%s:%s' % (TRAVIS_BUILD_PATH, DOCKER_IOTJS_PATH),
-                     'iotjs/ubuntu:0.5'])
+                     'iotjs/ubuntu:0.6'])
 
 def exec_docker(cwd, cmd):
     exec_cmd = 'cd %s && ' % cwd + ' '.join(cmd)
@@ -84,8 +84,12 @@ if __name__ == '__main__':
 
     test = os.getenv('OPTS')
     if test == 'host-linux':
-        build_iotjs('debug', [
-                    '--profile=profiles/minimal.profile'])
+        for buildtype in BUILDTYPES:
+            build_iotjs(buildtype, [
+                        '--cmake-param=-DENABLE_MODULE_ASSERT=ON',
+                        '--run-test=full',
+                        '--profile=profiles/minimal.profile',
+                        '--testsets=testsets-minimal.json'])
 
         for buildtype in BUILDTYPES:
             build_iotjs(buildtype, [
@@ -138,8 +142,9 @@ if __name__ == '__main__':
     elif test == 'tizen':
         for buildtype in BUILDTYPES:
             if buildtype == "debug":
-                exec_docker(DOCKER_IOTJS_PATH, ['config/tizen/gbsbuild.sh',
-                    '--debug'])
+                exec_docker(DOCKER_IOTJS_PATH, [
+                            'config/tizen/gbsbuild.sh',
+                            '--debug'])
             else:
                 exec_docker(DOCKER_IOTJS_PATH, ['config/tizen/gbsbuild.sh'])
 
@@ -152,20 +157,19 @@ if __name__ == '__main__':
         for buildtype in BUILDTYPES:
             build_iotjs(buildtype, [
                         '--run-test=full',
+                        '--testsets=testsets-external-modules.json',
                         '--profile=test/profiles/host-linux.profile',
                         '--external-modules=test/external_modules/'
                         'mymodule1,test/external_modules/mymodule2',
                         '--cmake-param=-DENABLE_MODULE_MYMODULE1=ON',
                         '--cmake-param=-DENABLE_MODULE_MYMODULE2=ON'])
-            binary = fs.join('build',
-                             platform.arch() + '-' + platform.os(),
-                             buildtype, 'bin', 'iotjs')
-            ext_mod_tests = [
-                'test/external_modules/test_external_module1.js',
-                'test/external_modules/test_external_module2.js']
-            # TODO: Use testrunner to run an extended test set
-            for test in ext_mod_tests:
-                exec_docker(DOCKER_IOTJS_PATH, [binary, test])
+
+    elif test == 'es2015':
+        for buildtype in BUILDTYPES:
+            build_iotjs(buildtype, [
+                        '--run-test=full',
+                        '--jerry-profile=es2015-subset',
+                        '--testsets=testsets-es2015.json'])
 
     elif test == "no-snapshot":
         for buildtype in BUILDTYPES:

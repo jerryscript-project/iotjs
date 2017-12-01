@@ -1,0 +1,6 @@
+{
+  "external_modules":  [
+    { "name": "test-external-module1.js" },
+    { "name": "test-external-module2.js" }
+  ]
+}

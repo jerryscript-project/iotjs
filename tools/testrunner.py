@@ -28,6 +28,7 @@ from common_py import path
 from common_py.system.filesystem import FileSystem as fs
 from common_py.system.executor import Executor as ex
 from common_py.system.platform import Platform
+from jsonmerge import Merger
 
 
 # Defines the folder that will contain the coverage info.
@@ -53,6 +54,14 @@ process.on('exit', function() {{
 """
 )
 
+JSON_SCHEMA = {
+                "properties": {
+                    "run_pass": {
+                        "mergeStrategy": "arrayMergeById",
+                        "mergeOptions": { "idRef": "name"}
+                    }
+                }
+}
 
 # Append coverage source to the appropriate test.
 def append_coverage_code(testfile, coverage):
@@ -144,6 +153,7 @@ class TestRunner(object):
     def __init__(self, options):
         self.iotjs = fs.abspath(options.iotjs)
         self.quiet = options.quiet
+        self.testsets = options.testsets
         self.timeout = options.timeout
         self.valgrind = options.valgrind
         self.coverage = options.coverage
@@ -176,6 +186,13 @@ class TestRunner(object):
 
         with open(fs.join(path.TEST_ROOT, "testsets.json")) as testsets_file:
             testsets = json.load(testsets_file, object_pairs_hook=OrderedDict)
+
+        if self.testsets:
+            with open(fs.join(path.TEST_ROOT, self.testsets)) as testsets_file:
+                ext_testsets = json.load(testsets_file,
+                                         object_pairs_hook=OrderedDict)
+                merger = Merger(JSON_SCHEMA)
+                testsets = merger.merge(testsets, ext_testsets)
 
         for testset, tests in testsets.items():
             self.run_testset(testset, tests)
@@ -295,6 +312,9 @@ def get_args():
                         help="show or hide the output of the tests")
     parser.add_argument("--skip-modules", action="store", metavar='list',
                         help="module list to skip test of specific modules")
+    parser.add_argument("--testsets", action="store",
+                        help="JSON file to extend or override the default "
+                             "testsets")
     parser.add_argument("--timeout", action="store", default=300, type=int,
                         help="default timeout for the tests in seconds")
     parser.add_argument("--valgrind", action="store_true", default=False,

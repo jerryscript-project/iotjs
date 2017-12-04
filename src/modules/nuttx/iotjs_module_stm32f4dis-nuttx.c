@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#if defined(__NUTTX__) && TARGET_BOARD == STM32F4DIS
+#if defined(__NUTTX__) && TARGET_BOARD == stm32f4dis
 
 
 #include "iotjs_def.h"

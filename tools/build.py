@@ -34,16 +34,6 @@ from common_py.system.platform import Platform
 
 platform = Platform()
 
-def get_config(build_option_path):
-    config_path_list = [path.BUILD_TARGET_CONFIG_PATH,
-                        build_option_path]
-    result = {}
-    for cpath in config_path_list:
-        with open(cpath, 'rb') as f:
-            module = json.loads(f.read().decode('ascii'))
-            result.update(module)
-    return result
-
 # Initialize build options.
 def init_options():
     # Check config options.
@@ -53,16 +43,17 @@ def init_options():
     if arg_config:
         config_path = arg_config[-1].split('=', 1)[1]
 
-    config = get_config(config_path)
+    build_config = {}
+    with open(config_path, 'rb') as f:
+        build_config = json.loads(f.read().decode('ascii'))
 
     # Read config file and apply it to argv.
     argv = []
 
-    config_option = config['build_option']
     list_with_commas = ['external-modules']
 
-    for opt_key in config_option:
-        opt_val = config_option[opt_key]
+    for opt_key in build_config:
+        opt_val = build_config[opt_key]
         if (opt_key in list_with_commas) and isinstance(opt_val, list):
             opt_val and argv.append('--%s=%s' % (opt_key, ','.join(opt_val)))
         elif isinstance(opt_val, basestring) and opt_val != '':
@@ -98,7 +89,8 @@ def init_options():
         help='Specify the config file (default: %(default)s)',
         dest='config_path')
 
-    parser.add_argument('--profile', help='Specify the profile file for IoT.js')
+    parser.add_argument('--profile',
+        help='Specify the module profile file for IoT.js')
 
     parser.add_argument('--target-arch',
         choices=['arm', 'x86', 'i686', 'x86_64', 'x64'],
@@ -111,14 +103,12 @@ def init_options():
         help='Specify the target os: %(choices)s (default: %(default)s)')
 
     parser.add_argument('--target-board',
-        choices=['none', 'artik10', 'stm32f4dis', 'rpi2', 'artik05x'],
-        default='none', help='Specify the targeted board (if needed): '
+        choices=[None, 'artik10', 'stm32f4dis', 'rpi2', 'artik05x'],
+        default=None, help='Specify the target board (if needed): '
              '%(choices)s (default: %(default)s)')
     parser.add_argument('--nuttx-home', default=None, dest='sysroot',
         help='Specify the NuttX base directory (required for NuttX build)')
 
-    parser.add_argument('--cross-compile', dest='cross_compile',
-        action='store', help='Specify the cross compilation toolkit prefix.')
     parser.add_argument('--sysroot', action='store',
         help='The location of the development tree root directory (sysroot).'
         'Must be compatible with used toolchain.')
@@ -138,13 +128,9 @@ def init_options():
         action='append', default=[],
         help='Specify additional external include directory '
              '(can be used multiple times)')
-    parser.add_argument('--external-static-lib',
+    parser.add_argument('--external-lib',
         action='append', default=[],
-        help='Specify additional external static library '
-             '(can be used multiple times)')
-    parser.add_argument('--external-shared-lib',
-        action='append', default=[],
-        help='Specify additional external shared library '
+        help='Specify additional external library '
              '(can be used multiple times)')
 
     parser.add_argument('--external-modules',
@@ -168,7 +154,7 @@ def init_options():
         action='store', default=None,
         help='Specify the name of the JerryScript heap section')
     parser.add_argument('--jerry-heaplimit',
-        type=int, default=config['build_option']['jerry-heaplimit'],
+        type=int, default=build_config['jerry-heaplimit'],
         help='Specify the size of the JerryScript max heap size '
              '(default: %(default)s)')
 
@@ -191,7 +177,7 @@ def init_options():
         help='Disable test execution with valgrind after build')
     parser.add_argument('--no-check-test',
         action='store_true', default=False,
-        help='Disable test exection after build')
+        help='Disable test execution after build')
     parser.add_argument('--no-parallel-build',
         action='store_true', default=False,
         help='Disable parallel build')
@@ -203,7 +189,7 @@ def init_options():
         help='Enable to build experimental features')
 
     options = parser.parse_args(argv)
-    options.config = config
+    options.config = build_config
 
     return options
 
@@ -229,42 +215,22 @@ def adjust_options(options):
 
     if options.target_board in ['rpi2', 'artik10', 'artik05x']:
         options.no_check_valgrind = True
-    elif options.target_board == 'none':
-        options.target_board = None
 
     # Then add calculated options.
     options.host_tuple = '%s-%s' % (platform.arch(), platform.os())
     options.target_tuple = '%s-%s' % (options.target_arch, options.target_os)
 
-    options.host_build_root = fs.join(path.PROJECT_ROOT,
-                                     options.builddir,
-                                     'host',
-                                     options.host_tuple,
-                                     options.buildtype)
-    options.host_build_bins = fs.join(options.host_build_root, 'bin')
-
     options.build_root = fs.join(path.PROJECT_ROOT,
                                  options.builddir,
                                  options.target_tuple,
                                  options.buildtype)
-    options.build_bins = fs.join(options.build_root, 'bin')
-    options.build_libs = fs.join(options.build_root, 'lib')
 
     cmake_path = fs.join(path.PROJECT_ROOT, 'cmake', 'config', '%s.cmake')
     options.cmake_toolchain_file = cmake_path % options.target_tuple
-    options.host_cmake_toolchain_file = cmake_path % options.host_tuple
 
     # Specify the file of JerryScript profile.
     options.jerry_profile = fs.join(path.JERRY_PROFILE_ROOT,
                                     options.jerry_profile + '.profile')
-
-
-def print_build_option(options):
-    print('=================================================')
-    option_vars = vars(options)
-    for opt in option_vars:
-        print(' --%s: %s' % (opt, option_vars[opt]))
-    print()
 
 
 def print_progress(msg):
@@ -276,34 +242,22 @@ def init_submodule():
     ex.check_run_cmd('git', ['submodule', 'update'])
 
 
-def build_cmake_args(options, for_jerry=False):
+def build_cmake_args(options):
     cmake_args = []
     # compile flags
-    compile_flags = []
+    compile_flags = options.compile_flag
+    compile_flags += options.jerry_compile_flag
 
-    config_compile_flags = options.config['compile_flags']
-    compile_flags += config_compile_flags['os'][options.target_os]
-    compile_flags += config_compile_flags['arch'][options.target_arch]
-    compile_flags += config_compile_flags['buildtype'][options.buildtype]
-    if options.target_board:
-        compile_flags += config_compile_flags['board'][options.target_board]
-
-    compile_flags += options.compile_flag
-    compile_flags += options.jerry_compile_flag if for_jerry else []
-
-    cmake_args.append("-DCMAKE_C_FLAGS='%s'" % (' '.join(compile_flags)))
+    cmake_args.append("-DEXTERNAL_COMPILE_FLAGS='%s'" %
+        (' '.join(compile_flags)))
 
     # link flags
-    link_flags = []
-
-    config_link_flags = options.config['link_flags']
-    link_flags += config_link_flags['os'][options.target_os]
-    link_flags += options.link_flag
+    link_flags = options.link_flag
 
     if options.jerry_lto:
         link_flags.append('-flto')
 
-    cmake_args.append("-DCMAKE_EXE_LINKER_FLAGS='%s'" % (' '.join(link_flags)))
+    cmake_args.append("-DEXTERNAL_LINKER_FLAGS='%s'" % (' '.join(link_flags)))
 
     # external include dir
     include_dirs = []
@@ -346,12 +300,13 @@ def build_iotjs(options):
         '-H%s' % path.PROJECT_ROOT,
         "-DCMAKE_TOOLCHAIN_FILE='%s'" % options.cmake_toolchain_file,
         '-DCMAKE_BUILD_TYPE=%s' % options.buildtype.capitalize(),
+        '-DTARGET_ARCH=%s' % options.target_arch,
         '-DTARGET_OS=%s' % options.target_os,
         '-DTARGET_BOARD=%s' % options.target_board,
         '-DPLATFORM_DESCRIPTOR=%s' % options.target_tuple,
         '-DENABLE_LTO=%s' % get_on_off(options.jerry_lto), # --jerry-lto
         '-DENABLE_SNAPSHOT=%s' % get_on_off(not options.no_snapshot),
-        '-DBUILD_LIB_ONLY=%s' % get_on_off(options.buildlib), # --build-lib
+        '-DBUILD_LIB_ONLY=%s' % get_on_off(options.buildlib), # --buildlib
         # --jerry-memstat
         '-DFEATURE_MEM_STATS=%s' % get_on_off(options.jerry_memstat),
         # --external-modules
@@ -382,15 +337,9 @@ def build_iotjs(options):
     # --cmake-param
     cmake_opt.extend(options.cmake_param)
 
-    # --external-static-lib
-    cmake_opt.append("-DEXTERNAL_STATIC_LIB='%s'" %
-                     (' '.join(options.external_static_lib)))
-
-    # --external-shared-lib
-    shared_libs = []
-    shared_libs.extend(options.external_shared_lib)
-    shared_libs.extend(options.config['shared_libs']['os'][options.target_os])
-    cmake_opt.append("-DEXTERNAL_SHARED_LIB='%s'" % (' '.join(shared_libs)))
+    # --external-lib
+    cmake_opt.append("-DEXTERNAL_LIBS='%s'" %
+                     (' '.join(options.external_lib)))
 
     # --jerry-cmake-param
     if options.jerry_cmake_param:
@@ -447,12 +396,10 @@ if __name__ == '__main__':
     # Initialize build option object.
     options = init_options()
     adjust_options(options)
-    print_build_option(options)
 
     if options.clean:
         print_progress('Clear build directory')
         fs.rmtree(options.build_root)
-        fs.rmtree(options.host_build_root)
 
     # Perform init-submodule.
     if not options.no_init_submodule:

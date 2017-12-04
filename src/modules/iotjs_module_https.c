@@ -719,7 +719,7 @@ void iotjs_https_poll_destroy(iotjs_https_poll_t* poll_data) {
 // ------------JHANDLERS----------------
 
 JS_FUNCTION(createRequest) {
-  DJS_CHECK_THIS(object);
+  DJS_CHECK_THIS();
   DJS_CHECK_ARGS(1, object);
 
   const iotjs_jval_t joptions = JS_GET_ARG(0, object);
@@ -772,7 +772,7 @@ JS_FUNCTION(createRequest) {
 }
 
 JS_FUNCTION(addHeader) {
-  DJS_CHECK_THIS(object);
+  DJS_CHECK_THIS();
 
   DJS_CHECK_ARGS(2, string, object);
   iotjs_string_t header = JS_GET_ARG(0, string);
@@ -788,7 +788,7 @@ JS_FUNCTION(addHeader) {
 }
 
 JS_FUNCTION(sendRequest) {
-  DJS_CHECK_THIS(object);
+  DJS_CHECK_THIS();
 
   DJS_CHECK_ARG(0, object);
   iotjs_jval_t jarg = JS_GET_ARG(0, object);
@@ -799,7 +799,7 @@ JS_FUNCTION(sendRequest) {
 }
 
 JS_FUNCTION(setTimeout) {
-  DJS_CHECK_THIS(object);
+  DJS_CHECK_THIS();
   DJS_CHECK_ARGS(2, number, object);
 
   double ms = JS_GET_ARG(0, number);
@@ -813,7 +813,7 @@ JS_FUNCTION(setTimeout) {
 }
 
 JS_FUNCTION(_write) {
-  DJS_CHECK_THIS(object);
+  DJS_CHECK_THIS();
   DJS_CHECK_ARGS(2, object, string);
   // Argument 3 can be null, so not checked directly, checked later
   DJS_CHECK_ARG(3, function);
@@ -833,7 +833,7 @@ JS_FUNCTION(_write) {
 }
 
 JS_FUNCTION(finishRequest) {
-  DJS_CHECK_THIS(object);
+  DJS_CHECK_THIS();
   DJS_CHECK_ARG(0, object);
 
   iotjs_jval_t jarg = JS_GET_ARG(0, object);
@@ -845,7 +845,7 @@ JS_FUNCTION(finishRequest) {
 }
 
 JS_FUNCTION(Abort) {
-  DJS_CHECK_THIS(object);
+  DJS_CHECK_THIS();
   DJS_CHECK_ARG(0, object);
 
   iotjs_jval_t jarg = JS_GET_ARG(0, object);

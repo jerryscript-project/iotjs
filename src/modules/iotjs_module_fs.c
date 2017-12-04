@@ -186,7 +186,7 @@ static inline bool IsWithinBounds(size_t off, size_t len, size_t max) {
 
 
 JS_FUNCTION(Close) {
-  DJS_CHECK_THIS(object);
+  DJS_CHECK_THIS();
   DJS_CHECK_ARGS(1, number);
   DJS_CHECK_ARG_IF_EXIST(1, function);
 
@@ -206,7 +206,7 @@ JS_FUNCTION(Close) {
 
 
 JS_FUNCTION(Open) {
-  DJS_CHECK_THIS(object);
+  DJS_CHECK_THIS();
   DJS_CHECK_ARGS(3, string, number, number);
   DJS_CHECK_ARG_IF_EXIST(3, function);
 
@@ -230,7 +230,7 @@ JS_FUNCTION(Open) {
 
 
 JS_FUNCTION(Read) {
-  DJS_CHECK_THIS(object);
+  DJS_CHECK_THIS();
   DJS_CHECK_ARGS(5, number, object, number, number, number);
   DJS_CHECK_ARG_IF_EXIST(5, function);
 
@@ -269,7 +269,7 @@ JS_FUNCTION(Read) {
 
 
 JS_FUNCTION(Write) {
-  DJS_CHECK_THIS(object);
+  DJS_CHECK_THIS();
   DJS_CHECK_ARGS(5, number, object, number, number, number);
   DJS_CHECK_ARG_IF_EXIST(5, function);
 
@@ -341,7 +341,7 @@ iotjs_jval_t MakeStatObject(uv_stat_t* statbuf) {
 
 
 JS_FUNCTION(Stat) {
-  DJS_CHECK_THIS(object);
+  DJS_CHECK_THIS();
   DJS_CHECK_ARGS(1, string);
   DJS_CHECK_ARG_IF_EXIST(1, function);
 
@@ -363,7 +363,7 @@ JS_FUNCTION(Stat) {
 
 
 JS_FUNCTION(Fstat) {
-  DJS_CHECK_THIS(object);
+  DJS_CHECK_THIS();
   DJS_CHECK_ARGS(1, number);
   DJS_CHECK_ARG_IF_EXIST(1, function);
 
@@ -383,7 +383,7 @@ JS_FUNCTION(Fstat) {
 
 
 JS_FUNCTION(MkDir) {
-  DJS_CHECK_THIS(object);
+  DJS_CHECK_THIS();
   DJS_CHECK_ARGS(2, string, number);
   DJS_CHECK_ARG_IF_EXIST(2, function);
 
@@ -406,7 +406,7 @@ JS_FUNCTION(MkDir) {
 
 
 JS_FUNCTION(RmDir) {
-  DJS_CHECK_THIS(object);
+  DJS_CHECK_THIS();
   DJS_CHECK_ARGS(1, string);
   DJS_CHECK_ARG_IF_EXIST(1, function);
 
@@ -428,7 +428,7 @@ JS_FUNCTION(RmDir) {
 
 
 JS_FUNCTION(Unlink) {
-  DJS_CHECK_THIS(object);
+  DJS_CHECK_THIS();
   DJS_CHECK_ARGS(1, string);
   DJS_CHECK_ARG_IF_EXIST(1, function);
 
@@ -450,7 +450,7 @@ JS_FUNCTION(Unlink) {
 
 
 JS_FUNCTION(Rename) {
-  DJS_CHECK_THIS(object);
+  DJS_CHECK_THIS();
   DJS_CHECK_ARGS(2, string, string);
   DJS_CHECK_ARG_IF_EXIST(2, function);
 
@@ -476,7 +476,7 @@ JS_FUNCTION(Rename) {
 
 
 JS_FUNCTION(ReadDir) {
-  DJS_CHECK_THIS(object);
+  DJS_CHECK_THIS();
   DJS_CHECK_ARGS(1, string);
   DJS_CHECK_ARG_IF_EXIST(1, function);
 
@@ -505,14 +505,14 @@ static iotjs_jval_t StatsIsTypeOf(iotjs_jval_t stats, int type) {
 }
 
 JS_FUNCTION(StatsIsDirectory) {
-  DJS_CHECK_THIS(object);
-  iotjs_jval_t stats = JS_GET_THIS(object);
+  DJS_CHECK_THIS();
+  iotjs_jval_t stats = JS_GET_THIS();
   return StatsIsTypeOf(stats, S_IFDIR);
 }
 
 JS_FUNCTION(StatsIsFile) {
-  DJS_CHECK_THIS(object);
-  iotjs_jval_t stats = JS_GET_THIS(object);
+  DJS_CHECK_THIS();
+  iotjs_jval_t stats = JS_GET_THIS();
   return StatsIsTypeOf(stats, S_IFREG);
 }
 

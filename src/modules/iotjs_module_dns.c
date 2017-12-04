@@ -165,7 +165,7 @@ static void AfterGetAddrInfo(uv_getaddrinfo_t* req, int status,
 
 
 JS_FUNCTION(GetAddrInfo) {
-  DJS_CHECK_THIS(object);
+  DJS_CHECK_THIS();
   DJS_CHECK_ARGS(4, string, number, number, function);
 
   iotjs_string_t hostname = JS_GET_ARG(0, string);

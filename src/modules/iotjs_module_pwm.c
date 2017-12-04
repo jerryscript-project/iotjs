@@ -248,11 +248,11 @@ static void iotjs_pwm_after_worker(uv_work_t* work_req, int status) {
 
 
 JS_FUNCTION(PWMConstructor) {
-  DJS_CHECK_THIS(object);
+  DJS_CHECK_THIS();
   DJS_CHECK_ARGS(2, object, function);
 
   // Create PWM object
-  iotjs_jval_t jpwm = JS_GET_THIS(object);
+  iotjs_jval_t jpwm = JS_GET_THIS();
   iotjs_pwm_t* pwm = iotjs_pwm_create(jpwm);
   IOTJS_ASSERT(pwm == iotjs_pwm_instance_from_jval(jpwm));
 

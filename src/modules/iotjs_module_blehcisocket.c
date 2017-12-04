@@ -172,10 +172,10 @@ JS_FUNCTION(Write) {
 
 
 JS_FUNCTION(BleHciSocketCons) {
-  DJS_CHECK_THIS(object);
+  DJS_CHECK_THIS();
 
   // Create object
-  iotjs_jval_t jblehcisocket = JS_GET_THIS(object);
+  iotjs_jval_t jblehcisocket = JS_GET_THIS();
   iotjs_blehcisocket_t* blehcisocket = iotjs_blehcisocket_create(jblehcisocket);
   IOTJS_ASSERT(blehcisocket ==
                (iotjs_blehcisocket_t*)(iotjs_jval_get_object_native_handle(

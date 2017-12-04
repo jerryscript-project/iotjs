@@ -254,11 +254,11 @@ void iotjs_uart_read_cb(uv_poll_t* req, int status, int events) {
 
 
 JS_FUNCTION(UartConstructor) {
-  DJS_CHECK_THIS(object);
+  DJS_CHECK_THIS();
   DJS_CHECK_ARGS(3, object, object, function);
 
   // Create UART object
-  iotjs_jval_t juart = JS_GET_THIS(object);
+  iotjs_jval_t juart = JS_GET_THIS();
   iotjs_uart_t* uart = iotjs_uart_create(juart);
   IOTJS_ASSERT(uart == iotjs_uart_instance_from_jval(juart));
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_uart_t, uart);

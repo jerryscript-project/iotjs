@@ -254,11 +254,11 @@ static void gpio_set_configurable(iotjs_gpio_t* gpio,
 
 
 JS_FUNCTION(GpioConstructor) {
-  DJS_CHECK_THIS(object);
+  DJS_CHECK_THIS();
   DJS_CHECK_ARGS(2, object, function);
 
   // Create GPIO object
-  const iotjs_jval_t jgpio = JS_GET_THIS(object);
+  const iotjs_jval_t jgpio = JS_GET_THIS();
   iotjs_gpio_t* gpio = iotjs_gpio_create(jgpio);
   IOTJS_ASSERT(gpio == iotjs_gpio_instance_from_jval(jgpio));
 

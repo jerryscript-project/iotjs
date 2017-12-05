@@ -20,42 +20,47 @@ var common = require('http_common');
 var HTTPParser = require('httpparser').HTTPParser;
 
 function ClientRequest(options, cb) {
-  var self = this;
-  OutgoingMessage.call(self);
+  OutgoingMessage.call(this);
 
   // get port, host and method.
   var port = options.port = options.port || 80;
   var host = options.host = options.hostname || options.host || '127.0.0.1';
   var method = options.method || 'GET';
-
-  self.path = options.path || '/';
+  var path = options.path || '/';
 
   // If `options` contains header information, save it.
   if (options.headers) {
     var keys = Object.keys(options.headers);
     for (var i = 0, l = keys.length; i < l; i++) {
       var key = keys[i];
-      self.setHeader(key, options.headers[key]);
+      this.setHeader(key, options.headers[key]);
     }
   }
 
+  if (host && !this.getHeader('host')) {
+    var hostHeader = host;
+    if (port && +port !== 80) {
+      hostHeader += ':' + port;
+    }
+    this.setHeader('Host', hostHeader);
+  }
+
+  // store first header line to be sent.
+  this._storeHeader(method + ' ' + path + ' HTTP/1.1\r\n');
+
   // Register response event handler.
   if (cb) {
-    self.once('response', cb);
+    this.once('response', cb);
   }
 
   // Create socket.
-  var conn = new net.Socket();
+  var socket = new net.Socket();
 
   // connect server.
-  conn.connect(port, host);
+  socket.connect(port, host);
 
   // setup connection information.
-  setupConnection(self, conn);
-
-  // store first header line to be sent.
-  var firstHeaderLine = method + ' ' + self.path + ' HTTP/1.1\r\n';
-  self._storeHeader(firstHeaderLine);
+  setupConnection(this, socket);
 }
 
 util.inherits(ClientRequest, OutgoingMessage);

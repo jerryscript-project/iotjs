@@ -145,6 +145,9 @@ OutgoingMessage.prototype._storeHeader = function(statusLine) {
     }
   }
 
+  // keepalive isn't supported yet.
+  headerStr += 'Connection: close\r\n';
+
   this._header = statusLine + headerStr;
 
 };

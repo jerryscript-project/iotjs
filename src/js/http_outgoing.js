@@ -163,8 +163,7 @@ OutgoingMessage.prototype.setHeader = function(name, value) {
     this._headers = {};
   }
 
-  this._headers[name] = value;
-
+  this._headers[name.toLowerCase()] = value;
 };
 
 

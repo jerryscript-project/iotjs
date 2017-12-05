@@ -127,7 +127,8 @@
     { "name": "test_process_exitcode_arg.js", "expected-failure": true },
     { "name": "test_process_exitcode_var.js", "expected-failure": true },
     { "name": "test_process_explicit_exit.js", "expected-failure": true },
-    { "name": "test_process_implicit_exit.js", "expected-failure": true }
+    { "name": "test_process_implicit_exit.js", "expected-failure": true },
+    { "name": "test_timers_issue_1353.js", "expected-failure": true }
   ],
   "node/parallel": [
     { "name": "test-assert.js" },

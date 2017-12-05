@@ -11,13 +11,13 @@ Memory usage and Binary footprint are measured at [here](https://samsung.github.
 
 The following table shows the latest results on the devices:
 
-|      Artik053         | [![Remote Testrunner](https://samsung.github.io/js-remote-test/status/artik053.svg)](https://samsung.github.io/js-remote-test/?device=artik053)  |
+|      Artik053         | [![Remote Testrunner](https://samsung.github.io/js-remote-test/status/artik053.svg)](https://samsung.github.io/js-remote-test/?view=artik053)  |
 |        :---:          |                                             :---:                                                                                                |
-| **Raspberry Pi 2**    | [![Remote Testrunner](https://samsung.github.io/js-remote-test/status/rpi2.svg)](https://samsung.github.io/js-remote-test/?device=rpi2)          |
-| **STM32F4-Discovery** | [![Remote Testrunner](https://samsung.github.io/js-remote-test/status/stm32f4dis.svg)](https://samsung.github.io/js-remote-test/?device=stm32)   |
+| **Raspberry Pi 2**    | [![Remote Testrunner](https://samsung.github.io/js-remote-test/status/rpi2.svg)](https://samsung.github.io/js-remote-test/?view=rpi2)          |
+| **STM32F4-Discovery** | [![Remote Testrunner](https://samsung.github.io/js-remote-test/status/stm32f4dis.svg)](https://samsung.github.io/js-remote-test/?view=stm32)   |
 
 
-IRC channel: #iotjs on [freenode](https://freenode.net)  
+IRC channel: #iotjs on [freenode](https://freenode.net)
 Mailing list: iotjs-dev@groups.io, you can subscribe [here](https://groups.io/g/iotjs-dev) and access the mailing list archive [here](https://groups.io/g/iotjs-dev/topics).
 
 ## Quick Start

@@ -14,10 +14,10 @@
  */
 
 var Server = require('http_server').Server;
-var client = require('http_client');
+var ClientRequest = require('http_client').ClientRequest;
 var HTTPParser = require('httpparser');
 
-var ClientRequest = exports.ClientRequest = client.ClientRequest;
+exports.ClientRequest = ClientRequest;
 
 
 exports.request = function(options, cb) {

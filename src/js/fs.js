@@ -20,6 +20,9 @@ var util = require('util');
 var fsBuiltin = native;
 
 fs.exists = function(path, callback) {
+  if (!(util.isString(path)) && !(util.isBuffer(path))) {
+    throw new TypeError('Path should be a string or a buffer');
+  }
   if (!path || !path.length) {
     process.nextTick(function() {
       if (callback) callback(false);

@@ -75,8 +75,7 @@ cmake-param
 compile-flag
 link_flag
 external-include-dir
-external-static-lib
-external-shared-lib
+external-lib
 jerry-cmake-param
 jerry-compile-flag
 jerry-link-flag

@@ -69,13 +69,14 @@ Specifying an exit code for the `process.exit()` call will override any previous
 
 The `iotjs` property holds IoT.js related information in an object.
 The following keys can be accessed via this property:
-* `board` specifies the device type on which the IoT.js is running currently. For instance `'STM32F4DIS'`, `'RP2'`, or `'unknown'`.
+* `board` specifies the device type on which the IoT.js is running currently.
+For instance `'artik05x'`, `'artik10'`, `'rpi2'`,`'stm32f4dis'`, or `'unknown'`.
 
 **Example**
 
 ```js
 console.log(process.iotjs.board);
-// on Raspberry 2 it prints: RP2
+// on Raspberry 2 it prints: rpi2
 ```
 
 ### process.platform

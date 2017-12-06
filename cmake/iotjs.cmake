@@ -34,13 +34,6 @@ if(NOT "${TARGET_BOARD}" STREQUAL "None")
   list(APPEND IOTJS_PLATFORM_SRC "${IOTJS_BOARD_SRC}")
 endif()
 
-set(IOTJS_CFLAGS ${CFLAGS_COMMON})
-
-if(ENABLE_SNAPSHOT)
-  set(JS2C_SNAPSHOT_ARG --snapshot-tool=${JERRY_HOST_SNAPSHOT})
-  set(IOTJS_CFLAGS ${IOTJS_CFLAGS} -DENABLE_SNAPSHOT)
-endif()
-
 # Module configuration - listup all possible native C modules
 function(getListOfVars prefix pattern varResult)
     set(moduleNames)
@@ -307,6 +300,14 @@ foreach(module ${IOTJS_MODULES})
   unset(IOTJS_MODULE_${MODULE}_JSON)
 endforeach()
 
+# Common compile flags
+iotjs_add_compile_flags(-Wall -Wextra -Werror -Wno-unused-parameter)
+iotjs_add_compile_flags(-Wsign-conversion -std=gnu99)
+
+if(ENABLE_SNAPSHOT)
+  set(JS2C_SNAPSHOT_ARG --snapshot-tool=${JERRY_HOST_SNAPSHOT})
+  iotjs_add_compile_flags(-DENABLE_SNAPSHOT)
+endif()
 
 # Run js2c
 set(JS2C_RUN_MODE "release")
@@ -335,8 +336,7 @@ list(APPEND LIB_IOTJS_SRC
 )
 
 separate_arguments(EXTERNAL_INCLUDE_DIR)
-separate_arguments(EXTERNAL_STATIC_LIB)
-separate_arguments(EXTERNAL_SHARED_LIB)
+separate_arguments(EXTERNAL_LIBS)
 
 set(IOTJS_INCLUDE_DIRS
   ${EXTERNAL_INCLUDE_DIR}
@@ -353,35 +353,42 @@ set(IOTJS_INCLUDE_DIRS
 
 if(NOT BUILD_LIB_ONLY)
   if("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
-    set(IOTJS_LINK_FLAGS "-Xlinker -map -Xlinker iotjs.map")
+    iotjs_add_link_flags("-Xlinker -map -Xlinker iotjs.map")
   else()
-    set(IOTJS_LINK_FLAGS "-Xlinker -Map -Xlinker iotjs.map")
+    iotjs_add_link_flags("-Xlinker -Map -Xlinker iotjs.map")
   endif()
 endif()
 
 # Print out some configs
 message("IoT.js configured with:")
+message(STATUS "BUILD_LIB_ONLY           ${BUILD_LIB_ONLY}")
 message(STATUS "CMAKE_BUILD_TYPE         ${CMAKE_BUILD_TYPE}")
 message(STATUS "CMAKE_C_FLAGS            ${CMAKE_C_FLAGS}")
-message(STATUS "PLATFORM_DESCRIPTOR      ${PLATFORM_DESCRIPTOR}")
-message(STATUS "TARGET_OS                ${TARGET_OS}")
-message(STATUS "TARGET_SYSTEMROOT        ${TARGET_SYSTEMROOT}")
-message(STATUS "TARGET_BOARD             ${TARGET_BOARD}")
-message(STATUS "BUILD_LIB_ONLY           ${BUILD_LIB_ONLY}")
+message(STATUS "CMAKE_TOOLCHAIN_FILE     ${CMAKE_TOOLCHAIN_FILE}")
 message(STATUS "ENABLE_LTO               ${ENABLE_LTO}")
 message(STATUS "ENABLE_SNAPSHOT          ${ENABLE_SNAPSHOT}")
+message(STATUS "EXTERNAL_INCLUDE_DIR     ${EXTERNAL_INCLUDE_DIR}")
+message(STATUS "EXTERNAL_LIBC_INTERFACE  ${EXTERNAL_LIBC_INTERFACE}")
+message(STATUS "EXTERNAL_LIBS            ${EXTERNAL_LIBS}")
 message(STATUS "EXTERNAL_MODULES         ${EXTERNAL_MODULES}")
-message(STATUS "IOTJS_CFLAGS             ${IOTJS_CFLAGS}")
-message(STATUS "IOTJS_LINK_FLAGS         ${IOTJS_LINK_FLAGS}")
+message(STATUS "IOTJS_LINKER_FLAGS       ${IOTJS_LINKER_FLAGS}")
 message(STATUS "IOTJS_PROFILE            ${IOTJS_PROFILE}")
+message(STATUS "JERRY_DEBUGGER           ${FEATURE_DEBUGGER}")
+message(STATUS "JERRY_HEAP_SIZE_KB       ${MEM_HEAP_SIZE_KB}")
+message(STATUS "JERRY_MEM_STATS          ${FEATURE_MEM_STATS}")
+message(STATUS "JERRY_PROFILE            ${FEATURE_PROFILE}")
+message(STATUS "PLATFORM_DESCRIPTOR      ${PLATFORM_DESCRIPTOR}")
+message(STATUS "TARGET_ARCH              ${TARGET_ARCH}")
+message(STATUS "TARGET_BOARD             ${TARGET_BOARD}")
+message(STATUS "TARGET_OS                ${TARGET_OS}")
+message(STATUS "TARGET_SYSTEMROOT        ${TARGET_SYSTEMROOT}")
 
-set(IOTJS_CFLAGS ${IOTJS_CFLAGS} ${IOTJS_MODULE_DEFINES})
+iotjs_add_compile_flags(${IOTJS_MODULE_DEFINES})
 
 # Configure the libiotjs.a
 set(TARGET_LIB_IOTJS libiotjs)
 add_library(${TARGET_LIB_IOTJS} STATIC ${LIB_IOTJS_SRC})
 set_target_properties(${TARGET_LIB_IOTJS} PROPERTIES
-  COMPILE_OPTIONS "${IOTJS_CFLAGS}"
   OUTPUT_NAME iotjs
   ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
 )
@@ -391,8 +398,7 @@ target_link_libraries(${TARGET_LIB_IOTJS}
   ${TUV_LIBS}
   libhttp-parser
   ${MBEDTLS_LIBS}
-  ${EXTERNAL_STATIC_LIB}
-  ${EXTERNAL_SHARED_LIB}
+  ${EXTERNAL_LIBS}
 )
 
 if("${LIB_INSTALL_DIR}" STREQUAL "")
@@ -410,8 +416,7 @@ if(NOT BUILD_LIB_ONLY)
   set(TARGET_IOTJS iotjs)
   add_executable(${TARGET_IOTJS} ${ROOT_DIR}/iotjs_linux.c)
   set_target_properties(${TARGET_IOTJS} PROPERTIES
-    COMPILE_OPTIONS "${IOTJS_CFLAGS}"
-    LINK_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${IOTJS_LINK_FLAGS}"
+    LINK_FLAGS "${IOTJS_LINKER_FLAGS}"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
   )
   target_include_directories(${TARGET_IOTJS} PRIVATE ${IOTJS_INCLUDE_DIRS})

@@ -139,12 +139,12 @@ If you have multiple external include directoies, supply it with multiple use of
 ```
 
 --
-#### `--external-static-lib`
-Specify external static library that will be liked with IoT.js statically.
+#### `--external-lib`
+Specify external library that will be linked with IoT.js.
 
 If you have multiple such libraries, supply it with multiple use of this option;
 ```
-./tools/build.py --external-static-lib="libxxx.a"
+./tools/build.py --external-lib="libxxx"
 ```
 
 --

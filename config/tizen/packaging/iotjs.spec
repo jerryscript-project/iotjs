@@ -69,9 +69,11 @@ cp %{SOURCE1001} .
 %build
 ./tools/build.py --clean --buildtype=%{build_mode} --target-arch=arm \
  --target-os=tizen --target-board=artik10 \
- --external-shared-lib=capi-system-peripheral-io \
+ --external-lib=capi-system-peripheral-io \
  --compile-flag=-D__TIZEN__ \
- --iotjs-include-module=dgram,gpio,i2c \
+ --cmake-param=-DENABLE_MODULE_DGRAM=ON \
+ --cmake-param=-DENABLE_MODULE_GPIO=ON \
+ --cmake-param=-DENABLE_MODULE_I2C=ON \
  --no-init-submodule --no-parallel-build --no-check-test
 
 %install

@@ -71,21 +71,23 @@ exports.ClientRequest = ClientRequest;
 function setupConnection(req, socket) {
   var parser = common.createHTTPParser();
   parser.reinitialize(HTTPParser.RESPONSE);
-  req.socket = socket;
-  req.connection = socket;
-  parser.socket = socket;
-  parser.incoming = null;
-  parser._headers = [];
-  req.parser = parser;
-
   socket.parser = parser;
   socket._httpMessage = req;
 
+  parser.socket = socket;
+  parser.incoming = null;
+  parser._headers = [];
   parser.onIncoming = parserOnIncomingClient;
+
+  req.socket = socket;
+  req.connection = socket;
+  req.parser = parser;
+
   socket.on('error', socketOnError);
   socket.on('data', socketOnData);
   socket.on('end', socketOnEnd);
   socket.on('close', socketOnClose);
+  socket.on('lookup', socketOnLookup);
 
   // socket emitted when a socket is assigned to req
   process.nextTick(function() {
@@ -93,6 +95,32 @@ function setupConnection(req, socket) {
   });
 }
 
+function cleanUpSocket(socket) {
+  var parser = socket.parser;
+  var req = socket._httpMessage;
+
+  if (parser) {
+    // unref all links to parser, make parser GCed
+    parser.finish();
+    parser = null;
+    socket.parser = null;
+    req.parser = null;
+  }
+
+  socket.destroy();
+}
+
+function emitError(socket, err) {
+  var req = socket._httpMessage;
+
+  if (err) {
+    var host;
+    if (host = req.getHeader('host')) {
+      err.message += ': ' + (host ? host : '');
+    }
+    req.emit('error', err);
+  }
+}
 
 function socketOnClose() {
   var socket = this;
@@ -110,35 +138,19 @@ function socketOnClose() {
       res.emit('close');
     });
     res.push(null);
-  } else if (!req.res) {
-    // socket closed before response starts.
-    var err = new Error('socket hang up');
-    req.emit('error', err);
   }
 
-  if (parser) {
-    // unref all links to parser, make parser GCed
-    parser.finish();
-    parser = null;
-    socket.parser = null;
-    req.parser = null;
-  }
+  cleanUpSocket(this);
 }
 
-
-function socketOnError(er) {
-  var socket = this;
-  var parser = socket.parser;
-
-  if (parser) {
-    // unref all links to parser, make parser GCed
-    parser.finish();
-    parser = null;
-    socket.parser = null;
-  }
-  socket.destroy();
+function socketOnError(err) {
+  cleanUpSocket(this);
+  emitError(this, err);
 }
 
+function socketOnLookup(err, ip, family) {
+  emitError(this, err);
+}
 
 function socketOnData(d) {
   var socket = this;
@@ -147,34 +159,14 @@ function socketOnData(d) {
 
   var ret = parser.execute(d);
   if (ret instanceof Error) {
-    // unref all links to parser, make parser GCed
-    parser.finish();
-    parser = null;
-    socket.parser = null;
-    req.parser = null;
-
-    socket.destroy();
+    cleanUpSocket(socket);
     req.emit('error', ret);
   }
 }
 
-
 function socketOnEnd() {
-  var socket = this;
-  var req = this._httpMessage;
-  var parser = this.parser;
-
-  if (parser) {
-    // unref all links to parser, make parser GCed
-    parser.finish();
-    parser = null;
-    socket.parser = null;
-    req.parser = null;
-  }
-
-  socket.destroy();
+  cleanUpSocket(this);
 }
-
 
 // This is called by parserOnHeadersComplete after response header is parsed.
 // TODO: keepalive support

@@ -26,7 +26,7 @@
 IOTJS_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(udpwrap);
 
 
-iotjs_udpwrap_t* iotjs_udpwrap_create(iotjs_jval_t judp) {
+iotjs_udpwrap_t* iotjs_udpwrap_create(jerry_value_t judp) {
   iotjs_udpwrap_t* udpwrap = IOTJS_ALLOC(iotjs_udpwrap_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_udpwrap_t, udpwrap);
 
@@ -57,7 +57,7 @@ iotjs_udpwrap_t* iotjs_udpwrap_from_handle(uv_udp_t* udp_handle) {
 }
 
 
-iotjs_udpwrap_t* iotjs_udpwrap_from_jobject(iotjs_jval_t judp) {
+iotjs_udpwrap_t* iotjs_udpwrap_from_jobject(jerry_value_t judp) {
   iotjs_handlewrap_t* handlewrap = iotjs_handlewrap_from_jobject(judp);
   return (iotjs_udpwrap_t*)handlewrap;
 }
@@ -70,7 +70,7 @@ uv_udp_t* iotjs_udpwrap_udp_handle(iotjs_udpwrap_t* udpwrap) {
 }
 
 
-iotjs_jval_t iotjs_udpwrap_jobject(iotjs_udpwrap_t* udpwrap) {
+jerry_value_t iotjs_udpwrap_jobject(iotjs_udpwrap_t* udpwrap) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_udpwrap_t, udpwrap);
   return iotjs_handlewrap_jobject(&_this->handlewrap);
 }
@@ -78,7 +78,7 @@ iotjs_jval_t iotjs_udpwrap_jobject(iotjs_udpwrap_t* udpwrap) {
 
 #define THIS iotjs_send_reqwrap_t* send_reqwrap
 
-iotjs_send_reqwrap_t* iotjs_send_reqwrap_create(iotjs_jval_t jcallback,
+iotjs_send_reqwrap_t* iotjs_send_reqwrap_create(jerry_value_t jcallback,
                                                 const size_t msg_size) {
   iotjs_send_reqwrap_t* send_reqwrap = IOTJS_ALLOC(iotjs_send_reqwrap_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_send_reqwrap_t, send_reqwrap);
@@ -109,7 +109,7 @@ uv_udp_send_t* iotjs_send_reqwrap_req(THIS) {
 }
 
 
-iotjs_jval_t iotjs_send_reqwrap_jcallback(THIS) {
+jerry_value_t iotjs_send_reqwrap_jcallback(THIS) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_send_reqwrap_t, send_reqwrap);
   return iotjs_reqwrap_jcallback(&_this->reqwrap);
 }
@@ -126,7 +126,7 @@ size_t iotjs_send_reqwrap_msg_size(THIS) {
 JS_FUNCTION(UDP) {
   DJS_CHECK_THIS();
 
-  iotjs_jval_t judp = JS_GET_THIS();
+  jerry_value_t judp = JS_GET_THIS();
   iotjs_udpwrap_create(judp);
 
   return jerry_create_undefined();
@@ -139,8 +139,8 @@ JS_FUNCTION(Bind) {
 
   iotjs_string_t address = JS_GET_ARG(0, string);
   const int port = JS_GET_ARG(1, number);
-  iotjs_jval_t this_obj = JS_GET_THIS();
-  iotjs_jval_t reuse_addr =
+  jerry_value_t this_obj = JS_GET_THIS();
+  jerry_value_t reuse_addr =
       iotjs_jval_get_property(this_obj, IOTJS_MAGIC_STRING__REUSEADDR);
   IOTJS_ASSERT(jerry_value_is_boolean(reuse_addr) ||
                jerry_value_is_undefined(reuse_addr));
@@ -187,11 +187,11 @@ static void OnRecv(uv_udp_t* handle, ssize_t nread, const uv_buf_t* buf,
   iotjs_udpwrap_t* udp_wrap = iotjs_udpwrap_from_handle(handle);
 
   // udp handle
-  iotjs_jval_t judp = iotjs_udpwrap_jobject(udp_wrap);
+  jerry_value_t judp = iotjs_udpwrap_jobject(udp_wrap);
   IOTJS_ASSERT(jerry_value_is_object(judp));
 
   // onmessage callback
-  iotjs_jval_t jonmessage =
+  jerry_value_t jonmessage =
       iotjs_jval_get_property(judp, IOTJS_MAGIC_STRING_ONMESSAGE);
   IOTJS_ASSERT(jerry_value_is_function(jonmessage));
 
@@ -208,14 +208,14 @@ static void OnRecv(uv_udp_t* handle, ssize_t nread, const uv_buf_t* buf,
     return;
   }
 
-  iotjs_jval_t jbuffer = iotjs_bufferwrap_create_buffer((size_t)nread);
+  jerry_value_t jbuffer = iotjs_bufferwrap_create_buffer((size_t)nread);
   iotjs_bufferwrap_t* buffer_wrap = iotjs_bufferwrap_from_jbuffer(jbuffer);
 
   iotjs_bufferwrap_copy(buffer_wrap, buf->base, (size_t)nread);
 
   iotjs_jargs_append_jval(&jargs, jbuffer);
 
-  iotjs_jval_t rinfo = jerry_create_object();
+  jerry_value_t rinfo = jerry_create_object();
   AddressToJS(rinfo, addr);
   iotjs_jargs_append_jval(&jargs, rinfo);
 
@@ -257,7 +257,7 @@ static void OnSend(uv_udp_send_t* req, int status) {
   IOTJS_ASSERT(req_wrap != NULL);
 
   // Take callback function object.
-  iotjs_jval_t jcallback = iotjs_send_reqwrap_jcallback(req_wrap);
+  jerry_value_t jcallback = iotjs_send_reqwrap_jcallback(req_wrap);
 
   if (jerry_value_is_function(jcallback)) {
     // Take callback function object.
@@ -285,10 +285,10 @@ JS_FUNCTION(Send) {
   IOTJS_ASSERT(jerry_value_is_function(jargv[3]) ||
                jerry_value_is_undefined(jargv[3]));
 
-  const iotjs_jval_t jbuffer = JS_GET_ARG(0, object);
+  const jerry_value_t jbuffer = JS_GET_ARG(0, object);
   const unsigned short port = JS_GET_ARG(1, number);
   iotjs_string_t address = JS_GET_ARG(2, string);
-  iotjs_jval_t jcallback = JS_GET_ARG(3, object);
+  jerry_value_t jcallback = JS_GET_ARG(3, object);
 
   iotjs_bufferwrap_t* buffer_wrap = iotjs_bufferwrap_from_jbuffer(jbuffer);
   char* buffer = iotjs_bufferwrap_buffer(buffer_wrap);
@@ -401,10 +401,10 @@ JS_FUNCTION(SetMulticastLoopback) {
 #undef IOTJS_UV_SET_SOCKOPT
 
 
-static iotjs_jval_t SetMembership(const iotjs_jval_t jthis,
-                                  const iotjs_jval_t* jargv,
-                                  const jerry_length_t jargc,
-                                  uv_membership membership) {
+static jerry_value_t SetMembership(const jerry_value_t jthis,
+                                   const jerry_value_t* jargv,
+                                   const jerry_length_t jargc,
+                                   uv_membership membership) {
 #if !defined(__NUTTX__)
   JS_DECLARE_THIS_PTR(udpwrap, udp_wrap);
   DJS_CHECK_ARGS(1, string);
@@ -463,10 +463,10 @@ JS_FUNCTION(Unref) {
 }
 
 
-iotjs_jval_t InitUdp() {
-  iotjs_jval_t udp = jerry_create_external_function(UDP);
+jerry_value_t InitUdp() {
+  jerry_value_t udp = jerry_create_external_function(UDP);
 
-  iotjs_jval_t prototype = jerry_create_object();
+  jerry_value_t prototype = jerry_create_object();
   iotjs_jval_set_property_jval(udp, IOTJS_MAGIC_STRING_PROTOTYPE, prototype);
 
   iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_BIND, Bind);

@@ -30,12 +30,12 @@ typedef struct {
 #define THIS iotjs_getaddrinfo_reqwrap_t* getaddrinfo_reqwrap
 
 iotjs_getaddrinfo_reqwrap_t* iotjs_getaddrinfo_reqwrap_create(
-    const iotjs_jval_t jcallback);
+    const jerry_value_t jcallback);
 
 void iotjs_getaddrinfo_reqwrap_dispatched(THIS);
 
 uv_getaddrinfo_t* iotjs_getaddrinfo_reqwrap_req(THIS);
-iotjs_jval_t iotjs_getaddrinfo_reqwrap_jcallback(THIS);
+jerry_value_t iotjs_getaddrinfo_reqwrap_jcallback(THIS);
 
 #undef THIS
 

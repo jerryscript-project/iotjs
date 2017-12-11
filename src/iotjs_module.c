@@ -16,7 +16,7 @@
 #include "iotjs_def.h"
 #include "iotjs_module.h"
 
-typedef struct { iotjs_jval_t jmodule; } iotjs_module_objects_t;
+typedef struct { jerry_value_t jmodule; } iotjs_module_objects_t;
 
 #include "iotjs_module_inl.h"
 
@@ -38,7 +38,7 @@ void iotjs_module_list_cleanup() {
   }
 }
 
-iotjs_jval_t iotjs_module_get(const char* name) {
+jerry_value_t iotjs_module_get(const char* name) {
   for (unsigned i = 0; i < iotjs_modules_count; i++) {
     if (!strcmp(name, iotjs_modules[i].name)) {
       if (iotjs_module_objects[i].jmodule == 0) {

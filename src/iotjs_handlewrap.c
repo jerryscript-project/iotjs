@@ -18,13 +18,13 @@
 
 
 void iotjs_handlewrap_initialize(iotjs_handlewrap_t* handlewrap,
-                                 iotjs_jval_t jobject, uv_handle_t* handle,
+                                 jerry_value_t jobject, uv_handle_t* handle,
                                  JNativeInfoType* native_info) {
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_handlewrap_t, handlewrap);
 
   // Increase ref count of Javascript object to guarantee it is alive until the
   // handle has closed.
-  iotjs_jval_t jobjectref = jerry_acquire_value(jobject);
+  jerry_value_t jobjectref = jerry_acquire_value(jobject);
   iotjs_jobjectwrap_initialize(&_this->jobjectwrap, jobjectref, native_info);
 
   _this->handle = handle;
@@ -53,7 +53,7 @@ iotjs_handlewrap_t* iotjs_handlewrap_from_handle(uv_handle_t* handle) {
 }
 
 
-iotjs_handlewrap_t* iotjs_handlewrap_from_jobject(iotjs_jval_t jobject) {
+iotjs_handlewrap_t* iotjs_handlewrap_from_jobject(jerry_value_t jobject) {
   iotjs_handlewrap_t* handlewrap =
       (iotjs_handlewrap_t*)(iotjs_jval_get_object_native_handle(jobject));
   iotjs_handlewrap_validate(handlewrap);
@@ -68,7 +68,7 @@ uv_handle_t* iotjs_handlewrap_get_uv_handle(iotjs_handlewrap_t* handlewrap) {
 }
 
 
-iotjs_jval_t iotjs_handlewrap_jobject(iotjs_handlewrap_t* handlewrap) {
+jerry_value_t iotjs_handlewrap_jobject(iotjs_handlewrap_t* handlewrap) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_handlewrap_t, handlewrap);
   iotjs_handlewrap_validate(handlewrap);
   return iotjs_jobjectwrap_jobject(&_this->jobjectwrap);
@@ -89,7 +89,7 @@ static void iotjs_handlewrap_on_close(iotjs_handlewrap_t* handlewrap) {
 
   // Decrease ref count of Javascript object. From now the object can be
   // reclaimed.
-  iotjs_jval_t jval = iotjs_jobjectwrap_jobject(&_this->jobjectwrap);
+  jerry_value_t jval = iotjs_jobjectwrap_jobject(&_this->jobjectwrap);
   jerry_release_value(jval);
 }
 

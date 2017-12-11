@@ -18,7 +18,7 @@
 
 #include "iotjs_binding.h"
 
-typedef iotjs_jval_t (*register_func)();
+typedef jerry_value_t (*register_func)();
 
 typedef struct {
   const char* name;
@@ -30,6 +30,6 @@ extern const iotjs_module_t iotjs_modules[];
 
 void iotjs_module_list_cleanup();
 
-iotjs_jval_t iotjs_module_get(const char* name);
+jerry_value_t iotjs_module_get(const char* name);
 
 #endif /* IOTJS_MODULE_H */

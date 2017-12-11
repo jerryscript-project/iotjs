@@ -97,10 +97,10 @@ static bool iotjs_run(iotjs_environment_t* env) {
   // Evaluating 'iotjs.js' returns a function.
   bool throws = false;
 #ifndef ENABLE_SNAPSHOT
-  iotjs_jval_t jmain = iotjs_jhelper_eval("iotjs.js", strlen("iotjs.js"),
-                                          iotjs_s, iotjs_l, false, &throws);
+  jerry_value_t jmain = iotjs_jhelper_eval("iotjs.js", strlen("iotjs.js"),
+                                           iotjs_s, iotjs_l, false, &throws);
 #else
-  iotjs_jval_t jmain =
+  jerry_value_t jmain =
       jerry_exec_snapshot_at((const void*)iotjs_js_modules_s,
                              iotjs_js_modules_l, module_iotjs_idx, false);
   if (jerry_value_has_error_flag(jmain)) {
@@ -121,11 +121,11 @@ static bool iotjs_run(iotjs_environment_t* env) {
 
 static int iotjs_start(iotjs_environment_t* env) {
   // Bind environment to global object.
-  const iotjs_jval_t global = jerry_get_global_object();
+  const jerry_value_t global = jerry_get_global_object();
   jerry_set_object_native_pointer(global, env, NULL);
 
   // Initialize builtin process module.
-  const iotjs_jval_t process = iotjs_module_get("process");
+  const jerry_value_t process = iotjs_module_get("process");
   iotjs_jval_set_property_jval(global, "process", process);
 
   // Release the global object

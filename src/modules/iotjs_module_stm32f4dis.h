@@ -17,7 +17,7 @@
 #define IOTJS_MODULE_STM32F4DIS_H
 
 
-void iotjs_stm32f4dis_pin_initialize(iotjs_jval_t jobj);
+void iotjs_stm32f4dis_pin_initialize(jerry_value_t jobj);
 
 
 #endif /* IOTJS_MODULE_STM32F4DIS_H */

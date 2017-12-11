@@ -3,7 +3,7 @@ Inside IoT.js
 
 * [Design](#design)
 * [Javascript Binding](#javascript-binding)
-  * iotjs_jval_t
+  * jerry_value_t
   * iotjs_jobjectwrap_t
   * Native handler
   * Embedding API
@@ -36,9 +36,9 @@ Although IoT.js only supports JerryScript for now, there will be a chance that w
 For this reason, we want to keep the layer independent from a specific Javascript engine.
 You can see interface of the layer in [iotjs_binding.h](../../src/iotjs_binding.h).
 
-## iotjs_jval_t
+## jerry_value_t
 
-`iotjs_jval_t` struct stands for a real Javascript object. Upper layers will access Javascript object via this struct.
+`jerry_value_t` struct stands for a real Javascript object. Upper layers will access Javascript object via this struct.
 This struct provides following functionalities:
 
 * Creating a Javascript object using `iotjs_jval_create_*()` constructor.
@@ -56,14 +56,14 @@ This struct provides following functionalities:
 
 ## iotjs_jobjectwrap_t
 
-You can refer Javascript object from C code side using `iotjs_jval_t` as saw above.
-When a reference for a Javascript object was made using `iotjs_jval_t`, it will increase the reference count and will decrease the count when it goes out of scope.
+You can refer Javascript object from C code side using `jerry_value_t` as saw above.
+When a reference for a Javascript object was made using `jerry_value_t`, it will increase the reference count and will decrease the count when it goes out of scope.
 
 ```c
 {
   // Create JavaScript object
   // It increases reference count in JerryScript side.
-  iotjs_jval_t jobject = iotjs_jval_create();
+  jerry_value_t jobject = iotjs_jval_create();
 
   // Use `jobject`
   ...
@@ -78,7 +78,7 @@ But the situation is different if you want to refer a Javascript object through 
 You may write code like this:
 
 ```c
-  iotjs_jval_t* jobject = (iotjs_jval_t*)malloc(sizeof(iotjs_jval_t)); // Not allowed
+  jerry_value_t* jobject = (jerry_value_t*)malloc(sizeof(jerry_value_t)); // Not allowed
 ```
 
 Unfortunately, we strongly do not recommend that kind of pattern. We treat pointer-types variables in special way. (See [Validated Struct](Inside-IoT.js-Validated-Struct.md) for more details.)
@@ -90,7 +90,7 @@ The `iotjs_jobjectwrap_t` instance will be released at the time the correspondin
 
 Do not hold pointer to the wrapper in native code side globally because even if you are holding a wrapper by pointer, Javascript engine probably releases the corresponding Javascript object resulting deallocation of wrapper. Consequentially your pointer will turned into dangling.
 
-The only safe way to get wrapper is to get it from Javascript object. When a wrapper is being created, it links itself with corresponding Javascript object with `iotjs_jval_set_object_native_handle()` method of `iotjs_jval_t`. And you can get the wrapper from the object with `iotjs_jval_get_object_native_handle()` method of `iotjs_jval_t` later when you need it.
+The only safe way to get wrapper is to get it from Javascript object. When a wrapper is being created, it links itself with corresponding Javascript object with `iotjs_jval_set_object_native_handle()` method of `jerry_value_t`. And you can get the wrapper from the object with `iotjs_jval_get_object_native_handle()` method of `jerry_value_t` later when you need it.
 
 
 ## Native handler
@@ -251,7 +251,7 @@ And calling the javascript callback function with the result.
 
 ```c
   iotjs_fsreqwrap_t* req_wrap = (iotjs_fsreqwrap_t*)(req->data); // get request wrapper
-  const iotjs_jval_t* cb = iotjs_fsreqwrap_jcallback(req_wrap); // javascript callback function
+  const jerry_value_t* cb = iotjs_fsreqwrap_jcallback(req_wrap); // javascript callback function
 
   iotjs_jargs_t jarg = iotjs_jargs_create(2);
   iotjs_jargs_append_null(&jarg); // in case of success.

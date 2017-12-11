@@ -17,7 +17,7 @@
 #define IOTJS_EXCEPTION_H
 
 
-iotjs_jval_t iotjs_create_uv_exception(int errorno, const char* syscall);
+jerry_value_t iotjs_create_uv_exception(int errorno, const char* syscall);
 
 
 #endif /* IOTJS_EXCEPTION_H */

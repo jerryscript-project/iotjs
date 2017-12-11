@@ -28,17 +28,17 @@
 // for JavaScript callback function to prevent it from reclaimed by GC. The
 // reference count will decrease back when wrapper is being freed.
 typedef struct {
-  iotjs_jval_t jcallback;
+  jerry_value_t jcallback;
   uv_req_t* request;
 } IOTJS_VALIDATED_STRUCT(iotjs_reqwrap_t);
 
 
-void iotjs_reqwrap_initialize(iotjs_reqwrap_t* reqwrap, iotjs_jval_t jcallback,
+void iotjs_reqwrap_initialize(iotjs_reqwrap_t* reqwrap, jerry_value_t jcallback,
                               uv_req_t* request);
 void iotjs_reqwrap_destroy(iotjs_reqwrap_t* reqwrap);
 
 // To retrieve javascript callback function object.
-iotjs_jval_t iotjs_reqwrap_jcallback(iotjs_reqwrap_t* reqwrap);
+jerry_value_t iotjs_reqwrap_jcallback(iotjs_reqwrap_t* reqwrap);
 
 // To retrieve pointer to uv request.
 uv_req_t* iotjs_reqwrap_req(iotjs_reqwrap_t* reqwrap);

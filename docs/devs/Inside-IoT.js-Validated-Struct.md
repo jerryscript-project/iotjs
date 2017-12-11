@@ -137,7 +137,7 @@ typedef struct {
   uv_fs_t req;
 } IOTJS_VALIDATED_STRUCT(iotjs_fsreqwrap_t);
 
-iotjs_fsreqwrap_t* iotjs_fsreqwrap_create(const iotjs_jval_t* jcallback);
+iotjs_fsreqwrap_t* iotjs_fsreqwrap_create(const jerry_value_t* jcallback);
 void iotjs_fsreqwrap_dispatched(iotjs_fsreqwrap_t* fsreqwrap);
 ```
 
@@ -151,7 +151,7 @@ The destructor `iotjs_fsreqwrap_destroy()` is hidden in c file.
  * Implementation in iotjs_module_fs.c
  */
 
-iotjs_fsreqwrap_t* iotjs_fsreqwrap_create(const iotjs_jval_t* jcallback) {
+iotjs_fsreqwrap_t* iotjs_fsreqwrap_create(const jerry_value_t* jcallback) {
   iotjs_fsreqwrap_t* fsreqwrap = IOTJS_ALLOC(iotjs_fsreqwrap_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_fsreqwrap_t, fsreqwrap);
   iotjs_reqwrap_initialize(&_this->reqwrap, jcallback, (uv_req_t*)&_this->req);
@@ -179,7 +179,7 @@ void callback(uv_fs_t* req) {
     iotjs_fsreqwrap_dispatched(req); /* Call iotjs_*reqwrap_dispatched() when callback called */
 }
 
-void request(iotjs_jval_t* jcallback) {
+void request(jerry_value_t* jcallback) {
     iotjs_fsreqwrap_t* wrap = iotjs_fsreqwrap_create(jcallback);
     uv_fs_request(loop, wrap->req, callback);
 }

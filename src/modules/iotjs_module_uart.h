@@ -34,7 +34,7 @@ typedef enum {
 
 typedef struct {
   iotjs_handlewrap_t handlewrap;
-  iotjs_jval_t jemitter_this;
+  jerry_value_t jemitter_this;
   int device_fd;
   int baud_rate;
   uint8_t data_bits;

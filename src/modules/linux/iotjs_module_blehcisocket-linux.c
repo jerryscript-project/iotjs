@@ -297,14 +297,14 @@ void iotjs_blehcisocket_poll(THIS) {
       }
     }
 
-    iotjs_jval_t jhcisocket = iotjs_jobjectwrap_jobject(&_this->jobjectwrap);
-    iotjs_jval_t jemit = iotjs_jval_get_property(jhcisocket, "emit");
+    jerry_value_t jhcisocket = iotjs_jobjectwrap_jobject(&_this->jobjectwrap);
+    jerry_value_t jemit = iotjs_jval_get_property(jhcisocket, "emit");
     IOTJS_ASSERT(jerry_value_is_function(jemit));
 
     iotjs_jargs_t jargs = iotjs_jargs_create(2);
-    iotjs_jval_t str = jerry_create_string((const jerry_char_t*)"data");
+    jerry_value_t str = jerry_create_string((const jerry_char_t*)"data");
     IOTJS_ASSERT(length >= 0);
-    iotjs_jval_t jbuf = iotjs_bufferwrap_create_buffer((size_t)length);
+    jerry_value_t jbuf = iotjs_bufferwrap_create_buffer((size_t)length);
     iotjs_bufferwrap_t* buf_wrap = iotjs_bufferwrap_from_jbuffer(jbuf);
     iotjs_bufferwrap_copy(buf_wrap, data, (size_t)length);
     iotjs_jargs_append_jval(&jargs, str);
@@ -338,13 +338,13 @@ void iotjs_blehcisocket_write(THIS, char* data, size_t length) {
 void iotjs_blehcisocket_emitErrnoError(THIS) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_blehcisocket_t, blehcisocket);
 
-  iotjs_jval_t jhcisocket = iotjs_jobjectwrap_jobject(&_this->jobjectwrap);
-  iotjs_jval_t jemit = iotjs_jval_get_property(jhcisocket, "emit");
+  jerry_value_t jhcisocket = iotjs_jobjectwrap_jobject(&_this->jobjectwrap);
+  jerry_value_t jemit = iotjs_jval_get_property(jhcisocket, "emit");
   IOTJS_ASSERT(jerry_value_is_function(jemit));
 
   iotjs_jargs_t jargs = iotjs_jargs_create(2);
-  iotjs_jval_t str = jerry_create_string((const jerry_char_t*)"error");
-  iotjs_jval_t jerror = iotjs_jval_create_error(strerror(errno));
+  jerry_value_t str = jerry_create_string((const jerry_char_t*)"error");
+  jerry_value_t jerror = iotjs_jval_create_error(strerror(errno));
   iotjs_jargs_append_jval(&jargs, str);
   iotjs_jargs_append_jval(&jargs, jerror);
   iotjs_jhelper_call_ok(jemit, jhcisocket, &jargs);

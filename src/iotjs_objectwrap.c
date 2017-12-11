@@ -18,7 +18,7 @@
 
 
 void iotjs_jobjectwrap_initialize(iotjs_jobjectwrap_t* jobjectwrap,
-                                  iotjs_jval_t jobject,
+                                  jerry_value_t jobject,
                                   JNativeInfoType* native_info) {
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_jobjectwrap_t, jobjectwrap);
 
@@ -41,9 +41,9 @@ void iotjs_jobjectwrap_destroy(iotjs_jobjectwrap_t* jobjectwrap) {
 }
 
 
-iotjs_jval_t iotjs_jobjectwrap_jobject(iotjs_jobjectwrap_t* jobjectwrap) {
+jerry_value_t iotjs_jobjectwrap_jobject(iotjs_jobjectwrap_t* jobjectwrap) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_jobjectwrap_t, jobjectwrap);
-  iotjs_jval_t jobject = _this->jobject;
+  jerry_value_t jobject = _this->jobject;
   IOTJS_ASSERT((uintptr_t)jobjectwrap ==
                iotjs_jval_get_object_native_handle(jobject));
   IOTJS_ASSERT(jerry_value_is_object(jobject));
@@ -51,7 +51,7 @@ iotjs_jval_t iotjs_jobjectwrap_jobject(iotjs_jobjectwrap_t* jobjectwrap) {
 }
 
 
-iotjs_jobjectwrap_t* iotjs_jobjectwrap_from_jobject(iotjs_jval_t jobject) {
+iotjs_jobjectwrap_t* iotjs_jobjectwrap_from_jobject(jerry_value_t jobject) {
   iotjs_jobjectwrap_t* wrap =
       (iotjs_jobjectwrap_t*)(iotjs_jval_get_object_native_handle(jobject));
   IOTJS_ASSERT(jerry_value_is_object(iotjs_jobjectwrap_jobject(wrap)));

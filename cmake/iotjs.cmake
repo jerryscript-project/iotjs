@@ -253,7 +253,7 @@ foreach(MODULE ${IOTJS_NATIVE_MODULES})
   string(TOLOWER ${MODULE} module)
 
   set(IOTJS_MODULE_INITIALIZERS "${IOTJS_MODULE_INITIALIZERS}
-extern iotjs_jval_t ${${IOTJS_MODULES_JSON}.modules.${module}.init}();")
+extern jerry_value_t ${${IOTJS_MODULES_JSON}.modules.${module}.init}();")
 endforeach()
 
 # Build up module entries

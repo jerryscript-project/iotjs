@@ -48,7 +48,7 @@
 IOTJS_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(blehcisocket);
 
 
-iotjs_blehcisocket_t* iotjs_blehcisocket_create(iotjs_jval_t jble) {
+iotjs_blehcisocket_t* iotjs_blehcisocket_create(jerry_value_t jble) {
   THIS = IOTJS_ALLOC(iotjs_blehcisocket_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_blehcisocket_t, blehcisocket);
 
@@ -61,7 +61,8 @@ iotjs_blehcisocket_t* iotjs_blehcisocket_create(iotjs_jval_t jble) {
 }
 
 
-iotjs_blehcisocket_t* iotjs_blehcisocket_instance_from_jval(iotjs_jval_t jble) {
+iotjs_blehcisocket_t* iotjs_blehcisocket_instance_from_jval(
+    jerry_value_t jble) {
   iotjs_jobjectwrap_t* jobjectwrap = iotjs_jobjectwrap_from_jobject(jble);
   return (iotjs_blehcisocket_t*)jobjectwrap;
 }
@@ -175,7 +176,7 @@ JS_FUNCTION(BleHciSocketCons) {
   DJS_CHECK_THIS();
 
   // Create object
-  iotjs_jval_t jblehcisocket = JS_GET_THIS();
+  jerry_value_t jblehcisocket = JS_GET_THIS();
   iotjs_blehcisocket_t* blehcisocket = iotjs_blehcisocket_create(jblehcisocket);
   IOTJS_ASSERT(blehcisocket ==
                (iotjs_blehcisocket_t*)(iotjs_jval_get_object_native_handle(
@@ -184,11 +185,11 @@ JS_FUNCTION(BleHciSocketCons) {
 }
 
 
-iotjs_jval_t InitBlehcisocket() {
-  iotjs_jval_t jblehcisocketCons =
+jerry_value_t InitBlehcisocket() {
+  jerry_value_t jblehcisocketCons =
       jerry_create_external_function(BleHciSocketCons);
 
-  iotjs_jval_t prototype = jerry_create_object();
+  jerry_value_t prototype = jerry_create_object();
 
   iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_START, Start);
   iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_BINDRAW, BindRaw);

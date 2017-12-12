@@ -22,63 +22,61 @@
 #include <stdio.h>
 
 
-typedef jerry_external_handler_t JHandlerType;
 typedef const jerry_object_native_info_t JNativeInfoType;
-typedef jerry_length_t JRawLengthType;
-typedef jerry_value_t iotjs_jval_t;
 
 /* Constructors */
-iotjs_jval_t iotjs_jval_create_string(const iotjs_string_t* v);
-iotjs_jval_t iotjs_jval_create_byte_array(uint32_t len, const char* data);
+jerry_value_t iotjs_jval_create_string(const iotjs_string_t* v);
+jerry_value_t iotjs_jval_create_byte_array(uint32_t len, const char* data);
 jerry_value_t iotjs_jval_dummy_function(const jerry_value_t function_obj,
                                         const jerry_value_t this_val,
                                         const jerry_value_t args_p[],
                                         const jerry_length_t args_count);
-iotjs_jval_t iotjs_jval_create_function(JHandlerType handler);
-iotjs_jval_t iotjs_jval_create_error(const char* msg);
-iotjs_jval_t iotjs_jval_create_error_type(jerry_error_t type, const char* msg);
+jerry_value_t iotjs_jval_create_function(jerry_external_handler_t handler);
+jerry_value_t iotjs_jval_create_error(const char* msg);
+jerry_value_t iotjs_jval_create_error_type(jerry_error_t type, const char* msg);
 
-iotjs_jval_t iotjs_jval_get_string_size(const iotjs_string_t* str);
+jerry_value_t iotjs_jval_get_string_size(const iotjs_string_t* str);
 
 
 /* Type Converters */
-bool iotjs_jval_as_boolean(iotjs_jval_t);
-double iotjs_jval_as_number(iotjs_jval_t);
-iotjs_string_t iotjs_jval_as_string(iotjs_jval_t);
-iotjs_jval_t iotjs_jval_as_object(iotjs_jval_t);
-iotjs_jval_t iotjs_jval_as_array(iotjs_jval_t);
-iotjs_jval_t iotjs_jval_as_function(iotjs_jval_t);
+bool iotjs_jval_as_boolean(jerry_value_t);
+double iotjs_jval_as_number(jerry_value_t);
+iotjs_string_t iotjs_jval_as_string(jerry_value_t);
+jerry_value_t iotjs_jval_as_object(jerry_value_t);
+jerry_value_t iotjs_jval_as_array(jerry_value_t);
+jerry_value_t iotjs_jval_as_function(jerry_value_t);
 
 /* Methods for General JavaScript Object */
-void iotjs_jval_set_method(iotjs_jval_t jobj, const char* name,
+void iotjs_jval_set_method(jerry_value_t jobj, const char* name,
                            jerry_external_handler_t handler);
-bool iotjs_jval_set_prototype(iotjs_jval_t jobj, iotjs_jval_t jproto);
-void iotjs_jval_set_property_jval(iotjs_jval_t jobj, const char* name,
-                                  iotjs_jval_t value);
-void iotjs_jval_set_property_null(iotjs_jval_t jobj, const char* name);
-void iotjs_jval_set_property_undefined(iotjs_jval_t jobj, const char* name);
-void iotjs_jval_set_property_boolean(iotjs_jval_t jobj, const char* name,
+bool iotjs_jval_set_prototype(jerry_value_t jobj, jerry_value_t jproto);
+void iotjs_jval_set_property_jval(jerry_value_t jobj, const char* name,
+                                  jerry_value_t value);
+void iotjs_jval_set_property_null(jerry_value_t jobj, const char* name);
+void iotjs_jval_set_property_undefined(jerry_value_t jobj, const char* name);
+void iotjs_jval_set_property_boolean(jerry_value_t jobj, const char* name,
                                      bool v);
-void iotjs_jval_set_property_number(iotjs_jval_t jobj, const char* name,
+void iotjs_jval_set_property_number(jerry_value_t jobj, const char* name,
                                     double v);
-void iotjs_jval_set_property_string(iotjs_jval_t jobj, const char* name,
+void iotjs_jval_set_property_string(jerry_value_t jobj, const char* name,
                                     const iotjs_string_t* v);
-void iotjs_jval_set_property_string_raw(iotjs_jval_t jobj, const char* name,
+void iotjs_jval_set_property_string_raw(jerry_value_t jobj, const char* name,
                                         const char* v);
 
-iotjs_jval_t iotjs_jval_get_property(iotjs_jval_t jobj, const char* name);
+jerry_value_t iotjs_jval_get_property(jerry_value_t jobj, const char* name);
 
-uintptr_t iotjs_jval_get_object_native_handle(iotjs_jval_t jobj);
+uintptr_t iotjs_jval_get_object_native_handle(jerry_value_t jobj);
 
-void iotjs_jval_set_property_by_index(iotjs_jval_t jarr, uint32_t idx,
-                                      iotjs_jval_t jval);
-iotjs_jval_t iotjs_jval_get_property_by_index(iotjs_jval_t jarr, uint32_t idx);
+void iotjs_jval_set_property_by_index(jerry_value_t jarr, uint32_t idx,
+                                      jerry_value_t jval);
+jerry_value_t iotjs_jval_get_property_by_index(jerry_value_t jarr,
+                                               uint32_t idx);
 
 
 typedef struct {
   uint16_t capacity;
   uint16_t argc;
-  iotjs_jval_t* argv;
+  jerry_value_t* argv;
 } IOTJS_VALIDATED_STRUCT(iotjs_jargs_t);
 
 
@@ -90,7 +88,7 @@ void iotjs_jargs_destroy(iotjs_jargs_t* jargs);
 
 uint16_t iotjs_jargs_length(const iotjs_jargs_t* jargs);
 
-void iotjs_jargs_append_jval(iotjs_jargs_t* jargs, iotjs_jval_t x);
+void iotjs_jargs_append_jval(iotjs_jargs_t* jargs, jerry_value_t x);
 void iotjs_jargs_append_undefined(iotjs_jargs_t* jargs);
 void iotjs_jargs_append_null(iotjs_jargs_t* jargs);
 void iotjs_jargs_append_bool(iotjs_jargs_t* jargs, bool x);
@@ -100,20 +98,20 @@ void iotjs_jargs_append_string_raw(iotjs_jargs_t* jargs, const char* x);
 void iotjs_jargs_append_error(iotjs_jargs_t* jargs, const char* msg);
 
 
-void iotjs_jargs_replace(iotjs_jargs_t* jargs, uint16_t index, iotjs_jval_t x);
+void iotjs_jargs_replace(iotjs_jargs_t* jargs, uint16_t index, jerry_value_t x);
 
 // Calls JavaScript function.
-iotjs_jval_t iotjs_jhelper_call(iotjs_jval_t jfunc, iotjs_jval_t jthis,
-                                const iotjs_jargs_t* jargs, bool* throws);
+jerry_value_t iotjs_jhelper_call(jerry_value_t jfunc, jerry_value_t jthis,
+                                 const iotjs_jargs_t* jargs, bool* throws);
 
 // Calls javascript function.
-iotjs_jval_t iotjs_jhelper_call_ok(iotjs_jval_t jfunc, iotjs_jval_t jthis,
-                                   const iotjs_jargs_t* jargs);
+jerry_value_t iotjs_jhelper_call_ok(jerry_value_t jfunc, jerry_value_t jthis,
+                                    const iotjs_jargs_t* jargs);
 
 // Evaluates javascript source file.
-iotjs_jval_t iotjs_jhelper_eval(const char* name, size_t name_len,
-                                const uint8_t* data, size_t size,
-                                bool strict_mode, bool* throws);
+jerry_value_t iotjs_jhelper_eval(const char* name, size_t name_len,
+                                 const uint8_t* data, size_t size,
+                                 bool strict_mode, bool* throws);
 
 #define JS_CREATE_ERROR(TYPE, message) \
   jerry_create_error(JERRY_ERROR_##TYPE, (const jerry_char_t*)message);
@@ -212,7 +210,7 @@ iotjs_jval_t iotjs_jhelper_eval(const char* name, size_t name_len,
 
 #define DJS_GET_REQUIRED_CONF_VALUE(src, target, property, type)            \
   do {                                                                      \
-    iotjs_jval_t jtmp = iotjs_jval_get_property(src, property);             \
+    jerry_value_t jtmp = iotjs_jval_get_property(src, property);            \
     if (jerry_value_is_undefined(jtmp)) {                                   \
       return JS_CREATE_ERROR(TYPE, "Missing argument, required " property); \
     } else if (jerry_value_is_##type(jtmp)) {                               \

@@ -17,8 +17,8 @@
 
 // This function should be able to print utf8 encoded string
 // as utf8 is internal string representation in Jerryscript
-static iotjs_jval_t Print(const jerry_value_t* jargv,
-                          const jerry_length_t jargc, FILE* out_fd) {
+static jerry_value_t Print(const jerry_value_t* jargv,
+                           const jerry_length_t jargc, FILE* out_fd) {
   JS_CHECK_ARGS(1, string);
   iotjs_string_t msg = JS_GET_ARG(0, string);
   const char* str = iotjs_string_data(&msg);
@@ -47,8 +47,8 @@ JS_FUNCTION(Stderr) {
 }
 
 
-iotjs_jval_t InitConsole() {
-  iotjs_jval_t console = jerry_create_object();
+jerry_value_t InitConsole() {
+  jerry_value_t console = jerry_create_object();
 
   iotjs_jval_set_method(console, IOTJS_MAGIC_STRING_STDOUT, Stdout);
   iotjs_jval_set_method(console, IOTJS_MAGIC_STRING_STDERR, Stderr);

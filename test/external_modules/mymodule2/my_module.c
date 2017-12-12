@@ -15,7 +15,7 @@
 
 #include "iotjs_def.h"
 
-iotjs_jval_t InitMyNativeModule() {
+jerry_value_t InitMyNativeModule() {
   jerry_value_t mymodule = jerry_create_object();
   iotjs_jval_set_property_string_raw(mymodule, "message", "Hello world!");
   return mymodule;

@@ -20,8 +20,8 @@
 #include <stdlib.h>
 
 
-static iotjs_jval_t WrapEval(const char* name, size_t name_len,
-                             const char* source, size_t length) {
+static jerry_value_t WrapEval(const char* name, size_t name_len,
+                              const char* source, size_t length) {
   static const char* args = "exports, require, module, native";
   jerry_value_t res =
       jerry_parse_function((const jerry_char_t*)name, name_len,
@@ -45,7 +45,7 @@ JS_FUNCTION(Compile) {
     jerry_debugger_stop();
   }
 
-  iotjs_jval_t jres =
+  jerry_value_t jres =
       WrapEval(filename, strlen(filename), iotjs_string_data(&source),
                iotjs_string_size(&source));
 
@@ -84,10 +84,10 @@ JS_FUNCTION(DebuggerSourceCompile) {
 JS_FUNCTION(CompileModule) {
   DJS_CHECK_ARGS(2, object, function);
 
-  iotjs_jval_t jmodule = JS_GET_ARG(0, object);
-  iotjs_jval_t jrequire = JS_GET_ARG(1, function);
+  jerry_value_t jmodule = JS_GET_ARG(0, object);
+  jerry_value_t jrequire = JS_GET_ARG(1, function);
 
-  iotjs_jval_t jid = iotjs_jval_get_property(jmodule, "id");
+  jerry_value_t jid = iotjs_jval_get_property(jmodule, "id");
   iotjs_string_t id = iotjs_jval_as_string(jid);
   jerry_release_value(jid);
   const char* name = iotjs_string_data(&id);
@@ -101,13 +101,13 @@ JS_FUNCTION(CompileModule) {
     i++;
   }
 
-  iotjs_jval_t native_module_jval = iotjs_module_get(name);
+  jerry_value_t native_module_jval = iotjs_module_get(name);
   if (jerry_value_has_error_flag(native_module_jval)) {
     return native_module_jval;
   }
 
-  iotjs_jval_t jexports = iotjs_jval_get_property(jmodule, "exports");
-  iotjs_jval_t jres = jerry_create_undefined();
+  jerry_value_t jexports = iotjs_jval_get_property(jmodule, "exports");
+  jerry_value_t jres = jerry_create_undefined();
 
   if (js_modules[i].name != NULL) {
 #ifdef ENABLE_SNAPSHOT
@@ -119,11 +119,12 @@ JS_FUNCTION(CompileModule) {
 #endif
 
     if (!jerry_value_has_error_flag(jres)) {
-      iotjs_jval_t args[] = { jexports, jrequire, jmodule, native_module_jval };
+      jerry_value_t args[] = { jexports, jrequire, jmodule,
+                               native_module_jval };
 
-      iotjs_jval_t jfunc = jres;
+      jerry_value_t jfunc = jres;
       jres = jerry_call_function(jfunc, jerry_create_undefined(), args,
-                                 sizeof(args) / sizeof(iotjs_jval_t));
+                                 sizeof(args) / sizeof(jerry_value_t));
       jerry_release_value(jfunc);
     }
   } else if (!jerry_value_is_undefined(native_module_jval)) {
@@ -156,7 +157,7 @@ JS_FUNCTION(ReadSource) {
 
   iotjs_string_t code = iotjs_file_read(iotjs_string_data(&path));
 
-  iotjs_jval_t ret_val = iotjs_jval_create_string(&code);
+  jerry_value_t ret_val = iotjs_jval_create_string(&code);
 
   iotjs_string_destroy(&path);
   iotjs_string_destroy(&code);
@@ -206,7 +207,7 @@ JS_FUNCTION(DoExit) {
 }
 
 
-void SetNativeSources(iotjs_jval_t native_sources) {
+void SetNativeSources(jerry_value_t native_sources) {
   for (int i = 0; js_modules[i].name; i++) {
     iotjs_jval_set_property_jval(native_sources, js_modules[i].name,
                                  jerry_create_boolean(true));
@@ -214,7 +215,7 @@ void SetNativeSources(iotjs_jval_t native_sources) {
 }
 
 
-static void SetProcessEnv(iotjs_jval_t process) {
+static void SetProcessEnv(jerry_value_t process) {
   const char *homedir, *iotjspath, *iotjsenv;
 
   homedir = getenv("HOME");
@@ -237,7 +238,7 @@ static void SetProcessEnv(iotjs_jval_t process) {
   iotjsenv = "";
 #endif
 
-  iotjs_jval_t env = jerry_create_object();
+  jerry_value_t env = jerry_create_object();
   iotjs_jval_set_property_string_raw(env, IOTJS_MAGIC_STRING_HOME, homedir);
   iotjs_jval_set_property_string_raw(env, IOTJS_MAGIC_STRING_IOTJS_PATH,
                                      iotjspath);
@@ -250,9 +251,9 @@ static void SetProcessEnv(iotjs_jval_t process) {
 }
 
 
-static void SetProcessIotjs(iotjs_jval_t process) {
+static void SetProcessIotjs(jerry_value_t process) {
   // IoT.js specific
-  iotjs_jval_t iotjs = jerry_create_object();
+  jerry_value_t iotjs = jerry_create_object();
   iotjs_jval_set_property_jval(process, IOTJS_MAGIC_STRING_IOTJS, iotjs);
 
   iotjs_jval_set_property_string_raw(iotjs, IOTJS_MAGIC_STRING_BOARD,
@@ -261,15 +262,15 @@ static void SetProcessIotjs(iotjs_jval_t process) {
 }
 
 
-static void SetProcessArgv(iotjs_jval_t process) {
+static void SetProcessArgv(jerry_value_t process) {
   const iotjs_environment_t* env = iotjs_environment_get();
   uint32_t argc = iotjs_environment_argc(env);
 
-  iotjs_jval_t argv = jerry_create_array(argc);
+  jerry_value_t argv = jerry_create_array(argc);
 
   for (uint32_t i = 0; i < argc; ++i) {
     const char* argvi = iotjs_environment_argv(env, i);
-    iotjs_jval_t arg = jerry_create_string((const jerry_char_t*)argvi);
+    jerry_value_t arg = jerry_create_string((const jerry_char_t*)argvi);
     iotjs_jval_set_property_by_index(argv, i, arg);
     jerry_release_value(arg);
   }
@@ -279,7 +280,7 @@ static void SetProcessArgv(iotjs_jval_t process) {
 }
 
 
-static void SetBuiltinModules(iotjs_jval_t builtin_modules) {
+static void SetBuiltinModules(jerry_value_t builtin_modules) {
   for (unsigned i = 0; js_modules[i].name; i++) {
     iotjs_jval_set_property_jval(builtin_modules, js_modules[i].name,
                                  jerry_create_boolean(true));
@@ -291,8 +292,8 @@ static void SetBuiltinModules(iotjs_jval_t builtin_modules) {
 }
 
 
-iotjs_jval_t InitProcess() {
-  iotjs_jval_t process = jerry_create_object();
+jerry_value_t InitProcess() {
+  jerry_value_t process = jerry_create_object();
 
   iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_COMPILE, Compile);
   iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_COMPILENATIVEPTR,
@@ -306,7 +307,7 @@ iotjs_jval_t InitProcess() {
   SetProcessEnv(process);
 
   // process.builtin_modules
-  iotjs_jval_t builtin_modules = jerry_create_object();
+  jerry_value_t builtin_modules = jerry_create_object();
   SetBuiltinModules(builtin_modules);
   iotjs_jval_set_property_jval(process, IOTJS_MAGIC_STRING_BUILTIN_MODULES,
                                builtin_modules);
@@ -338,7 +339,7 @@ iotjs_jval_t InitProcess() {
     SetProcessArgv(process);
   }
 
-  iotjs_jval_t wait_source_val = jerry_create_boolean(wait_source);
+  jerry_value_t wait_source_val = jerry_create_boolean(wait_source);
   iotjs_jval_set_property_jval(process, IOTJS_MAGIC_STRING_DEBUGGER_WAIT_SOURCE,
                                wait_source_val);
   jerry_release_value(wait_source_val);

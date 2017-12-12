@@ -27,7 +27,7 @@ typedef struct {
 } iotjs_fs_reqwrap_t;
 
 
-iotjs_fs_reqwrap_t* iotjs_fs_reqwrap_create(const iotjs_jval_t jcallback) {
+iotjs_fs_reqwrap_t* iotjs_fs_reqwrap_create(const jerry_value_t jcallback) {
   iotjs_fs_reqwrap_t* fs_reqwrap = IOTJS_ALLOC(iotjs_fs_reqwrap_t);
   iotjs_reqwrap_initialize(&fs_reqwrap->reqwrap, jcallback,
                            (uv_req_t*)&fs_reqwrap->req);
@@ -41,7 +41,7 @@ static void iotjs_fs_reqwrap_destroy(iotjs_fs_reqwrap_t* fs_reqwrap) {
   IOTJS_RELEASE(fs_reqwrap);
 }
 
-iotjs_jval_t MakeStatObject(uv_stat_t* statbuf);
+jerry_value_t MakeStatObject(uv_stat_t* statbuf);
 
 
 static void AfterAsync(uv_fs_t* req) {
@@ -49,12 +49,12 @@ static void AfterAsync(uv_fs_t* req) {
   IOTJS_ASSERT(req_wrap != NULL);
   IOTJS_ASSERT(&req_wrap->req == req);
 
-  const iotjs_jval_t cb = iotjs_reqwrap_jcallback(&req_wrap->reqwrap);
+  const jerry_value_t cb = iotjs_reqwrap_jcallback(&req_wrap->reqwrap);
   IOTJS_ASSERT(jerry_value_is_function(cb));
 
   iotjs_jargs_t jarg = iotjs_jargs_create(2);
   if (req->result < 0) {
-    iotjs_jval_t jerror = iotjs_create_uv_exception(req->result, "open");
+    jerry_value_t jerror = iotjs_create_uv_exception(req->result, "open");
     iotjs_jargs_append_jval(&jarg, jerror);
     jerry_release_value(jerror);
   } else {
@@ -73,9 +73,9 @@ static void AfterAsync(uv_fs_t* req) {
         int r;
         uv_dirent_t ent;
         uint32_t idx = 0;
-        iotjs_jval_t ret = jerry_create_array(0);
+        jerry_value_t ret = jerry_create_array(0);
         while ((r = uv_fs_scandir_next(req, &ent)) != UV_EOF) {
-          iotjs_jval_t name =
+          jerry_value_t name =
               jerry_create_string((const jerry_char_t*)ent.name);
           iotjs_jval_set_property_by_index(ret, idx, name);
           jerry_release_value(name);
@@ -88,7 +88,7 @@ static void AfterAsync(uv_fs_t* req) {
       case UV_FS_FSTAT:
       case UV_FS_STAT: {
         uv_stat_t s = (req->statbuf);
-        iotjs_jval_t ret = MakeStatObject(&s);
+        jerry_value_t ret = MakeStatObject(&s);
         iotjs_jargs_append_jval(&jarg, ret);
         jerry_release_value(ret);
         break;
@@ -107,9 +107,10 @@ static void AfterAsync(uv_fs_t* req) {
 }
 
 
-static iotjs_jval_t AfterSync(uv_fs_t* req, int err, const char* syscall_name) {
+static jerry_value_t AfterSync(uv_fs_t* req, int err,
+                               const char* syscall_name) {
   if (err < 0) {
-    iotjs_jval_t jerror = iotjs_create_uv_exception(err, syscall_name);
+    jerry_value_t jerror = iotjs_create_uv_exception(err, syscall_name);
     jerry_value_set_error_flag(&jerror);
     return jerror;
   } else {
@@ -134,9 +135,9 @@ static iotjs_jval_t AfterSync(uv_fs_t* req, int err, const char* syscall_name) {
         int r;
         uv_dirent_t ent;
         uint32_t idx = 0;
-        iotjs_jval_t ret = jerry_create_array(0);
+        jerry_value_t ret = jerry_create_array(0);
         while ((r = uv_fs_scandir_next(req, &ent)) != UV_EOF) {
-          iotjs_jval_t name =
+          jerry_value_t name =
               jerry_create_string((const jerry_char_t*)ent.name);
           iotjs_jval_set_property_by_index(ret, idx, name);
           jerry_release_value(name);
@@ -193,9 +194,9 @@ JS_FUNCTION(Close) {
   const iotjs_environment_t* env = iotjs_environment_get();
 
   int fd = JS_GET_ARG(0, number);
-  const iotjs_jval_t jcallback = JS_GET_ARG_IF_EXIST(1, function);
+  const jerry_value_t jcallback = JS_GET_ARG_IF_EXIST(1, function);
 
-  iotjs_jval_t ret_value;
+  jerry_value_t ret_value;
   if (!jerry_value_is_null(jcallback)) {
     FS_ASYNC(env, close, jcallback, fd);
   } else {
@@ -215,9 +216,9 @@ JS_FUNCTION(Open) {
   iotjs_string_t path = JS_GET_ARG(0, string);
   int flags = JS_GET_ARG(1, number);
   int mode = JS_GET_ARG(2, number);
-  const iotjs_jval_t jcallback = JS_GET_ARG_IF_EXIST(3, function);
+  const jerry_value_t jcallback = JS_GET_ARG_IF_EXIST(3, function);
 
-  iotjs_jval_t ret_value;
+  jerry_value_t ret_value;
   if (!jerry_value_is_null(jcallback)) {
     FS_ASYNC(env, open, jcallback, iotjs_string_data(&path), flags, mode);
   } else {
@@ -237,11 +238,11 @@ JS_FUNCTION(Read) {
   const iotjs_environment_t* env = iotjs_environment_get();
 
   int fd = JS_GET_ARG(0, number);
-  const iotjs_jval_t jbuffer = JS_GET_ARG(1, object);
+  const jerry_value_t jbuffer = JS_GET_ARG(1, object);
   size_t offset = JS_GET_ARG(2, number);
   size_t length = JS_GET_ARG(3, number);
   int position = JS_GET_ARG(4, number);
-  const iotjs_jval_t jcallback = JS_GET_ARG_IF_EXIST(5, function);
+  const jerry_value_t jcallback = JS_GET_ARG_IF_EXIST(5, function);
 
   iotjs_bufferwrap_t* buffer_wrap = iotjs_bufferwrap_from_jbuffer(jbuffer);
   char* data = iotjs_bufferwrap_buffer(buffer_wrap);
@@ -258,7 +259,7 @@ JS_FUNCTION(Read) {
 
   uv_buf_t uvbuf = uv_buf_init(data + offset, length);
 
-  iotjs_jval_t ret_value;
+  jerry_value_t ret_value;
   if (!jerry_value_is_null(jcallback)) {
     FS_ASYNC(env, read, jcallback, fd, &uvbuf, 1, position);
   } else {
@@ -276,11 +277,11 @@ JS_FUNCTION(Write) {
   const iotjs_environment_t* env = iotjs_environment_get();
 
   int fd = JS_GET_ARG(0, number);
-  const iotjs_jval_t jbuffer = JS_GET_ARG(1, object);
+  const jerry_value_t jbuffer = JS_GET_ARG(1, object);
   size_t offset = JS_GET_ARG(2, number);
   size_t length = JS_GET_ARG(3, number);
   int position = JS_GET_ARG(4, number);
-  const iotjs_jval_t jcallback = JS_GET_ARG_IF_EXIST(5, function);
+  const jerry_value_t jcallback = JS_GET_ARG_IF_EXIST(5, function);
 
   iotjs_bufferwrap_t* buffer_wrap = iotjs_bufferwrap_from_jbuffer(jbuffer);
   char* data = iotjs_bufferwrap_buffer(buffer_wrap);
@@ -297,7 +298,7 @@ JS_FUNCTION(Write) {
 
   uv_buf_t uvbuf = uv_buf_init(data + offset, length);
 
-  iotjs_jval_t ret_value;
+  jerry_value_t ret_value;
   if (!jerry_value_is_null(jcallback)) {
     FS_ASYNC(env, write, jcallback, fd, &uvbuf, 1, position);
   } else {
@@ -307,14 +308,14 @@ JS_FUNCTION(Write) {
 }
 
 
-iotjs_jval_t MakeStatObject(uv_stat_t* statbuf) {
-  const iotjs_jval_t fs = iotjs_module_get("fs");
+jerry_value_t MakeStatObject(uv_stat_t* statbuf) {
+  const jerry_value_t fs = iotjs_module_get("fs");
 
-  iotjs_jval_t stat_prototype =
+  jerry_value_t stat_prototype =
       iotjs_jval_get_property(fs, IOTJS_MAGIC_STRING_STATS);
   IOTJS_ASSERT(jerry_value_is_object(stat_prototype));
 
-  iotjs_jval_t jstat = jerry_create_object();
+  jerry_value_t jstat = jerry_create_object();
   iotjs_jval_set_prototype(jstat, stat_prototype);
 
   jerry_release_value(stat_prototype);
@@ -348,9 +349,9 @@ JS_FUNCTION(Stat) {
   const iotjs_environment_t* env = iotjs_environment_get();
 
   iotjs_string_t path = JS_GET_ARG(0, string);
-  const iotjs_jval_t jcallback = JS_GET_ARG_IF_EXIST(1, function);
+  const jerry_value_t jcallback = JS_GET_ARG_IF_EXIST(1, function);
 
-  iotjs_jval_t ret_value;
+  jerry_value_t ret_value;
   if (!jerry_value_is_null(jcallback)) {
     FS_ASYNC(env, stat, jcallback, iotjs_string_data(&path));
   } else {
@@ -370,9 +371,9 @@ JS_FUNCTION(Fstat) {
   const iotjs_environment_t* env = iotjs_environment_get();
 
   int fd = JS_GET_ARG(0, number);
-  const iotjs_jval_t jcallback = JS_GET_ARG_IF_EXIST(1, function);
+  const jerry_value_t jcallback = JS_GET_ARG_IF_EXIST(1, function);
 
-  iotjs_jval_t ret_value;
+  jerry_value_t ret_value;
   if (!jerry_value_is_null(jcallback)) {
     FS_ASYNC(env, fstat, jcallback, fd);
   } else {
@@ -391,9 +392,9 @@ JS_FUNCTION(MkDir) {
 
   iotjs_string_t path = JS_GET_ARG(0, string);
   int mode = JS_GET_ARG(1, number);
-  const iotjs_jval_t jcallback = JS_GET_ARG_IF_EXIST(2, function);
+  const jerry_value_t jcallback = JS_GET_ARG_IF_EXIST(2, function);
 
-  iotjs_jval_t ret_value;
+  jerry_value_t ret_value;
   if (!jerry_value_is_null(jcallback)) {
     FS_ASYNC(env, mkdir, jcallback, iotjs_string_data(&path), mode);
   } else {
@@ -413,9 +414,9 @@ JS_FUNCTION(RmDir) {
   const iotjs_environment_t* env = iotjs_environment_get();
 
   iotjs_string_t path = JS_GET_ARG(0, string);
-  const iotjs_jval_t jcallback = JS_GET_ARG_IF_EXIST(1, function);
+  const jerry_value_t jcallback = JS_GET_ARG_IF_EXIST(1, function);
 
-  iotjs_jval_t ret_value;
+  jerry_value_t ret_value;
   if (!jerry_value_is_null(jcallback)) {
     FS_ASYNC(env, rmdir, jcallback, iotjs_string_data(&path));
   } else {
@@ -435,9 +436,9 @@ JS_FUNCTION(Unlink) {
   const iotjs_environment_t* env = iotjs_environment_get();
 
   iotjs_string_t path = JS_GET_ARG(0, string);
-  const iotjs_jval_t jcallback = JS_GET_ARG_IF_EXIST(1, function);
+  const jerry_value_t jcallback = JS_GET_ARG_IF_EXIST(1, function);
 
-  iotjs_jval_t ret_value;
+  jerry_value_t ret_value;
   if (!jerry_value_is_null(jcallback)) {
     FS_ASYNC(env, unlink, jcallback, iotjs_string_data(&path));
   } else {
@@ -458,9 +459,9 @@ JS_FUNCTION(Rename) {
 
   iotjs_string_t oldPath = JS_GET_ARG(0, string);
   iotjs_string_t newPath = JS_GET_ARG(1, string);
-  const iotjs_jval_t jcallback = JS_GET_ARG_IF_EXIST(2, function);
+  const jerry_value_t jcallback = JS_GET_ARG_IF_EXIST(2, function);
 
-  iotjs_jval_t ret_value;
+  jerry_value_t ret_value;
   if (!jerry_value_is_null(jcallback)) {
     FS_ASYNC(env, rename, jcallback, iotjs_string_data(&oldPath),
              iotjs_string_data(&newPath));
@@ -482,9 +483,9 @@ JS_FUNCTION(ReadDir) {
 
   const iotjs_environment_t* env = iotjs_environment_get();
   iotjs_string_t path = JS_GET_ARG(0, string);
-  const iotjs_jval_t jcallback = JS_GET_ARG_IF_EXIST(1, function);
+  const jerry_value_t jcallback = JS_GET_ARG_IF_EXIST(1, function);
 
-  iotjs_jval_t ret_value;
+  jerry_value_t ret_value;
   if (!jerry_value_is_null(jcallback)) {
     FS_ASYNC(env, scandir, jcallback, iotjs_string_data(&path), 0);
   } else {
@@ -494,8 +495,8 @@ JS_FUNCTION(ReadDir) {
   return ret_value;
 }
 
-static iotjs_jval_t StatsIsTypeOf(iotjs_jval_t stats, int type) {
-  iotjs_jval_t mode = iotjs_jval_get_property(stats, IOTJS_MAGIC_STRING_MODE);
+static jerry_value_t StatsIsTypeOf(jerry_value_t stats, int type) {
+  jerry_value_t mode = iotjs_jval_get_property(stats, IOTJS_MAGIC_STRING_MODE);
 
   int mode_number = (int)iotjs_jval_as_number(mode);
 
@@ -506,18 +507,18 @@ static iotjs_jval_t StatsIsTypeOf(iotjs_jval_t stats, int type) {
 
 JS_FUNCTION(StatsIsDirectory) {
   DJS_CHECK_THIS();
-  iotjs_jval_t stats = JS_GET_THIS();
+  jerry_value_t stats = JS_GET_THIS();
   return StatsIsTypeOf(stats, S_IFDIR);
 }
 
 JS_FUNCTION(StatsIsFile) {
   DJS_CHECK_THIS();
-  iotjs_jval_t stats = JS_GET_THIS();
+  jerry_value_t stats = JS_GET_THIS();
   return StatsIsTypeOf(stats, S_IFREG);
 }
 
-iotjs_jval_t InitFs() {
-  iotjs_jval_t fs = jerry_create_object();
+jerry_value_t InitFs() {
+  jerry_value_t fs = jerry_create_object();
 
   iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_CLOSE, Close);
   iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_OPEN, Open);
@@ -531,7 +532,7 @@ iotjs_jval_t InitFs() {
   iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_RENAME, Rename);
   iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_READDIR, ReadDir);
 
-  iotjs_jval_t stats_prototype = jerry_create_object();
+  jerry_value_t stats_prototype = jerry_create_object();
 
   iotjs_jval_set_method(stats_prototype, IOTJS_MAGIC_STRING_ISDIRECTORY,
                         StatsIsDirectory);

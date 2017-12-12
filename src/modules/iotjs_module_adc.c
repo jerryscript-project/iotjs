@@ -21,10 +21,10 @@
 static JNativeInfoType this_module_native_info = {.free_cb = NULL };
 
 
-static iotjs_adc_t* iotjs_adc_instance_from_jval(const iotjs_jval_t jadc);
+static iotjs_adc_t* iotjs_adc_instance_from_jval(const jerry_value_t jadc);
 
 
-static iotjs_adc_t* iotjs_adc_create(const iotjs_jval_t jadc) {
+static iotjs_adc_t* iotjs_adc_create(const jerry_value_t jadc) {
   iotjs_adc_t* adc = IOTJS_ALLOC(iotjs_adc_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_adc_t, adc);
   iotjs_jobjectwrap_initialize(&_this->jobjectwrap, jadc,
@@ -48,7 +48,7 @@ static void iotjs_adc_destroy(iotjs_adc_t* adc) {
 
 
 static iotjs_adc_reqwrap_t* iotjs_adc_reqwrap_create(
-    const iotjs_jval_t jcallback, iotjs_adc_t* adc, AdcOp op) {
+    const jerry_value_t jcallback, iotjs_adc_t* adc, AdcOp op) {
   iotjs_adc_reqwrap_t* adc_reqwrap = IOTJS_ALLOC(iotjs_adc_reqwrap_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_adc_reqwrap_t, adc_reqwrap);
 
@@ -78,13 +78,13 @@ static uv_work_t* iotjs_adc_reqwrap_req(THIS) {
 }
 
 
-static iotjs_jval_t iotjs_adc_reqwrap_jcallback(THIS) {
+static jerry_value_t iotjs_adc_reqwrap_jcallback(THIS) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_adc_reqwrap_t, adc_reqwrap);
   return iotjs_reqwrap_jcallback(&_this->reqwrap);
 }
 
 
-static iotjs_adc_t* iotjs_adc_instance_from_jval(const iotjs_jval_t jadc) {
+static iotjs_adc_t* iotjs_adc_instance_from_jval(const jerry_value_t jadc) {
   uintptr_t handle = iotjs_jval_get_object_native_handle(jadc);
   return (iotjs_adc_t*)handle;
 }
@@ -119,7 +119,7 @@ static void iotjs_adc_after_work(uv_work_t* work_req, int status) {
   bool result = req_data->result;
 
   if (status) {
-    iotjs_jval_t error = iotjs_jval_create_error("System error");
+    jerry_value_t error = iotjs_jval_create_error("System error");
     iotjs_jargs_append_jval(&jargs, error);
     jerry_release_value(error);
   } else {
@@ -153,7 +153,7 @@ static void iotjs_adc_after_work(uv_work_t* work_req, int status) {
     }
   }
 
-  const iotjs_jval_t jcallback = iotjs_adc_reqwrap_jcallback(req_wrap);
+  const jerry_value_t jcallback = iotjs_adc_reqwrap_jcallback(req_wrap);
   iotjs_make_callback(jcallback, jerry_create_undefined(), &jargs);
 
   if (req_data->op == kAdcOpClose) {
@@ -205,12 +205,12 @@ JS_FUNCTION(AdcConstructor) {
   DJS_CHECK_THIS();
 
   // Create ADC object
-  const iotjs_jval_t jadc = JS_GET_THIS();
+  const jerry_value_t jadc = JS_GET_THIS();
   iotjs_adc_t* adc = iotjs_adc_create(jadc);
   IOTJS_ASSERT(adc == iotjs_adc_instance_from_jval(jadc));
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_adc_t, adc);
 
-  const iotjs_jval_t jconfiguration = JS_GET_ARG_IF_EXIST(0, object);
+  const jerry_value_t jconfiguration = JS_GET_ARG_IF_EXIST(0, object);
   if (jerry_value_is_null(jconfiguration)) {
     return JS_CREATE_ERROR(TYPE,
                            "Bad arguments - configuration should be Object");
@@ -225,7 +225,7 @@ JS_FUNCTION(AdcConstructor) {
 #endif
 
   if (jargc > 1) {
-    const iotjs_jval_t jcallback = jargv[1];
+    const jerry_value_t jcallback = jargv[1];
     if (jerry_value_is_function(jcallback)) {
       ADC_ASYNC(open, adc, jcallback, kAdcOpOpen);
     } else {
@@ -233,7 +233,7 @@ JS_FUNCTION(AdcConstructor) {
                              "Bad arguments - callback should be Function");
     }
   } else {
-    iotjs_jval_t jdummycallback =
+    jerry_value_t jdummycallback =
         iotjs_jval_create_function(&iotjs_jval_dummy_function);
     ADC_ASYNC(open, adc, jdummycallback, kAdcOpOpen);
     jerry_release_value(jdummycallback);
@@ -247,7 +247,7 @@ JS_FUNCTION(Read) {
   JS_DECLARE_THIS_PTR(adc, adc);
   DJS_CHECK_ARG_IF_EXIST(0, function);
 
-  iotjs_jval_t jcallback = JS_GET_ARG_IF_EXIST(0, function);
+  jerry_value_t jcallback = JS_GET_ARG_IF_EXIST(0, function);
 
   if (jerry_value_is_null(jcallback)) {
     return JS_CREATE_ERROR(TYPE, "Bad arguments - callback required");
@@ -273,10 +273,10 @@ JS_FUNCTION(Close) {
   JS_DECLARE_THIS_PTR(adc, adc);
   DJS_CHECK_ARG_IF_EXIST(0, function);
 
-  iotjs_jval_t jcallback = JS_GET_ARG_IF_EXIST(0, function);
+  jerry_value_t jcallback = JS_GET_ARG_IF_EXIST(0, function);
 
   if (jerry_value_is_null(jcallback)) {
-    iotjs_jval_t jdummycallback =
+    jerry_value_t jdummycallback =
         iotjs_jval_create_function(&iotjs_jval_dummy_function);
     ADC_ASYNC(close, adc, jdummycallback, kAdcOpClose);
     jerry_release_value(jdummycallback);
@@ -299,12 +299,13 @@ JS_FUNCTION(CloseSync) {
   return jerry_create_null();
 }
 
-iotjs_jval_t InitAdc() {
-  iotjs_jval_t jadc = jerry_create_object();
-  iotjs_jval_t jadcConstructor = jerry_create_external_function(AdcConstructor);
+jerry_value_t InitAdc() {
+  jerry_value_t jadc = jerry_create_object();
+  jerry_value_t jadcConstructor =
+      jerry_create_external_function(AdcConstructor);
   iotjs_jval_set_property_jval(jadc, IOTJS_MAGIC_STRING_ADC, jadcConstructor);
 
-  iotjs_jval_t jprototype = jerry_create_object();
+  jerry_value_t jprototype = jerry_create_object();
   iotjs_jval_set_method(jprototype, IOTJS_MAGIC_STRING_READ, Read);
   iotjs_jval_set_method(jprototype, IOTJS_MAGIC_STRING_READSYNC, ReadSync);
   iotjs_jval_set_method(jprototype, IOTJS_MAGIC_STRING_CLOSE, Close);

@@ -26,13 +26,13 @@ typedef struct {
 } IOTJS_VALIDATED_STRUCT(iotjs_timerwrap_t);
 
 
-iotjs_timerwrap_t* iotjs_timerwrap_create(const iotjs_jval_t jtimer);
+iotjs_timerwrap_t* iotjs_timerwrap_create(const jerry_value_t jtimer);
 
-iotjs_timerwrap_t* iotjs_timerwrap_from_jobject(const iotjs_jval_t jtimer);
+iotjs_timerwrap_t* iotjs_timerwrap_from_jobject(const jerry_value_t jtimer);
 iotjs_timerwrap_t* iotjs_timerwrap_from_handle(uv_timer_t* timer_handle);
 
 uv_timer_t* iotjs_timerwrap_handle(iotjs_timerwrap_t* timerwrap);
-iotjs_jval_t iotjs_timerwrap_jobject(iotjs_timerwrap_t* timerwrap);
+jerry_value_t iotjs_timerwrap_jobject(iotjs_timerwrap_t* timerwrap);
 
 // Start timer.
 int iotjs_timerwrap_start(iotjs_timerwrap_t* timerwrap, uint64_t timeout,

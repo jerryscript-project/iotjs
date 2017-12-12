@@ -24,7 +24,7 @@
 #define THIS iotjs_getaddrinfo_reqwrap_t* getaddrinfo_reqwrap
 
 iotjs_getaddrinfo_reqwrap_t* iotjs_getaddrinfo_reqwrap_create(
-    const iotjs_jval_t jcallback) {
+    const jerry_value_t jcallback) {
   iotjs_getaddrinfo_reqwrap_t* getaddrinfo_reqwrap =
       IOTJS_ALLOC(iotjs_getaddrinfo_reqwrap_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_getaddrinfo_reqwrap_t,
@@ -56,7 +56,7 @@ uv_getaddrinfo_t* iotjs_getaddrinfo_reqwrap_req(THIS) {
 }
 
 
-iotjs_jval_t iotjs_getaddrinfo_reqwrap_jcallback(THIS) {
+jerry_value_t iotjs_getaddrinfo_reqwrap_jcallback(THIS) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_getaddrinfo_reqwrap_t,
                                 getaddrinfo_reqwrap);
   return iotjs_reqwrap_jcallback(&_this->reqwrap);
@@ -154,7 +154,7 @@ static void AfterGetAddrInfo(uv_getaddrinfo_t* req, int status,
   uv_freeaddrinfo(res);
 
   // Make the callback into JavaScript
-  iotjs_jval_t jcallback = iotjs_getaddrinfo_reqwrap_jcallback(req_wrap);
+  jerry_value_t jcallback = iotjs_getaddrinfo_reqwrap_jcallback(req_wrap);
   iotjs_make_callback(jcallback, jerry_create_undefined(), &args);
 
   iotjs_jargs_destroy(&args);
@@ -172,7 +172,7 @@ JS_FUNCTION(GetAddrInfo) {
   int option = JS_GET_ARG(1, number);
   int flags = JS_GET_ARG(2, number);
   int error = 0;
-  const iotjs_jval_t jcallback = JS_GET_ARG(3, function);
+  const jerry_value_t jcallback = JS_GET_ARG(3, function);
 
   int family;
   if (option == 0) {
@@ -252,8 +252,8 @@ JS_FUNCTION(GetAddrInfo) {
   } while (0)
 
 
-iotjs_jval_t InitDns() {
-  iotjs_jval_t dns = jerry_create_object();
+jerry_value_t InitDns() {
+  jerry_value_t dns = jerry_create_object();
 
   iotjs_jval_set_method(dns, IOTJS_MAGIC_STRING_GETADDRINFO, GetAddrInfo);
   SET_CONSTANT(dns, AI_ADDRCONFIG);

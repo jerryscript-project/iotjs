@@ -23,17 +23,17 @@
 // This wrapper refer javascript object but never increase reference count
 // If the object is freed by GC, then this wrapper instance will be also freed.
 typedef struct {
-  iotjs_jval_t jobject;
+  jerry_value_t jobject;
 } IOTJS_VALIDATED_STRUCT(iotjs_jobjectwrap_t);
 
 void iotjs_jobjectwrap_initialize(iotjs_jobjectwrap_t* jobjectwrap,
-                                  iotjs_jval_t jobject,
+                                  jerry_value_t jobject,
                                   JNativeInfoType* native_info);
 
 void iotjs_jobjectwrap_destroy(iotjs_jobjectwrap_t* jobjectwrap);
 
-iotjs_jval_t iotjs_jobjectwrap_jobject(iotjs_jobjectwrap_t* jobjectwrap);
-iotjs_jobjectwrap_t* iotjs_jobjectwrap_from_jobject(iotjs_jval_t jobject);
+jerry_value_t iotjs_jobjectwrap_jobject(iotjs_jobjectwrap_t* jobjectwrap);
+iotjs_jobjectwrap_t* iotjs_jobjectwrap_from_jobject(jerry_value_t jobject);
 
 #define IOTJS_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(name)                  \
   static void iotjs_##name##_destroy(iotjs_##name##_t* wrap);              \

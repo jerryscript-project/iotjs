@@ -24,7 +24,7 @@
 
 
 #if ENABLE_MODULE_ADC
-static void iotjs_pin_initialize_adc(iotjs_jval_t jobj) {
+static void iotjs_pin_initialize_adc(jerry_value_t jobj) {
   unsigned int number_bit;
 
 // ADC pin name is "ADC.(number)_(timer)".
@@ -64,7 +64,7 @@ static void iotjs_pin_initialize_adc(iotjs_jval_t jobj) {
 
 #if ENABLE_MODULE_GPIO
 
-static void iotjs_pin_initialize_gpio(iotjs_jval_t jobj) {
+static void iotjs_pin_initialize_gpio(jerry_value_t jobj) {
 // Set GPIO pin from configuration bits of nuttx.
 // GPIO pin name is "P(port)(pin)".
 #define SET_GPIO_CONSTANT(port, pin)                   \
@@ -107,7 +107,7 @@ static void iotjs_pin_initialize_gpio(iotjs_jval_t jobj) {
 
 #if ENABLE_MODULE_PWM
 
-static void iotjs_pin_initialize_pwm(iotjs_jval_t jobj) {
+static void iotjs_pin_initialize_pwm(jerry_value_t jobj) {
   unsigned int timer_bit;
 
 // Set PWM pin from configuration bits of nuttx.
@@ -122,8 +122,8 @@ static void iotjs_pin_initialize_pwm(iotjs_jval_t jobj) {
   SET_GPIO_CONSTANT(timer, channel, 1);           \
   SET_GPIO_CONSTANT(timer, channel, 2);
 
-#define SET_GPIO_CONSTANT_TIM(timer)                \
-  iotjs_jval_t jtim##timer = jerry_create_object(); \
+#define SET_GPIO_CONSTANT_TIM(timer)                 \
+  jerry_value_t jtim##timer = jerry_create_object(); \
   iotjs_jval_set_property_jval(jobj, "PWM" #timer, jtim##timer);
 
 #define SET_GPIO_CONSTANT_TIM_1(timer) \
@@ -181,8 +181,8 @@ static void iotjs_pin_initialize_pwm(iotjs_jval_t jobj) {
 #endif /* ENABLE_MODULE_PWM */
 
 
-void iotjs_stm32f4dis_pin_initialize(iotjs_jval_t jobj) {
-  iotjs_jval_t jpin = jerry_create_object();
+void iotjs_stm32f4dis_pin_initialize(jerry_value_t jobj) {
+  jerry_value_t jpin = jerry_create_object();
   iotjs_jval_set_property_jval(jobj, "pin", jpin);
 
 #if ENABLE_MODULE_ADC

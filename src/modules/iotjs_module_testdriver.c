@@ -30,7 +30,7 @@ JS_FUNCTION(IsAliveExceptFor) {
   } else {
     JS_CHECK(jerry_value_is_object(jargv[0]));
 
-    iotjs_jval_t jtimer =
+    jerry_value_t jtimer =
         iotjs_jval_get_property(jargv[0], IOTJS_MAGIC_STRING_HANDLER);
 
     iotjs_timerwrap_t* timer_wrap = iotjs_timerwrap_from_jobject(jtimer);
@@ -60,8 +60,8 @@ JS_FUNCTION(IsAliveExceptFor) {
 }
 
 
-iotjs_jval_t InitTestdriver() {
-  iotjs_jval_t testdriver = jerry_create_object();
+jerry_value_t InitTestdriver() {
+  jerry_value_t testdriver = jerry_create_object();
   iotjs_jval_set_method(testdriver, IOTJS_MAGIC_STRING_ISALIVEEXCEPTFOR,
                         IsAliveExceptFor);
 

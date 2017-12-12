@@ -35,13 +35,13 @@ typedef struct {
 } IOTJS_VALIDATED_STRUCT(iotjs_tcpwrap_t);
 
 
-iotjs_tcpwrap_t* iotjs_tcpwrap_create(iotjs_jval_t jtcp);
+iotjs_tcpwrap_t* iotjs_tcpwrap_create(jerry_value_t jtcp);
 
 iotjs_tcpwrap_t* iotjs_tcpwrap_from_handle(uv_tcp_t* handle);
-iotjs_tcpwrap_t* iotjs_tcpwrap_from_jobject(iotjs_jval_t jtcp);
+iotjs_tcpwrap_t* iotjs_tcpwrap_from_jobject(jerry_value_t jtcp);
 
 uv_tcp_t* iotjs_tcpwrap_tcp_handle(iotjs_tcpwrap_t* tcpwrap);
-iotjs_jval_t iotjs_tcpwrap_jobject(iotjs_tcpwrap_t* tcpwrap);
+jerry_value_t iotjs_tcpwrap_jobject(iotjs_tcpwrap_t* tcpwrap);
 
 
 typedef struct {
@@ -50,10 +50,10 @@ typedef struct {
 } IOTJS_VALIDATED_STRUCT(iotjs_connect_reqwrap_t);
 
 #define THIS iotjs_connect_reqwrap_t* connect_reqwrap
-iotjs_connect_reqwrap_t* iotjs_connect_reqwrap_create(iotjs_jval_t jcallback);
+iotjs_connect_reqwrap_t* iotjs_connect_reqwrap_create(jerry_value_t jcallback);
 void iotjs_connect_reqwrap_dispatched(THIS);
 uv_connect_t* iotjs_connect_reqwrap_req(THIS);
-iotjs_jval_t iotjs_connect_reqwrap_jcallback(THIS);
+jerry_value_t iotjs_connect_reqwrap_jcallback(THIS);
 #undef THIS
 
 
@@ -63,10 +63,10 @@ typedef struct {
 } IOTJS_VALIDATED_STRUCT(iotjs_write_reqwrap_t);
 
 #define THIS iotjs_write_reqwrap_t* write_reqwrap
-iotjs_write_reqwrap_t* iotjs_write_reqwrap_create(iotjs_jval_t jcallback);
+iotjs_write_reqwrap_t* iotjs_write_reqwrap_create(jerry_value_t jcallback);
 void iotjs_write_reqwrap_dispatched(THIS);
 uv_write_t* iotjs_write_reqwrap_req(THIS);
-iotjs_jval_t iotjs_write_reqwrap_jcallback(THIS);
+jerry_value_t iotjs_write_reqwrap_jcallback(THIS);
 #undef THIS
 
 
@@ -76,14 +76,15 @@ typedef struct {
 } IOTJS_VALIDATED_STRUCT(iotjs_shutdown_reqwrap_t);
 
 #define THIS iotjs_shutdown_reqwrap_t* shutdown_reqwrap
-iotjs_shutdown_reqwrap_t* iotjs_shutdown_reqwrap_create(iotjs_jval_t jcallback);
+iotjs_shutdown_reqwrap_t* iotjs_shutdown_reqwrap_create(
+    jerry_value_t jcallback);
 void iotjs_shutdown_reqwrap_dispatched(THIS);
 uv_shutdown_t* iotjs_shutdown_reqwrap_req(THIS);
-iotjs_jval_t iotjs_shutdown_reqwrap_jcallback(THIS);
+jerry_value_t iotjs_shutdown_reqwrap_jcallback(THIS);
 #undef THIS
 
 
-void AddressToJS(iotjs_jval_t obj, const sockaddr* addr);
+void AddressToJS(jerry_value_t obj, const sockaddr* addr);
 
 
 #endif /* IOTJS_MODULE_TCP_H */

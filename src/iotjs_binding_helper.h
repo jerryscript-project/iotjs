@@ -20,18 +20,18 @@
 #include "iotjs_binding.h"
 
 
-void iotjs_uncaught_exception(iotjs_jval_t jexception);
+void iotjs_uncaught_exception(jerry_value_t jexception);
 
 void iotjs_process_emit_exit(int code);
 
 bool iotjs_process_next_tick();
 
-void iotjs_make_callback(iotjs_jval_t jfunction, iotjs_jval_t jthis,
+void iotjs_make_callback(jerry_value_t jfunction, jerry_value_t jthis,
                          const iotjs_jargs_t* jargs);
 
-iotjs_jval_t iotjs_make_callback_with_result(iotjs_jval_t jfunction,
-                                             iotjs_jval_t jthis,
-                                             const iotjs_jargs_t* jargs);
+jerry_value_t iotjs_make_callback_with_result(jerry_value_t jfunction,
+                                              jerry_value_t jthis,
+                                              const iotjs_jargs_t* jargs);
 
 int iotjs_process_exitcode();
 void iotjs_set_process_exitcode(int code);

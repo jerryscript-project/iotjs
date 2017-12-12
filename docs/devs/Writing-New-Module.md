@@ -109,7 +109,7 @@ my-module/my_module.c:
 ```javascript
 #include "iotjs_def.h"
 
-iotjs_jval_t InitMyNativeModule() {
+jerry_value_t InitMyNativeModule() {
   jerry_value_t mymodule = jerry_create_object();
   iotjs_jval_set_property_string_raw(mymodule, "message", "Hello world!");
   return mymodule;
@@ -211,7 +211,7 @@ JS_FUNCTION(Stdout) {
 
 Using `JS_GET_ARG(index, type)` macro inside `JS_FUNCTION()` will read JS-side argument. Since JavaScript values can have dynamic types, you must check if argument has valid type with `DJS_CHECK_ARGS(number_of_arguments, type1, type2, type3, ...)` macro, which throws JavaScript TypeError when given condition is not satisfied.
 
-`JS_FUNCTION()` must return with an `iotjs_jval_t` into JS-side.
+`JS_FUNCTION()` must return with an `jerry_value_t` into JS-side.
 
 #### Wrapping native object with JS object
 
@@ -225,7 +225,7 @@ There's `iotjs_jobjectwrap_t` struct for that purpose. if you create a new `iotj
 // This wrapper refer javascript object but never increase reference count
 // If the object is freed by GC, then this wrapper instance will be also freed.
 typedef struct {
-  iotjs_jval_t jobject;
+  jerry_value_t jobject;
 } iotjs_jobjectwrap_t;
 
 typedef struct {
@@ -237,7 +237,7 @@ typedef struct {
 static void iotjs_bufferwrap_destroy(iotjs_bufferwrap_t* bufferwrap);
 IOTJS_DEFINE_NATIVE_HANDLE_INFO(bufferwrap);
 
-iotjs_bufferwrap_t* iotjs_bufferwrap_create(const iotjs_jval_t* jbuiltin,
+iotjs_bufferwrap_t* iotjs_bufferwrap_create(const jerry_value_t* jbuiltin,
                                             size_t length) {
   iotjs_bufferwrap_t* bufferwrap = IOTJS_ALLOC(iotjs_bufferwrap_t);
   iotjs_jobjectwrap_initialize(&_this->jobjectwrap,
@@ -256,7 +256,7 @@ void iotjs_bufferwrap_destroy(iotjs_bufferwrap_t* bufferwrap) {
 You can use this code like below:
 
 ```c
-const iotjs_jval_t* jbuiltin = /*...*/;
+const jerry_value_t* jbuiltin = /*...*/;
 iotjs_bufferwrap_t* buffer_wrap = iotjs_bufferwrap_create(jbuiltin, length);
 // Now `jbuiltin` object can be used in JS-side,
 // and when it becomes unreachable, `iotjs_bufferwrap_destroy` will be called.

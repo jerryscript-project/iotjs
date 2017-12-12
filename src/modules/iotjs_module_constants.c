@@ -22,8 +22,8 @@
     iotjs_jval_set_property_number(object, #constant, constant); \
   } while (0)
 
-iotjs_jval_t InitConstants() {
-  iotjs_jval_t constants = jerry_create_object();
+jerry_value_t InitConstants() {
+  jerry_value_t constants = jerry_create_object();
 
   SET_CONSTANT(constants, O_APPEND);
   SET_CONSTANT(constants, O_CREAT);

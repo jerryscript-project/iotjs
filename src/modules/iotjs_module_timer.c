@@ -22,7 +22,7 @@ static void iotjs_timerwrap_on_timeout(iotjs_timerwrap_t* timerwrap);
 IOTJS_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(timerwrap);
 
 
-iotjs_timerwrap_t* iotjs_timerwrap_create(const iotjs_jval_t jtimer) {
+iotjs_timerwrap_t* iotjs_timerwrap_create(const jerry_value_t jtimer) {
   iotjs_timerwrap_t* timerwrap = IOTJS_ALLOC(iotjs_timerwrap_t);
   uv_timer_t* uv_timer = IOTJS_ALLOC(uv_timer_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_timerwrap_t, timerwrap);
@@ -86,8 +86,8 @@ static void iotjs_timerwrap_on_timeout(iotjs_timerwrap_t* timerwrap) {
   IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_timerwrap_t, timerwrap);
 
   // Call javascript timeout handler function.
-  iotjs_jval_t jobject = iotjs_timerwrap_jobject(timerwrap);
-  iotjs_jval_t jcallback =
+  jerry_value_t jobject = iotjs_timerwrap_jobject(timerwrap);
+  jerry_value_t jcallback =
       iotjs_jval_get_property(jobject, IOTJS_MAGIC_STRING_HANDLETIMEOUT);
   iotjs_make_callback(jcallback, jobject, iotjs_jargs_get_empty());
   jerry_release_value(jcallback);
@@ -100,9 +100,9 @@ uv_timer_t* iotjs_timerwrap_handle(iotjs_timerwrap_t* timerwrap) {
 }
 
 
-iotjs_jval_t iotjs_timerwrap_jobject(iotjs_timerwrap_t* timerwrap) {
+jerry_value_t iotjs_timerwrap_jobject(iotjs_timerwrap_t* timerwrap) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_timerwrap_t, timerwrap);
-  iotjs_jval_t jobject = iotjs_handlewrap_jobject(&_this->handlewrap);
+  jerry_value_t jobject = iotjs_handlewrap_jobject(&_this->handlewrap);
   IOTJS_ASSERT(jerry_value_is_object(jobject));
   return jobject;
 }
@@ -117,7 +117,7 @@ iotjs_timerwrap_t* iotjs_timerwrap_from_handle(uv_timer_t* timer_handle) {
 }
 
 
-iotjs_timerwrap_t* iotjs_timerwrap_from_jobject(const iotjs_jval_t jtimer) {
+iotjs_timerwrap_t* iotjs_timerwrap_from_jobject(const jerry_value_t jtimer) {
   iotjs_handlewrap_t* handlewrap = iotjs_handlewrap_from_jobject(jtimer);
   return (iotjs_timerwrap_t*)handlewrap;
 }
@@ -151,11 +151,11 @@ JS_FUNCTION(Stop) {
 JS_FUNCTION(Timer) {
   JS_CHECK_THIS();
 
-  const iotjs_jval_t jtimer = JS_GET_THIS();
+  const jerry_value_t jtimer = JS_GET_THIS();
 
   iotjs_timerwrap_t* timer_wrap = iotjs_timerwrap_create(jtimer);
 
-  iotjs_jval_t jobject = iotjs_timerwrap_jobject(timer_wrap);
+  jerry_value_t jobject = iotjs_timerwrap_jobject(timer_wrap);
   IOTJS_ASSERT(jerry_value_is_object(jobject));
   IOTJS_ASSERT(iotjs_jval_get_object_native_handle(jtimer) != 0);
 
@@ -163,10 +163,10 @@ JS_FUNCTION(Timer) {
 }
 
 
-iotjs_jval_t InitTimer() {
-  iotjs_jval_t timer = jerry_create_external_function(Timer);
+jerry_value_t InitTimer() {
+  jerry_value_t timer = jerry_create_external_function(Timer);
 
-  iotjs_jval_t prototype = jerry_create_object();
+  jerry_value_t prototype = jerry_create_object();
   iotjs_jval_set_property_jval(timer, IOTJS_MAGIC_STRING_PROTOTYPE, prototype);
 
   iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_START, Start);

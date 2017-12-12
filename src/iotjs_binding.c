@@ -28,8 +28,8 @@ static iotjs_jargs_t jargs_empty = {.unsafe = { 0, 0, NULL },
 };
 
 
-iotjs_jval_t iotjs_jval_create_string(const iotjs_string_t* v) {
-  iotjs_jval_t jval;
+jerry_value_t iotjs_jval_create_string(const iotjs_string_t* v) {
+  jerry_value_t jval;
 
   const jerry_char_t* data = (const jerry_char_t*)(iotjs_string_data(v));
   jerry_size_t size = iotjs_string_size(v);
@@ -44,11 +44,11 @@ iotjs_jval_t iotjs_jval_create_string(const iotjs_string_t* v) {
 }
 
 
-iotjs_jval_t iotjs_jval_get_string_size(const iotjs_string_t* str) {
-  iotjs_jval_t str_val = iotjs_jval_create_string(str);
+jerry_value_t iotjs_jval_get_string_size(const iotjs_string_t* str) {
+  jerry_value_t str_val = iotjs_jval_create_string(str);
 
   jerry_size_t size = jerry_get_string_size(str_val);
-  iotjs_jval_t jval = jerry_create_number(size);
+  jerry_value_t jval = jerry_create_number(size);
 
   jerry_release_value(str_val);
 
@@ -56,10 +56,10 @@ iotjs_jval_t iotjs_jval_get_string_size(const iotjs_string_t* str) {
 }
 
 
-iotjs_jval_t iotjs_jval_create_byte_array(uint32_t len, const char* data) {
+jerry_value_t iotjs_jval_create_byte_array(uint32_t len, const char* data) {
   IOTJS_ASSERT(data != NULL);
 
-  iotjs_jval_t jval = jerry_create_array(len);
+  jerry_value_t jval = jerry_create_array(len);
 
   for (uint32_t i = 0; i < len; i++) {
     jerry_value_t val = jerry_create_number((double)data[i]);
@@ -77,8 +77,8 @@ jerry_value_t iotjs_jval_dummy_function(const jerry_value_t function_obj,
   return this_val;
 }
 
-iotjs_jval_t iotjs_jval_create_function(JHandlerType handler) {
-  iotjs_jval_t jval = jerry_create_external_function(handler);
+jerry_value_t iotjs_jval_create_function(jerry_external_handler_t handler) {
+  jerry_value_t jval = jerry_create_external_function(handler);
 
   IOTJS_ASSERT(jerry_value_is_constructor(jval));
 
@@ -86,13 +86,14 @@ iotjs_jval_t iotjs_jval_create_function(JHandlerType handler) {
 }
 
 
-iotjs_jval_t iotjs_jval_create_error(const char* msg) {
+jerry_value_t iotjs_jval_create_error(const char* msg) {
   return iotjs_jval_create_error_type(JERRY_ERROR_COMMON, msg);
 }
 
 
-iotjs_jval_t iotjs_jval_create_error_type(jerry_error_t type, const char* msg) {
-  iotjs_jval_t jval;
+jerry_value_t iotjs_jval_create_error_type(jerry_error_t type,
+                                           const char* msg) {
+  jerry_value_t jval;
 
   const jerry_char_t* jmsg = (const jerry_char_t*)(msg);
   jval = jerry_create_error(type, jmsg);
@@ -102,19 +103,19 @@ iotjs_jval_t iotjs_jval_create_error_type(jerry_error_t type, const char* msg) {
 }
 
 
-bool iotjs_jval_as_boolean(iotjs_jval_t jval) {
+bool iotjs_jval_as_boolean(jerry_value_t jval) {
   IOTJS_ASSERT(jerry_value_is_boolean(jval));
   return jerry_get_boolean_value(jval);
 }
 
 
-double iotjs_jval_as_number(iotjs_jval_t jval) {
+double iotjs_jval_as_number(jerry_value_t jval) {
   IOTJS_ASSERT(jerry_value_is_number(jval));
   return jerry_get_number_value(jval);
 }
 
 
-iotjs_string_t iotjs_jval_as_string(iotjs_jval_t jval) {
+iotjs_string_t iotjs_jval_as_string(jerry_value_t jval) {
   IOTJS_ASSERT(jerry_value_is_string(jval));
 
   jerry_size_t size = jerry_get_string_size(jval);
@@ -136,25 +137,25 @@ iotjs_string_t iotjs_jval_as_string(iotjs_jval_t jval) {
 }
 
 
-iotjs_jval_t iotjs_jval_as_object(iotjs_jval_t jval) {
+jerry_value_t iotjs_jval_as_object(jerry_value_t jval) {
   IOTJS_ASSERT(jerry_value_is_object(jval));
   return jval;
 }
 
 
-iotjs_jval_t iotjs_jval_as_array(iotjs_jval_t jval) {
+jerry_value_t iotjs_jval_as_array(jerry_value_t jval) {
   IOTJS_ASSERT(jerry_value_is_array(jval));
   return jval;
 }
 
 
-iotjs_jval_t iotjs_jval_as_function(iotjs_jval_t jval) {
+jerry_value_t iotjs_jval_as_function(jerry_value_t jval) {
   IOTJS_ASSERT(jerry_value_is_function(jval));
   return jval;
 }
 
 
-bool iotjs_jval_set_prototype(const iotjs_jval_t jobj, iotjs_jval_t jproto) {
+bool iotjs_jval_set_prototype(const jerry_value_t jobj, jerry_value_t jproto) {
   jerry_value_t ret = jerry_set_prototype(jobj, jproto);
   bool error_found = jerry_value_has_error_flag(ret);
   jerry_release_value(ret);
@@ -163,18 +164,18 @@ bool iotjs_jval_set_prototype(const iotjs_jval_t jobj, iotjs_jval_t jproto) {
 }
 
 
-void iotjs_jval_set_method(iotjs_jval_t jobj, const char* name,
+void iotjs_jval_set_method(jerry_value_t jobj, const char* name,
                            jerry_external_handler_t handler) {
   IOTJS_ASSERT(jerry_value_is_object(jobj));
 
-  iotjs_jval_t jfunc = jerry_create_external_function(handler);
+  jerry_value_t jfunc = jerry_create_external_function(handler);
   iotjs_jval_set_property_jval(jobj, name, jfunc);
   jerry_release_value(jfunc);
 }
 
 
-void iotjs_jval_set_property_jval(iotjs_jval_t jobj, const char* name,
-                                  iotjs_jval_t value) {
+void iotjs_jval_set_property_jval(jerry_value_t jobj, const char* name,
+                                  jerry_value_t value) {
   IOTJS_ASSERT(jerry_value_is_object(jobj));
 
   jerry_value_t prop_name = jerry_create_string((const jerry_char_t*)(name));
@@ -186,47 +187,47 @@ void iotjs_jval_set_property_jval(iotjs_jval_t jobj, const char* name,
 }
 
 
-void iotjs_jval_set_property_null(iotjs_jval_t jobj, const char* name) {
+void iotjs_jval_set_property_null(jerry_value_t jobj, const char* name) {
   iotjs_jval_set_property_jval(jobj, name, jerry_create_null());
 }
 
 
-void iotjs_jval_set_property_undefined(iotjs_jval_t jobj, const char* name) {
+void iotjs_jval_set_property_undefined(jerry_value_t jobj, const char* name) {
   iotjs_jval_set_property_jval(jobj, name, jerry_create_undefined());
 }
 
 
-void iotjs_jval_set_property_boolean(iotjs_jval_t jobj, const char* name,
+void iotjs_jval_set_property_boolean(jerry_value_t jobj, const char* name,
                                      bool v) {
   iotjs_jval_set_property_jval(jobj, name, jerry_create_boolean(v));
 }
 
 
-void iotjs_jval_set_property_number(iotjs_jval_t jobj, const char* name,
+void iotjs_jval_set_property_number(jerry_value_t jobj, const char* name,
                                     double v) {
-  iotjs_jval_t jval = jerry_create_number(v);
+  jerry_value_t jval = jerry_create_number(v);
   iotjs_jval_set_property_jval(jobj, name, jval);
   jerry_release_value(jval);
 }
 
 
-void iotjs_jval_set_property_string(iotjs_jval_t jobj, const char* name,
+void iotjs_jval_set_property_string(jerry_value_t jobj, const char* name,
                                     const iotjs_string_t* v) {
-  iotjs_jval_t jval = iotjs_jval_create_string(v);
+  jerry_value_t jval = iotjs_jval_create_string(v);
   iotjs_jval_set_property_jval(jobj, name, jval);
   jerry_release_value(jval);
 }
 
 
-void iotjs_jval_set_property_string_raw(iotjs_jval_t jobj, const char* name,
+void iotjs_jval_set_property_string_raw(jerry_value_t jobj, const char* name,
                                         const char* v) {
-  iotjs_jval_t jval = jerry_create_string((const jerry_char_t*)v);
+  jerry_value_t jval = jerry_create_string((const jerry_char_t*)v);
   iotjs_jval_set_property_jval(jobj, name, jval);
   jerry_release_value(jval);
 }
 
 
-iotjs_jval_t iotjs_jval_get_property(iotjs_jval_t jobj, const char* name) {
+jerry_value_t iotjs_jval_get_property(jerry_value_t jobj, const char* name) {
   IOTJS_ASSERT(jerry_value_is_object(jobj));
 
   jerry_value_t prop_name = jerry_create_string((const jerry_char_t*)(name));
@@ -242,7 +243,7 @@ iotjs_jval_t iotjs_jval_get_property(iotjs_jval_t jobj, const char* name) {
 }
 
 
-uintptr_t iotjs_jval_get_object_native_handle(iotjs_jval_t jobj) {
+uintptr_t iotjs_jval_get_object_native_handle(jerry_value_t jobj) {
   IOTJS_ASSERT(jerry_value_is_object(jobj));
 
   uintptr_t ptr = 0x0;
@@ -253,8 +254,8 @@ uintptr_t iotjs_jval_get_object_native_handle(iotjs_jval_t jobj) {
 }
 
 
-void iotjs_jval_set_property_by_index(iotjs_jval_t jarr, uint32_t idx,
-                                      iotjs_jval_t jval) {
+void iotjs_jval_set_property_by_index(jerry_value_t jarr, uint32_t idx,
+                                      jerry_value_t jval) {
   IOTJS_ASSERT(jerry_value_is_object(jarr));
 
   jerry_value_t ret_val = jerry_set_property_by_index(jarr, idx, jval);
@@ -263,7 +264,8 @@ void iotjs_jval_set_property_by_index(iotjs_jval_t jarr, uint32_t idx,
 }
 
 
-iotjs_jval_t iotjs_jval_get_property_by_index(iotjs_jval_t jarr, uint32_t idx) {
+jerry_value_t iotjs_jval_get_property_by_index(jerry_value_t jarr,
+                                               uint32_t idx) {
   IOTJS_ASSERT(jerry_value_is_object(jarr));
 
   jerry_value_t res = jerry_get_property_by_index(jarr, idx);
@@ -278,8 +280,8 @@ iotjs_jval_t iotjs_jval_get_property_by_index(iotjs_jval_t jarr, uint32_t idx) {
 
 
 #ifndef NDEBUG
-static iotjs_jval_t iotjs_jargs_get(const iotjs_jargs_t* jargs,
-                                    uint16_t index) {
+static jerry_value_t iotjs_jargs_get(const iotjs_jargs_t* jargs,
+                                     uint16_t index) {
   const IOTJS_VALIDATED_STRUCT_METHOD(iotjs_jargs_t, jargs);
 
   IOTJS_ASSERT(index < _this->argc);
@@ -288,8 +290,8 @@ static iotjs_jval_t iotjs_jargs_get(const iotjs_jargs_t* jargs,
 #endif
 
 
-iotjs_jval_t iotjs_jhelper_call(iotjs_jval_t jfunc, iotjs_jval_t jthis,
-                                const iotjs_jargs_t* jargs, bool* throws) {
+jerry_value_t iotjs_jhelper_call(jerry_value_t jfunc, jerry_value_t jthis,
+                                 const iotjs_jargs_t* jargs, bool* throws) {
   IOTJS_ASSERT(jerry_value_is_object(jfunc));
 
   jerry_value_t* jargv_ = NULL;
@@ -323,18 +325,18 @@ iotjs_jval_t iotjs_jhelper_call(iotjs_jval_t jfunc, iotjs_jval_t jthis,
 }
 
 
-iotjs_jval_t iotjs_jhelper_call_ok(iotjs_jval_t jfunc, iotjs_jval_t jthis,
-                                   const iotjs_jargs_t* jargs) {
+jerry_value_t iotjs_jhelper_call_ok(jerry_value_t jfunc, jerry_value_t jthis,
+                                    const iotjs_jargs_t* jargs) {
   bool throws;
-  iotjs_jval_t jres = iotjs_jhelper_call(jfunc, jthis, jargs, &throws);
+  jerry_value_t jres = iotjs_jhelper_call(jfunc, jthis, jargs, &throws);
   IOTJS_ASSERT(!throws);
   return jres;
 }
 
 
-iotjs_jval_t iotjs_jhelper_eval(const char* name, size_t name_len,
-                                const uint8_t* data, size_t size,
-                                bool strict_mode, bool* throws) {
+jerry_value_t iotjs_jhelper_eval(const char* name, size_t name_len,
+                                 const uint8_t* data, size_t size,
+                                 bool strict_mode, bool* throws) {
   jerry_value_t res =
       jerry_parse_named_resource((const jerry_char_t*)name, name_len,
                                  (const jerry_char_t*)data, size, strict_mode);
@@ -376,8 +378,8 @@ iotjs_jargs_t iotjs_jargs_create(uint16_t capacity) {
 
   _this->capacity = capacity;
   _this->argc = 0;
-  unsigned buffer_size = sizeof(iotjs_jval_t) * capacity;
-  _this->argv = (iotjs_jval_t*)iotjs_buffer_allocate(buffer_size);
+  unsigned buffer_size = sizeof(jerry_value_t) * capacity;
+  _this->argv = (jerry_value_t*)iotjs_buffer_allocate(buffer_size);
 
   return jargs;
 }
@@ -411,7 +413,7 @@ uint16_t iotjs_jargs_length(const iotjs_jargs_t* jargs) {
 }
 
 
-void iotjs_jargs_append_jval(iotjs_jargs_t* jargs, iotjs_jval_t x) {
+void iotjs_jargs_append_jval(iotjs_jargs_t* jargs, jerry_value_t x) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_jargs_t, jargs);
   IOTJS_ASSERT(_this->argc < _this->capacity);
   _this->argv[_this->argc++] = jerry_acquire_value(x);
@@ -438,7 +440,7 @@ void iotjs_jargs_append_bool(iotjs_jargs_t* jargs, bool x) {
 
 void iotjs_jargs_append_number(iotjs_jargs_t* jargs, double x) {
   IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_jargs_t, jargs);
-  iotjs_jval_t jval = jerry_create_number(x);
+  jerry_value_t jval = jerry_create_number(x);
   iotjs_jargs_append_jval(jargs, jval);
   jerry_release_value(jval);
 }
@@ -446,7 +448,7 @@ void iotjs_jargs_append_number(iotjs_jargs_t* jargs, double x) {
 
 void iotjs_jargs_append_string(iotjs_jargs_t* jargs, const iotjs_string_t* x) {
   IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_jargs_t, jargs);
-  iotjs_jval_t jval = iotjs_jval_create_string(x);
+  jerry_value_t jval = iotjs_jval_create_string(x);
   iotjs_jargs_append_jval(jargs, jval);
   jerry_release_value(jval);
 }
@@ -454,7 +456,7 @@ void iotjs_jargs_append_string(iotjs_jargs_t* jargs, const iotjs_string_t* x) {
 
 void iotjs_jargs_append_error(iotjs_jargs_t* jargs, const char* msg) {
   IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_jargs_t, jargs);
-  iotjs_jval_t error = iotjs_jval_create_error(msg);
+  jerry_value_t error = iotjs_jval_create_error(msg);
   iotjs_jargs_append_jval(jargs, error);
   jerry_release_value(error);
 }
@@ -462,13 +464,14 @@ void iotjs_jargs_append_error(iotjs_jargs_t* jargs, const char* msg) {
 
 void iotjs_jargs_append_string_raw(iotjs_jargs_t* jargs, const char* x) {
   IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_jargs_t, jargs);
-  iotjs_jval_t jval = jerry_create_string((const jerry_char_t*)x);
+  jerry_value_t jval = jerry_create_string((const jerry_char_t*)x);
   iotjs_jargs_append_jval(jargs, jval);
   jerry_release_value(jval);
 }
 
 
-void iotjs_jargs_replace(iotjs_jargs_t* jargs, uint16_t index, iotjs_jval_t x) {
+void iotjs_jargs_replace(iotjs_jargs_t* jargs, uint16_t index,
+                         jerry_value_t x) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_jargs_t, jargs);
 
   IOTJS_ASSERT(index < _this->argc);

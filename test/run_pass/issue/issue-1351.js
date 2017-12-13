@@ -16,7 +16,7 @@
 var assert = require('assert');
 var fs = require('fs');
 
-var filePath = process.cwd() + '/resources/';
+var filePath = process.cwd() + '/resources';
 
 try {
   process.readSource(filePath);

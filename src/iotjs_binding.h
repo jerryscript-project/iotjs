@@ -208,6 +208,18 @@ jerry_value_t iotjs_jhelper_eval(const char* name, size_t name_len,
     }                                                            \
   } while (0)
 
+#define JS_GET_REQUIRED_ARG_VALUE(index, target, property, type)            \
+  do {                                                                      \
+    if (jerry_value_is_undefined(jargv[index])) {                           \
+      return JS_CREATE_ERROR(TYPE, "Missing argument, required " property); \
+    } else if (jerry_value_is_##type(jargv[index])) {                       \
+      target = iotjs_jval_as_##type(jargv[index]);                          \
+    } else {                                                                \
+      return JS_CREATE_ERROR(TYPE, "Bad arguments, required " property      \
+                                   " is not a " #type);                     \
+    }                                                                       \
+  } while (0)
+
 #define DJS_GET_REQUIRED_CONF_VALUE(src, target, property, type)            \
   do {                                                                      \
     jerry_value_t jtmp = iotjs_jval_get_property(src, property);            \

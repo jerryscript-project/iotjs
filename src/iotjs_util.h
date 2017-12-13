@@ -18,12 +18,14 @@
 
 
 #include "iotjs_string.h"
-
+#include "jerryscript.h"
 
 // Return value should be released with iotjs_string_destroy()
 iotjs_string_t iotjs_file_read(const char* path);
 
 char* iotjs_buffer_allocate(size_t size);
+char* iotjs_buffer_allocate_from_number_array(size_t size,
+                                              const jerry_value_t array);
 char* iotjs_buffer_reallocate(char* buffer, size_t size);
 void iotjs_buffer_release(char* buff);
 

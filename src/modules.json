@@ -225,8 +225,6 @@
       },
       "native_files": ["modules/iotjs_module_i2c.c"],
       "init": "InitI2c",
-      "js_file": "js/i2c.js",
-      "require": ["util"]
     },
     "module": {
       "js_file": "js/module.js",

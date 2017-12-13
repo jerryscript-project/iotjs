@@ -14,10 +14,10 @@
  */
 
 var I2C = require('i2c');
-var i2c = new I2C();
 
 var CMD_BRIGHTNESS = 0xE0;
 var CMD_OSCILLATOR = 0x21;
+var CMD_DISPLAY_ON = 0x81;
 
 var iotChar = [0x00, 0x00, 0x00, 0x00,
   0xCE, 0x73, 0x44, 0x22,
@@ -28,26 +28,26 @@ var writeLed = function(wire, data) {
   // 0x00 is a initial signal for writing
   var buffer = [0x00].concat(data);
   wire.write(buffer);
-}
+};
 
 var configuration = {};
 configuration.address = 0x70;
 
 if (process.platform === 'linux') {
   configuration.device = '/dev/i2c-1';
-} else if (process.platform === 'nuttx') {
-  configuration.device = 1;
+} else if (process.platform === 'nuttx' || process.platform == 'tizenrt') {
+  configuration.bus = 1;
 } else {
   throw new Error('Unsupported platform');
 }
 
-var wire = i2c.open(configuration, function(err) {
+var wire = new I2C(configuration, function(err) {
   if (err) {
     throw err;
   }
 
   wire.write([CMD_OSCILLATOR]); // turn on oscillator
+  wire.write([CMD_DISPLAY_ON]);
   wire.write([CMD_BRIGHTNESS | 1]); // adjust brightness
-
   writeLed(wire, iotChar);
 });

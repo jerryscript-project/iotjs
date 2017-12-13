@@ -34,122 +34,114 @@ struct iotjs_i2c_platform_data_s {
 };
 
 
-void i2c_create_platform_data(void* device, iotjs_i2c_t* i2c,
-                              iotjs_i2c_platform_data_t** ppdata) {
-  iotjs_i2c_platform_data_t* pdata = IOTJS_ALLOC(iotjs_i2c_platform_data_t);
+void i2c_create_platform_data(iotjs_i2c_t* i2c) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_i2c_t, i2c);
 
-  pdata->bus = *(int*)device;
-  pdata->i2c_context = NULL;
-  *ppdata = pdata;
+  _this->platform_data = IOTJS_ALLOC(iotjs_i2c_platform_data_t);
+
+  _this->platform_data->i2c_context = NULL;
 }
 
 
-void i2c_destroy_platform_data(iotjs_i2c_platform_data_t* pdata) {
-  IOTJS_ASSERT(pdata);
-  IOTJS_RELEASE(pdata);
+void i2c_destroy_platform_data(iotjs_i2c_platform_data_t* platform_data) {
+  IOTJS_ASSERT(platform_data);
+  IOTJS_RELEASE(platform_data);
 }
 
 
-#define I2C_WORKER_INIT_TEMPLATE                                            \
-  iotjs_i2c_reqwrap_t* req_wrap = iotjs_i2c_reqwrap_from_request(work_req); \
-  iotjs_i2c_reqdata_t* req_data = iotjs_i2c_reqwrap_data(req_wrap);
+jerry_value_t iotjs_i2c_set_platform_config(iotjs_i2c_t* i2c,
+                                            const jerry_value_t jconfig) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_i2c_t, i2c);
+  iotjs_i2c_platform_data_t* platform_data = _this->platform_data;
+
+  DJS_GET_REQUIRED_CONF_VALUE(jconfig, platform_data->bus,
+                              IOTJS_MAGIC_STRING_BUS, number);
+
+  return jerry_create_undefined();
+}
 
 
-void I2cSetAddress(iotjs_i2c_t* i2c, uint8_t address) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_i2c_t, i2c)
-  iotjs_i2c_platform_data_t* pdata = _this->platform_data;
-  IOTJS_ASSERT(pdata);
-  IOTJS_ASSERT(pdata->i2c_context);
-
-  if (iotbus_i2c_set_address(pdata->i2c_context, address) < 0) {
-    DLOG("%s: cannot set address", __func__);
-    IOTJS_ASSERT(0);
+#define I2C_METHOD_HEADER(arg)                                     \
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_i2c_t, arg)                  \
+  iotjs_i2c_platform_data_t* platform_data = _this->platform_data; \
+  IOTJS_ASSERT(platform_data);                                     \
+  if (!platform_data->i2c_context) {                               \
+    DLOG("%s: I2C is not opened", __func__);                       \
+    return false;                                                  \
   }
-}
 
 
-void OpenWorker(uv_work_t* work_req) {
-  I2C_WORKER_INIT_TEMPLATE;
-  iotjs_i2c_t* i2c = iotjs_i2c_instance_from_reqwrap(req_wrap);
+bool iotjs_i2c_open(iotjs_i2c_t* i2c) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_i2c_t, i2c)
-  iotjs_i2c_platform_data_t* pdata = _this->platform_data;
-
-  IOTJS_ASSERT(pdata);
+  iotjs_i2c_platform_data_t* platform_data = _this->platform_data;
+  IOTJS_ASSERT(platform_data);
 
   // Init i2c context
-  pdata->i2c_context = iotbus_i2c_init(pdata->bus);
-  if (!pdata->i2c_context) {
+  platform_data->i2c_context = iotbus_i2c_init(platform_data->bus);
+  if (!platform_data->i2c_context) {
     DLOG("%s: cannot open I2C", __func__);
-    req_data->error = kI2cErrOpen;
-    return;
+    return false;
   }
 
   // Set i2c frequency
-  int ret = iotbus_i2c_set_frequency(pdata->i2c_context, IOTBUS_I2C_STD);
+  int ret =
+      iotbus_i2c_set_frequency(platform_data->i2c_context, IOTBUS_I2C_STD);
   if (ret < 0) {
     DLOG("%s: cannot set frequency", __func__);
-    req_data->error = kI2cErrOpen;
-    return;
+    return false;
   }
 
-  req_data->error = kI2cErrOk;
+  if (iotbus_i2c_set_address(platform_data->i2c_context, _this->address) < 0) {
+    DLOG("%s: cannot set address", __func__);
+    return false;
+  }
+
+  return true;
 }
 
 
-void I2cClose(iotjs_i2c_t* i2c) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_i2c_t, i2c);
-  iotjs_i2c_platform_data_t* pdata = _this->platform_data;
+bool iotjs_i2c_close(iotjs_i2c_t* i2c) {
+  I2C_METHOD_HEADER(i2c);
 
-  if (iotbus_i2c_stop(pdata->i2c_context) < 0) {
+  if (iotbus_i2c_stop(platform_data->i2c_context) < 0) {
     DLOG("%s: cannot close I2C", __func__);
-    IOTJS_ASSERT(0);
+    return false;
   }
+
+  return true;
 }
 
 
-void WriteWorker(uv_work_t* work_req) {
-  I2C_WORKER_INIT_TEMPLATE;
-  iotjs_i2c_t* i2c = iotjs_i2c_instance_from_reqwrap(req_wrap);
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_i2c_t, i2c)
-  iotjs_i2c_platform_data_t* pdata = _this->platform_data;
+bool iotjs_i2c_write(iotjs_i2c_t* i2c) {
+  I2C_METHOD_HEADER(i2c);
 
-  uint8_t len = req_data->buf_len;
-  uint8_t* data = (uint8_t*)req_data->buf_data;
-
-  IOTJS_ASSERT(pdata);
-  IOTJS_ASSERT(pdata->i2c_context);
+  uint8_t len = _this->buf_len;
   IOTJS_ASSERT(len > 0);
+  uint8_t* data = (uint8_t*)_this->buf_data;
 
-  if (iotbus_i2c_write(pdata->i2c_context, data, len) < 0) {
+  if (iotbus_i2c_write(platform_data->i2c_context, data, len) < 0) {
     DLOG("%s: cannot write data", __func__);
-    req_data->error = kI2cErrWrite;
-  } else {
-    req_data->error = kI2cErrOk;
+    return false;
   }
 
-  iotjs_buffer_release(req_data->buf_data);
+  iotjs_buffer_release(_this->buf_data);
+  return true;
 }
 
 
-void ReadWorker(uv_work_t* work_req) {
-  I2C_WORKER_INIT_TEMPLATE;
-  iotjs_i2c_t* i2c = iotjs_i2c_instance_from_reqwrap(req_wrap);
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_i2c_t, i2c)
-  iotjs_i2c_platform_data_t* pdata = _this->platform_data;
+bool iotjs_i2c_read(iotjs_i2c_t* i2c) {
+  I2C_METHOD_HEADER(i2c);
 
-  uint8_t len = req_data->buf_len;
-  req_data->buf_data = iotjs_buffer_allocate(len);
+  uint8_t len = _this->buf_len;
+  _this->buf_data = iotjs_buffer_allocate(len);
 
-  IOTJS_ASSERT(pdata);
-  IOTJS_ASSERT(pdata->i2c_context);
   IOTJS_ASSERT(len > 0);
 
-  if (iotbus_i2c_read(pdata->i2c_context, (uint8_t*)req_data->buf_data, len) <
-      0) {
+  if (iotbus_i2c_read(platform_data->i2c_context, (uint8_t*)_this->buf_data,
+                      len) < 0) {
     DLOG("%s: cannot read data", __func__);
-    req_data->error = kI2cErrRead;
-    return;
+    return false;
   }
 
-  req_data->error = kI2cErrOk;
+  return true;
 }

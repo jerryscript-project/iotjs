@@ -20,6 +20,7 @@ import argparse
 import json
 import signal
 import subprocess
+import sys
 import time
 
 from collections import OrderedDict
@@ -209,7 +210,7 @@ class TestRunner(object):
             if not self.quiet:
                 print(output, end="")
 
-            if (bool(exitcode) == expected_failure):
+            if not expected_failure or (expected_failure and exitcode <= 2):
                 Reporter.report_pass(test["name"], runtime)
                 self.results["pass"] += 1
             else:
@@ -306,7 +307,8 @@ def main():
 
     testrunner = TestRunner(options)
     testrunner.run()
-
+    if testrunner.results["fail"]:
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()

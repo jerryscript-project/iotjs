@@ -39,7 +39,6 @@ request.on('error', function(err) {
 request.end();
 
 process.on('exit', function() {
-  // The first error is a Parse Error.
-  // The second error is the socket hang up.
-  assert.equal(errors, 2);
+  // The error is a Parse Error.
+  assert.equal(errors, 1);
 });

@@ -414,7 +414,7 @@ install(TARGETS ${TARGET_LIB_IOTJS} DESTINATION ${LIB_INSTALL_DIR})
 # Configure the iotjs executable
 if(NOT BUILD_LIB_ONLY)
   set(TARGET_IOTJS iotjs)
-  add_executable(${TARGET_IOTJS} ${ROOT_DIR}/iotjs_linux.c)
+  add_executable(${TARGET_IOTJS} ${ROOT_DIR}/src/platform/linux/iotjs_linux.c)
   set_target_properties(${TARGET_IOTJS} PROPERTIES
     LINK_FLAGS "${IOTJS_LINKER_FLAGS}"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"

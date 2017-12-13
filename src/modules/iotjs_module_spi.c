@@ -447,8 +447,8 @@ jerry_value_t InitSpi() {
 
   // SPI mode properties
   jerry_value_t jcs = jerry_create_object();
-  iotjs_jval_set_property_number(jcs, IOTJS_MAGIC_STRING_NONE, kSpiCsNone);
-  iotjs_jval_set_property_number(jcs, IOTJS_MAGIC_STRING_HIGH, kSpiCsHigh);
+  iotjs_jval_set_property_number(jcs, IOTJS_MAGIC_STRING_NONE_U, kSpiCsNone);
+  iotjs_jval_set_property_number(jcs, IOTJS_MAGIC_STRING_HIGH_U, kSpiCsHigh);
   iotjs_jval_set_property_jval(jspi, IOTJS_MAGIC_STRING_CHIPSELECT_U, jcs);
   jerry_release_value(jcs);
 

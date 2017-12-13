@@ -480,9 +480,9 @@ jerry_value_t InitHttpparser() {
   iotjs_jval_set_property_jval(httpparser, IOTJS_MAGIC_STRING_HTTPPARSER,
                                jParserCons);
 
-  iotjs_jval_set_property_number(jParserCons, IOTJS_MAGIC_STRING_REQUEST,
+  iotjs_jval_set_property_number(jParserCons, IOTJS_MAGIC_STRING_REQUEST_U,
                                  HTTP_REQUEST);
-  iotjs_jval_set_property_number(jParserCons, IOTJS_MAGIC_STRING_RESPONSE,
+  iotjs_jval_set_property_number(jParserCons, IOTJS_MAGIC_STRING_RESPONSE_U,
                                  HTTP_RESPONSE);
 
   jerry_value_t methods = jerry_create_object();

@@ -349,7 +349,7 @@ jerry_value_t InitGpio() {
   jerry_value_t jdirection = jerry_create_object();
   iotjs_jval_set_property_number(jdirection, IOTJS_MAGIC_STRING_IN,
                                  kGpioDirectionIn);
-  iotjs_jval_set_property_number(jdirection, IOTJS_MAGIC_STRING_OUT,
+  iotjs_jval_set_property_number(jdirection, IOTJS_MAGIC_STRING_OUT_U,
                                  kGpioDirectionOut);
   iotjs_jval_set_property_jval(jgpio, IOTJS_MAGIC_STRING_DIRECTION_U,
                                jdirection);
@@ -358,17 +358,18 @@ jerry_value_t InitGpio() {
 
   // GPIO mode properties
   jerry_value_t jmode = jerry_create_object();
-  iotjs_jval_set_property_number(jmode, IOTJS_MAGIC_STRING_NONE, kGpioModeNone);
+  iotjs_jval_set_property_number(jmode, IOTJS_MAGIC_STRING_NONE_U,
+                                 kGpioModeNone);
 #if defined(__NUTTX__)
-  iotjs_jval_set_property_number(jmode, IOTJS_MAGIC_STRING_PULLUP,
+  iotjs_jval_set_property_number(jmode, IOTJS_MAGIC_STRING_PULLUP_U,
                                  kGpioModePullup);
-  iotjs_jval_set_property_number(jmode, IOTJS_MAGIC_STRING_PULLDOWN,
+  iotjs_jval_set_property_number(jmode, IOTJS_MAGIC_STRING_PULLDOWN_U,
                                  kGpioModePulldown);
-  iotjs_jval_set_property_number(jmode, IOTJS_MAGIC_STRING_FLOAT,
+  iotjs_jval_set_property_number(jmode, IOTJS_MAGIC_STRING_FLOAT_U,
                                  kGpioModeFloat);
-  iotjs_jval_set_property_number(jmode, IOTJS_MAGIC_STRING_PUSHPULL,
+  iotjs_jval_set_property_number(jmode, IOTJS_MAGIC_STRING_PUSHPULL_U,
                                  kGpioModePushpull);
-  iotjs_jval_set_property_number(jmode, IOTJS_MAGIC_STRING_OPENDRAIN,
+  iotjs_jval_set_property_number(jmode, IOTJS_MAGIC_STRING_OPENDRAIN_U,
                                  kGpioModeOpendrain);
 #endif
   iotjs_jval_set_property_jval(jgpio, IOTJS_MAGIC_STRING_MODE_U, jmode);
@@ -376,7 +377,8 @@ jerry_value_t InitGpio() {
 
   // GPIO edge properties
   jerry_value_t jedge = jerry_create_object();
-  iotjs_jval_set_property_number(jedge, IOTJS_MAGIC_STRING_NONE, kGpioEdgeNone);
+  iotjs_jval_set_property_number(jedge, IOTJS_MAGIC_STRING_NONE_U,
+                                 kGpioEdgeNone);
   iotjs_jval_set_property_number(jedge, IOTJS_MAGIC_STRING_RISING_U,
                                  kGpioEdgeRising);
   iotjs_jval_set_property_number(jedge, IOTJS_MAGIC_STRING_FALLING_U,

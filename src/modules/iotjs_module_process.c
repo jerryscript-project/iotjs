@@ -239,10 +239,10 @@ static void SetProcessEnv(jerry_value_t process) {
 #endif
 
   jerry_value_t env = jerry_create_object();
-  iotjs_jval_set_property_string_raw(env, IOTJS_MAGIC_STRING_HOME, homedir);
-  iotjs_jval_set_property_string_raw(env, IOTJS_MAGIC_STRING_IOTJS_PATH,
+  iotjs_jval_set_property_string_raw(env, IOTJS_MAGIC_STRING_HOME_U, homedir);
+  iotjs_jval_set_property_string_raw(env, IOTJS_MAGIC_STRING_IOTJS_PATH_U,
                                      iotjspath);
-  iotjs_jval_set_property_string_raw(env, IOTJS_MAGIC_STRING_IOTJS_ENV,
+  iotjs_jval_set_property_string_raw(env, IOTJS_MAGIC_STRING_IOTJS_ENV_U,
                                      iotjsenv);
 
   iotjs_jval_set_property_jval(process, IOTJS_MAGIC_STRING_ENV, env);
@@ -296,12 +296,12 @@ jerry_value_t InitProcess() {
   jerry_value_t process = jerry_create_object();
 
   iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_COMPILE, Compile);
-  iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_COMPILENATIVEPTR,
+  iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_COMPILEMODULE,
                         CompileModule);
   iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_READSOURCE, ReadSource);
   iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_CWD, Cwd);
   iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_CHDIR, Chdir);
-  iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_DEBUGGER_SOURCE_COMPILE,
+  iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_DEBUGGERSOURCECOMPILE,
                         DebuggerSourceCompile);
   iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_DOEXIT, DoExit);
   SetProcessEnv(process);
@@ -340,7 +340,7 @@ jerry_value_t InitProcess() {
   }
 
   jerry_value_t wait_source_val = jerry_create_boolean(wait_source);
-  iotjs_jval_set_property_jval(process, IOTJS_MAGIC_STRING_DEBUGGER_WAIT_SOURCE,
+  iotjs_jval_set_property_jval(process, IOTJS_MAGIC_STRING_DEBUGGERWAITSOURCE,
                                wait_source_val);
   jerry_release_value(wait_source_val);
 

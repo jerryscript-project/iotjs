@@ -149,8 +149,9 @@ foreach(module ${IOTJS_MODULES})
 endforeach()
 
 set(IOTJS_JS_MODULES)
+set(IOTJS_JS_MODULE_SRC)
 set(IOTJS_NATIVE_MODULES)
-set(IOTJS_MODULE_SRC)
+set(IOTJS_NATIVE_MODULE_SRC)
 set(IOTJS_MODULE_DEFINES)
 
 message("IoT.js module configuration:")
@@ -180,6 +181,7 @@ foreach(MODULE ${IOTJS_ENABLED_MODULES})
       set(JS_PATH "${MODULE_BASE_DIR}/${MODULE_JS_FILE}")
       if(EXISTS "${JS_PATH}")
         list(APPEND IOTJS_JS_MODULES "${module}=${JS_PATH}")
+        list(APPEND IOTJS_JS_MODULE_SRC ${JS_PATH})
       else()
         message(FATAL_ERROR "JS file doesn't exist: ${JS_PATH}")
       endif()
@@ -197,7 +199,7 @@ foreach(MODULE ${IOTJS_ENABLED_MODULES})
           ${${MODULE_PREFIX}native_files_${idx}})
       set(MODULE_C_FILE "${MODULE_BASE_DIR}/${MODULE_C_FILE}")
       if(EXISTS "${MODULE_C_FILE}")
-        list(APPEND IOTJS_MODULE_SRC ${MODULE_C_FILE})
+        list(APPEND IOTJS_NATIVE_MODULE_SRC ${MODULE_C_FILE})
       else()
         message(FATAL_ERROR "C file doesn't exist: ${MODULE_C_FILE}")
       endif()
@@ -220,7 +222,7 @@ foreach(MODULE ${IOTJS_ENABLED_MODULES})
               ${${PLATFORMS_PREFIX}${IOTJS_SYSTEM_OS}.native_files_${idx}})
           set(MODULE_PLATFORM_FILE "${MODULE_BASE_DIR}/${MODULE_PLATFORM_FILE}")
           if(EXISTS "${MODULE_PLATFORM_FILE}")
-            list(APPEND IOTJS_MODULE_SRC ${MODULE_PLATFORM_FILE})
+            list(APPEND IOTJS_NATIVE_MODULE_SRC ${MODULE_PLATFORM_FILE})
           else()
             message(FATAL_ERROR "C file doesn't exist: ${MODULE_PLATFORM_FILE}")
           endif()
@@ -233,7 +235,7 @@ foreach(MODULE ${IOTJS_ENABLED_MODULES})
           set(MODULE_UNDEFINED_FILE
               "${MODULE_BASE_DIR}/${MODULE_UNDEFINED_FILE}")
           if(EXISTS "${MODULE_UNDEFINED_FILE}")
-            list(APPEND IOTJS_MODULE_SRC ${MODULE_UNDEFINED_FILE})
+            list(APPEND IOTJS_NATIVE_MODULE_SRC ${MODULE_UNDEFINED_FILE})
           else()
             message(FATAL_ERROR "${MODULE_UNDEFINED_FILE} does not exists.")
           endif()
@@ -323,7 +325,7 @@ add_custom_command(
        ${JS2C_SNAPSHOT_ARG}
   DEPENDS ${ROOT_DIR}/tools/js2c.py
           jerry-snapshot
-          ${IOTJS_SOURCE_DIR}/js/*.js
+          ${IOTJS_JS_MODULE_SRC}
 )
 
 # Collect all sources into LIB_IOTJS_SRC
@@ -331,7 +333,7 @@ file(GLOB LIB_IOTJS_SRC ${IOTJS_SOURCE_DIR}/*.c)
 list(APPEND LIB_IOTJS_SRC
   ${IOTJS_SOURCE_DIR}/iotjs_js.c
   ${IOTJS_SOURCE_DIR}/iotjs_js.h
-  ${IOTJS_MODULE_SRC}
+  ${IOTJS_NATIVE_MODULE_SRC}
   ${IOTJS_PLATFORM_SRC}
 )
 

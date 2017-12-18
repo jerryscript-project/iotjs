@@ -56,25 +56,28 @@ JS_FUNCTION(Compile) {
 }
 
 
-// Callback function for DebuggerSourceCompile
+// Callback function for DebuggerGetSource
 static jerry_value_t wait_for_source_callback(
     const jerry_char_t* resource_name_p, size_t resource_name_size,
     const jerry_char_t* source_p, size_t size, void* data) {
   IOTJS_UNUSED(data);
 
-  char* filename = (char*)resource_name_p;
-  iotjs_string_t source =
-      iotjs_string_create_with_buffer((char*)source_p, size);
+  jerry_value_t ret_val = jerry_create_array(2);
+  jerry_value_t jname =
+      jerry_create_string_sz(resource_name_p, resource_name_size);
+  jerry_value_t jsource = jerry_create_string_sz(source_p, size);
+  jerry_set_property_by_index(ret_val, 0, jname);
+  jerry_set_property_by_index(ret_val, 1, jsource);
 
-  jerry_debugger_stop();
+  jerry_release_value(jname);
+  jerry_release_value(jsource);
 
-  return WrapEval(filename, resource_name_size, iotjs_string_data(&source),
-                  iotjs_string_size(&source));
+  return ret_val;
 }
 
 
-// Compile source received from debugger
-JS_FUNCTION(DebuggerSourceCompile) {
+// Export JS module received from the debugger client
+JS_FUNCTION(DebuggerGetSource) {
   jerry_value_t res;
   jerry_debugger_wait_for_client_source(wait_for_source_callback, NULL, &res);
   return res;
@@ -301,8 +304,8 @@ jerry_value_t InitProcess() {
   iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_READSOURCE, ReadSource);
   iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_CWD, Cwd);
   iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_CHDIR, Chdir);
-  iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_DEBUGGERSOURCECOMPILE,
-                        DebuggerSourceCompile);
+  iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_DEBUGGERGETSOURCE,
+                        DebuggerGetSource);
   iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_DOEXIT, DoExit);
   SetProcessEnv(process);
 

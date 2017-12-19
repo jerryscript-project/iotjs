@@ -319,10 +319,16 @@ endif()
 
 add_custom_command(
   OUTPUT ${IOTJS_SOURCE_DIR}/iotjs_js.c ${IOTJS_SOURCE_DIR}/iotjs_js.h
+  COMMAND ${CMAKE_C_COMPILER} -E -dD ${IOTJS_MODULE_DEFINES}
+            ${IOTJS_SOURCE_DIR}/iotjs_magic_strings.h
+          | grep IOTJS_MAGIC_STRING
+          > ${IOTJS_SOURCE_DIR}/iotjs_magic_strings.in
   COMMAND python ${ROOT_DIR}/tools/js2c.py
   ARGS --buildtype=${JS2C_RUN_MODE}
        --modules '${IOTJS_JS_MODULES}'
        ${JS2C_SNAPSHOT_ARG}
+  COMMAND ${CMAKE_COMMAND} -E remove
+            -f ${IOTJS_SOURCE_DIR}/iotjs_magic_strings.in
   DEPENDS ${ROOT_DIR}/tools/js2c.py
           jerry-snapshot
           ${IOTJS_JS_MODULE_SRC}

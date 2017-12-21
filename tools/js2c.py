@@ -269,7 +269,7 @@ def js2c(buildtype, js_modules, snapshot_tool=None, verbose=False):
     magic_string_set = set()
 
     str_const_regex = re.compile('^#define IOTJS_MAGIC_STRING_\w+\s+"(\w+)"$')
-    with open(fs.join(path.SRC_ROOT, 'iotjs_magic_strings.h'), 'r') as fin_h:
+    with open(fs.join(path.SRC_ROOT, 'iotjs_magic_strings.in'), 'r') as fin_h:
         for line in fin_h:
             result = str_const_regex.search(line)
             if result:

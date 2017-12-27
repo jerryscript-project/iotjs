@@ -224,4 +224,22 @@ jerry_value_t iotjs_jhelper_eval(const char* name, size_t name_len,
 
 jerry_value_t vm_exec_stop_callback(void* user_p);
 
+#ifdef __GNUC__
+static inline void jerry_autorelease_value(const jerry_value_t* value) {
+  jerry_release_value(*value);
+}
+
+#define jerry_value_auto_t \
+  jerry_value_t __attribute__((__cleanup__(jerry_autorelease_value)))
+
+#define iotjs_jargs_auto_t \
+  iotjs_jargs_t __attribute__((__cleanup__(iotjs_jargs_destroy)))
+
+#define iotjs_string_auto_t \
+  iotjs_string_t __attribute__((__cleanup__(iotjs_string_destroy)))
+
+#else
+#error "No autorelease implementation for this compiler!"
+#endif /* __GNUC__ */
+
 #endif /* IOTJS_BINDING_H */

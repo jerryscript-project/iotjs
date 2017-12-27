@@ -70,11 +70,10 @@ iotjs_bufferwrap_t* iotjs_bufferwrap_from_jbuiltin(
 
 iotjs_bufferwrap_t* iotjs_bufferwrap_from_jbuffer(const jerry_value_t jbuffer) {
   IOTJS_ASSERT(jerry_value_is_object(jbuffer));
-  jerry_value_t jbuiltin =
+  jerry_value_auto_t jbuiltin =
       iotjs_jval_get_property(jbuffer, IOTJS_MAGIC_STRING__BUILTIN);
-  iotjs_bufferwrap_t* buffer = iotjs_bufferwrap_from_jbuiltin(jbuiltin);
-  jerry_release_value(jbuiltin);
-  return buffer;
+
+  return iotjs_bufferwrap_from_jbuiltin(jbuiltin);
 }
 
 
@@ -100,13 +99,11 @@ char* iotjs_bufferwrap_buffer(iotjs_bufferwrap_t* bufferwrap) {
 size_t iotjs_bufferwrap_length(iotjs_bufferwrap_t* bufferwrap) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_bufferwrap_t, bufferwrap);
 #ifndef NDEBUG
-  jerry_value_t jbuf = iotjs_bufferwrap_jbuffer(bufferwrap);
-  jerry_value_t jlength =
+  jerry_value_auto_t jbuf = iotjs_bufferwrap_jbuffer(bufferwrap);
+  jerry_value_auto_t jlength =
       iotjs_jval_get_property(jbuf, IOTJS_MAGIC_STRING_LENGTH);
   size_t length = iotjs_jval_as_number(jlength);
   IOTJS_ASSERT(length == _this->length);
-  jerry_release_value(jbuf);
-  jerry_release_value(jlength);
 #endif
   return _this->length;
 }
@@ -213,22 +210,19 @@ size_t iotjs_bufferwrap_copy(iotjs_bufferwrap_t* bufferwrap, const char* src,
 
 
 jerry_value_t iotjs_bufferwrap_create_buffer(size_t len) {
-  jerry_value_t jglobal = jerry_get_global_object();
+  jerry_value_auto_t jglobal = jerry_get_global_object();
 
-  jerry_value_t jbuffer =
+  jerry_value_auto_t jbuffer =
       iotjs_jval_get_property(jglobal, IOTJS_MAGIC_STRING_BUFFER);
-  jerry_release_value(jglobal);
+
   IOTJS_ASSERT(jerry_value_is_function(jbuffer));
 
-  iotjs_jargs_t jargs = iotjs_jargs_create(1);
+  iotjs_jargs_auto_t jargs = iotjs_jargs_create(1);
   iotjs_jargs_append_number(&jargs, len);
 
   jerry_value_t jres =
       iotjs_jhelper_call_ok(jbuffer, jerry_create_undefined(), &jargs);
   IOTJS_ASSERT(jerry_value_is_object(jres));
-
-  iotjs_jargs_destroy(&jargs);
-  jerry_release_value(jbuffer);
 
   return jres;
 }
@@ -294,7 +288,7 @@ JS_FUNCTION(Write) {
   JS_DECLARE_THIS_PTR(bufferwrap, buffer_wrap);
   DJS_CHECK_ARGS(3, string, number, number);
 
-  iotjs_string_t src = JS_GET_ARG(0, string);
+  iotjs_string_auto_t src = JS_GET_ARG(0, string);
 
   size_t buffer_length = iotjs_bufferwrap_length(buffer_wrap);
   size_t offset = iotjs_convert_double_to_sizet(JS_GET_ARG(1, number));
@@ -307,8 +301,6 @@ JS_FUNCTION(Write) {
   const char* src_data = iotjs_string_data(&src);
   size_t copied =
       iotjs_bufferwrap_copy_internal(buffer_wrap, src_data, 0, length, offset);
-
-  iotjs_string_destroy(&src);
 
   return jerry_create_number(copied);
 }
@@ -338,7 +330,7 @@ JS_FUNCTION(HexWrite) {
   JS_DECLARE_THIS_PTR(bufferwrap, buffer_wrap);
   DJS_CHECK_ARGS(3, string, number, number);
 
-  iotjs_string_t src = JS_GET_ARG(0, string);
+  iotjs_string_auto_t src = JS_GET_ARG(0, string);
 
   size_t buffer_length = iotjs_bufferwrap_length(buffer_wrap);
   size_t offset = iotjs_convert_double_to_sizet(JS_GET_ARG(1, number));
@@ -357,7 +349,6 @@ JS_FUNCTION(HexWrite) {
       iotjs_bufferwrap_copy_internal(buffer_wrap, src_buf, 0, nbytes, offset);
 
   iotjs_buffer_release(src_buf);
-  iotjs_string_destroy(&src);
 
   return jerry_create_number(copied);
 }
@@ -466,7 +457,7 @@ JS_FUNCTION(ToHexString) {
   JS_CHECK(data != NULL);
 
   char* buffer = iotjs_buffer_allocate(length * 2);
-  iotjs_string_t str = iotjs_string_create_with_buffer(buffer, length * 2);
+  iotjs_string_auto_t str = iotjs_string_create_with_buffer(buffer, length * 2);
 
   for (size_t i = 0; i < length; i++) {
     memcpy(buffer, &"0123456789abcdef"[data[i] >> 4 & 0xF], 1);
@@ -475,10 +466,7 @@ JS_FUNCTION(ToHexString) {
     buffer++;
   }
 
-  jerry_value_t ret_value = iotjs_jval_create_string(&str);
-  iotjs_string_destroy(&str);
-
-  return ret_value;
+  return iotjs_jval_create_string(&str);
 }
 
 
@@ -486,10 +474,9 @@ JS_FUNCTION(ByteLength) {
   DJS_CHECK_THIS();
   DJS_CHECK_ARGS(1, string);
 
-  iotjs_string_t str = JS_GET_ARG(0, string);
+  iotjs_string_auto_t str = JS_GET_ARG(0, string);
   jerry_value_t size = iotjs_jval_get_string_size(&str);
 
-  iotjs_string_destroy(&str);
   return size;
 }
 
@@ -497,7 +484,7 @@ JS_FUNCTION(ByteLength) {
 jerry_value_t InitBuffer() {
   jerry_value_t buffer = jerry_create_external_function(Buffer);
 
-  jerry_value_t prototype = jerry_create_object();
+  jerry_value_auto_t prototype = jerry_create_object();
   iotjs_jval_set_property_jval(buffer, IOTJS_MAGIC_STRING_PROTOTYPE, prototype);
   iotjs_jval_set_method(buffer, IOTJS_MAGIC_STRING_BYTELENGTH, ByteLength);
 
@@ -510,8 +497,6 @@ jerry_value_t InitBuffer() {
   iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_SLICE, Slice);
   iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_TOSTRING, ToString);
   iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_TOHEXSTRING, ToHexString);
-
-  jerry_release_value(prototype);
 
   return buffer;
 }

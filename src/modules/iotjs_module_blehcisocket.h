@@ -38,11 +38,10 @@
 #define IOTJS_MODULE_BLE_HCI_SOCKET_H
 
 #include "iotjs_def.h"
-#include "iotjs_objectwrap.h"
 #include "iotjs_reqwrap.h"
 
 typedef struct {
-  iotjs_jobjectwrap_t jobjectwrap;
+  jerry_value_t jobject;
 
   int _mode;
   int _socket;
@@ -59,7 +58,6 @@ typedef struct {
 
 
 iotjs_blehcisocket_t* iotjs_blehcisocket_create(jerry_value_t jble);
-iotjs_blehcisocket_t* iotjs_blehcisocket_instance_from_jval(jerry_value_t jble);
 
 
 void iotjs_blehcisocket_initialize(THIS);

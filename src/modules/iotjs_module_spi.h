@@ -19,7 +19,6 @@
 
 #include "iotjs_def.h"
 #include "iotjs_module_buffer.h"
-#include "iotjs_objectwrap.h"
 #include "iotjs_reqwrap.h"
 
 #if defined(__TIZENRT__)
@@ -55,7 +54,7 @@ typedef enum { kSpiOrderMsb, kSpiOrderLsb } SpiOrder;
 
 
 typedef struct {
-  iotjs_jobjectwrap_t jobjectwrap;
+  jerry_value_t jobject;
 #if defined(__linux__)
   iotjs_string_t device;
   int32_t device_fd;

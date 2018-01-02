@@ -16,7 +16,6 @@
 #include "iotjs_def.h"
 #include "iotjs_module_spi.h"
 #include "iotjs_module_buffer.h"
-#include "iotjs_objectwrap.h"
 #include <unistd.h>
 
 
@@ -25,8 +24,8 @@ IOTJS_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(spi);
 static iotjs_spi_t* iotjs_spi_create(jerry_value_t jspi) {
   iotjs_spi_t* spi = IOTJS_ALLOC(iotjs_spi_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_spi_t, spi);
-  iotjs_jobjectwrap_initialize(&_this->jobjectwrap, jspi,
-                               &this_module_native_info);
+  _this->jobject = jspi;
+  jerry_set_object_native_pointer(jspi, spi, &this_module_native_info);
 
 #if defined(__linux__)
   _this->device = iotjs_string_create("");
@@ -37,10 +36,8 @@ static iotjs_spi_t* iotjs_spi_create(jerry_value_t jspi) {
 
 
 static void iotjs_spi_destroy(iotjs_spi_t* spi) {
-  IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_spi_t, spi);
-  iotjs_jobjectwrap_destroy(&_this->jobjectwrap);
-
 #if defined(__linux__)
+  IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_spi_t, spi);
   iotjs_string_destroy(&_this->device);
 #endif
 

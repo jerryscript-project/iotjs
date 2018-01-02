@@ -297,7 +297,7 @@ void iotjs_blehcisocket_poll(THIS) {
       }
     }
 
-    jerry_value_t jhcisocket = iotjs_jobjectwrap_jobject(&_this->jobjectwrap);
+    jerry_value_t jhcisocket = _this->jobject;
     jerry_value_t jemit = iotjs_jval_get_property(jhcisocket, "emit");
     IOTJS_ASSERT(jerry_value_is_function(jemit));
 
@@ -338,7 +338,7 @@ void iotjs_blehcisocket_write(THIS, char* data, size_t length) {
 void iotjs_blehcisocket_emitErrnoError(THIS) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_blehcisocket_t, blehcisocket);
 
-  jerry_value_t jhcisocket = iotjs_jobjectwrap_jobject(&_this->jobjectwrap);
+  jerry_value_t jhcisocket = _this->jobject;
   jerry_value_t jemit = iotjs_jval_get_property(jhcisocket, "emit");
   IOTJS_ASSERT(jerry_value_is_function(jemit));
 

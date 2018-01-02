@@ -18,7 +18,6 @@
 #define IOTJS_MODULE_PWM_H
 
 #include "iotjs_def.h"
-#include "iotjs_objectwrap.h"
 #include "iotjs_reqwrap.h"
 
 #if defined(__TIZENRT__)
@@ -38,7 +37,7 @@ typedef enum {
 
 
 typedef struct {
-  iotjs_jobjectwrap_t jobjectwrap;
+  jerry_value_t jobject;
 
 #if defined(__linux__)
   int chip;

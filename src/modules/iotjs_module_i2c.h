@@ -18,7 +18,6 @@
 #define IOTJS_MODULE_I2C_H
 
 #include "iotjs_def.h"
-#include "iotjs_objectwrap.h"
 #include "iotjs_reqwrap.h"
 
 typedef enum {
@@ -52,7 +51,7 @@ typedef struct {
 typedef struct iotjs_i2c_platform_data_s iotjs_i2c_platform_data_t;
 // This I2c class provides interfaces for I2C operation.
 typedef struct {
-  iotjs_jobjectwrap_t jobjectwrap;
+  jerry_value_t jobject;
   iotjs_i2c_platform_data_t* platform_data;
 } IOTJS_VALIDATED_STRUCT(iotjs_i2c_t);
 
@@ -64,7 +63,6 @@ typedef struct {
 } IOTJS_VALIDATED_STRUCT(iotjs_i2c_reqwrap_t);
 
 
-iotjs_i2c_t* iotjs_i2c_instance_from_jval(const jerry_value_t ji2c);
 iotjs_i2c_reqwrap_t* iotjs_i2c_reqwrap_from_request(uv_work_t* req);
 #define THIS iotjs_i2c_reqwrap_t* i2c_reqwrap
 void iotjs_i2c_reqwrap_dispatched(THIS);

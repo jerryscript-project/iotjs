@@ -20,7 +20,6 @@
 #include <uv.h>
 
 #include "iotjs_binding.h"
-#include "iotjs_objectwrap.h"
 
 
 typedef void (*OnCloseHandler)(uv_handle_t*);
@@ -43,7 +42,7 @@ typedef void (*OnCloseHandler)(uv_handle_t*);
 // The javascript object now can be reclaimed by GC.
 
 typedef struct {
-  iotjs_jobjectwrap_t jobjectwrap;
+  jerry_value_t jobject;
   uv_handle_t* handle;
   OnCloseHandler on_close_cb;
 } IOTJS_VALIDATED_STRUCT(iotjs_handlewrap_t);

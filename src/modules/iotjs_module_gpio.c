@@ -17,7 +17,6 @@
 
 #include "iotjs_def.h"
 #include "iotjs_module_gpio.h"
-#include "iotjs_objectwrap.h"
 #include <stdio.h>
 
 
@@ -28,8 +27,8 @@ IOTJS_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(gpio);
 static iotjs_gpio_t* iotjs_gpio_create(jerry_value_t jgpio) {
   iotjs_gpio_t* gpio = IOTJS_ALLOC(iotjs_gpio_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_gpio_t, gpio);
-  iotjs_jobjectwrap_initialize(&_this->jobjectwrap, jgpio,
-                               &this_module_native_info);
+  _this->jobject = jgpio;
+  jerry_set_object_native_pointer(jgpio, gpio, &this_module_native_info);
 
   iotjs_gpio_platform_create(_this);
   return gpio;
@@ -39,7 +38,6 @@ static iotjs_gpio_t* iotjs_gpio_create(jerry_value_t jgpio) {
 static void iotjs_gpio_destroy(iotjs_gpio_t* gpio) {
   IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_gpio_t, gpio);
   iotjs_gpio_platform_destroy(_this);
-  iotjs_jobjectwrap_destroy(&_this->jobjectwrap);
   IOTJS_RELEASE(gpio);
 }
 

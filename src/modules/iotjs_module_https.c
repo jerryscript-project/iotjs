@@ -14,7 +14,6 @@
  */
 
 #include "iotjs_module_https.h"
-#include "iotjs_objectwrap.h"
 #include <inttypes.h>
 #include <limits.h>
 #include <stdbool.h>

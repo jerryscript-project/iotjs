@@ -93,7 +93,7 @@ def init_options():
         help='Specify the module profile file for IoT.js')
 
     parser.add_argument('--target-arch',
-        choices=['arm', 'x86', 'i686', 'x86_64', 'x64'],
+        choices=['arm', 'x86', 'i686', 'x86_64', 'x64', 'noarch'],
         default=platform.arch(),
         help='Specify the target architecture: '
              '%(choices)s (default: %(default)s)')
@@ -103,7 +103,7 @@ def init_options():
         help='Specify the target os: %(choices)s (default: %(default)s)')
 
     parser.add_argument('--target-board',
-        choices=[None, 'artik10', 'stm32f4dis', 'rpi2', 'artik05x'],
+        choices=[None, 'artik10', 'stm32f4dis', 'rpi2', 'rpi3', 'artik05x'],
         default=None, help='Specify the target board (if needed): '
              '%(choices)s (default: %(default)s)')
     parser.add_argument('--nuttx-home', default=None, dest='sysroot',
@@ -213,7 +213,7 @@ def adjust_options(options):
     if options.target_os == 'darwin':
         options.no_check_valgrind = True
 
-    if options.target_board in ['rpi2', 'artik10', 'artik05x']:
+    if options.target_board in ['rpi2', 'rpi3', 'artik10', 'artik05x']:
         options.no_check_valgrind = True
 
     # Then add calculated options.

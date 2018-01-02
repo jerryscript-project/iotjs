@@ -67,8 +67,8 @@ cat LICENSE
 cp %{SOURCE1001} .
 
 %build
-./tools/build.py --clean --buildtype=%{build_mode} --target-arch=arm \
- --target-os=tizen --target-board=artik10 \
+./tools/build.py --clean --buildtype=%{build_mode} --target-arch=noarch \
+ --target-os=tizen --target-board=rpi3 \
  --external-lib=capi-system-peripheral-io \
  --compile-flag=-D__TIZEN__ \
  --cmake-param=-DENABLE_MODULE_DGRAM=ON \
@@ -83,8 +83,8 @@ mkdir -p %{buildroot}%{_libdir}/iotjs
 mkdir -p %{buildroot}%{_libdir}/pkgconfig
 
 
-cp ./build/arm-tizen/%{build_mode}/bin/iotjs %{buildroot}%{_bindir}/
-cp ./build/arm-tizen/%{build_mode}/lib/* %{buildroot}%{_libdir}/iotjs/
+cp ./build/noarch-tizen/%{build_mode}/bin/iotjs %{buildroot}%{_bindir}/
+cp ./build/noarch-tizen/%{build_mode}/lib/* %{buildroot}%{_libdir}/iotjs/
 
 cp ./include/*.h %{buildroot}%{_includedir}
 cp ./src/*.h %{buildroot}%{_includedir}

@@ -78,9 +78,28 @@ static jerry_value_t wait_for_source_callback(
 
 // Export JS module received from the debugger client
 JS_FUNCTION(DebuggerGetSource) {
-  jerry_value_t res;
-  jerry_debugger_wait_for_client_source(wait_for_source_callback, NULL, &res);
-  return res;
+  jerry_debugger_wait_for_source_status_t receive_status;
+  jerry_value_t ret_val = jerry_create_array(0);
+  uint8_t counter = 0;
+  do {
+    jerry_value_t res;
+    receive_status =
+        jerry_debugger_wait_for_client_source(wait_for_source_callback, NULL,
+                                              &res);
+
+    if (receive_status == JERRY_DEBUGGER_SOURCE_RECEIVED) {
+      jerry_set_property_by_index(ret_val, counter++, res);
+      jerry_release_value(res);
+    }
+
+    if (receive_status == JERRY_DEBUGGER_CONTEXT_RESET_RECEIVED) {
+      iotjs_environment_config(iotjs_environment_get())
+          ->debugger->context_reset = true;
+      break;
+    }
+  } while (receive_status != JERRY_DEBUGGER_SOURCE_END);
+
+  return ret_val;
 }
 
 

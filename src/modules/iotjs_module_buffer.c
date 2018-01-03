@@ -29,8 +29,10 @@ iotjs_bufferwrap_t* iotjs_bufferwrap_create(const jerry_value_t jbuiltin,
   iotjs_bufferwrap_t* bufferwrap = IOTJS_ALLOC(iotjs_bufferwrap_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_bufferwrap_t, bufferwrap);
 
-  iotjs_jobjectwrap_initialize(&_this->jobjectwrap, jbuiltin,
-                               &this_module_native_info);
+  _this->jobject = jbuiltin;
+  jerry_set_object_native_pointer(jbuiltin, bufferwrap,
+                                  &this_module_native_info);
+
   if (length > 0) {
     _this->length = length;
     _this->buffer = iotjs_buffer_allocate(length);
@@ -53,7 +55,6 @@ static void iotjs_bufferwrap_destroy(iotjs_bufferwrap_t* bufferwrap) {
   if (_this->buffer != NULL) {
     iotjs_buffer_release(_this->buffer);
   }
-  iotjs_jobjectwrap_destroy(&_this->jobjectwrap);
   IOTJS_RELEASE(bufferwrap);
 }
 
@@ -78,9 +79,9 @@ iotjs_bufferwrap_t* iotjs_bufferwrap_from_jbuffer(const jerry_value_t jbuffer) {
 }
 
 
-jerry_value_t iotjs_bufferwrap_jbuiltin(iotjs_bufferwrap_t* bufferwrap) {
+static jerry_value_t iotjs_bufferwrap_jbuiltin(iotjs_bufferwrap_t* bufferwrap) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_bufferwrap_t, bufferwrap);
-  return iotjs_jobjectwrap_jobject(&_this->jobjectwrap);
+  return _this->jobject;
 }
 
 

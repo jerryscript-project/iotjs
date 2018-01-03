@@ -15,7 +15,7 @@
 
 #include "iotjs_def.h"
 #include "iotjs_module_pwm.h"
-#include "iotjs_objectwrap.h"
+
 
 static iotjs_pwm_t* iotjs_pwm_instance_from_jval(jerry_value_t jpwm);
 
@@ -25,8 +25,8 @@ IOTJS_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(pwm);
 static iotjs_pwm_t* iotjs_pwm_create(jerry_value_t jpwm) {
   iotjs_pwm_t* pwm = IOTJS_ALLOC(iotjs_pwm_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_pwm_t, pwm);
-  iotjs_jobjectwrap_initialize(&_this->jobjectwrap, jpwm,
-                               &this_module_native_info);
+  _this->jobject = jpwm;
+  jerry_set_object_native_pointer(jpwm, pwm, &this_module_native_info);
 
   _this->period = -1;
   _this->duty_cycle = 0;
@@ -38,9 +38,8 @@ static iotjs_pwm_t* iotjs_pwm_create(jerry_value_t jpwm) {
 
 
 static void iotjs_pwm_destroy(iotjs_pwm_t* pwm) {
-  IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_pwm_t, pwm);
-  iotjs_jobjectwrap_destroy(&_this->jobjectwrap);
 #if defined(__linux__)
+  IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_pwm_t, pwm);
   iotjs_string_destroy(&_this->device);
 #endif
   IOTJS_RELEASE(pwm);

@@ -25,7 +25,8 @@ void iotjs_handlewrap_initialize(iotjs_handlewrap_t* handlewrap,
   // Increase ref count of Javascript object to guarantee it is alive until the
   // handle has closed.
   jerry_value_t jobjectref = jerry_acquire_value(jobject);
-  iotjs_jobjectwrap_initialize(&_this->jobjectwrap, jobjectref, native_info);
+  _this->jobject = jobjectref;
+  jerry_set_object_native_pointer(jobjectref, handlewrap, native_info);
 
   _this->handle = handle;
   _this->on_close_cb = NULL;
@@ -41,8 +42,6 @@ void iotjs_handlewrap_destroy(iotjs_handlewrap_t* handlewrap) {
 
   // Handle should have been release before this.
   IOTJS_ASSERT(_this->handle == NULL);
-
-  iotjs_jobjectwrap_destroy(&_this->jobjectwrap);
 }
 
 
@@ -71,7 +70,7 @@ uv_handle_t* iotjs_handlewrap_get_uv_handle(iotjs_handlewrap_t* handlewrap) {
 jerry_value_t iotjs_handlewrap_jobject(iotjs_handlewrap_t* handlewrap) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_handlewrap_t, handlewrap);
   iotjs_handlewrap_validate(handlewrap);
-  return iotjs_jobjectwrap_jobject(&_this->jobjectwrap);
+  return _this->jobject;
 }
 
 
@@ -89,8 +88,7 @@ static void iotjs_handlewrap_on_close(iotjs_handlewrap_t* handlewrap) {
 
   // Decrease ref count of Javascript object. From now the object can be
   // reclaimed.
-  jerry_value_t jval = iotjs_jobjectwrap_jobject(&_this->jobjectwrap);
-  jerry_release_value(jval);
+  jerry_release_value(_this->jobject);
 }
 
 
@@ -117,9 +115,7 @@ void iotjs_handlewrap_validate(iotjs_handlewrap_t* handlewrap) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_handlewrap_t, handlewrap);
 
   IOTJS_ASSERT((iotjs_handlewrap_t*)_this == handlewrap);
-  IOTJS_ASSERT((iotjs_jobjectwrap_t*)_this == &_this->jobjectwrap);
   IOTJS_ASSERT((void*)_this == _this->handle->data);
   IOTJS_ASSERT((uintptr_t)_this ==
-               iotjs_jval_get_object_native_handle(
-                   iotjs_jobjectwrap_jobject(&_this->jobjectwrap)));
+               iotjs_jval_get_object_native_handle(_this->jobject));
 }

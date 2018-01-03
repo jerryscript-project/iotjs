@@ -95,6 +95,11 @@ extern void force_terminate();
 /* Avoid compiler warnings if needed. */
 #define IOTJS_UNUSED(x) ((void)(x))
 
+#define IOTJS_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(name)                  \
+  static void iotjs_##name##_destroy(iotjs_##name##_t* wrap);              \
+  static const jerry_object_native_info_t this_module_native_info = {      \
+    .free_cb = (jerry_object_native_free_callback_t)iotjs_##name##_destroy \
+  }
 
 #ifdef NDEBUG
 

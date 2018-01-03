@@ -16,7 +16,6 @@
 
 #include "iotjs_def.h"
 #include "iotjs_module_i2c.h"
-#include "iotjs_objectwrap.h"
 
 
 #define THIS iotjs_i2c_reqwrap_t* i2c_reqwrap
@@ -32,8 +31,9 @@ static iotjs_i2c_t* iotjs_i2c_create(void* device, const jerry_value_t ji2c) {
   iotjs_i2c_t* i2c = IOTJS_ALLOC(iotjs_i2c_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_i2c_t, i2c);
   i2c_create_platform_data(device, i2c, &_this->platform_data);
-  iotjs_jobjectwrap_initialize(&_this->jobjectwrap, ji2c,
-                               &this_module_native_info);
+  _this->jobject = ji2c;
+  jerry_set_object_native_pointer(ji2c, i2c, &this_module_native_info);
+
   return i2c;
 }
 
@@ -86,15 +86,8 @@ iotjs_i2c_t* iotjs_i2c_instance_from_reqwrap(THIS) {
 #undef THIS
 
 static void iotjs_i2c_destroy(iotjs_i2c_t* i2c) {
-  IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_i2c_t, i2c);
-  iotjs_jobjectwrap_destroy(&_this->jobjectwrap);
   i2c_destroy_data(i2c);
   IOTJS_RELEASE(i2c);
-}
-
-iotjs_i2c_t* iotjs_i2c_instance_from_jval(const jerry_value_t ji2c) {
-  iotjs_jobjectwrap_t* jobjectwrap = iotjs_jobjectwrap_from_jobject(ji2c);
-  return (iotjs_i2c_t*)jobjectwrap;
 }
 
 void AfterI2CWork(uv_work_t* work_req, int status) {

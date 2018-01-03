@@ -17,7 +17,6 @@
 
 #include "iotjs_def.h"
 #include "iotjs_module_uart.h"
-#include "iotjs_objectwrap.h"
 
 
 IOTJS_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(uart);

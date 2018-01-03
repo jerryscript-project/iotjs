@@ -19,7 +19,6 @@
 
 
 #include "iotjs_def.h"
-#include "iotjs_objectwrap.h"
 #include "iotjs_reqwrap.h"
 
 
@@ -65,7 +64,7 @@ typedef struct _iotjs_gpio_module_platform_t* iotjs_gpio_module_platform_t;
 
 // This Gpio class provides interfaces for GPIO operation.
 typedef struct {
-  iotjs_jobjectwrap_t jobjectwrap;
+  jerry_value_t jobject;
   uint32_t pin;
   GpioDirection direction;
   GpioMode mode;

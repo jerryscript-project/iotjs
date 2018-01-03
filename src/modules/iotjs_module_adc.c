@@ -15,7 +15,6 @@
 
 #include "iotjs_def.h"
 #include "iotjs_module_adc.h"
-#include "iotjs_objectwrap.h"
 
 
 static JNativeInfoType this_module_native_info = {.free_cb = NULL };
@@ -27,17 +26,16 @@ static iotjs_adc_t* iotjs_adc_instance_from_jval(const jerry_value_t jadc);
 static iotjs_adc_t* iotjs_adc_create(const jerry_value_t jadc) {
   iotjs_adc_t* adc = IOTJS_ALLOC(iotjs_adc_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_adc_t, adc);
-  iotjs_jobjectwrap_initialize(&_this->jobjectwrap, jadc,
-                               &this_module_native_info);
+  _this->jobject = jadc;
+  jerry_set_object_native_pointer(jadc, adc, &this_module_native_info);
 
   return adc;
 }
 
 
 static void iotjs_adc_destroy(iotjs_adc_t* adc) {
-  IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_adc_t, adc);
-  iotjs_jobjectwrap_destroy(&_this->jobjectwrap);
 #if defined(__linux__)
+  IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_adc_t, adc);
   iotjs_string_destroy(&_this->device);
 #endif
   IOTJS_RELEASE(adc);

@@ -79,7 +79,7 @@ static void gpio_set_value_fd(iotjs_gpio_t* gpio, int fd) {
 static void gpio_emit_change_event(iotjs_gpio_t* gpio) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_gpio_t, gpio);
 
-  jerry_value_t jgpio = iotjs_jobjectwrap_jobject(&_this->jobjectwrap);
+  jerry_value_t jgpio = _this->jobject;
   jerry_value_t jonChange = iotjs_jval_get_property(jgpio, "onChange");
   IOTJS_ASSERT(jerry_value_is_function(jonChange));
 

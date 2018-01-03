@@ -17,11 +17,8 @@
 #define IOTJS_MODULE_BUFFER_H
 
 
-#include "iotjs_objectwrap.h"
-
-
 typedef struct {
-  iotjs_jobjectwrap_t jobjectwrap;
+  jerry_value_t jobject;
   char* buffer;
   size_t length;
 } IOTJS_VALIDATED_STRUCT(iotjs_bufferwrap_t);
@@ -34,7 +31,6 @@ iotjs_bufferwrap_t* iotjs_bufferwrap_from_jbuiltin(
     const jerry_value_t jbuiltin);
 iotjs_bufferwrap_t* iotjs_bufferwrap_from_jbuffer(const jerry_value_t jbuffer);
 
-jerry_value_t iotjs_bufferwrap_jbuiltin(iotjs_bufferwrap_t* bufferwrap);
 jerry_value_t iotjs_bufferwrap_jbuffer(iotjs_bufferwrap_t* bufferwrap);
 
 char* iotjs_bufferwrap_buffer(iotjs_bufferwrap_t* bufferwrap);

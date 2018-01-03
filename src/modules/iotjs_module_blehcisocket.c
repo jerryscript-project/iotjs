@@ -52,8 +52,8 @@ iotjs_blehcisocket_t* iotjs_blehcisocket_create(jerry_value_t jble) {
   THIS = IOTJS_ALLOC(iotjs_blehcisocket_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_blehcisocket_t, blehcisocket);
 
-  iotjs_jobjectwrap_initialize(&_this->jobjectwrap, jble,
-                               &this_module_native_info);
+  _this->jobject = jble;
+  jerry_set_object_native_pointer(jble, blehcisocket, &this_module_native_info);
 
   iotjs_blehcisocket_initialize(blehcisocket);
 
@@ -61,18 +61,8 @@ iotjs_blehcisocket_t* iotjs_blehcisocket_create(jerry_value_t jble) {
 }
 
 
-iotjs_blehcisocket_t* iotjs_blehcisocket_instance_from_jval(
-    jerry_value_t jble) {
-  iotjs_jobjectwrap_t* jobjectwrap = iotjs_jobjectwrap_from_jobject(jble);
-  return (iotjs_blehcisocket_t*)jobjectwrap;
-}
-
-
 static void iotjs_blehcisocket_destroy(THIS) {
   iotjs_blehcisocket_close(blehcisocket);
-
-  IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_blehcisocket_t, blehcisocket);
-  iotjs_jobjectwrap_destroy(&_this->jobjectwrap);
   IOTJS_RELEASE(blehcisocket);
 }
 

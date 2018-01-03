@@ -8,6 +8,7 @@
 /src/iotjs_module_inl.h
 /test/tmp/*
 eslint.log
+/obj-*-*/
 
 # IDE related files
 nbproject
@@ -42,3 +43,10 @@ TAGS
 # config files
 *.config
 !build.config
+
+# Debian files
+/debian/files
+/debian/*.debhelper.log
+/debian/*.substvars
+/debian/iotjs/
+

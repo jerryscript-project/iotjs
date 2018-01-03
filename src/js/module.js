@@ -28,8 +28,6 @@ module.exports = iotjs_module_t;
 
 
 iotjs_module_t.cache = {};
-iotjs_module_t.wrapper = Native.wrapper;
-iotjs_module_t.wrap = Native.wrap;
 
 
 var cwd;

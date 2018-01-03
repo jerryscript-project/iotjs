@@ -19,7 +19,10 @@ import json
 
 from common_py.system.filesystem import FileSystem as fs
 from common_py.system.executor import Executor as ex
+from common_py.system.platform import Platform
+from check_tidy import check_tidy
 
+platform = Platform()
 
 DOCKER_ROOT_PATH = fs.join('/root')
 
@@ -32,6 +35,9 @@ DOCKER_IOTJS_PATH = fs.join(DOCKER_ROOT_PATH, 'iotjs')
 DOCKER_TIZENRT_PATH = fs.join(DOCKER_ROOT_PATH, 'TizenRT')
 DOCKER_TIZENRT_OS_PATH = fs.join(DOCKER_TIZENRT_PATH, 'os')
 DOCKER_TIZENRT_OS_TOOLS_PATH = fs.join(DOCKER_TIZENRT_OS_PATH, 'tools')
+
+DOCKER_NUTTX_PATH =fs.join(DOCKER_ROOT_PATH, 'nuttx')
+
 
 DOCKER_NAME = 'iotjs_docker'
 
@@ -46,44 +52,107 @@ def run_docker():
 
 def exec_docker(cwd, cmd):
     exec_cmd = 'cd %s && ' % cwd + ' '.join(cmd)
-    ex.check_run_cmd('docker', ['exec', '-it', DOCKER_NAME,
-                                'bash', '-c', exec_cmd])
+    ex.check_run_cmd('docker', [
+                     'exec', '-it', DOCKER_NAME, 'bash', '-c', exec_cmd])
 
 def set_release_config_tizenrt():
-    exec_docker(DOCKER_ROOT_PATH, ['cp', 'tizenrt_release_config',
-                                   fs.join(DOCKER_TIZENRT_OS_PATH, '.config')])
+    exec_docker(DOCKER_ROOT_PATH, [
+                'cp', 'tizenrt_release_config',
+                fs.join(DOCKER_TIZENRT_OS_PATH, '.config')])
+
+def build_iotjs(buildtype, args=[]):
+    exec_docker(DOCKER_IOTJS_PATH, [
+                './tools/build.py',
+                '--clean',
+                '--buildtype=' + buildtype] + args)
 
 if __name__ == '__main__':
-    run_docker()
+    if os.getenv('RUN_DOCKER') == 'yes':
+        run_docker()
 
-    test = os.environ['OPTS']
+    test = os.getenv('OPTS')
     if test == 'host-linux':
+        build_iotjs('debug', [
+                    '--no-check-test',
+                    '--profile=profiles/minimal.profile'])
+
         for buildtype in BUILDTYPES:
-            exec_docker(DOCKER_IOTJS_PATH,
-                        ['./tools/build.py',
-                         '--buildtype=%s' % buildtype,
-                         '--profile=test/profiles/host-linux.profile'])
+            build_iotjs(buildtype, [
+                        '--profile=test/profiles/host-linux.profile'])
 
     elif test == 'rpi2':
-        build_options = ['--clean', '--target-arch=arm', '--target-board=rpi2',
-                         '--profile=test/profiles/rpi2-linux.profile']
-
         for buildtype in BUILDTYPES:
-            exec_docker(DOCKER_IOTJS_PATH, ['./tools/build.py',
-                                            '--buildtype=%s' % buildtype] +
-                                            build_options)
+            build_iotjs(buildtype, [
+                        '--target-arch=arm',
+                        '--target-board=rpi2',
+                        '--profile=test/profiles/rpi2-linux.profile'])
 
     elif test == 'artik053':
         # Checkout specified tag
         exec_docker(DOCKER_TIZENRT_PATH, ['git', 'checkout', TIZENRT_TAG])
         # Set configure
-        exec_docker(DOCKER_TIZENRT_OS_TOOLS_PATH, ['./configure.sh',
-                                                   'artik053/iotjs'])
+        exec_docker(DOCKER_TIZENRT_OS_TOOLS_PATH, [
+                    './configure.sh', 'artik053/iotjs'])
 
         for buildtype in BUILDTYPES:
             if buildtype == 'release':
                 set_release_config_tizenrt()
-            exec_docker(DOCKER_TIZENRT_OS_PATH,
-                        ['make', 'IOTJS_ROOT_DIR=../../iotjs',
-                         'IOTJS_BUILD_OPTION='
-                         '--profile=test/profiles/tizenrt.profile'])
+            exec_docker(DOCKER_TIZENRT_OS_PATH, [
+                        'make', 'IOTJS_ROOT_DIR=../../iotjs',
+                        'IOTJS_BUILD_OPTION='
+                        '--profile=test/profiles/tizenrt.profile'])
+
+    elif test == 'stm32f4dis':
+        for buildtype in BUILDTYPES:
+            exec_docker(DOCKER_NUTTX_PATH, ['make', 'clean'])
+            exec_docker(DOCKER_NUTTX_PATH, ['make', 'context'])
+            # Build IoT.js
+            build_iotjs(buildtype, [
+                        '--target-arch=arm',
+                        '--target-os=nuttx',
+                        '--nuttx-home=' + DOCKER_NUTTX_PATH,
+                        '--target-board=stm32f4dis',
+                        '--jerry-heaplimit=78',
+                        '--profile=test/profiles/nuttx.profile'])
+            # Build Nuttx
+            if buildtype == "release":
+                rflag = 'R=1'
+            else:
+                rflag = 'R=0'
+            exec_docker(DOCKER_NUTTX_PATH, [
+                        'make', 'all',
+                        'IOTJS_ROOT_DIR=' + DOCKER_IOTJS_PATH, rflag])
+
+    elif test == "misc":
+        ex.check_run_cmd('tools/check_signed_off.sh', ['--travis'])
+
+        if not check_tidy(TRAVIS_BUILD_PATH):
+            ex.fail("Failed tidy check")
+
+    elif test == "external-modules":
+        for buildtype in BUILDTYPES:
+            build_iotjs(buildtype, [
+                        '--profile=test/profiles/host-linux.profile',
+                        '--external-modules=test/external_modules/'
+                        'mymodule1,test/external_modules/mymodule2',
+                        '--cmake-param=-DENABLE_MODULE_MYMODULE1=ON',
+                        '--cmake-param=-DENABLE_MODULE_MYMODULE2=ON'])
+            binary = fs.join('build',
+                             platform.arch() + '-' + platform.os(),
+                             buildtype, 'bin', 'iotjs')
+            ext_mod_tests = [
+                'test/external_modules/test_external_module1.js',
+                'test/external_modules/test_external_module2.js']
+            # TODO: Use testrunner to run an extended test set
+            for test in ext_mod_tests:
+                exec_docker(DOCKER_IOTJS_PATH, [binary, test])
+
+    elif test == "no-snapshot":
+        build_iotjs('debug', ['--no-snapshot', '--jerry-lto'])
+
+    elif test == "host-darwin":
+        for buildtype in BUILDTYPES:
+            ex.check_run_cmd('./tools/build.py', [
+                             '--buildtype=' + buildtype,
+                             '--clean',
+                             '--profile=test/profiles/host-darwin.profile'])

@@ -21,29 +21,16 @@
 #include "iotjs_reqwrap.h"
 
 typedef enum {
-  kI2cOpSetAddress,
   kI2cOpOpen,
   kI2cOpClose,
   kI2cOpWrite,
   kI2cOpRead,
 } I2cOp;
 
-typedef enum {
-  kI2cErrOk = 0,
-  kI2cErrOpen = -1,
-  kI2cErrRead = -2,
-  kI2cErrWrite = -3,
-} I2cError;
 
 typedef struct {
-  char* buf_data;
-  uint8_t buf_len;
-  uint8_t byte;
-  uint8_t cmd;
-  int32_t delay;
-
   I2cOp op;
-  I2cError error;
+  bool result;
 } iotjs_i2c_reqdata_t;
 
 // Forward declaration of platform data. These are only used by platform code.
@@ -53,6 +40,12 @@ typedef struct iotjs_i2c_platform_data_s iotjs_i2c_platform_data_t;
 typedef struct {
   jerry_value_t jobject;
   iotjs_i2c_platform_data_t* platform_data;
+
+  char* buf_data;
+  uint8_t buf_len;
+  uint8_t byte;
+  uint8_t cmd;
+  uint8_t address;
 } IOTJS_VALIDATED_STRUCT(iotjs_i2c_t);
 
 typedef struct {
@@ -72,16 +65,17 @@ iotjs_i2c_reqdata_t* iotjs_i2c_reqwrap_data(THIS);
 iotjs_i2c_t* iotjs_i2c_instance_from_reqwrap(THIS);
 #undef THIS
 
-void I2cSetAddress(iotjs_i2c_t* i2c, uint8_t address);
-void OpenWorker(uv_work_t* work_req);
-void I2cClose(iotjs_i2c_t* i2c);
-void WriteWorker(uv_work_t* work_req);
-void ReadWorker(uv_work_t* work_req);
+
+jerry_value_t iotjs_i2c_set_platform_config(iotjs_i2c_t* i2c,
+                                            const jerry_value_t jconfig);
+bool iotjs_i2c_open(iotjs_i2c_t* i2c);
+bool iotjs_i2c_write(iotjs_i2c_t* i2c);
+bool iotjs_i2c_read(iotjs_i2c_t* i2c);
+bool iotjs_i2c_close(iotjs_i2c_t* i2c);
 
 // Platform-related functions; they are implemented
 // by platform code (i.e.: linux, nuttx, tizen).
-void i2c_create_platform_data(void* device, iotjs_i2c_t* i2c,
-                              iotjs_i2c_platform_data_t** ppdata);
+void i2c_create_platform_data(iotjs_i2c_t* i2c);
 void i2c_destroy_platform_data(iotjs_i2c_platform_data_t* platform_data);
 
 #endif /* IOTJS_MODULE_I2C_H */

@@ -23,10 +23,10 @@ if (process.platform === 'linux') {
 } else if (process.platform === 'nuttx') {
   var stm32_pin = require('stm32f4dis').pin;
   pin.pwm1 = stm32_pin.PWM1.CH1_1;
-  pin.i2c1 = 0;
+  pin.i2c1 = 1;
 } else if (process.platform === 'tizenrt') {
   pin.pwm1 = 0;
-  pin.i2c1 = 0;
+  pin.i2c1 = 1;
 } else {
   throw new Error('Unsupported platform');
 }

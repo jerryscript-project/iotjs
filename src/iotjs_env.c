@@ -122,7 +122,7 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
       size_t port_length = sizeof(strlen(argv[i] - port_arg_len - 1));
       char port[port_length];
       memcpy(&port, argv[i] + port_arg_len, port_length);
-      sscanf(port, "%d", &(_this->config.debugger->port));
+      sscanf(port, "%hu", &(_this->config.debugger->port));
     } else if (!strcmp(argv[i], "--debugger-wait-source") &&
                _this->config.debugger) {
       _this->config.debugger->wait_source = true;

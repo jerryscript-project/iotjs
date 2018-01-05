@@ -23,10 +23,10 @@ typedef jerry_value_t (*register_func)();
 typedef struct {
   const char* name;
   register_func fn_register;
-} iotjs_module_t;
+} iotjs_module_ro_data_t;
 
-extern const unsigned iotjs_modules_count;
-extern const iotjs_module_t iotjs_modules[];
+extern const unsigned iotjs_module_count;
+extern const iotjs_module_ro_data_t iotjs_module_ro_data[];
 
 void iotjs_module_list_cleanup();
 

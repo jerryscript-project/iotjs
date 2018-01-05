@@ -288,8 +288,8 @@ static void SetBuiltinModules(jerry_value_t builtin_modules) {
     iotjs_jval_set_property_jval(builtin_modules, js_modules[i].name,
                                  jerry_create_boolean(true));
   }
-  for (unsigned i = 0; i < iotjs_modules_count; i++) {
-    iotjs_jval_set_property_jval(builtin_modules, iotjs_modules[i].name,
+  for (unsigned i = 0; i < iotjs_module_count; i++) {
+    iotjs_jval_set_property_jval(builtin_modules, iotjs_module_ro_data[i].name,
                                  jerry_create_boolean(true));
   }
 }

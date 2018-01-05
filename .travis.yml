@@ -8,38 +8,31 @@ services:
   - docker
 
 before_install:
-  - if [[ "$INSTALL_NUTTX_DEPS" == "yes" ]]; then tools/apt-get-install-nuttx.sh; fi
-  - if [[ "$INSTALL_TIZEN_DEPS" == "yes" ]]; then . tools/apt-get-install-tizen.sh; fi
-  - if [[ "$INSTALL_TIZENRT_DEPS" == "yes" ]]; then . tools/apt-get-install-tizenrt.sh; fi
-  - if [[ "$INSTALL_TRAVIS_I686_DEPS" == "yes" ]]; then tools/apt-get-install-travis-i686.sh; fi
   - if [[ "$RUN_DOCKER" == "yes" ]]; then docker pull iotjs/ubuntu:0.3; fi
-  - if [ -z "$RUN_DOCKER" ] && [ "$TRAVIS_OS_NAME" == "linux" ]; then tools/apt-get-install-deps.sh; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then tools/brew-install-deps.sh; fi
+  - if [[ "$OPTS" == "misc" ]]; then tools/apt-get-install-deps.sh; fi
 
 install:
 
 script:
-  if [[ "$RUN_DOCKER" == "yes" ]]; then tools/travis_script.py;
-  else tools/precommit.py $OPTS;
-  fi
+  tools/travis_script.py
 
 env:
   global:
     - secure: "lUGzoKK/Yn4/OmpqLQALrIgfY9mQWE51deUawPrCO87UQ2GknfQ4BvwY3UT5QY0XnztPBP1+vRQ2qxbiAU7VWicp280sXDnh0FeuZD14FcE9l0FczraL12reoLu+gY5HWFfbkZncmcBsZkxDEYxhkM14FJU8fxyqGQW2ypJNz+gUGP+8r40Re5J3WjcddCQNe5IG8U+M9B4YeDHhN2QspLdN5pkgn56XtdGa3+qbecO2NpjJG5ltM9j1tTuo/Dg22DxrIFVfeFSFKUj4nfMrgPo5LevRsC/lfaBSCsj751eqrxRcQRh2hkpiIJ7mEBs2LL1EH9O6Mbj+eRh8BvIYqTB85VPNFc43sLWk14apcSVBrxJE5j3kP9sAsOD9Y5JynnkeuxYyISrkywwoX2uxsmCzIfGbwsv5VLToQzrqWlGYrHOAmVXNi8561dLfsWwxxFUjdqkZr1Kgc8UfnBEcBUtSiKCHS86/YUUbBJGkEkjDUS0GiqhFY4bXLQCR7EX4qDX3m6p7Mnh4NVUolpnSmyeYE/MjmqQ+7PJsPLL3EcIYmJ7dtW3mZ3yE2NyaFD0Pym9+TiuCCXRtrNVK1M3Kya64KNv+HbhjT/fTCgXLSeyDmJOKVAqugRlDo3b1KGR1LI0AfegzSA6mEC4e9JLjYiSnHPMUahzgLt8oU0hNFRY="
   matrix:
-    - OPTS="host-linux" TARGET_OS="linux" RUN_DOCKER=yes
-    - OPTS="rpi2" TARGET_OS="linux" RUN_DOCKER=yes
-    - OPTS="--test=nuttx" INSTALL_NUTTX_DEPS=yes
-    - OPTS="--test=artik10" INSTALL_TIZEN_DEPS=yes
-    - OPTS="artik053" TARGET_OS="tizenrt" RUN_DOCKER=yes
-    - OPTS="--test=external-modules"
-    - OPTS="--test=misc"
-    - OPTS="--test=no-snapshot"
+    - OPTS="host-linux" RUN_DOCKER=yes
+    - OPTS="rpi2" RUN_DOCKER=yes
+    - OPTS="stm32f4dis" RUN_DOCKER=yes
+    - OPTS="artik053" RUN_DOCKER=yes
+    - OPTS="external-modules" RUN_DOCKER=yes
+    - OPTS="no-snapshot" RUN_DOCKER=yes
+    - OPTS="misc"
 
 matrix:
   include:
     - os: osx
-      env: OPTS="--test=host-darwin"
+      env: OPTS="host-darwin"
     - os: linux
       before_install:
         - tools/apt-get-install-deps.sh
@@ -50,25 +43,7 @@ matrix:
             name: "Samsung/iotjs"
             description: "Platform for Internet of Things with JavaScript"
           notification_email: duddlf.choi@samsung.com
-          build_command: "tools/precommit.py --test=coverity"
+          build_command: "tools/travis_script.py"
           branch_pattern: master
-      env: OPTS="--test=coverity"
-    - compiler: gcc-4.9
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - gcc-4.9
-            - gcc-4.9-multilib
-      env: OPTS="--test=host-linux --buildtype=debug --buildoptions=--target-arch=i686,--compile-flag=-fsanitize=address,--compile-flag=-fno-omit-frame-pointer,--compile-flag=-fno-common,--compile-flag=-O2,--jerry-cmake-param=-DJERRY_LIBC=OFF,--jerry-cmake-param=-DFEATURE_SYSTEM_ALLOCATOR=ON,--no-snapshot,--no-check-valgrind" INSTALL_TRAVIS_I686_DEPS=yes ASAN_OPTIONS=detect_stack_use_after_return=1:check_initialization_order=true:strict_init_order=true
-    - compiler: gcc-4.9
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - gcc-4.9
-            - gcc-4.9-multilib
-      env: OPTS="--test=host-linux --buildtype=debug --buildoptions=--target-arch=i686,--compile-flag=-fsanitize=undefined,--compile-flag=-fno-omit-frame-pointer,--compile-flag=-fno-common,--jerry-cmake-param=-DJERRY_LIBC=OFF,--jerry-cmake-param=-DFEATURE_SYSTEM_ALLOCATOR=ON,--no-snapshot,--no-check-valgrind" INSTALL_TRAVIS_I686_DEPS=yes UBSAN_OPTIONS=print_stacktrace=1
+      env: OPTS="coverity"
   fast_finish: true

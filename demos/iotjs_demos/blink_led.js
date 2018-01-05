@@ -35,11 +35,16 @@ var gpio_led = gpio.open({
           console.log("read value:%d", value);
           gpio_led.write(!value);
         } else {
+          console.log("Something went wrong with gpio_led.read");
+          console.error(err);
           clearInterval(interval);
         }
       });
     }, 1000);
   } else {
 	  console.log("Something went wrong! :-( ...");
+	  console.error(err);
   }
 });
+
+

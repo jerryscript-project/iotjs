@@ -33,6 +33,26 @@ matrix:
   include:
     - os: osx
       env: OPTS="host-darwin"
+    - compiler: gcc-4.9
+      before_install: tools/apt-get-install-travis-i686.sh
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - gcc-4.9
+            - gcc-4.9-multilib
+      env: OPTS="asan" ASAN_OPTIONS=detect_stack_use_after_return=1:check_initialization_order=true:strict_init_order=true
+    - compiler: gcc-4.9
+      before_install: tools/apt-get-install-travis-i686.sh
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - gcc-4.9
+            - gcc-4.9-multilib
+      env: OPTS="ubsan" UBSAN_OPTIONS=print_stacktrace=1
     - os: linux
       before_install:
         - tools/apt-get-install-deps.sh

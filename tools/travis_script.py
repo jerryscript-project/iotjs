@@ -15,7 +15,6 @@
 # limitations under the License.
 
 import os
-import json
 
 from common_py.system.filesystem import FileSystem as fs
 from common_py.system.executor import Executor as ex
@@ -38,12 +37,23 @@ DOCKER_TIZENRT_OS_TOOLS_PATH = fs.join(DOCKER_TIZENRT_OS_PATH, 'tools')
 
 DOCKER_NUTTX_PATH =fs.join(DOCKER_ROOT_PATH, 'nuttx')
 
-
 DOCKER_NAME = 'iotjs_docker'
-
 BUILDTYPES = ['debug', 'release']
-
 TIZENRT_TAG = '1.1_Public_Release'
+
+# Common buildoptions for sanitizer jobs.
+BUILDOPTIONS_SANITIZER = [
+    '--buildtype=debug',
+    '--clean',
+    '--compile-flag=-fno-common',
+    '--compile-flag=-fno-omit-frame-pointer',
+    '--jerry-cmake-param=-DFEATURE_SYSTEM_ALLOCATOR=ON',
+    '--jerry-cmake-param=-DJERRY_LIBC=OFF',
+    '--no-check-valgrind',
+    '--no-snapshot',
+    '--profile=test/profiles/host-linux.profile',
+    '--target-arch=i686'
+]
 
 def run_docker():
     ex.check_run_cmd('docker', ['run', '-dit', '--name', DOCKER_NAME, '-v',
@@ -156,3 +166,14 @@ if __name__ == '__main__':
                              '--buildtype=' + buildtype,
                              '--clean',
                              '--profile=test/profiles/host-darwin.profile'])
+
+    elif test == "asan":
+        ex.check_run_cmd('./tools/build.py', [
+                         '--compile-flag=-fsanitize=address',
+                         '--compile-flag=-O2'
+                         ] + BUILDOPTIONS_SANITIZER)
+
+    elif test == "ubsan":
+        ex.check_run_cmd('./tools/build.py', [
+                         '--compile-flag=-fsanitize=undefined'
+                         ] + BUILDOPTIONS_SANITIZER)

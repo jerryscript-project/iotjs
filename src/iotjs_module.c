@@ -16,36 +16,34 @@
 #include "iotjs_def.h"
 #include "iotjs_module.h"
 
-typedef struct { jerry_value_t jmodule; } iotjs_module_objects_t;
+typedef struct { jerry_value_t jmodule; } iotjs_module_rw_data_t;
 
 #include "iotjs_module_inl.h"
 
 /**
  * iotjs_module_inl.h provides:
- *  - iotjs_modules[]
- *  - iotjs_module_objects[]
+ *  - iotjs_module_count
+ *  - iotjs_module_ro_data[]
+ *  - iotjs_module_rw_data[]
  */
 
-const unsigned iotjs_modules_count =
-    sizeof(iotjs_modules) / sizeof(iotjs_module_t);
-
 void iotjs_module_list_cleanup() {
-  for (unsigned i = 0; i < iotjs_modules_count; i++) {
-    if (iotjs_module_objects[i].jmodule != 0) {
-      jerry_release_value(iotjs_module_objects[i].jmodule);
-      iotjs_module_objects[i].jmodule = 0;
+  for (unsigned i = 0; i < iotjs_module_count; i++) {
+    if (iotjs_module_rw_data[i].jmodule != 0) {
+      jerry_release_value(iotjs_module_rw_data[i].jmodule);
+      iotjs_module_rw_data[i].jmodule = 0;
     }
   }
 }
 
 jerry_value_t iotjs_module_get(const char* name) {
-  for (unsigned i = 0; i < iotjs_modules_count; i++) {
-    if (!strcmp(name, iotjs_modules[i].name)) {
-      if (iotjs_module_objects[i].jmodule == 0) {
-        iotjs_module_objects[i].jmodule = iotjs_modules[i].fn_register();
+  for (unsigned i = 0; i < iotjs_module_count; i++) {
+    if (!strcmp(name, iotjs_module_ro_data[i].name)) {
+      if (iotjs_module_rw_data[i].jmodule == 0) {
+        iotjs_module_rw_data[i].jmodule = iotjs_module_ro_data[i].fn_register();
       }
 
-      return iotjs_module_objects[i].jmodule;
+      return iotjs_module_rw_data[i].jmodule;
     }
   }
 

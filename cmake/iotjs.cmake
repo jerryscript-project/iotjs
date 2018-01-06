@@ -277,11 +277,14 @@ list(LENGTH IOTJS_NATIVE_MODULES IOTJS_MODULE_COUNT)
 set(IOTJS_MODULE_INL_H "/* File generated via iotjs.cmake */
 ${IOTJS_MODULE_INITIALIZERS}
 
+const unsigned iotjs_module_count = ${IOTJS_MODULE_COUNT};
+
 const
-iotjs_module_t iotjs_modules[${IOTJS_MODULE_COUNT}] = {${IOTJS_MODULE_ENTRIES}
+iotjs_module_ro_data_t iotjs_module_ro_data[${IOTJS_MODULE_COUNT}] = {
+${IOTJS_MODULE_ENTRIES}
 };
 
-iotjs_module_objects_t iotjs_module_objects[${IOTJS_MODULE_COUNT}] = {
+iotjs_module_rw_data_t iotjs_module_rw_data[${IOTJS_MODULE_COUNT}] = {
 ${IOTJS_MODULE_OBJECTS}
 };
 ")

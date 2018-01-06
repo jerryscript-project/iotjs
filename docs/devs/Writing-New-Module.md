@@ -189,6 +189,34 @@ modules.json:
 
 **Note**: Undefined platform means a general implementation. If the module does not support your platform then it will use the `undefined` platform implementation.
 
+### Library dependency
+
+It is possible that the external module depends/requires an already compiled third-party shared object or static library.
+Such libraries can be specified in the `modules.json` file so they will be linked when the IoT.js module is used.
+To specify third-party libraries the `external_libs` key should be used in the module specification.
+
+For example in the `modules.json`:
+
+```json
+{
+  "modules": {
+    "mymodule": {
+      "platforms": {
+        "linux": {
+          "native_files": ["linux/my_module_platform_impl.c"],
+          "external_libs": ["curl"]
+        }
+      },
+      "native_files": ["my_module.c"],
+      "external_libs": ["lib_shared_on_all_platforms_if_it_truly_exists"],
+      "init": "InitMyNativeModule"
+    }
+  }
+}
+```
+
+The `external_libs` key can be specified on the module level or for each platform also.
+
 ### Native handler
 
 Native handler reads arguments from JavaScript, executes native operations, and returns the final value to JavaScript.

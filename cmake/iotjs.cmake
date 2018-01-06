@@ -205,6 +205,12 @@ foreach(MODULE ${IOTJS_ENABLED_MODULES})
       endif()
     endforeach()
 
+    # Add external libraries
+    foreach(idx ${${MODULE_PREFIX}external_libs})
+      list(APPEND EXTERNAL_LIBS
+          ${${MODULE_PREFIX}external_libs_${idx}})
+    endforeach()
+
     getListOfVars("${MODULE_PREFIX}" "([A-Za-z0-9_]+[A-Za-z])[A-Za-z0-9_.]*"
                   MODULE_KEYS)
     list(FIND MODULE_KEYS "platforms" PLATFORMS_KEY)
@@ -215,8 +221,9 @@ foreach(MODULE ${IOTJS_ENABLED_MODULES})
                     "([A-Za-z0-9_]+[A-Za-z])[A-Za-z0-9_.]*" MODULE_PLATFORMS)
       list(FIND MODULE_PLATFORMS ${IOTJS_SYSTEM_OS} PLATFORM_NATIVES)
 
-      # Add plaform-dependant native source if exists...
+      # Add plaform-dependant information
       if(${PLATFORM_NATIVES} GREATER -1)
+        # native source if exists...
         foreach(idx ${${PLATFORMS_PREFIX}${IOTJS_SYSTEM_OS}.native_files})
           set(MODULE_PLATFORM_FILE
               ${${PLATFORMS_PREFIX}${IOTJS_SYSTEM_OS}.native_files_${idx}})
@@ -227,8 +234,15 @@ foreach(MODULE ${IOTJS_ENABLED_MODULES})
             message(FATAL_ERROR "C file doesn't exist: ${MODULE_PLATFORM_FILE}")
           endif()
         endforeach()
-      # ...otherwise add native files from 'undefined' section.
+
+        # external libraries....
+        foreach(idx ${${PLATFORMS_PREFIX}${IOTJS_SYSTEM_OS}.external_libs})
+          list(APPEND EXTERNAL_LIBS
+              ${${PLATFORMS_PREFIX}${IOTJS_SYSTEM_OS}.external_libs_${idx}})
+        endforeach()
+      # ...otherwise from 'undefined' section.
       else()
+        # add native files
         foreach(idx ${${PLATFORMS_PREFIX}undefined.native_files})
           set(MODULE_UNDEFINED_FILE
               "${${MODULE_PREFIX}undefined.native_files_${idx}}")
@@ -239,6 +253,12 @@ foreach(MODULE ${IOTJS_ENABLED_MODULES})
           else()
             message(FATAL_ERROR "${MODULE_UNDEFINED_FILE} does not exists.")
           endif()
+        endforeach()
+
+        # external libraries....
+        foreach(idx ${${PLATFORMS_PREFIX}undefined.external_libs})
+          list(APPEND EXTERNAL_LIBS
+              ${${PLATFORMS_PREFIX}undefined.external_libs_${idx}})
         endforeach()
       endif()
     endif()

@@ -194,7 +194,8 @@
     },
     "https": {
       "js_file": "js/https.js",
-      "require": ["https_client", "https_incoming", "https_native"]
+      "require": ["https_client", "https_incoming", "https_native"],
+      "external_libs": ["curl"]
     },
     "https_client": {
       "js_file": "js/https_client.js",

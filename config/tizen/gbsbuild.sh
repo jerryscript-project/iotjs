@@ -37,28 +37,6 @@ then
   git submodule init
   echo -e "\n(2) Update submodules... "
   git submodule update
-  echo -e "\n(3) Remove compiler specified lines on CMake"
-  rm ./cmake/config/arm-tizen.cmake
-  echo "include(CMakeForceCompiler)
-
-  set(CMAKE_SYSTEM_NAME Tizen)
-  set(CMAKE_SYSTEM_PROCESSOR armv7l)"\
-   >> ./cmake/config/arm-tizen.cmake
-
-  rm ./deps/libtuv/cmake/config/config_arm-tizen.cmake
-  echo "include(CMakeForceCompiler)
-
-  set(CMAKE_SYSTEM_NAME Linux)
-  set(CMAKE_SYSTEM_PROCESSOR arm)"\
-   >> ./deps/libtuv/cmake/config/config_arm-tizen.cmake
-
-  rm ./deps/jerry/cmake/toolchain_linux_armv7l-el.cmake
-  echo "set(CMAKE_SYSTEM_NAME Linux)
-  set(CMAKE_SYSTEM_PROCESSOR armv7l-el)
-  set(FLAGS_COMMON_ARCH -mlittle-endian -mthumb)" \
-   >> ./deps/jerry/cmake/toolchain_linux_armv7l-el.cmake
-
-  echo -e "\n(4) 3 files have been modified."
 
   find ./ -name '.git' | xargs rm -rf
   # Initialize Git repositoryㅣ
@@ -70,7 +48,7 @@ then
     git commit -m "Initial commit"
   fi
 
-  echo -e "\n(5) Calling core gbs build command"
+  echo -e "\n(3) Calling core gbs build command"
   gbsconf="config/tizen/sample.gbs.conf"
   gbscommand="gbs -c $gbsconf build -A armv7l --include-all --clean"
   echo $gbscommand

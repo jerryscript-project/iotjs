@@ -21,7 +21,7 @@
 typedef struct {
   bool wait_source;
   bool context_reset;
-  int port;
+  uint16_t port;
 } DebuggerConfig;
 
 typedef struct {

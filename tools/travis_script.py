@@ -83,11 +83,11 @@ if __name__ == '__main__':
     test = os.getenv('OPTS')
     if test == 'host-linux':
         build_iotjs('debug', [
-                    '--no-check-test',
                     '--profile=profiles/minimal.profile'])
 
         for buildtype in BUILDTYPES:
             build_iotjs(buildtype, [
+                        '--run-test',
                         '--profile=test/profiles/host-linux.profile'])
 
     elif test == 'rpi2':
@@ -142,6 +142,7 @@ if __name__ == '__main__':
     elif test == "external-modules":
         for buildtype in BUILDTYPES:
             build_iotjs(buildtype, [
+                        '--run-test',
                         '--profile=test/profiles/host-linux.profile',
                         '--external-modules=test/external_modules/'
                         'mymodule1,test/external_modules/mymodule2',
@@ -158,11 +159,14 @@ if __name__ == '__main__':
                 exec_docker(DOCKER_IOTJS_PATH, [binary, test])
 
     elif test == "no-snapshot":
-        build_iotjs('debug', ['--no-snapshot', '--jerry-lto'])
+        for buildtype in BUILDTYPES:
+            build_iotjs(buildtype, ['--run-test', '--no-snapshot',
+                                    '--jerry-lto'])
 
     elif test == "host-darwin":
         for buildtype in BUILDTYPES:
             ex.check_run_cmd('./tools/build.py', [
+                             '--run-test',
                              '--buildtype=' + buildtype,
                              '--clean',
                              '--profile=test/profiles/host-darwin.profile'])

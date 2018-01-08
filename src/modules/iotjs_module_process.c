@@ -204,7 +204,7 @@ JS_FUNCTION(DoExit) {
     int exit_code = JS_GET_ARG(0, number);
 
     iotjs_set_process_exitcode(exit_code);
-    iotjs_environment_go_state_exiting(env);
+    iotjs_environment_set_state(env, kExiting);
   }
   return jerry_create_undefined();
 }

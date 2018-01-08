@@ -25,7 +25,7 @@ const char* iotjs_debug_prefix[4] = { "", "ERR", "WRN", "INF" };
 #endif // ENABLE_DEBUG_LOG
 
 
-void init_debug_settings() {
+void iotjs_debuglog_init() {
 #ifdef ENABLE_DEBUG_LOG
   const char* dbglevel = NULL;
   const char* dbglogfile = NULL;
@@ -54,7 +54,7 @@ void init_debug_settings() {
 }
 
 
-void release_debug_settings() {
+void iotjs_debuglog_release() {
 #ifdef ENABLE_DEBUG_LOG
   if (iotjs_log_stream != stderr && iotjs_log_stream != stdout) {
     fclose(iotjs_log_stream);

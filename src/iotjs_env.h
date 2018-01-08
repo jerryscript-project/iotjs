@@ -25,8 +25,8 @@ typedef struct {
 } DebuggerConfig;
 
 typedef struct {
-  bool memstat;
-  bool show_opcode;
+  uint32_t memstat : 1;
+  uint32_t show_opcode : 1;
   DebuggerConfig* debugger;
 } Config;
 
@@ -72,9 +72,7 @@ void iotjs_environment_set_loop(iotjs_environment_t* env, uv_loop_t* loop);
 const Config* iotjs_environment_config(const iotjs_environment_t* env);
 const DebuggerConfig* iotjs_environment_dconfig(const iotjs_environment_t* env);
 
-void iotjs_environment_go_state_running_main(iotjs_environment_t* env);
-void iotjs_environment_go_state_running_loop(iotjs_environment_t* env);
-void iotjs_environment_go_state_exiting(iotjs_environment_t* env);
+void iotjs_environment_set_state(iotjs_environment_t* env, State s);
 bool iotjs_environment_is_exiting(iotjs_environment_t* env);
 
 #endif /* IOTJS_ENV_H */

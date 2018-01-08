@@ -43,7 +43,7 @@ void iotjs_uncaught_exception(jerry_value_t jexception) {
 
     if (!iotjs_environment_is_exiting(env)) {
       iotjs_set_process_exitcode(2);
-      iotjs_environment_go_state_exiting(env);
+      iotjs_environment_set_state(env, kExiting);
     }
   }
 }

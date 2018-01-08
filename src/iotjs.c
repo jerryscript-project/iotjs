@@ -34,7 +34,7 @@
 /**
  * Initialize JerryScript.
  */
-static bool iotjs_jerry_initialize(iotjs_environment_t* env) {
+static bool iotjs_jerry_init(iotjs_environment_t* env) {
   // Set jerry run flags.
   jerry_init_flag_t jerry_flags = JERRY_INIT_EMPTY;
 
@@ -131,8 +131,7 @@ static int iotjs_start(iotjs_environment_t* env) {
   // Release the global object
   jerry_release_value(global);
 
-  // Set running state.
-  iotjs_environment_go_state_running_main(env);
+  iotjs_environment_set_state(env, kRunningMain);
 
   // Load and call iotjs.js.
   iotjs_run(env);
@@ -140,7 +139,7 @@ static int iotjs_start(iotjs_environment_t* env) {
   int exit_code = 0;
   if (!iotjs_environment_is_exiting(env)) {
     // Run event loop.
-    iotjs_environment_go_state_running_loop(env);
+    iotjs_environment_set_state(env, kRunningLoop);
 
     bool more;
     do {
@@ -163,7 +162,7 @@ static int iotjs_start(iotjs_environment_t* env) {
       // Emit 'exit' event.
       iotjs_process_emit_exit(exit_code);
 
-      iotjs_environment_go_state_exiting(env);
+      iotjs_environment_set_state(env, kExiting);
     }
   }
 
@@ -188,15 +187,13 @@ static jerry_value_t dummy_wait_for_client_source_cb() {
 }
 
 int iotjs_entry(int argc, char** argv) {
-  // Initialize debug print.
-  init_debug_settings();
-
-  // Create environment.
-  iotjs_environment_t* env = (iotjs_environment_t*)iotjs_environment_get();
-
   int ret_code = 0;
 
-  // Parse command line arguments.
+  // Initialize IoT.js
+
+  iotjs_debuglog_init();
+
+  iotjs_environment_t* env = iotjs_environment_get();
   if (!iotjs_environment_parse_command_line_arguments(env, (uint32_t)argc,
                                                       argv)) {
     DLOG("iotjs_environment_parse_command_line_arguments failed");
@@ -204,9 +201,8 @@ int iotjs_entry(int argc, char** argv) {
     goto terminate;
   }
 
-  // Initialize JerryScript engine.
-  if (!iotjs_jerry_initialize(env)) {
-    DLOG("iotjs_jerry_initialize failed");
+  if (!iotjs_jerry_init(env)) {
+    DLOG("iotjs_jerry_init failed");
     ret_code = 1;
     goto terminate;
   }
@@ -214,7 +210,8 @@ int iotjs_entry(int argc, char** argv) {
   // Set event loop.
   iotjs_environment_set_loop(env, uv_default_loop());
 
-  // Start iot.js.
+  // Start IoT.js.
+
   ret_code = iotjs_start(env);
 
   // Close uv loop.
@@ -238,7 +235,6 @@ int iotjs_entry(int argc, char** argv) {
     jerry_release_value(res);
   }
 
-  // Release JerryScript engine.
   iotjs_jerry_release(env);
 
 terminate:;
@@ -249,8 +245,7 @@ terminate:;
   // Release environment.
   iotjs_environment_release();
 
-  // Release debug print setting.
-  release_debug_settings();
+  iotjs_debuglog_release();
 
   if (context_reset) {
     return iotjs_entry(argc, argv);

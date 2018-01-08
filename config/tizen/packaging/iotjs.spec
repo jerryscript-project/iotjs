@@ -73,7 +73,6 @@ cp %{SOURCE1001} .
  --compile-flag=-D__TIZEN__ \
  --cmake-param=-DENABLE_MODULE_DGRAM=ON \
  --cmake-param=-DENABLE_MODULE_GPIO=ON \
- --cmake-param=-DENABLE_MODULE_I2C=ON \
  --no-init-submodule --no-parallel-build --no-check-test
 
 %install

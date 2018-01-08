@@ -18,11 +18,7 @@ cd ..
 
 echo "******************************************************************"
 echo "*                       Tizen GBS build                          *"
-echo "*                                                                *"
-echo "* Please input user, passwd of http://Tizen.org on '~/.gbs.conf' *"
-echo "* For more information, please read Guide Docs. folder           *"
 echo "* ~/.gbs.conf sample is at 'config/tizen/sample.gbs.conf'.       *"
-echo "*                                                                *"
 echo "******************************************************************"
 read -p "[Warning] This working folder will be copied to ../iotjs_tizen_gbs \
 Are you sure to continue? (y/n) " -n 1 -r
@@ -56,22 +52,13 @@ then
   then
     echo "========================================================"
     echo "1. GBS Build is successful."
-    echo "2. Please move to new working folder ../iotjs_tizen_gbs "
-    echo "   cd ../iotjs_tizen_gbs"
-    echo "3. From now, you can build with this command on new directory"
-    echo "   gbs build -A armv7l --include"
-    echo "4. Your new branch 'tizen_gbs' is added."
-    echo "5. 'iotjs origin' repository is added."
-    git remote add origin https://github.com/samsung/iotjs
-    echo "(You cant fetch origin repository with this command)"
-    echo "   git fetch --all"
-    echo "========================================================"
-    # git remote add origin
-    # https://review.tizen.org/git/platform/upstream/iotjs
-    git branch -a
-    git status
+    echo "2. You can find rpm packages in below folder"
+    echo "   GBS-ROOT/local/repos/tizen_unified_preview1/armv7l/RPMS"
   else
     echo "GBS Build failed!"
     exit 1
   fi
+cd ..
+rm -rf iotjs_tizen_gbs
+cd iotjs
 fi

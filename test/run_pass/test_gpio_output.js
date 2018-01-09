@@ -15,8 +15,7 @@
 
 
 var assert = require('assert');
-var Gpio = require('gpio');
-var gpio = new Gpio();
+var gpio = require('gpio');
 
 var LED_ON = true,
   LED_OFF = false;
@@ -45,8 +44,11 @@ gpio20 = gpio.open({
 }, test2);
 
 function test1() {
+  // Check gpio.DIRECTION
   assert.notEqual(gpio.DIRECTION.IN, undefined);
   assert.notEqual(gpio.DIRECTION.OUT, undefined);
+
+  // Check gpio.MODE
   assert.notEqual(gpio.MODE.NONE, undefined);
   if (process.platform === 'nuttx') {
     assert.notEqual(gpio.MODE.PULLUP, undefined);
@@ -55,6 +57,12 @@ function test1() {
     assert.notEqual(gpio.MODE.PUSHPULL, undefined);
     assert.notEqual(gpio.MODE.OPENDRAIN, undefined);
   }
+
+  // Check gpio.EDGE
+  assert.notEqual(gpio.EDGE.NONE, undefined);
+  assert.notEqual(gpio.EDGE.RISING, undefined);
+  assert.notEqual(gpio.EDGE.FALLING, undefined);
+  assert.notEqual(gpio.EDGE.BOTH, undefined);
 }
 
 // turn on LED for 3000ms
@@ -75,8 +83,10 @@ function test2(err) {
         var value = gpio20.readSync();
         console.log('gpio read:', value);
         assert.equal(LED_OFF, value);
-        gpio20.close();
-        console.log('finish test');
+        gpio20.close(function(closeErr) {
+          assert.equal(closeErr, null);
+          console.log('finish test');
+        });
       }, 3000);
     });
   });

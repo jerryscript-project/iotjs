@@ -13,10 +13,8 @@
  * limitations under the License.
  */
 
-var Gpio = require('gpio');
+var gpio = require('gpio');
 var pin = require('systemio_pin').pin;
-
-var gpio = new Gpio();
 
 var gpio_led = gpio.open({
   pin: pin.led1,

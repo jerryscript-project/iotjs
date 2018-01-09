@@ -34,25 +34,26 @@ uint32_t gpioMode[] = {
 };
 
 
-void iotjs_gpio_platform_create(iotjs_gpio_t_impl_t* _this) {
+void iotjs_gpio_create_platform_data(iotjs_gpio_t* gpio) {
 }
 
 
-void iotjs_gpio_platform_destroy(iotjs_gpio_t_impl_t* _this) {
+void iotjs_gpio_destroy_platform_data(
+    iotjs_gpio_platform_data_t* platform_data) {
 }
 
 
-bool iotjs_gpio_write(iotjs_gpio_t* gpio, bool value) {
+bool iotjs_gpio_write(iotjs_gpio_t* gpio) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_gpio_t, gpio);
 
-  DDDLOG("%s - pin: %d, value: %d", __func__, _this->pin, value);
-  stm32_gpiowrite(_this->pin, value);
+  DDDLOG("%s - pin: %d, value: %d", __func__, _this->pin, _this->value);
+  stm32_gpiowrite(_this->pin, _this->value);
 
   return true;
 }
 
 
-int iotjs_gpio_read(iotjs_gpio_t* gpio) {
+bool iotjs_gpio_read(iotjs_gpio_t* gpio) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_gpio_t, gpio);
 
   DDDLOG("%s - pin: %d", __func__, _this->pin);
@@ -61,14 +62,13 @@ int iotjs_gpio_read(iotjs_gpio_t* gpio) {
 
 
 bool iotjs_gpio_close(iotjs_gpio_t* gpio) {
-  iotjs_gpio_write(gpio, 0);
+  iotjs_gpio_write(gpio);
 
   return true;
 }
 
 
-void iotjs_gpio_open_worker(uv_work_t* work_req) {
-  GPIO_WORKER_INIT;
+bool iotjs_gpio_open(iotjs_gpio_t* gpio) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_gpio_t, gpio);
 
   DDDLOG("%s - pin: %d, dir: %d, mode: %d", __func__, _this->pin,
@@ -80,9 +80,8 @@ void iotjs_gpio_open_worker(uv_work_t* work_req) {
   cfgset = gpioDirection[_this->direction] | gpioMode[_this->mode] | _this->pin;
 
   if (stm32_configgpio(cfgset) != GPIO_CONFIG_OK) {
-    req_data->result = false;
-    return;
+    return false;
   }
 
-  req_data->result = true;
+  return true;
 }

@@ -42,7 +42,7 @@
 #define GPIO_PIN_BUFFER_SIZE DEVICE_IO_PIN_BUFFER_SIZE
 #define GPIO_VALUE_BUFFER_SIZE 10
 
-struct _iotjs_gpio_module_platform_t {
+struct iotjs_gpio_platform_data_s {
   int value_fd;
   uv_thread_t thread;
   uv_mutex_t mutex;
@@ -59,9 +59,9 @@ static int gpio_get_value_fd(iotjs_gpio_t* gpio) {
   int fd;
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_gpio_t, gpio);
 
-  uv_mutex_lock(&_this->platform->mutex);
-  fd = _this->platform->value_fd;
-  uv_mutex_unlock(&_this->platform->mutex);
+  uv_mutex_lock(&_this->platform_data->mutex);
+  fd = _this->platform_data->value_fd;
+  uv_mutex_unlock(&_this->platform_data->mutex);
 
   return fd;
 }
@@ -70,9 +70,9 @@ static int gpio_get_value_fd(iotjs_gpio_t* gpio) {
 static void gpio_set_value_fd(iotjs_gpio_t* gpio, int fd) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_gpio_t, gpio);
 
-  uv_mutex_lock(&_this->platform->mutex);
-  _this->platform->value_fd = fd;
-  uv_mutex_unlock(&_this->platform->mutex);
+  uv_mutex_lock(&_this->platform_data->mutex);
+  _this->platform_data->value_fd = fd;
+  uv_mutex_unlock(&_this->platform_data->mutex);
 }
 
 
@@ -181,7 +181,7 @@ static bool gpio_set_edge(iotjs_gpio_t* gpio) {
     char value_path[GPIO_PATH_BUFFER_SIZE];
     snprintf(value_path, GPIO_PATH_BUFFER_SIZE, GPIO_PIN_FORMAT_VALUE,
              _this->pin);
-    if ((_this->platform->value_fd = open(value_path, O_RDONLY)) < 0) {
+    if ((_this->platform_data->value_fd = open(value_path, O_RDONLY)) < 0) {
       DLOG("GPIO Error in open");
       return false;
     }
@@ -189,8 +189,8 @@ static bool gpio_set_edge(iotjs_gpio_t* gpio) {
 
     // Create edge detection thread
     // When the GPIO pin is closed, thread is terminated.
-    int ret = uv_thread_create(&_this->platform->thread, gpio_edge_detection_cb,
-                               (void*)gpio);
+    int ret = uv_thread_create(&_this->platform_data->thread,
+                               gpio_edge_detection_cb, (void*)gpio);
     if (ret < 0) {
       DLOG("GPIO Error in uv_thread_create");
     }
@@ -201,34 +201,36 @@ static bool gpio_set_edge(iotjs_gpio_t* gpio) {
 }
 
 
-void iotjs_gpio_platform_create(iotjs_gpio_t_impl_t* _this) {
-  _this->platform = IOTJS_ALLOC(struct _iotjs_gpio_module_platform_t);
-  _this->platform->value_fd = -1;
-  uv_mutex_init(&_this->platform->mutex);
+void iotjs_gpio_create_platform_data(iotjs_gpio_t* gpio) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_gpio_t, gpio);
+  _this->platform_data = IOTJS_ALLOC(iotjs_gpio_platform_data_t);
+  _this->platform_data->value_fd = -1;
+  uv_mutex_init(&_this->platform_data->mutex);
 }
 
 
-void iotjs_gpio_platform_destroy(iotjs_gpio_t_impl_t* _this) {
-  IOTJS_RELEASE(_this->platform);
+void iotjs_gpio_destroy_platform_data(
+    iotjs_gpio_platform_data_t* platform_data) {
+  IOTJS_RELEASE(platform_data);
 }
 
 
-bool iotjs_gpio_write(iotjs_gpio_t* gpio, bool value) {
+bool iotjs_gpio_write(iotjs_gpio_t* gpio) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_gpio_t, gpio);
 
   char value_path[GPIO_PATH_BUFFER_SIZE];
   snprintf(value_path, GPIO_PATH_BUFFER_SIZE, GPIO_PIN_FORMAT_VALUE,
            _this->pin);
 
-  const char* buffer = value ? "1" : "0";
+  const char* buffer = _this->value ? "1" : "0";
 
-  DDDLOG("%s - pin: %d, value: %d", __func__, _this->pin, value);
+  DDDLOG("%s - pin: %d, value: %d", __func__, _this->pin, _this->value);
 
   return iotjs_systemio_open_write_close(value_path, buffer);
 }
 
 
-int iotjs_gpio_read(iotjs_gpio_t* gpio) {
+bool iotjs_gpio_read(iotjs_gpio_t* gpio) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_gpio_t, gpio);
 
   char buffer[GPIO_VALUE_BUFFER_SIZE];
@@ -238,10 +240,12 @@ int iotjs_gpio_read(iotjs_gpio_t* gpio) {
 
   if (!iotjs_systemio_open_read_close(value_path, buffer,
                                       GPIO_VALUE_BUFFER_SIZE - 1)) {
-    return -1;
+    return false;
   }
 
-  return atoi(buffer);
+  _this->value = atoi(buffer) != 0;
+
+  return true;
 }
 
 
@@ -252,14 +256,13 @@ bool iotjs_gpio_close(iotjs_gpio_t* gpio) {
   snprintf(buff, GPIO_PIN_BUFFER_SIZE, "%d", _this->pin);
 
   gpio_set_value_fd(gpio, -1);
-  close(_this->platform->value_fd);
+  close(_this->platform_data->value_fd);
 
   return iotjs_systemio_open_write_close(GPIO_PIN_FORMAT_UNEXPORT, buff);
 }
 
 
-void iotjs_gpio_open_worker(uv_work_t* work_req) {
-  GPIO_WORKER_INIT;
+bool iotjs_gpio_open(iotjs_gpio_t* gpio) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_gpio_t, gpio);
 
   DDDLOG("%s - pin: %d, dir: %d, mode: %d", __func__, _this->pin,
@@ -275,27 +278,23 @@ void iotjs_gpio_open_worker(uv_work_t* work_req) {
   if (!iotjs_systemio_device_open(GPIO_PIN_FORMAT_EXPORT, _this->pin,
                                   exported_path, created_files,
                                   created_files_length)) {
-    req_data->result = false;
-    return;
+    return false;
   }
 
   // Set direction.
   if (!gpio_set_direction(_this->pin, _this->direction)) {
-    req_data->result = false;
-    return;
+    return false;
   }
 
   // Set mode.
   if (!gpio_set_mode(_this->pin, _this->mode)) {
-    req_data->result = false;
-    return;
+    return false;
   }
 
-  // Set edge
+  // Set edge.
   if (!gpio_set_edge(gpio)) {
-    req_data->result = false;
-    return;
+    return false;
   }
 
-  req_data->result = true;
+  return true;
 }

@@ -160,8 +160,7 @@
       },
       "native_files": ["modules/iotjs_module_gpio.c"],
       "init": "InitGpio",
-      "js_file": "js/gpio.js",
-      "require": ["events", "util"]
+      "js_file": "js/gpio.js"
     },
     "http": {
       "js_file": "js/http.js",

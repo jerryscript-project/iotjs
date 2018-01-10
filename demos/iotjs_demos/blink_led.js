@@ -22,8 +22,17 @@ var gpio = new Gpio();
 
 console.log("Starting LED blink program...");
 
+var gpio_clk = gpio.open({
+pin: 23
+directon: gpio.DIRECTION.OUT
+}, function(err) {
+  if (!err) {
+  gpio_led.writeSync(true);
+}
+});
+
 var gpio_led = gpio.open({
-  pin: 5,
+  pin: 24,
   direction: gpio.DIRECTION.OUT
 }, function(err) {
   if (!err) {
@@ -40,7 +49,7 @@ var gpio_led = gpio.open({
           clearInterval(interval);
         }
       });
-    }, 1000);
+    }, 2000);
   } else {
 	  console.log("Something went wrong! :-( ...");
 	  console.error(err);

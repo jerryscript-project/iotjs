@@ -176,7 +176,7 @@ static void i2c_after_worker(uv_work_t* work_req, int status) {
   iotjs_i2c_reqwrap_dispatched(req_wrap);
 }
 
-#define I2C_CALL_ASNCY(op, jcallback)                                  \
+#define I2C_CALL_ASYNC(op, jcallback)                                  \
   do {                                                                 \
     uv_loop_t* loop = iotjs_environment_loop(iotjs_environment_get()); \
     iotjs_i2c_reqwrap_t* req_wrap =                                    \
@@ -211,7 +211,7 @@ JS_FUNCTION(I2cCons) {
   // If the callback doesn't exist, it is completed synchronously.
   // Otherwise, it will be executed asynchronously.
   if (!jerry_value_is_null(jcallback)) {
-    I2C_CALL_ASNCY(kI2cOpOpen, jcallback);
+    I2C_CALL_ASYNC(kI2cOpOpen, jcallback);
   } else if (!iotjs_i2c_open(i2c)) {
     return JS_CREATE_ERROR(COMMON, "I2C Error: cannot open I2C");
   }
@@ -223,7 +223,7 @@ JS_FUNCTION(Close) {
   JS_DECLARE_THIS_PTR(i2c, i2c);
   DJS_CHECK_ARG_IF_EXIST(1, function);
 
-  I2C_CALL_ASNCY(kI2cOpClose, JS_GET_ARG_IF_EXIST(0, function));
+  I2C_CALL_ASYNC(kI2cOpClose, JS_GET_ARG_IF_EXIST(0, function));
 
   return jerry_create_undefined();
 }
@@ -251,7 +251,7 @@ static jerry_value_t i2c_write(iotjs_i2c_t* i2c, const jerry_value_t jargv[],
       iotjs_buffer_allocate_from_number_array(_this->buf_len, jarray);
 
   if (async) {
-    I2C_CALL_ASNCY(kI2cOpWrite, JS_GET_ARG_IF_EXIST(1, function));
+    I2C_CALL_ASYNC(kI2cOpWrite, JS_GET_ARG_IF_EXIST(1, function));
   } else {
     if (!iotjs_i2c_write(i2c)) {
       return JS_CREATE_ERROR(COMMON, "I2C Error: writeSync");
@@ -287,7 +287,7 @@ JS_FUNCTION(Read) {
                             number);
 
   jerry_value_t jcallback = JS_GET_ARG_IF_EXIST(1, function);
-  I2C_CALL_ASNCY(kI2cOpRead, jcallback);
+  I2C_CALL_ASYNC(kI2cOpRead, jcallback);
 
   return jerry_create_undefined();
 }

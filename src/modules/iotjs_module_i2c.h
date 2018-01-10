@@ -75,7 +75,7 @@ bool iotjs_i2c_close(iotjs_i2c_t* i2c);
 
 // Platform-related functions; they are implemented
 // by platform code (i.e.: linux, nuttx, tizen).
-void i2c_create_platform_data(iotjs_i2c_t* i2c);
-void i2c_destroy_platform_data(iotjs_i2c_platform_data_t* platform_data);
+void iotjs_i2c_create_platform_data(iotjs_i2c_t* i2c);
+void iotjs_i2c_destroy_platform_data(iotjs_i2c_platform_data_t* platform_data);
 
 #endif /* IOTJS_MODULE_I2C_H */

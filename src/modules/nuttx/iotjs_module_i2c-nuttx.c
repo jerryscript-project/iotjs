@@ -33,7 +33,7 @@ struct iotjs_i2c_platform_data_s {
   struct i2c_config_s config;
 };
 
-void i2c_create_platform_data(iotjs_i2c_t* i2c) {
+void iotjs_i2c_create_platform_data(iotjs_i2c_t* i2c) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_i2c_t, i2c);
 
   _this->platform_data = IOTJS_ALLOC(iotjs_i2c_platform_data_t);
@@ -41,7 +41,7 @@ void i2c_create_platform_data(iotjs_i2c_t* i2c) {
   _this->platform_data->i2c_master = NULL;
 }
 
-void i2c_destroy_platform_data(iotjs_i2c_platform_data_t* pdata) {
+void iotjs_i2c_destroy_platform_data(iotjs_i2c_platform_data_t* pdata) {
   IOTJS_RELEASE(pdata);
 }
 

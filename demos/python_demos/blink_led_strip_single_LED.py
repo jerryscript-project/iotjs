@@ -18,7 +18,7 @@ while True:
     r = randint(0, 255)
     g = randint(0, 255)
     b = randint(0, 255)
-    set_pixel(pixel, 0, 0, 0)
+    set_pixel(0, 0, 0, 0)
     show()
     sleep(5)
 

@@ -1,0 +1,2 @@
+blinkt==0.1.0
+RPi.GPIO==0.6.3

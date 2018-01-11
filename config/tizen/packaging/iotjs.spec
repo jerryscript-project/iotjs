@@ -73,7 +73,7 @@ cp %{SOURCE1001} .
  --compile-flag=-D__TIZEN__ \
  --cmake-param=-DENABLE_MODULE_DGRAM=ON \
  --cmake-param=-DENABLE_MODULE_GPIO=ON \
- --no-init-submodule --no-parallel-build --no-check-test
+ --no-init-submodule --no-parallel-build
 
 %install
 mkdir -p %{buildroot}%{_bindir}

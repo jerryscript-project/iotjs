@@ -22,7 +22,8 @@
 
 static jerry_value_t WrapEval(const char* name, size_t name_len,
                               const char* source, size_t length) {
-  static const char* args = "exports, require, module, native";
+  static const char* args = 
+    "exports, require, module, native, __filename, __dirname";
   jerry_value_t res =
       jerry_parse_function((const jerry_char_t*)name, name_len,
                            (const jerry_char_t*)args, strlen(args),

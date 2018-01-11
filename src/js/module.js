@@ -218,8 +218,10 @@ iotjs_module_t.loadRemote = function(filename, source) {
 
 
 iotjs_module_t.prototype.compile = function(filename, source) {
-    var fn = process.compile(filename, source);
-    fn.call(this.exports, this.exports, this.require.bind(this), this);
+  var dirname = filename.replace(/\/[^\/]*$/, '');
+  var fn = process.compile(filename, source);
+  fn.call(this.exports, this.exports, 
+    this.require.bind(this), this, undefined, filename, dirname);
 };
 
 

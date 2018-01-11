@@ -132,6 +132,7 @@
   ],
   "node/parallel": [
     { "name": "test-assert.js" },
+    { "name": "test-module.js" },
     { "name": "test-http-catch-uncaughtexception.js" },
     { "name": "test-http-status-message.js" },
     { "name": "test-http-write-head.js" },

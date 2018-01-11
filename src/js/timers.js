@@ -29,7 +29,13 @@ function Timeout(after) {
 native.prototype.handleTimeout = function() {
   var timeout = this.timeoutObj; // 'this' is native object
   if (timeout && timeout.callback) {
-    timeout.callback();
+    try {
+      timeout.callback();
+    } catch (e) {
+      timeout.unref();
+      throw e;
+    }
+
     if (!timeout.isrepeat) {
       timeout.unref();
     }

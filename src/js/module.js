@@ -213,6 +213,8 @@ Module.load = function(id, parent) {
 
   module.filename = modPath;
   module.dirs = [modPath.substring(0, modPath.lastIndexOf('/') + 1)];
+  Module.cache[modPath] = module;
+
   var ext = modPath.substr(modPath.lastIndexOf('.') + 1);
   var source;
 

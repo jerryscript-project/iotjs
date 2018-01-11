@@ -27,26 +27,28 @@
 
 
 typedef enum {
+  kPwmOpClose,
   kPwmOpOpen,
   kPwmOpSetDutyCycle,
-  kPwmOpSetPeriod,
-  kPwmOpSetFrequency,
   kPwmOpSetEnable,
-  kPwmOpClose,
+  kPwmOpSetFrequency,
+  kPwmOpSetPeriod
 } PwmOp;
 
 
 typedef struct {
-  jerry_value_t jobject;
+  bool result;
+  PwmOp op;
+} iotjs_pwm_reqdata_t;
 
-#if defined(__linux__)
-  int chip;
-  iotjs_string_t device;
-#elif defined(__NUTTX__)
-  int device_fd;
-#elif defined(__TIZENRT__)
-  iotbus_pwm_context_h ctx;
-#endif
+// Forward declaration of platform data. These are only used by platform code.
+// Generic PWM module never dereferences platform data pointer.
+typedef struct iotjs_pwm_platform_data_s iotjs_pwm_platform_data_t;
+
+typedef struct {
+  jerry_value_t jobject;
+  iotjs_pwm_platform_data_t* platform_data;
+
   uint32_t pin;
   double duty_cycle;
   double period;
@@ -54,21 +56,11 @@ typedef struct {
 } IOTJS_VALIDATED_STRUCT(iotjs_pwm_t);
 
 
-typedef bool (*pwm_func_ptr)(iotjs_pwm_t*);
-
-
-typedef struct {
-  pwm_func_ptr caller;
-  bool result;
-  PwmOp op;
-} iotjs_pwm_reqdata_t;
-
-
 typedef struct {
   iotjs_reqwrap_t reqwrap;
   uv_work_t req;
   iotjs_pwm_reqdata_t req_data;
-  iotjs_pwm_t* pwm_instance;
+  iotjs_pwm_t* pwm_data;
 } IOTJS_VALIDATED_STRUCT(iotjs_pwm_reqwrap_t);
 
 
@@ -76,24 +68,21 @@ typedef struct {
 
 iotjs_pwm_reqwrap_t* iotjs_pwm_reqwrap_from_request(uv_work_t* req);
 iotjs_pwm_reqdata_t* iotjs_pwm_reqwrap_data(THIS);
-
 iotjs_pwm_t* iotjs_pwm_instance_from_reqwrap(THIS);
 
 #undef THIS
 
-
-#define PWM_WORKER_INIT                                                     \
-  iotjs_pwm_reqwrap_t* req_wrap = iotjs_pwm_reqwrap_from_request(work_req); \
-  iotjs_pwm_reqdata_t* req_data = iotjs_pwm_reqwrap_data(req_wrap);         \
-  iotjs_pwm_t* pwm = iotjs_pwm_instance_from_reqwrap(req_wrap);
-
-
-void iotjs_pwm_open_worker(uv_work_t* work_req);
-
+jerry_value_t iotjs_pwm_set_platform_config(iotjs_pwm_t* pwm,
+                                            const jerry_value_t jconfig);
+bool iotjs_pwm_open(iotjs_pwm_t* pwm);
 bool iotjs_pwm_set_period(iotjs_pwm_t* pwm);
 bool iotjs_pwm_set_dutycycle(iotjs_pwm_t* pwm);
 bool iotjs_pwm_set_enable(iotjs_pwm_t* pwm);
 bool iotjs_pwm_close(iotjs_pwm_t* pwm);
 
+// Platform-related functions; they are implemented
+// by platform code (i.e.: linux, nuttx, tizen).
+void iotjs_pwm_create_platform_data(iotjs_pwm_t* pwm);
+void iotjs_pwm_destroy_platform_data(iotjs_pwm_platform_data_t* platform_data);
 
 #endif /* IOTJS_MODULE_PWM_H */

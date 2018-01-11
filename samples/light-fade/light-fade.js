@@ -30,8 +30,7 @@
  *
  */
 
-var PWM = require('pwm'),
-  pwm = new PWM(),
+var pwm = require('pwm'),
   GPIO = require('gpio'),
   gpio = new GPIO(),
   LOW = 0,

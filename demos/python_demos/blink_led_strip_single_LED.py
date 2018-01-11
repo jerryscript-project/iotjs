@@ -15,9 +15,6 @@ while True:
     sleep(5)
 
     print("Switching off single LED strip sequence")
-    r = randint(0, 255)
-    g = randint(0, 255)
-    b = randint(0, 255)
     set_pixel(0, 0, 0, 0)
     show()
     sleep(5)

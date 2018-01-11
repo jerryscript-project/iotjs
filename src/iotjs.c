@@ -182,10 +182,6 @@ static void iotjs_uv_walk_to_close_callback(uv_handle_t* handle, void* arg) {
   iotjs_handlewrap_close(handle_wrap, NULL);
 }
 
-static jerry_value_t dummy_wait_for_client_source_cb() {
-  return jerry_create_undefined();
-}
-
 int iotjs_entry(int argc, char** argv) {
   int ret_code = 0;
 
@@ -221,19 +217,6 @@ int iotjs_entry(int argc, char** argv) {
   int res = uv_loop_close(iotjs_environment_loop(env));
   IOTJS_ASSERT(res == 0);
 
-  // Check whether context reset was sent or not.
-  if (iotjs_environment_config(env)->debugger != NULL) {
-    jerry_value_t res;
-    jerry_debugger_wait_for_source_status_t receive_status;
-    receive_status =
-        jerry_debugger_wait_for_client_source(dummy_wait_for_client_source_cb,
-                                              NULL, &res);
-
-    if (receive_status == JERRY_DEBUGGER_CONTEXT_RESET_RECEIVED) {
-      iotjs_environment_config(env)->debugger->context_reset = true;
-    }
-    jerry_release_value(res);
-  }
 
   iotjs_jerry_release(env);
 

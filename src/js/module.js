@@ -28,6 +28,7 @@ module.exports = iotjs_module_t;
 
 
 iotjs_module_t.cache = {};
+iotjs_module_t.remoteCache = {};
 
 
 var cwd;
@@ -210,7 +211,7 @@ iotjs_module_t.loadRemote = function(filename, source) {
 
   module.filename = filename;
   module.compile(filename, source);
-  iotjs_module_t.cache[filename] = module;
+  iotjs_module_t.remoteCache[filename] = module;
 
   return module.exports;
 };
@@ -225,7 +226,9 @@ iotjs_module_t.prototype.compile = function(filename, source) {
 iotjs_module_t.runMain = function() {
   if (process.debuggerWaitSource) {
     var fn = process.debuggerGetSource();
-    iotjs_module_t.loadRemote(fn[0], fn[1]);
+    fn.forEach(function (e) {
+      iotjs_module_t.loadRemote(e[0], e[1]);
+    });
   } else {
     iotjs_module_t.load(process.argv[1], null);
   }

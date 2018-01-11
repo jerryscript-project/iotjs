@@ -30,15 +30,12 @@ void iotjs_uncaught_exception(jerry_value_t jexception) {
   iotjs_jargs_t args = iotjs_jargs_create(1);
   iotjs_jargs_append_jval(&args, jexception);
 
-  bool throws;
-  jerry_value_t jres =
-      iotjs_jhelper_call(jonuncaughtexception, process, &args, &throws);
+  jerry_value_t jres = iotjs_jhelper_call(jonuncaughtexception, process, &args);
 
   iotjs_jargs_destroy(&args);
-  jerry_release_value(jres);
   jerry_release_value(jonuncaughtexception);
 
-  if (throws) {
+  if (jerry_value_has_error_flag(jres)) {
     iotjs_environment_t* env = iotjs_environment_get();
 
     if (!iotjs_environment_is_exiting(env)) {
@@ -46,6 +43,8 @@ void iotjs_uncaught_exception(jerry_value_t jexception) {
       iotjs_environment_set_state(env, kExiting);
     }
   }
+
+  jerry_release_value(jres);
 }
 
 
@@ -59,16 +58,16 @@ void iotjs_process_emit_exit(int code) {
   iotjs_jargs_t jargs = iotjs_jargs_create(1);
   iotjs_jargs_append_number(&jargs, code);
 
-  bool throws;
-  jerry_value_t jres = iotjs_jhelper_call(jexit, process, &jargs, &throws);
+  jerry_value_t jres = iotjs_jhelper_call(jexit, process, &jargs);
 
   iotjs_jargs_destroy(&jargs);
-  jerry_release_value(jres);
   jerry_release_value(jexit);
 
-  if (throws) {
+  if (jerry_value_has_error_flag(jres)) {
     iotjs_set_process_exitcode(2);
   }
+
+  jerry_release_value(jres);
 }
 
 
@@ -115,10 +114,11 @@ jerry_value_t iotjs_make_callback_with_result(jerry_value_t jfunction,
                                               jerry_value_t jthis,
                                               const iotjs_jargs_t* jargs) {
   // Calls back the function.
-  bool throws;
-  jerry_value_t jres = iotjs_jhelper_call(jfunction, jthis, jargs, &throws);
-  if (throws) {
-    iotjs_uncaught_exception(jres);
+  jerry_value_t jres = iotjs_jhelper_call(jfunction, jthis, jargs);
+  if (jerry_value_has_error_flag(jres)) {
+    jerry_value_t errval = jerry_get_value_without_error_flag(jres);
+    iotjs_uncaught_exception(errval);
+    jerry_release_value(errval);
   }
 
   // Calls the next tick callbacks.

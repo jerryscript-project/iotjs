@@ -88,34 +88,23 @@ static bool iotjs_jerry_init(iotjs_environment_t* env) {
 }
 
 
-static void iotjs_jerry_release(iotjs_environment_t* env) {
-  jerry_cleanup();
-}
-
-
-static bool iotjs_run(iotjs_environment_t* env) {
-  // Evaluating 'iotjs.js' returns a function.
-  bool throws = false;
+static void iotjs_run() {
+// Evaluating 'iotjs.js' returns a function.
 #ifndef ENABLE_SNAPSHOT
   jerry_value_t jmain = iotjs_jhelper_eval("iotjs.js", strlen("iotjs.js"),
-                                           iotjs_s, iotjs_l, false, &throws);
+                                           iotjs_s, iotjs_l, false);
 #else
   jerry_value_t jmain =
       jerry_exec_snapshot_at((const void*)iotjs_js_modules_s,
                              iotjs_js_modules_l, module_iotjs_idx, false);
-  if (jerry_value_has_error_flag(jmain)) {
-    jerry_value_clear_error_flag(&jmain);
-    throws = true;
-  }
 #endif
-
-  if (throws) {
-    iotjs_uncaught_exception(jmain);
+  if (jerry_value_has_error_flag(jmain)) {
+    jerry_value_t errval = jerry_get_value_without_error_flag(jmain);
+    iotjs_uncaught_exception(errval);
+    jerry_release_value(errval);
   }
 
   jerry_release_value(jmain);
-
-  return !throws;
 }
 
 
@@ -134,7 +123,7 @@ static int iotjs_start(iotjs_environment_t* env) {
   iotjs_environment_set_state(env, kRunningMain);
 
   // Load and call iotjs.js.
-  iotjs_run(env);
+  iotjs_run();
 
   int exit_code = 0;
   if (!iotjs_environment_is_exiting(env)) {
@@ -218,7 +207,8 @@ int iotjs_entry(int argc, char** argv) {
   IOTJS_ASSERT(res == 0);
 
 
-  iotjs_jerry_release(env);
+  // Release JerryScript engine.
+  jerry_cleanup();
 
 terminate:;
   bool context_reset = false;

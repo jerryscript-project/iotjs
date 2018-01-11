@@ -371,7 +371,8 @@ static jerry_value_t iotjs_httpparser_return_parserrror(
     http_parser* nativeparser) {
   enum http_errno err = HTTP_PARSER_ERRNO(nativeparser);
 
-  jerry_value_t eobj = iotjs_jval_create_error("Parse Error");
+  jerry_value_t eobj =
+      iotjs_jval_create_error_without_error_flag("Parse Error");
   iotjs_jval_set_property_number(eobj, IOTJS_MAGIC_STRING_BYTEPARSED, 0);
   iotjs_jval_set_property_string_raw(eobj, IOTJS_MAGIC_STRING_CODE,
                                      http_errno_name(err));

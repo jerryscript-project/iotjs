@@ -32,8 +32,7 @@ jerry_value_t iotjs_jval_dummy_function(const jerry_value_t function_obj,
                                         const jerry_value_t args_p[],
                                         const jerry_length_t args_count);
 jerry_value_t iotjs_jval_create_function(jerry_external_handler_t handler);
-jerry_value_t iotjs_jval_create_error(const char* msg);
-jerry_value_t iotjs_jval_create_error_type(jerry_error_t type, const char* msg);
+jerry_value_t iotjs_jval_create_error_without_error_flag(const char* msg);
 
 jerry_value_t iotjs_jval_get_string_size(const iotjs_string_t* str);
 
@@ -102,7 +101,7 @@ void iotjs_jargs_replace(iotjs_jargs_t* jargs, uint16_t index, jerry_value_t x);
 
 // Calls JavaScript function.
 jerry_value_t iotjs_jhelper_call(jerry_value_t jfunc, jerry_value_t jthis,
-                                 const iotjs_jargs_t* jargs, bool* throws);
+                                 const iotjs_jargs_t* jargs);
 
 // Calls javascript function.
 jerry_value_t iotjs_jhelper_call_ok(jerry_value_t jfunc, jerry_value_t jthis,
@@ -111,7 +110,7 @@ jerry_value_t iotjs_jhelper_call_ok(jerry_value_t jfunc, jerry_value_t jthis,
 // Evaluates javascript source file.
 jerry_value_t iotjs_jhelper_eval(const char* name, size_t name_len,
                                  const uint8_t* data, size_t size,
-                                 bool strict_mode, bool* throws);
+                                 bool strict_mode);
 
 #define JS_CREATE_ERROR(TYPE, message) \
   jerry_create_error(JERRY_ERROR_##TYPE, (const jerry_char_t*)message);

@@ -160,9 +160,7 @@ static void iotjs_uart_after_worker(uv_work_t* work_req, int status) {
   iotjs_jargs_t jargs = iotjs_jargs_create(1);
 
   if (status) {
-    jerry_value_t error = iotjs_jval_create_error("System error");
-    iotjs_jargs_append_jval(&jargs, error);
-    jerry_release_value(error);
+    iotjs_jargs_append_error(&jargs, "System error");
   } else {
     switch (req_data->op) {
       case kUartOpOpen: {

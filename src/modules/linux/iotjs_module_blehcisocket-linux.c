@@ -344,13 +344,11 @@ void iotjs_blehcisocket_emitErrnoError(THIS) {
 
   iotjs_jargs_t jargs = iotjs_jargs_create(2);
   jerry_value_t str = jerry_create_string((const jerry_char_t*)"error");
-  jerry_value_t jerror = iotjs_jval_create_error(strerror(errno));
   iotjs_jargs_append_jval(&jargs, str);
-  iotjs_jargs_append_jval(&jargs, jerror);
+  iotjs_jargs_append_error(&jargs, strerror(errno));
   iotjs_jhelper_call_ok(jemit, jhcisocket, &jargs);
 
   jerry_release_value(str);
-  jerry_release_value(jerror);
   iotjs_jargs_destroy(&jargs);
   jerry_release_value(jemit);
 }

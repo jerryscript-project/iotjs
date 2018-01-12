@@ -212,14 +212,6 @@ With given this option, tidy checking will not performed.
 ```
 
 --
-#### `--no-check-test`
-With given this option, unit test checking will not performed.
-
-```
-./tools/build.py --no-check-test
-```
-
---
 #### `--no-parallel-build`
 With given this option, compilation process will not run in parallel. In other words, executes `make` without `-j` option.
 
@@ -233,6 +225,14 @@ To build for nuttx os, nuttx home directory must be given.
 
 ```
 ./tools/build.py --target-os=nuttx --target-arch=arm --target-board=stm32f4dis --nuttx-home="..."
+```
+
+--
+#### `--run-test`
+With given this option, unit test checking will be performed.
+
+```
+./tools/build.py --run-test
 ```
 
 --

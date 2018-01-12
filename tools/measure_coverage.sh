@@ -177,8 +177,7 @@ mv src/cover_js src/js
 # only be done with a 32-bit build
 common_build_opts="--jerry-cmake-param=-DFEATURE_SYSTEM_ALLOCATOR=ON
 --compile-flag=-coverage
---no-snapshot
---no-check-test"
+--no-snapshot"
 
 if ! [ -v target_board ];
 then

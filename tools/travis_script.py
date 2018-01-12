@@ -181,3 +181,6 @@ if __name__ == '__main__':
         ex.check_run_cmd('./tools/build.py', [
                          '--compile-flag=-fsanitize=undefined'
                          ] + BUILDOPTIONS_SANITIZER)
+
+    elif test == "coverity":
+        ex.check_run_cmd('./tools/build.py', ['--clean'])

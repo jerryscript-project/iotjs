@@ -56,7 +56,6 @@ then
     echo "   GBS-ROOT/local/repos/tizen_unified_preview1/armv7l/RPMS"
   else
     echo "GBS Build failed!"
-    exit 1
   fi
 cd ..
 rm -rf iotjs_tizen_gbs

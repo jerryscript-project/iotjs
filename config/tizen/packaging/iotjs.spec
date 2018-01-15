@@ -20,6 +20,8 @@ BuildRequires: pkgconfig(capi-appfw-package-manager)
 BuildRequires: pkgconfig(capi-appfw-application)
 BuildRequires: pkgconfig(capi-system-peripheral-io)
 BuildRequires: pkgconfig(dlog)
+#BuildRequires: pkgconfig(st_things_sdkapi)
+
 #for https
 BuildRequires:  openssl-devel
 BuildRequires:  libcurl-devel
@@ -74,6 +76,8 @@ cp %{SOURCE1001} .
  --cmake-param=-DENABLE_MODULE_DGRAM=ON \
  --cmake-param=-DENABLE_MODULE_GPIO=ON \
  --no-init-submodule --no-parallel-build
+# --external-lib=sdkapi \
+
 
 %install
 mkdir -p %{buildroot}%{_bindir}

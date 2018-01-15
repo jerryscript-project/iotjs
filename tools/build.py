@@ -224,6 +224,9 @@ def adjust_options(options):
     options.host_tuple = '%s-%s' % (platform.arch(), platform.os())
     options.target_tuple = '%s-%s' % (options.target_arch, options.target_os)
 
+    # Normalize the path of build directory.
+    options.builddir = fs.normpath(options.builddir)
+
     options.build_root = fs.join(path.PROJECT_ROOT,
                                  options.builddir,
                                  options.target_tuple,
@@ -444,9 +447,9 @@ if __name__ == '__main__':
         print("\n%sTo run tests use '--run-test' "
               "or one of the folowing commands:%s"
               % (ex._TERM_BLUE, ex._TERM_EMPTY))
-        print("\n    tools/testrunner.py build/%s/%s/bin/iotjs"
-              % (options.target_tuple, options.buildtype))
-        print("OR\n    %s(deprecated)%s build/%s/%s/bin/iotjs "
+        print("\n    tools/testrunner.py %s/%s/%s/bin/iotjs"
+              % (options.builddir, options.target_tuple, options.buildtype))
+        print("OR\n    %s(deprecated)%s %s/%s/%s/bin/iotjs "
               "tools/check_test.js\n"
-              % (ex._TERM_RED, ex._TERM_EMPTY, options.target_tuple,
-                 options.buildtype))
+              % (ex._TERM_RED, ex._TERM_EMPTY, options.builddir,
+                 options.target_tuple, options.buildtype))

@@ -20,18 +20,18 @@
 
 IOTJS_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(i2c);
 
-static iotjs_i2c_t* iotjs_i2c_create(const jerry_value_t ji2c) {
+static iotjs_i2c_t* i2c_create(const jerry_value_t ji2c) {
   iotjs_i2c_t* i2c = IOTJS_ALLOC(iotjs_i2c_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_i2c_t, i2c);
-  i2c_create_platform_data(i2c);
+  iotjs_i2c_create_platform_data(i2c);
   _this->jobject = ji2c;
   jerry_set_object_native_pointer(ji2c, i2c, &this_module_native_info);
 
   return i2c;
 }
 
-static iotjs_i2c_reqwrap_t* iotjs_i2c_reqwrap_create(
-    const jerry_value_t jcallback, iotjs_i2c_t* i2c, I2cOp op) {
+static iotjs_i2c_reqwrap_t* i2c_reqwrap_create(const jerry_value_t jcallback,
+                                               iotjs_i2c_t* i2c, I2cOp op) {
   iotjs_i2c_reqwrap_t* i2c_reqwrap = IOTJS_ALLOC(iotjs_i2c_reqwrap_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_i2c_reqwrap_t, i2c_reqwrap);
 
@@ -42,7 +42,7 @@ static iotjs_i2c_reqwrap_t* iotjs_i2c_reqwrap_create(
   return i2c_reqwrap;
 }
 
-static void iotjs_i2c_reqwrap_destroy(iotjs_i2c_reqwrap_t* i2c_reqwrap) {
+static void i2c_reqwrap_destroy(iotjs_i2c_reqwrap_t* i2c_reqwrap) {
   IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_i2c_reqwrap_t, i2c_reqwrap);
   iotjs_reqwrap_destroy(&_this->reqwrap);
   IOTJS_RELEASE(i2c_reqwrap);
@@ -50,7 +50,7 @@ static void iotjs_i2c_reqwrap_destroy(iotjs_i2c_reqwrap_t* i2c_reqwrap) {
 
 void iotjs_i2c_reqwrap_dispatched(iotjs_i2c_reqwrap_t* i2c_reqwrap) {
   IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_i2c_reqwrap_t, i2c_reqwrap);
-  iotjs_i2c_reqwrap_destroy(i2c_reqwrap);
+  i2c_reqwrap_destroy(i2c_reqwrap);
 }
 
 uv_work_t* iotjs_i2c_reqwrap_req(iotjs_i2c_reqwrap_t* i2c_reqwrap) {
@@ -79,7 +79,7 @@ iotjs_i2c_t* iotjs_i2c_instance_from_reqwrap(iotjs_i2c_reqwrap_t* i2c_reqwrap) {
 
 static void iotjs_i2c_destroy(iotjs_i2c_t* i2c) {
   IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_i2c_t, i2c);
-  i2c_destroy_platform_data(_this->platform_data);
+  iotjs_i2c_destroy_platform_data(_this->platform_data);
   IOTJS_RELEASE(i2c);
 }
 
@@ -176,13 +176,12 @@ static void i2c_after_worker(uv_work_t* work_req, int status) {
   iotjs_i2c_reqwrap_dispatched(req_wrap);
 }
 
-#define I2C_CALL_ASYNC(op, jcallback)                                  \
-  do {                                                                 \
-    uv_loop_t* loop = iotjs_environment_loop(iotjs_environment_get()); \
-    iotjs_i2c_reqwrap_t* req_wrap =                                    \
-        iotjs_i2c_reqwrap_create(jcallback, i2c, op);                  \
-    uv_work_t* req = iotjs_i2c_reqwrap_req(req_wrap);                  \
-    uv_queue_work(loop, req, i2c_worker, i2c_after_worker);            \
+#define I2C_CALL_ASYNC(op, jcallback)                                       \
+  do {                                                                      \
+    uv_loop_t* loop = iotjs_environment_loop(iotjs_environment_get());      \
+    iotjs_i2c_reqwrap_t* req_wrap = i2c_reqwrap_create(jcallback, i2c, op); \
+    uv_work_t* req = iotjs_i2c_reqwrap_req(req_wrap);                       \
+    uv_queue_work(loop, req, i2c_worker, i2c_after_worker);                 \
   } while (0)
 
 JS_FUNCTION(I2cCons) {
@@ -192,7 +191,7 @@ JS_FUNCTION(I2cCons) {
 
   // Create I2C object
   const jerry_value_t ji2c = JS_GET_THIS();
-  iotjs_i2c_t* i2c = iotjs_i2c_create(ji2c);
+  iotjs_i2c_t* i2c = i2c_create(ji2c);
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_i2c_t, i2c);
 
   jerry_value_t jconfig;

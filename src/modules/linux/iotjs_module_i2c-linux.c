@@ -66,13 +66,13 @@ struct iotjs_i2c_platform_data_s {
   uint8_t addr;
 };
 
-void i2c_create_platform_data(iotjs_i2c_t* i2c) {
+void iotjs_i2c_create_platform_data(iotjs_i2c_t* i2c) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_i2c_t, i2c);
   _this->platform_data = IOTJS_ALLOC(iotjs_i2c_platform_data_t);
   _this->platform_data->device_fd = -1;
 }
 
-void i2c_destroy_platform_data(iotjs_i2c_platform_data_t* pdata) {
+void iotjs_i2c_destroy_platform_data(iotjs_i2c_platform_data_t* pdata) {
   iotjs_string_destroy(&pdata->device);
   IOTJS_RELEASE(pdata);
 }

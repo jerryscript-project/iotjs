@@ -1,12 +1,20 @@
 "use strict";
 
-//var wpi = require('wiringpi-node'),
-var wpi = require('iotjs')
-	DAT = 23,
-	CLK = 24,
-	Blinkt;
+var Gpio = require('gpio');
+var gpio = new Gpio();
+
+var	DAT = 23,
+	  CLK = 24,
+	  Blinkt;
 
 Blinkt = function () {};
+
+
+var Gpio = require('gpio');
+var gpio = new Gpio();
+
+var gpio_dat,
+    gpio_clk;
 
 /**
  * Connects to the GPIO and sets the GPIO pin modes. Must be called
@@ -14,12 +22,27 @@ Blinkt = function () {};
  * full brightness by default.
  */
 Blinkt.prototype.setup = function setup () {
-	// Set WPI to GPIO mode
-	wpi.setup('gpio');
 
-	// Set pin mode to output
-	wpi.pinMode(DAT, wpi.OUTPUT);
-	wpi.pinMode(CLK, wpi.OUTPUT);
+	gpio_dat = gpio.open({
+	  pin: DAT,
+	  direction: gpio.DIRECTION.OUT
+	}, function(err) {
+	  if (!err) {
+	  }
+		else {
+			console.error(err);
+		}
+	});
+
+	gpio_clk = gpio.open({
+	  pin: CLK,
+	  direction: gpio.DIRECTION.OUT
+	}, function(err) {
+	  if (!err) {
+	  } else {
+			console.error(err);
+		}
+	});
 
 	this._numPixels = 8;
 	this._pixels = [];
@@ -137,9 +160,9 @@ Blinkt.prototype._writeByte = function writeByte (byte) {
 	for (var i = 0 ; i < this._numPixels; i++) {
 		bit = ((byte & (1 << (7 - i))) > 0) === true ? wpi.HIGH : wpi.LOW; // jshint ignore:line
 
-		wpi.digitalWrite(DAT, bit);
-		wpi.digitalWrite(CLK, 1);
-		wpi.digitalWrite(CLK, 0);
+    gpio_dat.writeSync(bit);
+		gpio_clk.writeSync(true);
+		gpio_clk.writeSync(false);
 	}
 };
 
@@ -148,10 +171,10 @@ Blinkt.prototype._writeByte = function writeByte (byte) {
  * @private
  */
 Blinkt.prototype._latch = function latch() {
-	wpi.digitalWrite(DAT, 0);
+	gpio_dat.writeSync(false);
 	for (var i = 0 ; i < 36; i++) {
-		wpi.digitalWrite(CLK, 1);
-		wpi.digitalWrite(CLK, 0);
+		gpio_clk.writeSync(true);
+		gpio_clk.writeSync(false);
 	}
 };
 

@@ -1,4 +1,4 @@
-/* Copyright 2017-present Samsung Electronics Co., Ltd. and other contributors
+/* Copyright 2018-present Samsung Electronics Co., Ltd. and other contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,30 +26,18 @@ if (process.platform === 'linux') {
   assert.fail();
 }
 
-//  mcp3008 test
-var channel = 0;
-var spi0 = spi.open(configuration, function() {
-  var mode = (8 + channel) << 4;
-  var tx = [1, mode, 0];
+// Buffer test
+var spi1 = spi.openSync(configuration);
+var data = 'Hello IoTjs';
+var tx = new Buffer(data);
 
-  var rx = spi0.transferSync(tx);
-  console.log(((rx[1] & 0x03) << 8) + rx[2]);
+var rx = spi1.transferSync(tx);
+assert.equal(rx.length, 11);
+var value = '';
+for (var i = 0; i < 11; i++) {
+  value += String.fromCharCode(rx[i]);
+}
+console.log(value);
+assert.equal(value, data);
 
-  var loopCnt = 10;
-  var loop = setInterval(function() {
-    spi0.transfer(tx, function(err, rx) {
-      assert.equal(err, null);
-      assert.equal(rx.length, 3);
-
-      var value = ((rx[1] & 0x03) << 8) + rx[2];
-      console.log(value);
-
-      if (--loopCnt < 0) {
-        spi0.closeSync();
-        clearInterval(loop);
-        console.log('finish test');
-      }
-
-    });
-  }, 500);
-});
+spi1.closeSync();

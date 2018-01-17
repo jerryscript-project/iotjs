@@ -1,0 +1,34 @@
+#
+# For a description of the syntax of this configuration file,
+# see kconfig-language at https://www.kernel.org/doc/Documentation/kbuild/kconfig-language.txt
+#
+
+config ENABLE_IOTJS
+	bool "IoT.js"
+	default n
+	select SPI_EXCHANGE
+	select IOTBUS
+	select IOTBUS_GPIO
+	select IOTBUS_I2C
+	select IOTBUS_PWM
+	select IOTBUS_SPI
+	select IOTBUS_UART
+	---help---
+		Enable IoT.js framework
+
+if ENABLE_IOTJS
+
+config IOTJS_PRIORITY
+        int "IoT.js task priority"
+        default 100
+
+config IOTJS_STACKSIZE
+        int "IoT.js stack size"
+        default 32768
+
+config IOTJS_JERRY_HEAP
+        int "Jerryscript Heaplimit"
+        default 128
+
+endif #ENABLE_IOTJS
+

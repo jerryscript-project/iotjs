@@ -28,11 +28,30 @@
 #define PWM_DEVICE_PATH_FORMAT "/dev/pwm%d"
 #define PWM_DEVICE_PATH_BUFFER_SIZE 12
 
+struct iotjs_pwm_platform_data_s {
+  int device_fd;
+};
 
-static bool iotjs_pwm_set_options(iotjs_pwm_t* pwm) {
+void iotjs_pwm_create_platform_data(iotjs_pwm_t* pwm) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_pwm_t, pwm);
+  _this->platform_data = IOTJS_ALLOC(iotjs_pwm_platform_data_t);
+  _this->platform_data->device_fd = -1;
+}
 
-  int fd = _this->device_fd;
+void iotjs_pwm_destroy_platform_data(iotjs_pwm_platform_data_t* pdata) {
+  IOTJS_RELEASE(pdata);
+}
+
+jerry_value_t iotjs_pwm_set_platform_config(iotjs_pwm_t* pwm,
+                                            const jerry_value_t jconfig) {
+  return jerry_create_undefined();
+}
+
+static bool pwm_set_options(iotjs_pwm_t* pwm) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_pwm_t, pwm);
+  iotjs_pwm_platform_data_t* platform_data = _this->platform_data;
+
+  int fd = platform_data->device_fd;
   if (fd < 0) {
     DLOG("%s - file open failed", __func__);
     return false;
@@ -63,9 +82,7 @@ static bool iotjs_pwm_set_options(iotjs_pwm_t* pwm) {
   return true;
 }
 
-
-void iotjs_pwm_open_worker(uv_work_t* work_req) {
-  PWM_WORKER_INIT;
+bool iotjs_pwm_open(iotjs_pwm_t* pwm) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_pwm_t, pwm);
 
   int timer = SYSIO_GET_TIMER(_this->pin);
@@ -73,8 +90,7 @@ void iotjs_pwm_open_worker(uv_work_t* work_req) {
 
   if (snprintf(path, PWM_DEVICE_PATH_BUFFER_SIZE, PWM_DEVICE_PATH_FORMAT,
                timer) < 0) {
-    req_data->result = false;
-    return;
+    return false;
   }
 
   struct pwm_lowerhalf_s* pwm_lowerhalf =
@@ -83,41 +99,37 @@ void iotjs_pwm_open_worker(uv_work_t* work_req) {
   DDDLOG("%s - path: %s, timer: %d\n", __func__, path, timer);
 
   if (pwm_register(path, pwm_lowerhalf) != 0) {
-    req_data->result = false;
-    return;
+    return false;
   }
 
   // File open
-  _this->device_fd = open(path, O_RDONLY);
-  if (_this->device_fd < 0) {
+  iotjs_pwm_platform_data_t* platform_data = _this->platform_data;
+  platform_data->device_fd = open(path, O_RDONLY);
+  if (platform_data->device_fd < 0) {
     DLOG("%s - file open failed", __func__);
-    req_data->result = false;
-    return;
+    return false;
   }
 
-  if (!iotjs_pwm_set_options(pwm)) {
-    req_data->result = false;
-    return;
+  if (!pwm_set_options(pwm)) {
+    return false;
   }
 
-  req_data->result = true;
+  return true;
 }
-
 
 bool iotjs_pwm_set_period(iotjs_pwm_t* pwm) {
-  return iotjs_pwm_set_options(pwm);
+  return pwm_set_options(pwm);
 }
-
 
 bool iotjs_pwm_set_dutycycle(iotjs_pwm_t* pwm) {
-  return iotjs_pwm_set_options(pwm);
+  return pwm_set_options(pwm);
 }
-
 
 bool iotjs_pwm_set_enable(iotjs_pwm_t* pwm) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_pwm_t, pwm);
+  iotjs_pwm_platform_data_t* platform_data = _this->platform_data;
 
-  int fd = _this->device_fd;
+  int fd = platform_data->device_fd;
   if (fd < 0) {
     DLOG("%s - file open failed", __func__);
     return false;
@@ -140,11 +152,11 @@ bool iotjs_pwm_set_enable(iotjs_pwm_t* pwm) {
   return true;
 }
 
-
 bool iotjs_pwm_close(iotjs_pwm_t* pwm) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_pwm_t, pwm);
+  iotjs_pwm_platform_data_t* platform_data = _this->platform_data;
 
-  int fd = _this->device_fd;
+  int fd = platform_data->device_fd;
   if (fd < 0) {
     DLOG("%s - file not opened", __func__);
     return false;
@@ -154,7 +166,7 @@ bool iotjs_pwm_close(iotjs_pwm_t* pwm) {
 
   // Close file
   close(fd);
-  _this->device_fd = -1;
+  platform_data->device_fd = -1;
 
   uint32_t timer = SYSIO_GET_TIMER(_this->pin);
   char path[PWM_DEVICE_PATH_BUFFER_SIZE] = { 0 };

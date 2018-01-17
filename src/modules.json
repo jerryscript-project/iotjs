@@ -254,8 +254,7 @@
       },
       "native_files": ["modules/iotjs_module_pwm.c"],
       "init": "InitPwm",
-      "js_file": "js/pwm.js",
-      "require": ["util"]
+      "js_file": "js/pwm.js"
     },
     "spi": {
       "platforms": {

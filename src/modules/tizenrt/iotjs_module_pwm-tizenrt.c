@@ -23,11 +23,29 @@
 
 #include "modules/iotjs_module_pwm.h"
 
-static bool iotjs_pwm_set_options(iotjs_pwm_t* pwm) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_pwm_t, pwm);
+struct iotjs_pwm_platform_data_s {
+  iotbus_pwm_context_h ctx;
+};
 
-  iotbus_pwm_context_h ctx = _this->ctx;
-  if (ctx == NULL) {
+void iotjs_pwm_create_platform_data(iotjs_pwm_t* pwm) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_pwm_t, pwm);
+  _this->platform_data = IOTJS_ALLOC(iotjs_pwm_platform_data_t);
+}
+
+void iotjs_pwm_destroy_platform_data(iotjs_pwm_platform_data_t* pdata) {
+  IOTJS_RELEASE(pdata);
+}
+
+jerry_value_t iotjs_pwm_set_platform_config(iotjs_pwm_t* pwm,
+                                            const jerry_value_t jconfig) {
+  return jerry_create_undefined();
+}
+
+static bool pwm_set_options(iotjs_pwm_t* pwm) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_pwm_t, pwm);
+  iotjs_pwm_platform_data_t* platform_data = _this->platform_data;
+
+  if (platform_data->ctx == NULL) {
     DLOG("%s - file open failed", __func__);
     return false;
   }
@@ -38,29 +56,28 @@ static bool iotjs_pwm_set_options(iotjs_pwm_t* pwm) {
   return iotjs_pwm_set_dutycycle(pwm) && iotjs_pwm_set_period(pwm);
 }
 
-void iotjs_pwm_open_worker(uv_work_t* work_req) {
-  PWM_WORKER_INIT;
+bool iotjs_pwm_open(iotjs_pwm_t* pwm) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_pwm_t, pwm);
+  iotjs_pwm_platform_data_t* platform_data = _this->platform_data;
 
-  _this->ctx = iotbus_pwm_open(0, (int)_this->pin);
-  if (_this->ctx == NULL) {
+  platform_data->ctx = iotbus_pwm_open(0, (int)_this->pin);
+  if (platform_data->ctx == NULL) {
     DLOG("%s - file open failed", __func__);
-    req_data->result = false;
-    return;
+    return false;
   }
 
-  if (!iotjs_pwm_set_options(pwm)) {
-    req_data->result = false;
-    return;
+  if (!pwm_set_options(pwm)) {
+    return false;
   }
 
-  req_data->result = true;
+  return true;
 }
 
 bool iotjs_pwm_set_period(iotjs_pwm_t* pwm) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_pwm_t, pwm);
+  iotjs_pwm_platform_data_t* platform_data = _this->platform_data;
 
-  iotbus_pwm_context_h ctx = _this->ctx;
+  iotbus_pwm_context_h ctx = platform_data->ctx;
   if (ctx == NULL) {
     DLOG("%s - file open failed", __func__);
     return false;
@@ -71,11 +88,11 @@ bool iotjs_pwm_set_period(iotjs_pwm_t* pwm) {
   return iotbus_pwm_set_period(ctx, period_us) == 0;
 }
 
-
 bool iotjs_pwm_set_dutycycle(iotjs_pwm_t* pwm) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_pwm_t, pwm);
+  iotjs_pwm_platform_data_t* platform_data = _this->platform_data;
 
-  iotbus_pwm_context_h ctx = _this->ctx;
+  iotbus_pwm_context_h ctx = platform_data->ctx;
   if (ctx == NULL) {
     DLOG("%s - file open failed", __func__);
     return false;
@@ -86,11 +103,11 @@ bool iotjs_pwm_set_dutycycle(iotjs_pwm_t* pwm) {
   return iotbus_pwm_set_duty_cycle(ctx, duty_cycle_per_cent) == 0;
 }
 
-
 bool iotjs_pwm_set_enable(iotjs_pwm_t* pwm) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_pwm_t, pwm);
+  iotjs_pwm_platform_data_t* platform_data = _this->platform_data;
 
-  iotbus_pwm_context_h ctx = _this->ctx;
+  iotbus_pwm_context_h ctx = platform_data->ctx;
   if (ctx == NULL) {
     DLOG("%s - file open failed", __func__);
     return false;
@@ -115,8 +132,9 @@ bool iotjs_pwm_set_enable(iotjs_pwm_t* pwm) {
 
 bool iotjs_pwm_close(iotjs_pwm_t* pwm) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_pwm_t, pwm);
+  iotjs_pwm_platform_data_t* platform_data = _this->platform_data;
 
-  iotbus_pwm_context_h ctx = _this->ctx;
+  iotbus_pwm_context_h ctx = platform_data->ctx;
   if (ctx == NULL) {
     DLOG("%s - file not opened", __func__);
     return false;
@@ -125,7 +143,7 @@ bool iotjs_pwm_close(iotjs_pwm_t* pwm) {
   DDDLOG("%s", __func__);
 
   iotbus_pwm_close(ctx);
-  _this->ctx = NULL;
+  platform_data->ctx = NULL;
 
   return true;
 }

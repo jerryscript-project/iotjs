@@ -41,6 +41,43 @@
 #define PWM_PATH_BUFFER_SIZE 64
 #define PWM_VALUE_BUFFER_SIZE 32
 
+struct iotjs_pwm_platform_data_s {
+  int chip;
+  iotjs_string_t device;
+};
+
+void iotjs_pwm_create_platform_data(iotjs_pwm_t* pwm) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_pwm_t, pwm);
+  _this->platform_data = IOTJS_ALLOC(iotjs_pwm_platform_data_t);
+  _this->platform_data->chip = 0;
+}
+
+void iotjs_pwm_destroy_platform_data(iotjs_pwm_platform_data_t* pdata) {
+  iotjs_string_destroy(&pdata->device);
+  IOTJS_RELEASE(pdata);
+}
+
+jerry_value_t iotjs_pwm_set_platform_config(iotjs_pwm_t* pwm,
+                                            const jerry_value_t jconfig) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_pwm_t, pwm);
+  iotjs_pwm_platform_data_t* platform_data = _this->platform_data;
+  jerry_value_t jchip =
+      iotjs_jval_get_property(jconfig, IOTJS_MAGIC_STRING_CHIP);
+
+  if (jerry_value_has_error_flag(jchip)) {
+    return jchip;
+  }
+
+  if (jerry_value_is_number(jchip)) {
+    platform_data->chip = iotjs_jval_as_number(jchip);
+  } else {
+    platform_data->chip = 0;
+  }
+
+  jerry_release_value(jchip);
+
+  return jerry_create_undefined();
+}
 
 // Generate device path for specified PWM device.
 // The path may include node suffix if passed ('enable', 'period', 'duty_cycle')
@@ -77,61 +114,60 @@ static double adjust_period(double period) {
 }
 
 
-void iotjs_pwm_open_worker(uv_work_t* work_req) {
-  PWM_WORKER_INIT;
+bool iotjs_pwm_open(iotjs_pwm_t* pwm) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_pwm_t, pwm);
+  iotjs_pwm_platform_data_t* platform_data = _this->platform_data;
 
   char path[PWM_PATH_BUFFER_SIZE] = { 0 };
-  if (snprintf(path, PWM_PATH_BUFFER_SIZE, PWM_PIN_FORMAT, _this->chip,
+  if (snprintf(path, PWM_PATH_BUFFER_SIZE, PWM_PIN_FORMAT, platform_data->chip,
                _this->pin) < 0) {
-    req_data->result = false;
-    return;
+    return false;
   }
 
-  _this->device = iotjs_string_create_with_size(path, strlen(path));
+  platform_data->device = iotjs_string_create_with_size(path, strlen(path));
 
   // See if the PWM is already opened.
   if (!iotjs_systemio_check_path(path)) {
     // Write exporting PWM path
     char export_path[PWM_PATH_BUFFER_SIZE] = { 0 };
-    snprintf(export_path, PWM_PATH_BUFFER_SIZE, PWM_EXPORT, _this->chip);
+    snprintf(export_path, PWM_PATH_BUFFER_SIZE, PWM_EXPORT,
+             platform_data->chip);
 
     const char* created_files[] = { PWM_PIN_DUTYCYCLE, PWM_PIN_PERIOD,
                                     PWM_PIN_ENABlE };
     int created_files_length = sizeof(created_files) / sizeof(created_files[0]);
     if (!iotjs_systemio_device_open(export_path, _this->pin, path,
                                     created_files, created_files_length)) {
-      req_data->result = false;
-      return;
+      return false;
     }
   }
 
   // Set options.
   if (_this->period >= 0) {
     if (!iotjs_pwm_set_period(pwm)) {
-      req_data->result = false;
-      return;
+      return false;
     }
     if (_this->duty_cycle >= 0) {
       if (!iotjs_pwm_set_dutycycle(pwm)) {
-        req_data->result = false;
-        return;
+        return false;
       }
     }
   }
 
   DDDLOG("%s - path: %s", __func__, path);
 
-  req_data->result = true;
+  return true;
 }
 
 
 bool iotjs_pwm_set_period(iotjs_pwm_t* pwm) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_pwm_t, pwm);
+  iotjs_pwm_platform_data_t* platform_data = _this->platform_data;
 
   bool result = false;
   if (isfinite(_this->period) && _this->period >= 0.0) {
-    char* devicePath = generate_device_subpath(&_this->device, PWM_PIN_PERIOD);
+    char* devicePath =
+        generate_device_subpath(&platform_data->device, PWM_PIN_PERIOD);
     if (devicePath) {
       // Linux API uses nanoseconds, thus 1E9
       unsigned int value = (unsigned)(adjust_period(_this->period) * 1.E9);
@@ -149,13 +185,14 @@ bool iotjs_pwm_set_period(iotjs_pwm_t* pwm) {
 
 bool iotjs_pwm_set_dutycycle(iotjs_pwm_t* pwm) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_pwm_t, pwm);
+  iotjs_pwm_platform_data_t* platform_data = _this->platform_data;
 
   bool result = false;
   double dutyCycle = _this->duty_cycle;
   if (isfinite(_this->period) && _this->period >= 0.0 && isfinite(dutyCycle) &&
       0.0 <= dutyCycle && dutyCycle <= 1.0) {
     char* devicePath =
-        generate_device_subpath(&_this->device, PWM_PIN_DUTYCYCLE);
+        generate_device_subpath(&platform_data->device, PWM_PIN_DUTYCYCLE);
     if (devicePath) {
       double period = adjust_period(_this->period);
       // Linux API uses nanoseconds, thus 1E9
@@ -178,10 +215,11 @@ bool iotjs_pwm_set_dutycycle(iotjs_pwm_t* pwm) {
 
 bool iotjs_pwm_set_enable(iotjs_pwm_t* pwm) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_pwm_t, pwm);
+  iotjs_pwm_platform_data_t* platform_data = _this->platform_data;
 
   bool result = false;
-
-  char* devicePath = generate_device_subpath(&_this->device, PWM_PIN_ENABlE);
+  char* devicePath =
+      generate_device_subpath(&platform_data->device, PWM_PIN_ENABlE);
   if (devicePath) {
     char value[4];
     if (snprintf(value, sizeof(value), "%d", _this->enable) < 0) {
@@ -203,9 +241,10 @@ bool iotjs_pwm_set_enable(iotjs_pwm_t* pwm) {
 
 bool iotjs_pwm_close(iotjs_pwm_t* pwm) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_pwm_t, pwm);
+  iotjs_pwm_platform_data_t* platform_data = _this->platform_data;
 
   char path[PWM_PATH_BUFFER_SIZE] = { 0 };
-  if (snprintf(path, PWM_PATH_BUFFER_SIZE, PWM_PIN_FORMAT, _this->chip,
+  if (snprintf(path, PWM_PATH_BUFFER_SIZE, PWM_PIN_FORMAT, platform_data->chip,
                _this->pin) < 0) {
     return false;
   }
@@ -214,7 +253,7 @@ bool iotjs_pwm_close(iotjs_pwm_t* pwm) {
     // Write exporting pin path
     char unexport_path[PWM_PATH_BUFFER_SIZE] = { 0 };
     if (snprintf(unexport_path, PWM_PATH_BUFFER_SIZE, PWM_UNEXPORT,
-                 _this->chip) < 0) {
+                 platform_data->chip) < 0) {
       return false;
     }
 

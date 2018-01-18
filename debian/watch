@@ -1,0 +1,4 @@
+version=3
+opts="filenamemangle=s%(?:.*?/)?release_(\d[\d.]*)\.tar\.gz%iotjs-$1.tar.gz%" \
+   https://github.com/samsung/iotjs/tags \
+   (?:.*?/)?release_(\d[\d.]*)\.tar\.gz debian uupdate

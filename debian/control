@@ -1,0 +1,16 @@
+Source: iotjs
+Section: extra
+Priority: optional
+Maintainer: Philippe Coval <philippe.coval@osg.samsung.com>
+Build-Depends: debhelper (>= 8.0.0), cmake
+Standards-Version: 3.9.4
+Homepage: http://iotjs.net
+
+Package: iotjs
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: A Javascript Framework for Internet of Things
+ Inter-operable service platform in the world of IoT,
+ based on web technology.
+ The target of IoT.js is to run in resource constrained devices
+ such as only few kilobytes of RAM available device. 

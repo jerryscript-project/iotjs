@@ -15,8 +15,7 @@
 
 
 var assert = require('assert');
-var Gpio = require('gpio');
-var gpio = new Gpio();
+var gpio = require('gpio');
 
 var ledGpio = null, switchGpio = null;
 var ledPin, switchPin, ledMode;
@@ -48,11 +47,12 @@ ledGpio = gpio.open({
   pin: ledPin,
   direction: gpio.DIRECTION.OUT,
   mode: ledMode
-}, function() {
-  this.writeSync(LED_OFF);
+}, function(err) {
+  assert.equal(err, null);
+  ledGpio.writeSync(LED_OFF);
 });
 
-switchGpio = gpio.open({
+switchGpio = gpio.openSync({
   pin: switchPin,
   direction: gpio.DIRECTION.IN
 });

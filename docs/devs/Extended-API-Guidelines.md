@@ -14,10 +14,10 @@ However, extended APIs need a guideline because they are implemented by many con
 
 For example, GPIO module generate an object like below:
 ```javascript
-var Gpio = require('gpio');
-var gpio10 = gpio.open({pin: 10, direction: gpio.DIRECTION.OUT},		
-                                     function(err){console.log(err);});
-gpio10.writeSync(1);                         
+var gpio = require('gpio');
+var gpio10 = gpio.open({pin: 10, direction: gpio.DIRECTION.OUT},
+                       function(err){console.log(err);});
+gpio10.writeSync(1);
 ```
 
 ## Minimize event generation

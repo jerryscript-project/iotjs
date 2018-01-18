@@ -27,8 +27,7 @@
  *
  */
 
-var PWM = require('pwm'),
-  pwm = new PWM(),
+var pwm = require('pwm'),
   // note indexes definition
   // please remember that D# is same as Bb here
   notes = {

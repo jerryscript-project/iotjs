@@ -25,15 +25,12 @@
  *
  * $ iotjs light-fade.js
  *
- * Pushing the button will turn on/off (toggle) the light light with an fade
- * effect
+ * Pushing the button will turn on/off (toggle) the light with a fade effect.
  *
  */
 
-var PWM = require('pwm'),
-  pwm = new PWM(),
-  GPIO = require('gpio'),
-  gpio = new GPIO(),
+var pwm = require('pwm'),
+  gpio = require('gpio'),
   LOW = 0,
   HIGH = 1,
   FADE_TIME = 10000, // 10 seconds
@@ -107,12 +104,12 @@ buttonDevice = gpio.open({
     }, function (err) {
       if (err) {
         log('error when opening pwm device: ' + err);
-        buttonDevice.close();
+        buttonDevice.closeSync();
       } else {
         pwmDevice.setEnable(true, function (err) {
           if (err) {
             log('error when enabling pwm: ' + err);
-            buttonDevice.close();
+            buttonDevice.closeSync();
             pwmDevice.close();
           } else {
             log('wating for user input');

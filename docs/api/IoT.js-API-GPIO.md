@@ -5,6 +5,7 @@ The following shows GPIO module APIs available for each platform.
 |  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | NuttX<br/>(STM32F4-Discovery) | TizenRT<br/>(Artik053) |
 | :---: | :---: | :---: | :---: | :---: |
 | gpio.open | O | O | O | O |
+| gpio.openSync | O | O | O | O |
 | gpiopin.write | O | O | O | O |
 | gpiopin.writeSync | O | O | O | O |
 | gpiopin.read | △ | △ | O | O |
@@ -28,11 +29,6 @@ module. For more information, please check the
 following list:
 [STM32F4-discovery](../targets/nuttx/stm32f4dis/IoT.js-API-Stm32f4dis.md#gpio-pin)
 
-## Class: GPIO
-
-### new GPIO()
-
-Returns a new GPIO object which can access any GPIO pins.
 
 ### DIRECTION
 * `IN` Input pin.
@@ -51,21 +47,31 @@ direction of the pin.
 * `OPENDRAIN` Open drain (pin direction must be [`OUT`](#direction)).
 
 An enumeration which can be used to specify the
-configuration of the pin.
+mode of the pin. These options are only supported on NuttX.
+
+
+### EDGE
+* `NONE` None.
+* `RISING` Rising.
+* `FALLING` Falling.
+* `BOTH` Both.
+
+An enumeration which can be used to specify the
+edge of the pin.
 
 
 ### gpio.open(configuration[, callback])
-* `configuration` {Object}
+* `configuration` {Object} Configuration for open GPIOPin.
   * `pin` {number} Pin number. Mandatory field.
-  * `direction` {GPIO.DIRECTION} Pin direction. **Default:** `GPIO.DIRECTION.OUT`
-  * `mode` {GPIO.MODE} Pin mode. **Default:** `GPIO.MODE.NONE`
+  * `direction` {[gpio.DIRECTION](#direction)} Pin direction. **Default:** `gpio.DIRECTION.OUT`
+  * `mode` {[gpio.MODE](#mode)} Pin mode. **Default:** `gpio.MODE.NONE`
+  * `edge` {[gpio.EDGE](#edge)} Pin edge. **Default:** `gpio.EDGE.NONE`
 * `callback` {Function}
   * `error` {Error|null}
-* Returns: {GPIOPin}
+  * `gpioPin` {Object} An instance of GPIOPin.
+* Returns: {Object} An instance of GPIOPin.
 
-Opens the specified GPIO pin and sets the pin configuration.
-
-The mode argument is ignored on Linux.
+Get GPIOPin object with configuration asynchronously.
 
 The optional `callback` function will be called after
 opening is completed. The `error` argument is an
@@ -74,19 +80,42 @@ opening is completed. The `error` argument is an
 **Example**
 
 ```js
-var GPIO = require('gpio');
-var gpio = new GPIO();
+var gpio = require('gpio');
 
 var gpio10 = gpio.open({
   pin: 10,
   direction: gpio.DIRECTION.OUT,
-  mode: gpio.MODE.NONE
-}, function(err) {
+  mode: gpio.MODE.PUSHPULL,
+  edge: gpio.EDGE.RISING
+}, function(err, pin) {
   if (err) {
     throw err;
   }
 });
 ```
+
+### gpio.openSync(configuration)
+* `configuration` {Object} Configuration for open GPIOPin.
+  * `pin` {number} Pin number. Mandatory field.
+  * `direction` {[gpio.DIRECTION](#direction)} Pin direction. **Default:** `gpio.DIRECTION.OUT`
+  * `mode` {[gpio.MODE](#mode)} Pin mode. **Default:** `gpio.MODE.NONE`
+  * `edge` {[gpio.EDGE](#edge)} Pin edge. **Default:** `gpio.EDGE.NONE`
+* Returns: {Object} An instance of GPIOPin.
+
+Get GPIOPin object with configuration synchronously.
+
+**Example**
+
+```js
+var gpio = require('gpio');
+
+var gpio10 = gpio.openSync({
+  pin: 10,
+  direction: gpio.DIRECTION.IN,
+  mode: gpio.MODE.PULLUP
+});
+```
+
 
 ## Class: GPIOPin
 
@@ -192,7 +221,7 @@ gpio10.close(function(err) {
 
 ### gpiopin.closeSync()
 
-Closes a GPIO pin.
+Synchronously closes a GPIO pin.
 
 **Example**
 

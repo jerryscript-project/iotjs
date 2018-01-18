@@ -168,4 +168,4 @@ if(NOT "${TARGET_OS}" MATCHES "NUTTX")
   set(JERRY_PORT_DIR ${DEPS_LIB_JERRY_SRC}/jerry-port/default)
 endif()
 
-set(JERRY_INCLUDE_DIR ${DEPS_LIB_JERRY}/jerry-core/include)
+set(JERRY_INCLUDE_DIR ${DEPS_LIB_JERRY_SRC}/jerry-core/include)

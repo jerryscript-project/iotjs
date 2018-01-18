@@ -415,7 +415,7 @@ JS_FUNCTION(Execute) {
 
   jerry_value_t jbuffer = JS_GET_ARG(0, object);
   iotjs_bufferwrap_t* buffer_wrap = iotjs_bufferwrap_from_jbuffer(jbuffer);
-  char* buf_data = iotjs_bufferwrap_buffer(buffer_wrap);
+  char* buf_data = buffer_wrap->buffer;
   size_t buf_len = iotjs_bufferwrap_length(buffer_wrap);
   JS_CHECK(buf_data != NULL);
   JS_CHECK(buf_len > 0);

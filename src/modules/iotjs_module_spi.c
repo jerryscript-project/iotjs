@@ -150,9 +150,9 @@ static void iotjs_spi_set_buffer(iotjs_spi_t* spi, jerry_value_t jtx_buf,
   iotjs_bufferwrap_t* tx_buf = iotjs_bufferwrap_from_jbuffer(jtx_buf);
   iotjs_bufferwrap_t* rx_buf = iotjs_bufferwrap_from_jbuffer(jrx_buf);
 
-  _this->tx_buf_data = iotjs_bufferwrap_buffer(tx_buf);
+  _this->tx_buf_data = tx_buf->buffer;
   uint8_t tx_buf_len = iotjs_bufferwrap_length(tx_buf);
-  _this->rx_buf_data = iotjs_bufferwrap_buffer(rx_buf);
+  _this->rx_buf_data = rx_buf->buffer;
   uint8_t rx_buf_len = iotjs_bufferwrap_length(rx_buf);
 
   IOTJS_ASSERT(_this->tx_buf_data != NULL && _this->rx_buf_data != NULL);

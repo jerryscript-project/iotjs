@@ -27,19 +27,18 @@ IOTJS_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(bufferwrap);
 iotjs_bufferwrap_t* iotjs_bufferwrap_create(const jerry_value_t jbuiltin,
                                             size_t length) {
   iotjs_bufferwrap_t* bufferwrap = IOTJS_ALLOC(iotjs_bufferwrap_t);
-  IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_bufferwrap_t, bufferwrap);
 
-  _this->jobject = jbuiltin;
+  bufferwrap->jobject = jbuiltin;
   jerry_set_object_native_pointer(jbuiltin, bufferwrap,
                                   &this_module_native_info);
 
   if (length > 0) {
-    _this->length = length;
-    _this->buffer = iotjs_buffer_allocate(length);
-    IOTJS_ASSERT(_this->buffer != NULL);
+    bufferwrap->length = length;
+    bufferwrap->buffer = iotjs_buffer_allocate(length);
+    IOTJS_ASSERT(bufferwrap->buffer != NULL);
   } else {
-    _this->length = 0;
-    _this->buffer = NULL;
+    bufferwrap->length = 0;
+    bufferwrap->buffer = NULL;
   }
 
   IOTJS_ASSERT(
@@ -51,9 +50,8 @@ iotjs_bufferwrap_t* iotjs_bufferwrap_create(const jerry_value_t jbuiltin,
 
 
 static void iotjs_bufferwrap_destroy(iotjs_bufferwrap_t* bufferwrap) {
-  IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_bufferwrap_t, bufferwrap);
-  if (_this->buffer != NULL) {
-    iotjs_buffer_release(_this->buffer);
+  if (bufferwrap->buffer != NULL) {
+    iotjs_buffer_release(bufferwrap->buffer);
   }
   IOTJS_RELEASE(bufferwrap);
 }
@@ -79,37 +77,18 @@ iotjs_bufferwrap_t* iotjs_bufferwrap_from_jbuffer(const jerry_value_t jbuffer) {
 }
 
 
-static jerry_value_t iotjs_bufferwrap_jbuiltin(iotjs_bufferwrap_t* bufferwrap) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_bufferwrap_t, bufferwrap);
-  return _this->jobject;
-}
-
-
-jerry_value_t iotjs_bufferwrap_jbuffer(iotjs_bufferwrap_t* bufferwrap) {
-  IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_bufferwrap_t, bufferwrap);
-  jerry_value_t jbuiltin = iotjs_bufferwrap_jbuiltin(bufferwrap);
-  return iotjs_jval_get_property(jbuiltin, IOTJS_MAGIC_STRING__BUFFER);
-}
-
-
-char* iotjs_bufferwrap_buffer(iotjs_bufferwrap_t* bufferwrap) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_bufferwrap_t, bufferwrap);
-  return _this->buffer;
-}
-
-
 size_t iotjs_bufferwrap_length(iotjs_bufferwrap_t* bufferwrap) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_bufferwrap_t, bufferwrap);
 #ifndef NDEBUG
-  jerry_value_t jbuf = iotjs_bufferwrap_jbuffer(bufferwrap);
+  jerry_value_t jbuf =
+      iotjs_jval_get_property(bufferwrap->jobject, IOTJS_MAGIC_STRING__BUFFER);
   jerry_value_t jlength =
       iotjs_jval_get_property(jbuf, IOTJS_MAGIC_STRING_LENGTH);
   size_t length = iotjs_jval_as_number(jlength);
-  IOTJS_ASSERT(length == _this->length);
+  IOTJS_ASSERT(length == bufferwrap->length);
   jerry_release_value(jbuf);
   jerry_release_value(jlength);
 #endif
-  return _this->length;
+  return bufferwrap->length;
 }
 
 
@@ -167,17 +146,15 @@ static size_t iotjs_convert_double_to_sizet(double value) {
 
 int iotjs_bufferwrap_compare(const iotjs_bufferwrap_t* bufferwrap,
                              const iotjs_bufferwrap_t* other) {
-  const IOTJS_VALIDATED_STRUCT_METHOD(iotjs_bufferwrap_t, bufferwrap);
-
-  const char* other_buffer = other->unsafe.buffer;
-  size_t other_length = other->unsafe.length;
+  const char* other_buffer = other->buffer;
+  size_t other_length = other->length;
 
   size_t i = 0;
   size_t j = 0;
-  while (i < _this->length && j < other_length) {
-    if (_this->buffer[i] < other_buffer[j]) {
+  while (i < bufferwrap->length && j < other_length) {
+    if (bufferwrap->buffer[i] < other_buffer[j]) {
       return -1;
-    } else if (_this->buffer[i] > other_buffer[j]) {
+    } else if (bufferwrap->buffer[i] > other_buffer[j]) {
       return 1;
     }
     ++i;
@@ -185,7 +162,7 @@ int iotjs_bufferwrap_compare(const iotjs_bufferwrap_t* bufferwrap,
   }
   if (j < other_length) {
     return -1;
-  } else if (i < _this->length) {
+  } else if (i < bufferwrap->length) {
     return 1;
   }
   return 0;
@@ -194,12 +171,11 @@ int iotjs_bufferwrap_compare(const iotjs_bufferwrap_t* bufferwrap,
 size_t iotjs_bufferwrap_copy_internal(iotjs_bufferwrap_t* bufferwrap,
                                       const char* src, size_t src_from,
                                       size_t src_to, size_t dst_from) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_bufferwrap_t, bufferwrap);
   size_t copied = 0;
-  size_t dst_length = _this->length;
+  size_t dst_length = bufferwrap->length;
   for (size_t i = src_from, j = dst_from; i < src_to && j < dst_length;
        ++i, ++j) {
-    *(_this->buffer + j) = *(src + i);
+    *(bufferwrap->buffer + j) = *(src + i);
     ++copied;
   }
   return copied;
@@ -208,7 +184,6 @@ size_t iotjs_bufferwrap_copy_internal(iotjs_bufferwrap_t* bufferwrap,
 
 size_t iotjs_bufferwrap_copy(iotjs_bufferwrap_t* bufferwrap, const char* src,
                              size_t len) {
-  IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_bufferwrap_t, bufferwrap);
   return iotjs_bufferwrap_copy_internal(bufferwrap, src, 0, len, 0);
 }
 
@@ -283,7 +258,7 @@ JS_FUNCTION(Copy) {
     src_end = src_start;
   }
 
-  const char* src_data = iotjs_bufferwrap_buffer(src_buffer_wrap);
+  const char* src_data = src_buffer_wrap->buffer;
   size_t copied = iotjs_bufferwrap_copy_internal(dst_buffer_wrap, src_data,
                                                  src_start, src_end, dst_start);
 
@@ -372,7 +347,7 @@ JS_FUNCTION(ReadUInt8) {
   size_t offset = iotjs_convert_double_to_sizet(JS_GET_ARG(0, number));
   offset = bound_range(offset, 0, buffer_length - 1);
 
-  char* buffer = iotjs_bufferwrap_buffer(buffer_wrap);
+  char* buffer = buffer_wrap->buffer;
   uint8_t result = 0;
 
   if (buffer != NULL) {
@@ -424,8 +399,7 @@ JS_FUNCTION(Slice) {
   jerry_value_t jnew_buffer = iotjs_bufferwrap_create_buffer(length);
   iotjs_bufferwrap_t* new_buffer_wrap =
       iotjs_bufferwrap_from_jbuffer(jnew_buffer);
-  iotjs_bufferwrap_copy_internal(new_buffer_wrap,
-                                 iotjs_bufferwrap_buffer(buffer_wrap),
+  iotjs_bufferwrap_copy_internal(new_buffer_wrap, buffer_wrap->buffer,
                                  start_idx, end_idx, 0);
 
   return jnew_buffer;
@@ -448,7 +422,7 @@ JS_FUNCTION(ToString) {
 
   size_t length = end - start;
 
-  const char* data = iotjs_bufferwrap_buffer(buffer_wrap) + start;
+  const char* data = buffer_wrap->buffer + start;
   length = strnlen(data, length);
 
   if (!jerry_is_valid_utf8_string((const jerry_char_t*)data, length)) {
@@ -463,7 +437,7 @@ JS_FUNCTION(ToHexString) {
   JS_DECLARE_THIS_PTR(bufferwrap, buffer_wrap);
 
   size_t length = iotjs_bufferwrap_length(buffer_wrap);
-  const char* data = iotjs_bufferwrap_buffer(buffer_wrap);
+  const char* data = buffer_wrap->buffer;
   JS_CHECK(data != NULL);
 
   char* buffer = iotjs_buffer_allocate(length * 2);

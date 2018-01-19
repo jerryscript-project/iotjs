@@ -25,19 +25,16 @@
 typedef struct {
   iotjs_reqwrap_t reqwrap;
   uv_getaddrinfo_t req;
-} IOTJS_VALIDATED_STRUCT(iotjs_getaddrinfo_reqwrap_t);
-
-#define THIS iotjs_getaddrinfo_reqwrap_t* getaddrinfo_reqwrap
+} iotjs_getaddrinfo_reqwrap_t;
 
 iotjs_getaddrinfo_reqwrap_t* iotjs_getaddrinfo_reqwrap_create(
     const jerry_value_t jcallback);
 
-void iotjs_getaddrinfo_reqwrap_dispatched(THIS);
+void iotjs_getaddrinfo_reqwrap_dispatched(
+    iotjs_getaddrinfo_reqwrap_t* getaddrinfo_reqwrap);
 
-uv_getaddrinfo_t* iotjs_getaddrinfo_reqwrap_req(THIS);
-jerry_value_t iotjs_getaddrinfo_reqwrap_jcallback(THIS);
-
-#undef THIS
+jerry_value_t iotjs_getaddrinfo_reqwrap_jcallback(
+    iotjs_getaddrinfo_reqwrap_t* getaddrinfo_reqwrap);
 
 
 #endif /* IOTJS_MODULE_DNS_H */

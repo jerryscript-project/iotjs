@@ -17,7 +17,9 @@ OSX 10.10 as development host
     * Samsung Artik 053
     * Samsung Artik 10
     * (and your contributions including above plans)
-
+* Beta Tested
+    * Raspberry Pi zero & Raspberry Pi zero-W
+    
 We will support the correct behavior of APIs for above environments. However, since IoT.js is targeting various kind IoT devices and platforms, single implementation cannot be the best practice for every environments. Therefore embedders should be in charge of optimization for their own environments. For more details on optimization, see the [Optimization Tips](devs/Optimization-Tips.md) page.
 
 

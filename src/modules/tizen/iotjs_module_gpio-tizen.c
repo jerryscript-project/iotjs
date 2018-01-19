@@ -24,7 +24,7 @@ struct iotjs_gpio_platform_data_s {
 
 void iotjs_gpio_create_platform_data(iotjs_gpio_t* gpio) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_gpio_t, gpio);
-  _this->platform_data_data = IOTJS_ALLOC(iotjs_gpio_platform_data_t);
+  _this->platform_data = IOTJS_ALLOC(iotjs_gpio_platform_data_t);
 }
 
 void iotjs_gpio_destroy_platform_data(

@@ -20,13 +20,6 @@ The following shows PWM module APIs available for each platform.
 
 ## Class: PWM
 
-### new PWM()
-
-Returns a new PWM object which can open a PWM pin.
-
-This object allows the developer to specify a pin and generate a pulse-width modulatated (PWM)
-signal through that.
-
 ### pwm.open(configuration[, callback])
 * `configuration` {Object} Configuration object which can have the following properties.
   * `pin` {number} The pin number to use with this PWM object (mandatory configuration).

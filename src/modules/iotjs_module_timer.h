@@ -21,9 +21,7 @@
 #include "iotjs_handlewrap.h"
 
 
-typedef struct {
-  iotjs_handlewrap_t handlewrap;
-} IOTJS_VALIDATED_STRUCT(iotjs_timerwrap_t);
+typedef struct { iotjs_handlewrap_t handlewrap; } iotjs_timerwrap_t;
 
 
 iotjs_timerwrap_t* iotjs_timerwrap_create(const jerry_value_t jtimer);

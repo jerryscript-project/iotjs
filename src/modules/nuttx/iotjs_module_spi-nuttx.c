@@ -13,7 +13,9 @@
  * limitations under the License.
  */
 
-#if defined(__NUTTX__)
+#if !defined(__NUTTX__)
+#error "Module __FILE__ is for nuttx only"
+#endif
 
 #include <nuttx/board.h>
 
@@ -22,10 +24,41 @@
 #include "modules/iotjs_module_spi.h"
 
 
-bool iotjs_spi_transfer(iotjs_spi_t* spi) {
+struct iotjs_spi_platform_data_s {
+  int bus;
+  uint32_t cs_chip;
+  struct spi_dev_s* spi_dev;
+};
+
+void iotjs_spi_create_platform_data(iotjs_spi_t* spi) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_spi_t, spi);
 
-  struct spi_dev_s* spi_dev = _this->spi_dev;
+  _this->platform_data = IOTJS_ALLOC(iotjs_spi_platform_data_t);
+  _this->platform_data->bus = -1;
+  _this->platform_data->cs_chip = 0;
+  _this->platform_data->spi_dev = NULL;
+}
+
+void iotjs_spi_destroy_platform_data(iotjs_spi_platform_data_t* pdata) {
+  IOTJS_RELEASE(pdata);
+}
+
+jerry_value_t iotjs_spi_set_platform_config(iotjs_spi_t* spi,
+                                            const jerry_value_t jconfig) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_spi_t, spi);
+  iotjs_spi_platform_data_t* platform_data = _this->platform_data;
+
+  DJS_GET_REQUIRED_CONF_VALUE(jconfig, platform_data->bus,
+                              IOTJS_MAGIC_STRING_BUS, number);
+
+  return jerry_create_undefined();
+}
+
+bool iotjs_spi_transfer(iotjs_spi_t* spi) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_spi_t, spi);
+  iotjs_spi_platform_data_t* platform_data = _this->platform_data;
+
+  struct spi_dev_s* spi_dev = platform_data->spi_dev;
 
   SPI_LOCK(spi_dev, true);
 
@@ -35,52 +68,48 @@ bool iotjs_spi_transfer(iotjs_spi_t* spi) {
   SPI_SETBITS(spi_dev, _this->bits_per_word);
 
   // Select the SPI
-  iotjs_gpio_write_nuttx(_this->cs_chip, false);
+  iotjs_gpio_write_nuttx(platform_data->cs_chip, false);
 
   SPI_EXCHANGE(spi_dev, _this->tx_buf_data, _this->rx_buf_data, _this->buf_len);
 
   // Unselect the SPI device
-  iotjs_gpio_write_nuttx(_this->cs_chip, true);
+  iotjs_gpio_write_nuttx(platform_data->cs_chip, true);
 
   SPI_LOCK(spi_dev, false);
 
   return true;
 }
 
-
 bool iotjs_spi_close(iotjs_spi_t* spi) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_spi_t, spi);
+  iotjs_spi_platform_data_t* platform_data = _this->platform_data;
 
-  iotjs_gpio_unconfig_nuttx(_this->cs_chip);
+  iotjs_gpio_unconfig_nuttx(platform_data->cs_chip);
 
   return true;
 }
 
-
-void iotjs_spi_open_worker(uv_work_t* work_req) {
-  SPI_WORKER_INIT;
+bool iotjs_spi_open(iotjs_spi_t* spi) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_spi_t, spi);
+  iotjs_spi_platform_data_t* platform_data = _this->platform_data;
 
-  switch (_this->bus) {
+  switch (platform_data->bus) {
     case 1:
-      _this->cs_chip = (GPIO_OUTPUT | GPIO_PUSHPULL | GPIO_SPEED_50MHz |
-                        GPIO_PORTA | GPIO_PIN15 | GPIO_OUTPUT_SET);
+      platform_data->cs_chip = (GPIO_OUTPUT | GPIO_PUSHPULL | GPIO_SPEED_50MHz |
+                                GPIO_PORTA | GPIO_PIN15 | GPIO_OUTPUT_SET);
       break;
     default:
-      req_data->result = false;
-      return;
+      return false;
   }
 
-  iotjs_gpio_config_nuttx(_this->cs_chip);
+  iotjs_gpio_config_nuttx(platform_data->cs_chip);
 
-  if (!(_this->spi_dev = iotjs_spi_config_nuttx(_this->bus, _this->cs_chip))) {
-    DLOG("%s - SPI open failed %d", __func__, _this->bus);
-    req_data->result = false;
-    return;
+  if (!(platform_data->spi_dev =
+            iotjs_spi_config_nuttx(platform_data->bus,
+                                   platform_data->cs_chip))) {
+    DLOG("%s - SPI open failed %d", __func__, platform_data->bus);
+    return false;
   }
 
-  req_data->result = true;
+  return true;
 }
-
-
-#endif // __NUTTX__

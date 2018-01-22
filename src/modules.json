@@ -269,8 +269,7 @@
       },
       "native_files": ["modules/iotjs_module_spi.c"],
       "init": "InitSpi",
-      "js_file": "js/spi.js",
-      "require": ["util"]
+      "js_file": "js/spi.js"
     },
     "stm32f4dis": {
       "platforms": {

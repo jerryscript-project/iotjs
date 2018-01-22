@@ -14,9 +14,7 @@
  */
 
 var assert = require('assert');
-var Spi = require('spi');
-
-var spi = new Spi();
+var spi = require('spi');
 
 var configuration = {};
 
@@ -29,32 +27,24 @@ if (process.platform === 'linux') {
 }
 
 // Buffer test
-var spi1 = spi.open(configuration, function() {
+var spi1 = spi.open(configuration, function(err) {
+  assert.equal(err, null);
   var data = 'Hello IoTjs';
   var tx = new Buffer(data);
-  var rx = new Buffer(11);
 
-  this.transferSync(tx, rx);
-  var value = '';
-  for (var i = 0; i < 11; i++) {
-    value += String.fromCharCode(rx[i]);
-  }
-  console.log(value);
-  assert.equal(value, data);
+  spi1.transfer(tx, function(err, rx) {
+    assert.equal(err, null);
+    assert.equal(rx.length, 11);
 
-  setTimeout(function() {
-    spi1.transfer(tx, rx, function(err) {
+    var value = '';
+    for (var i = 0; i < 11; i++) {
+      value += String.fromCharCode(rx[i]);
+    }
+    console.log(value);
+    assert.equal(value, data);
+
+    spi1.close(function (err) {
       assert.equal(err, null);
-      assert.equal(rx.length, 11);
-
-      var value = '';
-      for (var i = 0; i < 11; i++) {
-        value += String.fromCharCode(rx[i]);
-      }
-      console.log(value);
-      assert.equal(value, data);
-
-      spi1.close();
     });
-  }, 500);
+  });
 });

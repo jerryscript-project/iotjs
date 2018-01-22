@@ -4,21 +4,18 @@ The following shows uart module APIs available for each platform.
 
 |  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | NuttX<br/>(STM32F4-Discovery) | TizenRT<br/>(Artik053) |
 | :---: | :---: | :---: | :---: | :---: |
-| uart.open | O | O | O | O |
-| uartport.write | O | O | O | O |
-| uartport.writeSync | O | O | O | O |
-| uartport.close | O | O | X | O |
-| uartport.closeSync | O | O | X | O |
+| uart.open             | O | O | O | O |
+| uart.openSync         | O | O | O | O |
+| uartport.write        | O | O | O | O |
+| uartport.writeSync    | O | O | O | O |
+| uartport.close        | O | O | X | O |
+| uartport.closeSync    | O | O | X | O |
 
 ## Class: UART
 
 The UART (Universal Asynchronous Receiver/Transmitter) class supports asynchronous serial communication.
 
-### new UART()
-
-Returns with a new UART object.
-
-### uart.open(configuration[, callback])
+### uart.open(configuration, callback)
 * `configuration` {Object}
   * `device` {string} Mandatory configuration.
   * `baudRate` {number} Specifies how fast data is sent over a serial line. **Default:** `9600`.
@@ -29,7 +26,7 @@ Returns with a new UART object.
 
 Opens an UARTPort object with the specified configuration.
 
-The `baudRate` must be equal to one of these values: [0, 50, 75, 110, 134, 150, 200, 300, 600, 1200, 1800, 2400, 4800, 9600, 19200, 38400, 57600, 115200, 230400].
+The `baudRate` must be equal to one of these values: [50, 75, 110, 134, 150, 200, 300, 600, 1200, 1800, 2400, 4800, 9600, 19200, 38400, 57600, 115200, 230400].
 
 The `dataBits` must be equal to one of these values: [5, 6, 7, 8].
 
@@ -40,10 +37,8 @@ You can read more information about the usage of the UART on stm32f4-discovery b
 **Example**
 
 ```js
+var uart = require('uart');
 
-var Uart = require('uart');
-
-var uart = new Uart();
 var configuration = {
   device: '/dev/ttyUSB0'
   baudRate: 115200,
@@ -54,12 +49,40 @@ var serial = uart.open(configuration, function(err) {
   // Do something.
 });
 
+serial.closeSync();
+
+```
+
+### uart.openSync(configuration)
+* `configuration` {Object}
+  * `device` {string} Mandatory configuration.
+  * `baudRate` {number} Specifies how fast data is sent over a serial line. **Default:** `9600`.
+  * `dataBits` {number} Number of data bits that are being transmitted. **Default:** `8`.
+* Returns: {UARTPort}.
+
+Opens an UARTPort object with the specified configuration.
+
+**Example**
+
+```js
+var uart = require('uart');
+
+var configuration = {
+  device: '/dev/ttyUSB0'
+  baudRate: 115200,
+  dataBits: 8,
+}
+
+var serial = uart.openSync(configuration);
+
+serial.closeSync();
+
 ```
 
 ## Class: UARTPort
 The UARTPort class is responsible for transmitting and receiving serial data.
 
-### uartport.write(data[, callback]).
+### uartport.write(data, callback).
 * `data` {string}.
 * `callback` {Function}.
   * `err` {Error|null}.
@@ -69,12 +92,13 @@ Writes the given `data` to the UART device asynchronously.
 **Example**
 
 ```js
+var serial = uart.openSync({device: '/dev/ttyUSB0'});
 
 serial.write('Hello?', function(err) {
   if (err) {
     // Do something.
   }
-  serial.close();
+  serial.closeSync();
 });
 
 ```
@@ -87,10 +111,9 @@ Writes the given `data` to the UART device synchronously.
 **Example**
 
 ```js
-
+var serial = uart.openSync({device: '/dev/ttyUSB0'});
 serial.writeSync('Hello?');
-
-serial.close();
+serial.closeSync();
 
 ```
 

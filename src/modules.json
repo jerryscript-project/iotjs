@@ -327,7 +327,7 @@
       "native_files": ["modules/iotjs_module_uart.c"],
       "init": "InitUart",
       "js_file": "js/uart.js",
-      "require": ["events", "util"]
+      "require": ["events"]
     },
     "udp": {
       "native_files": ["modules/iotjs_module_udp.c"],

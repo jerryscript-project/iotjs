@@ -13,49 +13,39 @@
  * limitations under the License.
  */
 
-#if defined(__TIZENRT__)
-
+#if !defined(__TIZENRT__)
+#error "Module __FILE__ is for TizenRT only"
+#endif
 
 #include "modules/iotjs_module_uart.h"
 
-void iotjs_uart_open_worker(uv_work_t* work_req) {
-  UART_WORKER_INIT;
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_uart_t, uart);
-
-  int fd = open(iotjs_string_data(&_this->device_path),
-                O_RDWR | O_NOCTTY | O_NDELAY);
+bool iotjs_uart_open(iotjs_uart_t* uart) {
+  int fd =
+      open(iotjs_string_data(&uart->device_path), O_RDWR | O_NOCTTY | O_NDELAY);
 
   if (fd < 0) {
-    req_data->result = false;
-    return;
+    return false;
   }
 
-  _this->device_fd = fd;
-  uv_poll_t* poll_handle = &_this->poll_handle;
+  uart->device_fd = fd;
+  iotjs_uart_register_read_cb(uart);
 
-  uv_loop_t* loop = iotjs_environment_loop(iotjs_environment_get());
-  uv_poll_init(loop, poll_handle, fd);
-  poll_handle->data = uart;
-  uv_poll_start(poll_handle, UV_READABLE, iotjs_uart_read_cb);
-
-  req_data->result = true;
+  return true;
 }
 
-
 bool iotjs_uart_write(iotjs_uart_t* uart) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_uart_t, uart);
   int bytesWritten = 0;
   unsigned offset = 0;
-  int fd = _this->device_fd;
-  const char* buf_data = iotjs_string_data(&_this->buf_data);
+  int fd = uart->device_fd;
+  const char* buf_data = iotjs_string_data(&uart->buf_data);
 
   DDDLOG("%s - data: %s", __func__, buf_data);
 
   do {
     errno = 0;
-    bytesWritten = write(fd, buf_data + offset, _this->buf_len - offset);
+    bytesWritten = write(fd, buf_data + offset, uart->buf_len - offset);
 
-    DDDLOG("%s - size: %d", __func__, _this->buf_len - offset);
+    DDDLOG("%s - size: %d", __func__, uart->buf_len - offset);
 
     if (bytesWritten != -1) {
       offset += (unsigned)bytesWritten;
@@ -68,10 +58,7 @@ bool iotjs_uart_write(iotjs_uart_t* uart) {
 
     return false;
 
-  } while (_this->buf_len > offset);
+  } while (uart->buf_len > offset);
 
   return true;
 }
-
-
-#endif // __TIZENRT__

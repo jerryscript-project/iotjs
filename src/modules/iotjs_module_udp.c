@@ -291,13 +291,12 @@ JS_FUNCTION(Send) {
   jerry_value_t jcallback = JS_GET_ARG(3, object);
 
   iotjs_bufferwrap_t* buffer_wrap = iotjs_bufferwrap_from_jbuffer(jbuffer);
-  char* buffer = iotjs_bufferwrap_buffer(buffer_wrap);
   size_t len = iotjs_bufferwrap_length(buffer_wrap);
 
   iotjs_send_reqwrap_t* req_wrap = iotjs_send_reqwrap_create(jcallback, len);
 
   uv_buf_t buf;
-  buf.base = buffer;
+  buf.base = buffer_wrap->buffer;
   buf.len = len;
 
   char addr[sizeof(sockaddr_in6)];

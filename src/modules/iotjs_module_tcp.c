@@ -434,11 +434,10 @@ JS_FUNCTION(Write) {
 
   const jerry_value_t jbuffer = JS_GET_ARG(0, object);
   iotjs_bufferwrap_t* buffer_wrap = iotjs_bufferwrap_from_jbuffer(jbuffer);
-  char* buffer = iotjs_bufferwrap_buffer(buffer_wrap);
   size_t len = iotjs_bufferwrap_length(buffer_wrap);
 
   uv_buf_t buf;
-  buf.base = buffer;
+  buf.base = buffer_wrap->buffer;
   buf.len = len;
 
   jerry_value_t arg1 = JS_GET_ARG(1, object);

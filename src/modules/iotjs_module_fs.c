@@ -251,7 +251,7 @@ JS_FUNCTION(Read) {
   const jerry_value_t jcallback = JS_GET_ARG_IF_EXIST(5, function);
 
   iotjs_bufferwrap_t* buffer_wrap = iotjs_bufferwrap_from_jbuffer(jbuffer);
-  char* data = iotjs_bufferwrap_buffer(buffer_wrap);
+  char* data = buffer_wrap->buffer;
   size_t data_length = iotjs_bufferwrap_length(buffer_wrap);
   JS_CHECK(data != NULL);
   JS_CHECK(data_length > 0);
@@ -290,7 +290,7 @@ JS_FUNCTION(Write) {
   const jerry_value_t jcallback = JS_GET_ARG_IF_EXIST(5, function);
 
   iotjs_bufferwrap_t* buffer_wrap = iotjs_bufferwrap_from_jbuffer(jbuffer);
-  char* data = iotjs_bufferwrap_buffer(buffer_wrap);
+  char* data = buffer_wrap->buffer;
   size_t data_length = iotjs_bufferwrap_length(buffer_wrap);
   JS_CHECK(data != NULL);
   JS_CHECK(data_length > 0);

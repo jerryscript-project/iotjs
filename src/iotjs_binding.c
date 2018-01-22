@@ -230,7 +230,7 @@ jerry_value_t iotjs_jval_get_property(jerry_value_t jobj, const char* name) {
 
   if (jerry_value_has_error_flag(res)) {
     jerry_release_value(res);
-    return jerry_acquire_value(jerry_create_undefined());
+    return jerry_create_undefined();
   }
 
   return res;

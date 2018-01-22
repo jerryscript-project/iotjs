@@ -27,10 +27,6 @@ typedef const jerry_object_native_info_t JNativeInfoType;
 /* Constructors */
 jerry_value_t iotjs_jval_create_string(const iotjs_string_t* v);
 jerry_value_t iotjs_jval_create_byte_array(uint32_t len, const char* data);
-jerry_value_t iotjs_jval_dummy_function(const jerry_value_t function_obj,
-                                        const jerry_value_t this_val,
-                                        const jerry_value_t args_p[],
-                                        const jerry_length_t args_count);
 jerry_value_t iotjs_jval_create_function(jerry_external_handler_t handler);
 jerry_value_t iotjs_jval_create_error_without_error_flag(const char* msg);
 

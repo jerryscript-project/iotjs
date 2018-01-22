@@ -13,7 +13,9 @@
  * limitations under the License.
  */
 
-#if defined(__TIZENRT__)
+#if !defined(__TIZENRT__)
+#error "Module __FILE__ is for TizenRT only"
+#endif
 
 #include <errno.h>
 #include <fcntl.h>
@@ -27,6 +29,11 @@
 
 #define S5J_ADC_MAX_CHANNELS 4
 
+struct iotjs_adc_platform_data_s {
+  int32_t device_fd;
+  uint32_t pin;
+};
+
 // There is one file for all ADC inputs so wee need one common file descriptor
 static int32_t device_fd;
 // This is simple ref counter. Each time ADC is opened, it is increased.
@@ -34,28 +41,59 @@ static size_t device_fd_counter = 0;
 // Path of ADC device.
 #define TIZENRT_ADC_DEVICE "/dev/adc0"
 
-int32_t iotjs_adc_read(iotjs_adc_t* adc) {
+void iotjs_adc_create_platform_data(iotjs_adc_t* adc) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_adc_t, adc);
+  _this->platform_data = IOTJS_ALLOC(iotjs_adc_platform_data_t);
+  _this->platform_data->device_fd = -1;
+  _this->platform_data->pin = 0;
+}
+
+
+void iotjs_adc_destroy_platform_data(iotjs_adc_platform_data_t* platform_data) {
+  IOTJS_RELEASE(platform_data);
+}
+
+
+jerry_value_t iotjs_adc_set_platform_config(iotjs_adc_t* adc,
+                                            const jerry_value_t jconfig) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_adc_t, adc);
+  iotjs_adc_platform_data_t* platform_data = _this->platform_data;
+
+  DJS_GET_REQUIRED_CONF_VALUE(jconfig, platform_data->pin,
+                              IOTJS_MAGIC_STRING_PIN, number);
+
+  return jerry_create_undefined();
+}
+
+
+bool iotjs_adc_read(iotjs_adc_t* adc) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_adc_t, adc);
+  iotjs_adc_platform_data_t* platform_data = _this->platform_data;
+
   int ret, nbytes;
   size_t readsize, i, nsamples;
   struct adc_msg_s samples[S5J_ADC_MAX_CHANNELS];
-  ret = ioctl(_this->device_fd, ANIOC_TRIGGER, 0);
+  ret = ioctl(platform_data->device_fd, ANIOC_TRIGGER, 0);
+
   if (ret < 0) {
-    return -1;
+    _this->value = -1;
+    return false;
   }
+
   readsize = sizeof(samples);
   while (true) {
-    nbytes = read(_this->device_fd, samples, readsize);
+    nbytes = read(platform_data->device_fd, samples, readsize);
     if (nbytes > 0) {
       nsamples = (size_t)nbytes / sizeof(struct adc_msg_s);
       int sample = -1;
       for (i = 0; i < nsamples; ++i) {
-        if (_this->pin == samples[i].am_channel) {
+        if (platform_data->pin == samples[i].am_channel) {
           sample = samples[i].am_data;
         }
       }
-      if (-1 != sample) {
-        return sample;
+      if (sample != -1) {
+        _this->value = sample;
+        return true;
       }
     } /* else {
       // The read function is blocking but there are events,
@@ -66,31 +104,37 @@ int32_t iotjs_adc_read(iotjs_adc_t* adc) {
   }
 }
 
+
 bool iotjs_adc_close(iotjs_adc_t* adc) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_adc_t, adc);
-  if (_this->device_fd > 0) {
+  iotjs_adc_platform_data_t* platform_data = _this->platform_data;
+
+  if (platform_data->device_fd > 0) {
     device_fd_counter--;
   }
-  if (0 == device_fd_counter) {
-    close(_this->device_fd);
+
+  if (device_fd_counter == 0) {
+    close(platform_data->device_fd);
   }
+
   return true;
 }
 
 
-void iotjs_adc_open_worker(uv_work_t* work_req) {
-  ADC_WORKER_INIT;
+bool iotjs_adc_open(iotjs_adc_t* adc) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_adc_t, adc);
-  if (0 == device_fd_counter) {
+  iotjs_adc_platform_data_t* platform_data = _this->platform_data;
+
+  if (device_fd_counter == 0) {
     device_fd = open(TIZENRT_ADC_DEVICE, O_RDONLY);
   }
-  _this->device_fd = device_fd;
-  if (_this->device_fd < 0) {
-    req_data->result = false;
-    return;
-  }
-  device_fd_counter++;
-  req_data->result = true;
-}
 
-#endif // __TIZENRT__
+  platform_data->device_fd = device_fd;
+  if (platform_data->device_fd < 0) {
+    return false;
+  }
+
+  device_fd_counter++;
+
+  return true;
+}

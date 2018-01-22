@@ -107,6 +107,9 @@
       "js_file": "js/ble_hci_socket.js",
       "require": ["events"]
     },
+    "blinkt": {
+      "js_file": "js/blinkt.js"
+    },
     "buffer": {
       "native_files": ["modules/iotjs_module_buffer.c"],
       "init": "InitBuffer",

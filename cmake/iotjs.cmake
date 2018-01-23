@@ -427,6 +427,7 @@ target_include_directories(${TARGET_LIB_IOTJS} PRIVATE ${IOTJS_INCLUDE_DIRS})
 target_link_libraries(${TARGET_LIB_IOTJS}
   ${JERRY_LIBS}
   ${TUV_LIBS}
+  curl
   libhttp-parser
   ${MBEDTLS_LIBS}
   ${EXTERNAL_LIBS}

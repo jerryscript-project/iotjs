@@ -44,20 +44,16 @@ void iotjs_gpio_destroy_platform_data(
 
 
 bool iotjs_gpio_write(iotjs_gpio_t* gpio) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_gpio_t, gpio);
-
-  DDDLOG("%s - pin: %d, value: %d", __func__, _this->pin, _this->value);
-  stm32_gpiowrite(_this->pin, _this->value);
+  DDDLOG("%s - pin: %d, value: %d", __func__, gpio->pin, gpio->value);
+  stm32_gpiowrite(gpio->pin, gpio->value);
 
   return true;
 }
 
 
 bool iotjs_gpio_read(iotjs_gpio_t* gpio) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_gpio_t, gpio);
-
-  DDDLOG("%s - pin: %d", __func__, _this->pin);
-  return stm32_gpioread(_this->pin);
+  DDDLOG("%s - pin: %d", __func__, gpio->pin);
+  return stm32_gpioread(gpio->pin);
 }
 
 
@@ -69,15 +65,13 @@ bool iotjs_gpio_close(iotjs_gpio_t* gpio) {
 
 
 bool iotjs_gpio_open(iotjs_gpio_t* gpio) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_gpio_t, gpio);
-
-  DDDLOG("%s - pin: %d, dir: %d, mode: %d", __func__, _this->pin,
-         _this->direction, _this->mode);
+  DDDLOG("%s - pin: %d, dir: %d, mode: %d", __func__, gpio->pin,
+         gpio->direction, gpio->mode);
 
   uint32_t cfgset = 0;
 
   // Set pin direction and mode
-  cfgset = gpioDirection[_this->direction] | gpioMode[_this->mode] | _this->pin;
+  cfgset = gpioDirection[gpio->direction] | gpioMode[gpio->mode] | gpio->pin;
 
   if (stm32_configgpio(cfgset) != GPIO_CONFIG_OK) {
     return false;

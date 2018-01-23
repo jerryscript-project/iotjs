@@ -24,9 +24,8 @@ IOTJS_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(gpio);
 
 static iotjs_gpio_t* gpio_create(jerry_value_t jgpio) {
   iotjs_gpio_t* gpio = IOTJS_ALLOC(iotjs_gpio_t);
-  IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_gpio_t, gpio);
   iotjs_gpio_create_platform_data(gpio);
-  _this->jobject = jgpio;
+  gpio->jobject = jgpio;
   jerry_set_object_native_pointer(jgpio, gpio, &this_module_native_info);
 
   return gpio;
@@ -37,39 +36,35 @@ static iotjs_gpio_reqwrap_t* gpio_reqwrap_create(jerry_value_t jcallback,
                                                  iotjs_gpio_t* gpio,
                                                  GpioOp op) {
   iotjs_gpio_reqwrap_t* gpio_reqwrap = IOTJS_ALLOC(iotjs_gpio_reqwrap_t);
-  IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_gpio_reqwrap_t, gpio_reqwrap);
 
-  iotjs_reqwrap_initialize(&_this->reqwrap, jcallback, (uv_req_t*)&_this->req);
+  iotjs_reqwrap_initialize(&gpio_reqwrap->reqwrap, jcallback,
+                           (uv_req_t*)&gpio_reqwrap->req);
 
-  _this->req_data.op = op;
-  _this->gpio_data = gpio;
+  gpio_reqwrap->req_data.op = op;
+  gpio_reqwrap->gpio_data = gpio;
   return gpio_reqwrap;
 }
 
 
 static void gpio_reqwrap_destroy(iotjs_gpio_reqwrap_t* gpio_reqwrap) {
-  IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_gpio_reqwrap_t, gpio_reqwrap);
-  iotjs_reqwrap_destroy(&_this->reqwrap);
+  iotjs_reqwrap_destroy(&gpio_reqwrap->reqwrap);
   IOTJS_RELEASE(gpio_reqwrap);
 }
 
 
 static void gpio_reqwrap_dispatched(iotjs_gpio_reqwrap_t* gpio_reqwrap) {
-  IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_gpio_reqwrap_t, gpio_reqwrap);
   gpio_reqwrap_destroy(gpio_reqwrap);
 }
 
 
 static uv_work_t* gpio_reqwrap_req(iotjs_gpio_reqwrap_t* gpio_reqwrap) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_gpio_reqwrap_t, gpio_reqwrap);
-  return &_this->req;
+  return &gpio_reqwrap->req;
 }
 
 
 static jerry_value_t gpio_reqwrap_jcallback(
     iotjs_gpio_reqwrap_t* gpio_reqwrap) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_gpio_reqwrap_t, gpio_reqwrap);
-  return iotjs_reqwrap_jcallback(&_this->reqwrap);
+  return iotjs_reqwrap_jcallback(&gpio_reqwrap->reqwrap);
 }
 
 
@@ -80,21 +75,18 @@ static iotjs_gpio_reqwrap_t* gpio_reqwrap_from_request(uv_work_t* req) {
 
 static iotjs_gpio_reqdata_t* gpio_reqwrap_data(
     iotjs_gpio_reqwrap_t* gpio_reqwrap) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_gpio_reqwrap_t, gpio_reqwrap);
-  return &_this->req_data;
+  return &gpio_reqwrap->req_data;
 }
 
 
 static iotjs_gpio_t* gpio_instance_from_reqwrap(
     iotjs_gpio_reqwrap_t* gpio_reqwrap) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_gpio_reqwrap_t, gpio_reqwrap);
-  return _this->gpio_data;
+  return gpio_reqwrap->gpio_data;
 }
 
 
 static void iotjs_gpio_destroy(iotjs_gpio_t* gpio) {
-  IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_gpio_t, gpio);
-  iotjs_gpio_destroy_platform_data(_this->platform_data);
+  iotjs_gpio_destroy_platform_data(gpio->platform_data);
   IOTJS_RELEASE(gpio);
 }
 
@@ -159,10 +151,9 @@ static void gpio_after_worker(uv_work_t* work_req, int status) {
           iotjs_jargs_append_error(&jargs, "GPIO Read Error");
         } else {
           iotjs_gpio_t* gpio = gpio_instance_from_reqwrap(req_wrap);
-          IOTJS_VALIDATED_STRUCT_METHOD(iotjs_gpio_t, gpio);
 
           iotjs_jargs_append_null(&jargs);
-          iotjs_jargs_append_bool(&jargs, _this->value);
+          iotjs_jargs_append_bool(&jargs, gpio->value);
         }
         break;
       case kGpioOpClose:
@@ -190,11 +181,9 @@ static void gpio_after_worker(uv_work_t* work_req, int status) {
 
 static void gpio_set_configurable(iotjs_gpio_t* gpio,
                                   jerry_value_t jconfigurable) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_gpio_t, gpio);
-
   jerry_value_t jpin =
       iotjs_jval_get_property(jconfigurable, IOTJS_MAGIC_STRING_PIN);
-  _this->pin = iotjs_jval_as_number(jpin);
+  gpio->pin = iotjs_jval_as_number(jpin);
   jerry_release_value(jpin);
 
   // Direction
@@ -202,9 +191,9 @@ static void gpio_set_configurable(iotjs_gpio_t* gpio,
       iotjs_jval_get_property(jconfigurable, IOTJS_MAGIC_STRING_DIRECTION);
 
   if (!jerry_value_is_undefined(jdirection)) {
-    _this->direction = (GpioDirection)iotjs_jval_as_number(jdirection);
+    gpio->direction = (GpioDirection)iotjs_jval_as_number(jdirection);
   } else {
-    _this->direction = kGpioDirectionOut;
+    gpio->direction = kGpioDirectionOut;
   }
   jerry_release_value(jdirection);
 
@@ -213,9 +202,9 @@ static void gpio_set_configurable(iotjs_gpio_t* gpio,
       iotjs_jval_get_property(jconfigurable, IOTJS_MAGIC_STRING_MODE);
 
   if (!jerry_value_is_undefined(jmode)) {
-    _this->mode = (GpioMode)iotjs_jval_as_number(jmode);
+    gpio->mode = (GpioMode)iotjs_jval_as_number(jmode);
   } else {
-    _this->mode = kGpioModeNone;
+    gpio->mode = kGpioModeNone;
   }
   jerry_release_value(jmode);
 
@@ -224,9 +213,9 @@ static void gpio_set_configurable(iotjs_gpio_t* gpio,
       iotjs_jval_get_property(jconfigurable, IOTJS_MAGIC_STRING_EDGE);
 
   if (!jerry_value_is_undefined(jedge)) {
-    _this->edge = (GpioEdge)iotjs_jval_as_number(jedge);
+    gpio->edge = (GpioEdge)iotjs_jval_as_number(jedge);
   } else {
-    _this->edge = kGpioEdgeNone;
+    gpio->edge = kGpioEdgeNone;
   }
   jerry_release_value(jedge);
 }
@@ -302,8 +291,7 @@ JS_FUNCTION(Write) {
 
   DJS_CHECK_ARG_IF_EXIST(1, function);
 
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_gpio_t, gpio);
-  _this->value = value;
+  gpio->value = value;
 
   GPIO_CALL_ASYNC(kGpioOpWrite, JS_GET_ARG_IF_EXIST(1, function));
 
@@ -324,8 +312,7 @@ JS_FUNCTION(WriteSync) {
                            "GPIO WriteSync Error - Wrong argument type");
   }
 
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_gpio_t, gpio);
-  _this->value = value;
+  gpio->value = value;
 
   if (!iotjs_gpio_write(gpio)) {
     return JS_CREATE_ERROR(COMMON, "GPIO WriteSync Error");
@@ -352,9 +339,7 @@ JS_FUNCTION(ReadSync) {
     return JS_CREATE_ERROR(COMMON, "GPIO ReadSync Error");
   }
 
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_gpio_t, gpio);
-
-  return jerry_create_boolean(_this->value);
+  return jerry_create_boolean(gpio->value);
 }
 
 

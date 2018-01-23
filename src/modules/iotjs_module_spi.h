@@ -70,7 +70,7 @@ typedef struct {
   char* tx_buf_data;
   char* rx_buf_data;
   uint8_t buf_len;
-} IOTJS_VALIDATED_STRUCT(iotjs_spi_t);
+} iotjs_spi_t;
 
 typedef struct {
   bool result;
@@ -82,14 +82,7 @@ typedef struct {
   uv_work_t req;
   iotjs_spi_reqdata_t req_data;
   iotjs_spi_t* spi_data;
-} IOTJS_VALIDATED_STRUCT(iotjs_spi_reqwrap_t);
-
-
-#define THIS iotjs_spi_reqwrap_t* spi_reqwrap
-iotjs_spi_reqwrap_t* iotjs_spi_reqwrap_from_request(uv_work_t* req);
-iotjs_spi_reqdata_t* iotjs_spi_reqwrap_data(THIS);
-iotjs_spi_t* iotjs_spi_instance_from_reqwrap(THIS);
-#undef THIS
+} iotjs_spi_reqwrap_t;
 
 
 jerry_value_t iotjs_spi_set_platform_config(iotjs_spi_t* spi,

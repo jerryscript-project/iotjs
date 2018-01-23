@@ -31,12 +31,10 @@ struct iotjs_spi_platform_data_s {
 };
 
 void iotjs_spi_create_platform_data(iotjs_spi_t* spi) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_spi_t, spi);
-
-  _this->platform_data = IOTJS_ALLOC(iotjs_spi_platform_data_t);
-  _this->platform_data->bus = -1;
-  _this->platform_data->cs_chip = 0;
-  _this->platform_data->spi_dev = NULL;
+  spi->platform_data = IOTJS_ALLOC(iotjs_spi_platform_data_t);
+  spi->platform_data->bus = -1;
+  spi->platform_data->cs_chip = 0;
+  spi->platform_data->spi_dev = NULL;
 }
 
 void iotjs_spi_destroy_platform_data(iotjs_spi_platform_data_t* pdata) {
@@ -45,8 +43,7 @@ void iotjs_spi_destroy_platform_data(iotjs_spi_platform_data_t* pdata) {
 
 jerry_value_t iotjs_spi_set_platform_config(iotjs_spi_t* spi,
                                             const jerry_value_t jconfig) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_spi_t, spi);
-  iotjs_spi_platform_data_t* platform_data = _this->platform_data;
+  iotjs_spi_platform_data_t* platform_data = spi->platform_data;
 
   DJS_GET_REQUIRED_CONF_VALUE(jconfig, platform_data->bus,
                               IOTJS_MAGIC_STRING_BUS, number);
@@ -55,22 +52,21 @@ jerry_value_t iotjs_spi_set_platform_config(iotjs_spi_t* spi,
 }
 
 bool iotjs_spi_transfer(iotjs_spi_t* spi) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_spi_t, spi);
-  iotjs_spi_platform_data_t* platform_data = _this->platform_data;
+  iotjs_spi_platform_data_t* platform_data = spi->platform_data;
 
   struct spi_dev_s* spi_dev = platform_data->spi_dev;
 
   SPI_LOCK(spi_dev, true);
 
-  SPI_SETFREQUENCY(spi_dev, _this->max_speed);
+  SPI_SETFREQUENCY(spi_dev, spi->max_speed);
 
-  SPI_SETMODE(spi_dev, _this->mode);
-  SPI_SETBITS(spi_dev, _this->bits_per_word);
+  SPI_SETMODE(spi_dev, spi->mode);
+  SPI_SETBITS(spi_dev, spi->bits_per_word);
 
   // Select the SPI
   iotjs_gpio_write_nuttx(platform_data->cs_chip, false);
 
-  SPI_EXCHANGE(spi_dev, _this->tx_buf_data, _this->rx_buf_data, _this->buf_len);
+  SPI_EXCHANGE(spi_dev, spi->tx_buf_data, spi->rx_buf_data, spi->buf_len);
 
   // Unselect the SPI device
   iotjs_gpio_write_nuttx(platform_data->cs_chip, true);
@@ -81,8 +77,7 @@ bool iotjs_spi_transfer(iotjs_spi_t* spi) {
 }
 
 bool iotjs_spi_close(iotjs_spi_t* spi) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_spi_t, spi);
-  iotjs_spi_platform_data_t* platform_data = _this->platform_data;
+  iotjs_spi_platform_data_t* platform_data = spi->platform_data;
 
   iotjs_gpio_unconfig_nuttx(platform_data->cs_chip);
 
@@ -90,8 +85,7 @@ bool iotjs_spi_close(iotjs_spi_t* spi) {
 }
 
 bool iotjs_spi_open(iotjs_spi_t* spi) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_spi_t, spi);
-  iotjs_spi_platform_data_t* platform_data = _this->platform_data;
+  iotjs_spi_platform_data_t* platform_data = spi->platform_data;
 
   switch (platform_data->bus) {
     case 1:

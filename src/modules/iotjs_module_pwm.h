@@ -53,7 +53,7 @@ typedef struct {
   double duty_cycle;
   double period;
   bool enable;
-} IOTJS_VALIDATED_STRUCT(iotjs_pwm_t);
+} iotjs_pwm_t;
 
 
 typedef struct {
@@ -61,16 +61,7 @@ typedef struct {
   uv_work_t req;
   iotjs_pwm_reqdata_t req_data;
   iotjs_pwm_t* pwm_data;
-} IOTJS_VALIDATED_STRUCT(iotjs_pwm_reqwrap_t);
-
-
-#define THIS iotjs_pwm_reqwrap_t* pwm_reqwrap
-
-iotjs_pwm_reqwrap_t* iotjs_pwm_reqwrap_from_request(uv_work_t* req);
-iotjs_pwm_reqdata_t* iotjs_pwm_reqwrap_data(THIS);
-iotjs_pwm_t* iotjs_pwm_instance_from_reqwrap(THIS);
-
-#undef THIS
+} iotjs_pwm_reqwrap_t;
 
 jerry_value_t iotjs_pwm_set_platform_config(iotjs_pwm_t* pwm,
                                             const jerry_value_t jconfig);

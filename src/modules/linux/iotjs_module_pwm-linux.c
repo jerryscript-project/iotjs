@@ -47,9 +47,8 @@ struct iotjs_pwm_platform_data_s {
 };
 
 void iotjs_pwm_create_platform_data(iotjs_pwm_t* pwm) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_pwm_t, pwm);
-  _this->platform_data = IOTJS_ALLOC(iotjs_pwm_platform_data_t);
-  _this->platform_data->chip = 0;
+  pwm->platform_data = IOTJS_ALLOC(iotjs_pwm_platform_data_t);
+  pwm->platform_data->chip = 0;
 }
 
 void iotjs_pwm_destroy_platform_data(iotjs_pwm_platform_data_t* pdata) {
@@ -59,8 +58,7 @@ void iotjs_pwm_destroy_platform_data(iotjs_pwm_platform_data_t* pdata) {
 
 jerry_value_t iotjs_pwm_set_platform_config(iotjs_pwm_t* pwm,
                                             const jerry_value_t jconfig) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_pwm_t, pwm);
-  iotjs_pwm_platform_data_t* platform_data = _this->platform_data;
+  iotjs_pwm_platform_data_t* platform_data = pwm->platform_data;
   jerry_value_t jchip =
       iotjs_jval_get_property(jconfig, IOTJS_MAGIC_STRING_CHIP);
 
@@ -115,12 +113,11 @@ static double adjust_period(double period) {
 
 
 bool iotjs_pwm_open(iotjs_pwm_t* pwm) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_pwm_t, pwm);
-  iotjs_pwm_platform_data_t* platform_data = _this->platform_data;
+  iotjs_pwm_platform_data_t* platform_data = pwm->platform_data;
 
   char path[PWM_PATH_BUFFER_SIZE] = { 0 };
   if (snprintf(path, PWM_PATH_BUFFER_SIZE, PWM_PIN_FORMAT, platform_data->chip,
-               _this->pin) < 0) {
+               pwm->pin) < 0) {
     return false;
   }
 
@@ -136,18 +133,18 @@ bool iotjs_pwm_open(iotjs_pwm_t* pwm) {
     const char* created_files[] = { PWM_PIN_DUTYCYCLE, PWM_PIN_PERIOD,
                                     PWM_PIN_ENABlE };
     int created_files_length = sizeof(created_files) / sizeof(created_files[0]);
-    if (!iotjs_systemio_device_open(export_path, _this->pin, path,
-                                    created_files, created_files_length)) {
+    if (!iotjs_systemio_device_open(export_path, pwm->pin, path, created_files,
+                                    created_files_length)) {
       return false;
     }
   }
 
   // Set options.
-  if (_this->period >= 0) {
+  if (pwm->period >= 0) {
     if (!iotjs_pwm_set_period(pwm)) {
       return false;
     }
-    if (_this->duty_cycle >= 0) {
+    if (pwm->duty_cycle >= 0) {
       if (!iotjs_pwm_set_dutycycle(pwm)) {
         return false;
       }
@@ -161,16 +158,15 @@ bool iotjs_pwm_open(iotjs_pwm_t* pwm) {
 
 
 bool iotjs_pwm_set_period(iotjs_pwm_t* pwm) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_pwm_t, pwm);
-  iotjs_pwm_platform_data_t* platform_data = _this->platform_data;
+  iotjs_pwm_platform_data_t* platform_data = pwm->platform_data;
 
   bool result = false;
-  if (isfinite(_this->period) && _this->period >= 0.0) {
+  if (isfinite(pwm->period) && pwm->period >= 0.0) {
     char* devicePath =
         generate_device_subpath(&platform_data->device, PWM_PIN_PERIOD);
     if (devicePath) {
       // Linux API uses nanoseconds, thus 1E9
-      unsigned int value = (unsigned)(adjust_period(_this->period) * 1.E9);
+      unsigned int value = (unsigned)(adjust_period(pwm->period) * 1.E9);
       DDDLOG("%s - path: %s, value: %fs", __func__, devicePath, 1.E-9 * value);
       char buf[PWM_VALUE_BUFFER_SIZE];
       if (snprintf(buf, sizeof(buf), "%d", value) > 0) {
@@ -184,19 +180,18 @@ bool iotjs_pwm_set_period(iotjs_pwm_t* pwm) {
 
 
 bool iotjs_pwm_set_dutycycle(iotjs_pwm_t* pwm) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_pwm_t, pwm);
-  iotjs_pwm_platform_data_t* platform_data = _this->platform_data;
+  iotjs_pwm_platform_data_t* platform_data = pwm->platform_data;
 
   bool result = false;
-  double dutyCycle = _this->duty_cycle;
-  if (isfinite(_this->period) && _this->period >= 0.0 && isfinite(dutyCycle) &&
+  double dutyCycle = pwm->duty_cycle;
+  if (isfinite(pwm->period) && pwm->period >= 0.0 && isfinite(dutyCycle) &&
       0.0 <= dutyCycle && dutyCycle <= 1.0) {
     char* devicePath =
         generate_device_subpath(&platform_data->device, PWM_PIN_DUTYCYCLE);
     if (devicePath) {
-      double period = adjust_period(_this->period);
+      double period = adjust_period(pwm->period);
       // Linux API uses nanoseconds, thus 1E9
-      unsigned dutyCycleValue = (unsigned)(period * _this->duty_cycle * 1E9);
+      unsigned dutyCycleValue = (unsigned)(period * pwm->duty_cycle * 1E9);
 
       DDDLOG("%s - path: %s, value: %d\n", __func__, devicePath,
              dutyCycleValue);
@@ -214,21 +209,20 @@ bool iotjs_pwm_set_dutycycle(iotjs_pwm_t* pwm) {
 
 
 bool iotjs_pwm_set_enable(iotjs_pwm_t* pwm) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_pwm_t, pwm);
-  iotjs_pwm_platform_data_t* platform_data = _this->platform_data;
+  iotjs_pwm_platform_data_t* platform_data = pwm->platform_data;
 
   bool result = false;
   char* devicePath =
       generate_device_subpath(&platform_data->device, PWM_PIN_ENABlE);
   if (devicePath) {
     char value[4];
-    if (snprintf(value, sizeof(value), "%d", _this->enable) < 0) {
+    if (snprintf(value, sizeof(value), "%d", pwm->enable) < 0) {
       return false;
     }
 
-    DDDLOG("%s - path: %s, set: %d\n", __func__, devicePath, _this->enable);
+    DDDLOG("%s - path: %s, set: %d\n", __func__, devicePath, pwm->enable);
     char buf[PWM_VALUE_BUFFER_SIZE];
-    if (snprintf(buf, sizeof(buf), "%d", _this->enable) < 0) {
+    if (snprintf(buf, sizeof(buf), "%d", pwm->enable) < 0) {
       return false;
     }
 
@@ -240,12 +234,11 @@ bool iotjs_pwm_set_enable(iotjs_pwm_t* pwm) {
 
 
 bool iotjs_pwm_close(iotjs_pwm_t* pwm) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_pwm_t, pwm);
-  iotjs_pwm_platform_data_t* platform_data = _this->platform_data;
+  iotjs_pwm_platform_data_t* platform_data = pwm->platform_data;
 
   char path[PWM_PATH_BUFFER_SIZE] = { 0 };
   if (snprintf(path, PWM_PATH_BUFFER_SIZE, PWM_PIN_FORMAT, platform_data->chip,
-               _this->pin) < 0) {
+               pwm->pin) < 0) {
     return false;
   }
 
@@ -257,7 +250,7 @@ bool iotjs_pwm_close(iotjs_pwm_t* pwm) {
       return false;
     }
 
-    iotjs_systemio_device_close(unexport_path, _this->pin);
+    iotjs_systemio_device_close(unexport_path, pwm->pin);
   }
 
   DDDLOG("%s- path: %s", __func__, path);

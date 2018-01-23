@@ -28,8 +28,7 @@ struct iotjs_pwm_platform_data_s {
 };
 
 void iotjs_pwm_create_platform_data(iotjs_pwm_t* pwm) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_pwm_t, pwm);
-  _this->platform_data = IOTJS_ALLOC(iotjs_pwm_platform_data_t);
+  pwm->platform_data = IOTJS_ALLOC(iotjs_pwm_platform_data_t);
 }
 
 void iotjs_pwm_destroy_platform_data(iotjs_pwm_platform_data_t* pdata) {
@@ -42,25 +41,23 @@ jerry_value_t iotjs_pwm_set_platform_config(iotjs_pwm_t* pwm,
 }
 
 static bool pwm_set_options(iotjs_pwm_t* pwm) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_pwm_t, pwm);
-  iotjs_pwm_platform_data_t* platform_data = _this->platform_data;
+  iotjs_pwm_platform_data_t* platform_data = pwm->platform_data;
 
   if (platform_data->ctx == NULL) {
     DLOG("%s - file open failed", __func__);
     return false;
   }
 
-  DDDLOG("%s - period: %d, duty: %d", __func__, (int)_this->period,
-         (int)(_this->duty_cycle * 100));
+  DDDLOG("%s - period: %d, duty: %d", __func__, (int)pwm->period,
+         (int)(pwm->duty_cycle * 100));
 
   return iotjs_pwm_set_dutycycle(pwm) && iotjs_pwm_set_period(pwm);
 }
 
 bool iotjs_pwm_open(iotjs_pwm_t* pwm) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_pwm_t, pwm);
-  iotjs_pwm_platform_data_t* platform_data = _this->platform_data;
+  iotjs_pwm_platform_data_t* platform_data = pwm->platform_data;
 
-  platform_data->ctx = iotbus_pwm_open(0, (int)_this->pin);
+  platform_data->ctx = iotbus_pwm_open(0, (int)pwm->pin);
   if (platform_data->ctx == NULL) {
     DLOG("%s - file open failed", __func__);
     return false;
@@ -74,8 +71,7 @@ bool iotjs_pwm_open(iotjs_pwm_t* pwm) {
 }
 
 bool iotjs_pwm_set_period(iotjs_pwm_t* pwm) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_pwm_t, pwm);
-  iotjs_pwm_platform_data_t* platform_data = _this->platform_data;
+  iotjs_pwm_platform_data_t* platform_data = pwm->platform_data;
 
   iotbus_pwm_context_h ctx = platform_data->ctx;
   if (ctx == NULL) {
@@ -83,14 +79,13 @@ bool iotjs_pwm_set_period(iotjs_pwm_t* pwm) {
     return false;
   }
 
-  uint32_t period_us = (uint32_t)(1000000 * _this->period);
+  uint32_t period_us = (uint32_t)(1000000 * pwm->period);
 
   return iotbus_pwm_set_period(ctx, period_us) == 0;
 }
 
 bool iotjs_pwm_set_dutycycle(iotjs_pwm_t* pwm) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_pwm_t, pwm);
-  iotjs_pwm_platform_data_t* platform_data = _this->platform_data;
+  iotjs_pwm_platform_data_t* platform_data = pwm->platform_data;
 
   iotbus_pwm_context_h ctx = platform_data->ctx;
   if (ctx == NULL) {
@@ -98,14 +93,13 @@ bool iotjs_pwm_set_dutycycle(iotjs_pwm_t* pwm) {
     return false;
   }
 
-  uint32_t duty_cycle_per_cent = (uint32_t)(_this->duty_cycle * 100);
+  uint32_t duty_cycle_per_cent = (uint32_t)(pwm->duty_cycle * 100);
 
   return iotbus_pwm_set_duty_cycle(ctx, duty_cycle_per_cent) == 0;
 }
 
 bool iotjs_pwm_set_enable(iotjs_pwm_t* pwm) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_pwm_t, pwm);
-  iotjs_pwm_platform_data_t* platform_data = _this->platform_data;
+  iotjs_pwm_platform_data_t* platform_data = pwm->platform_data;
 
   iotbus_pwm_context_h ctx = platform_data->ctx;
   if (ctx == NULL) {
@@ -113,10 +107,10 @@ bool iotjs_pwm_set_enable(iotjs_pwm_t* pwm) {
     return false;
   }
 
-  DDDLOG("%s - enable: %d", __func__, _this->enable);
+  DDDLOG("%s - enable: %d", __func__, pwm->enable);
 
   int ret;
-  if (_this->enable) {
+  if (pwm->enable) {
     ret = iotbus_pwm_set_enabled(ctx, IOTBUS_PWM_ENABLE);
   } else {
     ret = iotbus_pwm_set_enabled(ctx, IOTBUS_PWM_DISABLE);
@@ -131,8 +125,7 @@ bool iotjs_pwm_set_enable(iotjs_pwm_t* pwm) {
 }
 
 bool iotjs_pwm_close(iotjs_pwm_t* pwm) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_pwm_t, pwm);
-  iotjs_pwm_platform_data_t* platform_data = _this->platform_data;
+  iotjs_pwm_platform_data_t* platform_data = pwm->platform_data;
 
   iotbus_pwm_context_h ctx = platform_data->ctx;
   if (ctx == NULL) {

@@ -46,25 +46,14 @@ typedef struct {
   uint8_t byte;
   uint8_t cmd;
   uint8_t address;
-} IOTJS_VALIDATED_STRUCT(iotjs_i2c_t);
+} iotjs_i2c_t;
 
 typedef struct {
   iotjs_reqwrap_t reqwrap;
   uv_work_t req;
   iotjs_i2c_reqdata_t req_data;
   iotjs_i2c_t* i2c_data;
-} IOTJS_VALIDATED_STRUCT(iotjs_i2c_reqwrap_t);
-
-
-iotjs_i2c_reqwrap_t* iotjs_i2c_reqwrap_from_request(uv_work_t* req);
-#define THIS iotjs_i2c_reqwrap_t* i2c_reqwrap
-void iotjs_i2c_reqwrap_dispatched(THIS);
-uv_work_t* iotjs_i2c_reqwrap_req(THIS);
-jerry_value_t iotjs_i2c_reqwrap_jcallback(THIS);
-iotjs_i2c_reqdata_t* iotjs_i2c_reqwrap_data(THIS);
-iotjs_i2c_t* iotjs_i2c_instance_from_reqwrap(THIS);
-#undef THIS
-
+} iotjs_i2c_reqwrap_t;
 
 jerry_value_t iotjs_i2c_set_platform_config(iotjs_i2c_t* i2c,
                                             const jerry_value_t jconfig);

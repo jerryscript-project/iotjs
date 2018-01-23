@@ -28,22 +28,20 @@ IOTJS_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(udpwrap);
 
 iotjs_udpwrap_t* iotjs_udpwrap_create(jerry_value_t judp) {
   iotjs_udpwrap_t* udpwrap = IOTJS_ALLOC(iotjs_udpwrap_t);
-  IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_udpwrap_t, udpwrap);
 
-  iotjs_handlewrap_initialize(&_this->handlewrap, judp,
-                              (uv_handle_t*)(&_this->handle),
+  iotjs_handlewrap_initialize(&udpwrap->handlewrap, judp,
+                              (uv_handle_t*)(&udpwrap->handle),
                               &this_module_native_info);
 
   const iotjs_environment_t* env = iotjs_environment_get();
-  uv_udp_init(iotjs_environment_loop(env), &_this->handle);
+  uv_udp_init(iotjs_environment_loop(env), &udpwrap->handle);
 
   return udpwrap;
 }
 
 
 static void iotjs_udpwrap_destroy(iotjs_udpwrap_t* udpwrap) {
-  IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_udpwrap_t, udpwrap);
-  iotjs_handlewrap_destroy(&_this->handlewrap);
+  iotjs_handlewrap_destroy(&udpwrap->handlewrap);
   IOTJS_RELEASE(udpwrap);
 }
 
@@ -64,63 +62,27 @@ iotjs_udpwrap_t* iotjs_udpwrap_from_jobject(jerry_value_t judp) {
 
 
 uv_udp_t* iotjs_udpwrap_udp_handle(iotjs_udpwrap_t* udpwrap) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_udpwrap_t, udpwrap);
-  uv_handle_t* handle = iotjs_handlewrap_get_uv_handle(&_this->handlewrap);
+  uv_handle_t* handle = iotjs_handlewrap_get_uv_handle(&udpwrap->handlewrap);
   return (uv_udp_t*)handle;
 }
 
 
-jerry_value_t iotjs_udpwrap_jobject(iotjs_udpwrap_t* udpwrap) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_udpwrap_t, udpwrap);
-  return iotjs_handlewrap_jobject(&_this->handlewrap);
-}
-
-
-#define THIS iotjs_send_reqwrap_t* send_reqwrap
-
 iotjs_send_reqwrap_t* iotjs_send_reqwrap_create(jerry_value_t jcallback,
                                                 const size_t msg_size) {
   iotjs_send_reqwrap_t* send_reqwrap = IOTJS_ALLOC(iotjs_send_reqwrap_t);
-  IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_send_reqwrap_t, send_reqwrap);
 
-  iotjs_reqwrap_initialize(&_this->reqwrap, jcallback, (uv_req_t*)&_this->req);
-  _this->msg_size = msg_size;
+  iotjs_reqwrap_initialize(&send_reqwrap->reqwrap, jcallback,
+                           (uv_req_t*)&send_reqwrap->req);
+  send_reqwrap->msg_size = msg_size;
 
   return send_reqwrap;
 }
 
 
-static void iotjs_send_reqwrap_destroy(THIS) {
-  IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_send_reqwrap_t, send_reqwrap);
-  iotjs_reqwrap_destroy(&_this->reqwrap);
+static void iotjs_send_reqwrap_destroy(iotjs_send_reqwrap_t* send_reqwrap) {
+  iotjs_reqwrap_destroy(&send_reqwrap->reqwrap);
   IOTJS_RELEASE(send_reqwrap);
 }
-
-
-void iotjs_send_reqwrap_dispatched(THIS) {
-  IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_send_reqwrap_t, send_reqwrap);
-  iotjs_send_reqwrap_destroy(send_reqwrap);
-}
-
-
-uv_udp_send_t* iotjs_send_reqwrap_req(THIS) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_send_reqwrap_t, send_reqwrap);
-  return &_this->req;
-}
-
-
-jerry_value_t iotjs_send_reqwrap_jcallback(THIS) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_send_reqwrap_t, send_reqwrap);
-  return iotjs_reqwrap_jcallback(&_this->reqwrap);
-}
-
-
-size_t iotjs_send_reqwrap_msg_size(THIS) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_send_reqwrap_t, send_reqwrap);
-  return _this->msg_size;
-}
-
-#undef THIS
 
 
 JS_FUNCTION(UDP) {
@@ -187,7 +149,7 @@ static void OnRecv(uv_udp_t* handle, ssize_t nread, const uv_buf_t* buf,
   iotjs_udpwrap_t* udp_wrap = iotjs_udpwrap_from_handle(handle);
 
   // udp handle
-  jerry_value_t judp = iotjs_udpwrap_jobject(udp_wrap);
+  jerry_value_t judp = iotjs_handlewrap_jobject(&udp_wrap->handlewrap);
   IOTJS_ASSERT(jerry_value_is_object(judp));
 
   // onmessage callback
@@ -257,20 +219,20 @@ static void OnSend(uv_udp_send_t* req, int status) {
   IOTJS_ASSERT(req_wrap != NULL);
 
   // Take callback function object.
-  jerry_value_t jcallback = iotjs_send_reqwrap_jcallback(req_wrap);
+  jerry_value_t jcallback = iotjs_reqwrap_jcallback(&req_wrap->reqwrap);
 
   if (jerry_value_is_function(jcallback)) {
     // Take callback function object.
 
     iotjs_jargs_t jargs = iotjs_jargs_create(2);
     iotjs_jargs_append_number(&jargs, status);
-    iotjs_jargs_append_number(&jargs, iotjs_send_reqwrap_msg_size(req_wrap));
+    iotjs_jargs_append_number(&jargs, req_wrap->msg_size);
 
     iotjs_make_callback(jcallback, jerry_create_undefined(), &jargs);
     iotjs_jargs_destroy(&jargs);
   }
 
-  iotjs_send_reqwrap_dispatched(req_wrap);
+  iotjs_send_reqwrap_destroy(req_wrap);
 }
 
 
@@ -304,13 +266,12 @@ JS_FUNCTION(Send) {
       uv_ip4_addr(iotjs_string_data(&address), port, (sockaddr_in*)(&addr));
 
   if (err == 0) {
-    err = uv_udp_send(iotjs_send_reqwrap_req(req_wrap),
-                      iotjs_udpwrap_udp_handle(udp_wrap), &buf, 1,
-                      (const sockaddr*)(&addr), OnSend);
+    err = uv_udp_send(&req_wrap->req, iotjs_udpwrap_udp_handle(udp_wrap), &buf,
+                      1, (const sockaddr*)(&addr), OnSend);
   }
 
   if (err) {
-    iotjs_send_reqwrap_dispatched(req_wrap);
+    iotjs_send_reqwrap_destroy(req_wrap);
   }
 
   iotjs_string_destroy(&address);

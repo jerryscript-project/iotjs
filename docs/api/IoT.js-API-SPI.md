@@ -39,7 +39,7 @@ The chip select is an access-enable switch. When the chip select pin is in the `
 
 Sets the order of the bits shifted out of and into the SPI bus, either MSB (most-significant bit first) or LSB (least-significant bit first).
 
-### spi.open(configuration[, callback])
+### spi.open(configuration, callback)
 * `configuration` {Object}
   * `device` {string} The specified path for `spidev`. (only on Linux)
   * `bus` {number} The specified bus number. (NuttX and TizenRT only)
@@ -51,7 +51,8 @@ Sets the order of the bits shifted out of and into the SPI bus, either MSB (most
   * `loopback` {boolean} Using loopback. **Default:** `false`.
 * `callback` {Function}.
   * `err` {Error|null}.
-* Returns: {SPIBus}.
+  * `spibus` {Object} An instance of SPIBus.
+* Returns: {Object} An instance of SPIBus.
 
 Opens an SPI device with the specified configuration.
 
@@ -80,7 +81,7 @@ var spi0 = spi.open({
   * `bitsPerWord` {number} Bits per word to send (should be 8 or 9). **Default:** `8`.
   * `bitOrder` {SPI.BITORDER} Order of the bits shifted out of and into the SPI bus. Default: `SPI.BITORDER.MSB`.
   * `loopback` {boolean} Using loopback. **Default:** `false`.
-* Returns: {SPIBus}.
+* Returns: {Object} An instance of SPIBus.
 
 Opens an SPI device with the specified configuration.
 
@@ -128,7 +129,7 @@ spi0.transfer(tx, function(err, rx) {
 
 ```
 
-### spibus.transferSync(txBuffer, rxBuffer)
+### spibus.transferSync(txBuffer)
 * `txBuffer` {Array|Buffer}.
 * Returns: `rxBuffer` {Array}.
 

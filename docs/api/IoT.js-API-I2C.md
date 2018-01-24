@@ -18,7 +18,7 @@ The following shows I2C module APIs available for each platform.
 
 The I2C module supports the I2C protocol. I2C bus has two signals - SDA and SCL.
 
-### i2c.open(configuration[, callback])
+### i2c.open(configuration, callback)
 * `configuration` {Object} Configuration for open I2CBus.
   * `device` {string} Device path. (only on Linux)
   * `bus` {number} The specified bus number. (NuttX and TizenRT only)
@@ -124,8 +124,6 @@ i2c.open({device: '/dev/i2c-1', address: 0x23}, function(err, wire){
 
 ### i2cbus.writeSync(bytes)
 * `bytes` {Array} Array of bytes to write.
-* `callback` {Function}
-  * `err` {Error|null}
 
 Write bytes to I2C device synchronously.
 
@@ -138,7 +136,7 @@ var wire = i2c.openSync({device: '/dev/i2c-1', address: 0x23});
 wire.writeSync([0x10]);
 ```
 
-### i2cbus.close()
+### i2cbus.close([callback])
 * `callback` {Function}
   * `err` {Error|null}
 

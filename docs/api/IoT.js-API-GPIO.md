@@ -60,7 +60,7 @@ An enumeration which can be used to specify the
 edge of the pin.
 
 
-### gpio.open(configuration[, callback])
+### gpio.open(configuration, callback)
 * `configuration` {Object} Configuration for open GPIOPin.
   * `pin` {number} Pin number. Mandatory field.
   * `direction` {[gpio.DIRECTION](#direction)} Pin direction. **Default:** `gpio.DIRECTION.OUT`
@@ -73,7 +73,7 @@ edge of the pin.
 
 Get GPIOPin object with configuration asynchronously.
 
-The optional `callback` function will be called after
+The `callback` function will be called after
 opening is completed. The `error` argument is an
 `Error` object on failure or `null` otherwise.
 

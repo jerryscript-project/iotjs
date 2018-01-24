@@ -20,7 +20,7 @@ The following shows PWM module APIs available for each platform.
 
 ## Class: PWM
 
-### pwm.open(configuration[, callback])
+### pwm.open(configuration, callback)
 * `configuration` {Object} Configuration object which can have the following properties.
   * `pin` {number} The pin number to use with this PWM object (mandatory configuration).
   * `chip` {number} The PWM chip number (only on Linux). **Default:** `0`.
@@ -29,7 +29,8 @@ The following shows PWM module APIs available for each platform.
   * `dutyCycle` {number} The active time of the PWM signal, must be within the `0.0` and `1.0` range.
 * `callback` {Function} Callback function.
   * `err` {Error|null} The error object or `null` if there were no error.
-* Returns: `<PWMPin>`
+  * `pwmpin` {Object} An instance of PWMPin.
+* Returns: {Object} An instance of PWMPin.
 
 Opens PWM pin with the specified configuration.
 
@@ -61,7 +62,7 @@ var pwm0 = pwm.open(config, function(err) {
   * `period` {number} The period of the PWM signal, in seconds (positive number).
   * `frequency` {integer} In Hz (positive integer).
   * `dutyCycle` {number} The active time of the PWM signal, must be within the `0.0` and `1.0` range.
-* Returns: `<PWMPin>`
+* Returns: {Object} An instance of PWMPin.
 
 Opens PWM pin with the specified configuration.
 
@@ -131,7 +132,7 @@ console.log('done');
 * `callback` {Function}
   * `err` {Error|null} The error object or `null` if there were no error.
 
-The `setFequency` method congifures the frequency of the PWM signal.
+The `setFrequency` method configures the frequency of the PWM signal.
 `frequency` is the measurement of how often the signal is repeated in a single period.
 
 Configuration is done asynchronously and the `callback` method is invoked after the
@@ -154,7 +155,7 @@ console.log('do');
 ### pwmpin.setFrequencySync(frequency)
 * `frequency` {integer} In Hz (positive integer).
 
-The `setFequencySync` method congifures the frequency of the PWM signal.
+The `setFrequencySync` method configures the frequency of the PWM signal.
 `frequency` is the measurement of how often the signal is repeated in a single period.
 
 Configuration is done synchronously and will block till the frequency is configured.

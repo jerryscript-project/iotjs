@@ -20,7 +20,7 @@
 typedef struct {
   size_t size;
   char* data;
-} IOTJS_VALIDATED_STRUCT(iotjs_string_t);
+} iotjs_string_t;
 
 // Create new string
 iotjs_string_t iotjs_string_create();

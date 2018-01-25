@@ -53,7 +53,7 @@ typedef struct {
 
   // Run config
   Config config;
-} IOTJS_VALIDATED_STRUCT(iotjs_environment_t);
+} iotjs_environment_t;
 
 
 iotjs_environment_t* iotjs_environment_get();

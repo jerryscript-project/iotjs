@@ -18,10 +18,10 @@ It is important to note that optional parameters (such as `--debugger-wait-sourc
 
 #### Sending source to the debugger remotely
 
-The `--debugger-wait-source` makes the client wait until the source code is sent by the debugger-client.
+The `--debugger-wait-source` makes the client wait until the source files are sent by the debugger-client.
 The file argument is ignored in this case, therefore doesn't need to be specified. IoT.js is also capable of resetting the context,
 thus, there's no need to restart the environment if the remote source is changed.
-*Note*: Only one remote source file is supported at the moment.
+**Important note**: Remote sources must be sent in correct order! IoT.js compiles them in the order they are received, so file(s) used with `require` should be sent first, and the file(s) using them after.
 
 #### Setting the debugger port
 

@@ -91,7 +91,7 @@ struct spi_dev_s* iotjs_spi_config_nuttx(int bus, uint32_t cs_chip) {
   return stm32_spibus_initialize(bus);
 }
 
-#endif /* ENABLE_MODULE_PWM */
+#endif /* ENABLE_MODULE_SPI */
 
 
 #endif // __NUTTX__

@@ -13,9 +13,6 @@
  * limitations under the License.
  */
 
-#ifndef IOTJS_MODULE_ADC_LINUX_GENERAL_INL_H
-#define IOTJS_MODULE_ADC_LINUX_GENERAL_INL_H
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -63,6 +60,3 @@ void iotjs_adc_open_worker(uv_work_t* work_req) {
   // Check if ADC interface exists.
   req_data->result = iotjs_systemio_check_path(device_path);
 }
-
-
-#endif /* IOTJS_MODULE_ADC_LINUX_GENERAL_INL_H */

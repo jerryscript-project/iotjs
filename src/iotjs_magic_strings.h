@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef IOTJS_STRING_CONSTANTS_H
-#define IOTJS_STRING_CONSTANTS_H
+#ifndef IOTJS_MAGIC_STRINGS_H
+#define IOTJS_MAGIC_STRINGS_H
 
 #if ENABLE_MODULE_SPI
 #define IOTJS_MAGIC_STRING_0 "0"
@@ -304,4 +304,4 @@
 #define IOTJS_MAGIC_STRING__WRITE "_write"
 #endif
 
-#endif /* IOTJS_STRING_CONSTANTS_H */
+#endif /* IOTJS_MAGIC_STRINGS_H */

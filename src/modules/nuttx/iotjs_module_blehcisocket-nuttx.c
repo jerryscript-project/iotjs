@@ -13,10 +13,6 @@
  * limitations under the License.
  */
 
-#ifndef IOTJS_MODULE_BLE_HCI_SOCKET_LINUX_GENERAL_INL_H
-#define IOTJS_MODULE_BLE_HCI_SOCKET_LINUX_GENERAL_INL_H
-
-
 #include "iotjs_def.h"
 #include "modules/iotjs_module_blehcisocket.h"
 
@@ -100,5 +96,3 @@ int iotjs_blehcisocket_kernelDisconnectWorkArounds(THIS, int length,
 
 
 #undef THIS
-
-#endif /* IOTJS_MODULE_BLE_HCI_SOCKET_LINUX_GENERAL_INL_H */

@@ -13,10 +13,6 @@
  * limitations under the License.
  */
 
-
-#ifndef IOTJS_MODULE_UART_LINUX_GENERAL_INL_H
-#define IOTJS_MODULE_UART_LINUX_GENERAL_INL_H
-
 #include <errno.h>
 #include <fcntl.h>
 #include <termios.h>
@@ -149,6 +145,3 @@ bool iotjs_uart_write(iotjs_uart_t* uart) {
 
   return true;
 }
-
-
-#endif /* IOTJS_MODULE_UART_LINUX_GENERAL_INL_H */

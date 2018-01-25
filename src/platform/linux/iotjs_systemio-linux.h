@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef IOTJS_DEVICE_IO_LINUX_GENERAL_H
-#define IOTJS_DEVICE_IO_LINUX_GENERAL_H
+#ifndef IOTJS_SYSTEMIO_LINUX_H
+#define IOTJS_SYSTEMIO_LINUX_H
 
 #include "iotjs_def.h"
 
@@ -37,4 +37,4 @@ bool iotjs_systemio_device_open(const char* export_path, uint32_t value,
 bool iotjs_systemio_device_close(const char* export_path, uint32_t value);
 
 
-#endif /* IOTJS_DEVICE_IO_LINUX_GENERAL_H */
+#endif /* IOTJS_SYSTEMIO_LINUX_H */

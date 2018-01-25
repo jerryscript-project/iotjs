@@ -34,9 +34,6 @@
  * SOFTWARE.
  */
 
-#ifndef IOTJS_MODULE_BLE_HCI_SOCKET_LINUX_GENERAL_INL_H
-#define IOTJS_MODULE_BLE_HCI_SOCKET_LINUX_GENERAL_INL_H
-
 #include <errno.h>
 #include <stdlib.h>
 #include <sys/ioctl.h>
@@ -463,5 +460,3 @@ void iotjs_blehcisocket_poll_cb(uv_poll_t* handle, int status, int events) {
 
   iotjs_blehcisocket_poll(blehcisocket);
 }
-
-#endif /* IOTJS_MODULE_BLE_HCI_SOCKET_LINUX_GENERAL_INL_H */

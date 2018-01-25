@@ -13,10 +13,6 @@
  * limitations under the License.
  */
 
-#ifndef IOTJS_MODULE_SPI_LINUX_GENERAL_INL_H
-#define IOTJS_MODULE_SPI_LINUX_GENERAL_INL_H
-
-
 #include <uv.h>
 #include <linux/spi/spidev.h>
 #include <sys/ioctl.h>
@@ -182,6 +178,3 @@ bool iotjs_spi_open(iotjs_spi_t* spi) {
   }
   return true;
 }
-
-
-#endif /* IOTJS_MODULE_SPI_LINUX_GENERAL_INL_H */

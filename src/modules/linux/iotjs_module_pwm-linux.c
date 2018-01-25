@@ -13,10 +13,6 @@
  * limitations under the License.
  */
 
-#ifndef IOTJS_MODULE_PWM_LINUX_GENERAL_INL_H
-#define IOTJS_MODULE_PWM_LINUX_GENERAL_INL_H
-
-
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -264,6 +260,3 @@ bool iotjs_pwm_close(iotjs_pwm_t* pwm) {
 
   return true;
 }
-
-
-#endif /* IOTJS_MODULE_PWM_LINUX_GENERAL_INL_H */

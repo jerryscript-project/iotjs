@@ -63,8 +63,7 @@ static bool iotjs_jerry_init(iotjs_environment_t* env) {
   iotjs_register_jerry_magic_string();
 
   // Register VM execution stop callback.
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_environment_t, env);
-  jerry_set_vm_exec_stop_callback(vm_exec_stop_callback, &(_this->state), 2);
+  jerry_set_vm_exec_stop_callback(vm_exec_stop_callback, &env->state, 2);
 
   // Do parse and run to generate initial javascript environment.
   jerry_value_t parsed_code = jerry_parse((jerry_char_t*)"", 0, false);

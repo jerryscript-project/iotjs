@@ -37,11 +37,9 @@ struct iotjs_spi_platform_data_s {
 };
 
 void iotjs_spi_create_platform_data(iotjs_spi_t* spi) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_spi_t, spi);
+  spi->platform_data = IOTJS_ALLOC(iotjs_spi_platform_data_t);
 
-  _this->platform_data = IOTJS_ALLOC(iotjs_spi_platform_data_t);
-
-  _this->platform_data->spi_context = NULL;
+  spi->platform_data->spi_context = NULL;
 }
 
 
@@ -53,8 +51,7 @@ void iotjs_spi_destroy_platform_data(iotjs_spi_platform_data_t* platform_data) {
 
 jerry_value_t iotjs_spi_set_platform_config(iotjs_spi_t* spi,
                                             const jerry_value_t jconfig) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_spi_t, spi);
-  iotjs_spi_platform_data_t* platform_data = _this->platform_data;
+  iotjs_spi_platform_data_t* platform_data = spi->platform_data;
 
   DJS_GET_REQUIRED_CONF_VALUE(jconfig, platform_data->bus,
                               IOTJS_MAGIC_STRING_BUS, number);
@@ -63,14 +60,13 @@ jerry_value_t iotjs_spi_set_platform_config(iotjs_spi_t* spi,
 }
 
 bool iotjs_spi_open(iotjs_spi_t* spi) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_spi_t, spi);
-  iotjs_spi_platform_data_t* platform_data = _this->platform_data;
+  iotjs_spi_platform_data_t* platform_data = spi->platform_data;
 
-  struct iotbus_spi_config_s cfg = {.bits_per_word = _this->bits_per_word,
-                                    .chip_select = _this->chip_select,
-                                    .frequency = _this->max_speed };
+  struct iotbus_spi_config_s cfg = {.bits_per_word = spi->bits_per_word,
+                                    .chip_select = spi->chip_select,
+                                    .frequency = spi->max_speed };
 
-  switch (_this->mode) {
+  switch (spi->mode) {
     case kSpiMode_0:
       cfg.mode = IOTBUS_SPI_MODE0;
       break;
@@ -95,21 +91,20 @@ bool iotjs_spi_open(iotjs_spi_t* spi) {
   DDLOG(
       "SPI Options \n mode: %d\n chipSelect: %d\n bitOrder: %d\n "
       "maxSpeed: %d\n bitPerWord: %d\n loopback: %d",
-      _this->mode, _this->chip_select, _this->bit_order, _this->max_speed,
-      _this->bits_per_word, _this->loopback);
+      spi->mode, spi->chip_select, spi->bit_order, spi->max_speed,
+      spi->bits_per_word, spi->loopback);
 
   return true;
 }
 
 
 bool iotjs_spi_transfer(iotjs_spi_t* spi) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_spi_t, spi);
-  iotjs_spi_platform_data_t* platform_data = _this->platform_data;
+  iotjs_spi_platform_data_t* platform_data = spi->platform_data;
 
-  int err = iotbus_spi_transfer_buf(platform_data->spi_context,
-                                    (unsigned char*)_this->tx_buf_data,
-                                    (unsigned char*)_this->rx_buf_data,
-                                    _this->buf_len);
+  int err =
+      iotbus_spi_transfer_buf(platform_data->spi_context,
+                              (unsigned char*)spi->tx_buf_data,
+                              (unsigned char*)spi->rx_buf_data, spi->buf_len);
   if (err != 0) {
     DDLOG("%s - transfer failed: %d", __func__, err);
     return false;
@@ -120,8 +115,7 @@ bool iotjs_spi_transfer(iotjs_spi_t* spi) {
 
 
 bool iotjs_spi_close(iotjs_spi_t* spi) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_spi_t, spi);
-  iotjs_spi_platform_data_t* platform_data = _this->platform_data;
+  iotjs_spi_platform_data_t* platform_data = spi->platform_data;
 
   if (platform_data->spi_context != NULL) {
     int err = iotbus_spi_close(platform_data->spi_context);

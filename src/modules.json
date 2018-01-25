@@ -149,7 +149,7 @@
           "native_files": ["modules/linux/iotjs_module_gpio-linux.c"]
         },
         "nuttx": {
-          "native_files": ["modules/nuttx/stm32f4dis/iotjs_module_gpio-nuttx-stm32f4dis.c"]
+          "native_files": ["modules/nuttx/iotjs_module_gpio-nuttx.c"]
         },
         "tizen": {
           "native_files": ["modules/tizen/iotjs_module_gpio-tizen.c"]

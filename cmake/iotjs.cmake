@@ -25,15 +25,6 @@ set(PLATFORM_OS_DIR
     "${IOTJS_SOURCE_DIR}/platform/${IOTJS_SYSTEM_OS}")
 file(GLOB IOTJS_PLATFORM_SRC "${PLATFORM_OS_DIR}/iotjs_*.c")
 
-# Board configuration
-# Look for files under src/platform/<system>/<board>/
-if(NOT "${TARGET_BOARD}" STREQUAL "None")
-  set(PLATFORM_BOARD_DIR
-    "${PLATFORM_OS_DIR}/${TARGET_BOARD}")
-  file(GLOB IOTJS_BOARD_SRC "${PLATFORM_BOARD_DIR}/iotjs_*.c")
-  list(APPEND IOTJS_PLATFORM_SRC "${IOTJS_BOARD_SRC}")
-endif()
-
 # Module configuration - listup all possible native C modules
 function(getListOfVars prefix pattern varResult)
     set(moduleNames)

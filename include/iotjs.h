@@ -26,5 +26,7 @@
 
 IOTJS_EXTERN_C int iotjs_entry(int argc, char** argv);
 
+IOTJS_EXTERN_C void iotjs_conf_console_out(int (*fp)(int level, const char* fmt,
+                                                     ...));
 
 #endif /* IOTJS_IOTJS_H */

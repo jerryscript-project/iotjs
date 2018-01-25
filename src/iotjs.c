@@ -172,6 +172,10 @@ static void iotjs_uv_walk_to_close_callback(uv_handle_t* handle, void* arg) {
   iotjs_handlewrap_close(handle_wrap, NULL);
 }
 
+void iotjs_conf_console_out(int (*out)(int lv, const char* fmt, ...)) {
+  iotjs_set_console_out(out);
+}
+
 int iotjs_entry(int argc, char** argv) {
   int ret_code = 0;
 

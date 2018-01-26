@@ -40,50 +40,8 @@ typedef enum {
 #define STRING_OPTIONS "OPTIONS"
 #define STRING_TRACE "TRACE"
 
-// A Per-Request Struct, native bound to https.ClientRequest
-typedef struct {
-  // Original Request Details
-  const char* URL;
-  HTTPS_Methods method;
-  struct curl_slist* header_list;
-  // TLS certs Options
-  const char* ca;
-  const char* cert;
-  const char* key;
-  bool reject_unauthorized;
-  // Content-Length for Post and Put
-  long content_length;
-
-  // Handles
-  uv_loop_t* loop;
-  jerry_value_t jthis_native;
-  CURLM* curl_multi_handle;
-  uv_timer_t timeout;
-  CURL* curl_easy_handle;
-  // Curl Context
-  int running_handles;
-  int closing_handles;
-  bool request_done;
-  struct iotjs_https_poll_t* poll_data;
-
-  // For SetTimeOut
-  uv_timer_t socket_timeout;
-  long timeout_ms;
-  double last_bytes_num;
-  uint64_t last_bytes_time;
-
-  // For Writable Stream ClientRequest
-  size_t cur_read_index;
-  bool is_stream_writable;
-  bool data_to_read;
-  bool stream_ended;
-  bool to_destroy_read_onwrite;
-  iotjs_string_t read_chunk;
-  jerry_value_t read_callback;
-  jerry_value_t read_onwrite;
-  uv_timer_t async_read_onwrite;
-
-} iotjs_https_t;
+typedef struct iotjs_https_poll_t iotjs_https_poll_t;
+typedef struct iotjs_https_t iotjs_https_t;
 
 iotjs_https_t* iotjs_https_create(const char* URL, const char* method,
                                   const char* ca, const char* cert,
@@ -95,8 +53,7 @@ iotjs_https_t* iotjs_https_create(const char* URL, const char* method,
 void iotjs_https_check_done(iotjs_https_t* https_data);
 void iotjs_https_cleanup(iotjs_https_t* https_data);
 void iotjs_https_initialize_curl_opts(iotjs_https_t* https_data);
-jerry_value_t iotjs_https_jiotjs_https_t* https_data_from_https(
-    iotjs_https_t* https_data);
+jerry_value_t iotjs_https_jthis_from_https(iotjs_https_t* https_data);
 bool iotjs_https_jcallback(iotjs_https_t* https_data, const char* property,
                            const iotjs_jargs_t* jarg, bool resultvalue);
 void iotjs_https_call_read_onwrite(uv_timer_t* timer);
@@ -129,14 +86,6 @@ void iotjs_https_uv_close_callback(uv_handle_t* handle);
 void iotjs_https_uv_poll_callback(uv_poll_t* poll, int status, int events);
 void iotjs_https_uv_socket_timeout_callback(uv_timer_t* timer);
 void iotjs_https_uv_timeout_callback(uv_timer_t* timer);
-
-typedef struct {
-  uv_poll_t poll_handle;
-  struct iotjs_https_poll_t* next;
-  struct iotjs_https_t* https_data;
-  curl_socket_t sockfd;
-  bool closing;
-} iotjs_https_poll_t;
 
 iotjs_https_poll_t* iotjs_https_poll_create(uv_loop_t* loop,
                                             curl_socket_t sockfd,

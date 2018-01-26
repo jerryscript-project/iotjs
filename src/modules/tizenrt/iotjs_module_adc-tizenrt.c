@@ -42,10 +42,9 @@ static size_t device_fd_counter = 0;
 #define TIZENRT_ADC_DEVICE "/dev/adc0"
 
 void iotjs_adc_create_platform_data(iotjs_adc_t* adc) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_adc_t, adc);
-  _this->platform_data = IOTJS_ALLOC(iotjs_adc_platform_data_t);
-  _this->platform_data->device_fd = -1;
-  _this->platform_data->pin = 0;
+  adc->platform_data = IOTJS_ALLOC(iotjs_adc_platform_data_t);
+  adc->platform_data->device_fd = -1;
+  adc->platform_data->pin = 0;
 }
 
 
@@ -56,8 +55,7 @@ void iotjs_adc_destroy_platform_data(iotjs_adc_platform_data_t* platform_data) {
 
 jerry_value_t iotjs_adc_set_platform_config(iotjs_adc_t* adc,
                                             const jerry_value_t jconfig) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_adc_t, adc);
-  iotjs_adc_platform_data_t* platform_data = _this->platform_data;
+  iotjs_adc_platform_data_t* platform_data = adc->platform_data;
 
   DJS_GET_REQUIRED_CONF_VALUE(jconfig, platform_data->pin,
                               IOTJS_MAGIC_STRING_PIN, number);
@@ -67,8 +65,7 @@ jerry_value_t iotjs_adc_set_platform_config(iotjs_adc_t* adc,
 
 
 bool iotjs_adc_read(iotjs_adc_t* adc) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_adc_t, adc);
-  iotjs_adc_platform_data_t* platform_data = _this->platform_data;
+  iotjs_adc_platform_data_t* platform_data = adc->platform_data;
 
   int ret, nbytes;
   size_t readsize, i, nsamples;
@@ -76,7 +73,7 @@ bool iotjs_adc_read(iotjs_adc_t* adc) {
   ret = ioctl(platform_data->device_fd, ANIOC_TRIGGER, 0);
 
   if (ret < 0) {
-    _this->value = -1;
+    adc->value = -1;
     return false;
   }
 
@@ -92,7 +89,7 @@ bool iotjs_adc_read(iotjs_adc_t* adc) {
         }
       }
       if (sample != -1) {
-        _this->value = sample;
+        adc->value = sample;
         return true;
       }
     } /* else {
@@ -106,8 +103,7 @@ bool iotjs_adc_read(iotjs_adc_t* adc) {
 
 
 bool iotjs_adc_close(iotjs_adc_t* adc) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_adc_t, adc);
-  iotjs_adc_platform_data_t* platform_data = _this->platform_data;
+  iotjs_adc_platform_data_t* platform_data = adc->platform_data;
 
   if (platform_data->device_fd > 0) {
     device_fd_counter--;
@@ -122,8 +118,7 @@ bool iotjs_adc_close(iotjs_adc_t* adc) {
 
 
 bool iotjs_adc_open(iotjs_adc_t* adc) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_adc_t, adc);
-  iotjs_adc_platform_data_t* platform_data = _this->platform_data;
+  iotjs_adc_platform_data_t* platform_data = adc->platform_data;
 
   if (device_fd_counter == 0) {
     device_fd = open(TIZENRT_ADC_DEVICE, O_RDONLY);

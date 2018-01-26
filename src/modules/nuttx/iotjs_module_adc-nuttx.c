@@ -34,9 +34,8 @@ struct iotjs_adc_platform_data_s {
 };
 
 void iotjs_adc_create_platform_data(iotjs_adc_t* adc) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_adc_t, adc);
-  _this->platform_data = IOTJS_ALLOC(iotjs_adc_platform_data_t);
-  _this->platform_data->pin = 0;
+  adc->platform_data = IOTJS_ALLOC(iotjs_adc_platform_data_t);
+  adc->platform_data->pin = 0;
 }
 
 
@@ -47,8 +46,7 @@ void iotjs_adc_destroy_platform_data(iotjs_adc_platform_data_t* platform_data) {
 
 jerry_value_t iotjs_adc_set_platform_config(iotjs_adc_t* adc,
                                             const jerry_value_t jconfig) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_adc_t, adc);
-  iotjs_adc_platform_data_t* platform_data = _this->platform_data;
+  iotjs_adc_platform_data_t* platform_data = adc->platform_data;
 
   DJS_GET_REQUIRED_CONF_VALUE(jconfig, platform_data->pin,
                               IOTJS_MAGIC_STRING_PIN, number);
@@ -102,8 +100,7 @@ static bool adc_read_data(uint32_t pin, struct adc_msg_s* msg) {
 
 
 bool iotjs_adc_read(iotjs_adc_t* adc) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_adc_t, adc);
-  iotjs_adc_platform_data_t* platform_data = _this->platform_data;
+  iotjs_adc_platform_data_t* platform_data = adc->platform_data;
 
   struct adc_msg_s msg;
 
@@ -111,15 +108,14 @@ bool iotjs_adc_read(iotjs_adc_t* adc) {
     return false;
   }
 
-  _this->value = msg.am_data;
+  adc->value = msg.am_data;
 
   return true;
 }
 
 
 bool iotjs_adc_close(iotjs_adc_t* adc) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_adc_t, adc);
-  iotjs_adc_platform_data_t* platform_data = _this->platform_data;
+  iotjs_adc_platform_data_t* platform_data = adc->platform_data;
 
   uint32_t pin = platform_data->pin;
   int32_t adc_number = ADC_GET_NUMBER(pin);
@@ -139,8 +135,7 @@ bool iotjs_adc_close(iotjs_adc_t* adc) {
 
 
 bool iotjs_adc_open(iotjs_adc_t* adc) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_adc_t, adc);
-  iotjs_adc_platform_data_t* platform_data = _this->platform_data;
+  iotjs_adc_platform_data_t* platform_data = adc->platform_data;
 
   uint32_t pin = platform_data->pin;
   int32_t adc_number = ADC_GET_NUMBER(pin);

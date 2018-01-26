@@ -35,7 +35,7 @@ typedef struct {
   jerry_value_t jobject;
   iotjs_adc_platform_data_t* platform_data;
   int32_t value;
-} IOTJS_VALIDATED_STRUCT(iotjs_adc_t);
+} iotjs_adc_t;
 
 
 typedef struct {
@@ -49,7 +49,7 @@ typedef struct {
   uv_work_t req;
   iotjs_adc_reqdata_t req_data;
   iotjs_adc_t* adc_data;
-} IOTJS_VALIDATED_STRUCT(iotjs_adc_reqwrap_t);
+} iotjs_adc_reqwrap_t;
 
 
 bool iotjs_adc_read(iotjs_adc_t* adc);

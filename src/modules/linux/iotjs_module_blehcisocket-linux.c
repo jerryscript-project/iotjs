@@ -140,42 +140,33 @@ struct sockaddr_l2 {
 };
 
 
-#define THIS iotjs_blehcisocket_t* blehcisocket
+void iotjs_blehcisocket_initialize(iotjs_blehcisocket_t* blehcisocket) {
+  blehcisocket->_l2socketCount = 0;
 
-
-void iotjs_blehcisocket_initialize(THIS) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_blehcisocket_t, blehcisocket);
-
-  _this->_l2socketCount = 0;
-
-  _this->_socket = socket(AF_BLUETOOTH, SOCK_RAW | SOCK_CLOEXEC, BTPROTO_HCI);
+  blehcisocket->_socket =
+      socket(AF_BLUETOOTH, SOCK_RAW | SOCK_CLOEXEC, BTPROTO_HCI);
 
   uv_loop_t* loop = iotjs_environment_loop(iotjs_environment_get());
-  uv_poll_init(loop, &(_this->_pollHandle), _this->_socket);
+  uv_poll_init(loop, &(blehcisocket->_pollHandle), blehcisocket->_socket);
 
-  _this->_pollHandle.data = blehcisocket;
+  blehcisocket->_pollHandle.data = blehcisocket;
 }
 
 
-void iotjs_blehcisocket_close(THIS) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_blehcisocket_t, blehcisocket);
+void iotjs_blehcisocket_close(iotjs_blehcisocket_t* blehcisocket) {
+  uv_close((uv_handle_t*)&(blehcisocket->_pollHandle), NULL);
 
-  uv_close((uv_handle_t*)&(_this->_pollHandle), NULL);
-
-  close(_this->_socket);
+  close(blehcisocket->_socket);
 }
 
 
-void iotjs_blehcisocket_start(THIS) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_blehcisocket_t, blehcisocket);
-
-  uv_poll_start(&_this->_pollHandle, UV_READABLE, iotjs_blehcisocket_poll_cb);
+void iotjs_blehcisocket_start(iotjs_blehcisocket_t* blehcisocket) {
+  uv_poll_start(&blehcisocket->_pollHandle, UV_READABLE,
+                iotjs_blehcisocket_poll_cb);
 }
 
 
-int iotjs_blehcisocket_bindRaw(THIS, int* devId) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_blehcisocket_t, blehcisocket);
-
+int iotjs_blehcisocket_bindRaw(iotjs_blehcisocket_t* blehcisocket, int* devId) {
   struct sockaddr_hci a;
   struct hci_dev_info di;
 
@@ -184,37 +175,36 @@ int iotjs_blehcisocket_bindRaw(THIS, int* devId) {
   a.hci_dev = iotjs_blehcisocket_devIdFor(blehcisocket, devId, true);
   a.hci_channel = HCI_CHANNEL_RAW;
 
-  _this->_devId = a.hci_dev;
-  _this->_mode = HCI_CHANNEL_RAW;
+  blehcisocket->_devId = a.hci_dev;
+  blehcisocket->_mode = HCI_CHANNEL_RAW;
 
-  if (bind(_this->_socket, (struct sockaddr*)&a, sizeof(a)) < 0) {
+  if (bind(blehcisocket->_socket, (struct sockaddr*)&a, sizeof(a)) < 0) {
     DLOG("ERROR on binding: %s", strerror(errno));
-    return _this->_devId;
+    return blehcisocket->_devId;
   }
 
   // get the local address and address type
   memset(&di, 0x00, sizeof(di));
-  di.dev_id = _this->_devId;
-  memset(_this->_address, 0, sizeof(_this->_address));
-  _this->_addressType = 0;
+  di.dev_id = blehcisocket->_devId;
+  memset(blehcisocket->_address, 0, sizeof(blehcisocket->_address));
+  blehcisocket->_addressType = 0;
 
-  if (ioctl(_this->_socket, HCIGETDEVINFO, (void*)&di) > -1) {
-    memcpy(_this->_address, &di.bdaddr, sizeof(di.bdaddr));
-    _this->_addressType = di.type;
+  if (ioctl(blehcisocket->_socket, HCIGETDEVINFO, (void*)&di) > -1) {
+    memcpy(blehcisocket->_address, &di.bdaddr, sizeof(di.bdaddr));
+    blehcisocket->_addressType = di.type;
 
-    if (_this->_addressType == 3) {
+    if (blehcisocket->_addressType == 3) {
       // 3 is a weird type, use 1 (public) instead
-      _this->_addressType = 1;
+      blehcisocket->_addressType = 1;
     }
   }
 
-  return _this->_devId;
+  return blehcisocket->_devId;
 }
 
 
-int iotjs_blehcisocket_bindUser(THIS, int* devId) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_blehcisocket_t, blehcisocket);
-
+int iotjs_blehcisocket_bindUser(iotjs_blehcisocket_t* blehcisocket,
+                                int* devId) {
   struct sockaddr_hci a;
 
   memset(&a, 0, sizeof(a));
@@ -222,20 +212,18 @@ int iotjs_blehcisocket_bindUser(THIS, int* devId) {
   a.hci_dev = iotjs_blehcisocket_devIdFor(blehcisocket, devId, false);
   a.hci_channel = HCI_CHANNEL_USER;
 
-  _this->_devId = a.hci_dev;
-  _this->_mode = HCI_CHANNEL_USER;
+  blehcisocket->_devId = a.hci_dev;
+  blehcisocket->_mode = HCI_CHANNEL_USER;
 
-  if (bind(_this->_socket, (struct sockaddr*)&a, sizeof(a)) < 0) {
+  if (bind(blehcisocket->_socket, (struct sockaddr*)&a, sizeof(a)) < 0) {
     DLOG("ERROR on binding: %s", strerror(errno));
   }
 
-  return _this->_devId;
+  return blehcisocket->_devId;
 }
 
 
-void iotjs_blehcisocket_bindControl(THIS) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_blehcisocket_t, blehcisocket);
-
+void iotjs_blehcisocket_bindControl(iotjs_blehcisocket_t* blehcisocket) {
   struct sockaddr_hci a;
 
   memset(&a, 0, sizeof(a));
@@ -243,24 +231,22 @@ void iotjs_blehcisocket_bindControl(THIS) {
   a.hci_dev = HCI_DEV_NONE;
   a.hci_channel = HCI_CHANNEL_CONTROL;
 
-  _this->_mode = HCI_CHANNEL_CONTROL;
+  blehcisocket->_mode = HCI_CHANNEL_CONTROL;
 
-  if (bind(_this->_socket, (struct sockaddr*)&a, sizeof(a)) < 0) {
+  if (bind(blehcisocket->_socket, (struct sockaddr*)&a, sizeof(a)) < 0) {
     DLOG("ERROR on binding: %s", strerror(errno));
   }
 }
 
 
-bool iotjs_blehcisocket_isDevUp(THIS) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_blehcisocket_t, blehcisocket);
-
+bool iotjs_blehcisocket_isDevUp(iotjs_blehcisocket_t* blehcisocket) {
   struct hci_dev_info di;
   bool isUp = false;
 
   memset(&di, 0x00, sizeof(di));
-  di.dev_id = _this->_devId;
+  di.dev_id = blehcisocket->_devId;
 
-  if (ioctl(_this->_socket, HCIGETDEVINFO, (void*)&di) > -1) {
+  if (ioctl(blehcisocket->_socket, HCIGETDEVINFO, (void*)&di) > -1) {
     isUp = (di.flags & (1 << HCI_UP)) != 0;
   }
 
@@ -268,33 +254,30 @@ bool iotjs_blehcisocket_isDevUp(THIS) {
 }
 
 
-void iotjs_blehcisocket_setFilter(THIS, char* data, size_t length) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_blehcisocket_t, blehcisocket);
-
-  if (setsockopt(_this->_socket, SOL_HCI, HCI_FILTER, data, (socklen_t)length) <
-      0) {
+void iotjs_blehcisocket_setFilter(iotjs_blehcisocket_t* blehcisocket,
+                                  char* data, size_t length) {
+  if (setsockopt(blehcisocket->_socket, SOL_HCI, HCI_FILTER, data,
+                 (socklen_t)length) < 0) {
     iotjs_blehcisocket_emitErrnoError(blehcisocket);
   }
 }
 
 
-void iotjs_blehcisocket_poll(THIS) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_blehcisocket_t, blehcisocket);
-
+void iotjs_blehcisocket_poll(iotjs_blehcisocket_t* blehcisocket) {
   int length = 0;
   char data[1024];
 
-  length = read(_this->_socket, data, sizeof(data));
+  length = read(blehcisocket->_socket, data, sizeof(data));
 
   if (length > 0) {
-    if (_this->_mode == HCI_CHANNEL_RAW) {
+    if (blehcisocket->_mode == HCI_CHANNEL_RAW) {
       if (iotjs_blehcisocket_kernelDisconnectWorkArounds(blehcisocket, length,
                                                          data) < 0) {
         return;
       }
     }
 
-    jerry_value_t jhcisocket = _this->jobject;
+    jerry_value_t jhcisocket = blehcisocket->jobject;
     jerry_value_t jemit = iotjs_jval_get_property(jhcisocket, "emit");
     IOTJS_ASSERT(jerry_value_is_function(jemit));
 
@@ -316,26 +299,21 @@ void iotjs_blehcisocket_poll(THIS) {
 }
 
 
-void iotjs_blehcisocket_stop(THIS) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_blehcisocket_t, blehcisocket);
-
-  uv_poll_stop(&_this->_pollHandle);
+void iotjs_blehcisocket_stop(iotjs_blehcisocket_t* blehcisocket) {
+  uv_poll_stop(&blehcisocket->_pollHandle);
 }
 
 
-void iotjs_blehcisocket_write(THIS, char* data, size_t length) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_blehcisocket_t, blehcisocket);
-
-  if (write(_this->_socket, data, length) < 0) {
+void iotjs_blehcisocket_write(iotjs_blehcisocket_t* blehcisocket, char* data,
+                              size_t length) {
+  if (write(blehcisocket->_socket, data, length) < 0) {
     iotjs_blehcisocket_emitErrnoError(blehcisocket);
   }
 }
 
 
-void iotjs_blehcisocket_emitErrnoError(THIS) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_blehcisocket_t, blehcisocket);
-
-  jerry_value_t jhcisocket = _this->jobject;
+void iotjs_blehcisocket_emitErrnoError(iotjs_blehcisocket_t* blehcisocket) {
+  jerry_value_t jhcisocket = blehcisocket->jobject;
   jerry_value_t jemit = iotjs_jval_get_property(jhcisocket, "emit");
   IOTJS_ASSERT(jerry_value_is_function(jemit));
 
@@ -351,9 +329,8 @@ void iotjs_blehcisocket_emitErrnoError(THIS) {
 }
 
 
-int iotjs_blehcisocket_devIdFor(THIS, int* pDevId, bool isUp) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_blehcisocket_t, blehcisocket);
-
+int iotjs_blehcisocket_devIdFor(iotjs_blehcisocket_t* blehcisocket, int* pDevId,
+                                bool isUp) {
   int devId = 0; // default
 
   if (pDevId == NULL) {
@@ -367,7 +344,7 @@ int iotjs_blehcisocket_devIdFor(THIS, int* pDevId, bool isUp) {
 
     dl->dev_num = HCI_MAX_DEV;
 
-    if (ioctl(_this->_socket, HCIGETDEVLIST, dl) > -1) {
+    if (ioctl(blehcisocket->_socket, HCIGETDEVLIST, dl) > -1) {
       for (int i = 0; i < dl->dev_num; i++, dr++) {
         bool devUp = dr->dev_opt & (1 << HCI_UP);
         bool match = isUp ? devUp : !devUp;
@@ -388,10 +365,8 @@ int iotjs_blehcisocket_devIdFor(THIS, int* pDevId, bool isUp) {
 }
 
 
-int iotjs_blehcisocket_kernelDisconnectWorkArounds(THIS, int length,
-                                                   char* data) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_blehcisocket_t, blehcisocket);
-
+int iotjs_blehcisocket_kernelDisconnectWorkArounds(
+    iotjs_blehcisocket_t* blehcisocket, int length, char* data) {
   if (length == 22 && data[0] == 0x04 && data[1] == 0x3e && data[2] == 0x13 &&
       data[3] == 0x01 && data[4] == 0x00) {
     int l2socket;
@@ -417,8 +392,8 @@ int iotjs_blehcisocket_kernelDisconnectWorkArounds(THIS, int length,
     memset(&l2a, 0, sizeof(l2a));
     l2a.l2_family = AF_BLUETOOTH;
     l2a.l2_cid = l2cid;
-    memcpy(&l2a.l2_bdaddr, _this->_address, sizeof(l2a.l2_bdaddr));
-    l2a.l2_bdaddr_type = _this->_addressType;
+    memcpy(&l2a.l2_bdaddr, blehcisocket->_address, sizeof(l2a.l2_bdaddr));
+    l2a.l2_bdaddr_type = blehcisocket->_addressType;
 
     if (bind(l2socket, (struct sockaddr*)&l2a, sizeof(l2a)) < 0) {
       DLOG("ERROR on binding: %s", strerror(errno));
@@ -438,22 +413,20 @@ int iotjs_blehcisocket_kernelDisconnectWorkArounds(THIS, int length,
       return -1;
     }
 
-    _this->_l2sockets[handle] = l2socket;
-    _this->_l2socketCount++;
+    blehcisocket->_l2sockets[handle] = l2socket;
+    blehcisocket->_l2socketCount++;
   } else if (length == 7 && data[0] == 0x04 && data[1] == 0x05 &&
              data[2] == 0x04 && data[3] == 0x00) {
     unsigned short handle = *((unsigned short*)(&data[4]));
 
-    if (_this->_l2socketCount > 0) {
-      close(_this->_l2sockets[handle]);
-      _this->_l2socketCount--;
+    if (blehcisocket->_l2socketCount > 0) {
+      close(blehcisocket->_l2sockets[handle]);
+      blehcisocket->_l2socketCount--;
     }
   }
 
   return 0;
 }
-
-#undef THIS
 
 void iotjs_blehcisocket_poll_cb(uv_poll_t* handle, int status, int events) {
   iotjs_blehcisocket_t* blehcisocket = (iotjs_blehcisocket_t*)handle->data;

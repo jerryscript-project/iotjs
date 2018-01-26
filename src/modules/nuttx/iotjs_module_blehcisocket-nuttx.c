@@ -16,83 +16,82 @@
 #include "iotjs_def.h"
 #include "modules/iotjs_module_blehcisocket.h"
 
-#define THIS iotjs_blehcisocket_t* blehcisocket
 
-
-void iotjs_blehcisocket_initialize(THIS) {
+void iotjs_blehcisocket_initialize(iotjs_blehcisocket_t* blehcisocket) {
   IOTJS_ASSERT(!"Not implemented");
 }
 
 
-void iotjs_blehcisocket_close(THIS) {
+void iotjs_blehcisocket_close(iotjs_blehcisocket_t* blehcisocket) {
   IOTJS_ASSERT(!"Not implemented");
 }
 
 
-void iotjs_blehcisocket_start(THIS) {
+void iotjs_blehcisocket_start(iotjs_blehcisocket_t* blehcisocket) {
   IOTJS_ASSERT(!"Not implemented");
 }
 
 
-int iotjs_blehcisocket_bindRaw(THIS, int* devId) {
+int iotjs_blehcisocket_bindRaw(iotjs_blehcisocket_t* blehcisocket, int* devId) {
   IOTJS_ASSERT(!"Not implemented");
   return 0;
 }
 
 
-int iotjs_blehcisocket_bindUser(THIS, int* devId) {
+int iotjs_blehcisocket_bindUser(iotjs_blehcisocket_t* blehcisocket,
+                                int* devId) {
   IOTJS_ASSERT(!"Not implemented");
   return 0;
 }
 
 
-void iotjs_blehcisocket_bindControl(THIS) {
+void iotjs_blehcisocket_bindControl(iotjs_blehcisocket_t* blehcisocket) {
   IOTJS_ASSERT(!"Not implemented");
 }
 
 
-bool iotjs_blehcisocket_isDevUp(THIS) {
+bool iotjs_blehcisocket_isDevUp(iotjs_blehcisocket_t* blehcisocket) {
   IOTJS_ASSERT(!"Not implemented");
   return false;
 }
 
 
-void iotjs_blehcisocket_setFilter(THIS, char* data, size_t length) {
+void iotjs_blehcisocket_setFilter(iotjs_blehcisocket_t* blehcisocket,
+                                  char* data, size_t length) {
   IOTJS_ASSERT(!"Not implemented");
 }
 
 
-void iotjs_blehcisocket_poll(THIS) {
+void iotjs_blehcisocket_poll(iotjs_blehcisocket_t* blehcisocket) {
   IOTJS_ASSERT(!"Not implemented");
 }
 
 
-void iotjs_blehcisocket_stop(THIS) {
+void iotjs_blehcisocket_stop(iotjs_blehcisocket_t* blehcisocket) {
   IOTJS_ASSERT(!"Not implemented");
 }
 
 
-void iotjs_blehcisocket_write(THIS, char* data, size_t length) {
+void iotjs_blehcisocket_write(iotjs_blehcisocket_t* blehcisocket, char* data,
+                              size_t length) {
   IOTJS_ASSERT(!"Not implemented");
 }
 
 
-void iotjs_blehcisocket_emitErrnoError(THIS) {
+void iotjs_blehcisocket_emitErrnoError(iotjs_blehcisocket_t* blehcisocket) {
   IOTJS_ASSERT(!"Not implemented");
 }
 
 
-int iotjs_blehcisocket_devIdFor(THIS, int* pDevId, bool isUp) {
-  IOTJS_ASSERT(!"Not implemented");
-  return 0;
-}
-
-
-int iotjs_blehcisocket_kernelDisconnectWorkArounds(THIS, int length,
-                                                   char* data) {
+int iotjs_blehcisocket_devIdFor(iotjs_blehcisocket_t* blehcisocket, int* pDevId,
+                                bool isUp) {
   IOTJS_ASSERT(!"Not implemented");
   return 0;
 }
 
 
-#undef THIS
+int iotjs_blehcisocket_kernelDisconnectWorkArounds(
+    iotjs_blehcisocket_t* blehcisocket, int length, char* data) {
+  IOTJS_ASSERT(!"Not implemented");
+  return 0;
+}

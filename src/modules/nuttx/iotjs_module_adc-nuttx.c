@@ -13,8 +13,9 @@
  * limitations under the License.
  */
 
-#if defined(__NUTTX__)
-
+#if !defined(__NUTTX__)
+#error "Module __FILE__ is for NuttX only"
+#endif
 
 #include <uv.h>
 #include <nuttx/analog/adc.h>
@@ -25,22 +26,48 @@
 #include "modules/iotjs_module_adc.h"
 #include "modules/iotjs_module_stm32f4dis.h"
 
-
 #define ADC_DEVICE_PATH_FORMAT "/dev/adc%d"
 #define ADC_DEVICE_PATH_BUFFER_SIZE 12
 
+struct iotjs_adc_platform_data_s {
+  uint32_t pin;
+};
 
-static void iotjs_adc_get_path(char* buffer, int32_t number) {
+void iotjs_adc_create_platform_data(iotjs_adc_t* adc) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_adc_t, adc);
+  _this->platform_data = IOTJS_ALLOC(iotjs_adc_platform_data_t);
+  _this->platform_data->pin = 0;
+}
+
+
+void iotjs_adc_destroy_platform_data(iotjs_adc_platform_data_t* platform_data) {
+  IOTJS_RELEASE(platform_data);
+}
+
+
+jerry_value_t iotjs_adc_set_platform_config(iotjs_adc_t* adc,
+                                            const jerry_value_t jconfig) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_adc_t, adc);
+  iotjs_adc_platform_data_t* platform_data = _this->platform_data;
+
+  DJS_GET_REQUIRED_CONF_VALUE(jconfig, platform_data->pin,
+                              IOTJS_MAGIC_STRING_PIN, number);
+
+  return jerry_create_undefined();
+}
+
+
+static void adc_get_path(char* buffer, int32_t number) {
   // Create ADC device path
   snprintf(buffer, ADC_DEVICE_PATH_BUFFER_SIZE - 1, ADC_DEVICE_PATH_FORMAT,
            number);
 }
 
 
-static bool iotjs_adc_read_data(uint32_t pin, struct adc_msg_s* msg) {
+static bool adc_read_data(uint32_t pin, struct adc_msg_s* msg) {
   int32_t adc_number = ADC_GET_NUMBER(pin);
   char path[ADC_DEVICE_PATH_BUFFER_SIZE] = { 0 };
-  iotjs_adc_get_path(path, adc_number);
+  adc_get_path(path, adc_number);
 
   const iotjs_environment_t* env = iotjs_environment_get();
   uv_loop_t* loop = iotjs_environment_loop(env);
@@ -74,27 +101,31 @@ static bool iotjs_adc_read_data(uint32_t pin, struct adc_msg_s* msg) {
 }
 
 
-int32_t iotjs_adc_read(iotjs_adc_t* adc) {
+bool iotjs_adc_read(iotjs_adc_t* adc) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_adc_t, adc);
+  iotjs_adc_platform_data_t* platform_data = _this->platform_data;
 
   struct adc_msg_s msg;
 
-  if (!iotjs_adc_read_data(_this->pin, &msg)) {
-    return -1;
+  if (!adc_read_data(platform_data->pin, &msg)) {
+    return false;
   }
 
-  return msg.am_data;
+  _this->value = msg.am_data;
+
+  return true;
 }
 
 
 bool iotjs_adc_close(iotjs_adc_t* adc) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_adc_t, adc);
+  iotjs_adc_platform_data_t* platform_data = _this->platform_data;
 
-  uint32_t pin = _this->pin;
+  uint32_t pin = platform_data->pin;
   int32_t adc_number = ADC_GET_NUMBER(pin);
 
   char path[ADC_DEVICE_PATH_BUFFER_SIZE] = { 0 };
-  iotjs_adc_get_path(path, adc_number);
+  adc_get_path(path, adc_number);
 
   // Release driver
   if (unregister_driver(path) < 0) {
@@ -107,28 +138,24 @@ bool iotjs_adc_close(iotjs_adc_t* adc) {
 }
 
 
-void iotjs_adc_open_worker(uv_work_t* work_req) {
-  ADC_WORKER_INIT;
+bool iotjs_adc_open(iotjs_adc_t* adc) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_adc_t, adc);
+  iotjs_adc_platform_data_t* platform_data = _this->platform_data;
 
-  uint32_t pin = _this->pin;
+  uint32_t pin = platform_data->pin;
   int32_t adc_number = ADC_GET_NUMBER(pin);
   int32_t timer = SYSIO_GET_TIMER(pin);
   struct adc_dev_s* adc_dev = iotjs_adc_config_nuttx(adc_number, timer, pin);
 
   char path[ADC_DEVICE_PATH_BUFFER_SIZE] = { 0 };
-  iotjs_adc_get_path(path, adc_number);
+  adc_get_path(path, adc_number);
 
   if (adc_register(path, adc_dev) != 0) {
-    req_data->result = false;
-    return;
+    return false;
   }
 
   DDDLOG("%s - path: %s, number: %d, timer: %d", __func__, path, adc_number,
          timer);
 
-  req_data->result = true;
+  return true;
 }
-
-
-#endif // __NUTTX__

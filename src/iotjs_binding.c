@@ -71,14 +71,6 @@ jerry_value_t iotjs_jval_create_byte_array(uint32_t len, const char* data) {
 }
 
 
-jerry_value_t iotjs_jval_dummy_function(const jerry_value_t function_obj,
-                                        const jerry_value_t this_val,
-                                        const jerry_value_t args_p[],
-                                        const jerry_length_t args_count) {
-  return this_val;
-}
-
-
 jerry_value_t iotjs_jval_create_function(jerry_external_handler_t handler) {
   jerry_value_t jval = jerry_create_external_function(handler);
 

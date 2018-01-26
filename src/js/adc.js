@@ -13,14 +13,16 @@
  * limitations under the License.
  */
 
-function Adc() {
-  if (!(this instanceof Adc)) {
-    return new Adc();
-  }
-}
-
-Adc.prototype.open = function(configuration, callback) {
-  return new native.Adc(configuration, callback);
+var adc = {
+  open: function(config, callback) {
+    var adcPin = new native(config, function(err) {
+      callback(err, adcPin);
+    });
+    return adcPin;
+  },
+  openSync: function(config) {
+    return new native(config);
+  },
 };
 
-module.exports = Adc;
+module.exports = adc;

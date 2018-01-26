@@ -13,6 +13,10 @@
  * limitations under the License.
  */
 
+#if !defined(__linux__)
+#error "Module __FILE__ is for Linux only"
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -21,28 +25,57 @@
 #include "iotjs_systemio-linux.h"
 #include "modules/iotjs_module_adc.h"
 
-
 #define ADC_PIN_FORMAT ADC_INTERFACE ADC_PIN_INTERFACE
-
 #define ADC_PATH_BUFFER_SIZE DEVICE_IO_PATH_BUFFER_SIZE
 #define ADC_PIN_BUFFER_SIZE DEVICE_IO_PIN_BUFFER_SIZE
 #define ADC_VALUE_BUFFER_SIZE 64
+
+struct iotjs_adc_platform_data_s {
+  iotjs_string_t device;
+};
+
+
+void iotjs_adc_create_platform_data(iotjs_adc_t* adc) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_adc_t, adc);
+  _this->platform_data = IOTJS_ALLOC(iotjs_adc_platform_data_t);
+}
+
+
+void iotjs_adc_destroy_platform_data(iotjs_adc_platform_data_t* platform_data) {
+  iotjs_string_destroy(&platform_data->device);
+  IOTJS_RELEASE(platform_data);
+}
+
+
+jerry_value_t iotjs_adc_set_platform_config(iotjs_adc_t* adc,
+                                            const jerry_value_t jconfig) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_adc_t, adc);
+  iotjs_adc_platform_data_t* platform_data = _this->platform_data;
+
+  DJS_GET_REQUIRED_CONF_VALUE(jconfig, platform_data->device,
+                              IOTJS_MAGIC_STRING_DEVICE, string);
+
+  return jerry_create_undefined();
+}
 
 
 // Implementation used here are based on:
 //  https://www.kernel.org/doc/Documentation/adc/sysfs.txt
 
-int32_t iotjs_adc_read(iotjs_adc_t* adc) {
+bool iotjs_adc_read(iotjs_adc_t* adc) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_adc_t, adc);
+  iotjs_adc_platform_data_t* platform_data = _this->platform_data;
 
-  const char* device_path = iotjs_string_data(&_this->device);
+  const char* device_path = iotjs_string_data(&platform_data->device);
   char buffer[ADC_VALUE_BUFFER_SIZE];
 
   if (!iotjs_systemio_open_read_close(device_path, buffer, sizeof(buffer))) {
-    return -1;
+    return false;
   }
 
-  return atoi(buffer);
+  _this->value = atoi(buffer) != 0;
+
+  return true;
 }
 
 
@@ -50,13 +83,17 @@ bool iotjs_adc_close(iotjs_adc_t* adc) {
   return true;
 }
 
-void iotjs_adc_open_worker(uv_work_t* work_req) {
-  ADC_WORKER_INIT;
+bool iotjs_adc_open(iotjs_adc_t* adc) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_adc_t, adc);
+  iotjs_adc_platform_data_t* platform_data = _this->platform_data;
 
   DDDLOG("%s()", __func__);
-  const char* device_path = iotjs_string_data(&_this->device);
+  const char* device_path = iotjs_string_data(&platform_data->device);
 
   // Check if ADC interface exists.
-  req_data->result = iotjs_systemio_check_path(device_path);
+  if (!iotjs_systemio_check_path(device_path)) {
+    return false;
+  }
+
+  return true;
 }

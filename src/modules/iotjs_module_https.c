@@ -24,6 +24,58 @@
 
 #include "iotjs_module_buffer.h"
 
+// A Per-Request Struct, native bound to https.ClientRequest
+struct iotjs_https_t {
+  // Original Request Details
+  const char* URL;
+  HTTPS_Methods method;
+  struct curl_slist* header_list;
+  // TLS certs Options
+  const char* ca;
+  const char* cert;
+  const char* key;
+  bool reject_unauthorized;
+  // Content-Length for Post and Put
+  long content_length;
+
+  // Handles
+  uv_loop_t* loop;
+  jerry_value_t jthis_native;
+  CURLM* curl_multi_handle;
+  uv_timer_t timeout;
+  CURL* curl_easy_handle;
+  // Curl Context
+  int running_handles;
+  int closing_handles;
+  bool request_done;
+  iotjs_https_poll_t* poll_data;
+
+  // For SetTimeOut
+  uv_timer_t socket_timeout;
+  long timeout_ms;
+  double last_bytes_num;
+  uint64_t last_bytes_time;
+
+  // For Writable Stream ClientRequest
+  size_t cur_read_index;
+  bool is_stream_writable;
+  bool data_to_read;
+  bool stream_ended;
+  bool to_destroy_read_onwrite;
+  iotjs_string_t read_chunk;
+  jerry_value_t read_callback;
+  jerry_value_t read_onwrite;
+  uv_timer_t async_read_onwrite;
+};
+
+struct iotjs_https_poll_t {
+  uv_poll_t poll_handle;
+  iotjs_https_poll_t* next;
+  iotjs_https_t* https_data;
+  curl_socket_t sockfd;
+  bool closing;
+};
+
 IOTJS_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(https);
 
 //-------------Constructor------------
@@ -209,7 +261,7 @@ void iotjs_https_initialize_curl_opts(iotjs_https_t* https_data) {
                    (void*)https_data);
   curl_easy_setopt(https_data->curl_easy_handle, CURLOPT_WRITEFUNCTION,
                    iotjs_https_curl_write_callback);
-  curl_easy_setopt(_thttps_datahis->curl_easy_handle, CURLOPT_WRITEDATA,
+  curl_easy_setopt(https_data->curl_easy_handle, CURLOPT_WRITEDATA,
                    (void*)https_data);
 
   // Read and send data to server only for some request types
@@ -442,7 +494,7 @@ size_t iotjs_https_curl_read_callback(void* contents, size_t size, size_t nmemb,
       size_t num_to_copy =
           (left_to_copy_size < real_size) ? left_to_copy_size : real_size;
       const char* buf = iotjs_string_data(&(https_data->read_chunk));
-      buf = &buf[_thttps_datahis->cur_read_index];
+      buf = &buf[https_data->cur_read_index];
       strncpy((char*)contents, buf, num_to_copy);
       https_data->cur_read_index = https_data->cur_read_index + num_to_copy;
       return num_to_copy;

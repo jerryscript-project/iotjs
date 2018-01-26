@@ -23,8 +23,7 @@ struct iotjs_gpio_platform_data_s {
 };
 
 void iotjs_gpio_create_platform_data(iotjs_gpio_t* gpio) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_gpio_t, gpio);
-  _this->platform_data = IOTJS_ALLOC(iotjs_gpio_platform_data_t);
+  gpio->platform_data = IOTJS_ALLOC(iotjs_gpio_platform_data_t);
 }
 
 void iotjs_gpio_destroy_platform_data(
@@ -33,47 +32,42 @@ void iotjs_gpio_destroy_platform_data(
 }
 
 bool iotjs_gpio_write(iotjs_gpio_t* gpio) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_gpio_t, gpio);
-  int retVal = peripheral_gpio_write(_this->platform_data->peripheral_gpio,
-                                     _this->value);
+  int retVal =
+      peripheral_gpio_write(gpio->platform_data->peripheral_gpio, gpio->value);
   return PERIPHERAL_ERROR_NONE == retVal;
 }
 
 
 bool iotjs_gpio_read(iotjs_gpio_t* gpio) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_gpio_t, gpio);
   uint32_t value;
   int retVal =
-      peripheral_gpio_read(_this->platform_data->peripheral_gpio, &value);
+      peripheral_gpio_read(gpio->platform_data->peripheral_gpio, &value);
   if (retVal != PERIPHERAL_ERROR_NONE) {
     return false;
   }
 
-  _this->value = (bool)value;
+  gpio->value = (bool)value;
   return true;
 }
 
 
 bool iotjs_gpio_close(iotjs_gpio_t* gpio) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_gpio_t, gpio);
-  peripheral_gpio_close(_this->platform_data->peripheral_gpio);
+  peripheral_gpio_close(gpio->platform_data->peripheral_gpio);
   return true;
 }
 
 
 bool iotjs_gpio_open(iotjs_gpio_t* gpio) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_gpio_t, gpio);
-
   peripheral_gpio_h _gpio;
-  int retVal = peripheral_gpio_open((int)_this->pin, &_gpio);
+  int retVal = peripheral_gpio_open((int)gpio->pin, &_gpio);
   if (retVal != PERIPHERAL_ERROR_NONE) {
     return false;
   }
 
-  _this->platform_data->peripheral_gpio = _gpio;
+  gpio->platform_data->peripheral_gpio = _gpio;
   peripheral_gpio_direction_e _direction;
 
-  if (_this->direction == kGpioDirectionIn) {
+  if (gpio->direction == kGpioDirectionIn) {
     _direction = PERIPHERAL_GPIO_DIRECTION_IN;
   } else {
     _direction = PERIPHERAL_GPIO_DIRECTION_OUT_INITIALLY_HIGH;
@@ -86,7 +80,7 @@ bool iotjs_gpio_open(iotjs_gpio_t* gpio) {
 
   // Mode is not supported by Peripheral API for Tizen
   peripheral_gpio_edge_e _edge;
-  switch (_this->edge) {
+  switch (gpio->edge) {
     case kGpioEdgeNone:
       _edge = PERIPHERAL_GPIO_EDGE_NONE;
       break;

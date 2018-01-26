@@ -71,7 +71,7 @@ typedef struct {
   GpioDirection direction;
   GpioMode mode;
   GpioEdge edge;
-} IOTJS_VALIDATED_STRUCT(iotjs_gpio_t);
+} iotjs_gpio_t;
 
 
 typedef struct {
@@ -79,7 +79,7 @@ typedef struct {
   uv_work_t req;
   iotjs_gpio_reqdata_t req_data;
   iotjs_gpio_t* gpio_data;
-} IOTJS_VALIDATED_STRUCT(iotjs_gpio_reqwrap_t);
+} iotjs_gpio_reqwrap_t;
 
 
 bool iotjs_gpio_open(iotjs_gpio_t* gpio);

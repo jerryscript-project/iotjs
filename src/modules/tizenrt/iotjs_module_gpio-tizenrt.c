@@ -25,8 +25,7 @@ struct iotjs_gpio_platform_data_s {
 
 
 void iotjs_gpio_create_platform_data(iotjs_gpio_t* gpio) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_gpio_t, gpio);
-  _this->platform_data = IOTJS_ALLOC(iotjs_gpio_platform_data_t);
+  gpio->platform_data = IOTJS_ALLOC(iotjs_gpio_platform_data_t);
 }
 
 
@@ -37,12 +36,10 @@ void iotjs_gpio_destroy_platform_data(
 
 
 bool iotjs_gpio_open(iotjs_gpio_t* gpio) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_gpio_t, gpio);
+  DDDLOG("%s - pin: %d, direction: %d, mode: %d", __func__, gpio->pin,
+         gpio->direction, gpio->mode);
 
-  DDDLOG("%s - pin: %d, direction: %d, mode: %d", __func__, _this->pin,
-         _this->direction, _this->mode);
-
-  iotbus_gpio_context_h gpio_context = iotbus_gpio_open((int)_this->pin);
+  iotbus_gpio_context_h gpio_context = iotbus_gpio_open((int)gpio->pin);
   if (gpio_context == NULL) {
     iotbus_gpio_close(gpio_context);
     return false;
@@ -50,9 +47,9 @@ bool iotjs_gpio_open(iotjs_gpio_t* gpio) {
 
   // Set direction
   iotbus_gpio_direction_e direction;
-  if (_this->direction == kGpioDirectionIn) {
+  if (gpio->direction == kGpioDirectionIn) {
     direction = IOTBUS_GPIO_DIRECTION_IN;
-  } else if (_this->direction == kGpioDirectionOut) {
+  } else if (gpio->direction == kGpioDirectionOut) {
     direction = IOTBUS_GPIO_DIRECTION_OUT;
   } else {
     direction = IOTBUS_GPIO_DIRECTION_NONE;
@@ -63,15 +60,14 @@ bool iotjs_gpio_open(iotjs_gpio_t* gpio) {
     return false;
   }
 
-  _this->platform_data->gpio_context = gpio_context;
+  gpio->platform_data->gpio_context = gpio_context;
 
   return true;
 }
 
 
 bool iotjs_gpio_write(iotjs_gpio_t* gpio) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_gpio_t, gpio);
-  if (iotbus_gpio_write(_this->platform_data->gpio_context, _this->value) < 0) {
+  if (iotbus_gpio_write(gpio->platform_data->gpio_context, gpio->value) < 0) {
     return false;
   }
   return true;
@@ -79,8 +75,7 @@ bool iotjs_gpio_write(iotjs_gpio_t* gpio) {
 
 
 bool iotjs_gpio_read(iotjs_gpio_t* gpio) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_gpio_t, gpio);
-  if (iotbus_gpio_read(_this->platform_data->gpio_context) < 0) {
+  if (iotbus_gpio_read(gpio->platform_data->gpio_context) < 0) {
     return false;
   }
   return true;
@@ -88,10 +83,8 @@ bool iotjs_gpio_read(iotjs_gpio_t* gpio) {
 
 
 bool iotjs_gpio_close(iotjs_gpio_t* gpio) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_gpio_t, gpio);
-
-  if (_this->platform_data->gpio_context &&
-      iotbus_gpio_close(_this->platform_data->gpio_context) < 0) {
+  if (gpio->platform_data->gpio_context &&
+      iotbus_gpio_close(gpio->platform_data->gpio_context) < 0) {
     return false;
   }
   return true;

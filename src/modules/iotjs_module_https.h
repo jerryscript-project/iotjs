@@ -83,7 +83,7 @@ typedef struct {
   jerry_value_t read_onwrite;
   uv_timer_t async_read_onwrite;
 
-} iotjs_https_t;
+} IOTJS_VALIDATED_STRUCT(iotjs_https_t);
 
 iotjs_https_t* iotjs_https_create(const char* URL, const char* method,
                                   const char* ca, const char* cert,
@@ -91,25 +91,26 @@ iotjs_https_t* iotjs_https_create(const char* URL, const char* method,
                                   const bool reject_unauthorized,
                                   jerry_value_t jthis);
 
+#define THIS iotjs_https_t* https_data
 // Some utility functions
-void iotjs_https_check_done(iotjs_https_t* https_data);
-void iotjs_https_cleanup(iotjs_https_t* https_data);
-void iotjs_https_initialize_curl_opts(iotjs_https_t* https_data);
-jerry_value_t iotjs_https_jiotjs_https_t* https_data_from_https(
-    iotjs_https_t* https_data);
-bool iotjs_https_jcallback(iotjs_https_t* https_data, const char* property,
+void iotjs_https_check_done(THIS);
+void iotjs_https_cleanup(THIS);
+CURLM* iotjs_https_get_multi_handle(THIS);
+void iotjs_https_initialize_curl_opts(THIS);
+jerry_value_t iotjs_https_jthis_from_https(THIS);
+bool iotjs_https_jcallback(THIS, const char* property,
                            const iotjs_jargs_t* jarg, bool resultvalue);
 void iotjs_https_call_read_onwrite(uv_timer_t* timer);
-void iotjs_https_call_read_onwrite_async(iotjs_https_t* https_data);
+void iotjs_https_call_read_onwrite_async(THIS);
 
 // Functions almost directly called by JS via JHANDLER
-void iotjs_https_add_header(iotjs_https_t* https_data, const char* char_header);
-void iotjs_https_data_to_write(iotjs_https_t* https_data,
-                               iotjs_string_t read_chunk,
+void iotjs_https_add_header(THIS, const char* char_header);
+void iotjs_https_data_to_write(THIS, iotjs_string_t read_chunk,
                                jerry_value_t callback, jerry_value_t onwrite);
-void iotjs_https_finish_request(iotjs_https_t* https_data);
-void iotjs_https_send_request(iotjs_https_t* https_data);
-void iotjs_https_set_timeout(long ms, iotjs_https_t* https_data);
+void iotjs_https_finish_request(THIS);
+void iotjs_https_send_request(THIS);
+void iotjs_https_set_timeout(long ms, THIS);
+#undef THIS
 
 
 // CURL callbacks
@@ -136,13 +137,15 @@ typedef struct {
   struct iotjs_https_t* https_data;
   curl_socket_t sockfd;
   bool closing;
-} iotjs_https_poll_t;
+} IOTJS_VALIDATED_STRUCT(iotjs_https_poll_t);
 
 iotjs_https_poll_t* iotjs_https_poll_create(uv_loop_t* loop,
                                             curl_socket_t sockfd,
                                             iotjs_https_t* https_data);
 void iotjs_https_poll_append(iotjs_https_poll_t* head,
                              iotjs_https_poll_t* poll_data);
+iotjs_https_poll_t* iotjs_https_poll_get_next(iotjs_https_poll_t* poll_data);
+uv_poll_t* iotjs_https_poll_get_poll_handle(iotjs_https_poll_t* poll_data);
 void iotjs_https_poll_close(iotjs_https_poll_t* poll_data);
 void iotjs_https_poll_destroy(iotjs_https_poll_t* poll_data);
 void iotjs_https_poll_close_all(iotjs_https_poll_t* head);

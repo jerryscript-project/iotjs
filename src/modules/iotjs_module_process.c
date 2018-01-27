@@ -253,8 +253,10 @@ static void SetProcessEnv(jerry_value_t process) {
 
   iotjspath = getenv(IOTJS_MAGIC_STRING_IOTJS_PATH_U);
   if (iotjspath == NULL) {
-#if defined(__NUTTX__) || defined(__TIZENRT__)
+#if defined(__NUTTX__)
     iotjspath = "/mnt/sdcard";
+#elif defined(__TIZENRT__)
+    iotjspath = "/rom";
 #else
     iotjspath = "";
 #endif

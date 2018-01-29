@@ -18,28 +18,13 @@
 #define IOTJS_MODULE_PWM_H
 
 #include "iotjs_def.h"
+#include "iotjs_module_periph_common.h"
 #include "iotjs_reqwrap.h"
 
 #if defined(__TIZENRT__)
 #include <iotbus_pwm.h>
 #include <stdint.h>
 #endif
-
-
-typedef enum {
-  kPwmOpClose,
-  kPwmOpOpen,
-  kPwmOpSetDutyCycle,
-  kPwmOpSetEnable,
-  kPwmOpSetFrequency,
-  kPwmOpSetPeriod
-} PwmOp;
-
-
-typedef struct {
-  bool result;
-  PwmOp op;
-} iotjs_pwm_reqdata_t;
 
 // Forward declaration of platform data. These are only used by platform code.
 // Generic PWM module never dereferences platform data pointer.
@@ -54,14 +39,6 @@ typedef struct {
   double period;
   bool enable;
 } iotjs_pwm_t;
-
-
-typedef struct {
-  iotjs_reqwrap_t reqwrap;
-  uv_work_t req;
-  iotjs_pwm_reqdata_t req_data;
-  iotjs_pwm_t* pwm_data;
-} iotjs_pwm_reqwrap_t;
 
 jerry_value_t iotjs_pwm_set_platform_config(iotjs_pwm_t* pwm,
                                             const jerry_value_t jconfig);

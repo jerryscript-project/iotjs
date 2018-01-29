@@ -19,6 +19,7 @@
 
 
 #include "iotjs_def.h"
+#include "iotjs_module_periph_common.h"
 #include "iotjs_reqwrap.h"
 
 
@@ -27,7 +28,6 @@ typedef enum {
   kGpioDirectionOut,
   __kGpioDirectionMax
 } GpioDirection;
-
 
 typedef enum {
   kGpioModeNone = 0,
@@ -39,7 +39,6 @@ typedef enum {
   __kGpioModeMax
 } GpioMode;
 
-
 typedef enum {
   kGpioEdgeNone = 0,
   kGpioEdgeRising,
@@ -47,20 +46,6 @@ typedef enum {
   kGpioEdgeBoth,
   __kGpioEdgeMax
 } GpioEdge;
-
-
-typedef enum {
-  kGpioOpOpen,
-  kGpioOpWrite,
-  kGpioOpRead,
-  kGpioOpClose,
-} GpioOp;
-
-
-typedef struct {
-  GpioOp op;
-  bool result;
-} iotjs_gpio_reqdata_t;
 
 typedef struct iotjs_gpio_platform_data_s iotjs_gpio_platform_data_t;
 
@@ -75,15 +60,6 @@ typedef struct {
   GpioMode mode;
   GpioEdge edge;
 } iotjs_gpio_t;
-
-
-typedef struct {
-  iotjs_reqwrap_t reqwrap;
-  uv_work_t req;
-  iotjs_gpio_reqdata_t req_data;
-  iotjs_gpio_t* gpio_data;
-} iotjs_gpio_reqwrap_t;
-
 
 bool iotjs_gpio_open(iotjs_gpio_t* gpio);
 bool iotjs_gpio_write(iotjs_gpio_t* gpio);

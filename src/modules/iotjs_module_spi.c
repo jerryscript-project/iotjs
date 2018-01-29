@@ -20,32 +20,7 @@
 
 IOTJS_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(spi);
 
-static iotjs_spi_t* spi_create(jerry_value_t jspi) {
-  iotjs_spi_t* spi = IOTJS_ALLOC(iotjs_spi_t);
-  iotjs_spi_create_platform_data(spi);
-  spi->jobject = jspi;
-  jerry_set_object_native_pointer(jspi, spi, &this_module_native_info);
-
-  return spi;
-}
-
-static iotjs_spi_reqwrap_t* spi_reqwrap_create(jerry_value_t jcallback,
-                                               iotjs_spi_t* spi, SpiOp op) {
-  iotjs_spi_reqwrap_t* spi_reqwrap = IOTJS_ALLOC(iotjs_spi_reqwrap_t);
-
-  iotjs_reqwrap_initialize(&spi_reqwrap->reqwrap, jcallback,
-                           (uv_req_t*)&spi_reqwrap->req);
-
-  spi_reqwrap->req_data.op = op;
-  spi_reqwrap->spi_data = spi;
-
-  return spi_reqwrap;
-}
-
-static void spi_reqwrap_destroy(iotjs_spi_reqwrap_t* spi_reqwrap) {
-  iotjs_reqwrap_destroy(&spi_reqwrap->reqwrap);
-  IOTJS_RELEASE(spi_reqwrap);
-}
+IOTJS_DEFINE_PERIPH_CREATE_FUNCTION(spi);
 
 static void iotjs_spi_destroy(iotjs_spi_t* spi) {
   iotjs_spi_destroy_platform_data(spi->platform_data);
@@ -184,116 +159,33 @@ static jerry_value_t spi_set_configuration(iotjs_spi_t* spi,
   return jerry_create_undefined();
 }
 
-
 /*
  * SPI worker function
  */
 static void spi_worker(uv_work_t* work_req) {
-  iotjs_spi_reqwrap_t* req_wrap =
-      (iotjs_spi_reqwrap_t*)(iotjs_reqwrap_from_request((uv_req_t*)work_req));
-  iotjs_spi_reqdata_t* req_data = &req_wrap->req_data;
-  iotjs_spi_t* spi = req_wrap->spi_data;
+  iotjs_periph_reqwrap_t* req_wrap =
+      (iotjs_periph_reqwrap_t*)(iotjs_reqwrap_from_request(
+          (uv_req_t*)work_req));
+  iotjs_spi_t* spi = (iotjs_spi_t*)req_wrap->data;
 
-  switch (req_data->op) {
+  switch (req_wrap->op) {
     case kSpiOpClose: {
-      req_data->result = iotjs_spi_close(spi);
+      req_wrap->result = iotjs_spi_close(spi);
       break;
     }
     case kSpiOpOpen: {
-      req_data->result = iotjs_spi_open(spi);
+      req_wrap->result = iotjs_spi_open(spi);
       break;
     }
     case kSpiOpTransferArray:
     case kSpiOpTransferBuffer: {
-      req_data->result = iotjs_spi_transfer(spi);
+      req_wrap->result = iotjs_spi_transfer(spi);
       break;
     }
     default:
       IOTJS_ASSERT(!"Invalid Operation");
   }
 }
-
-static const char* spi_error_str(uint8_t op) {
-  switch (op) {
-    case kSpiOpClose:
-      return "Close error, cannot close SPI";
-    case kSpiOpOpen:
-      return "Open error, cannot open SPI";
-    case kSpiOpTransferArray:
-    case kSpiOpTransferBuffer:
-      return "Transfer error, cannot transfer from SPI device";
-    default:
-      return "Unknown error";
-  }
-}
-
-static void spi_after_work(uv_work_t* work_req, int status) {
-  iotjs_spi_reqwrap_t* req_wrap =
-      (iotjs_spi_reqwrap_t*)(iotjs_reqwrap_from_request((uv_req_t*)work_req));
-  iotjs_spi_reqdata_t* req_data = &req_wrap->req_data;
-
-  iotjs_jargs_t jargs = iotjs_jargs_create(2);
-
-  if (status) {
-    iotjs_jargs_append_error(&jargs, "System error");
-  } else {
-    switch (req_data->op) {
-      case kSpiOpClose:
-      case kSpiOpOpen: {
-        if (!req_data->result) {
-          iotjs_jargs_append_error(&jargs, spi_error_str(req_data->op));
-        } else {
-          iotjs_jargs_append_null(&jargs);
-        }
-        break;
-      }
-      case kSpiOpTransferArray:
-      case kSpiOpTransferBuffer: {
-        iotjs_spi_t* spi = req_wrap->spi_data;
-
-        if (!req_data->result) {
-          iotjs_jargs_append_error(&jargs, spi_error_str(req_data->op));
-        } else {
-          iotjs_jargs_append_null(&jargs);
-
-          // Append read data
-          jerry_value_t result =
-              iotjs_jval_create_byte_array(spi->buf_len, spi->rx_buf_data);
-          iotjs_jargs_append_jval(&jargs, result);
-          jerry_release_value(result);
-        }
-
-        if (req_data->op == kSpiOpTransferArray) {
-          iotjs_buffer_release(spi->tx_buf_data);
-        }
-
-        iotjs_buffer_release(spi->rx_buf_data);
-        break;
-      }
-      default: {
-        IOTJS_ASSERT(!"Unreachable");
-        break;
-      }
-    }
-  }
-
-  jerry_value_t jcallback = iotjs_reqwrap_jcallback(&req_wrap->reqwrap);
-  if (jerry_value_is_function(jcallback)) {
-    iotjs_make_callback(jcallback, jerry_create_undefined(), &jargs);
-  }
-
-  iotjs_jargs_destroy(&jargs);
-  spi_reqwrap_destroy(req_wrap);
-}
-
-#define SPI_CALL_ASYNC(op, jcallback)                                       \
-  do {                                                                      \
-    uv_loop_t* loop = iotjs_environment_loop(iotjs_environment_get());      \
-    iotjs_spi_reqwrap_t* req_wrap = spi_reqwrap_create(jcallback, spi, op); \
-    uv_work_t* req = &req_wrap->req;                                        \
-    uv_queue_work(loop, req, spi_worker, spi_after_work);                   \
-  } while (0)
-
 
 JS_FUNCTION(SpiCons) {
   DJS_CHECK_THIS();
@@ -325,9 +217,9 @@ JS_FUNCTION(SpiCons) {
   // If the callback doesn't exist, it is completed synchronously.
   // Otherwise, it will be executed asynchronously.
   if (!jerry_value_is_null(jcallback)) {
-    SPI_CALL_ASYNC(kSpiOpOpen, jcallback);
+    iotjs_periph_call_async(spi, jcallback, kSpiOpOpen, spi_worker);
   } else if (!iotjs_spi_open(spi)) {
-    return JS_CREATE_ERROR(COMMON, spi_error_str(kSpiOpOpen));
+    return JS_CREATE_ERROR(COMMON, iotjs_periph_error_str(kSpiOpOpen));
   }
 
   return jerry_create_undefined();
@@ -358,7 +250,8 @@ JS_FUNCTION(Transfer) {
   DJS_CHECK_ARG_IF_EXIST(1, function);
 
   uint8_t op = spi_transfer_helper(jargv[0], spi);
-  SPI_CALL_ASYNC((SpiOp)op, JS_GET_ARG_IF_EXIST(1, function));
+  iotjs_periph_call_async(spi, JS_GET_ARG_IF_EXIST(1, function), op,
+                          spi_worker);
 
   return jerry_create_undefined();
 }
@@ -370,7 +263,7 @@ JS_FUNCTION(TransferSync) {
 
   jerry_value_t result = jerry_create_undefined();
   if (!iotjs_spi_transfer(spi)) {
-    result = JS_CREATE_ERROR(COMMON, spi_error_str(op));
+    result = JS_CREATE_ERROR(COMMON, iotjs_periph_error_str(op));
   } else {
     result = iotjs_jval_create_byte_array(spi->buf_len, spi->rx_buf_data);
   }
@@ -388,7 +281,8 @@ JS_FUNCTION(Close) {
   JS_DECLARE_THIS_PTR(spi, spi);
   DJS_CHECK_ARG_IF_EXIST(1, function);
 
-  SPI_CALL_ASYNC(kSpiOpClose, JS_GET_ARG_IF_EXIST(0, function));
+  iotjs_periph_call_async(spi, JS_GET_ARG_IF_EXIST(0, function), kSpiOpClose,
+                          spi_worker);
 
   return jerry_create_undefined();
 }
@@ -397,7 +291,7 @@ JS_FUNCTION(CloseSync) {
   JS_DECLARE_THIS_PTR(spi, spi);
 
   if (!iotjs_spi_close(spi)) {
-    return JS_CREATE_ERROR(COMMON, spi_error_str(kSpiOpClose));
+    return JS_CREATE_ERROR(COMMON, iotjs_periph_error_str(kSpiOpClose));
   }
 
   return jerry_create_undefined();

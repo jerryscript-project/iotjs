@@ -19,22 +19,11 @@
 
 #include "iotjs_def.h"
 #include "iotjs_handlewrap.h"
+#include "iotjs_module_periph_common.h"
 #include "iotjs_reqwrap.h"
 
 
 #define UART_WRITE_BUFFER_SIZE 512
-
-
-typedef enum {
-  kUartOpOpen,
-  kUartOpClose,
-  kUartOpWrite,
-} UartOp;
-
-typedef struct {
-  UartOp op;
-  bool result;
-} iotjs_uart_reqdata_t;
 
 typedef struct {
   iotjs_handlewrap_t handlewrap;
@@ -46,13 +35,6 @@ typedef struct {
   unsigned buf_len;
   uv_poll_t poll_handle;
 } iotjs_uart_t;
-
-typedef struct {
-  iotjs_reqwrap_t reqwrap;
-  uv_work_t req;
-  iotjs_uart_reqdata_t req_data;
-  iotjs_uart_t* uart_data;
-} iotjs_uart_reqwrap_t;
 
 void iotjs_uart_register_read_cb(iotjs_uart_t* uart);
 bool iotjs_uart_open(iotjs_uart_t* uart);

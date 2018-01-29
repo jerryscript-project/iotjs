@@ -19,6 +19,7 @@
 
 #include "iotjs_def.h"
 #include "iotjs_module_buffer.h"
+#include "iotjs_module_periph_common.h"
 #include "iotjs_reqwrap.h"
 
 #if defined(__TIZENRT__)
@@ -30,13 +31,6 @@
 #if defined(__NUTTX__)
 #include <nuttx/spi/spi.h>
 #endif
-
-typedef enum {
-  kSpiOpClose,
-  kSpiOpOpen,
-  kSpiOpTransferArray,
-  kSpiOpTransferBuffer
-} SpiOp;
 
 typedef enum {
   kSpiMode_0,
@@ -71,19 +65,6 @@ typedef struct {
   char* rx_buf_data;
   uint8_t buf_len;
 } iotjs_spi_t;
-
-typedef struct {
-  bool result;
-  SpiOp op;
-} iotjs_spi_reqdata_t;
-
-typedef struct {
-  iotjs_reqwrap_t reqwrap;
-  uv_work_t req;
-  iotjs_spi_reqdata_t req_data;
-  iotjs_spi_t* spi_data;
-} iotjs_spi_reqwrap_t;
-
 
 jerry_value_t iotjs_spi_set_platform_config(iotjs_spi_t* spi,
                                             const jerry_value_t jconfig);

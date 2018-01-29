@@ -18,14 +18,8 @@
 #define IOTJS_MODULE_ADC_H
 
 #include "iotjs_def.h"
+#include "iotjs_module_periph_common.h"
 #include "iotjs_reqwrap.h"
-
-
-typedef enum {
-  kAdcOpOpen,
-  kAdcOpRead,
-  kAdcOpClose,
-} AdcOp;
 
 // Forward declaration of platform data. These are only used by platform code.
 // Generic ADC module never dereferences platform data pointer.
@@ -36,21 +30,6 @@ typedef struct {
   iotjs_adc_platform_data_t* platform_data;
   int32_t value;
 } iotjs_adc_t;
-
-
-typedef struct {
-  bool result;
-  AdcOp op;
-} iotjs_adc_reqdata_t;
-
-
-typedef struct {
-  iotjs_reqwrap_t reqwrap;
-  uv_work_t req;
-  iotjs_adc_reqdata_t req_data;
-  iotjs_adc_t* adc_data;
-} iotjs_adc_reqwrap_t;
-
 
 bool iotjs_adc_read(iotjs_adc_t* adc);
 bool iotjs_adc_close(iotjs_adc_t* adc);

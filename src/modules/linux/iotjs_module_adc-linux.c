@@ -36,8 +36,7 @@ struct iotjs_adc_platform_data_s {
 
 
 void iotjs_adc_create_platform_data(iotjs_adc_t* adc) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_adc_t, adc);
-  _this->platform_data = IOTJS_ALLOC(iotjs_adc_platform_data_t);
+  adc->platform_data = IOTJS_ALLOC(iotjs_adc_platform_data_t);
 }
 
 
@@ -49,8 +48,7 @@ void iotjs_adc_destroy_platform_data(iotjs_adc_platform_data_t* platform_data) {
 
 jerry_value_t iotjs_adc_set_platform_config(iotjs_adc_t* adc,
                                             const jerry_value_t jconfig) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_adc_t, adc);
-  iotjs_adc_platform_data_t* platform_data = _this->platform_data;
+  iotjs_adc_platform_data_t* platform_data = adc->platform_data;
 
   DJS_GET_REQUIRED_CONF_VALUE(jconfig, platform_data->device,
                               IOTJS_MAGIC_STRING_DEVICE, string);
@@ -63,8 +61,7 @@ jerry_value_t iotjs_adc_set_platform_config(iotjs_adc_t* adc,
 //  https://www.kernel.org/doc/Documentation/adc/sysfs.txt
 
 bool iotjs_adc_read(iotjs_adc_t* adc) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_adc_t, adc);
-  iotjs_adc_platform_data_t* platform_data = _this->platform_data;
+  iotjs_adc_platform_data_t* platform_data = adc->platform_data;
 
   const char* device_path = iotjs_string_data(&platform_data->device);
   char buffer[ADC_VALUE_BUFFER_SIZE];
@@ -73,7 +70,7 @@ bool iotjs_adc_read(iotjs_adc_t* adc) {
     return false;
   }
 
-  _this->value = atoi(buffer) != 0;
+  adc->value = atoi(buffer) != 0;
 
   return true;
 }
@@ -84,8 +81,7 @@ bool iotjs_adc_close(iotjs_adc_t* adc) {
 }
 
 bool iotjs_adc_open(iotjs_adc_t* adc) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_adc_t, adc);
-  iotjs_adc_platform_data_t* platform_data = _this->platform_data;
+  iotjs_adc_platform_data_t* platform_data = adc->platform_data;
 
   DDDLOG("%s()", __func__);
   const char* device_path = iotjs_string_data(&platform_data->device);

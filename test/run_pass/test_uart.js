@@ -14,9 +14,7 @@
  */
 
 var assert = require('assert');
-var Uart = require('uart');
-
-var uart = new Uart();
+var uart = require('uart');
 
 var configuration = {
   baudRate: 115200,
@@ -34,15 +32,13 @@ if (process.platform === 'linux') {
 writeTest();
 
 function writeTest() {
-  var serial = uart.open(configuration, function(err) {
-    assert.equal(err, null);
-    console.log('open done');
+  var serial = uart.openSync(configuration);
+  console.log('open done');
 
-    serial.writeSync("Hello IoT.js.\n\r");
-    serial.closeSync();
-    console.log('close done');
-    writeReadTest();
-  });
+  serial.writeSync("Hello IoT.js.\n\r");
+  serial.closeSync();
+  console.log('close done');
+  writeReadTest();
 }
 
 function writeReadTest() {
@@ -69,7 +65,9 @@ function writeReadTest() {
       write = 1;
 
       if (read && write) {
-        serial.close();
+        serial.close(function(err) {
+          assert.equal(err, null);
+        });
         console.log('close done');
       }
     });

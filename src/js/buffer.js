@@ -51,13 +51,14 @@ function Buffer(subject, encoding) {
     throw new TypeError('Bad arguments: Buffer(string|number|Buffer|Array)');
   }
 
-  this._builtin = new native(this, this.length);
+  // 'native' is the buffer object created via the C API.
+  native(this, this.length);
 
   if (util.isString(subject)) {
     if (encoding !== undefined && util.isString(encoding)) {
       switch (encoding) {
         case 'hex':
-          if (this._builtin.hexWrite(subject, 0, this.length) != this.length) {
+          if (native.hexWrite(this, subject, 0, this.length) != this.length) {
             throw new TypeError('Invalid hex string');
           }
           break;
@@ -71,7 +72,7 @@ function Buffer(subject, encoding) {
     subject.copy(this);
   } else if (util.isArray(subject)) {
     for (var i = 0; i < this.length; ++i) {
-      this._builtin.writeUInt8(subject[i], i);
+      native.writeUInt8(this, subject[i], i);
     }
   }
 }
@@ -128,7 +129,7 @@ Buffer.prototype.equals = function(otherBuffer) {
     throw new TypeError('Bad arguments: buffer.equals(Buffer)');
   }
 
-  return this._builtin.compare(otherBuffer._builtin) == 0;
+  return native.compare(this, otherBuffer) == 0;
 };
 
 
@@ -138,7 +139,7 @@ Buffer.prototype.compare = function(otherBuffer) {
     throw new TypeError('Bad arguments: buffer.compare(Buffer)');
   }
 
-  return this._builtin.compare(otherBuffer._builtin);
+  return native.compare(this, otherBuffer);
 };
 
 
@@ -163,7 +164,7 @@ Buffer.prototype.copy = function(target, targetStart, sourceStart, sourceEnd) {
     throw new RangeError('Attempt to write outside buffer bounds');
   }
 
-  return this._builtin.copy(target, targetStart, sourceStart, sourceEnd);
+  return native.copy(this, target, targetStart, sourceStart, sourceEnd);
 };
 
 
@@ -186,7 +187,7 @@ Buffer.prototype.write = function(string, offset, length) {
   var remaining = this.length - offset;
   length = length === undefined ? remaining : ~~length;
 
-  return this._builtin.write(string, offset, length);
+  return native.write(this, string, offset, length);
 };
 
 
@@ -200,7 +201,7 @@ Buffer.prototype.slice = function(start, end) {
   start = start === undefined ? 0 : ~~start;
   end = end === undefined ? this.length : ~~end;
 
-  return this._builtin.slice(start, end);
+  return native.slice(this, start, end);
 };
 
 
@@ -213,12 +214,12 @@ Buffer.prototype.slice = function(start, end) {
 // * end - default to buff.length
 Buffer.prototype.toString = function(start, end) {
   if (util.isString(start) && start === 'hex' && end === undefined) {
-      return this._builtin.toHexString();
+      return native.toHexString(this);
   }
   start = start === undefined ? 0 : ~~start;
   end = end === undefined ? this.length : ~~end;
 
-  return this._builtin.toString(start, end);
+  return native.toString(this, start, end);
 };
 
 
@@ -230,7 +231,7 @@ Buffer.prototype.writeUInt8 = function(value, offset, noAssert) {
   offset = offset >>> 0;
   if (!noAssert)
     checkInt(this, value, offset, 1, 0xff, 0);
-  this._builtin.writeUInt8(value & 0xff, offset);
+  native.writeUInt8(this, value & 0xff, offset);
   return offset + 1;
 };
 
@@ -243,8 +244,8 @@ Buffer.prototype.writeUInt16LE = function(value, offset, noAssert) {
   offset = offset >>> 0;
   if (!noAssert)
     checkInt(this, value, offset, 2, 0xffff, 0);
-  this._builtin.writeUInt8(value & 0xff, offset);
-  this._builtin.writeUInt8((value >>> 8) & 0xff, offset + 1);
+  native.writeUInt8(this, value & 0xff, offset);
+  native.writeUInt8(this, (value >>> 8) & 0xff, offset + 1);
   return offset + 2;
 };
 
@@ -257,10 +258,10 @@ Buffer.prototype.writeUInt32LE = function(value, offset, noAssert) {
   offset = offset >>> 0;
   if (!noAssert)
     checkInt(this, value, offset, 4, 0xffffffff, 0);
-  this._builtin.writeUInt8((value >>> 24) & 0xff, offset + 3);
-  this._builtin.writeUInt8((value >>> 16) & 0xff, offset + 2);
-  this._builtin.writeUInt8((value >>> 8) & 0xff, offset + 1);
-  this._builtin.writeUInt8(value & 0xff, offset);
+  native.writeUInt8(this, (value >>> 24) & 0xff, offset + 3);
+  native.writeUInt8(this, (value >>> 16) & 0xff, offset + 2);
+  native.writeUInt8(this, (value >>> 8) & 0xff, offset + 1);
+  native.writeUInt8(this, value & 0xff, offset);
   return offset + 4;
 };
 
@@ -272,7 +273,7 @@ Buffer.prototype.readUInt8 = function(offset, noAssert) {
   offset = offset >>> 0;
   if (!noAssert)
     checkOffset(offset, 1, this.length);
-  return this._builtin.readUInt8(offset);
+  return native.readUInt8(this, offset);
 };
 
 
@@ -283,7 +284,7 @@ Buffer.prototype.readInt8 = function(offset, noAssert) {
   offset = offset >>> 0;
   if (!noAssert)
     checkOffset(offset, 1, this.length);
-  var val = this._builtin.readUInt8(offset);
+  var val = native.readUInt8(this, offset);
   return !(val & 0x80) ? val : (0xff - val + 1) * -1;
 };
 
@@ -295,8 +296,8 @@ Buffer.prototype.readUInt16LE = function(offset, noAssert) {
   offset = offset >>> 0;
   if (!noAssert)
     checkOffset(offset, 2, this.length);
-  return this._builtin.readUInt8(offset) |
-         (this._builtin.readUInt8(offset + 1) << 8);
+  return native.readUInt8(this, offset) |
+         (native.readUInt8(this, offset + 1) << 8);
 };
 
 
@@ -305,7 +306,7 @@ Buffer.prototype.fill = function(value) {
   if (util.isNumber(value)) {
     value = value & 255;
     for (var i = 0; i < this.length; i++) {
-      this._builtin.writeUInt8(value, i);
+      native.writeUInt8(this, value, i);
     }
   }
   return this;

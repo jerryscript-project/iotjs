@@ -16,10 +16,7 @@
 #include "iotjs_def.h"
 #include "iotjs_module_spi.h"
 #include "iotjs_module_buffer.h"
-#include <unistd.h>
 
-
-#define SPI_TX_ARRAY_BIT 1u
 
 IOTJS_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(spi);
 

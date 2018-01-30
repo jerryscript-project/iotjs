@@ -13,11 +13,8 @@
  * limitations under the License.
  */
 
-#include <string.h>
-
 #include "iotjs_def.h"
 #include "iotjs_module_gpio.h"
-#include <stdio.h>
 
 
 IOTJS_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(gpio);
@@ -121,6 +118,22 @@ static void gpio_worker(uv_work_t* work_req) {
 }
 
 
+static const char* gpio_error_string(uint8_t op) {
+  switch (op) {
+    case kGpioOpClose:
+      return "Close error, cannot close GPIO";
+    case kGpioOpOpen:
+      return "Open error, cannot open GPIO";
+    case kGpioOpRead:
+      return "Read error, cannot read GPIO";
+    case kGpioOpWrite:
+      return "Write error, cannot read GPIO";
+    default:
+      return "Unknown GPIO error";
+  }
+}
+
+
 static void gpio_after_worker(uv_work_t* work_req, int status) {
   iotjs_gpio_reqwrap_t* req_wrap = gpio_reqwrap_from_request(work_req);
   iotjs_gpio_reqdata_t* req_data = gpio_reqwrap_data(req_wrap);
@@ -132,23 +145,9 @@ static void gpio_after_worker(uv_work_t* work_req, int status) {
     iotjs_jargs_append_error(&jargs, "GPIO System Error");
   } else {
     switch (req_data->op) {
-      case kGpioOpOpen:
-        if (!result) {
-          iotjs_jargs_append_error(&jargs, "GPIO Open Error");
-        } else {
-          iotjs_jargs_append_null(&jargs);
-        }
-        break;
-      case kGpioOpWrite:
-        if (!result) {
-          iotjs_jargs_append_error(&jargs, "GPIO Write Error");
-        } else {
-          iotjs_jargs_append_null(&jargs);
-        }
-        break;
       case kGpioOpRead:
         if (!result) {
-          iotjs_jargs_append_error(&jargs, "GPIO Read Error");
+          iotjs_jargs_append_error(&jargs, gpio_error_string(req_data->op));
         } else {
           iotjs_gpio_t* gpio = gpio_instance_from_reqwrap(req_wrap);
 
@@ -156,9 +155,11 @@ static void gpio_after_worker(uv_work_t* work_req, int status) {
           iotjs_jargs_append_bool(&jargs, gpio->value);
         }
         break;
+      case kGpioOpOpen:
+      case kGpioOpWrite:
       case kGpioOpClose:
         if (!result) {
-          iotjs_jargs_append_error(&jargs, "GPIO Close Error");
+          iotjs_jargs_append_error(&jargs, gpio_error_string(req_data->op));
         } else {
           iotjs_jargs_append_null(&jargs);
         }
@@ -179,8 +180,8 @@ static void gpio_after_worker(uv_work_t* work_req, int status) {
 }
 
 
-static void gpio_set_configurable(iotjs_gpio_t* gpio,
-                                  jerry_value_t jconfigurable) {
+static jerry_value_t gpio_set_configuration(iotjs_gpio_t* gpio,
+                                            jerry_value_t jconfigurable) {
   jerry_value_t jpin =
       iotjs_jval_get_property(jconfigurable, IOTJS_MAGIC_STRING_PIN);
   gpio->pin = iotjs_jval_as_number(jpin);
@@ -190,10 +191,18 @@ static void gpio_set_configurable(iotjs_gpio_t* gpio,
   jerry_value_t jdirection =
       iotjs_jval_get_property(jconfigurable, IOTJS_MAGIC_STRING_DIRECTION);
 
-  if (!jerry_value_is_undefined(jdirection)) {
-    gpio->direction = (GpioDirection)iotjs_jval_as_number(jdirection);
-  } else {
+  if (jerry_value_is_undefined(jdirection)) {
     gpio->direction = kGpioDirectionOut;
+  } else {
+    if (jerry_value_is_number(jdirection)) {
+      gpio->direction = (GpioDirection)iotjs_jval_as_number(jdirection);
+    } else {
+      gpio->direction = __kGpioDirectionMax;
+    }
+    if (gpio->direction >= __kGpioDirectionMax) {
+      return JS_CREATE_ERROR(
+          TYPE, "Bad arguments - gpio.direction should be DIRECTION.IN or OUT");
+    }
   }
   jerry_release_value(jdirection);
 
@@ -201,10 +210,34 @@ static void gpio_set_configurable(iotjs_gpio_t* gpio,
   jerry_value_t jmode =
       iotjs_jval_get_property(jconfigurable, IOTJS_MAGIC_STRING_MODE);
 
-  if (!jerry_value_is_undefined(jmode)) {
-    gpio->mode = (GpioMode)iotjs_jval_as_number(jmode);
-  } else {
+  if (jerry_value_is_undefined(jmode)) {
     gpio->mode = kGpioModeNone;
+  } else {
+    if (jerry_value_is_number(jmode)) {
+      gpio->mode = (GpioMode)iotjs_jval_as_number(jmode);
+    } else {
+      gpio->mode = __kGpioModeMax;
+    }
+    if (gpio->mode >= __kGpioModeMax) {
+      return JS_CREATE_ERROR(TYPE,
+                             "Bad arguments - gpio.mode should be MODE.NONE, "
+                             "PULLUP, PULLDOWN, FLOAT, PUSHPULL or OPENDRAIN");
+
+    } else if (gpio->direction == kGpioDirectionIn &&
+               gpio->mode != kGpioModeNone && gpio->mode != kGpioModePullup &&
+               gpio->mode != kGpioModePulldown) {
+      return JS_CREATE_ERROR(TYPE,
+                             "Bad arguments - DIRECTION.IN only supports "
+                             "MODE.NONE, PULLUP and PULLDOWN");
+
+    } else if (gpio->direction == kGpioDirectionOut &&
+               gpio->mode != kGpioModeNone && gpio->mode != kGpioModeFloat &&
+               gpio->mode != kGpioModePushpull &&
+               gpio->mode != kGpioModeOpendrain) {
+      return JS_CREATE_ERROR(TYPE,
+                             "Bad arguments - DIRECTION.OUT only supports "
+                             "MODE.NONE, FLOAT, PUSHPULL and OPENDRAIN");
+    }
   }
   jerry_release_value(jmode);
 
@@ -212,12 +245,23 @@ static void gpio_set_configurable(iotjs_gpio_t* gpio,
   jerry_value_t jedge =
       iotjs_jval_get_property(jconfigurable, IOTJS_MAGIC_STRING_EDGE);
 
-  if (!jerry_value_is_undefined(jedge)) {
-    gpio->edge = (GpioEdge)iotjs_jval_as_number(jedge);
-  } else {
+  if (jerry_value_is_undefined(jedge)) {
     gpio->edge = kGpioEdgeNone;
+  } else {
+    if (jerry_value_is_number(jedge)) {
+      gpio->edge = (GpioEdge)iotjs_jval_as_number(jedge);
+    } else {
+      gpio->edge = __kGpioEdgeMax;
+    }
+    if (gpio->edge >= __kGpioEdgeMax) {
+      return JS_CREATE_ERROR(TYPE,
+                             "Bad arguments - gpio.edge should be EDGE.NONE, "
+                             "RISING, FALLING or BOTH");
+    }
   }
   jerry_release_value(jedge);
+
+  return jerry_create_undefined();
 }
 
 
@@ -240,7 +284,12 @@ JS_FUNCTION(GpioCons) {
   iotjs_gpio_t* gpio = gpio_create(jgpio);
   IOTJS_ASSERT(gpio == gpio_instance_from_jval(jgpio));
 
-  gpio_set_configurable(gpio, JS_GET_ARG(0, object));
+  jerry_value_t config_res =
+      gpio_set_configuration(gpio, JS_GET_ARG(0, object));
+  if (jerry_value_has_error_flag(config_res)) {
+    return config_res;
+  }
+  IOTJS_ASSERT(jerry_value_is_undefined(config_res));
 
   const jerry_value_t jcallback = JS_GET_ARG_IF_EXIST(1, function);
 
@@ -249,7 +298,7 @@ JS_FUNCTION(GpioCons) {
   if (!jerry_value_is_null(jcallback)) {
     GPIO_CALL_ASYNC(kGpioOpOpen, jcallback);
   } else if (!iotjs_gpio_open(gpio)) {
-    return JS_CREATE_ERROR(COMMON, "GPIO Error: cannot open GPIO");
+    return JS_CREATE_ERROR(COMMON, gpio_error_string(kGpioOpOpen));
   }
 
   return jerry_create_undefined();
@@ -270,7 +319,7 @@ JS_FUNCTION(CloseSync) {
   JS_DECLARE_THIS_PTR(gpio, gpio);
 
   if (!iotjs_gpio_close(gpio)) {
-    return JS_CREATE_ERROR(COMMON, "GPIO CloseSync Error");
+    return JS_CREATE_ERROR(COMMON, gpio_error_string(kGpioOpClose));
   }
 
   return jerry_create_undefined();
@@ -315,7 +364,7 @@ JS_FUNCTION(WriteSync) {
   gpio->value = value;
 
   if (!iotjs_gpio_write(gpio)) {
-    return JS_CREATE_ERROR(COMMON, "GPIO WriteSync Error");
+    return JS_CREATE_ERROR(COMMON, gpio_error_string(kGpioOpWrite));
   }
 
   return jerry_create_undefined();
@@ -336,7 +385,7 @@ JS_FUNCTION(ReadSync) {
   JS_DECLARE_THIS_PTR(gpio, gpio);
 
   if (!iotjs_gpio_read(gpio)) {
-    return JS_CREATE_ERROR(COMMON, "GPIO ReadSync Error");
+    return JS_CREATE_ERROR(COMMON, gpio_error_string(kGpioOpRead));
   }
 
   return jerry_create_boolean(gpio->value);

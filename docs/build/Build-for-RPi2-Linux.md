@@ -8,7 +8,7 @@ IoT.js supports two build types:
 
 IoT.js officially supports Raspbian. For more information, please visit [the official site](https://www.raspberrypi.org/downloads/raspbian/).
 
-#### Enable the I2C interface
+#### Enable the I2C interface on Raspberry Pi 2
 
 To use I2C module, the I2C interface must be enabled.
 
@@ -27,7 +27,26 @@ The screen will ask you to enable I2C interface.
 
 Reboot your Raspberry Pi.
 
-#### Enable the PWM interface
+#### Enable the I2C interface on Raspberry Pi Zero
+
+To use I2C module, the I2C interface must be enabled.
+
+From the command line type:
+```bash
+sudo raspi-config
+```
+This will launch raspi-config utility.
+   * Select "5 Interface Options"
+   * Select "P5 I2C"
+
+The screen will ask you to enable I2C interface.
+   * Select "Yes"
+   * Select "Ok"
+   * Select "Finish" to return to the command line.
+
+Reboot your Raspberry Pi.
+
+#### Enable the PWM interface on Raspberry Pi 2
 
 Raspberry Pi2 has two PWM outputs on the following pins.
 
@@ -52,7 +71,7 @@ For more information about overlays, refer to [README](https://github.com/raspbe
 
 * Note that it is necessary to have root privileges in order to run PWM module.
 
-#### Enable the UART interface
+#### Enable the UART interface on Raspberry Pi 2
 
 To use UART module, the UART interface must be enabled.
 
@@ -70,6 +89,44 @@ add the word phase ```"console=serial0,115200"``` or ```"console=ttyAMA0,115200"
 Reboot your Raspberry Pi.
 
 * Note for Raspberry Pi 3 : You should use /dev/ttyS0 instead of /dev/ttyAMA0 in RPI3.
+
+#### Enable the UART interface on Raspberry Pi Zero
+
+To use UART i.e. enable shell and kernel messages on the serial connection.
+
+From the command line type:
+```bash
+sudo raspi-config
+```
+This will launch raspi-config utility.
+   * Select "5 Interface Options"
+   * Select "P6 Serial"
+
+The screen will ask you to enable I2C interface.
+   * Select "Yes"
+   * Select "Ok"
+   * Select "Finish" to return to the command line.
+
+Reboot your Raspberry Pi.
+
+#### Enable the SPI interface on Raspberry Pi Zero
+
+To use SPI module, the SPI interface must be enabled.
+
+From the command line type:
+```bash
+sudo raspi-config
+```
+This will launch raspi-config utility.
+   * Select "5 Interface Options"
+   * Select "P4 SPI"
+
+The screen will ask you to enable I2C interface.
+   * Select "Yes"
+   * Select "Ok"
+   * Select "Finish" to return to the command line.
+
+Reboot your Raspberry Pi.
 
 ### Build IoT.js on your desktop.
 

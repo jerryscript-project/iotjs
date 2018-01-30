@@ -30,7 +30,7 @@
 typedef struct {
   jerry_value_t jcallback;
   uv_req_t* request;
-} IOTJS_VALIDATED_STRUCT(iotjs_reqwrap_t);
+} iotjs_reqwrap_t;
 
 
 void iotjs_reqwrap_initialize(iotjs_reqwrap_t* reqwrap, jerry_value_t jcallback,

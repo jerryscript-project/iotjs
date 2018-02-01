@@ -28,6 +28,7 @@ module.exports = iotjs_module_t;
 
 
 iotjs_module_t.cache = {};
+// Cache to store not yet compiled remote modules
 iotjs_module_t.remoteCache = {};
 
 
@@ -173,6 +174,12 @@ iotjs_module_t.load = function(id, parent) {
   if (process.builtin_modules[id]) {
     return Native.require(id);
   }
+  if (iotjs_module_t.remoteCache[id]) {
+    iotjs_module_t.compileRemoteSource(id, iotjs_module_t.remoteCache[id]);
+    delete iotjs_module_t.remoteCache[id];
+    return iotjs_module_t.cache[id].exports;
+  }
+
   var module = new iotjs_module_t(id, parent);
   var modPath = iotjs_module_t.resolveModPath(module.id, module.parent);
   var cachedModule = iotjs_module_t.cache[modPath];
@@ -201,7 +208,7 @@ iotjs_module_t.load = function(id, parent) {
   return module.exports;
 };
 
-iotjs_module_t.loadRemote = function(filename, source) {
+iotjs_module_t.compileRemoteSource = function(filename, source) {
   var module = new iotjs_module_t(filename, null);
   var cachedModule = iotjs_module_t.cache[filename];
 
@@ -211,10 +218,10 @@ iotjs_module_t.loadRemote = function(filename, source) {
 
   module.filename = filename;
   module.compile(filename, source);
-  iotjs_module_t.remoteCache[filename] = module;
+  iotjs_module_t.cache[filename] = module;
 
   return module.exports;
-};
+}
 
 
 iotjs_module_t.prototype.compile = function(filename, source) {
@@ -225,10 +232,14 @@ iotjs_module_t.prototype.compile = function(filename, source) {
 
 iotjs_module_t.runMain = function() {
   if (process.debuggerWaitSource) {
-    var fn = process.debuggerGetSource();
-    fn.forEach(function (e) {
-      iotjs_module_t.loadRemote(e[0], e[1]);
+    var sources = process.debuggerGetSource();
+    sources.forEach(function (rModule) {
+      iotjs_module_t.remoteCache[rModule[0]] = rModule[1];
     });
+    // Name of the first module
+    var fModName = sources[sources.length - 1][0]
+    iotjs_module_t.compileRemoteSource(fModName,
+                                       iotjs_module_t.remoteCache[fModName]);
   } else {
     iotjs_module_t.load(process.argv[1], null);
   }

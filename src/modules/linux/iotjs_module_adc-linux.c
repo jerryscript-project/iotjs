@@ -50,8 +50,8 @@ jerry_value_t iotjs_adc_set_platform_config(iotjs_adc_t* adc,
                                             const jerry_value_t jconfig) {
   iotjs_adc_platform_data_t* platform_data = adc->platform_data;
 
-  DJS_GET_REQUIRED_CONF_VALUE(jconfig, platform_data->device,
-                              IOTJS_MAGIC_STRING_DEVICE, string);
+  JS_GET_REQUIRED_CONF_VALUE(jconfig, platform_data->device,
+                             IOTJS_MAGIC_STRING_DEVICE, string);
 
   return jerry_create_undefined();
 }

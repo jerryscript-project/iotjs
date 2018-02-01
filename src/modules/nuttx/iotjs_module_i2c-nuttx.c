@@ -47,8 +47,8 @@ jerry_value_t iotjs_i2c_set_platform_config(iotjs_i2c_t* i2c,
                                             const jerry_value_t jconfig) {
   iotjs_i2c_platform_data_t* platform_data = i2c->platform_data;
 
-  DJS_GET_REQUIRED_CONF_VALUE(jconfig, platform_data->bus,
-                              IOTJS_MAGIC_STRING_BUS, number);
+  JS_GET_REQUIRED_CONF_VALUE(jconfig, platform_data->bus,
+                             IOTJS_MAGIC_STRING_BUS, number);
 
   return jerry_create_undefined();
 }

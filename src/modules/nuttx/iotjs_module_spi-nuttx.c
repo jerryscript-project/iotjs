@@ -45,8 +45,8 @@ jerry_value_t iotjs_spi_set_platform_config(iotjs_spi_t* spi,
                                             const jerry_value_t jconfig) {
   iotjs_spi_platform_data_t* platform_data = spi->platform_data;
 
-  DJS_GET_REQUIRED_CONF_VALUE(jconfig, platform_data->bus,
-                              IOTJS_MAGIC_STRING_BUS, number);
+  JS_GET_REQUIRED_CONF_VALUE(jconfig, platform_data->bus,
+                             IOTJS_MAGIC_STRING_BUS, number);
 
   return jerry_create_undefined();
 }

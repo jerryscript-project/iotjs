@@ -144,20 +144,19 @@ static void pwm_after_worker(uv_work_t* work_req, int status) {
 
 static jerry_value_t pwm_set_configuration(iotjs_pwm_t* pwm,
                                            jerry_value_t jconfig) {
-  DJS_GET_REQUIRED_CONF_VALUE(jconfig, pwm->duty_cycle,
-                              IOTJS_MAGIC_STRING_DUTYCYCLE, number);
+  JS_GET_REQUIRED_CONF_VALUE(jconfig, pwm->duty_cycle,
+                             IOTJS_MAGIC_STRING_DUTYCYCLE, number);
   if (pwm->duty_cycle < 0.0 || pwm->duty_cycle > 1.0) {
     return JS_CREATE_ERROR(RANGE, "pwm.dutyCycle must be within 0.0 and 1.0");
   }
 
-  DJS_GET_REQUIRED_CONF_VALUE(jconfig, pwm->period, IOTJS_MAGIC_STRING_PERIOD,
-                              number);
+  JS_GET_REQUIRED_CONF_VALUE(jconfig, pwm->period, IOTJS_MAGIC_STRING_PERIOD,
+                             number);
   if (pwm->period < 0) {
     return JS_CREATE_ERROR(RANGE, "pwm.period must be a positive value");
   }
 
-  DJS_GET_REQUIRED_CONF_VALUE(jconfig, pwm->pin, IOTJS_MAGIC_STRING_PIN,
-                              number);
+  JS_GET_REQUIRED_CONF_VALUE(jconfig, pwm->pin, IOTJS_MAGIC_STRING_PIN, number);
 
   return jerry_create_undefined();
 }

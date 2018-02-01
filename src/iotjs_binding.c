@@ -21,11 +21,7 @@
 #include <string.h>
 
 
-static iotjs_jargs_t jargs_empty = {.unsafe = { 0, 0, NULL },
-#ifndef NDEBUG
-                                    .flag_create = IOTJS_VALID_MAGIC_SEQUENCE
-#endif /* !NDEBUG */
-};
+static iotjs_jargs_t jargs_empty;
 
 
 jerry_value_t iotjs_jval_create_string(const iotjs_string_t* v) {
@@ -265,43 +261,13 @@ jerry_value_t iotjs_jval_get_property_by_index(jerry_value_t jarr,
 }
 
 
-#ifndef NDEBUG
-static jerry_value_t iotjs_jargs_get(const iotjs_jargs_t* jargs,
-                                     uint16_t index) {
-  const IOTJS_VALIDATED_STRUCT_METHOD(iotjs_jargs_t, jargs);
-
-  IOTJS_ASSERT(index < _this->argc);
-  return _this->argv[index];
-}
-#endif
-
-
 jerry_value_t iotjs_jhelper_call(jerry_value_t jfunc, jerry_value_t jthis,
                                  const iotjs_jargs_t* jargs) {
   IOTJS_ASSERT(jerry_value_is_object(jfunc));
 
-  jerry_value_t* jargv_ = NULL;
   jerry_length_t jargc_ = iotjs_jargs_length(jargs);
 
-#ifdef NDEBUG
-  jargv_ = (jerry_value_t*)jargs->unsafe.argv;
-#else
-  if (jargc_ > 0) {
-    unsigned buffer_size = sizeof(jerry_value_t) * jargc_;
-    jargv_ = (jerry_value_t*)iotjs_buffer_allocate(buffer_size);
-    for (unsigned i = 0; i < jargc_; ++i) {
-      jargv_[i] = iotjs_jargs_get(jargs, i);
-    }
-  }
-#endif
-
-  jerry_value_t jres = jerry_call_function(jfunc, jthis, jargv_, jargc_);
-
-#ifndef NDEBUG
-  if (jargv_) {
-    iotjs_buffer_release((char*)jargv_);
-  }
-#endif
+  jerry_value_t jres = jerry_call_function(jfunc, jthis, jargs->argv, jargc_);
 
   return jres;
 }
@@ -349,12 +315,11 @@ iotjs_jargs_t iotjs_jargs_create(uint16_t capacity) {
   }
 
   iotjs_jargs_t jargs;
-  IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_jargs_t, &jargs);
 
-  _this->capacity = capacity;
-  _this->argc = 0;
+  jargs.capacity = capacity;
+  jargs.argc = 0;
   unsigned buffer_size = sizeof(jerry_value_t) * capacity;
-  _this->argv = (jerry_value_t*)iotjs_buffer_allocate(buffer_size);
+  jargs.argv = (jerry_value_t*)iotjs_buffer_allocate(buffer_size);
 
   return jargs;
 }
@@ -366,55 +331,47 @@ const iotjs_jargs_t* iotjs_jargs_get_empty() {
 
 
 void iotjs_jargs_destroy(iotjs_jargs_t* jargs) {
-  IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_jargs_t, jargs);
+  IOTJS_ASSERT(jargs->argv == NULL || jargs->argc > 0);
+  IOTJS_ASSERT(jargs->argc <= jargs->capacity);
 
-  IOTJS_ASSERT(_this->argv == NULL || _this->argc > 0);
-  IOTJS_ASSERT(_this->argc <= _this->capacity);
-
-  if (_this->capacity > 0) {
-    for (unsigned i = 0; i < _this->argc; ++i) {
-      jerry_release_value(_this->argv[i]);
+  if (jargs->capacity > 0) {
+    for (unsigned i = 0; i < jargs->argc; ++i) {
+      jerry_release_value(jargs->argv[i]);
     }
-    iotjs_buffer_release((char*)_this->argv);
+    iotjs_buffer_release((char*)jargs->argv);
   } else {
-    IOTJS_ASSERT(_this->argv == NULL);
+    IOTJS_ASSERT(jargs->argv == NULL);
   }
 }
 
 
 uint16_t iotjs_jargs_length(const iotjs_jargs_t* jargs) {
-  const IOTJS_VALIDATED_STRUCT_METHOD(iotjs_jargs_t, jargs);
-  return _this->argc;
+  return jargs->argc;
 }
 
 
 void iotjs_jargs_append_jval(iotjs_jargs_t* jargs, jerry_value_t x) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_jargs_t, jargs);
-  IOTJS_ASSERT(_this->argc < _this->capacity);
-  _this->argv[_this->argc++] = jerry_acquire_value(x);
+  IOTJS_ASSERT(jargs->argc < jargs->capacity);
+  jargs->argv[jargs->argc++] = jerry_acquire_value(x);
 }
 
 
 void iotjs_jargs_append_undefined(iotjs_jargs_t* jargs) {
-  IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_jargs_t, jargs);
   iotjs_jargs_append_jval(jargs, jerry_create_undefined());
 }
 
 
 void iotjs_jargs_append_null(iotjs_jargs_t* jargs) {
-  IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_jargs_t, jargs);
   iotjs_jargs_append_jval(jargs, jerry_create_null());
 }
 
 
 void iotjs_jargs_append_bool(iotjs_jargs_t* jargs, bool x) {
-  IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_jargs_t, jargs);
   iotjs_jargs_append_jval(jargs, jerry_create_boolean(x));
 }
 
 
 void iotjs_jargs_append_number(iotjs_jargs_t* jargs, double x) {
-  IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_jargs_t, jargs);
   jerry_value_t jval = jerry_create_number(x);
   iotjs_jargs_append_jval(jargs, jval);
   jerry_release_value(jval);
@@ -422,7 +379,6 @@ void iotjs_jargs_append_number(iotjs_jargs_t* jargs, double x) {
 
 
 void iotjs_jargs_append_string(iotjs_jargs_t* jargs, const iotjs_string_t* x) {
-  IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_jargs_t, jargs);
   jerry_value_t jval = iotjs_jval_create_string(x);
   iotjs_jargs_append_jval(jargs, jval);
   jerry_release_value(jval);
@@ -430,7 +386,6 @@ void iotjs_jargs_append_string(iotjs_jargs_t* jargs, const iotjs_string_t* x) {
 
 
 void iotjs_jargs_append_error(iotjs_jargs_t* jargs, const char* msg) {
-  IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_jargs_t, jargs);
   jerry_value_t error = iotjs_jval_create_error_without_error_flag(msg);
   iotjs_jargs_append_jval(jargs, error);
   jerry_release_value(error);
@@ -438,7 +393,6 @@ void iotjs_jargs_append_error(iotjs_jargs_t* jargs, const char* msg) {
 
 
 void iotjs_jargs_append_string_raw(iotjs_jargs_t* jargs, const char* x) {
-  IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_jargs_t, jargs);
   jerry_value_t jval = jerry_create_string((const jerry_char_t*)x);
   iotjs_jargs_append_jval(jargs, jval);
   jerry_release_value(jval);
@@ -447,10 +401,8 @@ void iotjs_jargs_append_string_raw(iotjs_jargs_t* jargs, const char* x) {
 
 void iotjs_jargs_replace(iotjs_jargs_t* jargs, uint16_t index,
                          jerry_value_t x) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_jargs_t, jargs);
+  IOTJS_ASSERT(index < jargs->argc);
 
-  IOTJS_ASSERT(index < _this->argc);
-
-  jerry_release_value(_this->argv[index]);
-  _this->argv[index] = jerry_acquire_value(x);
+  jerry_release_value(jargs->argv[index]);
+  jargs->argv[index] = jerry_acquire_value(x);
 }

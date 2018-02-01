@@ -72,7 +72,7 @@ typedef struct {
   uint16_t capacity;
   uint16_t argc;
   jerry_value_t* argv;
-} IOTJS_VALIDATED_STRUCT(iotjs_jargs_t);
+} iotjs_jargs_t;
 
 
 iotjs_jargs_t iotjs_jargs_create(uint16_t capacity);

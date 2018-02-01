@@ -1,5 +1,4 @@
 * [Coding Style Guideline for C](#coding-style-guideline-for-c)
-  * Validated Struct
   * Header Files
   * Formatting
   * Naming
@@ -22,9 +21,6 @@ Here are `./tools/check_tidy.py` options:
 ```
 --autoedit: Automatically edit the detected clang format errors. No diffs will be displayed.
 ```
-
-## Validated Struct
-Use [Validated Struct](../devs/Inside-IoT.js-Validated-Struct.md) whenever possible, for encapsulation and validity check.
 
 ## Header Files
 
@@ -130,13 +126,13 @@ Use lower cases and underscore for struct names, and add prefix `iotjs_` and suf
 ### Function names
 Use lower cases and underscore for function names.
 
-For constructors, destructor, and methods of validated struct `iotjs_mystruct_t`, use names starting with `iotjs_mystruct_*`.
+For constructors and destructor, use names starting with `iotjs_mystruct_*`.
 Constructor function name should be either `iotjs_mystruct_create` or `iotjs_mystruct_initialize`,
 depending on whether the constructor returns the instance as return value, or the constructor just initializes the instance passed by parameter.
 
 ```c
 typedef struct {
-} IOTJS_VALIDATED_STRUCT(iotjs_mystruct_t);
+} iotjs_mystruct_t;
 
 iotjs_mystruct_t iotjs_mystruct_create(); // Ok
 iotjs_mystruct_t* iotjs_mystruct_create(); // Ok

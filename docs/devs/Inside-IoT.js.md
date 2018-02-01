@@ -81,8 +81,6 @@ You may write code like this:
   jerry_value_t* jobject = (jerry_value_t*)malloc(sizeof(jerry_value_t)); // Not allowed
 ```
 
-Unfortunately, we strongly do not recommend that kind of pattern. We treat pointer-types variables in special way. (See [Validated Struct](Inside-IoT.js-Validated-Struct.md) for more details.)
-
 To achieve your wish, we recommend using `iotjs_jobjectwrap_t` for that purpose.
 `iotjs_jobjectwrap_t` is kind of weak pointer to a Javascript Object.
 It refers a Javascript object but never increase reference count so that Javascript engine can collect the object when it turns into garbage.

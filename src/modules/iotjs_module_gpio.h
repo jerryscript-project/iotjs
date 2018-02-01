@@ -25,6 +25,7 @@
 typedef enum {
   kGpioDirectionIn = 0,
   kGpioDirectionOut,
+  __kGpioDirectionMax
 } GpioDirection;
 
 
@@ -35,6 +36,7 @@ typedef enum {
   kGpioModeFloat,
   kGpioModePushpull,
   kGpioModeOpendrain,
+  __kGpioModeMax
 } GpioMode;
 
 
@@ -43,6 +45,7 @@ typedef enum {
   kGpioEdgeRising,
   kGpioEdgeFalling,
   kGpioEdgeBoth,
+  __kGpioEdgeMax
 } GpioEdge;
 
 

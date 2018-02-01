@@ -142,6 +142,26 @@ static void pwm_after_worker(uv_work_t* work_req, int status) {
   pwm_reqwrap_destroy(req_wrap);
 }
 
+static jerry_value_t pwm_set_configuration(iotjs_pwm_t* pwm,
+                                           jerry_value_t jconfig) {
+  DJS_GET_REQUIRED_CONF_VALUE(jconfig, pwm->duty_cycle,
+                              IOTJS_MAGIC_STRING_DUTYCYCLE, number);
+  if (pwm->duty_cycle < 0.0 || pwm->duty_cycle > 1.0) {
+    return JS_CREATE_ERROR(RANGE, "pwm.dutyCycle must be within 0.0 and 1.0");
+  }
+
+  DJS_GET_REQUIRED_CONF_VALUE(jconfig, pwm->period, IOTJS_MAGIC_STRING_PERIOD,
+                              number);
+  if (pwm->period < 0) {
+    return JS_CREATE_ERROR(RANGE, "pwm.period must be a positive value");
+  }
+
+  DJS_GET_REQUIRED_CONF_VALUE(jconfig, pwm->pin, IOTJS_MAGIC_STRING_PIN,
+                              number);
+
+  return jerry_create_undefined();
+}
+
 #define PWM_CALL_ASYNC(op, jcallback)                                  \
   do {                                                                 \
     uv_loop_t* loop = iotjs_environment_loop(iotjs_environment_get()); \
@@ -167,13 +187,13 @@ JS_FUNCTION(PwmCons) {
   if (jerry_value_has_error_flag(res)) {
     return res;
   }
+  IOTJS_ASSERT(jerry_value_is_undefined(res));
 
-  DJS_GET_REQUIRED_CONF_VALUE(jconfig, pwm->duty_cycle,
-                              IOTJS_MAGIC_STRING_DUTYCYCLE, number);
-  DJS_GET_REQUIRED_CONF_VALUE(jconfig, pwm->period, IOTJS_MAGIC_STRING_PERIOD,
-                              number);
-  DJS_GET_REQUIRED_CONF_VALUE(jconfig, pwm->pin, IOTJS_MAGIC_STRING_PIN,
-                              number);
+  res = pwm_set_configuration(pwm, jconfig);
+  if (jerry_value_has_error_flag(res)) {
+    return res;
+  }
+  IOTJS_ASSERT(jerry_value_is_undefined(res));
 
   jerry_value_t jcallback = JS_GET_ARG_IF_EXIST(1, function);
 
@@ -215,6 +235,9 @@ JS_FUNCTION(SetDutyCycle) {
   jerry_value_t jcallback = JS_GET_ARG_IF_EXIST(1, function);
 
   pwm->duty_cycle = JS_GET_ARG(0, number);
+  if (pwm->duty_cycle < 0.0 || pwm->duty_cycle > 1.0) {
+    return JS_CREATE_ERROR(RANGE, "pwm.dutyCycle must be within 0.0 and 1.0");
+  }
 
   PWM_CALL_ASYNC(kPwmOpSetDutyCycle, jcallback);
 
@@ -226,6 +249,9 @@ JS_FUNCTION(SetDutyCycleSync) {
   DJS_CHECK_ARGS(1, number);
 
   pwm->duty_cycle = JS_GET_ARG(0, number);
+  if (pwm->duty_cycle < 0.0 || pwm->duty_cycle > 1.0) {
+    return JS_CREATE_ERROR(RANGE, "pwm.dutyCycle must be within 0.0 and 1.0");
+  }
 
   if (!iotjs_pwm_set_dutycycle(pwm)) {
     return JS_CREATE_ERROR(COMMON, pwm_error_str(kPwmOpSetDutyCycle));
@@ -265,10 +291,19 @@ static jerry_value_t pwm_set_period_or_frequency(iotjs_pwm_t* pwm,
                                                  const jerry_value_t jargv[],
                                                  const jerry_length_t jargc,
                                                  uint8_t op, bool async) {
+  const double num_value = JS_GET_ARG(0, number);
+
   if (op == kPwmOpSetFrequency) {
-    pwm->period = 1.0 / JS_GET_ARG(0, number);
+    if (num_value <= 0) {
+      return JS_CREATE_ERROR(RANGE, "frequency must be greater than 0");
+    }
+    pwm->period = 1.0 / num_value;
+
   } else {
-    pwm->period = JS_GET_ARG(0, number);
+    if (num_value < 0) {
+      return JS_CREATE_ERROR(RANGE, "period must be a positive value");
+    }
+    pwm->period = num_value;
   }
 
   if (async) {

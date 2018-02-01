@@ -25,7 +25,6 @@ The following shows PWM module APIs available for each platform.
   * `pin` {number} The pin number to use with this PWM object (mandatory configuration).
   * `chip` {number} The PWM chip number (only on Linux). **Default:** `0`.
   * `period` {number} The period of the PWM signal, in seconds (positive number).
-  * `frequency` {integer} In Hz (positive integer).
   * `dutyCycle` {number} The active time of the PWM signal, must be within the `0.0` and `1.0` range.
 * `callback` {Function} Callback function.
   * `err` {Error|null} The error object or `null` if there were no error.
@@ -60,7 +59,6 @@ var pwm0 = pwm.open(config, function(err) {
   * `pin` {number} The pin number to use with this PWM object (mandatory configuration).
   * `chip` {number} The PWM chip number (only on Linux). **Default:** `0`.
   * `period` {number} The period of the PWM signal, in seconds (positive number).
-  * `frequency` {integer} In Hz (positive integer).
   * `dutyCycle` {number} The active time of the PWM signal, must be within the `0.0` and `1.0` range.
 * Returns: {Object} An instance of PWMPin.
 

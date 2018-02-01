@@ -102,13 +102,6 @@ static void adc_after_worker(uv_work_t* work_req, int status) {
     iotjs_jargs_append_error(&jargs, "ADC System Error");
   } else {
     switch (req_data->op) {
-      case kAdcOpOpen:
-        if (!result) {
-          iotjs_jargs_append_error(&jargs, adc_error_string(req_data->op));
-        } else {
-          iotjs_jargs_append_null(&jargs);
-        }
-        break;
       case kAdcOpRead:
         if (!result) {
           iotjs_jargs_append_error(&jargs, adc_error_string(req_data->op));
@@ -119,6 +112,7 @@ static void adc_after_worker(uv_work_t* work_req, int status) {
           iotjs_jargs_append_number(&jargs, adc->value);
         }
         break;
+      case kAdcOpOpen:
       case kAdcOpClose:
         if (!result) {
           iotjs_jargs_append_error(&jargs, adc_error_string(req_data->op));

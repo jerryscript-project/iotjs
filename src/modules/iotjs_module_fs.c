@@ -253,8 +253,7 @@ JS_FUNCTION(Read) {
   iotjs_bufferwrap_t* buffer_wrap = iotjs_bufferwrap_from_jbuffer(jbuffer);
   char* data = buffer_wrap->buffer;
   size_t data_length = iotjs_bufferwrap_length(buffer_wrap);
-  JS_CHECK(data != NULL);
-  JS_CHECK(data_length > 0);
+  JS_CHECK(data != NULL && data_length > 0);
 
   if (offset >= data_length) {
     return JS_CREATE_ERROR(RANGE, "offset out of bound");
@@ -292,8 +291,7 @@ JS_FUNCTION(Write) {
   iotjs_bufferwrap_t* buffer_wrap = iotjs_bufferwrap_from_jbuffer(jbuffer);
   char* data = buffer_wrap->buffer;
   size_t data_length = iotjs_bufferwrap_length(buffer_wrap);
-  JS_CHECK(data != NULL);
-  JS_CHECK(data_length > 0);
+  JS_CHECK(data != NULL && data_length > 0);
 
   if (offset >= data_length) {
     return JS_CREATE_ERROR(RANGE, "offset out of bound");

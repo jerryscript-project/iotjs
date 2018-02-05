@@ -37,104 +37,31 @@ static void iotjs_uart_destroy(iotjs_uart_t* uart) {
   IOTJS_RELEASE(uart);
 }
 
-static iotjs_uart_reqwrap_t* uart_reqwrap_create(jerry_value_t jcallback,
-                                                 iotjs_uart_t* uart,
-                                                 UartOp op) {
-  iotjs_uart_reqwrap_t* uart_reqwrap = IOTJS_ALLOC(iotjs_uart_reqwrap_t);
-
-  iotjs_reqwrap_initialize(&uart_reqwrap->reqwrap, jcallback,
-                           (uv_req_t*)&uart_reqwrap->req);
-
-  uart_reqwrap->req_data.op = op;
-  uart_reqwrap->uart_data = uart;
-
-  return uart_reqwrap;
-}
-
-static void uart_reqwrap_destroy(iotjs_uart_reqwrap_t* uart_reqwrap) {
-  iotjs_reqwrap_destroy(&uart_reqwrap->reqwrap);
-  IOTJS_RELEASE(uart_reqwrap);
-}
-
-static const char* uart_error_str(uint8_t op) {
-  switch (op) {
-    case kUartOpClose:
-      return "Close error, failed to close UART device";
-    case kUartOpOpen:
-      return "Open error, failed to open UART device";
-    case kUartOpWrite:
-      return "Write error, cannot write to UART device";
-    default:
-      return "Unknown error";
-  }
-}
-
 static void handlewrap_close_callback(uv_handle_t* handle) {
   iotjs_uart_t* uart = (iotjs_uart_t*)handle->data;
 
   if (close(uart->device_fd) < 0) {
-    DLOG(uart_error_str(kUartOpClose));
+    DLOG(iotjs_periph_error_str(kUartOpClose));
     IOTJS_ASSERT(0);
   }
 }
 
-static void uart_after_worker(uv_work_t* work_req, int status) {
-  iotjs_uart_reqwrap_t* req_wrap =
-      (iotjs_uart_reqwrap_t*)(iotjs_reqwrap_from_request((uv_req_t*)work_req));
-  iotjs_uart_reqdata_t* req_data = &req_wrap->req_data;
-
-  iotjs_jargs_t jargs = iotjs_jargs_create(1);
-
-  if (status) {
-    iotjs_jargs_append_error(&jargs, "System error");
-  } else {
-    switch (req_data->op) {
-      case kUartOpWrite: {
-        iotjs_uart_t* uart = req_wrap->uart_data;
-        iotjs_string_destroy(&uart->buf_data);
-        /* FALLTHRU */
-      }
-      case kUartOpClose:
-      case kUartOpOpen: {
-        if (!req_data->result) {
-          iotjs_jargs_append_error(&jargs, uart_error_str(req_data->op));
-        } else {
-          iotjs_jargs_append_null(&jargs);
-        }
-        break;
-      }
-      default: {
-        IOTJS_ASSERT(!"Unreachable");
-        break;
-      }
-    }
-  }
-
-  jerry_value_t jcallback = iotjs_reqwrap_jcallback(&req_wrap->reqwrap);
-  if (jerry_value_is_function(jcallback)) {
-    iotjs_make_callback(jcallback, jerry_create_undefined(), &jargs);
-  }
-
-  iotjs_jargs_destroy(&jargs);
-  uart_reqwrap_destroy(req_wrap);
-}
-
 static void uart_worker(uv_work_t* work_req) {
-  iotjs_uart_reqwrap_t* req_wrap =
-      (iotjs_uart_reqwrap_t*)(iotjs_reqwrap_from_request((uv_req_t*)work_req));
-  iotjs_uart_reqdata_t* req_data = &req_wrap->req_data;
-  iotjs_uart_t* uart = req_wrap->uart_data;
+  iotjs_periph_reqwrap_t* req_wrap =
+      (iotjs_periph_reqwrap_t*)(iotjs_reqwrap_from_request(
+          (uv_req_t*)work_req));
+  iotjs_uart_t* uart = (iotjs_uart_t*)req_wrap->data;
 
-  switch (req_data->op) {
+  switch (req_wrap->op) {
     case kUartOpOpen:
-      req_data->result = iotjs_uart_open(uart);
+      req_wrap->result = iotjs_uart_open(uart);
       break;
     case kUartOpWrite:
-      req_data->result = iotjs_uart_write(uart);
+      req_wrap->result = iotjs_uart_write(uart);
       break;
     case kUartOpClose:
       iotjs_handlewrap_close(&uart->handlewrap, handlewrap_close_callback);
-      req_data->result = true;
+      req_wrap->result = true;
       break;
     default:
       IOTJS_ASSERT(!"Invalid Operation");
@@ -235,15 +162,6 @@ static jerry_value_t uart_set_configuration(iotjs_uart_t* uart,
   return jerry_create_undefined();
 }
 
-#define UART_CALL_ASYNC(op, jcallback)                                         \
-  do {                                                                         \
-    uv_loop_t* loop = iotjs_environment_loop(iotjs_environment_get());         \
-    iotjs_uart_reqwrap_t* req_wrap = uart_reqwrap_create(jcallback, uart, op); \
-    uv_work_t* req = &req_wrap->req;                                           \
-    uv_queue_work(loop, req, uart_worker, uart_after_worker);                  \
-  } while (0)
-
-
 JS_FUNCTION(UartCons) {
   DJS_CHECK_THIS();
   DJS_CHECK_ARGS(1, object);
@@ -270,9 +188,9 @@ JS_FUNCTION(UartCons) {
   // If the callback doesn't exist, it is completed synchronously.
   // Otherwise, it will be executed asynchronously.
   if (!jerry_value_is_null(jcallback)) {
-    UART_CALL_ASYNC(kUartOpOpen, jcallback);
+    iotjs_periph_call_async(uart, jcallback, kUartOpOpen, uart_worker);
   } else if (!iotjs_uart_open(uart)) {
-    return JS_CREATE_ERROR(COMMON, uart_error_str(kUartOpOpen));
+    return JS_CREATE_ERROR(COMMON, iotjs_periph_error_str(kUartOpOpen));
   }
 
   return jerry_create_undefined();
@@ -286,7 +204,8 @@ JS_FUNCTION(Write) {
   uart->buf_data = JS_GET_ARG(0, string);
   uart->buf_len = iotjs_string_size(&uart->buf_data);
 
-  UART_CALL_ASYNC(kUartOpWrite, JS_GET_ARG_IF_EXIST(1, function));
+  iotjs_periph_call_async(uart, JS_GET_ARG_IF_EXIST(1, function), kUartOpWrite,
+                          uart_worker);
 
   return jerry_create_undefined();
 }
@@ -302,7 +221,7 @@ JS_FUNCTION(WriteSync) {
   iotjs_string_destroy(&uart->buf_data);
 
   if (!result) {
-    return JS_CREATE_ERROR(COMMON, uart_error_str(kUartOpWrite));
+    return JS_CREATE_ERROR(COMMON, iotjs_periph_error_str(kUartOpWrite));
   }
 
   return jerry_create_undefined();
@@ -312,7 +231,8 @@ JS_FUNCTION(Close) {
   JS_DECLARE_THIS_PTR(uart, uart);
   DJS_CHECK_ARG_IF_EXIST(0, function);
 
-  UART_CALL_ASYNC(kUartOpClose, JS_GET_ARG_IF_EXIST(0, function));
+  iotjs_periph_call_async(uart, JS_GET_ARG_IF_EXIST(0, function), kUartOpClose,
+                          uart_worker);
 
   return jerry_create_undefined();
 }

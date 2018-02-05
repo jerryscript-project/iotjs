@@ -18,20 +18,8 @@
 #define IOTJS_MODULE_I2C_H
 
 #include "iotjs_def.h"
+#include "iotjs_module_periph_common.h"
 #include "iotjs_reqwrap.h"
-
-typedef enum {
-  kI2cOpOpen,
-  kI2cOpClose,
-  kI2cOpWrite,
-  kI2cOpRead,
-} I2cOp;
-
-
-typedef struct {
-  I2cOp op;
-  bool result;
-} iotjs_i2c_reqdata_t;
 
 // Forward declaration of platform data. These are only used by platform code.
 // Generic I2C module never dereferences platform data pointer.
@@ -47,13 +35,6 @@ typedef struct {
   uint8_t cmd;
   uint8_t address;
 } iotjs_i2c_t;
-
-typedef struct {
-  iotjs_reqwrap_t reqwrap;
-  uv_work_t req;
-  iotjs_i2c_reqdata_t req_data;
-  iotjs_i2c_t* i2c_data;
-} iotjs_i2c_reqwrap_t;
 
 jerry_value_t iotjs_i2c_set_platform_config(iotjs_i2c_t* i2c,
                                             const jerry_value_t jconfig);

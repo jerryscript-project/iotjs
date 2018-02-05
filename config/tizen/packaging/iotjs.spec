@@ -8,16 +8,17 @@ URL: https://www.iotjs.net/
 Source:     %{name}-%{version}.tar.gz
 Source1:    %{name}.pc.in
 Source1001: %{name}.manifest
+ExclusiveArch: %arm
 
 BuildRequires: python
 BuildRequires: cmake
 BuildRequires: glibc-static
-BuildRequires: aul
-BuildRequires: pkgconfig(appcore-agent)
-BuildRequires: pkgconfig(capi-appfw-service-application)
-BuildRequires: pkgconfig(capi-appfw-app-common)
-BuildRequires: pkgconfig(capi-appfw-package-manager)
-BuildRequires: pkgconfig(capi-appfw-application)
+#BuildRequires: aul
+#BuildRequires: pkgconfig(appcore-agent)
+#BuildRequires: pkgconfig(capi-appfw-service-application)
+#BuildRequires: pkgconfig(capi-appfw-app-common)
+#BuildRequires: pkgconfig(capi-appfw-package-manager)
+#BuildRequires: pkgconfig(capi-appfw-application)
 BuildRequires: pkgconfig(capi-system-peripheral-io)
 BuildRequires: pkgconfig(dlog)
 #BuildRequires: pkgconfig(st_things_sdkapi)

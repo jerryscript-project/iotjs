@@ -197,7 +197,7 @@ jerry_value_t iotjs_jhelper_eval(const char* name, size_t name_len,
 #define JS_DECLARE_OBJECT_PTR(index, type, name) \
   JS_DECLARE_PTR(type, name, jargv[index])
 
-#define JS_GET_REQUIRED_VALUE(index, target, property, type, value)         \
+#define JS_GET_REQUIRED_VALUE(target, property, type, value)                \
   do {                                                                      \
     if (jerry_value_is_undefined(value)) {                                  \
       return JS_CREATE_ERROR(TYPE, "Missing argument, required " property); \
@@ -210,12 +210,12 @@ jerry_value_t iotjs_jhelper_eval(const char* name, size_t name_len,
   } while (0)
 
 #define JS_GET_REQUIRED_ARG_VALUE(index, target, property, type) \
-  JS_GET_REQUIRED_VALUE(index, target, property, type, jargv[index])
+  JS_GET_REQUIRED_VALUE(target, property, type, jargv[index])
 
 #define JS_GET_REQUIRED_CONF_VALUE(src, target, property, type)  \
   do {                                                           \
     jerry_value_t jtmp = iotjs_jval_get_property(src, property); \
-    JS_GET_REQUIRED_VALUE(index, target, property, type, jtmp);  \
+    JS_GET_REQUIRED_VALUE(target, property, type, jtmp);         \
     jerry_release_value(jtmp);                                   \
   } while (0)
 

@@ -57,8 +57,8 @@ jerry_value_t iotjs_adc_set_platform_config(iotjs_adc_t* adc,
                                             const jerry_value_t jconfig) {
   iotjs_adc_platform_data_t* platform_data = adc->platform_data;
 
-  DJS_GET_REQUIRED_CONF_VALUE(jconfig, platform_data->pin,
-                              IOTJS_MAGIC_STRING_PIN, number);
+  JS_GET_REQUIRED_CONF_VALUE(jconfig, platform_data->pin,
+                             IOTJS_MAGIC_STRING_PIN, number);
 
   return jerry_create_undefined();
 }

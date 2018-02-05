@@ -170,8 +170,8 @@ JS_FUNCTION(I2cCons) {
     return res;
   }
 
-  DJS_GET_REQUIRED_CONF_VALUE(jconfig, i2c->address, IOTJS_MAGIC_STRING_ADDRESS,
-                              number);
+  JS_GET_REQUIRED_CONF_VALUE(jconfig, i2c->address, IOTJS_MAGIC_STRING_ADDRESS,
+                             number);
 
   jerry_value_t jcallback = JS_GET_ARG_IF_EXIST(1, function);
 

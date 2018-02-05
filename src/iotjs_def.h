@@ -59,7 +59,11 @@ extern void force_terminate();
 
 
 #if defined(__linux__)
+#if defined(__TIZEN__)
+#define TARGET_OS "tizen"
+#else
 #define TARGET_OS "linux"
+#endif /* __TIZEN__ */
 #elif defined(__NUTTX__)
 #define TARGET_OS "nuttx"
 #elif defined(__APPLE__)

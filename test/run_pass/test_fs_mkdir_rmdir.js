@@ -66,9 +66,9 @@ function unlink(path) {
         assert.equal(fs.existsSync(root2), false);
       });
 
-      // Run read-only directory test only on linux
+      // Run read-only directory test only on linux and Tizen
       // NuttX does not support read-only attribute.
-      if (process.platform === 'linux') {
+      if (process.platform === 'linux' || process.platform === 'tizen') {
         // Try to create a folder in a read-only directory.
         fs.mkdir(root, '0444', function(err) {
           assert.equal(fs.existsSync(root), true);

@@ -376,8 +376,10 @@ JS_FUNCTION(Reinitialize) {
   DJS_CHECK_ARGS(1, number);
 
   http_parser_type httpparser_type = (http_parser_type)(JS_GET_ARG(0, number));
-  IOTJS_ASSERT(httpparser_type == HTTP_REQUEST ||
-               httpparser_type == HTTP_RESPONSE);
+
+  if (httpparser_type != HTTP_REQUEST && httpparser_type != HTTP_RESPONSE) {
+    return JS_CREATE_ERROR(TYPE, "Invalid type");
+  }
 
   iotjs_httpparserwrap_initialize(parser, httpparser_type);
 
@@ -454,8 +456,11 @@ JS_FUNCTION(HTTPParserCons) {
   const jerry_value_t jparser = JS_GET_THIS();
 
   http_parser_type httpparser_type = (http_parser_type)(JS_GET_ARG(0, number));
-  IOTJS_ASSERT(httpparser_type == HTTP_REQUEST ||
-               httpparser_type == HTTP_RESPONSE);
+
+  if (httpparser_type != HTTP_REQUEST && httpparser_type != HTTP_RESPONSE) {
+    return JS_CREATE_ERROR(TYPE, "Invalid type");
+  }
+
   iotjs_httpparserwrap_create(jparser, httpparser_type);
   return jerry_create_undefined();
 }

@@ -16,9 +16,10 @@
 
 var assert = require('assert');
 var gpio = require('gpio');
+var pin = require('tools/systemio_common').pin;
+var checkError = require('tools/systemio_common').checkError;
 
 var ledGpio = null, switchGpio = null;
-var ledPin, switchPin, ledMode;
 
 var SWITCH_ON = false,
     LED_ON = true,
@@ -26,34 +27,16 @@ var SWITCH_ON = false,
 
 var loopCnt = 0;
 
-if (process.platform === 'linux') {
-  ledPin = 20;
-  switchPin = 13;
-  ledMode = gpio.MODE.NONE;
-} else if (process.platform === 'nuttx') {
-  var pin = require('stm32f4dis').pin;
-  ledPin = pin.PA10;
-  switchPin = pin.PA15;
-  ledMode = gpio.MODE.PUSHPULL;
-} else if(process.platform === 'tizenrt') {
-  ledPin = 41;
-  switchPin = 39;
-  ledMode = gpio.MODE.NONE;
-} else {
-  assert.fail();
-}
-
 ledGpio = gpio.open({
-  pin: ledPin,
+  pin: pin.led,
   direction: gpio.DIRECTION.OUT,
-  mode: ledMode
 }, function(err) {
-  assert.equal(err, null);
+  checkError(err);
   ledGpio.writeSync(LED_OFF);
 });
 
 switchGpio = gpio.openSync({
-  pin: switchPin,
+  pin: pin.switch,
   direction: gpio.DIRECTION.IN
 });
 

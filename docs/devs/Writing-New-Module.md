@@ -12,6 +12,9 @@ Contents
     * Callback
 * Writing "Mixed" Module
   * Using native module in JavaScript module
+* Advanced usage
+  * Module specific CMake file
+* Module structure generator
 
 See also:
 * [Inside IoT.js](Inside-IoT.js.md)
@@ -25,6 +28,8 @@ JavaScript module can be written in the same way as writing [Node.js module](htt
 
 * Use `./tools/build.py --external-modules=my-module` when building
 * Enable your module in a profile or as an additional CMake parameter
+
+**Important:** the name of the module must be in lowercase. It is not allowed to use uppercase characters.
 
 Your new module will look like below:
 
@@ -341,3 +346,103 @@ Console.prototype.log = native.stdout(util.format.apply(this, arguments) + '\n')
 Where `native` is the JS object returned by the native `InitConsole` function in `iotjs_module_console.c`.
 
 **Note**: `native` is undefined if there is no native part of the module.
+
+## Advanced usage
+
+### Module specific CMake file
+
+For each module, it is possible to define one extra cmake file.
+This can be done by specifying the `cmakefile` key file for
+a module in the related `modules.json` file.
+
+For example:
+
+```json
+{
+  "modules": {
+    "demomod": {
+      ...
+      "cmakefile": "module.cmake"
+    }
+  }
+}
+```
+
+This `module.cmake` is a module-specific CMake file
+which will be searchd for in the module's base directory.
+In this file it is possible to specify additonal dependecies,
+build targets, and other things.
+
+However, there are a few important rules which must be followed in
+the CMake file:
+
+* The `MODULE_DIR` and `MODULE_BINARY_DIR` will be set by
+  the IoT.js build system. Do NOT overwrite them in the CMake file!
+
+* The `MODULE_NAME` CMake variable must be set.
+  Example: `set(MODULE_NAME "demomod")`
+
+* The `add_subdirectory` call must specify the output binary dir.
+  Please use this template:
+`add_subdirectory(${MODULE_DIR}/lib/ ${MODULE_BASE_BINARY_DIR}/${MODULE_NAME})`
+  where `lib/` is a subdirectory of the module directory.
+
+* If there is an extra library which should be used during linking, the
+  following template should be used:
+  `list(APPEND MODULE_LIBS demo)`
+  where `demo` is the extra module which must be linked.
+  Any number of modules can be appended to the `MODULE_LIBS` list variable.
+
+* The source files which are specified in the `modules.json` file must NOT
+  be specified in the CMake file.
+
+
+An example module CMake file:
+```
+set(MODULE_NAME "mymodule")
+
+add_subdirectory(${MODULE_DIR}/myLib/ ${MODULE_BASE_BINARY_DIR}/${MODULE_NAME})
+
+list(APPEND MODULE_LIBS myLib)
+```
+
+To ease creation of modules which contains extra CMake files
+there is a module generator as described below.
+
+
+## Module structure generator
+
+As previously shown, there are a few files required to create a module.
+These files can be createad manually or by the `tools/iotjs-create-module.py`
+script.
+
+The module generator requires only one parameter then name of the module and will
+create a directory with the required files (based on a template):
+
+```
+$ python ./iotjs/tools/iotjs-create-module.py demomod
+Creating module in ./demomod
+loading template file: ./iotjs/tools/module_template/module.cmake
+loading template file: ./iotjs/tools/module_template/modules.json
+loading template file: ./iotjs/tools/module_template/js/module.js
+loading template file: ./iotjs/tools/module_template/src/module.c
+Module created in: /mnt/work/demomod
+```
+
+**Important note:** The module name must be in lowercase.
+
+By default the following structure will be created by the tool:
+
+```
+demomod/
+ |-- js
+      |-- module.js
+ |-- module.cmake
+ |-- modules.json
+ |-- src
+      |-- module.c
+```
+
+The generated module have simple examples in it which can be used
+to bootstrap ones own module(s). On how to use them please see the
+previous parts of this document.

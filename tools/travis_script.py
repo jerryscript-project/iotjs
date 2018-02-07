@@ -52,6 +52,7 @@ BUILDOPTIONS_SANITIZER = [
     '--no-check-valgrind',
     '--no-snapshot',
     '--profile=test/profiles/host-linux.profile',
+    '--run-test',
     '--target-arch=i686'
 ]
 

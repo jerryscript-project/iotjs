@@ -84,14 +84,9 @@ extern void force_terminate();
 #define TOSTRING(x) STRINGIFY(x)
 #endif /* TOSTRING */
 
-
 #if !defined(TARGET_BOARD)
 #define TARGET_BOARD "unknown"
 #endif /* TARGET_BOARD */
-
-
-#define IOTJS_VALID_MAGIC_SEQUENCE 0xfee1c001   /* feel cool */
-#define IOTJS_INVALID_MAGIC_SEQUENCE 0xfee1badd /* feel bad */
 
 /* Avoid compiler warnings if needed. */
 #define IOTJS_UNUSED(x) ((void)(x))

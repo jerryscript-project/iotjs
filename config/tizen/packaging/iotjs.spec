@@ -74,8 +74,7 @@ cp %{SOURCE1001} .
  --target-os=tizen --target-board=rpi3 \
  --external-lib=capi-system-peripheral-io \
  --compile-flag=-D__TIZEN__ \
- --cmake-param=-DENABLE_MODULE_DGRAM=ON \
- --cmake-param=-DENABLE_MODULE_GPIO=ON \
+ --profile=test/profiles/tizen.profile \
  --no-init-submodule --no-parallel-build
 # --external-lib=sdkapi \
 

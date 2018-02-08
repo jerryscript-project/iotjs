@@ -8,7 +8,7 @@ services:
   - docker
 
 before_install:
-  - if [[ "$RUN_DOCKER" == "yes" ]]; then docker pull iotjs/ubuntu:0.3; fi
+  - if [[ "$RUN_DOCKER" == "yes" ]]; then docker pull iotjs/ubuntu:0.4; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then tools/brew-install-deps.sh; fi
   - if [[ "$OPTS" == "misc" ]]; then tools/apt-get-install-deps.sh; fi
 
@@ -25,6 +25,7 @@ env:
     - OPTS="rpi2" RUN_DOCKER=yes
     - OPTS="stm32f4dis" RUN_DOCKER=yes
     - OPTS="artik053" RUN_DOCKER=yes
+    - OPTS="tizen" RUN_DOCKER=yes
     - OPTS="external-modules" RUN_DOCKER=yes
     - OPTS="no-snapshot" RUN_DOCKER=yes
     - OPTS="misc"

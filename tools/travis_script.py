@@ -29,7 +29,7 @@ DOCKER_ROOT_PATH = fs.join('/root')
 TRAVIS_BUILD_PATH = fs.join(os.environ['TRAVIS_BUILD_DIR'])
 
 # IoT.js path in docker
-DOCKER_IOTJS_PATH = fs.join(DOCKER_ROOT_PATH, 'iotjs')
+DOCKER_IOTJS_PATH = fs.join(DOCKER_ROOT_PATH, 'work_space/iotjs')
 
 DOCKER_TIZENRT_PATH = fs.join(DOCKER_ROOT_PATH, 'TizenRT')
 DOCKER_TIZENRT_OS_PATH = fs.join(DOCKER_TIZENRT_PATH, 'os')
@@ -56,9 +56,10 @@ BUILDOPTIONS_SANITIZER = [
 ]
 
 def run_docker():
-    ex.check_run_cmd('docker', ['run', '-dit', '--name', DOCKER_NAME, '-v',
+    ex.check_run_cmd('docker', ['run', '-dit', '--privileged',
+                     '--name', DOCKER_NAME, '-v',
                      '%s:%s' % (TRAVIS_BUILD_PATH, DOCKER_IOTJS_PATH),
-                     'iotjs/ubuntu:0.3'])
+                     'iotjs/ubuntu:0.4'])
 
 def exec_docker(cwd, cmd):
     exec_cmd = 'cd %s && ' % cwd + ' '.join(cmd)
@@ -108,7 +109,7 @@ if __name__ == '__main__':
             if buildtype == 'release':
                 set_release_config_tizenrt()
             exec_docker(DOCKER_TIZENRT_OS_PATH, [
-                        'make', 'IOTJS_ROOT_DIR=../../iotjs',
+                        'make', 'IOTJS_ROOT_DIR=' + DOCKER_IOTJS_PATH,
                         'IOTJS_BUILD_OPTION='
                         '--profile=test/profiles/tizenrt.profile'])
 
@@ -132,6 +133,10 @@ if __name__ == '__main__':
             exec_docker(DOCKER_NUTTX_PATH, [
                         'make', 'all',
                         'IOTJS_ROOT_DIR=' + DOCKER_IOTJS_PATH, rflag])
+
+    elif test == 'tizen':
+        exec_docker(DOCKER_IOTJS_PATH, ['config/tizen/gbsbuild.sh', '-y'])
+        # TODO: Add release build test
 
     elif test == "misc":
         ex.check_run_cmd('tools/check_signed_off.sh', ['--travis'])

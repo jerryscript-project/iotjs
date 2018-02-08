@@ -21,7 +21,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#if defined(__linux__)
+#if defined(__linux__) && !defined(__OPENWRT__)
 #include <execinfo.h>
 #endif
 
@@ -95,7 +95,7 @@ void iotjs_buffer_release(char* buffer) {
 }
 
 void print_stacktrace() {
-#if defined(__linux__) && defined(DEBUG)
+#if defined(__linux__) && defined(DEBUG) && !defined(__OPENWRT__)
   // TODO: support other platforms
   const int numOfStackTrace = 100;
   void* buffer[numOfStackTrace];
@@ -127,7 +127,7 @@ void print_stacktrace() {
   }
 
   free(strings);
-#endif // defined(__linux__) && defined(DEBUG)
+#endif // defined(__linux__) && defined(DEBUG) && !defined(__OPENWRT__)
 }
 
 void force_terminate() {

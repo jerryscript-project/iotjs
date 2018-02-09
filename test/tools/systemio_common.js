@@ -22,21 +22,25 @@ if (process.platform === 'linux') {
   pin.switch = 13;
   pin.pwm1 = 0;
   pin.i2c1 = '/dev/i2c-1';
+  pin.spi1 = '/dev/spidev0.0';
 } else if (process.platform === 'tizen') {
   pin.led = 20;
   pin.switch = 13;
   pin.i2c1 = 1;
+  pin.spi1 = 0;
 } else if (process.platform === 'nuttx') {
   var stm32_pin = require('stm32f4dis').pin;
   pin.led = stm32_pin.PA10;
   pin.switch = stm32_pin.PA15;
   pin.pwm1 = stm32_pin.PWM1.CH1_1;
   pin.i2c1 = 1;
+  pin.spi1 = 1;
 } else if (process.platform === 'tizenrt') {
   pin.led = 41;
   pin.switch = 39;
   pin.pwm1 = 0;
   pin.i2c1 = 1;
+  pin.spi1 = 1;
 } else {
   throw new Error('Unsupported platform');
 }

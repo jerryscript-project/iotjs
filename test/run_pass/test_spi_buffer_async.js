@@ -15,36 +15,34 @@
 
 var assert = require('assert');
 var spi = require('spi');
+var pin = require('tools/systemio_common').pin;
+var checkError = require('tools/systemio_common').checkError;
 
-var configuration = {};
-
-if (process.platform === 'linux') {
-  configuration.device = '/dev/spidev0.0';
-} else if (process.platform === 'nuttx' || process.platform === 'tizenrt') {
-  configuration.bus = 1;
-} else {
-  assert.fail();
-}
+var configuration = {
+    device: pin.spi1, // for Linux
+    bus: pin.spi1, // for Tizen, TizenRT and Nuttx
+};
 
 // Buffer test
 var spi1 = spi.open(configuration, function(err) {
-  assert.equal(err, null);
+  checkError(err);
   var data = 'Hello IoTjs';
   var tx = new Buffer(data);
 
   spi1.transfer(tx, function(err, rx) {
-    assert.equal(err, null);
-    assert.equal(rx.length, 11);
+    checkError(err);
+    var len = data.length;
+    assert.equal(rx.length, len);
 
     var value = '';
-    for (var i = 0; i < 11; i++) {
+    for (var i = 0; i < len; i++) {
       value += String.fromCharCode(rx[i]);
     }
     console.log(value);
     assert.equal(value, data);
 
-    spi1.close(function (err) {
-      assert.equal(err, null);
+    spi1.close(function(err) {
+      checkError(err);
     });
   });
 });

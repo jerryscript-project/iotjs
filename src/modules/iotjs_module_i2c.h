@@ -31,8 +31,6 @@ typedef struct {
 
   char* buf_data;
   uint8_t buf_len;
-  uint8_t byte;
-  uint8_t cmd;
   uint8_t address;
 } iotjs_i2c_t;
 

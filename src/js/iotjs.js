@@ -143,19 +143,21 @@
       if (code || code == 0) {
         process.exitCode = code;
       }
-      process.emit('exit', process.exitCode || 0);
+      process.emit('exit', process.exitCode);
     }
   };
 
 
   process.exit = function(code) {
-    try {
-      process.emitExit(code);
-    } catch (e) {
-      process.exitCode = 1;
-      process._onUncaughtException(e);
-    } finally {
-      process.doExit(process.exitCode || 0);
+    if (!process._exiting) {
+      try {
+        process.emitExit(code);
+      } catch (e) {
+        process.exitCode = 1;
+        process._onUncaughtException(e);
+      } finally {
+        process.doExit(process.exitCode);
+      }
     }
   };
 

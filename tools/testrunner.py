@@ -210,7 +210,9 @@ class TestRunner(object):
             if not self.quiet:
                 print(output, end="")
 
-            if not expected_failure or (expected_failure and exitcode <= 2):
+            is_normal_run = (not expected_failure and exitcode == 0)
+            is_expected_fail = (expected_failure and exitcode <= 2)
+            if is_normal_run or is_expected_fail:
                 Reporter.report_pass(test["name"], runtime)
                 self.results["pass"] += 1
             else:

@@ -6,7 +6,12 @@ IoT.js supports two build types:
 
 ### Setting Raspberry Pi
 
-IoT.js officially supports Raspbian. For more information, please visit [the official site](https://www.raspberrypi.org/downloads/raspbian/).
+IoT.js officially supports Raspbian.
+This setting guide is based on the image below.
+
+|Raspbian Image |
+|----------|
+| [2017-11-29-raspbian](http://downloads.raspberrypi.org/raspbian/images/raspbian-2017-12-01/) |
 
 #### Enable the I2C interface
 
@@ -17,8 +22,8 @@ From the command line type:
 sudo raspi-config
 ```
 This will launch raspi-config utility.
-   * Select "9 Advanced Options"
-   * Select "A6 I2C"
+   * Select "5 Interfacing Options"
+   * Select "P5 I2C"
 
 The screen will ask you to enable I2C interface.
    * Select "Yes"
@@ -56,10 +61,20 @@ For more information about overlays, refer to [README](https://github.com/raspbe
 
 To use UART module, the UART interface must be enabled.
 
-In `/boot/config.txt` file, change the value of enable_uart from 0 to 1.
+From the command line type:
+```bash
+sudo raspi-config
 ```
-enable_uart=1
-```
+This will launch raspi-config utility.
+   * Select "5 Interfacing Options"
+   * Select "P6 Serial"
+
+The screen will ask you to enable Serial interface.
+   * Select "Yes"
+   * Select "Ok"
+   * Select "Finish" to return to the command line.
+
+Reboot your Raspberry Pi.
 
 To disable the serial console, edit the file `/boot/cmdline.txt`.
 remove the word phase ```"console=serial0,115200"``` or ```"console=ttyAMA0,115200"```
@@ -70,6 +85,25 @@ add the word phase ```"console=serial0,115200"``` or ```"console=ttyAMA0,115200"
 Reboot your Raspberry Pi.
 
 * Note for Raspberry Pi 3 : You should use /dev/ttyS0 instead of /dev/ttyAMA0 in RPI3.
+
+#### Enable the SPI interface
+
+To use SPI module, the SPI interface must be enabled.
+
+From the command line type:
+```bash
+sudo raspi-config
+```
+This will launch raspi-config utility.
+   * Select "5 Interfacing Options"
+   * Select "P4 SPI"
+
+The screen will ask you to enable SPI interface.
+   * Select "Yes"
+   * Select "Ok"
+   * Select "Finish" to return to the command line.
+
+Reboot your Raspberry Pi.
 
 ### Build IoT.js on your desktop.
 

@@ -47,6 +47,7 @@ The `env` property returns an object containing a few environment variables.
 The following environment elements can be accessed:
 * `HOME`
 * `IOTJS_PATH` which is set to `/mnt/sdcard` on NuttX by default.
+* `IOTJS_EXTRA_MODULE_PATH` contains the paths to be additionally referenced to load any module.
 * `env` contains `'experimental'` if the IoT.js was build with experimental support.
 
 **Example**

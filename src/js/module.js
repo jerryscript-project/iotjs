@@ -42,11 +42,23 @@ if (cwd) {
   moduledirs.push(cwd + '/');
   moduledirs.push(cwd + '/iotjs_modules/');
 }
+
 if (process.env.HOME) {
   moduledirs.push(process.env.HOME + '/iotjs_modules/');
 }
+
 if (process.env.IOTJS_PATH) {
   moduledirs.push(process.env.IOTJS_PATH + '/iotjs_modules/');
+}
+
+if (process.env.IOTJS_EXTRA_MODULE_PATH) {
+  var extra_paths = process.env.IOTJS_EXTRA_MODULE_PATH.split(':');
+  extra_paths.forEach(function(path) {
+    if (path.slice(-1) !== '/') {
+      path += '/';
+    }
+    moduledirs.push(path);
+  });
 }
 
 function tryPath(modulePath, ext) {

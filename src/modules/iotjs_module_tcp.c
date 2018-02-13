@@ -132,11 +132,6 @@ JS_FUNCTION(TCP) {
 }
 
 
-JS_FUNCTION(Open) {
-  return jerry_create_undefined();
-}
-
-
 // Socket close result handler.
 void AfterClose(uv_handle_t* handle) {
   iotjs_handlewrap_t* wrap = iotjs_handlewrap_from_handle(handle);
@@ -570,7 +565,6 @@ jerry_value_t InitTcp() {
   iotjs_jval_set_property_jval(tcp, IOTJS_MAGIC_STRING_PROTOTYPE, prototype);
   iotjs_jval_set_method(tcp, IOTJS_MAGIC_STRING_ERRNAME, ErrName);
 
-  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_OPEN, Open);
   iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_CLOSE, Close);
   iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_CONNECT, Connect);
   iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_BIND, Bind);

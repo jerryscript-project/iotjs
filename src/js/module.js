@@ -102,22 +102,22 @@ iotjs_module_t.resolveFilepath = function(id, directories) {
 
     // 3. package path id/
     var jsonpath = modulePath + '/package.json';
-    filepath = iotjs_module_t.tryPath(jsonpath);
-    if (filepath) {
+
+    if (iotjs_module_t.tryPath(jsonpath)) {
       var pkgSrc = process.readSource(jsonpath);
       var pkgMainFile = JSON.parse(pkgSrc).main;
 
       // pkgmain[.ext]
-      if (filepath = tryPath(modulePath + '/' + pkgMainFile, ext)) {
-        return filepath;
-      }
-
-      // index[.ext] as default
-      if (filepath = tryPath(modulePath + '/index', ext)) {
+      if (pkgMainFile &&
+          (filepath = tryPath(modulePath + '/' + pkgMainFile, ext))) {
         return filepath;
       }
     }
 
+    // index[.ext] as default
+    if (filepath = tryPath(modulePath + '/index', ext)) {
+      return filepath;
+    }
   }
 
   return false;

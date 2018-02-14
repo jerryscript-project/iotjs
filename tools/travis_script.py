@@ -52,7 +52,7 @@ BUILDOPTIONS_SANITIZER = [
     '--no-check-valgrind',
     '--no-snapshot',
     '--profile=test/profiles/host-linux.profile',
-    '--run-test',
+    '--run-test=full',
     '--target-arch=i686'
 ]
 
@@ -89,7 +89,7 @@ if __name__ == '__main__':
 
         for buildtype in BUILDTYPES:
             build_iotjs(buildtype, [
-                        '--run-test',
+                        '--run-test=full',
                         '--profile=test/profiles/host-linux.profile'])
 
     elif test == 'rpi2':
@@ -148,7 +148,7 @@ if __name__ == '__main__':
     elif test == "external-modules":
         for buildtype in BUILDTYPES:
             build_iotjs(buildtype, [
-                        '--run-test',
+                        '--run-test=full',
                         '--profile=test/profiles/host-linux.profile',
                         '--external-modules=test/external_modules/'
                         'mymodule1,test/external_modules/mymodule2',
@@ -166,13 +166,13 @@ if __name__ == '__main__':
 
     elif test == "no-snapshot":
         for buildtype in BUILDTYPES:
-            build_iotjs(buildtype, ['--run-test', '--no-snapshot',
+            build_iotjs(buildtype, ['--run-test=full', '--no-snapshot',
                                     '--jerry-lto'])
 
     elif test == "host-darwin":
         for buildtype in BUILDTYPES:
             ex.check_run_cmd('./tools/build.py', [
-                             '--run-test',
+                             '--run-test=full',
                              '--buildtype=' + buildtype,
                              '--clean',
                              '--profile=test/profiles/host-darwin.profile'])

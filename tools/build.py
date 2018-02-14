@@ -176,8 +176,9 @@ def init_options():
         action='store_true', default=False,
         help='Disable test execution with valgrind after build')
     parser.add_argument('--run-test',
-        action='store_true', default=False,
-        help='Execute tests after build')
+        nargs='?', default=False, const="quiet", choices=["full", "quiet"],
+        help='Execute tests after build, optional argument specifies '
+             'the level of output for the testrunner')
     parser.add_argument('--test-driver',
         choices=['js', 'py'], default='py',
         help='Specify the test driver for IoT.js: %(choices)s'
@@ -371,10 +372,6 @@ def build_iotjs(options):
 
 
 def run_checktest(options):
-    checktest_quiet = 'yes'
-    if os.getenv('TRAVIS') == "true":
-        checktest_quiet = 'no'
-
     # IoT.js executable
     iotjs = fs.join(options.build_root, 'bin', 'iotjs')
 
@@ -382,14 +379,17 @@ def run_checktest(options):
     args = []
     if options.test_driver == "js":
         cmd = iotjs
-        args = [path.CHECKTEST_PATH, 'quiet=' + checktest_quiet]
+        args = [path.CHECKTEST_PATH]
+        if options.run_test == "quiet":
+            args.append('quiet=yes')
+
         # experimental
         if options.experimental:
-            cmd.append('experimental=' + 'yes');
+            args.append('experimental=yes');
     else:
         cmd = fs.join(path.TOOLS_ROOT, 'testrunner.py')
         args = [iotjs]
-        if checktest_quiet:
+        if options.run_test == "quiet":
             args.append('--quiet')
 
 

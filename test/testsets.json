@@ -113,6 +113,7 @@
     { "name": "issue-1046.js" },
     { "name": "issue-1077.js" },
     { "name": "issue-1101.js", "skip": ["all"], "reason": "need to setup test environment" },
+    { "name": "issue-1348.js" },
     { "name": "issue-1351.js" }
   ],
   "run_fail":  [

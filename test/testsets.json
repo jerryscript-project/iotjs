@@ -123,6 +123,7 @@
     { "name": "test_fs_callbacks_called.js", "expected-failure": true },
     { "name": "test_iotjs_runtime_error.js", "expected-failure": true },
     { "name": "test_iotjs_syntax_error.js", "expected-failure": true },
+    { "name": "test-issue-1360.js", "expected-failure": true},
     { "name": "test_module_require_invalid_file.js", "expected-failure": true },
     { "name": "test_module_require_path_below_root.js", "expected-failure": true },
     { "name": "test_process_exitcode_arg.js", "expected-failure": true },

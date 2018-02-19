@@ -138,6 +138,9 @@
   process.exitCode = 0;
   process._exiting = false;
   process.emitExit = function(code) {
+    if (typeof code !== 'number') {
+      code = 0;
+    }
     if (!process._exiting) {
       process._exiting = true;
       if (code || code == 0) {

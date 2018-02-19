@@ -2,14 +2,14 @@
 
 The following shows spi module APIs available for each platform.
 
-|  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | NuttX<br/>(STM32F4-Discovery) | TizenRT<br/>(Artik053) |
-| :---: | :---: | :---: | :---: | :---: |
-| spi.open | O | O | O | O |
-| spi.openSync | O | O | O | O |
-| spibus.transfer | O | O | O | O |
-| spibus.transferSync | O | O | O | O |
-| spibus.close | O | O | O | O |
-| spibus.closeSync | O | O | O | O |
+|  | Linux<br/>(Ubuntu) | Tizen<br/>(Raspberry Pi) | Raspbian<br/>(Raspberry Pi) | NuttX<br/>(STM32F4-Discovery) | TizenRT<br/>(Artik053) |
+| :---: | :---: | :---: | :---: | :---: | :---: |
+| spi.open | O | O | O | O | O |
+| spi.openSync | O | O | O | O | O |
+| spibus.transfer | O | O | O | O | O |
+| spibus.transferSync | O | O | O | O | O |
+| spibus.close | O | O | O | O | O |
+| spibus.closeSync | O | O | O | O | O |
 
 
 ## Class: SPI
@@ -42,7 +42,7 @@ Sets the order of the bits shifted out of and into the SPI bus, either MSB (most
 ### spi.open(configuration, callback)
 * `configuration` {Object}
   * `device` {string} The specified path for `spidev`. (only on Linux)
-  * `bus` {number} The specified bus number. (NuttX and TizenRT only)
+  * `bus` {number} The specified bus number. (Tizen, TizenRT and NuttX only)
   * `mode` {SPI.MODE} The combinations of the polarity and phase. **Default:** `SPI.MODE[0]`.
   * `chipSelect` {SPI.CHIPSELECT} Chip select state. **Default:** `SPI.CHIPSELECT.NONE`.
   * `maxSpeed` {number} Maximum transfer speed. **Default:** `500000`.
@@ -74,7 +74,7 @@ var spi0 = spi.open({
 ### spi.openSync(configuration)
 * `configuration` {Object}
   * `device` {string} The specified path for `spidev`. (only on Linux)
-  * `bus` {number} The specified bus number. (NuttX and TizenRT only)
+  * `bus` {number} The specified bus number. (Tizen, TizenRT and NuttX only)
   * `mode` {SPI.MODE} The combinations of the polarity and phase. **Default:** `SPI.MODE[0]`.
   * `chipSelect` {SPI.CHIPSELECT} Chip select state. **Default:** `SPI.CHIPSELECT.NONE`.
   * `maxSpeed` {number} Maximum transfer speed. **Default:** `500000`.

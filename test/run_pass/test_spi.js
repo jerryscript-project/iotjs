@@ -15,18 +15,12 @@
 
 var assert = require('assert');
 var spi = require('spi');
+var pin = require('tools/systemio_common').pin;
 
-var configuration = {};
-
-if (process.platform === 'linux') {
-  configuration.device = '/dev/spidev0.0';
-} else if (process.platform === 'nuttx') {
-  configuration.bus = 1;
-} else if (process.platform === 'tizenrt') {
-  configuration.bus = 0;
-} else {
-  assert.fail('OS not supported:' + process.platform);
-}
+var configuration = {
+  device: pin.spi1, // for Linux
+  bus: pin.spi1, // for Tizen, TizenRT and Nuttx
+};
 
 
 // ------ Test API existance

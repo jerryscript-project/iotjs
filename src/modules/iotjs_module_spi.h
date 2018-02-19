@@ -22,15 +22,6 @@
 #include "iotjs_module_periph_common.h"
 #include "iotjs_reqwrap.h"
 
-#if defined(__TIZENRT__)
-#include <iotbus_spi.h>
-#include <tinyara/config.h>
-#endif
-
-
-#if defined(__NUTTX__)
-#include <nuttx/spi/spi.h>
-#endif
 
 typedef enum {
   kSpiMode_0,

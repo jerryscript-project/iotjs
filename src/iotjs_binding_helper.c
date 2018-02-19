@@ -53,21 +53,22 @@ void iotjs_process_emit_exit(int code) {
 
   jerry_value_t jexit =
       iotjs_jval_get_property(process, IOTJS_MAGIC_STRING_EMITEXIT);
-  IOTJS_ASSERT(jerry_value_is_function(jexit));
 
-  iotjs_jargs_t jargs = iotjs_jargs_create(1);
-  iotjs_jargs_append_number(&jargs, code);
+  if (jerry_value_is_function(jexit)) {
+    iotjs_jargs_t jargs = iotjs_jargs_create(1);
+    iotjs_jargs_append_number(&jargs, code);
 
-  jerry_value_t jres = iotjs_jhelper_call(jexit, process, &jargs);
+    jerry_value_t jres = iotjs_jhelper_call(jexit, process, &jargs);
 
-  iotjs_jargs_destroy(&jargs);
-  jerry_release_value(jexit);
+    if (jerry_value_has_error_flag(jres)) {
+      iotjs_set_process_exitcode(2);
+    }
 
-  if (jerry_value_has_error_flag(jres)) {
-    iotjs_set_process_exitcode(2);
+    iotjs_jargs_destroy(&jargs);
+    jerry_release_value(jres);
   }
 
-  jerry_release_value(jres);
+  jerry_release_value(jexit);
 }
 
 

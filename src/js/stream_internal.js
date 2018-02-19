@@ -14,18 +14,14 @@
  */
 
 
-var StreamInternal = require('stream_internal');
+var eventEmitter = require('events').EventEmitter;
 var util = require('util');
 
 
 function Stream() {
-  StreamInternal.call(this);
+  eventEmitter.call(this);
 }
 
-util.inherits(Stream, StreamInternal);
+util.inherits(Stream, eventEmitter);
 
-exports.Stream = Stream;
-
-exports.Readable = require('stream_readable');
-exports.Writable = require('stream_writable');
-exports.Duplex = require('stream_duplex');
+module.exports = Stream;

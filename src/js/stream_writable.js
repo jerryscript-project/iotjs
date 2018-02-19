@@ -14,10 +14,8 @@
  */
 
 
-var stream = require('stream');
+var Stream = require('stream_internal');
 var util = require('util');
-var Stream = stream.Stream;
-var Duplex = stream.Duplex;
 
 var defaultHighWaterMark = 128;
 
@@ -62,7 +60,7 @@ function WritableState(options) {
 
 
 function Writable(options) {
-  if (!(this instanceof Writable) && !(this instanceof stream.Duplex)) {
+  if (!(this instanceof Writable) && options._isDuplex !== true) {
     return new Writable(options);
   }
 

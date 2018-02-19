@@ -25,6 +25,8 @@ function Duplex(options) {
   }
 
   Readable.call(this, options);
+  options = options || {};
+  options._isDuplex = true;
   Writable.call(this, options);
 }
 

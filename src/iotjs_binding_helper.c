@@ -86,12 +86,15 @@ bool iotjs_process_next_tick() {
   IOTJS_ASSERT(jerry_value_is_function(jon_next_tick));
 
   jerry_value_t jres =
-      iotjs_jhelper_call_ok(jon_next_tick, jerry_create_undefined(),
-                            iotjs_jargs_get_empty());
+      iotjs_jhelper_call(jon_next_tick, jerry_create_undefined(),
+                         iotjs_jargs_get_empty());
 
-  IOTJS_ASSERT(jerry_value_is_boolean(jres));
+  bool ret = false;
 
-  bool ret = iotjs_jval_as_boolean(jres);
+  if (!jerry_value_has_error_flag(jres)) {
+    ret = iotjs_jval_as_boolean(jres);
+  }
+
   jerry_release_value(jres);
   jerry_release_value(jon_next_tick);
 

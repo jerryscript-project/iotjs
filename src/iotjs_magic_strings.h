@@ -56,8 +56,6 @@
 #endif
 #define IOTJS_MAGIC_STRING_BUFFER "Buffer"
 #define IOTJS_MAGIC_STRING_BUILTIN_MODULES "builtin_modules"
-#define IOTJS_MAGIC_STRING__BUFFER "_buffer"
-#define IOTJS_MAGIC_STRING__BUILTIN "_builtin"
 #if ENABLE_MODULE_I2C || ENABLE_MODULE_SPI
 #define IOTJS_MAGIC_STRING_BUS "bus"
 #endif

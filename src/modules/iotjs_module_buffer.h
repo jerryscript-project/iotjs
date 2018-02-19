@@ -27,8 +27,6 @@ typedef struct {
 iotjs_bufferwrap_t* iotjs_bufferwrap_create(const jerry_value_t jbuiltin,
                                             size_t length);
 
-iotjs_bufferwrap_t* iotjs_bufferwrap_from_jbuiltin(
-    const jerry_value_t jbuiltin);
 iotjs_bufferwrap_t* iotjs_bufferwrap_from_jbuffer(const jerry_value_t jbuffer);
 
 size_t iotjs_bufferwrap_length(iotjs_bufferwrap_t* bufferwrap);

@@ -116,6 +116,10 @@ void iotjs_make_callback(jerry_value_t jfunction, jerry_value_t jthis,
 jerry_value_t iotjs_make_callback_with_result(jerry_value_t jfunction,
                                               jerry_value_t jthis,
                                               const iotjs_jargs_t* jargs) {
+  // If the environment is already exiting just return an undefined value.
+  if (iotjs_environment_is_exiting(iotjs_environment_get())) {
+    return jerry_create_undefined();
+  }
   // Calls back the function.
   jerry_value_t jres = iotjs_jhelper_call(jfunction, jthis, jargs);
   if (jerry_value_has_error_flag(jres)) {

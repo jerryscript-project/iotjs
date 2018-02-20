@@ -20,6 +20,10 @@
 
 #include "modules/iotjs_module_uart.h"
 
+struct iotjs_uart_platform_data_s {
+  iotjs_string_t device_path;
+};
+
 static unsigned baud_to_constant(unsigned baudRate) {
   switch (baudRate) {
     case 50:
@@ -76,9 +80,29 @@ static int databits_to_constant(int dataBits) {
   return -1;
 }
 
+void iotjs_uart_create_platform_data(iotjs_uart_t* uart) {
+  uart->platform_data = IOTJS_ALLOC(iotjs_uart_platform_data_t);
+}
+
+void iotjs_uart_destroy_platform_data(
+    iotjs_uart_platform_data_t* platform_data) {
+  IOTJS_ASSERT(platform_data);
+
+  iotjs_string_destroy(&platform_data->device_path);
+  IOTJS_RELEASE(platform_data);
+}
+
+jerry_value_t iotjs_uart_set_platform_config(iotjs_uart_t* uart,
+                                             const jerry_value_t jconfig) {
+  JS_GET_REQUIRED_CONF_VALUE(jconfig, uart->platform_data->device_path,
+                             IOTJS_MAGIC_STRING_DEVICE, string);
+
+  return jerry_create_undefined();
+}
+
 bool iotjs_uart_open(iotjs_uart_t* uart) {
-  int fd =
-      open(iotjs_string_data(&uart->device_path), O_RDWR | O_NOCTTY | O_NDELAY);
+  int fd = open(iotjs_string_data(&uart->platform_data->device_path),
+                O_RDWR | O_NOCTTY | O_NDELAY);
   if (fd < 0) {
     return false;
   }
@@ -129,4 +153,13 @@ bool iotjs_uart_write(iotjs_uart_t* uart) {
   } while (uart->buf_len > offset);
 
   return true;
+}
+
+void iotjs_uart_handlewrap_close_cb(uv_handle_t* handle) {
+  iotjs_uart_t* uart = (iotjs_uart_t*)handle->data;
+
+  if (close(uart->device_fd) < 0) {
+    DLOG(iotjs_periph_error_str(kUartOpClose));
+    IOTJS_ASSERT(0);
+  }
 }

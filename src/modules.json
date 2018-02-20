@@ -328,6 +328,9 @@
         "nuttx": {
           "native_files": ["modules/nuttx/iotjs_module_uart-nuttx.c"]
         },
+        "tizen": {
+          "native_files": ["modules/tizen/iotjs_module_uart-tizen.c"]
+        },
         "tizenrt": {
           "native_files": ["modules/tizenrt/iotjs_module_uart-tizenrt.c"]
         }

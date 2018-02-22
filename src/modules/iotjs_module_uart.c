@@ -23,6 +23,8 @@ IOTJS_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(uart);
 
 static iotjs_uart_t* uart_create(const jerry_value_t juart) {
   iotjs_uart_t* uart = IOTJS_ALLOC(iotjs_uart_t);
+  iotjs_uart_create_platform_data(uart);
+
   iotjs_handlewrap_initialize(&uart->handlewrap, juart,
                               (uv_handle_t*)(&uart->poll_handle),
                               &this_module_native_info);
@@ -33,17 +35,8 @@ static iotjs_uart_t* uart_create(const jerry_value_t juart) {
 
 static void iotjs_uart_destroy(iotjs_uart_t* uart) {
   iotjs_handlewrap_destroy(&uart->handlewrap);
-  iotjs_string_destroy(&uart->device_path);
+  iotjs_uart_destroy_platform_data(uart->platform_data);
   IOTJS_RELEASE(uart);
-}
-
-static void handlewrap_close_callback(uv_handle_t* handle) {
-  iotjs_uart_t* uart = (iotjs_uart_t*)handle->data;
-
-  if (close(uart->device_fd) < 0) {
-    DLOG(iotjs_periph_error_str(kUartOpClose));
-    IOTJS_ASSERT(0);
-  }
 }
 
 static void uart_worker(uv_work_t* work_req) {
@@ -60,7 +53,7 @@ static void uart_worker(uv_work_t* work_req) {
       req_wrap->result = iotjs_uart_write(uart);
       break;
     case kUartOpClose:
-      iotjs_handlewrap_close(&uart->handlewrap, handlewrap_close_callback);
+      iotjs_handlewrap_close(&uart->handlewrap, iotjs_uart_handlewrap_close_cb);
       req_wrap->result = true;
       break;
     default:
@@ -106,16 +99,6 @@ void iotjs_uart_register_read_cb(iotjs_uart_t* uart) {
 
 static jerry_value_t uart_set_configuration(iotjs_uart_t* uart,
                                             jerry_value_t jconfig) {
-  jerry_value_t jdevice =
-      iotjs_jval_get_property(jconfig, IOTJS_MAGIC_STRING_DEVICE);
-  if (!jerry_value_is_string(jdevice)) {
-    jerry_release_value(jdevice);
-    return JS_CREATE_ERROR(
-        TYPE, "Bad configuration - device is mandatory and must be a String");
-  }
-  uart->device_path = iotjs_jval_as_string(jdevice);
-  jerry_release_value(jdevice);
-
   jerry_value_t jbaud_rate =
       iotjs_jval_get_property(jconfig, IOTJS_MAGIC_STRING_BAUDRATE);
   if (jerry_value_is_undefined(jbaud_rate)) {
@@ -132,7 +115,7 @@ static jerry_value_t uart_set_configuration(iotjs_uart_t* uart,
     if (br != 230400 && br != 115200 && br != 57600 && br != 38400 &&
         br != 19200 && br != 9600 && br != 4800 && br != 2400 && br != 1800 &&
         br != 1200 && br != 600 && br != 300 && br != 200 && br != 150 &&
-        br != 134 && br != 110 && br != 75 && br != 50) {
+        br != 134 && br != 110 && br != 75 && br != 50 && br != 0) {
       return JS_CREATE_ERROR(TYPE, "Invalid baud rate");
     }
 
@@ -174,13 +157,17 @@ JS_FUNCTION(UartCons) {
   jerry_value_t jconfig = JS_GET_ARG(0, object);
 
   // set configuration
-  jerry_value_t res = uart_set_configuration(uart, jconfig);
+  jerry_value_t res = iotjs_uart_set_platform_config(uart, jconfig);
   if (jerry_value_has_error_flag(res)) {
     return res;
   }
 
-  DDDLOG("%s - path: %s, baudRate: %d, dataBits: %d", __func__,
-         iotjs_string_data(&uart->device_path), uart->baud_rate,
+  res = uart_set_configuration(uart, jconfig);
+  if (jerry_value_has_error_flag(res)) {
+    return res;
+  }
+
+  DDDLOG("%s - baudRate: %d, dataBits: %d", __func__, uart->baud_rate,
          uart->data_bits);
 
   jerry_value_t jcallback = JS_GET_ARG_IF_EXIST(1, function);
@@ -240,7 +227,7 @@ JS_FUNCTION(Close) {
 JS_FUNCTION(CloseSync) {
   JS_DECLARE_THIS_PTR(uart, uart);
 
-  iotjs_handlewrap_close(&uart->handlewrap, handlewrap_close_callback);
+  iotjs_handlewrap_close(&uart->handlewrap, iotjs_uart_handlewrap_close_cb);
   return jerry_create_undefined();
 }
 

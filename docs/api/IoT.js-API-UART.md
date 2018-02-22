@@ -2,14 +2,14 @@
 
 The following shows uart module APIs available for each platform.
 
-|  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | NuttX<br/>(STM32F4-Discovery) | TizenRT<br/>(Artik053) |
-| :---: | :---: | :---: | :---: | :---: |
-| uart.open             | O | O | O | O |
-| uart.openSync         | O | O | O | O |
-| uartport.write        | O | O | O | O |
-| uartport.writeSync    | O | O | O | O |
-| uartport.close        | O | O | X | O |
-| uartport.closeSync    | O | O | X | O |
+|  | Linux<br/>(Ubuntu) | Tizen<br/>(Raspberry Pi) | Raspbian<br/>(Raspberry Pi) | NuttX<br/>(STM32F4-Discovery) | TizenRT<br/>(Artik053) |
+| :---: | :---: | :---: | :---: | :---: | :---: |
+| uart.open             | O | O | O | O | O |
+| uart.openSync         | O | O | O | O | O |
+| uartport.write        | O | O | O | O | O |
+| uartport.writeSync    | O | O | O | O | O |
+| uartport.close        | O | O | O | O | O |
+| uartport.closeSync    | O | O | O | O | O |
 
 ## Class: UART
 
@@ -17,7 +17,8 @@ The UART (Universal Asynchronous Receiver/Transmitter) class supports asynchrono
 
 ### uart.open(configuration, callback)
 * `configuration` {Object}
-  * `device` {string} Mandatory configuration.
+  * `device` {string} Mandatory configuration. The specified device path.(Linux, Nuttx and TizenRT only)
+  * `port` {number} Mandatory configuration. The specified port number. (Tizen only)
   * `baudRate` {number} Specifies how fast data is sent over a serial line. **Default:** `9600`.
   * `dataBits` {number} Number of data bits that are being transmitted. **Default:** `8`.
 * `callback` {Function}.
@@ -26,7 +27,7 @@ The UART (Universal Asynchronous Receiver/Transmitter) class supports asynchrono
 
 Opens an UARTPort object with the specified configuration.
 
-The `baudRate` must be equal to one of these values: [50, 75, 110, 134, 150, 200, 300, 600, 1200, 1800, 2400, 4800, 9600, 19200, 38400, 57600, 115200, 230400].
+The `baudRate` must be equal to one of these values: [0, 50, 75, 110, 134, 150, 200, 300, 600, 1200, 1800, 2400, 4800, 9600, 19200, 38400, 57600, 115200, 230400].
 
 The `dataBits` must be equal to one of these values: [5, 6, 7, 8].
 
@@ -55,7 +56,8 @@ serial.closeSync();
 
 ### uart.openSync(configuration)
 * `configuration` {Object}
-  * `device` {string} Mandatory configuration.
+  * `device` {string} Mandatory configuration. The specified device path. (Linux, Nuttx and TizenRT only)
+  * `port` {number} Mandatory configuration. The specified port number. (Tizen only)
   * `baudRate` {number} Specifies how fast data is sent over a serial line. **Default:** `9600`.
   * `dataBits` {number} Number of data bits that are being transmitted. **Default:** `8`.
 * Returns: {UARTPort}.
@@ -123,15 +125,9 @@ serial.closeSync();
 
 Closes the UART device asynchronously.
 
-On NuttX/STM32F4Discovery, Uart.close() blocks after close().
-It seems that poll() does not work properly on NuttX for some cases.
-
 ### uartport.closeSync()
 
 Closes the UART device synchronously.
-
-On NuttX/STM32F4Discovery, Uart.close() blocks after close().
-It seems that poll() does not work properly on NuttX for some cases.
 
 ### Event: 'data'
 * `callback` {Function}

@@ -33,18 +33,8 @@ Requires(post): /sbin/ldconfig
 %description
 Platform for Internet of Things with JavaScript
 
-# default is RELEASE mode.
-# If DEBUG mode is needed, please use tizen_build_devel_mode
-%define RELEASE False
-# For Example
-%if %{RELEASE} == "True"
-%define build_mode release
-%else
-%define build_mode debug
-%endif
-
-# Default values to be eventually overiden BEFORE or as gbs params:
-%{!?RELEASE: %define RELEASE 0}
+# default is release mode
+%{!?build_mode: %define build_mode release}
 
 %package service
 Summary: Development files for %{name}

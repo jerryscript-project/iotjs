@@ -157,9 +157,6 @@ static int iotjs_start(iotjs_environment_t* env) {
 
   exit_code = iotjs_process_exitcode();
 
-  // Release builtin modules.
-  iotjs_module_list_cleanup();
-
   return exit_code;
 }
 
@@ -210,6 +207,8 @@ int iotjs_entry(int argc, char** argv) {
   int res = uv_loop_close(iotjs_environment_loop(env));
   IOTJS_ASSERT(res == 0);
 
+  // Release builtin modules.
+  iotjs_module_list_cleanup();
 
   // Release JerryScript engine.
   jerry_cleanup();

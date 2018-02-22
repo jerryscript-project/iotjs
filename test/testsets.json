@@ -8,7 +8,7 @@
     { "name": "test_buffer.js" },
     { "name": "test_console.js" },
     { "name": "test_dgram_1_server_1_client.js" },
-    { "name": "test_dgram_1_server_n_clients.js", "skip": ["tizen"], "reason": "[tizen]: flaky on Travis" },
+    { "name": "test_dgram_1_server_n_clients.js", "skip": ["linux", "tizen"], "reason": "[linux]: flaky, [tizen]: flaky on Travis" },
     { "name": "test_dgram_address.js", "skip": ["tizen", "nuttx"], "reason": "[tizen]: flaky on Travis, [nuttx]: not implemented for nuttx" },
     { "name": "test_dgram_broadcast.js", "skip": ["all"], "reason": "need to setup test environment" },
     { "name": "test_dgram_multicast_membership.js", "skip": ["all"], "reason": "need to setup test environment" },

@@ -42,6 +42,7 @@ fi
 
 echo -e "\n(3) Calling core gbs build command"
 gbsconf="config/tizen/sample.gbs.conf"
+#if you want to change build_mode you can add --define='build_mode debug' option
 gbscommand="gbs -c $gbsconf build -A armv7l --include-all --clean"
 ret=0
 echo $gbscommand

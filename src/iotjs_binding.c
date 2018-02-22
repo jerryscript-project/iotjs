@@ -331,10 +331,10 @@ const iotjs_jargs_t* iotjs_jargs_get_empty() {
 
 
 void iotjs_jargs_destroy(iotjs_jargs_t* jargs) {
-  IOTJS_ASSERT(jargs->argv == NULL || jargs->argc > 0);
-  IOTJS_ASSERT(jargs->argc <= jargs->capacity);
+  IOTJS_ASSERT(jargs && jargs->argc <= jargs->capacity);
 
   if (jargs->capacity > 0) {
+    IOTJS_ASSERT(jargs->argv);
     for (unsigned i = 0; i < jargs->argc; ++i) {
       jerry_release_value(jargs->argv[i]);
     }
@@ -346,12 +346,14 @@ void iotjs_jargs_destroy(iotjs_jargs_t* jargs) {
 
 
 uint16_t iotjs_jargs_length(const iotjs_jargs_t* jargs) {
+  IOTJS_ASSERT(jargs);
   return jargs->argc;
 }
 
 
 void iotjs_jargs_append_jval(iotjs_jargs_t* jargs, jerry_value_t x) {
-  IOTJS_ASSERT(jargs->argc < jargs->capacity);
+  IOTJS_ASSERT(jargs && jargs->argc < jargs->capacity);
+  IOTJS_ASSERT(jargs->argv);
   jargs->argv[jargs->argc++] = jerry_acquire_value(x);
 }
 
@@ -401,7 +403,8 @@ void iotjs_jargs_append_string_raw(iotjs_jargs_t* jargs, const char* x) {
 
 void iotjs_jargs_replace(iotjs_jargs_t* jargs, uint16_t index,
                          jerry_value_t x) {
-  IOTJS_ASSERT(index < jargs->argc);
+  IOTJS_ASSERT(jargs && index < jargs->argc);
+  IOTJS_ASSERT(jargs->argv);
 
   jerry_release_value(jargs->argv[index]);
   jargs->argv[index] = jerry_acquire_value(x);

@@ -14,7 +14,7 @@ The following table shows the latest results on the devices:
 |      Artik053         | [![Remote Testrunner](https://firebasestorage.googleapis.com/v0/b/remote-testrunner.appspot.com/o/status%2Fiotjs%2Fartik053.svg?alt=media&token=1)](https://samsung.github.io/iotjs-test-results/?view=artik053)  |
 |        :---:          |                                             :---:                                                                                                |
 | **Raspberry Pi 2**    | [![Remote Testrunner](https://firebasestorage.googleapis.com/v0/b/remote-testrunner.appspot.com/o/status%2Fiotjs%2Frpi2.svg?alt=media&token=1)](https://samsung.github.io/iotjs-test-results/?view=rpi2)          |
-| **STM32F4-Discovery** | [![Remote Testrunner](https://firebasestorage.googleapis.com/v0/b/remote-testrunner.appspot.com/o/status%2Fiotjs%2Fstm32f4dis.svg?alt=media&token=1)](https://samsung.github.io/iotjs-test-results/?view=stm32)   |
+| **STM32F4-Discovery** | [![Remote Testrunner](https://firebasestorage.googleapis.com/v0/b/remote-testrunner.appspot.com/o/status%2Fiotjs%2Fstm32f4dis.svg?alt=media&token=1)](https://samsung.github.io/iotjs-test-results/?view=stm32f4dis)   |
 
 
 IRC channel: #iotjs on [freenode](https://freenode.net)

@@ -136,8 +136,12 @@ if __name__ == '__main__':
                         'IOTJS_ROOT_DIR=' + DOCKER_IOTJS_PATH, rflag])
 
     elif test == 'tizen':
-        exec_docker(DOCKER_IOTJS_PATH, ['config/tizen/gbsbuild.sh', '-y'])
-        # TODO: Add release build test
+        for buildtype in BUILDTYPES:
+            if buildtype == "debug":
+                exec_docker(DOCKER_IOTJS_PATH, ['config/tizen/gbsbuild.sh',
+                    '--debug'])
+            else:
+                exec_docker(DOCKER_IOTJS_PATH, ['config/tizen/gbsbuild.sh'])
 
     elif test == "misc":
         ex.check_run_cmd('tools/check_signed_off.sh', ['--travis'])

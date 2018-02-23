@@ -49,6 +49,11 @@ Compile:
 ./config/tizen/gbsbuild.sh
 ```
 
+The following options are provided.
+```
+--debug: Build output is 'debug'. If this option is not specified, it is 'release'.
+```
+
 ### 2. Bring up RPi3 with Tizen
 Please see the following guide to bring up your RPI3 target with Tizen.
 You can refer "Raspberry Pi 3" section of command-line-flash part.

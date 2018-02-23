@@ -14,6 +14,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+USAGE="USAGE: $0 [--debug]"
+
+buildtype="release"
+
+while [ -n "$1" ]; do
+  case $1 in
+    --debug )
+      buildtype="debug"
+    ;;
+    * )
+      echo $USAGE
+      exit 1;
+    ;;
+  esac
+  shift
+done
+
 echo "******************************************************************"
 echo "*                       Tizen GBS build                          *"
 echo "* ~/.gbs.conf sample is at 'config/tizen/sample.gbs.conf'.       *"
@@ -42,8 +59,8 @@ fi
 
 echo -e "\n(3) Calling core gbs build command"
 gbsconf="config/tizen/sample.gbs.conf"
-#if you want to change build_mode you can add --define='build_mode debug' option
 gbscommand="gbs -c $gbsconf build -A armv7l --include-all --clean"
+gbscommand+=" --define='build_mode $buildtype'"
 ret=0
 echo $gbscommand
 if eval $gbscommand

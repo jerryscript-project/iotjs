@@ -174,6 +174,20 @@ size_t iotjs_bufferwrap_copy(iotjs_bufferwrap_t* bufferwrap, const char* src,
   return iotjs_bufferwrap_copy_internal(bufferwrap, src, 0, len, 0);
 }
 
+static size_t index_normalizer(int64_t index, size_t max_length) {
+  size_t idx;
+  if (index < 0) {
+    if ((size_t)(-index) > max_length) {
+      idx = SIZE_MAX;
+    } else {
+      idx = (size_t)index + max_length;
+    }
+  } else {
+    idx = (size_t)index;
+  }
+
+  return bound_range(idx, 0, max_length);
+}
 
 jerry_value_t iotjs_bufferwrap_create_buffer(size_t len) {
   jerry_value_t jglobal = jerry_get_global_object();
@@ -347,31 +361,9 @@ JS_FUNCTION(Slice) {
 
   int64_t start = JS_GET_ARG(1, number);
   int64_t end = JS_GET_ARG(2, number);
-  size_t start_idx, end_idx;
-
-  if (start < 0) {
-    size_t len = iotjs_bufferwrap_length(buffer_wrap);
-    if ((size_t)(-start) > len) {
-      start_idx = SIZE_MAX;
-    } else {
-      start_idx = (size_t)start + len;
-    }
-  } else {
-    start_idx = (size_t)start;
-  }
-  start_idx = bound_range(start_idx, 0, iotjs_bufferwrap_length(buffer_wrap));
-
-  if (end < 0) {
-    size_t len = iotjs_bufferwrap_length(buffer_wrap);
-    if ((size_t)(-end) > len) {
-      end_idx = SIZE_MAX;
-    } else {
-      end_idx = (size_t)end + len;
-    }
-  } else {
-    end_idx = (size_t)end;
-  }
-  end_idx = bound_range(end_idx, 0, iotjs_bufferwrap_length(buffer_wrap));
+  size_t len = iotjs_bufferwrap_length(buffer_wrap);
+  size_t start_idx = index_normalizer(start, len);
+  size_t end_idx = index_normalizer(end, len);
 
   if (end_idx < start_idx) {
     end_idx = start_idx;

@@ -19,6 +19,26 @@
 
 #include <string.h>
 
+typedef enum {
+  OPT_HELP,
+  OPT_MEM_STATS,
+  OPT_SHOW_OP,
+  OPT_DEBUG_SERVER,
+  OPT_DEBUGGER_WAIT_SOURCE,
+  OPT_DEBUG_PORT,
+  NUM_OF_OPTIONS
+} cli_option_id_t;
+
+typedef struct {
+  const cli_option_id_t id;
+  const char* opt;
+  const char* longopt;
+  const char* help;
+  const uint32_t more; // The number of options coming with the given option
+} cli_option_t;
+
+#define CLI_DEFAULT_HELP_STRING \
+  "Usage: iotjs [options] {FILE | FILE.js} [arguments]\n"
 
 static iotjs_environment_t current_env;
 static bool initialized = false;
@@ -70,34 +90,103 @@ static void initialize(iotjs_environment_t* env) {
 bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
                                                     uint32_t argc,
                                                     char** argv) {
-  // Parse IoT.js command line arguments.
+  // declare options
+  const cli_option_t opts[] = {
+    {
+        .id = OPT_HELP,
+        .opt = "h",
+        .longopt = "help",
+        .help = "print this help and exit",
+    },
+    {
+        .id = OPT_MEM_STATS,
+        .longopt = "mem-stats",
+        .help = "dump memory statistics",
+    },
+    {
+        .id = OPT_SHOW_OP,
+        .longopt = "show-opcodes",
+        .help = "dump parser byte-code",
+    },
+    {
+        .id = OPT_DEBUG_SERVER,
+        .opt = "d",
+        .longopt = "start-debug-server",
+        .help = "start debug server and wait for a connecting client",
+    },
+    {
+        .id = OPT_DEBUGGER_WAIT_SOURCE,
+        .opt = "w",
+        .longopt = "debugger-wait-source",
+        .help = "wait for an executable source from the client",
+    },
+    {
+        .id = OPT_DEBUG_PORT,
+        .longopt = "debug-port",
+        .more = 1,
+        .help = "debug server port (default: 5001)",
+    },
+  };
+
+  const cli_option_t* cur_opt;
   uint32_t i = 1;
-  uint8_t port_arg_len = strlen("--jerry-debugger-port=");
+
   while (i < argc && argv[i][0] == '-') {
-    if (!strcmp(argv[i], "--memstat")) {
-      env->config.memstat = true;
-    } else if (!strcmp(argv[i], "--show-opcodes")) {
-      env->config.show_opcode = true;
-    } else if (!strcmp(argv[i], "--start-debug-server")) {
-      env->config.debugger =
-          (DebuggerConfig*)iotjs_buffer_allocate(sizeof(DebuggerConfig));
-      env->config.debugger->port = 5001;
-      env->config.debugger->wait_source = false;
-      env->config.debugger->context_reset = false;
-    } else if (!strncmp(argv[i], "--jerry-debugger-port=", port_arg_len) &&
-               env->config.debugger) {
-      size_t port_length = sizeof(strlen(argv[i] - port_arg_len - 1));
-      char port[port_length];
-      memcpy(&port, argv[i] + port_arg_len, port_length);
-      sscanf(port, "%hu", &env->config.debugger->port);
-    } else if (!strcmp(argv[i], "--debugger-wait-source") &&
-               env->config.debugger) {
-      env->config.debugger->wait_source = true;
-    } else {
+    cur_opt = NULL;
+
+    // check if the known option is given.
+    for (uint32_t k = 0; k < NUM_OF_OPTIONS; k++) {
+      if ((opts[k].opt && !strcmp(&argv[i][1], opts[k].opt)) ||
+          (opts[k].longopt && !strcmp(&argv[i][2], opts[k].longopt))) {
+        cur_opt = &opts[k];
+        break;
+      }
+    }
+
+    if (cur_opt == NULL) {
       fprintf(stderr, "unknown command line option: %s\n", argv[i]);
       return false;
     }
-    ++i;
+
+    switch (cur_opt->id) {
+      case OPT_HELP: {
+        fprintf(stderr, "%s\n  Options:\n\n", CLI_DEFAULT_HELP_STRING);
+        for (uint32_t k = 0; k < NUM_OF_OPTIONS; k++) {
+          if (opts[k].opt) {
+            fprintf(stderr, "    -%s, --%-21s %s\n", opts[k].opt,
+                    opts[k].longopt, opts[k].help);
+          } else {
+            fprintf(stderr, "    --%-25s %s\n", opts[k].longopt, opts[k].help);
+          }
+        }
+        fprintf(stderr, "\n");
+        return false;
+      } break;
+      case OPT_MEM_STATS: {
+        env->config.memstat = true;
+      } break;
+      case OPT_SHOW_OP: {
+        env->config.show_opcode = true;
+      } break;
+      case OPT_DEBUG_SERVER: {
+        env->config.debugger =
+            (DebuggerConfig*)iotjs_buffer_allocate(sizeof(DebuggerConfig));
+        env->config.debugger->port = 5001;
+        env->config.debugger->wait_source = false;
+        env->config.debugger->context_reset = false;
+      } break;
+      case OPT_DEBUG_PORT: {
+        sscanf(argv[i + 1], "%hu", &env->config.debugger->port);
+      } break;
+      case OPT_DEBUGGER_WAIT_SOURCE: {
+        env->config.debugger->wait_source = true;
+      } break;
+      default:
+        break;
+    }
+
+    // increase index of argv
+    i += (1 + cur_opt->more);
   }
 
   // If IoT.js is waiting for source from the debugger client,
@@ -107,8 +196,7 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
 
   // There must be at least one argument after processing the IoT.js args,
   if (argc - i < 1) {
-    fprintf(stderr,
-            "Usage: iotjs [options] {script | script.js} [arguments]\n");
+    fprintf(stderr, CLI_DEFAULT_HELP_STRING);
     return false;
   }
 

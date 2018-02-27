@@ -324,6 +324,13 @@
       "js_file": "js/timers.js",
       "require": ["util"]
     },
+    "tls": {
+      "native_files": ["modules/iotjs_module_tls.c"],
+      "init": "InitTls",
+      "js_file": "js/tls.js",
+      "cmakefile": "../cmake/mbedtls.cmake",
+      "require": ["net", "util"]
+    },
     "uart": {
       "platforms": {
         "linux": {

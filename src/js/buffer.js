@@ -118,9 +118,7 @@ Buffer.concat = function(list) {
 
 
 // Buffer.isBuffer(object)
-Buffer.isBuffer = function(object) {
-  return util.isBuffer(object);
-};
+Buffer.isBuffer = util.isBuffer;
 
 
 // buffer.equals(otherBuffer)

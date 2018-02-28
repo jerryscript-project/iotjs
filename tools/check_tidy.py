@@ -168,7 +168,8 @@ def check_tidy(src_dir, options=None):
     allowed_exts = ['.c', '.h', '.js', '.py', '.sh', '.cmake']
     allowed_files = ['CMakeLists.txt']
     clang_format_exts = ['.c', '.h']
-    skip_dirs = ['deps', 'build', '.git', 'node_modules', 'coverage']
+    skip_dirs = ['deps', 'build', '.git', 'node_modules', 'coverage',
+                 'iotjs_modules']
     skip_files = ['check_signed_off.sh', '__init__.py',
                   'iotjs_js.c', 'iotjs_js.h', 'iotjs_string_ext.inl.h',
                   "iotjs_module_inl.h",

@@ -89,25 +89,22 @@ iotjs_https_t* iotjs_https_create(const char* URL, const char* method,
   // Original Request Details
   https_data->URL = URL;
   https_data->header_list = NULL;
-  if (strcmp(method, STRING_GET) == 0)
-    https_data->method = HTTPS_GET;
-  else if (strcmp(method, STRING_POST) == 0)
-    https_data->method = HTTPS_POST;
-  else if (strcmp(method, STRING_PUT) == 0)
-    https_data->method = HTTPS_PUT;
-  else if (strcmp(method, STRING_DELETE) == 0)
-    https_data->method = HTTPS_DELETE;
-  else if (strcmp(method, STRING_HEAD) == 0)
-    https_data->method = HTTPS_HEAD;
-  else if (strcmp(method, STRING_CONNECT) == 0)
-    https_data->method = HTTPS_CONNECT;
-  else if (strcmp(method, STRING_OPTIONS) == 0)
-    https_data->method = HTTPS_OPTIONS;
-  else if (strcmp(method, STRING_TRACE) == 0)
-    https_data->method = HTTPS_TRACE;
-  else {
-    IOTJS_ASSERT(0);
+
+  const char* https_methods_str[] = { STRING_GET,     STRING_POST,
+                                      STRING_PUT,     STRING_DELETE,
+                                      STRING_HEAD,    STRING_CONNECT,
+                                      STRING_OPTIONS, STRING_TRACE };
+  int i = 0;
+  int n_methods = sizeof(https_methods_str) / sizeof(https_methods_str[0]);
+  for (; i < n_methods; i++) {
+    if (strcmp(method, https_methods_str[i]) == 0) {
+      https_data->method = i;
+      break;
+    }
   }
+
+  if (i > HTTPS_TRACE)
+    IOTJS_ASSERT(0);
 
   // TLS certs stuff
   https_data->ca = ca;

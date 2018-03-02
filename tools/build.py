@@ -93,12 +93,13 @@ def init_options():
         help='Specify the module profile file for IoT.js')
 
     parser.add_argument('--target-arch',
-        choices=['arm', 'x86', 'i686', 'x86_64', 'x64', 'noarch'],
+        choices=['arm', 'x86', 'i686', 'x86_64', 'x64', 'mips', 'noarch'],
         default=platform.arch(),
         help='Specify the target architecture: '
              '%(choices)s (default: %(default)s)')
     parser.add_argument('--target-os',
-        choices=['linux', 'darwin', 'osx', 'nuttx', 'tizen', 'tizenrt'],
+        choices=['linux', 'darwin', 'osx', 'nuttx', 'tizen', 'tizenrt',
+                 'openwrt'],
         default=platform.os(),
         help='Specify the target os: %(choices)s (default: %(default)s)')
 
@@ -356,7 +357,7 @@ def build_iotjs(options):
 
     # --experimental
     if options.experimental:
-        options.compile_flag.append('-DEXPERIMENTAL')
+        cmake_opt.append('-DEXPERIMENTAL=ON')
 
     # --profile
     if options.profile:

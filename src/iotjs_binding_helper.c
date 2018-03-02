@@ -142,12 +142,17 @@ int iotjs_process_exitcode() {
 
   jerry_value_t jexitcode =
       iotjs_jval_get_property(process, IOTJS_MAGIC_STRING_EXITCODE);
-  IOTJS_ASSERT(jerry_value_is_number(jexitcode));
-
-  const int exitcode = (int)iotjs_jval_as_number(jexitcode);
+  uint8_t exitcode = 0;
+  jerry_value_t num_val = jerry_value_to_number(jexitcode);
+  if (jerry_value_has_error_flag(num_val)) {
+    exitcode = 1;
+    jerry_value_clear_error_flag(&num_val);
+  } else {
+    exitcode = (uint8_t)iotjs_jval_as_number(num_val);
+  }
+  jerry_release_value(num_val);
   jerry_release_value(jexitcode);
-
-  return exitcode;
+  return (int)exitcode;
 }
 
 

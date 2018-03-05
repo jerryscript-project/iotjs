@@ -119,53 +119,49 @@ static jerry_value_t AfterSync(uv_fs_t* req, int err,
     jerry_value_t jerror = iotjs_create_uv_exception(err, syscall_name);
     jerry_value_set_error_flag(&jerror);
     return jerror;
-  } else {
-    switch (req->fs_type) {
-      case UV_FS_CLOSE:
-        break;
-      case UV_FS_OPEN:
-      case UV_FS_READ:
-      case UV_FS_WRITE:
-        return jerry_create_number(err);
-      case UV_FS_FSTAT:
-      case UV_FS_STAT: {
-        uv_stat_t* s = &(req->statbuf);
-        return MakeStatObject(s);
-      }
-      case UV_FS_MKDIR:
-      case UV_FS_RMDIR:
-      case UV_FS_UNLINK:
-      case UV_FS_RENAME:
-        return jerry_create_undefined();
-      case UV_FS_SCANDIR: {
-        int r;
-        uv_dirent_t ent;
-        uint32_t idx = 0;
-        jerry_value_t ret = jerry_create_array(0);
-        while ((r = uv_fs_scandir_next(req, &ent)) != UV_EOF) {
-          jerry_value_t name =
-              jerry_create_string((const jerry_char_t*)ent.name);
-          iotjs_jval_set_property_by_index(ret, idx, name);
-          jerry_release_value(name);
-          idx++;
-        }
-        return ret;
-      }
-      default: {
-        IOTJS_ASSERT(false);
-        break;
-      }
-    }
-    return jerry_create_undefined();
   }
+
+  switch (req->fs_type) {
+    case UV_FS_CLOSE:
+      break;
+    case UV_FS_OPEN:
+    case UV_FS_READ:
+    case UV_FS_WRITE:
+      return jerry_create_number(err);
+    case UV_FS_FSTAT:
+    case UV_FS_STAT: {
+      uv_stat_t* s = &(req->statbuf);
+      return MakeStatObject(s);
+    }
+    case UV_FS_MKDIR:
+    case UV_FS_RMDIR:
+    case UV_FS_UNLINK:
+    case UV_FS_RENAME:
+      return jerry_create_undefined();
+    case UV_FS_SCANDIR: {
+      int r;
+      uv_dirent_t ent;
+      uint32_t idx = 0;
+      jerry_value_t ret = jerry_create_array(0);
+      while ((r = uv_fs_scandir_next(req, &ent)) != UV_EOF) {
+        jerry_value_t name = jerry_create_string((const jerry_char_t*)ent.name);
+        iotjs_jval_set_property_by_index(ret, idx, name);
+        jerry_release_value(name);
+        idx++;
+      }
+      return ret;
+    }
+    default: {
+      IOTJS_ASSERT(false);
+      break;
+    }
+  }
+  return jerry_create_undefined();
 }
 
 
 static inline bool IsWithinBounds(size_t off, size_t len, size_t max) {
-  if (off > max)
-    return false;
-
-  if (max - off < len)
+  if (off >= max || max - off < len)
     return false;
 
   return true;
@@ -255,9 +251,6 @@ JS_FUNCTION(Read) {
   size_t data_length = iotjs_bufferwrap_length(buffer_wrap);
   JS_CHECK(data != NULL && data_length > 0);
 
-  if (offset >= data_length) {
-    return JS_CREATE_ERROR(RANGE, "offset out of bound");
-  }
   if (!IsWithinBounds(offset, length, data_length)) {
     return JS_CREATE_ERROR(RANGE, "length out of bound");
   }
@@ -293,9 +286,6 @@ JS_FUNCTION(Write) {
   size_t data_length = iotjs_bufferwrap_length(buffer_wrap);
   JS_CHECK(data != NULL && data_length > 0);
 
-  if (offset >= data_length) {
-    return JS_CREATE_ERROR(RANGE, "offset out of bound");
-  }
   if (!IsWithinBounds(offset, length, data_length)) {
     return JS_CREATE_ERROR(RANGE, "length out of bound");
   }

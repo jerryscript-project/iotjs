@@ -74,7 +74,7 @@ char* iotjs_buffer_allocate(size_t size) {
 char* iotjs_buffer_allocate_from_number_array(size_t size,
                                               const jerry_value_t array) {
   char* buffer = iotjs_buffer_allocate(size);
-  for (uint8_t i = 0; i < size; i++) {
+  for (size_t i = 0; i < size; i++) {
     jerry_value_t jdata = iotjs_jval_get_property_by_index(array, i);
     buffer[i] = iotjs_jval_as_number(jdata);
     jerry_release_value(jdata);

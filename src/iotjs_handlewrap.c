@@ -102,7 +102,7 @@ void iotjs_handlewrap_close(iotjs_handlewrap_t* handlewrap,
 
 
 void iotjs_handlewrap_validate(iotjs_handlewrap_t* handlewrap) {
-  IOTJS_ASSERT((iotjs_handlewrap_t*)handlewrap == handlewrap);
+  IOTJS_ASSERT(handlewrap);
   IOTJS_ASSERT((void*)handlewrap == handlewrap->handle->data);
   IOTJS_ASSERT((uintptr_t)handlewrap ==
                iotjs_jval_get_object_native_handle(handlewrap->jobject));

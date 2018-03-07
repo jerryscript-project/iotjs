@@ -15,7 +15,7 @@
 
 var EventEmitter = require('events').EventEmitter;
 var util = require('util');
-var udp = require('udp');
+var Udp = require('udp');
 
 var BIND_STATE_UNBOUND = 0;
 var BIND_STATE_BINDING = 1;
@@ -39,7 +39,7 @@ function lookup4(address, callback) {
 
 function newHandle(type) {
   if (type == 'udp4') {
-    var handle = new udp();
+    var handle = new Udp();
     handle.lookup = lookup4;
     return handle;
   }
@@ -102,8 +102,6 @@ Socket.prototype.bind = function(port, address, callback) {
 
   this._bindState = BIND_STATE_BINDING;
 
-  var address;
-
   if (util.isFunction(port)) {
     callback = port;
     port = 0;
@@ -138,7 +136,7 @@ Socket.prototype.bind = function(port, address, callback) {
 
     self._handle._reuseAddr = self._reuseAddr;
 
-    var err = self._handle.bind(ip, port | 0);
+    err = self._handle.bind(ip, port | 0);
     if (err) {
       var ex = util.exceptionWithHostPort(err, 'bind', ip, port);
       self.emit('error', ex);
@@ -311,7 +309,7 @@ function doSend(ex, self, ip, list, address, port, callback) {
 
   if (err && callback) {
     // don't emit as error, dgram_legacy.js compatibility
-    var ex = exceptionWithHostPort(err, 'send', address, port);
+    ex = util.exceptionWithHostPort(err, 'send', address, port);
     process.nextTick(callback, ex);
   }
 }
@@ -447,7 +445,7 @@ Socket.prototype._stopReceiving = function() {
 function onMessage(nread, handle, buf, rinfo) {
   var self = handle.owner;
   if (nread < 0) {
-    return self.emit('error', errnoException(nread, 'recvmsg'));
+    return self.emit('error', util.errnoException(nread, 'recvmsg'));
   }
 
   rinfo.size = buf.length; // compatibility

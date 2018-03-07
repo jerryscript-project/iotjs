@@ -187,8 +187,8 @@ OutgoingMessage.prototype.setTimeout = function(ms, cb) {
 
   if (!this.socket) {
     this.once('socket', function(socket) {
-      socket.setTimeout(msecs);
+      socket.setTimeout(ms);
     });
   } else
-    this.socket.setTimeout(msecs);
+    this.socket.setTimeout(ms);
 };

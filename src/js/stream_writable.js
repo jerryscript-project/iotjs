@@ -100,7 +100,7 @@ Writable.prototype.write = function(chunk, callback) {
 
 // This function object never to be called. concrete stream should override
 // this method.
-Writable.prototype._write = function(chunk, callback, onwrite) {
+Writable.prototype._write = function(/* chunk, callback, onwrite */) {
   throw new Error('unreachable');
 };
 

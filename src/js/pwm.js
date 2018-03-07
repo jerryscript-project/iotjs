@@ -22,7 +22,7 @@ var pwm = {
   },
   openSync: function(config) {
     return new native(config);
-  }
+  },
 };
 
 module.exports = pwm;

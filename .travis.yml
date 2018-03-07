@@ -8,7 +8,7 @@ services:
   - docker
 
 before_install:
-  - if [[ "$RUN_DOCKER" == "yes" ]]; then docker pull iotjs/ubuntu:0.4; fi
+  - if [[ "$RUN_DOCKER" == "yes" ]]; then docker pull iotjs/ubuntu:0.5; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then tools/brew-install-deps.sh; fi
   - if [[ "$OPTS" == "misc" ]]; then tools/apt-get-install-deps.sh; fi
 
@@ -28,7 +28,7 @@ env:
     - OPTS="tizen" RUN_DOCKER=yes
     - OPTS="external-modules" RUN_DOCKER=yes
     - OPTS="no-snapshot" RUN_DOCKER=yes
-    - OPTS="misc"
+    - OPTS="misc" RUN_DOCKER=yes
 
 matrix:
   include:

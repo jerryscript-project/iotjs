@@ -25,7 +25,7 @@ var spi = {
   },
   MODE: native.MODE,
   CHIPSELECT: native.CHIPSELECT,
-  BITORDER: native.BITORDER
+  BITORDER: native.BITORDER,
 };
 
 module.exports = spi;

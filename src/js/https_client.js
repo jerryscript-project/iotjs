@@ -45,7 +45,8 @@ function ClientRequest(options, cb) {
   }
 
   var isMethodGood = false;
-  for (var key in methods) {
+  var key;
+  for (key in methods) {
     if (methods.hasOwnProperty(key)) {
       if (this.method === methods[key]) {
         isMethodGood = true;
@@ -80,7 +81,7 @@ function ClientRequest(options, cb) {
   if (options.headers) {
     var keys = Object.keys(options.headers);
     for (var i = 0, l = keys.length; i < l; i++) {
-      var key = keys[i];
+      key = keys[i];
       httpsNative.addHeader(key + ': ' + options.headers[key], this);
     }
   }

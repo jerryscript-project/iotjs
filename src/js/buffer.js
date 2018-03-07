@@ -99,7 +99,8 @@ Buffer.concat = function(list) {
   }
 
   var length = 0;
-  for (var i = 0; i < list.length; ++i) {
+  var i;
+  for (i = 0; i < list.length; ++i) {
     if (!util.isBuffer(list[i])) {
       throw new TypeError('Bad arguments: Buffer.concat([Buffer])');
     }
@@ -108,7 +109,7 @@ Buffer.concat = function(list) {
 
   var buffer = new Buffer(length);
   var pos = 0;
-  for (var i = 0; i < list.length; ++i) {
+  for (i = 0; i < list.length; ++i) {
     list[i].copy(buffer, pos);
     pos += list[i].length;
   }

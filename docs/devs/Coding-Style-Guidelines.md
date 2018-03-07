@@ -9,18 +9,13 @@
     * Naming
     * Formatting
 * [Coding Style Guideline for Python](#coding-style-guideline-for-python)
-
+* [Coding Style Check Tool](#coding-style-check-tool)
 
 # Coding Style Guideline for C
 
 Our coding style guideline is based on [google c++ coding standard](https://google.github.io/styleguide/cppguide.html),
 but modified due to some difference between C and C++.
-When this guideline is ambiguous, just follow the result of running `./tools/check_tidy.py`.
 
-Here are `./tools/check_tidy.py` options:
-```
---autoedit: Automatically edit the detected clang format errors. No diffs will be displayed.
-```
 
 ## Header Files
 
@@ -204,3 +199,21 @@ Follow C/C++ formatting above.
 # Coding Style Guideline For Python
 
 The coding conventions for Python code follows [PEP 8 - Style Guide for Python Code](https://www.python.org/dev/peps/pep-0008/)
+
+
+# Coding Style Check Tool
+
+When this guideline is ambiguous, just follow the result of running `./tools/check_tidy.py`.
+This tool helps you check your code style. You have to install `clang` and `eslint` to use this tool. And [`node.js`](https://nodejs.org/en/download/) should be installed before installing `eslint`.
+
+```bash
+$ sudo apt-get update
+$ sudo apt-get install clang-format-3.8
+$ cd iotjs
+$ npm install
+```
+
+Here are `./tools/check_tidy.py` options:
+```
+--autoedit: Automatically edit the detected clang format and eslint errors. No diffs will be displayed.
+```

@@ -26,7 +26,7 @@ var gpio = {
   },
   DIRECTION: native.DIRECTION,
   EDGE: native.EDGE,
-  MODE: native.MODE
+  MODE: native.MODE,
 };
 
 module.exports = gpio;

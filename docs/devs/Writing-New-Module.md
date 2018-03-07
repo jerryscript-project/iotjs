@@ -14,6 +14,7 @@ Contents
   * Using native module in JavaScript module
 * Advanced usage
   * Module specific CMake file
+  * Writing Dynamically loadable modules
 * Module structure generator
 
 See also:
@@ -408,6 +409,60 @@ list(APPEND MODULE_LIBS myLib)
 
 To ease creation of modules which contains extra CMake files
 there is a module generator as described below.
+
+
+## Writing Dynamically loadable modules
+
+IoT.js support loading specially crafted shared libraries.
+To create such modules the source files must be compiled into a
+shared object - preferably using the `.iotjs` extension - and
+must have a special entry point defined using the `IOTJS_MODULE` macro.
+
+The `IOTJS_MODULE` macro has the following four parameters:
+
+* `iotjs_module_version`: target IoT.js target module version as `uint32_t`
+  value. The `IOTJS_CURRENT_MODULE_VERSION` can be used to get the current IoT.js
+  module version when the module is compiling.
+* `module_version`: the module version as a `uint32_t` value.
+* `initializer`: the entry point of module which should return an initialized
+  module object. Note: the macro will automaticall prefix the specified name
+  with `init_`.
+
+For example, in the `testmodule.c` file:
+
+```c
+
+#include <iotjs_binding.h>
+
+jerry_value_t init_testmodule(void) {
+  jerry_value_t object = jerry_create_object();
+  /* add properties to 'object' */
+  return object;
+}
+
+IOTJS_MODULE(IOTJS_CURRENT_MODULE_VERSION, 1, testmodule);
+```
+
+Should be compiled with the following command:
+
+```sh
+$ gcc -Wall -I<path/to/IoT.js headers> -I<path/to/JerryScript headers> -shared -o testmodule.iotjs testmodule.c
+```
+
+After the shared module is created it can be loaded via `require` call.
+Example JS code:
+
+```c
+var test = require('testmodule.iotjs');
+/* access the properties of the test module. */
+```
+
+During the dynamic module loading if the `iotsj_module_version`
+returned by the module does not match the `IOTJS_CURRENT_MODULE_VERSION`
+value of the running IoT.js instance, the module loading will fail.
+
+Please note that the dynamically loadable module only differs in
+the extra `IOTJS_MODULE` macro invocation from the static modules.
 
 
 ## Module structure generator

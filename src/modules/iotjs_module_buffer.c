@@ -20,6 +20,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+typedef enum {
+  BUFFER_HEX_ENC = 0,
+  BUFFER_BASE64_ENC = 1,
+} buffer_encoding_type_t;
+
 
 IOTJS_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(bufferwrap);
 
@@ -88,13 +93,16 @@ static size_t bound_range(size_t index, size_t low, size_t upper) {
 }
 
 
-static int8_t hex2bin(char c) {
-  if (c >= '0' && c <= '9')
+static int8_t hexToBin(char c) {
+  if (c >= '0' && c <= '9') {
     return (int8_t)(c - '0');
-  if (c >= 'A' && c <= 'F')
+  }
+  if (c >= 'A' && c <= 'F') {
     return (int8_t)(10 + (c - 'A'));
-  if (c >= 'a' && c <= 'f')
+  }
+  if (c >= 'a' && c <= 'f') {
     return (int8_t)(10 + (c - 'a'));
+  }
 
   return (int8_t)(-1);
 }
@@ -102,17 +110,105 @@ static int8_t hex2bin(char c) {
 
 static size_t hex_decode(char* buf, size_t len, const char* src,
                          const size_t srcLen) {
-  size_t i;
+  const char* bufStart = buf;
+  const char* bufEnd = buf + len;
+  const char* srcEnd = src + srcLen;
 
-  for (i = 0; i < len && i * 2 + 1 < srcLen; ++i) {
-    int8_t a = hex2bin(src[i * 2 + 0]);
-    int8_t b = hex2bin(src[i * 2 + 1]);
-    if (a == -1 || b == -1)
-      return i;
-    buf[i] = (a << 4) | b;
+  if ((srcLen & 0x1) != 0) {
+    return 0;
   }
 
-  return i;
+  while (src < srcEnd) {
+    int8_t a = hexToBin(src[0]);
+    int8_t b = hexToBin(src[1]);
+
+    if (a == -1 || b == -1) {
+      return 0;
+    }
+
+    if (buf < bufEnd) {
+      *buf++ = (a << 4) | b;
+    }
+
+    src += 2;
+  }
+
+  return (size_t)((buf - bufStart) + 1);
+}
+
+
+static int32_t base64ToBin(char c) {
+  if (c >= 'A' && c <= 'Z') {
+    return (int32_t)(c - 'A');
+  }
+  if (c >= 'a' && c <= 'z') {
+    return (int32_t)(26 + (c - 'a'));
+  }
+  if (c >= '0' && c <= '9') {
+    return (int32_t)(52 + (c - '0'));
+  }
+  if (c == '+') {
+    return 62;
+  }
+  if (c == '/') {
+    return 63;
+  }
+
+  return (int32_t)(-1);
+}
+
+
+static size_t base64_decode(char* buf, size_t len, const char* src,
+                            const size_t srcLen) {
+  if (srcLen == 0) {
+    return 0 + 1;
+  }
+
+  if ((srcLen & 0x3) != 0) {
+    return 0;
+  }
+
+  const char* bufStart = buf;
+  const char* bufEnd = buf + len;
+  const char* srcEnd = src + srcLen;
+
+  if (srcEnd[-1] == '=') {
+    srcEnd--;
+    if (srcEnd[-1] == '=') {
+      srcEnd--;
+    }
+  }
+
+  int32_t currentBits = 0;
+  int32_t shift = 8;
+
+  while (src < srcEnd) {
+    int32_t value = base64ToBin(*src++);
+
+    if (value == -1) {
+      return 0;
+    }
+
+    currentBits = (currentBits << 6) | value;
+    shift -= 2;
+
+    if (shift == 6) {
+      continue;
+    }
+
+    int32_t byte = (currentBits >> shift);
+    currentBits &= (1 << shift) - 1;
+
+    if (shift == 0) {
+      shift = 8;
+    }
+
+    if (buf < bufEnd) {
+      *buf++ = (char)byte;
+    }
+  }
+
+  return (size_t)((buf - bufStart) + 1);
 }
 
 
@@ -304,32 +400,41 @@ JS_FUNCTION(WriteUInt8) {
 }
 
 
-JS_FUNCTION(HexWrite) {
-  DJS_CHECK_ARGS(4, object, string, number, number);
+JS_FUNCTION(WriteDecode) {
+  DJS_CHECK_ARGS(5, object, number, string, number, number);
   JS_DECLARE_OBJECT_PTR(0, bufferwrap, buffer_wrap);
 
-  iotjs_string_t src = JS_GET_ARG(1, string);
+  double type = JS_GET_ARG(1, number);
+  iotjs_string_t src = JS_GET_ARG(2, string);
 
   size_t buffer_length = iotjs_bufferwrap_length(buffer_wrap);
-  size_t offset = iotjs_convert_double_to_sizet(JS_GET_ARG(2, number));
+  size_t offset = iotjs_convert_double_to_sizet(JS_GET_ARG(3, number));
   offset = bound_range(offset, 0, buffer_length);
 
-  size_t length = iotjs_convert_double_to_sizet(JS_GET_ARG(3, number));
+  size_t length = iotjs_convert_double_to_sizet(JS_GET_ARG(4, number));
   length = bound_range(length, 0, buffer_length - offset);
 
   const char* src_data = iotjs_string_data(&src);
   unsigned src_length = iotjs_string_size(&src);
-  char* src_buf = iotjs_buffer_allocate(length);
 
-  size_t nbytes = hex_decode(src_buf, length, src_data, src_length);
+  size_t nbytes;
+  char* dst_data = buffer_wrap->buffer + offset;
+  const char* error_msg;
 
-  size_t copied =
-      iotjs_bufferwrap_copy_internal(buffer_wrap, src_buf, 0, nbytes, offset);
+  if (type == BUFFER_HEX_ENC) {
+    nbytes = hex_decode(dst_data, length, src_data, src_length);
+    error_msg = "Invalid hex string";
+  } else {
+    nbytes = base64_decode(dst_data, length, src_data, src_length);
+    error_msg = "Invalid base64 string";
+  }
 
-  IOTJS_RELEASE(src_buf);
   iotjs_string_destroy(&src);
 
-  return jerry_create_number(copied);
+  if (nbytes == 0)
+    return jerry_create_error(JERRY_ERROR_TYPE, (const jerry_char_t*)error_msg);
+
+  return jerry_create_number(nbytes - 1);
 }
 
 
@@ -433,11 +538,8 @@ JS_FUNCTION(ToHexString) {
 JS_FUNCTION(ByteLength) {
   DJS_CHECK_ARGS(1, string);
 
-  iotjs_string_t str = JS_GET_ARG(0, string);
-  jerry_value_t size = iotjs_jval_get_string_size(&str);
-
-  iotjs_string_destroy(&str);
-  return size;
+  jerry_size_t size = jerry_get_string_size(jargv[0]);
+  return jerry_create_number(size);
 }
 
 
@@ -447,7 +549,7 @@ jerry_value_t InitBuffer() {
   iotjs_jval_set_method(buffer, IOTJS_MAGIC_STRING_COMPARE, Compare);
   iotjs_jval_set_method(buffer, IOTJS_MAGIC_STRING_COPY, Copy);
   iotjs_jval_set_method(buffer, IOTJS_MAGIC_STRING_WRITE, Write);
-  iotjs_jval_set_method(buffer, IOTJS_MAGIC_STRING_HEXWRITE, HexWrite);
+  iotjs_jval_set_method(buffer, IOTJS_MAGIC_STRING_WRITEDECODE, WriteDecode);
   iotjs_jval_set_method(buffer, IOTJS_MAGIC_STRING_WRITEUINT8, WriteUInt8);
   iotjs_jval_set_method(buffer, IOTJS_MAGIC_STRING_READUINT8, ReadUInt8);
   iotjs_jval_set_method(buffer, IOTJS_MAGIC_STRING_SLICE, Slice);

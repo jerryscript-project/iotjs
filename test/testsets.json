@@ -6,6 +6,7 @@
     { "name": "test_ble_setservices.js", "skip": ["all"], "reason": "need to setup test environment" },
     { "name": "test_ble_setservices_central.js", "skip": ["all"], "reason": "run it with nodejs after running test_ble_setservices.js" },
     { "name": "test_buffer.js" },
+    { "name": "test_buffer_str_conv.js" },
     { "name": "test_console.js" },
     { "name": "test_dgram_1_server_1_client.js" },
     { "name": "test_dgram_1_server_n_clients.js", "skip": ["linux"], "reason": "[linux]: flaky on Travis" },

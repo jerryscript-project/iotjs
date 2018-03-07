@@ -19,7 +19,8 @@ from __future__ import print_function
 import os
 import re
 
-TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), 'module_template')
+IOTJS_BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+TEMPLATE_BASE_DIR = os.path.join(os.path.dirname(__file__), 'module_templates')
 MODULE_NAME_RE = "^[a-z0-9][a-z0-9\._]*$"
 
 def load_templates(template_dir):
@@ -30,7 +31,9 @@ def load_templates(template_dir):
 
 def replace_contents(input_file, module_name):
     with open(input_file) as fp:
-        data = fp.read().replace("$MODULE_NAME$", module_name)
+        data = fp.read()
+        data = data.replace("$MODULE_NAME$", module_name)
+        data = data.replace("$IOTJS_PATH$", IOTJS_BASE_DIR)
 
     return data
 
@@ -77,15 +80,19 @@ if __name__ == "__main__":
     parser.add_argument("--path", default=".",
                         help="directory where the module will be created " +
                              "(default: %(default)s)")
-    parser.add_argument("--template", default=TEMPLATE_DIR,
-                        help="directory where the template files are located "
+    parser.add_argument("--template", default="basic",
+                        choices=["basic", "shared"],
+                        help="type of the template which should be used "
                         "(default: %(default)s)")
     args = parser.parse_args()
 
-    template_files = load_templates(args.template)
+
+    template_dir = os.path.join(TEMPLATE_BASE_DIR,
+                                "%s_module_template" % args.template)
+    template_files = load_templates(template_dir)
     created = create_module(args.path,
                             args.module_name[0],
-                            args.template,
+                            template_dir,
                             template_files)
     if created:
         module_path = os.path.join(args.path, args.module_name[0])

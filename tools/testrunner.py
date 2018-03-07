@@ -18,6 +18,7 @@ from __future__ import print_function
 
 import argparse
 import json
+import os
 import signal
 import subprocess
 import sys
@@ -159,6 +160,8 @@ class TestRunner(object):
         self.coverage = options.coverage
         self.skip_modules = []
         self.results = {}
+        self._environment = os.environ.copy()
+        self._environment["IOTJS_PATH"] = fs.dirname(self.iotjs)
 
         if options.skip_modules:
             self.skip_modules = options.skip_modules.split(",")
@@ -257,7 +260,8 @@ class TestRunner(object):
             process = subprocess.Popen(args=command,
                                        cwd=path.TEST_ROOT,
                                        stdout=subprocess.PIPE,
-                                       stderr=subprocess.STDOUT)
+                                       stderr=subprocess.STDOUT,
+                                       env=self._environment)
 
             stdout = process.communicate()[0]
             exitcode = process.returncode

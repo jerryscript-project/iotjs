@@ -461,8 +461,12 @@ During the dynamic module loading if the `iotsj_module_version`
 returned by the module does not match the `IOTJS_CURRENT_MODULE_VERSION`
 value of the running IoT.js instance, the module loading will fail.
 
-Please note that the dynamically loadable module only differs in
-the extra `IOTJS_MODULE` macro invocation from the static modules.
+Please note that the dynamically loadable module differs from modules
+mentioned before in the following points:
+
+* The entry point must be specified with the `IOTJS_MODULE` macro.
+* The shared module is not compiled with the IoT.js binary.
+* There is no need for the `modules.json` file.
 
 
 ## Module structure generator
@@ -471,11 +475,27 @@ As previously shown, there are a few files required to create a module.
 These files can be createad manually or by the `tools/iotjs-create-module.py`
 script.
 
-The module generator requires only one parameter then name of the module and will
-create a directory with the required files (based on a template):
+The module generator can generate two types of modules:
+* basic built-in module which is compiled into the IoT.js binary.
+* shared module which can be dynamically loaded via the `require` call.
 
+To generate a module with the IoT.js module generator
+the module template should be specified and the name of the new module.
+
+**Important note:** The module name must be in lowercase.
+
+The `template` paramter for the module creator is optional, if it is
+not specified basic modules are created.
+
+The generated module(s) have simple examples in it which can be used
+to bootstrap ones own module(s). On how to use them please see the
+previous parts of this document.
+
+### Basic module generation
+
+Example basic module generation:
 ```
-$ python ./iotjs/tools/iotjs-create-module.py demomod
+$ python ./iotjs/tools/iotjs-create-module.py --template basic demomod
 Creating module in ./demomod
 loading template file: ./iotjs/tools/module_template/module.cmake
 loading template file: ./iotjs/tools/module_template/modules.json
@@ -483,8 +503,6 @@ loading template file: ./iotjs/tools/module_template/js/module.js
 loading template file: ./iotjs/tools/module_template/src/module.c
 Module created in: /mnt/work/demomod
 ```
-
-**Important note:** The module name must be in lowercase.
 
 By default the following structure will be created by the tool:
 
@@ -498,6 +516,23 @@ demomod/
       |-- module.c
 ```
 
-The generated module have simple examples in it which can be used
-to bootstrap ones own module(s). On how to use them please see the
-previous parts of this document.
+### Shared module generation
+
+Example shared module generation:
+```
+$ python ./iotjs/tools/iotjs-create-module.py --template shared demomod
+Creating module in ./demomod
+loading template file: ./iotjs/tools/module_templates/shared_module_template/CMakeLists.txt
+loading template file: ./iotjs/tools/module_templates/shared_module_template/README.md
+loading template file: ./iotjs/tools/module_templates/shared_module_template/js/test.js
+loading template file: ./iotjs/tools/module_templates/shared_module_template/src/module_entry.c
+Module created in: /mnt/work/demomod
+```
+
+The generated `demomod` will have a `CMakeLists.txt` file which contains
+path variables to the IoT.js headers and JerryScript headers. These path
+variables are absolute paths and required to the module compilation.
+Please adapt the paths if required.
+
+Additionnally the `README.md` file contains basic instructions on
+how to build and test the new module.

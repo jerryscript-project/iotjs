@@ -51,6 +51,7 @@
     { "name": "test_module_cache.js", "skip": ["nuttx"], "reason": "not implemented for nuttx" },
     { "name": "test_module_json.js" },
     { "name": "test_module_require.js", "skip": ["nuttx"], "reason": "not implemented for nuttx" },
+    { "name": "test_module_dynamicload.js", "skip": ["darwin", "nuttx", "tizenrt"], "reason": "embedded and macos does not support dynamic loading" },
     { "name": "test_net_1.js" },
     { "name": "test_net_2.js" },
     { "name": "test_net_3.js", "skip": ["nuttx"], "reason": "[nuttx]: requires too many socket descriptors and too large buffers" },

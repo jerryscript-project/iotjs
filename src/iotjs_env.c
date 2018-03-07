@@ -65,10 +65,8 @@ void iotjs_environment_release() {
     return;
 
   iotjs_environment_t* env = iotjs_environment_get();
-  if (env->config.debugger)
-    iotjs_buffer_release((char*)(env->config.debugger));
-  if (env->argv)
-    iotjs_buffer_release((char*)env->argv);
+  IOTJS_RELEASE(env->config.debugger);
+  IOTJS_RELEASE(env->argv);
   initialized = false;
 }
 

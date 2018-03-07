@@ -90,8 +90,9 @@ char* iotjs_buffer_reallocate(char* buffer, size_t size) {
 
 
 void iotjs_buffer_release(char* buffer) {
-  IOTJS_ASSERT(buffer != NULL);
-  free(buffer);
+  if (buffer) {
+    free(buffer);
+  }
 }
 
 void print_stacktrace() {

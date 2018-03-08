@@ -28,8 +28,12 @@
 #include "jerryscript.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include <sys/wait.h>
+#include <unistd.h>
 
+#define RESTART_SLEEP_SEC 1u
 
 /**
  * Initialize JerryScript.
@@ -178,24 +182,21 @@ void iotjs_conf_console_out(int (*out)(int lv, const char* fmt, ...)) {
   iotjs_set_console_out(out);
 }
 
-int iotjs_entry(int argc, char** argv) {
+int iotjs_begin(iotjs_environment_t* env) {
   int ret_code = 0;
 
-  // Initialize IoT.js
-
-  iotjs_debuglog_init();
-
-  iotjs_environment_t* env = iotjs_environment_get();
-  if (!iotjs_environment_parse_command_line_arguments(env, (uint32_t)argc,
-                                                      argv)) {
-    DLOG("iotjs_environment_parse_command_line_arguments failed");
+  if (!env) {
     ret_code = 1;
     goto terminate;
   }
 
+  // Initialize JerryScript
+
   if (!iotjs_jerry_init(env)) {
     DLOG("iotjs_jerry_init failed");
     ret_code = 1;
+    // NOTE: jerry_cleanup() should be called as a pair of jerry_init() which
+    //       is called inside iotjs_jerry_init().
     goto terminate;
   }
 
@@ -216,21 +217,76 @@ int iotjs_entry(int argc, char** argv) {
   // Release builtin modules.
   iotjs_module_list_cleanup();
 
+terminate:
   // Release JerryScript engine.
   jerry_cleanup();
 
-terminate:;
-  bool context_reset = false;
-  if (iotjs_environment_config(env)->debugger != NULL) {
-    context_reset = iotjs_environment_config(env)->debugger->context_reset;
-  }
-  // Release environment.
-  iotjs_environment_release();
+  return ret_code;
+}
 
+int iotjs_entry(int argc, char** argv) {
+  static int exit_status = 0;
+  pid_t pid = -1;
+
+  iotjs_debuglog_init();
+
+  iotjs_environment_t* env = iotjs_environment_get();
+
+  if (!iotjs_environment_parse_command_line_arguments(env, (uint32_t)argc,
+                                                      argv)) {
+    DLOG("iotjs_environment_parse_command_line_arguments failed");
+    exit_status = 1;
+    goto exit;
+  }
+
+  if (env->use_fork) {
+  forking_entry:
+    iotjs_environment_set_state(env, kInitializing);
+
+    pid = vfork();
+
+    if (pid < 0) {
+      DLOG("vfork() failed");
+      exit_status = 1;
+      goto exit;
+    }
+
+    if (pid != 0) {
+      DDDLOG("exit status: %d", exit_status);
+
+      // get the exit status of the child
+
+      int status;
+      waitpid(pid, &status, 0);
+      exit_status = WEXITSTATUS(status);
+      DLOG("exit code: %d\n", exit_status);
+
+      // check if there is restart condition
+
+      if (env->config.debugger && env->config.debugger->context_reset) {
+        // context_reset must be reset
+        env->config.debugger->context_reset = false;
+        sleep(RESTART_SLEEP_SEC);
+        goto forking_entry;
+      }
+
+      if (env->auto_restart) {
+        sleep(RESTART_SLEEP_SEC);
+        goto forking_entry;
+      }
+
+      goto exit;
+    }
+
+    exit(iotjs_begin(env));
+
+  } else {
+    exit_status = iotjs_begin(env);
+  }
+
+exit:
+  iotjs_environment_release();
   iotjs_debuglog_release();
 
-  if (context_reset) {
-    return iotjs_entry(argc, argv);
-  }
-  return ret_code;
+  return exit_status;
 }

@@ -26,6 +26,7 @@ typedef enum {
   OPT_DEBUG_SERVER,
   OPT_DEBUGGER_WAIT_SOURCE,
   OPT_DEBUG_PORT,
+  OPT_AUTO_RESTART,
   NUM_OF_OPTIONS
 } cli_option_id_t;
 
@@ -78,6 +79,8 @@ static void initialize(iotjs_environment_t* env) {
   env->argv = NULL;
   env->loop = NULL;
   env->state = kInitializing;
+  env->use_fork = false;
+  env->auto_restart = false;
   env->config.memstat = false;
   env->config.show_opcode = false;
   env->config.debugger = NULL;
@@ -126,6 +129,12 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
         .more = 1,
         .help = "debug server port (default: 5001)",
     },
+    {
+        .id = OPT_AUTO_RESTART,
+        .opt = "a",
+        .longopt = "auto-restart",
+        .help = "restart app when it's terminated",
+    },
   };
 
   const cli_option_t* cur_opt;
@@ -172,11 +181,16 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
         if (!env->config.debugger) {
           env->config.debugger =
               (DebuggerConfig*)iotjs_buffer_allocate(sizeof(DebuggerConfig));
+          env->use_fork = true;
         }
         env->config.debugger->port = 5001;
         env->config.debugger->wait_source = false;
         env->config.debugger->context_reset = false;
       } break;
+      case OPT_AUTO_RESTART: {
+        env->use_fork = true;
+        env->auto_restart = true;
+      }
       case OPT_DEBUG_PORT: {
         if (env->config.debugger)
           sscanf(argv[i + 1], "%hu", &env->config.debugger->port);

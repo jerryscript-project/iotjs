@@ -51,6 +51,12 @@ typedef struct {
   // Running state.
   State state;
 
+  // Launch method
+  bool use_fork;
+
+  // Restart app when it's terminated
+  bool auto_restart;
+
   // Run config
   Config config;
 } iotjs_environment_t;

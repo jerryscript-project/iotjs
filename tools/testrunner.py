@@ -154,7 +154,8 @@ class TestRunner(object):
             self.skip_modules = options.skip_modules.split(",")
 
         # Process the iotjs build information.
-        iotjs_output = ex.run_cmd_output(self.iotjs, [path.BUILD_INFO_PATH])
+        iotjs_output = ex.check_run_cmd_output(self.iotjs,
+                                    [path.BUILD_INFO_PATH])
         build_info = json.loads(iotjs_output)
 
         self.builtins = build_info["builtins"]

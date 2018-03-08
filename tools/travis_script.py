@@ -60,7 +60,7 @@ def run_docker():
     ex.check_run_cmd('docker', ['run', '-dit', '--privileged',
                      '--name', DOCKER_NAME, '-v',
                      '%s:%s' % (TRAVIS_BUILD_PATH, DOCKER_IOTJS_PATH),
-                     'iotjs/ubuntu:0.4'])
+                     'iotjs/ubuntu:0.5'])
 
 def exec_docker(cwd, cmd):
     exec_cmd = 'cd %s && ' % cwd + ' '.join(cmd)
@@ -146,8 +146,7 @@ if __name__ == '__main__':
     elif test == "misc":
         ex.check_run_cmd('tools/check_signed_off.sh', ['--travis'])
 
-        if not check_tidy(TRAVIS_BUILD_PATH):
-            ex.fail("Failed tidy check")
+        exec_docker(DOCKER_IOTJS_PATH, ['tools/check_tidy.py'])
 
     elif test == "external-modules":
         for buildtype in BUILDTYPES:

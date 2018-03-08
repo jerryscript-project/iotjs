@@ -14,21 +14,18 @@
  */
 
 var EventEmitter = require('events').EventEmitter;
+var util = require('util');
+
+util.mixin(native, EventEmitter);
 
 var uart = {
   open: function(config, callback) {
-    for(var prop in EventEmitter.prototype) {
-        native.prototype[prop] = EventEmitter.prototype[prop];
-    }
     var uartPort = new native(config, function(err) {
       callback(err);
     });
     return uartPort;
   },
   openSync: function(config) {
-    for(var prop in EventEmitter.prototype) {
-        native.prototype[prop] = EventEmitter.prototype[prop];
-    }
     return new native(config);
   },
 };

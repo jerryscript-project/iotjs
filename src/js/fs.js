@@ -30,7 +30,7 @@ fs.exists = function(path, callback) {
     return;
   }
 
-  var cb = function(err, stat) {
+  var cb = function(err/* , stat */) {
     if (callback) callback(err ? false : true);
   };
 
@@ -86,7 +86,7 @@ fs.closeSync = function(fd) {
 };
 
 
-fs.open = function(path, flags, mode, callback) {
+fs.open = function(path, flags, mode/* , callback */) {
   fsBuiltin.open(checkArgString(path, 'path'),
                  convertFlags(flags),
                  convertMode(mode, 438),

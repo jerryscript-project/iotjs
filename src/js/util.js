@@ -74,16 +74,25 @@ function inherits(ctor, superCtor) {
 }
 
 
+function mixin(target, source) {
+  for (var prop in source.prototype) {
+    if (source.hasOwnProperty(prop)) {
+      target.prototype[prop] = source.prototype[prop];
+    }
+  }
+}
+
 function format(s) {
+  var i;
   if (!isString(s)) {
     var arrs = [];
-    for (var i = 0; i < arguments.length; ++i) {
+    for (i = 0; i < arguments.length; ++i) {
       arrs.push(formatValue(arguments[i]));
     }
     return arrs.join(' ');
   }
 
-  var i = 1;
+  i = 1;
   var args = arguments;
   var arg_string;
   var str = '';
@@ -217,4 +226,5 @@ exports.exceptionWithHostPort = exceptionWithHostPort;
 exports.errnoException = errnoException;
 exports.stringToNumber = stringToNumber;
 exports.inherits = inherits;
+exports.mixin = mixin;
 exports.format = format;

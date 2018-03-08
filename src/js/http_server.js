@@ -272,7 +272,7 @@ function socketOnError(err) {
 
 // This is called by parserOnHeadersComplete after req header is parsed.
 // TODO: keepalive support
-function parserOnIncoming(req, shouldKeepAlive) {
+function parserOnIncoming(req/* , shouldKeepAlive */) {
   var socket = req.socket;
   var server = socket._server;
 

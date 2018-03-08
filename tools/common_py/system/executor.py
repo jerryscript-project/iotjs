@@ -55,6 +55,18 @@ class Executor(object):
         if not quiet:
             Executor.print_cmd_line(cmd, args)
         try:
+            process = subprocess.Popen([cmd] + args, stdout=subprocess.PIPE)
+            output = process.communicate()[0]
+
+            return output
+        except OSError as e:
+            Executor.fail("[Failed - %s] %s" % (cmd, e.strerror))
+
+    @staticmethod
+    def check_run_cmd_output(cmd, args=[], quiet=False):
+        if not quiet:
+            Executor.print_cmd_line(cmd, args)
+        try:
             return subprocess.check_output([cmd] + args)
         except OSError as e:
             Executor.fail("[Failed - %s] %s" % (cmd, e.strerror))

@@ -21,7 +21,7 @@ function Tls() {
 
 Tls.Server = function(options) {
   return net.Server(options);
-}
+};
 
 Tls.Server.prototype.addContext = function(hostname, context) {
   if (!util.isString(hostname)) {
@@ -106,7 +106,7 @@ Tls.TLSSocket.prototype.getEphemeralKeyInfo = function() {
   throw new TypeError('Unimplemented');
 };
 
-Tls.TLSSocket.prototype.getPeerCertificate = function(detailed) {
+Tls.TLSSocket.prototype.getPeerCertificate = function(/* detailed */) {
   throw new TypeError('Unimplemented');
 };
 
@@ -147,10 +147,10 @@ Tls.connect = function(options) {
     this._socket = options.socket || options.path;
   } else {
     this._socket = options.socket || new Tls.TLSSocket(new net.Socket, options);
-    this.host = options.host || "localhost";
+    this.host = options.host || 'localhost';
     this.port = options.port;
   }
-  this.servername = options.servername || "default";
+  this.servername = options.servername || 'default';
   this.session = options.session;
   this.minDHSize = options.minDHSize || 1024;
 
@@ -175,18 +175,18 @@ Tls.createSecureContext = function(options) {
   this.clientCertEngine = options.clientCertEngine;
   this.crl = options.crl;
   if (options.dhparam && options.dhparam.length < 128) {
-    throw new RangeError("Key length must be at least 1024 bits");
+    throw new RangeError('Key length must be at least 1024 bits');
   }
   this.dhparam = options.dhparam;
 
 };
 
-Tls.checkServerIdentity = function(host, cert) {
+Tls.checkServerIdentity = function(/* host, cert */) {
   throw new TypeError('Unimplemented');
 };
 
 Tls.createServer = function(options, secureConnectionListener) {
-  var server = new Server(options);
+  var server = new Tls.Server(options);
 
   if (secureConnectionListener && util.isFunction(secureConnectionListener)) {
     server.on('secureConnection', secureConnectionListener);

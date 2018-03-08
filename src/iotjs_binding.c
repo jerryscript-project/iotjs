@@ -273,14 +273,6 @@ jerry_value_t iotjs_jhelper_call(jerry_value_t jfunc, jerry_value_t jthis,
 }
 
 
-jerry_value_t iotjs_jhelper_call_ok(jerry_value_t jfunc, jerry_value_t jthis,
-                                    const iotjs_jargs_t* jargs) {
-  jerry_value_t jres = iotjs_jhelper_call(jfunc, jthis, jargs);
-  IOTJS_ASSERT(!jerry_value_has_error_flag(jres));
-  return jres;
-}
-
-
 jerry_value_t iotjs_jhelper_eval(const char* name, size_t name_len,
                                  const uint8_t* data, size_t size,
                                  bool strict_mode) {

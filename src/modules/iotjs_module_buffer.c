@@ -50,9 +50,7 @@ iotjs_bufferwrap_t* iotjs_bufferwrap_create(const jerry_value_t jobject,
 
 
 static void iotjs_bufferwrap_destroy(iotjs_bufferwrap_t* bufferwrap) {
-  if (bufferwrap->buffer != NULL) {
-    iotjs_buffer_release(bufferwrap->buffer);
-  }
+  IOTJS_RELEASE(bufferwrap->buffer);
   IOTJS_RELEASE(bufferwrap);
 }
 
@@ -328,7 +326,7 @@ JS_FUNCTION(HexWrite) {
   size_t copied =
       iotjs_bufferwrap_copy_internal(buffer_wrap, src_buf, 0, nbytes, offset);
 
-  iotjs_buffer_release(src_buf);
+  IOTJS_RELEASE(src_buf);
   iotjs_string_destroy(&src);
 
   return jerry_create_number(copied);

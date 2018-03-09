@@ -80,9 +80,9 @@ static void iotjs_uart_read_cb(uv_poll_t* req, int status, int events) {
     iotjs_jargs_append_jval(&jargs, str);
     iotjs_jargs_append_jval(&jargs, data);
     jerry_value_t jres =
-        iotjs_jhelper_call_ok(jemit,
-                              iotjs_handlewrap_jobject(&uart->handlewrap),
-                              &jargs);
+        iotjs_jhelper_call(jemit, iotjs_handlewrap_jobject(&uart->handlewrap),
+                           &jargs);
+    IOTJS_ASSERT(!jerry_value_has_error_flag(jres));
 
     jerry_release_value(jres);
     jerry_release_value(str);

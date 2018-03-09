@@ -96,10 +96,6 @@ void iotjs_jargs_replace(iotjs_jargs_t* jargs, uint16_t index, jerry_value_t x);
 jerry_value_t iotjs_jhelper_call(jerry_value_t jfunc, jerry_value_t jthis,
                                  const iotjs_jargs_t* jargs);
 
-// Calls javascript function.
-jerry_value_t iotjs_jhelper_call_ok(jerry_value_t jfunc, jerry_value_t jthis,
-                                    const iotjs_jargs_t* jargs);
-
 // Evaluates javascript source file.
 jerry_value_t iotjs_jhelper_eval(const char* name, size_t name_len,
                                  const uint8_t* data, size_t size,

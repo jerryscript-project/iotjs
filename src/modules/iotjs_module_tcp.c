@@ -275,8 +275,9 @@ static void OnConnection(uv_stream_t* handle, int status) {
     IOTJS_ASSERT(jerry_value_is_function(jcreate_tcp));
 
     jerry_value_t jclient_tcp =
-        iotjs_jhelper_call_ok(jcreate_tcp, jerry_create_undefined(),
-                              iotjs_jargs_get_empty());
+        iotjs_jhelper_call(jcreate_tcp, jerry_create_undefined(),
+                           iotjs_jargs_get_empty());
+    IOTJS_ASSERT(!jerry_value_has_error_flag(jclient_tcp));
     IOTJS_ASSERT(jerry_value_is_object(jclient_tcp));
 
     iotjs_tcpwrap_t* tcp_wrap_client =

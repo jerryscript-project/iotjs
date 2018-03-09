@@ -21,6 +21,11 @@ set(MODULE_NAME "tls")
 set(MODULE_BINARY_DIR ${DEPS_MBEDTLS_BUILD_DIR})
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-sign-conversion")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -I${ROOT_DIR}/config/mbedtls")
+set(CMAKE_C_FLAGS
+    "${CMAKE_C_FLAGS} -DMBEDTLS_CONFIG_FILE='<config-for-iotjs.h>'")
+
+#message(FATAL_ERROR "${CMAKE_C_FLAGS}")
 
 ExternalProject_Add(mbedtls
   PREFIX ${DEPS_MBEDTLS}

@@ -30,9 +30,6 @@ jerry_value_t iotjs_jval_create_byte_array(uint32_t len, const char* data);
 jerry_value_t iotjs_jval_create_function(jerry_external_handler_t handler);
 jerry_value_t iotjs_jval_create_error_without_error_flag(const char* msg);
 
-jerry_value_t iotjs_jval_get_string_size(const iotjs_string_t* str);
-
-
 /* Type Converters */
 bool iotjs_jval_as_boolean(jerry_value_t);
 double iotjs_jval_as_number(jerry_value_t);

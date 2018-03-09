@@ -40,18 +40,6 @@ jerry_value_t iotjs_jval_create_string(const iotjs_string_t* v) {
 }
 
 
-jerry_value_t iotjs_jval_get_string_size(const iotjs_string_t* str) {
-  jerry_value_t str_val = iotjs_jval_create_string(str);
-
-  jerry_size_t size = jerry_get_string_size(str_val);
-  jerry_value_t jval = jerry_create_number(size);
-
-  jerry_release_value(str_val);
-
-  return jval;
-}
-
-
 jerry_value_t iotjs_jval_create_byte_array(uint32_t len, const char* data) {
   IOTJS_ASSERT(data != NULL);
 

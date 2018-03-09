@@ -30,6 +30,18 @@ function checkOffset(offset, ext, length) {
 }
 
 
+function getEncodingType(encoding) {
+  switch (encoding) {
+    case 'hex':
+      return 0;
+    case 'base64':
+      return 1;
+    default:
+      return -1;
+  }
+}
+
+
 // Buffer constructor
 // [1] new Buffer(size)
 // [2] new Buffer(buffer)
@@ -55,15 +67,12 @@ function Buffer(subject, encoding) {
   native(this, this.length);
 
   if (util.isString(subject)) {
-    if (encoding !== undefined && util.isString(encoding)) {
-      switch (encoding) {
-        case 'hex':
-          if (native.hexWrite(this, subject, 0, this.length) != this.length) {
-            throw new TypeError('Invalid hex string');
-          }
-          break;
-        default:
-          this.write(subject);
+    if (typeof encoding === 'string') {
+      encoding = getEncodingType(encoding);
+      if (encoding != -1) {
+        native.writeDecode(this, encoding, subject, 0, this.length);
+      } else {
+        this.write(subject);
       }
     } else {
       this.write(subject);
@@ -78,17 +87,32 @@ function Buffer(subject, encoding) {
 }
 
 
-// Buffer.byteLength(string)
+// Buffer.byteLength(string, encoding)
 Buffer.byteLength = function(str, encoding) {
-  var len = native.byteLength(str);
+  var bytes = native.byteLength(str);
 
-  if (encoding !== undefined && util.isString(encoding)) {
+  if (typeof encoding === 'string') {
+    /* Might be invalid for incorrectly encoded strings. */
     switch (encoding) {
       case 'hex':
-        return len >>> 1;
+        return bytes >>> 1;
+      case 'base64':
+        bytes = (len >>> 2) * 3;
+
+        var len = str.length;
+
+        if (len >= 4 && str.charCodeAt(len - 1) === 0x3D) {
+           len--;
+
+          if (str.charCodeAt(len - 2) === 0x3D) {
+            len--;
+          }
+        }
+
+        return len;
     }
   }
-  return len;
+  return bytes;
 };
 
 
@@ -173,7 +197,7 @@ Buffer.prototype.copy = function(target, targetStart, sourceStart, sourceEnd) {
 // [3] buffer.write(string, offset, length)
 // * offset - default to 0
 // * length - default to buffer.length - offset
-Buffer.prototype.write = function(string, offset, length) {
+Buffer.prototype.write = function(string, offset, length, encoding) {
   if (!util.isString(string)) {
     throw new TypeError('Bad arguments: buff.write(string)');
   }
@@ -185,6 +209,13 @@ Buffer.prototype.write = function(string, offset, length) {
 
   var remaining = this.length - offset;
   length = length === undefined ? remaining : ~~length;
+
+  if (typeof encoding === 'string') {
+    encoding = getEncodingType(encoding);
+    if (encoding != -1) {
+      return native.writeDecode(this, encoding, string, offset, length);
+    }
+  }
 
   return native.write(this, string, offset, length);
 };

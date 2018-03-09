@@ -49,6 +49,8 @@ class StyleChecker(object):
         self.count_lines = 0
         self.count_empty_lines = 0
         self.errors = []
+        self.rules = []
+        self.err_msgs = []
 
     @property
     def error_count(self):
@@ -63,25 +65,30 @@ class StyleChecker(object):
         line = fileinput.filelineno()
         self.errors.append("%s:%d: %s" % (name, line, msg))
 
+    def set_rules(self):
+        limit = StyleChecker.column_limit
+        self.rules.append(re.compile(r"[\t]"))
+        self.err_msgs.append("TAB character")
+        self.rules.append(re.compile(r"[\r]"))
+        self.err_msgs.append("CR character")
+        self.rules.append(re.compile(r"[ \t]+[\n]$"))
+        self.err_msgs.append("Trailing Whitespace")
+        self.rules.append(re.compile(r"[^\n]\Z"))
+        self.err_msgs.append("Line ends without NEW LINE character")
+        self.rules.append(re.compile("^.{" + str(limit+1) + ",}"))
+        self.err_msgs.append("Line exceeds %d characters" % limit)
+        # append additional rules
+
     def check(self, files):
         for line in fileinput.input(files):
-            if '\t' in line:
-                self.report_error('TAB character')
-            if '\r' in line:
-                self.report_error('CR character')
-            if line.endswith(' \n') or line.endswith('\t\n'):
-                self.report_error('trailing whitespace')
-            if not line.endswith('\n'):
-                self.report_error('line ends without NEW LINE character')
-
-            if len(line) - 1 > StyleChecker.column_limit:
-                self.report_error('line exceeds %d characters'
-                                  % StyleChecker.column_limit)
+            for i, rule in enumerate(self.rules):
+                mc = rule.search(line)
+                if mc:
+                    self.report_error(self.err_msgs[i])
 
             if fileinput.isfirstline():
                 if not CheckLicenser.check(fileinput.filename()):
                     self.report_error('incorrect license')
-
 
             self.count_lines += 1
             if not line.strip():
@@ -224,6 +231,7 @@ def check_tidy(src_dir, options=None):
                   ]
 
     style = StyleChecker()
+    style.set_rules()
     clang = ClangFormat(clang_format_exts, skip_files, options)
     eslint = EslintChecker(options)
 

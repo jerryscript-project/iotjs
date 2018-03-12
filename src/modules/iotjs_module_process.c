@@ -238,14 +238,14 @@ void SetNativeSources(jerry_value_t native_sources) {
 
 
 static void SetProcessEnv(jerry_value_t process) {
-  const char *homedir, *iotjspath, *iotjsenv;
+  const char *homedir, *iotjspath, *iotjsenv, *extra_module_path;
 
-  homedir = getenv("HOME");
+  homedir = getenv(IOTJS_MAGIC_STRING_HOME_U);
   if (homedir == NULL) {
     homedir = "";
   }
 
-  iotjspath = getenv("IOTJS_PATH");
+  iotjspath = getenv(IOTJS_MAGIC_STRING_IOTJS_PATH_U);
   if (iotjspath == NULL) {
 #if defined(__NUTTX__) || defined(__TIZENRT__)
     iotjspath = "/mnt/sdcard";
@@ -260,12 +260,17 @@ static void SetProcessEnv(jerry_value_t process) {
   iotjsenv = "";
 #endif
 
+  extra_module_path = getenv(IOTJS_MAGIC_STRING_IOTJS_EXTRA_MODULE_PATH_U);
+
   jerry_value_t env = jerry_create_object();
   iotjs_jval_set_property_string_raw(env, IOTJS_MAGIC_STRING_HOME_U, homedir);
   iotjs_jval_set_property_string_raw(env, IOTJS_MAGIC_STRING_IOTJS_PATH_U,
                                      iotjspath);
   iotjs_jval_set_property_string_raw(env, IOTJS_MAGIC_STRING_IOTJS_ENV_U,
                                      iotjsenv);
+  iotjs_jval_set_property_string_raw(
+      env, IOTJS_MAGIC_STRING_IOTJS_EXTRA_MODULE_PATH_U,
+      extra_module_path ? extra_module_path : "");
 
   iotjs_jval_set_property_jval(process, IOTJS_MAGIC_STRING_ENV, env);
 

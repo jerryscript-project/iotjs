@@ -18,20 +18,8 @@
 #define IOTJS_MODULE_I2C_H
 
 #include "iotjs_def.h"
+#include "iotjs_module_periph_common.h"
 #include "iotjs_reqwrap.h"
-
-typedef enum {
-  kI2cOpOpen,
-  kI2cOpClose,
-  kI2cOpWrite,
-  kI2cOpRead,
-} I2cOp;
-
-
-typedef struct {
-  I2cOp op;
-  bool result;
-} iotjs_i2c_reqdata_t;
 
 // Forward declaration of platform data. These are only used by platform code.
 // Generic I2C module never dereferences platform data pointer.
@@ -43,28 +31,8 @@ typedef struct {
 
   char* buf_data;
   uint8_t buf_len;
-  uint8_t byte;
-  uint8_t cmd;
   uint8_t address;
-} IOTJS_VALIDATED_STRUCT(iotjs_i2c_t);
-
-typedef struct {
-  iotjs_reqwrap_t reqwrap;
-  uv_work_t req;
-  iotjs_i2c_reqdata_t req_data;
-  iotjs_i2c_t* i2c_data;
-} IOTJS_VALIDATED_STRUCT(iotjs_i2c_reqwrap_t);
-
-
-iotjs_i2c_reqwrap_t* iotjs_i2c_reqwrap_from_request(uv_work_t* req);
-#define THIS iotjs_i2c_reqwrap_t* i2c_reqwrap
-void iotjs_i2c_reqwrap_dispatched(THIS);
-uv_work_t* iotjs_i2c_reqwrap_req(THIS);
-jerry_value_t iotjs_i2c_reqwrap_jcallback(THIS);
-iotjs_i2c_reqdata_t* iotjs_i2c_reqwrap_data(THIS);
-iotjs_i2c_t* iotjs_i2c_instance_from_reqwrap(THIS);
-#undef THIS
-
+} iotjs_i2c_t;
 
 jerry_value_t iotjs_i2c_set_platform_config(iotjs_i2c_t* i2c,
                                             const jerry_value_t jconfig);
@@ -75,7 +43,7 @@ bool iotjs_i2c_close(iotjs_i2c_t* i2c);
 
 // Platform-related functions; they are implemented
 // by platform code (i.e.: linux, nuttx, tizen).
-void i2c_create_platform_data(iotjs_i2c_t* i2c);
-void i2c_destroy_platform_data(iotjs_i2c_platform_data_t* platform_data);
+void iotjs_i2c_create_platform_data(iotjs_i2c_t* i2c);
+void iotjs_i2c_destroy_platform_data(iotjs_i2c_platform_data_t* platform_data);
 
 #endif /* IOTJS_MODULE_I2C_H */

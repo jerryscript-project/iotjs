@@ -16,6 +16,13 @@
 #ifndef IOTJS_DEBUGLOG_H
 #define IOTJS_DEBUGLOG_H
 
+#define DBGLEV_ERR 1
+#define DBGLEV_WARN 2
+#define DBGLEV_INFO 3
+
+typedef int (*iotjs_console_out_t)(int level, const char* format, ...);
+extern iotjs_console_out_t iotjs_console_out;
+extern void iotjs_set_console_out(iotjs_console_out_t output);
 
 #ifdef ENABLE_DEBUG_LOG
 
@@ -25,18 +32,18 @@ extern int iotjs_debug_level;
 extern FILE* iotjs_log_stream;
 extern const char* iotjs_debug_prefix[4];
 
-#define DBGLEV_ERR 1
-#define DBGLEV_WARN 2
-#define DBGLEV_INFO 3
-
-#define IOTJS_DLOG(lvl, ...)                                        \
-  do {                                                              \
-    if (0 <= lvl && lvl <= iotjs_debug_level && iotjs_log_stream) { \
-      fprintf(iotjs_log_stream, "[%s] ", iotjs_debug_prefix[lvl]);  \
-      fprintf(iotjs_log_stream, __VA_ARGS__);                       \
-      fprintf(iotjs_log_stream, "\n");                              \
-      fflush(iotjs_log_stream);                                     \
-    }                                                               \
+#define IOTJS_DLOG(lvl, ...)                                         \
+  do {                                                               \
+    if (0 <= lvl && lvl <= iotjs_debug_level && iotjs_log_stream) {  \
+      if (iotjs_console_out) {                                       \
+        iotjs_console_out(lvl, __VA_ARGS__);                         \
+      } else {                                                       \
+        fprintf(iotjs_log_stream, "[%s] ", iotjs_debug_prefix[lvl]); \
+        fprintf(iotjs_log_stream, __VA_ARGS__);                      \
+        fprintf(iotjs_log_stream, "\n");                             \
+        fflush(iotjs_log_stream);                                    \
+      }                                                              \
+    }                                                                \
   } while (0)
 #define DLOG(...) IOTJS_DLOG(DBGLEV_ERR, __VA_ARGS__)
 #define DDLOG(...) IOTJS_DLOG(DBGLEV_WARN, __VA_ARGS__)

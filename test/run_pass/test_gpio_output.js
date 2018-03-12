@@ -15,38 +15,27 @@
 
 
 var assert = require('assert');
-var Gpio = require('gpio');
-var gpio = new Gpio();
+var gpio = require('gpio');
+var pin = require('tools/systemio_common').pin;
+var checkError = require('tools/systemio_common').checkError;
 
 var LED_ON = true,
   LED_OFF = false;
-var pin, mode;
 var gpio20;
-
-if (process.platform === 'linux') {
-  pin = 20;
-  mode = gpio.MODE.NONE;
-} else if (process.platform === 'nuttx') {
-  pin = require('stm32f4dis').pin.PA10;
-  mode = gpio.MODE.PUSHPULL;
-} else if(process.platform === 'tizenrt') {
-  pin = 41;
-  mode = gpio.MODE.NONE;
-} else {
-  assert.fail();
-}
 
 test1();
 
 gpio20 = gpio.open({
-  pin: pin,
+  pin: pin.led,
   direction: gpio.DIRECTION.OUT,
-  mode: mode
 }, test2);
 
 function test1() {
+  // Check gpio.DIRECTION
   assert.notEqual(gpio.DIRECTION.IN, undefined);
   assert.notEqual(gpio.DIRECTION.OUT, undefined);
+
+  // Check gpio.MODE
   assert.notEqual(gpio.MODE.NONE, undefined);
   if (process.platform === 'nuttx') {
     assert.notEqual(gpio.MODE.PULLUP, undefined);
@@ -55,6 +44,12 @@ function test1() {
     assert.notEqual(gpio.MODE.PUSHPULL, undefined);
     assert.notEqual(gpio.MODE.OPENDRAIN, undefined);
   }
+
+  // Check gpio.EDGE
+  assert.notEqual(gpio.EDGE.NONE, undefined);
+  assert.notEqual(gpio.EDGE.RISING, undefined);
+  assert.notEqual(gpio.EDGE.FALLING, undefined);
+  assert.notEqual(gpio.EDGE.BOTH, undefined);
 }
 
 // turn on LED for 3000ms
@@ -62,11 +57,11 @@ function test2(err) {
   assert.equal(err, null);
 
   gpio20.write(LED_ON, function(writeErr) {
-    assert.equal(writeErr, null);
+    checkError(writeErr);
     console.log('gpio write');
 
     gpio20.read(function(readErr, value) {
-      assert.equal(readErr, null);
+      checkError(readErr);
       console.log('gpio read:', value);
       assert.equal(LED_ON, value);
 
@@ -75,8 +70,10 @@ function test2(err) {
         var value = gpio20.readSync();
         console.log('gpio read:', value);
         assert.equal(LED_OFF, value);
-        gpio20.close();
-        console.log('finish test');
+        gpio20.close(function(closeErr) {
+          checkError(closeErr);
+          console.log('finish test');
+        });
       }, 3000);
     });
   });

@@ -56,6 +56,12 @@ static bool iotjs_jerry_init(iotjs_environment_t* env) {
 
   if (iotjs_environment_config(env)->debugger != NULL) {
     jerry_debugger_init(iotjs_environment_config(env)->debugger->port);
+
+    if (!jerry_debugger_is_connected()) {
+      DLOG("jerry_debugger_init() failed");
+      return false;
+    }
+
     jerry_debugger_continue();
   }
 
@@ -63,8 +69,7 @@ static bool iotjs_jerry_init(iotjs_environment_t* env) {
   iotjs_register_jerry_magic_string();
 
   // Register VM execution stop callback.
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_environment_t, env);
-  jerry_set_vm_exec_stop_callback(vm_exec_stop_callback, &(_this->state), 2);
+  jerry_set_vm_exec_stop_callback(vm_exec_stop_callback, &env->state, 2);
 
   // Do parse and run to generate initial javascript environment.
   jerry_value_t parsed_code = jerry_parse((jerry_char_t*)"", 0, false);
@@ -88,7 +93,7 @@ static bool iotjs_jerry_init(iotjs_environment_t* env) {
 }
 
 
-static void iotjs_run() {
+static void iotjs_run(iotjs_environment_t* env) {
 // Evaluating 'iotjs.js' returns a function.
 #ifndef ENABLE_SNAPSHOT
   jerry_value_t jmain = iotjs_jhelper_eval("iotjs.js", strlen("iotjs.js"),
@@ -98,7 +103,8 @@ static void iotjs_run() {
       jerry_exec_snapshot_at((const void*)iotjs_js_modules_s,
                              iotjs_js_modules_l, module_iotjs_idx, false);
 #endif
-  if (jerry_value_has_error_flag(jmain)) {
+
+  if (jerry_value_has_error_flag(jmain) && !iotjs_environment_is_exiting(env)) {
     jerry_value_t errval = jerry_get_value_without_error_flag(jmain);
     iotjs_uncaught_exception(errval);
     jerry_release_value(errval);
@@ -123,7 +129,7 @@ static int iotjs_start(iotjs_environment_t* env) {
   iotjs_environment_set_state(env, kRunningMain);
 
   // Load and call iotjs.js.
-  iotjs_run();
+  iotjs_run(env);
 
   int exit_code = 0;
   if (!iotjs_environment_is_exiting(env)) {
@@ -157,9 +163,6 @@ static int iotjs_start(iotjs_environment_t* env) {
 
   exit_code = iotjs_process_exitcode();
 
-  // Release builtin modules.
-  iotjs_module_list_cleanup();
-
   return exit_code;
 }
 
@@ -169,6 +172,10 @@ static void iotjs_uv_walk_to_close_callback(uv_handle_t* handle, void* arg) {
   IOTJS_ASSERT(handle_wrap != NULL);
 
   iotjs_handlewrap_close(handle_wrap, NULL);
+}
+
+void iotjs_conf_console_out(int (*out)(int lv, const char* fmt, ...)) {
+  iotjs_set_console_out(out);
 }
 
 int iotjs_entry(int argc, char** argv) {
@@ -206,6 +213,8 @@ int iotjs_entry(int argc, char** argv) {
   int res = uv_loop_close(iotjs_environment_loop(env));
   IOTJS_ASSERT(res == 0);
 
+  // Release builtin modules.
+  iotjs_module_list_cleanup();
 
   // Release JerryScript engine.
   jerry_cleanup();

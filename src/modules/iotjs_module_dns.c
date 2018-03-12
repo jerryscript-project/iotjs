@@ -21,48 +21,33 @@
 #include "uv.h"
 
 
-#define THIS iotjs_getaddrinfo_reqwrap_t* getaddrinfo_reqwrap
-
 iotjs_getaddrinfo_reqwrap_t* iotjs_getaddrinfo_reqwrap_create(
     const jerry_value_t jcallback) {
   iotjs_getaddrinfo_reqwrap_t* getaddrinfo_reqwrap =
       IOTJS_ALLOC(iotjs_getaddrinfo_reqwrap_t);
-  IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_getaddrinfo_reqwrap_t,
-                                     getaddrinfo_reqwrap);
-  iotjs_reqwrap_initialize(&_this->reqwrap, jcallback, (uv_req_t*)&_this->req);
+  iotjs_reqwrap_initialize(&getaddrinfo_reqwrap->reqwrap, jcallback,
+                           (uv_req_t*)&getaddrinfo_reqwrap->req);
   return getaddrinfo_reqwrap;
 }
 
 
-static void iotjs_getaddrinfo_reqwrap_destroy(THIS) {
-  IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_getaddrinfo_reqwrap_t,
-                                    getaddrinfo_reqwrap);
-  iotjs_reqwrap_destroy(&_this->reqwrap);
+static void iotjs_getaddrinfo_reqwrap_destroy(
+    iotjs_getaddrinfo_reqwrap_t* getaddrinfo_reqwrap) {
+  iotjs_reqwrap_destroy(&getaddrinfo_reqwrap->reqwrap);
   IOTJS_RELEASE(getaddrinfo_reqwrap);
 }
 
 
-void iotjs_getaddrinfo_reqwrap_dispatched(THIS) {
-  IOTJS_VALIDATABLE_STRUCT_METHOD_VALIDATE(iotjs_getaddrinfo_reqwrap_t,
-                                           getaddrinfo_reqwrap);
+void iotjs_getaddrinfo_reqwrap_dispatched(
+    iotjs_getaddrinfo_reqwrap_t* getaddrinfo_reqwrap) {
   iotjs_getaddrinfo_reqwrap_destroy(getaddrinfo_reqwrap);
 }
 
 
-uv_getaddrinfo_t* iotjs_getaddrinfo_reqwrap_req(THIS) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_getaddrinfo_reqwrap_t,
-                                getaddrinfo_reqwrap);
-  return &_this->req;
+jerry_value_t iotjs_getaddrinfo_reqwrap_jcallback(
+    iotjs_getaddrinfo_reqwrap_t* getaddrinfo_reqwrap) {
+  return iotjs_reqwrap_jcallback(&getaddrinfo_reqwrap->reqwrap);
 }
-
-
-jerry_value_t iotjs_getaddrinfo_reqwrap_jcallback(THIS) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_getaddrinfo_reqwrap_t,
-                                getaddrinfo_reqwrap);
-  return iotjs_reqwrap_jcallback(&_this->reqwrap);
-}
-
-#undef THIS
 
 
 #if !defined(__NUTTX__) && !defined(__TIZENRT__)
@@ -229,10 +214,9 @@ JS_FUNCTION(GetAddrInfo) {
   hints.ai_socktype = SOCK_STREAM;
   hints.ai_flags = flags;
 
-  error =
-      uv_getaddrinfo(iotjs_environment_loop(iotjs_environment_get()),
-                     iotjs_getaddrinfo_reqwrap_req(req_wrap), AfterGetAddrInfo,
-                     iotjs_string_data(&hostname), NULL, &hints);
+  error = uv_getaddrinfo(iotjs_environment_loop(iotjs_environment_get()),
+                         &req_wrap->req, AfterGetAddrInfo,
+                         iotjs_string_data(&hostname), NULL, &hints);
 
   if (error) {
     iotjs_getaddrinfo_reqwrap_dispatched(req_wrap);

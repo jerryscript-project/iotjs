@@ -21,19 +21,14 @@ typedef struct {
   jerry_value_t jobject;
   char* buffer;
   size_t length;
-} IOTJS_VALIDATED_STRUCT(iotjs_bufferwrap_t);
+} iotjs_bufferwrap_t;
 
 
 iotjs_bufferwrap_t* iotjs_bufferwrap_create(const jerry_value_t jbuiltin,
                                             size_t length);
 
-iotjs_bufferwrap_t* iotjs_bufferwrap_from_jbuiltin(
-    const jerry_value_t jbuiltin);
 iotjs_bufferwrap_t* iotjs_bufferwrap_from_jbuffer(const jerry_value_t jbuffer);
 
-jerry_value_t iotjs_bufferwrap_jbuffer(iotjs_bufferwrap_t* bufferwrap);
-
-char* iotjs_bufferwrap_buffer(iotjs_bufferwrap_t* bufferwrap);
 size_t iotjs_bufferwrap_length(iotjs_bufferwrap_t* bufferwrap);
 
 int iotjs_bufferwrap_compare(const iotjs_bufferwrap_t* bufferwrap,

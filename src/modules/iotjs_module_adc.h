@@ -18,63 +18,28 @@
 #define IOTJS_MODULE_ADC_H
 
 #include "iotjs_def.h"
+#include "iotjs_module_periph_common.h"
 #include "iotjs_reqwrap.h"
 
-
-typedef enum {
-  kAdcOpOpen,
-  kAdcOpRead,
-  kAdcOpClose,
-} AdcOp;
-
+// Forward declaration of platform data. These are only used by platform code.
+// Generic ADC module never dereferences platform data pointer.
+typedef struct iotjs_adc_platform_data_s iotjs_adc_platform_data_t;
 
 typedef struct {
   jerry_value_t jobject;
-
-#if defined(__linux__)
-  iotjs_string_t device;
-#elif defined(__NUTTX__) || defined(__TIZENRT__)
-  uint32_t pin;
-#endif
-  int32_t device_fd;
-} IOTJS_VALIDATED_STRUCT(iotjs_adc_t);
-
-
-typedef struct {
+  iotjs_adc_platform_data_t* platform_data;
   int32_t value;
+} iotjs_adc_t;
 
-  bool result;
-  AdcOp op;
-} iotjs_adc_reqdata_t;
-
-
-typedef struct {
-  iotjs_reqwrap_t reqwrap;
-  uv_work_t req;
-  iotjs_adc_reqdata_t req_data;
-  iotjs_adc_t* adc_instance;
-} IOTJS_VALIDATED_STRUCT(iotjs_adc_reqwrap_t);
-
-
-#define THIS iotjs_adc_reqwrap_t* adc_reqwrap
-
-iotjs_adc_reqwrap_t* iotjs_adc_reqwrap_from_request(uv_work_t* req);
-iotjs_adc_reqdata_t* iotjs_adc_reqwrap_data(THIS);
-
-iotjs_adc_t* iotjs_adc_instance_from_reqwrap(THIS);
-
-#undef THIS
-
-
-#define ADC_WORKER_INIT                                                     \
-  iotjs_adc_reqwrap_t* req_wrap = iotjs_adc_reqwrap_from_request(work_req); \
-  iotjs_adc_reqdata_t* req_data = iotjs_adc_reqwrap_data(req_wrap);         \
-  iotjs_adc_t* adc = iotjs_adc_instance_from_reqwrap(req_wrap);
-
-
-int32_t iotjs_adc_read(iotjs_adc_t* adc);
+bool iotjs_adc_read(iotjs_adc_t* adc);
 bool iotjs_adc_close(iotjs_adc_t* adc);
-void iotjs_adc_open_worker(uv_work_t* work_req);
+bool iotjs_adc_open(iotjs_adc_t* adc);
 
+// Platform-related functions; they are implemented
+// by platform code (i.e.: linux, nuttx, tizen).
+void iotjs_adc_create_platform_data(iotjs_adc_t* adc);
+void iotjs_adc_destroy_platform_data(iotjs_adc_platform_data_t* platform_data);
+jerry_value_t iotjs_adc_set_platform_config(iotjs_adc_t* adc,
+                                            const jerry_value_t jconfig);
 
 #endif /* IOTJS_MODULE_ADC_H */

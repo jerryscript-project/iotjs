@@ -45,7 +45,7 @@ typedef struct {
   jerry_value_t jobject;
   uv_handle_t* handle;
   OnCloseHandler on_close_cb;
-} IOTJS_VALIDATED_STRUCT(iotjs_handlewrap_t);
+} iotjs_handlewrap_t;
 
 
 // jobject: Object that connect with the uv handle

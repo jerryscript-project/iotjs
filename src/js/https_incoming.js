@@ -88,7 +88,7 @@ var createHTTPParser = function(incoming) {
 // ------------- HTTP PARSER CALLBACKS -------------
 // This is called when http header is fragmented and
 // HTTPParser sends it to JS in separate pieces.
-function parserOnHeaders(headers, url) {
+function parserOnHeaders(headers/* , url */) {
   var parser = this;
   parser.incoming.addHeaders(headers);
 }

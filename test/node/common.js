@@ -57,6 +57,7 @@ exports.isLinuxPPCBE = (process.platform === 'linux') &&
 exports.isSunOS = process.platform === 'sunos';
 exports.isFreeBSD = process.platform === 'freebsd';
 exports.isLinux = process.platform === 'linux';
+exports.isTizen = process.platform === 'tizen';
 exports.isOSX = process.platform === 'darwin';
 
 exports.enoughTestMem = false;
@@ -101,7 +102,7 @@ function rmdirSync(p, originalEr) {
     if (e.code === 'ENOTDIR')
       throw originalEr;
     if (e.code === 'ENOTEMPTY' || e.code === 'EEXIST' || e.code === 'EPERM') {
-      var enc = exports.isLinux ? 'buffer' : 'utf8';
+      var enc = (exports.isLinux || exports.isTizen) ? 'buffer' : 'utf8';
       fs.readdirSync(p, enc).forEach(function(f) {
         if (f instanceof Buffer) {
           var buf = Buffer.concat([Buffer.from(p), Buffer.from(path.sep), f]);
@@ -131,7 +132,7 @@ var inFreeBSDJail = null;
 var localhostIPv4 = null;
 
 exports.localIPv6Hosts = ['localhost'];
-if (exports.isLinux) {
+if (exports.isLinux || exports.isTizen) {
   exports.localIPv6Hosts = [
     // Debian/Ubuntu
     'ip6-localhost',

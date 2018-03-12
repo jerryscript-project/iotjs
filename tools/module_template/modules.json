@@ -1,0 +1,10 @@
+{
+  "modules": {
+    "$MODULE_NAME$": {
+      "js_file": "js/module.js",
+      "native_files": ["src/module.c"],
+      "init": "Init$MODULE_NAME$",
+      "cmakefile": "module.cmake"
+    }
+  }
+}

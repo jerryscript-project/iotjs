@@ -21,7 +21,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#if defined(__linux__)
+#if defined(__linux__) && !defined(__OPENWRT__)
 #include <execinfo.h>
 #endif
 
@@ -74,7 +74,7 @@ char* iotjs_buffer_allocate(size_t size) {
 char* iotjs_buffer_allocate_from_number_array(size_t size,
                                               const jerry_value_t array) {
   char* buffer = iotjs_buffer_allocate(size);
-  for (uint8_t i = 0; i < size; i++) {
+  for (size_t i = 0; i < size; i++) {
     jerry_value_t jdata = iotjs_jval_get_property_by_index(array, i);
     buffer[i] = iotjs_jval_as_number(jdata);
     jerry_release_value(jdata);
@@ -90,12 +90,13 @@ char* iotjs_buffer_reallocate(char* buffer, size_t size) {
 
 
 void iotjs_buffer_release(char* buffer) {
-  IOTJS_ASSERT(buffer != NULL);
-  free(buffer);
+  if (buffer) {
+    free(buffer);
+  }
 }
 
 void print_stacktrace() {
-#if defined(__linux__) && defined(DEBUG)
+#if defined(__linux__) && defined(DEBUG) && !defined(__OPENWRT__)
   // TODO: support other platforms
   const int numOfStackTrace = 100;
   void* buffer[numOfStackTrace];
@@ -127,7 +128,7 @@ void print_stacktrace() {
   }
 
   free(strings);
-#endif // defined(__linux__) && defined(DEBUG)
+#endif // defined(__linux__) && defined(DEBUG) && !defined(__OPENWRT__)
 }
 
 void force_terminate() {

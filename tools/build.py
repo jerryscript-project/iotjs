@@ -93,12 +93,13 @@ def init_options():
         help='Specify the module profile file for IoT.js')
 
     parser.add_argument('--target-arch',
-        choices=['arm', 'x86', 'i686', 'x86_64', 'x64', 'noarch'],
+        choices=['arm', 'x86', 'i686', 'x86_64', 'x64', 'mips', 'noarch'],
         default=platform.arch(),
         help='Specify the target architecture: '
              '%(choices)s (default: %(default)s)')
     parser.add_argument('--target-os',
-        choices=['linux', 'darwin', 'osx', 'nuttx', 'tizen', 'tizenrt'],
+        choices=['linux', 'darwin', 'osx', 'nuttx', 'tizen', 'tizenrt',
+                 'openwrt'],
         default=platform.os(),
         help='Specify the target os: %(choices)s (default: %(default)s)')
 
@@ -176,8 +177,9 @@ def init_options():
         action='store_true', default=False,
         help='Disable test execution with valgrind after build')
     parser.add_argument('--run-test',
-        action='store_true', default=False,
-        help='Execute tests after build')
+        nargs='?', default=False, const="quiet", choices=["full", "quiet"],
+        help='Execute tests after build, optional argument specifies '
+             'the level of output for the testrunner')
     parser.add_argument('--test-driver',
         choices=['js', 'py'], default='py',
         help='Specify the test driver for IoT.js: %(choices)s'
@@ -223,6 +225,9 @@ def adjust_options(options):
     # Then add calculated options.
     options.host_tuple = '%s-%s' % (platform.arch(), platform.os())
     options.target_tuple = '%s-%s' % (options.target_arch, options.target_os)
+
+    # Normalize the path of build directory.
+    options.builddir = fs.normpath(options.builddir)
 
     options.build_root = fs.join(path.PROJECT_ROOT,
                                  options.builddir,
@@ -352,7 +357,7 @@ def build_iotjs(options):
 
     # --experimental
     if options.experimental:
-        options.compile_flag.append('-DEXPERIMENTAL')
+        cmake_opt.append('-DEXPERIMENTAL=ON')
 
     # --profile
     if options.profile:
@@ -368,10 +373,6 @@ def build_iotjs(options):
 
 
 def run_checktest(options):
-    checktest_quiet = 'yes'
-    if os.getenv('TRAVIS') == "true":
-        checktest_quiet = 'no'
-
     # IoT.js executable
     iotjs = fs.join(options.build_root, 'bin', 'iotjs')
 
@@ -379,14 +380,17 @@ def run_checktest(options):
     args = []
     if options.test_driver == "js":
         cmd = iotjs
-        args = [path.CHECKTEST_PATH, 'quiet=' + checktest_quiet]
+        args = [path.CHECKTEST_PATH]
+        if options.run_test == "quiet":
+            args.append('quiet=yes')
+
         # experimental
         if options.experimental:
-            cmd.append('experimental=' + 'yes');
+            args.append('experimental=yes');
     else:
         cmd = fs.join(path.TOOLS_ROOT, 'testrunner.py')
         args = [iotjs]
-        if checktest_quiet:
+        if options.run_test == "quiet":
             args.append('--quiet')
 
 
@@ -444,9 +448,9 @@ if __name__ == '__main__':
         print("\n%sTo run tests use '--run-test' "
               "or one of the folowing commands:%s"
               % (ex._TERM_BLUE, ex._TERM_EMPTY))
-        print("\n    tools/testrunner.py build/%s/%s/bin/iotjs"
-              % (options.target_tuple, options.buildtype))
-        print("OR\n    %s(deprecated)%s build/%s/%s/bin/iotjs "
+        print("\n    tools/testrunner.py %s/%s/%s/bin/iotjs"
+              % (options.builddir, options.target_tuple, options.buildtype))
+        print("OR\n    %s(deprecated)%s %s/%s/%s/bin/iotjs "
               "tools/check_test.js\n"
-              % (ex._TERM_RED, ex._TERM_EMPTY, options.target_tuple,
-                 options.buildtype))
+              % (ex._TERM_RED, ex._TERM_EMPTY, options.builddir,
+                 options.target_tuple, options.buildtype))

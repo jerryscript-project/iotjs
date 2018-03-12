@@ -14,17 +14,15 @@
  */
 
 
-var eventEmitter = require('events').EventEmitter;
+var StreamInternal = require('stream_internal');
 var util = require('util');
 
 
 function Stream() {
-  eventEmitter.call(this);
+  StreamInternal.call(this);
 }
 
-
-util.inherits(Stream, eventEmitter);
-
+util.inherits(Stream, StreamInternal);
 
 exports.Stream = Stream;
 

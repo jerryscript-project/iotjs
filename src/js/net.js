@@ -18,10 +18,10 @@ var EventEmitter = require('events').EventEmitter;
 var stream = require('stream');
 var util = require('util');
 var assert = require('assert');
-var tcp = require('tcp');
+var Tcp = require('tcp');
 
 function createTCP() {
-  var _tcp = new tcp();
+  var _tcp = new Tcp();
   return _tcp;
 }
 
@@ -286,14 +286,14 @@ function connect(socket, ip, port) {
     } else {
       socket.destroy();
       emitError(socket, new Error('connect failed - status: ' +
-        tcp.errname(status)));
+        Tcp.errname(status)));
     }
   };
 
   var err = socket._handle.connect(ip, port, afterConnect);
   if (err) {
     emitError(socket, new Error('connect failed - status: ' +
-      tcp.errname(err)));
+      Tcp.errname(err)));
   }
 }
 
@@ -434,7 +434,7 @@ function onSocketFinish() {
     return self.destroy();
   } else {
     // Readable stream alive, shutdown only outgoing stream.
-    var err = self._handle.shutdown(function() {
+    self._handle.shutdown(function() {
       if (self._readableState.ended) {
         self.destroy();
       }
@@ -522,7 +522,7 @@ Server.prototype.listen = function() {
   self._handle.createTCP = createTCP;
   self._handle.owner = self;
 
-  var err = self._handle.listen(backlog);
+  err = self._handle.listen(backlog);
 
   if (err) {
     self._handle.close();
@@ -594,7 +594,7 @@ function onconnection(status, clientHandle) {
   var server = this.owner;
 
   if (status) {
-    server.emit('error', new Error('accept error: ' + tcp.errname(status)));
+    server.emit('error', new Error('accept error: ' + Tcp.errname(status)));
     return;
   }
 

@@ -154,7 +154,8 @@ class TestRunner(object):
             self.skip_modules = options.skip_modules.split(",")
 
         # Process the iotjs build information.
-        iotjs_output = ex.run_cmd_output(self.iotjs, [path.BUILD_INFO_PATH])
+        iotjs_output = ex.check_run_cmd_output(self.iotjs,
+                                    [path.BUILD_INFO_PATH])
         build_info = json.loads(iotjs_output)
 
         self.builtins = build_info["builtins"]
@@ -210,7 +211,9 @@ class TestRunner(object):
             if not self.quiet:
                 print(output, end="")
 
-            if not expected_failure or (expected_failure and exitcode <= 2):
+            is_normal_run = (not expected_failure and exitcode == 0)
+            is_expected_fail = (expected_failure and exitcode <= 2)
+            if is_normal_run or is_expected_fail:
                 Reporter.report_pass(test["name"], runtime)
                 self.results["pass"] += 1
             else:

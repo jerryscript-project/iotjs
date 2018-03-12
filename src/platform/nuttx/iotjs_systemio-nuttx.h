@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef IOTJS_SYSTEMIO_ARM_NUTTX_H
-#define IOTJS_SYSTEMIO_ARM_NUTTX_H
+#ifndef IOTJS_SYSTEMIO_NUTTX_H
+#define IOTJS_SYSTEMIO_NUTTX_H
 
 #include <stdint.h>
 
@@ -78,4 +78,4 @@ struct spi_dev_s* iotjs_spi_config_nuttx(int bus, uint32_t cs_chip);
 #endif /* ENABLE_MODULE_SPI */
 
 
-#endif /* IOTJS_SYSTEMIO_ARM_NUTTX_H */
+#endif /* IOTJS_SYSTEMIO_NUTTX_H */

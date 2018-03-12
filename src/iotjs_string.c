@@ -23,10 +23,9 @@
 
 iotjs_string_t iotjs_string_create() {
   iotjs_string_t str;
-  IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_string_t, &str);
 
-  _this->size = 0;
-  _this->data = NULL;
+  str.size = 0;
+  str.data = NULL;
 
   return str;
 }
@@ -34,16 +33,15 @@ iotjs_string_t iotjs_string_create() {
 
 iotjs_string_t iotjs_string_create_with_size(const char* data, size_t size) {
   iotjs_string_t str;
-  IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_string_t, &str);
 
-  _this->size = size;
+  str.size = size;
 
   if (size > 0) {
     IOTJS_ASSERT(data != NULL);
-    _this->data = iotjs_buffer_allocate(size);
-    memcpy(_this->data, data, size);
+    str.data = iotjs_buffer_allocate(size);
+    memcpy(str.data, data, size);
   } else {
-    _this->data = NULL;
+    str.data = NULL;
   }
 
   return str;
@@ -52,15 +50,14 @@ iotjs_string_t iotjs_string_create_with_size(const char* data, size_t size) {
 
 iotjs_string_t iotjs_string_create_with_buffer(char* buffer, size_t size) {
   iotjs_string_t str;
-  IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_string_t, &str);
 
-  _this->size = size;
+  str.size = size;
 
   if (size > 0) {
     IOTJS_ASSERT(buffer != NULL);
-    _this->data = buffer;
+    str.data = buffer;
   } else {
-    _this->data = NULL;
+    str.data = NULL;
   }
 
   return str;
@@ -68,65 +65,55 @@ iotjs_string_t iotjs_string_create_with_buffer(char* buffer, size_t size) {
 
 
 void iotjs_string_destroy(iotjs_string_t* str) {
-  IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_string_t, str);
-
-  if (_this->data != NULL) {
-    iotjs_buffer_release(_this->data);
-    _this->size = 0;
+  if (str->data != NULL) {
+    iotjs_buffer_release(str->data);
+    str->size = 0;
   }
 }
 
 
 bool iotjs_string_is_empty(const iotjs_string_t* str) {
-  const IOTJS_VALIDATED_STRUCT_METHOD(iotjs_string_t, str);
-
-  return _this->size == 0;
+  return str->size == 0;
 }
 
 
 void iotjs_string_make_empty(iotjs_string_t* str) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_string_t, str);
-
-  if (_this->data != NULL) {
-    iotjs_buffer_release(_this->data);
-    _this->size = 0;
-    _this->data = NULL;
+  if (str->data != NULL) {
+    iotjs_buffer_release(str->data);
+    str->size = 0;
+    str->data = NULL;
   }
 }
 
 
 void iotjs_string_append(iotjs_string_t* str, const char* data, size_t size) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_string_t, str);
-
   IOTJS_ASSERT(data != NULL);
 
   if (size == 0) {
     return;
   }
 
-  if (_this->data != NULL) {
-    _this->data = iotjs_buffer_reallocate(_this->data, _this->size + size);
+  if (str->data != NULL) {
+    str->data = iotjs_buffer_reallocate(str->data, str->size + size);
   } else {
-    IOTJS_ASSERT(_this->size == 0);
-    _this->data = iotjs_buffer_allocate(size);
+    IOTJS_ASSERT(str->size == 0);
+    str->data = iotjs_buffer_allocate(size);
   }
 
-  memcpy(_this->data + _this->size, data, size);
-  _this->size += size;
+  memcpy(str->data + str->size, data, size);
+  str->size += size;
 }
 
 
 const char* iotjs_string_data(const iotjs_string_t* str) {
-  const IOTJS_VALIDATED_STRUCT_METHOD(iotjs_string_t, str);
-  if (_this->data == NULL) {
+  if (str->data == NULL) {
     return "";
   }
 
-  return _this->data;
+  return str->data;
 }
 
 
 unsigned iotjs_string_size(const iotjs_string_t* str) {
-  const IOTJS_VALIDATED_STRUCT_METHOD(iotjs_string_t, str);
-  return _this->size;
+  return str->size;
 }

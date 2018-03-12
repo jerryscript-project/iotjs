@@ -14,34 +14,30 @@
  */
 
 var assert = require('assert');
-var Spi = require('spi');
+var spi = require('spi');
+var pin = require('tools/systemio_common').pin;
+var checkError = require('tools/systemio_common').checkError;
 
-var spi = new Spi();
-
-var configuration = {};
-
-if (process.platform === 'linux') {
-  configuration.device = '/dev/spidev0.0';
-} else if (process.platform === 'nuttx' || process.platform === 'tizenrt') {
-  configuration.bus = 1;
-} else {
-  assert.fail();
-}
+var configuration = {
+    device: pin.spi1, // for Linux
+    bus: pin.spi1, // for Tizen, TizenRT and Nuttx
+};
 
 //  mcp3008 test
 var channel = 0;
-var spi0 = spi.open(configuration, function() {
+var spi0 = spi.open(configuration, function(err) {
+  checkError(err);
+
   var mode = (8 + channel) << 4;
   var tx = [1, mode, 0];
-  var rx = [0, 0, 0];
 
-  spi0.transferSync(tx, rx);
+  var rx = spi0.transferSync(tx);
   console.log(((rx[1] & 0x03) << 8) + rx[2]);
 
   var loopCnt = 10;
   var loop = setInterval(function() {
-    spi0.transfer(tx, rx, function(err) {
-      assert.equal(err, null);
+    spi0.transfer(tx, function(err, rx) {
+      checkError(err);
       assert.equal(rx.length, 3);
 
       var value = ((rx[1] & 0x03) << 8) + rx[2];

@@ -25,15 +25,6 @@ set(PLATFORM_OS_DIR
     "${IOTJS_SOURCE_DIR}/platform/${IOTJS_SYSTEM_OS}")
 file(GLOB IOTJS_PLATFORM_SRC "${PLATFORM_OS_DIR}/iotjs_*.c")
 
-# Board configuration
-# Look for files under src/platform/<system>/<board>/
-if(NOT "${TARGET_BOARD}" STREQUAL "None")
-  set(PLATFORM_BOARD_DIR
-    "${PLATFORM_OS_DIR}/${TARGET_BOARD}")
-  file(GLOB IOTJS_BOARD_SRC "${PLATFORM_BOARD_DIR}/iotjs_*.c")
-  list(APPEND IOTJS_PLATFORM_SRC "${IOTJS_BOARD_SRC}")
-endif()
-
 # Module configuration - listup all possible native C modules
 function(getListOfVars prefix pattern varResult)
     set(moduleNames)
@@ -167,6 +158,8 @@ foreach(MODULE ${IOTJS_ENABLED_MODULES})
   endif()
 endforeach()
 
+set(EXTRA_CMAKE_FILES)
+
 # Collect the files of enabled modules
 foreach(MODULE ${IOTJS_ENABLED_MODULES})
   if(${ENABLE_MODULE_${MODULE}})
@@ -184,6 +177,18 @@ foreach(MODULE ${IOTJS_ENABLED_MODULES})
         list(APPEND IOTJS_JS_MODULE_SRC ${JS_PATH})
       else()
         message(FATAL_ERROR "JS file doesn't exist: ${JS_PATH}")
+      endif()
+    endif()
+
+    # Check extra cmake file
+    set(EXTRA_CMAKE_FILE ${${MODULE_PREFIX}cmakefile})
+    if(NOT "${EXTRA_CMAKE_FILE}" STREQUAL "")
+      set(EXTRA_CMAKE_FILE_PATH "${MODULE_BASE_DIR}/${EXTRA_CMAKE_FILE}")
+      if(EXISTS "${EXTRA_CMAKE_FILE_PATH}")
+        list(APPEND EXTRA_CMAKE_FILES "${EXTRA_CMAKE_FILE_PATH}")
+      else()
+        message(FATAL_ERROR
+                "CMake file doesn't exists: ${EXTRA_CMAKE_FILE_PATH}")
       endif()
     endif()
 
@@ -356,6 +361,33 @@ add_custom_command(
           jerry-snapshot
           ${IOTJS_JS_MODULE_SRC}
 )
+
+# Load all external module cmake files
+foreach(MODULE_EXTRA_CMAKE_FILE ${EXTRA_CMAKE_FILES})
+  message("Using CMake file: ${MODULE_EXTRA_CMAKE_FILE}")
+
+  set(MODULE_BINARY_DIR ${CMAKE_BINARY_DIR}/external/)
+  set(MODULE_LIBS)
+  get_filename_component(MODULE_DIR ${MODULE_EXTRA_CMAKE_FILE} DIRECTORY)
+
+  # Variables which should be used by the external module(s):
+  # - MODULE_DIR - the modules root directory
+  # - MODULE_BINARY_DIR - the build directory for the current module
+  # - MODULE_LIBS - list of libraries to use during linking (set this)
+  include(${MODULE_EXTRA_CMAKE_FILE})
+
+  if (NOT MODULE_NAME)
+    message(FATAL_ERROR
+            "MODULE_NAME was not specified in ${MODULE_EXTRA_CMAKE_FILE}")
+  endif()
+
+  list(APPEND EXTERNAL_LIBS ${MODULE_LIBS})
+
+  # Just to make sure it will always be unset
+  unset(MODULE_NAME) # This is usually set by the included cmake file
+  unset(MODULE_BINARY_DIR)
+  unset(MODULE_LIBS)
+endforeach()
 
 # Collect all sources into LIB_IOTJS_SRC
 file(GLOB LIB_IOTJS_SRC ${IOTJS_SOURCE_DIR}/*.c)

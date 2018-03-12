@@ -18,6 +18,12 @@
 
 #include "iotjs_debuglog.h"
 
+iotjs_console_out_t iotjs_console_out = NULL;
+
+void iotjs_set_console_out(iotjs_console_out_t output) {
+  iotjs_console_out = output;
+}
+
 #ifdef ENABLE_DEBUG_LOG
 int iotjs_debug_level = DBGLEV_ERR;
 FILE* iotjs_log_stream;
@@ -52,7 +58,6 @@ void iotjs_debuglog_init() {
 // fprintf(stderr, "DBG OUT = %s", (dbglogfile==NULL?"(stderr)":dbglogfile));
 #endif // ENABLE_DEBUG_LOG
 }
-
 
 void iotjs_debuglog_release() {
 #ifdef ENABLE_DEBUG_LOG

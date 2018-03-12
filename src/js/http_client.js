@@ -115,7 +115,7 @@ function emitError(socket, err) {
 
   if (err) {
     var host;
-    if (host = req.getHeader('host')) {
+    if ((host = req.getHeader('host'))) {
       err.message += ': ' + (host ? host : '');
     }
     req.emit('error', err);
@@ -125,7 +125,6 @@ function emitError(socket, err) {
 function socketOnClose() {
   var socket = this;
   var req = socket._httpMessage;
-  var parser = socket.parser;
 
   socket.read();
 
@@ -148,7 +147,7 @@ function socketOnError(err) {
   emitError(this, err);
 }
 
-function socketOnLookup(err, ip, family) {
+function socketOnLookup(err/* , ip */) {
   emitError(this, err);
 }
 
@@ -170,7 +169,7 @@ function socketOnEnd() {
 
 // This is called by parserOnHeadersComplete after response header is parsed.
 // TODO: keepalive support
-function parserOnIncomingClient(res, shouldKeepAlive) {
+function parserOnIncomingClient(res/* , shouldKeepAlive */) {
   var socket = this.socket;
   var req = socket._httpMessage;
 

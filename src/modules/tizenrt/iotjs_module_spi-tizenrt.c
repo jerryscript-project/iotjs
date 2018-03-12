@@ -13,7 +13,9 @@
  * limitations under the License.
  */
 
-#if defined(__TIZENRT__)
+#if !defined(__TIZENRT__)
+#error "Module __FILE__ is for TizenRT only"
+#endif
 
 #include <tinyara/config.h>
 
@@ -29,16 +31,42 @@
 #include "modules/iotjs_module_spi.h"
 
 
-static bool iotjs_spi_open(iotjs_spi_t* spi) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_spi_t, spi);
+struct iotjs_spi_platform_data_s {
+  unsigned int bus;
+  iotbus_spi_context_h spi_context;
+};
 
-  struct iotbus_spi_config_s cfg = {.bits_per_word = _this->bits_per_word,
-                                    .chip_select =
-                                        _this->chip_select == kSpiCsNone ? 0
-                                                                         : 1,
-                                    .frequency = _this->max_speed };
+void iotjs_spi_create_platform_data(iotjs_spi_t* spi) {
+  spi->platform_data = IOTJS_ALLOC(iotjs_spi_platform_data_t);
 
-  switch (_this->mode) {
+  spi->platform_data->spi_context = NULL;
+}
+
+
+void iotjs_spi_destroy_platform_data(iotjs_spi_platform_data_t* platform_data) {
+  IOTJS_ASSERT(platform_data);
+  IOTJS_RELEASE(platform_data);
+}
+
+
+jerry_value_t iotjs_spi_set_platform_config(iotjs_spi_t* spi,
+                                            const jerry_value_t jconfig) {
+  iotjs_spi_platform_data_t* platform_data = spi->platform_data;
+
+  JS_GET_REQUIRED_CONF_VALUE(jconfig, platform_data->bus,
+                             IOTJS_MAGIC_STRING_BUS, number);
+
+  return jerry_create_undefined();
+}
+
+bool iotjs_spi_open(iotjs_spi_t* spi) {
+  iotjs_spi_platform_data_t* platform_data = spi->platform_data;
+
+  struct iotbus_spi_config_s cfg = {.bits_per_word = spi->bits_per_word,
+                                    .chip_select = spi->chip_select,
+                                    .frequency = spi->max_speed };
+
+  switch (spi->mode) {
     case kSpiMode_0:
       cfg.mode = IOTBUS_SPI_MODE0;
       break;
@@ -55,28 +83,28 @@ static bool iotjs_spi_open(iotjs_spi_t* spi) {
       cfg.mode = IOTBUS_SPI_MODE0;
   }
 
-  _this->hSpi = iotbus_spi_open(_this->bus, &cfg);
-  if (_this->hSpi == NULL) {
+  platform_data->spi_context = iotbus_spi_open(platform_data->bus, &cfg);
+  if (platform_data->spi_context == NULL) {
     return false;
   }
 
   DDLOG(
       "SPI Options \n mode: %d\n chipSelect: %d\n bitOrder: %d\n "
       "maxSpeed: %d\n bitPerWord: %d\n loopback: %d",
-      _this->mode, _this->chip_select, _this->bit_order, _this->max_speed,
-      _this->bits_per_word, _this->loopback);
+      spi->mode, spi->chip_select, spi->bit_order, spi->max_speed,
+      spi->bits_per_word, spi->loopback);
 
   return true;
 }
 
 
 bool iotjs_spi_transfer(iotjs_spi_t* spi) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_spi_t, spi);
+  iotjs_spi_platform_data_t* platform_data = spi->platform_data;
 
   int err =
-      iotbus_spi_transfer_buf(_this->hSpi, (unsigned char*)_this->tx_buf_data,
-                              (unsigned char*)_this->rx_buf_data,
-                              _this->buf_len);
+      iotbus_spi_transfer_buf(platform_data->spi_context,
+                              (unsigned char*)spi->tx_buf_data,
+                              (unsigned char*)spi->rx_buf_data, spi->buf_len);
   if (err != 0) {
     DDLOG("%s - transfer failed: %d", __func__, err);
     return false;
@@ -87,33 +115,16 @@ bool iotjs_spi_transfer(iotjs_spi_t* spi) {
 
 
 bool iotjs_spi_close(iotjs_spi_t* spi) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_spi_t, spi);
+  iotjs_spi_platform_data_t* platform_data = spi->platform_data;
 
-  if (_this->hSpi != NULL) {
-    int err = iotbus_spi_close(_this->hSpi);
+  if (platform_data->spi_context != NULL) {
+    int err = iotbus_spi_close(platform_data->spi_context);
     if (err != 0) {
       DDLOG("%s - close failed: %d", __func__, err);
       return false;
     }
-    _this->hSpi = NULL;
+    platform_data->spi_context = NULL;
   }
 
   return true;
 }
-
-
-void iotjs_spi_open_worker(uv_work_t* work_req) {
-  SPI_WORKER_INIT;
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_spi_t, spi);
-  IOTJS_UNUSED(_this);
-
-  if (!iotjs_spi_open(spi)) {
-    DDLOG("%s - SPI open failed %d", __func__, _this->bus);
-    req_data->result = false;
-    return;
-  }
-
-  req_data->result = true;
-}
-
-#endif // __TIZENRT__

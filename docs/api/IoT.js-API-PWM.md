@@ -5,6 +5,7 @@ The following shows PWM module APIs available for each platform.
 |  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | NuttX<br/>(STM32F4-Discovery) | TizenRT<br/>(Artik053) |
 | :---: | :---: | :---: | :---: | :---: |
 | pwm.open | O | O | O | O |
+| pwm.openSync | O | O | O | O |
 | pwmpin.setPeriod | O | O | O | O |
 | pwmpin.setPeriodSync | O | O | O | O |
 | pwmpin.setFrequency | O | O | O | O |
@@ -19,23 +20,16 @@ The following shows PWM module APIs available for each platform.
 
 ## Class: PWM
 
-### new PWM()
-
-Returns a new PWM object which can open a PWM pin.
-
-This object allows the developer to specify a pin and generate a pulse-width modulatated (PWM)
-signal through that.
-
-### pwm.open(configuration[, callback])
+### pwm.open(configuration, callback)
 * `configuration` {Object} Configuration object which can have the following properties.
   * `pin` {number} The pin number to use with this PWM object (mandatory configuration).
   * `chip` {number} The PWM chip number (only on Linux). **Default:** `0`.
   * `period` {number} The period of the PWM signal, in seconds (positive number).
-  * `frequency` {integer} In Hz (positive integer).
   * `dutyCycle` {number} The active time of the PWM signal, must be within the `0.0` and `1.0` range.
 * `callback` {Function} Callback function.
   * `err` {Error|null} The error object or `null` if there were no error.
-* Returns: `<PWMPin>`
+  * `pwmpin` {Object} An instance of PWMPin.
+* Returns: {Object} An instance of PWMPin.
 
 Opens PWM pin with the specified configuration.
 
@@ -47,8 +41,7 @@ To correctly open a PWM pin one must know the correct pin number:
 
 **Example**
 ```js
-var Pwm = require('pwm');
-var pwm = new Pwm();
+var pwm = require('pwm');
 var config = {
   pin: 0,
   period: 0.1,
@@ -59,6 +52,33 @@ var pwm0 = pwm.open(config, function(err) {
     throw err;
   }
 });
+```
+
+### pwm.openSync(configuration)
+* `configuration` {Object} Configuration object which can have the following properties.
+  * `pin` {number} The pin number to use with this PWM object (mandatory configuration).
+  * `chip` {number} The PWM chip number (only on Linux). **Default:** `0`.
+  * `period` {number} The period of the PWM signal, in seconds (positive number).
+  * `dutyCycle` {number} The active time of the PWM signal, must be within the `0.0` and `1.0` range.
+* Returns: {Object} An instance of PWMPin.
+
+Opens PWM pin with the specified configuration.
+
+To correctly open a PWM pin one must know the correct pin number:
+* On Linux, `pin` is a number which is `0` or `1`.
+* On NuttX, you have to know pin name. The pin name is defined in target board module. For more module information, please see below list.
+  * [STM32F4-discovery](../targets/nuttx/stm32f4dis/IoT.js-API-Stm32f4dis.md#pwm-pin)
+
+
+**Example**
+```js
+var pwm = require('pwm');
+var config = {
+  pin: 0,
+  period: 0.1,
+  dutyCycle: 0.5
+}
+var pwm0 = pwm.openSync(config);
 ```
 
 
@@ -110,7 +130,7 @@ console.log('done');
 * `callback` {Function}
   * `err` {Error|null} The error object or `null` if there were no error.
 
-The `setFequency` method congifures the frequency of the PWM signal.
+The `setFrequency` method configures the frequency of the PWM signal.
 `frequency` is the measurement of how often the signal is repeated in a single period.
 
 Configuration is done asynchronously and the `callback` method is invoked after the
@@ -133,7 +153,7 @@ console.log('do');
 ### pwmpin.setFrequencySync(frequency)
 * `frequency` {integer} In Hz (positive integer).
 
-The `setFequencySync` method congifures the frequency of the PWM signal.
+The `setFrequencySync` method configures the frequency of the PWM signal.
 `frequency` is the measurement of how often the signal is repeated in a single period.
 
 Configuration is done synchronously and will block till the frequency is configured.

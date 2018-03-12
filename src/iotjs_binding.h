@@ -27,15 +27,8 @@ typedef const jerry_object_native_info_t JNativeInfoType;
 /* Constructors */
 jerry_value_t iotjs_jval_create_string(const iotjs_string_t* v);
 jerry_value_t iotjs_jval_create_byte_array(uint32_t len, const char* data);
-jerry_value_t iotjs_jval_dummy_function(const jerry_value_t function_obj,
-                                        const jerry_value_t this_val,
-                                        const jerry_value_t args_p[],
-                                        const jerry_length_t args_count);
 jerry_value_t iotjs_jval_create_function(jerry_external_handler_t handler);
 jerry_value_t iotjs_jval_create_error_without_error_flag(const char* msg);
-
-jerry_value_t iotjs_jval_get_string_size(const iotjs_string_t* str);
-
 
 /* Type Converters */
 bool iotjs_jval_as_boolean(jerry_value_t);
@@ -76,7 +69,7 @@ typedef struct {
   uint16_t capacity;
   uint16_t argc;
   jerry_value_t* argv;
-} IOTJS_VALIDATED_STRUCT(iotjs_jargs_t);
+} iotjs_jargs_t;
 
 
 iotjs_jargs_t iotjs_jargs_create(uint16_t capacity);
@@ -103,59 +96,58 @@ void iotjs_jargs_replace(iotjs_jargs_t* jargs, uint16_t index, jerry_value_t x);
 jerry_value_t iotjs_jhelper_call(jerry_value_t jfunc, jerry_value_t jthis,
                                  const iotjs_jargs_t* jargs);
 
-// Calls javascript function.
-jerry_value_t iotjs_jhelper_call_ok(jerry_value_t jfunc, jerry_value_t jthis,
-                                    const iotjs_jargs_t* jargs);
-
 // Evaluates javascript source file.
 jerry_value_t iotjs_jhelper_eval(const char* name, size_t name_len,
                                  const uint8_t* data, size_t size,
                                  bool strict_mode);
 
+/* Note:
+ *      Defines started with underscores should not be used
+ *      outside of this header.
+ */
 #define JS_CREATE_ERROR(TYPE, message) \
-  jerry_create_error(JERRY_ERROR_##TYPE, (const jerry_char_t*)message);
+  jerry_create_error(JERRY_ERROR_##TYPE, (const jerry_char_t*)message)
 
 #define JS_CHECK(predicate)                           \
   if (!(predicate)) {                                 \
     return JS_CREATE_ERROR(COMMON, "Internal error"); \
   }
 
-#define JS_CHECK_TYPE(jval, type) JS_CHECK(jerry_value_is_##type(jval));
+#define __JS_CHECK_TYPE(index, type) jerry_value_is_##type(jargv[index])
 
-#define JS_CHECK_ARG(index, type) JS_CHECK_TYPE(jargv[index], type);
+#define JS_CHECK_ARG(index, type) JS_CHECK(__JS_CHECK_TYPE(index, type))
 
 #define JS_CHECK_ARG_IF_EXIST(index, type) \
   if (jargc > index) {                     \
-    JS_CHECK_TYPE(jargv[index], type);     \
+    JS_CHECK(__JS_CHECK_TYPE(index, type)) \
   }
 
 #define JS_CHECK_ARGS_0()
 
 #define JS_CHECK_ARGS_1(type0) \
-  JS_CHECK_ARGS_0();           \
-  JS_CHECK_ARG(0, type0);
+  JS_CHECK_ARGS_0()            \
+  __JS_CHECK_TYPE(0, type0)
 
 #define JS_CHECK_ARGS_2(type0, type1) \
-  JS_CHECK_ARGS_1(type0);             \
-  JS_CHECK_ARG(1, type1);
+  JS_CHECK_ARGS_1(type0)              \
+  &&__JS_CHECK_TYPE(1, type1)
 
 #define JS_CHECK_ARGS_3(type0, type1, type2) \
-  JS_CHECK_ARGS_2(type0, type1);             \
-  JS_CHECK_ARG(2, type2);
+  JS_CHECK_ARGS_2(type0, type1)              \
+  &&__JS_CHECK_TYPE(2, type2)
 
 #define JS_CHECK_ARGS_4(type0, type1, type2, type3) \
-  JS_CHECK_ARGS_3(type0, type1, type2);             \
-  JS_CHECK_ARG(3, type3);
+  JS_CHECK_ARGS_3(type0, type1, type2)              \
+  &&__JS_CHECK_TYPE(3, type3)
 
 #define JS_CHECK_ARGS_5(type0, type1, type2, type3, type4) \
-  JS_CHECK_ARGS_4(type0, type1, type2, type3);             \
-  JS_CHECK_ARG(4, type4);
+  JS_CHECK_ARGS_4(type0, type1, type2, type3)              \
+  &&__JS_CHECK_TYPE(4, type4)
 
 #define JS_CHECK_ARGS(argc, ...) \
-  JS_CHECK(jargc >= argc);       \
-  JS_CHECK_ARGS_##argc(__VA_ARGS__)
+  JS_CHECK(jargc >= argc && JS_CHECK_ARGS_##argc(__VA_ARGS__))
 
-#define JS_CHECK_THIS() JS_CHECK_TYPE(jthis, object);
+#define JS_CHECK_THIS() JS_CHECK(jerry_value_is_object(jthis))
 
 #define JS_GET_ARG(index, type) iotjs_jval_as_##type(jargv[index])
 
@@ -172,7 +164,6 @@ jerry_value_t iotjs_jhelper_eval(const char* name, size_t name_len,
                             const jerry_value_t jargv[], \
                             const jerry_length_t jargc)
 
-
 #if defined(EXPERIMENTAL) && !defined(DEBUG)
 // This code branch is to be in #ifdef NDEBUG
 #define DJS_CHECK_ARG(index, type) ((void)0)
@@ -186,51 +177,41 @@ jerry_value_t iotjs_jhelper_eval(const char* name, size_t name_len,
 #define DJS_CHECK_ARG_IF_EXIST(index, type) JS_CHECK_ARG_IF_EXIST(index, type)
 #endif
 
-#define JS_DECLARE_THIS_PTR(type, name)                                      \
+#define __JS_DECLARE_PTR(type, name, value)                                  \
   iotjs_##type##_t* name;                                                    \
   do {                                                                       \
     JNativeInfoType* out_native_info;                                        \
-    jerry_get_object_native_pointer(jthis, (void**)&name, &out_native_info); \
+    jerry_get_object_native_pointer(value, (void**)&name, &out_native_info); \
     if (!name || out_native_info != &this_module_native_info) {              \
       return JS_CREATE_ERROR(COMMON, "");                                    \
     }                                                                        \
   } while (0)
 
-#define JS_DECLARE_OBJECT_PTR(index, type, name)                 \
-  iotjs_##type##_t* name;                                        \
+#define JS_DECLARE_THIS_PTR(type, name) __JS_DECLARE_PTR(type, name, jthis)
+
+#define JS_DECLARE_OBJECT_PTR(index, type, name) \
+  __JS_DECLARE_PTR(type, name, jargv[index])
+
+#define __JS_GET_REQUIRED_VALUE(target, property, type, value)              \
+  do {                                                                      \
+    if (jerry_value_is_undefined(value)) {                                  \
+      return JS_CREATE_ERROR(TYPE, "Missing argument, required " property); \
+    } else if (jerry_value_is_##type(value)) {                              \
+      target = iotjs_jval_as_##type(value);                                 \
+    } else {                                                                \
+      return JS_CREATE_ERROR(TYPE, "Bad arguments, required " property      \
+                                   " is not a " #type);                     \
+    }                                                                       \
+  } while (0)
+
+#define JS_GET_REQUIRED_ARG_VALUE(index, target, property, type) \
+  __JS_GET_REQUIRED_VALUE(target, property, type, jargv[index])
+
+#define JS_GET_REQUIRED_CONF_VALUE(src, target, property, type)  \
   do {                                                           \
-    JNativeInfoType* out_native_info;                            \
-    jerry_get_object_native_pointer(jargv[index], (void**)&name, \
-                                    &out_native_info);           \
-    if (!name || out_native_info != &this_module_native_info) {  \
-      return JS_CREATE_ERROR(COMMON, "");                        \
-    }                                                            \
-  } while (0)
-
-#define JS_GET_REQUIRED_ARG_VALUE(index, target, property, type)            \
-  do {                                                                      \
-    if (jerry_value_is_undefined(jargv[index])) {                           \
-      return JS_CREATE_ERROR(TYPE, "Missing argument, required " property); \
-    } else if (jerry_value_is_##type(jargv[index])) {                       \
-      target = iotjs_jval_as_##type(jargv[index]);                          \
-    } else {                                                                \
-      return JS_CREATE_ERROR(TYPE, "Bad arguments, required " property      \
-                                   " is not a " #type);                     \
-    }                                                                       \
-  } while (0)
-
-#define DJS_GET_REQUIRED_CONF_VALUE(src, target, property, type)            \
-  do {                                                                      \
-    jerry_value_t jtmp = iotjs_jval_get_property(src, property);            \
-    if (jerry_value_is_undefined(jtmp)) {                                   \
-      return JS_CREATE_ERROR(TYPE, "Missing argument, required " property); \
-    } else if (jerry_value_is_##type(jtmp)) {                               \
-      target = iotjs_jval_as_##type(jtmp);                                  \
-    } else {                                                                \
-      return JS_CREATE_ERROR(TYPE, "Bad arguments, required " property      \
-                                   " is not a " #type);                     \
-    }                                                                       \
-    jerry_release_value(jtmp);                                              \
+    jerry_value_t jtmp = iotjs_jval_get_property(src, property); \
+    __JS_GET_REQUIRED_VALUE(target, property, type, jtmp);       \
+    jerry_release_value(jtmp);                                   \
   } while (0)
 
 jerry_value_t vm_exec_stop_callback(void* user_p);

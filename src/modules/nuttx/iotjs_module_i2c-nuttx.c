@@ -33,44 +33,39 @@ struct iotjs_i2c_platform_data_s {
   struct i2c_config_s config;
 };
 
-void i2c_create_platform_data(iotjs_i2c_t* i2c) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_i2c_t, i2c);
+void iotjs_i2c_create_platform_data(iotjs_i2c_t* i2c) {
+  i2c->platform_data = IOTJS_ALLOC(iotjs_i2c_platform_data_t);
 
-  _this->platform_data = IOTJS_ALLOC(iotjs_i2c_platform_data_t);
-
-  _this->platform_data->i2c_master = NULL;
+  i2c->platform_data->i2c_master = NULL;
 }
 
-void i2c_destroy_platform_data(iotjs_i2c_platform_data_t* pdata) {
+void iotjs_i2c_destroy_platform_data(iotjs_i2c_platform_data_t* pdata) {
   IOTJS_RELEASE(pdata);
 }
 
 jerry_value_t iotjs_i2c_set_platform_config(iotjs_i2c_t* i2c,
                                             const jerry_value_t jconfig) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_i2c_t, i2c);
-  iotjs_i2c_platform_data_t* platform_data = _this->platform_data;
+  iotjs_i2c_platform_data_t* platform_data = i2c->platform_data;
 
-  DJS_GET_REQUIRED_CONF_VALUE(jconfig, platform_data->bus,
-                              IOTJS_MAGIC_STRING_BUS, number);
+  JS_GET_REQUIRED_CONF_VALUE(jconfig, platform_data->bus,
+                             IOTJS_MAGIC_STRING_BUS, number);
 
   return jerry_create_undefined();
 }
 
-#define I2C_METHOD_HEADER(arg)                                     \
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_i2c_t, arg)                  \
-  iotjs_i2c_platform_data_t* platform_data = _this->platform_data; \
-  IOTJS_ASSERT(platform_data);                                     \
-  if (!platform_data->i2c_master) {                                \
-    DLOG("%s: I2C is not opened", __func__);                       \
-    return false;                                                  \
+#define I2C_METHOD_HEADER(arg)                                   \
+  iotjs_i2c_platform_data_t* platform_data = arg->platform_data; \
+  IOTJS_ASSERT(platform_data);                                   \
+  if (!platform_data->i2c_master) {                              \
+    DLOG("%s: I2C is not opened", __func__);                     \
+    return false;                                                \
   }
 
 bool iotjs_i2c_open(iotjs_i2c_t* i2c) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_i2c_t, i2c)
-  iotjs_i2c_platform_data_t* platform_data = _this->platform_data;
+  iotjs_i2c_platform_data_t* platform_data = i2c->platform_data;
   IOTJS_ASSERT(platform_data);
 
-  platform_data->config.address = _this->address;
+  platform_data->config.address = i2c->address;
   platform_data->config.addrlen = I2C_DEFAULT_ADDRESS_LENGTH;
 
   platform_data->i2c_master = iotjs_i2c_config_nuttx(platform_data->bus);
@@ -98,15 +93,15 @@ bool iotjs_i2c_close(iotjs_i2c_t* i2c) {
 bool iotjs_i2c_write(iotjs_i2c_t* i2c) {
   I2C_METHOD_HEADER(i2c);
 
-  uint8_t len = _this->buf_len;
-  uint8_t* data = (uint8_t*)_this->buf_data;
+  uint8_t len = i2c->buf_len;
+  uint8_t* data = (uint8_t*)i2c->buf_data;
   IOTJS_ASSERT(len > 0);
 
   int ret =
       i2c_write(platform_data->i2c_master, &platform_data->config, data, len);
 
-  if (_this->buf_data != NULL) {
-    iotjs_buffer_release(_this->buf_data);
+  if (i2c->buf_data != NULL) {
+    iotjs_buffer_release(i2c->buf_data);
   }
 
   if (ret < 0) {
@@ -119,12 +114,12 @@ bool iotjs_i2c_write(iotjs_i2c_t* i2c) {
 bool iotjs_i2c_read(iotjs_i2c_t* i2c) {
   I2C_METHOD_HEADER(i2c);
 
-  uint8_t len = _this->buf_len;
-  _this->buf_data = iotjs_buffer_allocate(len);
+  uint8_t len = i2c->buf_len;
+  i2c->buf_data = iotjs_buffer_allocate(len);
   IOTJS_ASSERT(len > 0);
 
   int ret = i2c_read(platform_data->i2c_master, &platform_data->config,
-                     (uint8_t*)_this->buf_data, len);
+                     (uint8_t*)i2c->buf_data, len);
   if (ret != 0) {
     DLOG("%s : cannot read - %d", __func__, ret);
     return false;

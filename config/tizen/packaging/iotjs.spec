@@ -8,18 +8,21 @@ URL: https://www.iotjs.net/
 Source:     %{name}-%{version}.tar.gz
 Source1:    %{name}.pc.in
 Source1001: %{name}.manifest
+ExclusiveArch: %arm
 
 BuildRequires: python
 BuildRequires: cmake
 BuildRequires: glibc-static
-BuildRequires: aul
-BuildRequires: pkgconfig(appcore-agent)
-BuildRequires: pkgconfig(capi-appfw-service-application)
-BuildRequires: pkgconfig(capi-appfw-app-common)
-BuildRequires: pkgconfig(capi-appfw-package-manager)
-BuildRequires: pkgconfig(capi-appfw-application)
+#BuildRequires: aul
+#BuildRequires: pkgconfig(appcore-agent)
+#BuildRequires: pkgconfig(capi-appfw-service-application)
+#BuildRequires: pkgconfig(capi-appfw-app-common)
+#BuildRequires: pkgconfig(capi-appfw-package-manager)
+#BuildRequires: pkgconfig(capi-appfw-application)
 BuildRequires: pkgconfig(capi-system-peripheral-io)
 BuildRequires: pkgconfig(dlog)
+#BuildRequires: pkgconfig(st_things_sdkapi)
+
 #for https
 BuildRequires:  openssl-devel
 BuildRequires:  libcurl-devel
@@ -30,18 +33,8 @@ Requires(post): /sbin/ldconfig
 %description
 Platform for Internet of Things with JavaScript
 
-# default is RELEASE mode.
-# If DEBUG mode is needed, please use tizen_build_devel_mode
-%define RELEASE False
-# For Example
-%if %{RELEASE} == "True"
-%define build_mode release
-%else
-%define build_mode debug
-%endif
-
-# Default values to be eventually overiden BEFORE or as gbs params:
-%{!?RELEASE: %define RELEASE 0}
+# default is release mode
+%{!?build_mode: %define build_mode release}
 
 %package service
 Summary: Development files for %{name}
@@ -71,9 +64,10 @@ cp %{SOURCE1001} .
  --target-os=tizen --target-board=rpi3 \
  --external-lib=capi-system-peripheral-io \
  --compile-flag=-D__TIZEN__ \
- --cmake-param=-DENABLE_MODULE_DGRAM=ON \
- --cmake-param=-DENABLE_MODULE_GPIO=ON \
- --no-init-submodule --no-parallel-build --no-check-test
+ --profile=test/profiles/tizen.profile \
+ --no-init-submodule --no-parallel-build
+# --external-lib=sdkapi \
+
 
 %install
 mkdir -p %{buildroot}%{_bindir}

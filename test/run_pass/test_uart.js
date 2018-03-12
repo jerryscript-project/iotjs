@@ -13,36 +13,27 @@
  * limitations under the License.
  */
 
-var assert = require('assert');
-var Uart = require('uart');
-
-var uart = new Uart();
+var uart = require('uart');
+var pin = require('tools/systemio_common').pin;
+var checkError = require('tools/systemio_common').checkError;
 
 var configuration = {
+  device: pin.uart1, // for Linux, TizenRT and Nuttx
+  port: pin.uart1,   // for Tizen
   baudRate: 115200,
-  dataBits: 8
+  dataBits: 8,
 };
-
-if (process.platform === 'linux') {
-  configuration.device = '/dev/ttyS0';
-} else if (process.platform === 'nuttx' || process.platform === 'tizenrt') {
-  configuration.device = '/dev/ttyS1';
-} else {
-  assert.fail();
-}
 
 writeTest();
 
 function writeTest() {
-  var serial = uart.open(configuration, function(err) {
-    assert.equal(err, null);
-    console.log('open done');
+  var serial = uart.openSync(configuration);
+  console.log('open done');
 
-    serial.writeSync("Hello IoT.js.\n\r");
-    serial.closeSync();
-    console.log('close done');
-    writeReadTest();
-  });
+  serial.writeSync('Hello IoT.js.\n\r');
+  serial.closeSync();
+  console.log('close done');
+  writeReadTest();
 }
 
 function writeReadTest() {
@@ -50,7 +41,7 @@ function writeReadTest() {
   var write = 0;
 
   var serial = uart.open(configuration, function(err) {
-    assert.equal(err, null);
+    checkError(err);
     console.log('open done');
 
     serial.on('data', function(data) {
@@ -63,13 +54,15 @@ function writeReadTest() {
       }
     });
 
-    serial.write("Hello there?\n\r", function(err) {
-      assert.equal(err, null);
+    serial.write('Hello there?\n\r', function(err) {
+      checkError(err);
       console.log('write done');
       write = 1;
 
       if (read && write) {
-        serial.close();
+        serial.close(function(err) {
+          checkError(err);
+        });
         console.log('close done');
       }
     });

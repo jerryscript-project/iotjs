@@ -49,10 +49,9 @@ IOTJS_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(blehcisocket);
 
 
 iotjs_blehcisocket_t* iotjs_blehcisocket_create(jerry_value_t jble) {
-  THIS = IOTJS_ALLOC(iotjs_blehcisocket_t);
-  IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_blehcisocket_t, blehcisocket);
+  iotjs_blehcisocket_t* blehcisocket = IOTJS_ALLOC(iotjs_blehcisocket_t);
 
-  _this->jobject = jble;
+  blehcisocket->jobject = jble;
   jerry_set_object_native_pointer(jble, blehcisocket, &this_module_native_info);
 
   iotjs_blehcisocket_initialize(blehcisocket);
@@ -61,7 +60,7 @@ iotjs_blehcisocket_t* iotjs_blehcisocket_create(jerry_value_t jble) {
 }
 
 
-static void iotjs_blehcisocket_destroy(THIS) {
+static void iotjs_blehcisocket_destroy(iotjs_blehcisocket_t* blehcisocket) {
   iotjs_blehcisocket_close(blehcisocket);
   IOTJS_RELEASE(blehcisocket);
 }
@@ -132,7 +131,7 @@ JS_FUNCTION(SetFilter) {
   iotjs_bufferwrap_t* buffer =
       iotjs_bufferwrap_from_jbuffer(JS_GET_ARG(0, object));
 
-  iotjs_blehcisocket_setFilter(blehcisocket, iotjs_bufferwrap_buffer(buffer),
+  iotjs_blehcisocket_setFilter(blehcisocket, buffer->buffer,
                                iotjs_bufferwrap_length(buffer));
 
   return jerry_create_undefined();
@@ -155,7 +154,7 @@ JS_FUNCTION(Write) {
   iotjs_bufferwrap_t* buffer =
       iotjs_bufferwrap_from_jbuffer(JS_GET_ARG(0, object));
 
-  iotjs_blehcisocket_write(blehcisocket, iotjs_bufferwrap_buffer(buffer),
+  iotjs_blehcisocket_write(blehcisocket, buffer->buffer,
                            iotjs_bufferwrap_length(buffer));
 
   return jerry_create_undefined();

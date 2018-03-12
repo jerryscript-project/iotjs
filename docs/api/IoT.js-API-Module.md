@@ -33,6 +33,7 @@ If a native module named `id` exists, load it and return.
 2. `iotjs_modules` folder under current working directory.
 3. `$HOME/iotjs_modules`
 4. `$IOTJS_PATH/iotjs_modules`
+5. `$IOTJS_EXTRA_MODULE_PATH`
 
 For each directory in search paths above:
 
@@ -41,3 +42,9 @@ For each directory in search paths above:
 - If a directory `id` exists, module system consider the directory as a package:
   - If `id/package.json` contains **main** property, load the file named **main** property.
   - If `id/package.json` exists, but neither the **main** property nor the file named **main** property exist, load `index.js`.
+
+**Adding extra paths for module loading**
+
+In order to add more directories to look for modules, you can set `IOTJS_EXTRA_MODULE_PATH` as an environment variable of your system. For instance, `./node_modules` and `./my_modules` will be referred if they're declared as follows.
+
+`IOTJS_EXTRA_MODULE_PATH=./node_modules:./my_modules`

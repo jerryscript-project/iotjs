@@ -14,7 +14,7 @@
  */
 
 
-var Stream = require('stream').Stream;
+var Stream = require('stream_internal');
 var util = require('util');
 var assert = require('assert');
 

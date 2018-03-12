@@ -13,10 +13,6 @@
  * limitations under the License.
  */
 
-
-#ifndef IOTJS_MODULE_UART_LINUX_GENERAL_INL_H
-#define IOTJS_MODULE_UART_LINUX_GENERAL_INL_H
-
 #include <errno.h>
 #include <fcntl.h>
 #include <termios.h>
@@ -24,10 +20,12 @@
 
 #include "modules/iotjs_module_uart.h"
 
-static int baud_to_constant(int baudRate) {
+struct iotjs_uart_platform_data_s {
+  iotjs_string_t device_path;
+};
+
+static unsigned baud_to_constant(unsigned baudRate) {
   switch (baudRate) {
-    case 0:
-      return B0;
     case 50:
       return B50;
     case 75:
@@ -65,9 +63,8 @@ static int baud_to_constant(int baudRate) {
     case 230400:
       return B230400;
   }
-  return -1;
+  return B0;
 }
-
 
 static int databits_to_constant(int dataBits) {
   switch (dataBits) {
@@ -83,56 +80,64 @@ static int databits_to_constant(int dataBits) {
   return -1;
 }
 
+void iotjs_uart_create_platform_data(iotjs_uart_t* uart) {
+  uart->platform_data = IOTJS_ALLOC(iotjs_uart_platform_data_t);
+}
 
-void iotjs_uart_open_worker(uv_work_t* work_req) {
-  UART_WORKER_INIT;
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_uart_t, uart);
+void iotjs_uart_destroy_platform_data(
+    iotjs_uart_platform_data_t* platform_data) {
+  IOTJS_ASSERT(platform_data);
 
-  int fd = open(iotjs_string_data(&_this->device_path),
+  iotjs_string_destroy(&platform_data->device_path);
+  IOTJS_RELEASE(platform_data);
+}
+
+jerry_value_t iotjs_uart_set_platform_config(iotjs_uart_t* uart,
+                                             const jerry_value_t jconfig) {
+  JS_GET_REQUIRED_CONF_VALUE(jconfig, uart->platform_data->device_path,
+                             IOTJS_MAGIC_STRING_DEVICE, string);
+
+  return jerry_create_undefined();
+}
+
+bool iotjs_uart_open(iotjs_uart_t* uart) {
+  int fd = open(iotjs_string_data(&uart->platform_data->device_path),
                 O_RDWR | O_NOCTTY | O_NDELAY);
   if (fd < 0) {
-    req_data->result = false;
-    return;
+    return false;
   }
 
   struct termios options;
   tcgetattr(fd, &options);
   options.c_cflag = CLOCAL | CREAD;
-  options.c_cflag |= (tcflag_t)baud_to_constant(_this->baud_rate);
-  options.c_cflag |= (tcflag_t)databits_to_constant(_this->data_bits);
+  options.c_cflag |= (tcflag_t)baud_to_constant(uart->baud_rate);
+  options.c_cflag |= (tcflag_t)databits_to_constant(uart->data_bits);
   options.c_iflag = IGNPAR;
   options.c_oflag = 0;
   options.c_lflag = 0;
   tcflush(fd, TCIFLUSH);
   tcsetattr(fd, TCSANOW, &options);
 
-  _this->device_fd = fd;
-  uv_poll_t* poll_handle = &_this->poll_handle;
+  uart->device_fd = fd;
+  iotjs_uart_register_read_cb(uart);
 
-  uv_loop_t* loop = iotjs_environment_loop(iotjs_environment_get());
-  uv_poll_init(loop, poll_handle, fd);
-  poll_handle->data = uart;
-  uv_poll_start(poll_handle, UV_READABLE, iotjs_uart_read_cb);
-
-  req_data->result = true;
+  return true;
 }
 
-
 bool iotjs_uart_write(iotjs_uart_t* uart) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_uart_t, uart);
   int bytesWritten = 0;
   unsigned offset = 0;
-  int fd = _this->device_fd;
-  const char* buf_data = iotjs_string_data(&_this->buf_data);
+  int fd = uart->device_fd;
+  const char* buf_data = iotjs_string_data(&uart->buf_data);
 
   DDDLOG("%s - data: %s", __func__, buf_data);
 
   do {
     errno = 0;
-    bytesWritten = write(fd, buf_data + offset, _this->buf_len - offset);
+    bytesWritten = write(fd, buf_data + offset, uart->buf_len - offset);
     tcdrain(fd);
 
-    DDDLOG("%s - size: %d", __func__, _this->buf_len - offset);
+    DDDLOG("%s - size: %d", __func__, uart->buf_len - offset);
 
     if (bytesWritten != -1) {
       offset += (unsigned)bytesWritten;
@@ -145,10 +150,16 @@ bool iotjs_uart_write(iotjs_uart_t* uart) {
 
     return false;
 
-  } while (_this->buf_len > offset);
+  } while (uart->buf_len > offset);
 
   return true;
 }
 
+void iotjs_uart_handlewrap_close_cb(uv_handle_t* handle) {
+  iotjs_uart_t* uart = (iotjs_uart_t*)handle->data;
 
-#endif /* IOTJS_MODULE_UART_LINUX_GENERAL_INL_H */
+  if (close(uart->device_fd) < 0) {
+    DLOG(iotjs_periph_error_str(kUartOpClose));
+    IOTJS_ASSERT(0);
+  }
+}

@@ -19,64 +19,34 @@
 
 #include "iotjs_def.h"
 #include "iotjs_handlewrap.h"
+#include "iotjs_module_periph_common.h"
 #include "iotjs_reqwrap.h"
 
 
 #define UART_WRITE_BUFFER_SIZE 512
 
-
-typedef enum {
-  kUartOpOpen,
-  kUartOpClose,
-  kUartOpWrite,
-} UartOp;
-
+typedef struct iotjs_uart_platform_data_s iotjs_uart_platform_data_t;
 
 typedef struct {
   iotjs_handlewrap_t handlewrap;
-  jerry_value_t jemitter_this;
+  iotjs_uart_platform_data_t* platform_data;
   int device_fd;
-  int baud_rate;
+  unsigned baud_rate;
   uint8_t data_bits;
-  iotjs_string_t device_path;
   iotjs_string_t buf_data;
   unsigned buf_len;
   uv_poll_t poll_handle;
-} IOTJS_VALIDATED_STRUCT(iotjs_uart_t);
+} iotjs_uart_t;
 
+jerry_value_t iotjs_uart_set_platform_config(iotjs_uart_t* uart,
+                                             const jerry_value_t jconfig);
 
-typedef struct {
-  UartOp op;
-  bool result;
-} iotjs_uart_reqdata_t;
-
-
-typedef struct {
-  iotjs_reqwrap_t reqwrap;
-  uv_work_t req;
-  iotjs_uart_reqdata_t req_data;
-  iotjs_uart_t* uart_instance;
-} IOTJS_VALIDATED_STRUCT(iotjs_uart_reqwrap_t);
-
-#define THIS iotjs_uart_reqwrap_t* uart_reqwrap
-
-iotjs_uart_reqwrap_t* iotjs_uart_reqwrap_from_request(uv_work_t* req);
-iotjs_uart_reqdata_t* iotjs_uart_reqwrap_data(THIS);
-
-iotjs_uart_t* iotjs_uart_instance_from_reqwrap(THIS);
-
-#undef THIS
-
-
-#define UART_WORKER_INIT                                                      \
-  iotjs_uart_reqwrap_t* req_wrap = iotjs_uart_reqwrap_from_request(work_req); \
-  iotjs_uart_reqdata_t* req_data = iotjs_uart_reqwrap_data(req_wrap);         \
-  iotjs_uart_t* uart = iotjs_uart_instance_from_reqwrap(req_wrap);
-
-
-void iotjs_uart_read_cb(uv_poll_t* req, int status, int events);
-
-void iotjs_uart_open_worker(uv_work_t* work_req);
+void iotjs_uart_register_read_cb(iotjs_uart_t* uart);
+bool iotjs_uart_open(iotjs_uart_t* uart);
 bool iotjs_uart_write(iotjs_uart_t* uart);
+void iotjs_uart_handlewrap_close_cb(uv_handle_t* handle);
+
+void iotjs_uart_create_platform_data(iotjs_uart_t* uart);
+void iotjs_uart_destroy_platform_data(iotjs_uart_platform_data_t* pdata);
 
 #endif /* IOTJS_MODULE_UART_H */

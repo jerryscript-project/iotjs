@@ -25,6 +25,7 @@ var es6 = {
 var eslintRecommended = {
   'no-console': 0,
   'no-empty': 0, // TODO: remove this feature
+  'no-constant-condition': [2, { 'checkLoops': false }]
 }
 
 var style = {
@@ -62,7 +63,7 @@ var syntax = {
   'no-caller': 2,
   'no-extend-native': 2,
   'no-new-wrappers': 2,
-  'new-cap': 2,
+  'new-cap': [2, { 'capIsNew': false, 'newIsCapExceptions': ['native'] }],
   'no-array-constructor': 2,
   'no-new-object': 2,
   'semi': 2,
@@ -73,6 +74,9 @@ module.exports = {
   'env': {
     'node': true,
     'es6': false,
+  },
+  'globals': {
+    'native': true,
   },
   'rules': Object.assign(
     eslintRecommended,

@@ -17,18 +17,19 @@
 var Native = require('native');
 var fs = Native.require('fs');
 
-function iotjs_module_t(id, parent) {
+function Module(id, parent) {
   this.id = id;
   this.exports = {};
   this.filename = null;
   this.parent = parent;
 }
 
-module.exports = iotjs_module_t;
+module.exports = Module;
 
 
-iotjs_module_t.cache = {};
-iotjs_module_t.remoteCache = {};
+Module.cache = {};
+// Cache to store not yet compiled remote modules
+Module.remoteCache = {};
 
 
 var cwd;
@@ -41,19 +42,31 @@ if (cwd) {
   moduledirs.push(cwd + '/');
   moduledirs.push(cwd + '/iotjs_modules/');
 }
+
 if (process.env.HOME) {
   moduledirs.push(process.env.HOME + '/iotjs_modules/');
 }
+
 if (process.env.IOTJS_PATH) {
   moduledirs.push(process.env.IOTJS_PATH + '/iotjs_modules/');
 }
 
-function tryPath(modulePath, ext) {
-  return iotjs_module_t.tryPath(modulePath) ||
-         iotjs_module_t.tryPath(modulePath + ext);
+if (process.env.IOTJS_EXTRA_MODULE_PATH) {
+  var extra_paths = process.env.IOTJS_EXTRA_MODULE_PATH.split(':');
+  extra_paths.forEach(function(path) {
+    if (path.slice(-1) !== '/') {
+      path += '/';
+    }
+    moduledirs.push(path);
+  });
 }
 
-iotjs_module_t.resolveDirectories = function(id, parent) {
+function tryPath(modulePath, ext) {
+  return Module.tryPath(modulePath) ||
+         Module.tryPath(modulePath + ext);
+}
+
+Module.resolveDirectories = function(id, parent) {
   var dirs = moduledirs;
   if (parent) {
     if (!parent.dirs) {
@@ -65,7 +78,7 @@ iotjs_module_t.resolveDirectories = function(id, parent) {
 };
 
 
-iotjs_module_t.resolveFilepath = function(id, directories) {
+Module.resolveFilepath = function(id, directories) {
   for (var i = 0; i < directories.length; i++) {
     var dir = directories[i];
     var modulePath = dir + id;
@@ -76,60 +89,60 @@ iotjs_module_t.resolveFilepath = function(id, directories) {
 
     if (process.platform === 'tizenrt' &&
         (modulePath.indexOf('../') != -1 || modulePath.indexOf('./') != -1)) {
-      modulePath = iotjs_module_t.normalizePath(modulePath);
+      modulePath = Module.normalizePath(modulePath);
     }
 
     var filepath,
         ext = '.js';
 
     // id[.ext]
-    if (filepath = tryPath(modulePath, ext)) {
+    if ((filepath = tryPath(modulePath, ext))) {
       return filepath;
     }
 
     // 3. package path id/
     var jsonpath = modulePath + '/package.json';
-    filepath = iotjs_module_t.tryPath(jsonpath);
-    if (filepath) {
+
+    if (Module.tryPath(jsonpath)) {
       var pkgSrc = process.readSource(jsonpath);
       var pkgMainFile = JSON.parse(pkgSrc).main;
 
       // pkgmain[.ext]
-      if (filepath = tryPath(modulePath + '/' + pkgMainFile, ext)) {
-        return filepath;
-      }
-
-      // index[.ext] as default
-      if (filepath = tryPath(modulePath + '/index', ext)) {
+      if (pkgMainFile &&
+          (filepath = tryPath(modulePath + '/' + pkgMainFile, ext))) {
         return filepath;
       }
     }
 
+    // index[.ext] as default
+    if ((filepath = tryPath(modulePath + '/index', ext))) {
+      return filepath;
+    }
   }
 
   return false;
 };
 
 
-iotjs_module_t.resolveModPath = function(id, parent) {
+Module.resolveModPath = function(id, parent) {
   if (parent != null && id === parent.id) {
     return false;
   }
 
   // 0. resolve Directory for lookup
-  var directories = iotjs_module_t.resolveDirectories(id, parent);
+  var directories = Module.resolveDirectories(id, parent);
 
-  var filepath = iotjs_module_t.resolveFilepath(id, directories);
+  var filepath = Module.resolveFilepath(id, directories);
 
   if (filepath) {
-    return iotjs_module_t.normalizePath(filepath);
+    return Module.normalizePath(filepath);
   }
 
   return false;
 };
 
 
-iotjs_module_t.normalizePath = function(path) {
+Module.normalizePath = function(path) {
   var beginning = '';
   if (path.indexOf('/') === 0) {
     beginning = '/';
@@ -157,7 +170,7 @@ iotjs_module_t.normalizePath = function(path) {
 };
 
 
-iotjs_module_t.tryPath = function(path) {
+Module.tryPath = function(path) {
   try {
     var stats = fs.statSync(path);
     if (stats && !stats.isDirectory()) {
@@ -169,13 +182,19 @@ iotjs_module_t.tryPath = function(path) {
 };
 
 
-iotjs_module_t.load = function(id, parent) {
+Module.load = function(id, parent) {
   if (process.builtin_modules[id]) {
     return Native.require(id);
   }
-  var module = new iotjs_module_t(id, parent);
-  var modPath = iotjs_module_t.resolveModPath(module.id, module.parent);
-  var cachedModule = iotjs_module_t.cache[modPath];
+  if (Module.remoteCache[id]) {
+    Module.compileRemoteSource(id, Module.remoteCache[id]);
+    delete Module.remoteCache[id];
+    return Module.cache[id].exports;
+  }
+
+  var module = new Module(id, parent);
+  var modPath = Module.resolveModPath(module.id, module.parent);
+  var cachedModule = Module.cache[modPath];
 
   if (cachedModule) {
     return cachedModule.exports;
@@ -197,12 +216,13 @@ iotjs_module_t.load = function(id, parent) {
   } else if (ext === 'json') {
     module.exports = JSON.parse(source);
   }
+  Module.cache[modPath] = module;
   return module.exports;
 };
 
-iotjs_module_t.loadRemote = function(filename, source) {
-  var module = new iotjs_module_t(filename, null);
-  var cachedModule = iotjs_module_t.cache[filename];
+Module.compileRemoteSource = function(filename, source) {
+  var module = new Module(filename, null);
+  var cachedModule = Module.cache[filename];
 
   if (cachedModule) {
     return cachedModule.exports;
@@ -210,30 +230,33 @@ iotjs_module_t.loadRemote = function(filename, source) {
 
   module.filename = filename;
   module.compile(filename, source);
-  iotjs_module_t.remoteCache[filename] = module;
+  Module.cache[filename] = module;
 
   return module.exports;
 };
 
 
-iotjs_module_t.prototype.compile = function(filename, source) {
+Module.prototype.compile = function(filename, source) {
     var fn = process.compile(filename, source);
     fn.call(this.exports, this.exports, this.require.bind(this), this);
 };
 
 
-iotjs_module_t.runMain = function() {
+Module.runMain = function() {
   if (process.debuggerWaitSource) {
-    var fn = process.debuggerGetSource();
-    fn.forEach(function (e) {
-      iotjs_module_t.loadRemote(e[0], e[1]);
+    var sources = process.debuggerGetSource();
+    sources.forEach(function(rModule) {
+      Module.remoteCache[rModule[0]] = rModule[1];
     });
+    // Name of the first module
+    var fModName = sources[sources.length - 1][0];
+    Module.compileRemoteSource(fModName, Module.remoteCache[fModName]);
   } else {
-    iotjs_module_t.load(process.argv[1], null);
+    Module.load(process.argv[1], null);
   }
   while (process._onNextTick());
 };
 
-iotjs_module_t.prototype.require = function(id) {
-  return iotjs_module_t.load(id, this);
+Module.prototype.require = function(id) {
+  return Module.load(id, this);
 };

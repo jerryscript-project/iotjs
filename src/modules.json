@@ -22,7 +22,8 @@
           "native_files": ["modules/iotjs_module_adc.c"]
         }
       },
-      "native_files": ["modules/iotjs_module_adc.c"],
+      "native_files": ["modules/iotjs_module_adc.c",
+                       "modules/iotjs_module_periph_common.c"],
       "init": "InitAdc",
       "js_file": "js/adc.js"
     },
@@ -149,7 +150,7 @@
           "native_files": ["modules/linux/iotjs_module_gpio-linux.c"]
         },
         "nuttx": {
-          "native_files": ["modules/nuttx/stm32f4dis/iotjs_module_gpio-nuttx-stm32f4dis.c"]
+          "native_files": ["modules/nuttx/iotjs_module_gpio-nuttx.c"]
         },
         "tizen": {
           "native_files": ["modules/tizen/iotjs_module_gpio-tizen.c"]
@@ -158,10 +159,10 @@
           "native_files": ["modules/tizenrt/iotjs_module_gpio-tizenrt.c"]
         }
       },
-      "native_files": ["modules/iotjs_module_gpio.c"],
+      "native_files": ["modules/iotjs_module_gpio.c",
+                       "modules/iotjs_module_periph_common.c"],
       "init": "InitGpio",
-      "js_file": "js/gpio.js",
-      "require": ["events", "util"]
+      "js_file": "js/gpio.js"
     },
     "http": {
       "js_file": "js/http.js",
@@ -224,7 +225,8 @@
           "native_files": ["modules/tizenrt/iotjs_module_i2c-tizenrt.c"]
         }
       },
-      "native_files": ["modules/iotjs_module_i2c.c"],
+      "native_files": ["modules/iotjs_module_i2c.c",
+                       "modules/iotjs_module_periph_common.c"],
       "init": "InitI2c",
       "js_file": "js/i2c.js"
     },
@@ -252,10 +254,10 @@
           "native_files": ["modules/tizenrt/iotjs_module_pwm-tizenrt.c"]
         }
       },
-      "native_files": ["modules/iotjs_module_pwm.c"],
+      "native_files": ["modules/iotjs_module_pwm.c",
+                       "modules/iotjs_module_periph_common.c"],
       "init": "InitPwm",
-      "js_file": "js/pwm.js",
-      "require": ["util"]
+      "js_file": "js/pwm.js"
     },
     "spi": {
       "platforms": {
@@ -265,14 +267,17 @@
         "nuttx": {
           "native_files": ["modules/nuttx/iotjs_module_spi-nuttx.c"]
         },
+        "tizen": {
+          "native_files": ["modules/tizen/iotjs_module_spi-tizen.c"]
+        },
         "tizenrt": {
           "native_files": ["modules/tizenrt/iotjs_module_spi-tizenrt.c"]
         }
       },
-      "native_files": ["modules/iotjs_module_spi.c"],
+      "native_files": ["modules/iotjs_module_spi.c",
+                       "modules/iotjs_module_periph_common.c"],
       "init": "InitSpi",
-      "js_file": "js/spi.js",
-      "require": ["util"]
+      "js_file": "js/spi.js"
     },
     "stm32f4dis": {
       "platforms": {
@@ -285,12 +290,16 @@
     },
     "stream": {
       "js_file": "js/stream.js",
-      "require": ["events", "stream_duplex", "stream_readable",
+      "require": ["stream_duplex", "stream_internal", "stream_readable",
                   "stream_writable", "util"]
     },
     "stream_duplex": {
       "js_file": "js/stream_duplex.js",
       "require": ["stream_readable", "stream_writable", "util"]
+    },
+    "stream_internal": {
+      "js_file": "js/stream_internal.js",
+      "require": ["events", "util"]
     },
     "stream_readable": {
       "js_file": "js/stream_readable.js",
@@ -315,6 +324,13 @@
       "js_file": "js/timers.js",
       "require": ["util"]
     },
+    "tls": {
+      "native_files": ["modules/iotjs_module_tls.c"],
+      "init": "InitTls",
+      "js_file": "js/tls.js",
+      "cmakefile": "../cmake/mbedtls.cmake",
+      "require": ["net", "util"]
+    },
     "uart": {
       "platforms": {
         "linux": {
@@ -323,14 +339,18 @@
         "nuttx": {
           "native_files": ["modules/nuttx/iotjs_module_uart-nuttx.c"]
         },
+        "tizen": {
+          "native_files": ["modules/tizen/iotjs_module_uart-tizen.c"]
+        },
         "tizenrt": {
           "native_files": ["modules/tizenrt/iotjs_module_uart-tizenrt.c"]
         }
       },
-      "native_files": ["modules/iotjs_module_uart.c"],
+      "native_files": ["modules/iotjs_module_uart.c",
+                       "modules/iotjs_module_periph_common.c"],
       "init": "InitUart",
       "js_file": "js/uart.js",
-      "require": ["events", "util"]
+      "require": ["events"]
     },
     "udp": {
       "native_files": ["modules/iotjs_module_udp.c"],

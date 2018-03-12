@@ -85,10 +85,10 @@ jerry-heaplimit (default is 81, may change)
 jerry-memstat (default is False)
 no-init-submodule (default is init)
 no-check-tidy (default is check)
-no-check-test (default is check)
 no-parallel-build
 no-snapshot
 nuttx-home= (no default value)
+run-test (default is False)
 ```
 
 To give options, please use two dashes '--' before the option name as described in the following sections.
@@ -99,8 +99,8 @@ Options that may need explanations.
 * jerry-heaplimit: JerryScript default heap size (as of today) is 256Kbytes. This option is to change the size for embedded systems, NuttX for now, and current default is 81KB. For linux, this has no effect. While building nuttx if you see an error `region sram overflowed by xxxx bytes`, you may have to decrease about that amount.
 * jerry-memstat: turn on the flag so that jerry dumps byte codes and literals and memory usage while parsing and execution.
 * no-check-tidy: no checks codes are tidy. we recommend to check tidy.
-* no-check-test: do not run all tests in test folder after build.
 * nuttx-home: it's NuttX platform specific, to tell where the NuttX configuration and header files are.
+* run-test: run all tests in test folder after build.
 
 If you want to know more details about options, please check the [Build Script](Build-Script.md) page.
 

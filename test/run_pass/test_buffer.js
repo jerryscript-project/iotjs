@@ -19,15 +19,15 @@ var assert = require('assert');
 
 var buff1 = new Buffer("test");
 assert.equal(buff1.toString(), "test");
-assert.equal(buff1.toString(0, 0), "");
-assert.equal(buff1.toString(0, 1), "t");
-assert.equal(buff1.toString(0, 2), "te");
-assert.equal(buff1.toString(0, 3), "tes");
-assert.equal(buff1.toString(0, 4), "test");
-assert.equal(buff1.toString(1, 4), "est");
-assert.equal(buff1.toString(2, 4), "st");
-assert.equal(buff1.toString(3, 4), "t");
-assert.equal(buff1.toString(4, 4), "");
+assert.equal(buff1.toString(undefined, 0, 0), "");
+assert.equal(buff1.toString(undefined, 0, 1), "t");
+assert.equal(buff1.toString(undefined, 0, 2), "te");
+assert.equal(buff1.toString(undefined, 0, 3), "tes");
+assert.equal(buff1.toString(undefined, 0, 4), "test");
+assert.equal(buff1.toString(undefined, 1, 4), "est");
+assert.equal(buff1.toString(undefined, 2, 4), "st");
+assert.equal(buff1.toString(undefined, 3, 4), "t");
+assert.equal(buff1.toString(undefined, 4, 4), "");
 assert.equal(buff1.length, 4);
 
 var buff2 = new Buffer(10);

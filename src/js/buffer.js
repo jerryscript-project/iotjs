@@ -237,19 +237,22 @@ Buffer.prototype.slice = function(start, end) {
 
 // buff.toString([encoding,[,start[, end]]])
 // [1] buff.toString()
-// [2] buff.toString(start)
-// [3] buff.toString(start, end)
-// [4] buff.toString('hex')
+// [2] buff.toString(encoding)
+// [3] buff.toString(encoding, start)
+// [4] buff.toString(encoding, start, end)
 // * start - default to 0
 // * end - default to buff.length
-Buffer.prototype.toString = function(start, end) {
-  if (util.isString(start) && start === 'hex' && end === undefined) {
-      return native.toHexString(this);
+Buffer.prototype.toString = function(encoding, start, end) {
+  if (typeof encoding === 'string') {
+    encoding = getEncodingType(encoding);
+  } else {
+    encoding = -1;
   }
+
   start = start === undefined ? 0 : ~~start;
   end = end === undefined ? this.length : ~~end;
 
-  return native.toString(this, start, end);
+  return native.toString(this, encoding, start, end);
 };
 
 

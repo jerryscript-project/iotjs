@@ -60,6 +60,17 @@ assert.throws(function () {
 });
 
 
+assert.equal((new Buffer('buff')).toString('base64'), 'YnVmZg==');
+assert.equal((new Buffer('buffe')).toString('base64'), 'YnVmZmU=');
+assert.equal((new Buffer('buffer')).toString('base64'), 'YnVmZmVy');
+assert.equal((new Buffer('\u007f\u007f\u007f\u007f')).toString('base64'),
+             'f39/fw==');
+assert.equal((new Buffer('\u007e\u007e\u007e\u007e')).toString('base64'),
+             'fn5+fg==');
+
+assert.equal((new Buffer('**buffer**')).toString('base64', 2, 7), 'YnVmZmU=');
+
+
 /* Hex tests. */
 
 assert.equal((new Buffer('6768696A6b6c6D6e6f70', 'hex')).toString(),
@@ -81,3 +92,9 @@ assert.throws(function () {
   /* Malformed string must throw error regardless of the buffer length. */
   testWrite('xxxxxxxx', '3132333g', 2, 2, 'base64', 'xx12xxxx');
 });
+
+assert.equal((new Buffer('ghijklmnop')).toString('hex'),
+             '6768696a6b6c6d6e6f70');
+
+assert.equal((new Buffer('ghijklmnop')).toString('hex', 2, 8),
+             '696a6b6c6d6e');

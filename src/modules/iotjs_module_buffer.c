@@ -93,7 +93,7 @@ static size_t bound_range(size_t index, size_t low, size_t upper) {
 }
 
 
-static int8_t hexToBin(char c) {
+static int8_t hex_to_bin(char c) {
   if (c >= '0' && c <= '9') {
     return (int8_t)(c - '0');
   }
@@ -119,8 +119,8 @@ static size_t hex_decode(char* buf, size_t len, const char* src,
   }
 
   while (src < srcEnd) {
-    int8_t a = hexToBin(src[0]);
-    int8_t b = hexToBin(src[1]);
+    int8_t a = hex_to_bin(src[0]);
+    int8_t b = hex_to_bin(src[1]);
 
     if (a == -1 || b == -1) {
       return 0;
@@ -137,7 +137,7 @@ static size_t hex_decode(char* buf, size_t len, const char* src,
 }
 
 
-static int32_t base64ToBin(char c) {
+static int32_t base64_to_bin(char c) {
   if (c >= 'A' && c <= 'Z') {
     return (int32_t)(c - 'A');
   }
@@ -179,25 +179,25 @@ static size_t base64_decode(char* buf, size_t len, const char* src,
     }
   }
 
-  int32_t currentBits = 0;
+  int32_t current_bits = 0;
   int32_t shift = 8;
 
   while (src < srcEnd) {
-    int32_t value = base64ToBin(*src++);
+    int32_t value = base64_to_bin(*src++);
 
     if (value == -1) {
       return 0;
     }
 
-    currentBits = (currentBits << 6) | value;
+    current_bits = (current_bits << 6) | value;
     shift -= 2;
 
     if (shift == 6) {
       continue;
     }
 
-    int32_t byte = (currentBits >> shift);
-    currentBits &= (1 << shift) - 1;
+    int32_t byte = (current_bits >> shift);
+    current_bits &= (1 << shift) - 1;
 
     if (shift == 0) {
       shift = 8;
@@ -485,23 +485,130 @@ JS_FUNCTION(Slice) {
 }
 
 
+static char to_hex_char(uint8_t digit) {
+  return (char)((digit < 10) ? (digit + '0') : (digit + 'a' - 10));
+}
+
+
+static jerry_value_t to_hex_string(const uint8_t* data, size_t length) {
+  if (length == 0) {
+    return jerry_create_string_sz(NULL, 0);
+  }
+
+  const uint8_t* end = data + length;
+
+  size_t buffer_length = length * 2;
+  char* buffer = iotjs_buffer_allocate(buffer_length);
+  const jerry_char_t* str = (const jerry_char_t*)buffer;
+
+  while (data < end) {
+    *buffer++ = to_hex_char(*data >> 4);
+    *buffer++ = to_hex_char(*data & 0xf);
+    data++;
+  }
+
+  jerry_value_t ret_value = jerry_create_string_sz(str, buffer_length);
+  iotjs_buffer_release((char*)str);
+
+  return ret_value;
+}
+
+static char to_base64_char(uint8_t digit) {
+  if (digit <= 25) {
+    return (char)digit + 'A';
+  }
+  if (digit <= 51) {
+    return (char)digit + 'a' - 26;
+  }
+  if (digit <= 61) {
+    return (char)digit + '0' - 52;
+  }
+
+  return (digit == 62) ? '+' : '/';
+}
+
+static jerry_value_t to_base64_string(const uint8_t* data, size_t length) {
+  if (length == 0) {
+    return jerry_create_string_sz(NULL, 0);
+  }
+
+  const uint8_t* end = data + length;
+
+  size_t buffer_length = ((length + 2) / 3) * 4;
+  char* buffer = iotjs_buffer_allocate(buffer_length);
+  const jerry_char_t* str = (const jerry_char_t*)buffer;
+
+  uint32_t current_bits = 0;
+  int32_t shift = 2;
+
+  while (data < end) {
+    current_bits = (current_bits << 8) | *data++;
+
+    *buffer++ = to_base64_char(current_bits >> shift);
+    current_bits &= (uint32_t)((1 << shift) - 1);
+
+    shift += 2;
+
+    if (shift == 8) {
+      *buffer++ = to_base64_char(current_bits);
+      current_bits = 0;
+      shift = 2;
+    }
+  }
+
+  char* buffer_end = (char*)str + buffer_length;
+  if (buffer < buffer_end) {
+    buffer[0] = to_base64_char(current_bits << (8 - shift));
+    buffer[1] = '=';
+
+    if (buffer + 2 < buffer_end)
+      buffer[2] = '=';
+  }
+
+  jerry_value_t ret_value = jerry_create_string_sz(str, buffer_length);
+  iotjs_buffer_release((char*)str);
+
+  return ret_value;
+}
+
+
 JS_FUNCTION(ToString) {
-  DJS_CHECK_ARGS(3, object, number, number);
+  DJS_CHECK_ARGS(4, object, number, number, number);
   JS_DECLARE_OBJECT_PTR(0, bufferwrap, buffer_wrap);
 
-  size_t start = iotjs_convert_double_to_sizet(JS_GET_ARG(1, number));
+  double type = JS_GET_ARG(1, number);
+
+  size_t start = iotjs_convert_double_to_sizet(JS_GET_ARG(2, number));
   start = bound_range(start, 0, iotjs_bufferwrap_length(buffer_wrap));
 
-  size_t end = iotjs_convert_double_to_sizet(JS_GET_ARG(2, number));
+  size_t end = iotjs_convert_double_to_sizet(JS_GET_ARG(3, number));
   end = bound_range(end, 0, iotjs_bufferwrap_length(buffer_wrap));
 
   if (end < start) {
     end = start;
   }
 
+  if (start > buffer_wrap->length) {
+    start = buffer_wrap->length;
+  }
+
+  if (end > buffer_wrap->length) {
+    end = buffer_wrap->length;
+  }
+
   size_t length = end - start;
 
   const char* data = buffer_wrap->buffer + start;
+
+  if (type == BUFFER_HEX_ENC) {
+    return to_hex_string((const uint8_t*)data, length);
+  }
+
+  if (type == BUFFER_BASE64_ENC) {
+    return to_base64_string((const uint8_t*)data, length);
+  }
+
+  /* Stops at first zero. */
   length = strnlen(data, length);
 
   if (!jerry_is_valid_utf8_string((const jerry_char_t*)data, length)) {
@@ -509,30 +616,6 @@ JS_FUNCTION(ToString) {
   }
 
   return jerry_create_string_sz_from_utf8((const jerry_char_t*)data, length);
-}
-
-
-JS_FUNCTION(ToHexString) {
-  JS_DECLARE_OBJECT_PTR(0, bufferwrap, buffer_wrap);
-
-  size_t length = iotjs_bufferwrap_length(buffer_wrap);
-  const char* data = buffer_wrap->buffer;
-  JS_CHECK(data != NULL);
-
-  char* buffer = iotjs_buffer_allocate(length * 2);
-  iotjs_string_t str = iotjs_string_create_with_buffer(buffer, length * 2);
-
-  for (size_t i = 0; i < length; i++) {
-    memcpy(buffer, &"0123456789abcdef"[data[i] >> 4 & 0xF], 1);
-    buffer++;
-    memcpy(buffer, &"0123456789abcdef"[data[i] >> 0 & 0xF], 1);
-    buffer++;
-  }
-
-  jerry_value_t ret_value = iotjs_jval_create_string(&str);
-  iotjs_string_destroy(&str);
-
-  return ret_value;
 }
 
 
@@ -555,7 +638,6 @@ jerry_value_t InitBuffer() {
   iotjs_jval_set_method(buffer, IOTJS_MAGIC_STRING_READUINT8, ReadUInt8);
   iotjs_jval_set_method(buffer, IOTJS_MAGIC_STRING_SLICE, Slice);
   iotjs_jval_set_method(buffer, IOTJS_MAGIC_STRING_TOSTRING, ToString);
-  iotjs_jval_set_method(buffer, IOTJS_MAGIC_STRING_TOHEXSTRING, ToHexString);
 
   return buffer;
 }

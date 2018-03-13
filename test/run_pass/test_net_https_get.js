@@ -22,8 +22,9 @@ var isRequest1Finished = false;
 // 1. GET req
 options = {
   method: 'GET',
-  host: "httpbin.org",
+  host: 'httpbin.org',
   path: '/user-agent',
+  rejectUnauthorized: false,
   headers: {'user-agent': 'iotjs'}
 };
 
@@ -50,8 +51,9 @@ https.get(options, getResponseHandler);
 var testMsg = 'Hello IoT.js';
 var finalOptions = {
   method: 'POST',
-  host: "httpbin.org",
+  host: 'httpbin.org',
   path: '/post',
+  rejectUnauthorized: false,
   headers: {'Content-Length': testMsg.length,
     'Content-Type': 'application/json'}
 };

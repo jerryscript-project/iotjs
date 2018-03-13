@@ -73,12 +73,6 @@ request2.end(message, function() {
   isRequest2Finished = true;
 });
 
-// Call the request2 end again to test the finish state.
-request2.end(message, function() {
-  // This clabback should never be called.
-  assert.equal(isRequest2Finished, false);
-});
-
 
 var server3 = http.createServer(function(request, response) {
   var str = '';

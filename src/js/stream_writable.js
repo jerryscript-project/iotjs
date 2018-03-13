@@ -34,7 +34,7 @@ function WritableState(options) {
   this.length = 0;
 
   // high water mark.
-  // The point where write() starts retuning false.
+  // The point where write() starts returning false.
   this.highWaterMark = (options && util.isNumber(options.highWaterMark)) ?
     options.highWaterMark : defaultHighWaterMark;
 

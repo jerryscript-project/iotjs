@@ -13,17 +13,43 @@
  * limitations under the License.
  */
 
-var Server = require('http_server').Server;
+var net = require('net');
 var ClientRequest = require('http_client').ClientRequest;
 var HTTPParser = require('httpparser');
+var HTTPServer = require('http_server');
+var util = require('util');
 
 exports.ClientRequest = ClientRequest;
 
 
 exports.request = function(options, cb) {
-  return new ClientRequest(options, cb);
+  // Create socket.
+  var socket = new net.Socket();
+  options.port = options.port || 80;
+
+  return new ClientRequest(options, cb, socket);
 };
 
+function Server(requestListener) {
+  if (!(this instanceof Server)) {
+    return new Server(requestListener);
+  }
+
+  net.Server.call(this, {allowHalfOpen: true},
+                  HTTPServer.connectionListener);
+
+  HTTPServer.initServer.call(this, {}, requestListener);
+}
+util.inherits(Server, net.Server);
+
+Server.prototype.setTimeout = function(ms, cb) {
+  this.timeout = ms;
+  if (cb) {
+    this.on('timeout', cb);
+  }
+};
+
+exports.Server = Server;
 
 exports.createServer = function(requestListener) {
   return new Server(requestListener);

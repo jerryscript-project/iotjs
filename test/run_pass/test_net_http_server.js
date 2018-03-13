@@ -14,9 +14,8 @@
  */
 
 var assert = require('assert');
-var Server = require('http_server').Server;
 var http = require('http');
-
+var Server = http.Server;
 
 var responseCheck = '';
 var connectionEvent = 0;
@@ -78,6 +77,7 @@ var msg = 'http request test msg';
 var options = {
   method : 'POST',
   port : 3001,
+  rejectUnauthorized: false,
   headers : {'Content-Length': msg.length}
 };
 
@@ -148,6 +148,7 @@ var finalMsg = 'close server';
 var finalOptions = {
   method : 'POST',
   port : 3001,
+  rejectUnauthorized: false,
   headers : {'Content-Length': finalMsg.length}
 };
 

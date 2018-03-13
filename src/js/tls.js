@@ -47,6 +47,7 @@ function TLSSocket(socket, options) {
   }
 
   native.TlsInit(this, options, secureContext);
+  this._socketState = socket._socketState;
 }
 util.inherits(TLSSocket, EventEmitter);
 
@@ -117,6 +118,10 @@ TLSSocket.prototype.address = function() {
 
 TLSSocket.prototype.localAddress = function() {
   return this._socket.address().address;
+};
+
+TLSSocket.prototype.setTimeout = function(msecs, callback) {
+  return this._socket.setTimeout(msecs, callback);
 };
 
 TLSSocket.prototype.ondata = function(data) {

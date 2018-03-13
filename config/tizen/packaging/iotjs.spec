@@ -33,8 +33,9 @@ Requires(post): /sbin/ldconfig
 %description
 Platform for Internet of Things with JavaScript
 
-# default is release mode
+# Initialize the variables
 %{!?build_mode: %define build_mode release}
+%{!?external_build_options: %define external_build_options %{nil}}
 
 %package service
 Summary: Development files for %{name}
@@ -60,12 +61,18 @@ cat LICENSE
 cp %{SOURCE1001} .
 
 %build
-./tools/build.py --clean --buildtype=%{build_mode} --target-arch=noarch \
- --target-os=tizen --target-board=rpi3 \
- --external-lib=capi-system-peripheral-io \
- --compile-flag=-D__TIZEN__ \
- --profile=test/profiles/tizen.profile \
- --no-init-submodule --no-parallel-build
+./tools/build.py \
+  --clean \
+  --buildtype=%{build_mode} \
+  --profile=test/profiles/tizen.profile \
+  --target-arch=noarch \
+  --target-os=tizen \
+  --target-board=rpi3 \
+  --external-lib=capi-system-peripheral-io \
+  --compile-flag=-D__TIZEN__ \
+  --no-init-submodule \
+  --no-parallel-build \
+  %{external_build_options}
 # --external-lib=sdkapi \
 
 

@@ -61,6 +61,8 @@ echo -e "\n(3) Calling core gbs build command"
 gbsconf="config/tizen/sample.gbs.conf"
 gbscommand="gbs -c $gbsconf build -A armv7l --include-all --clean"
 gbscommand+=" --define='build_mode $buildtype'"
+gbscommand+=" --define='external_build_options $IOTJS_BUILD_OPTION'"
+
 ret=0
 echo $gbscommand
 if eval $gbscommand

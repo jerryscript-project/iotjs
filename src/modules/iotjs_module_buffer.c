@@ -291,15 +291,13 @@ jerry_value_t iotjs_bufferwrap_create_buffer(size_t len) {
   jerry_release_value(jglobal);
   IOTJS_ASSERT(jerry_value_is_function(jbuffer));
 
-  iotjs_jargs_t jargs = iotjs_jargs_create(1);
-  iotjs_jargs_append_number(&jargs, len);
+  jerry_value_t arg = jerry_create_number(len);
 
-  jerry_value_t jres =
-      iotjs_jhelper_call(jbuffer, jerry_create_undefined(), &jargs);
+  jerry_value_t jres = jerry_construct_object(jbuffer, &arg, 1);
   IOTJS_ASSERT(!jerry_value_has_error_flag(jres));
   IOTJS_ASSERT(jerry_value_is_object(jres));
 
-  iotjs_jargs_destroy(&jargs);
+  jerry_release_value(arg);
   jerry_release_value(jbuffer);
 
   return jres;

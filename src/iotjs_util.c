@@ -32,11 +32,13 @@ iotjs_string_t iotjs_file_read(const char* path) {
     return empty_content;
   }
 
-  fseek(file, 0, SEEK_END);
+  int fseek_ret = fseek(file, 0, SEEK_END);
+  IOTJS_ASSERT(fseek_ret == 0);
   long ftell_ret = ftell(file);
   IOTJS_ASSERT(ftell_ret >= 0);
   size_t len = (size_t)ftell_ret;
-  fseek(file, 0, SEEK_SET);
+  fseek_ret = fseek(file, 0, SEEK_SET);
+  IOTJS_ASSERT(fseek_ret == 0);
 
   char* buffer = iotjs_buffer_allocate(len + 1);
 

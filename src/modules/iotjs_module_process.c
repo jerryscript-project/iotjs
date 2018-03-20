@@ -166,13 +166,13 @@ JS_FUNCTION(ReadSource) {
 
   iotjs_string_t path = JS_GET_ARG(0, string);
   const iotjs_environment_t* env = iotjs_environment_get();
-
+  int err;
   uv_fs_t fs_req;
-  uv_fs_stat(iotjs_environment_loop(env), &fs_req, iotjs_string_data(&path),
-             NULL);
+  err = uv_fs_stat(iotjs_environment_loop(env), &fs_req,
+                   iotjs_string_data(&path), NULL);
   uv_fs_req_cleanup(&fs_req);
 
-  if (!S_ISREG(fs_req.statbuf.st_mode)) {
+  if (err || !S_ISREG(fs_req.statbuf.st_mode)) {
     iotjs_string_destroy(&path);
     return JS_CREATE_ERROR(COMMON, "ReadSource error, not a regular file");
   }

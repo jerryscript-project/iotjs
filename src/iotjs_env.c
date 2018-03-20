@@ -17,6 +17,7 @@
 #include "iotjs_def.h"
 #include "iotjs_env.h"
 
+#include <stdlib.h>
 #include <string.h>
 
 typedef enum {
@@ -176,8 +177,10 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
         env->config.debugger->context_reset = false;
       } break;
       case OPT_DEBUG_PORT: {
-        if (env->config.debugger)
-          sscanf(argv[i + 1], "%hu", &env->config.debugger->port);
+        if (env->config.debugger) {
+          char* pos = NULL;
+          env->config.debugger->port = (uint16_t)strtoul(argv[i + 1], &pos, 10);
+        }
       } break;
       case OPT_DEBUGGER_WAIT_SOURCE: {
         if (env->config.debugger)

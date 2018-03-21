@@ -70,11 +70,17 @@ cp %{SOURCE1001} .
   --target-board=rpi3 \
   --external-lib=capi-system-peripheral-io \
   --compile-flag=-D__TIZEN__ \
+  --compile-flag=-fPIC \
   --no-init-submodule \
   --no-parallel-build \
   %{external_build_options}
 # --external-lib=sdkapi \
 
+# Create shared library
+cd ./build/noarch-tizen/%{build_mode}/lib/
+%define iotjs_target_lib libjerry-core.a libjerry-port-default.a libhttpparser.a libtuv.a libiotjs.a
+%define iotjs_lib_flag -lcapi-system-peripheral-io -lpthread -lcurl
+gcc -shared -o libiotjs.so -Wl,--whole-archive %{iotjs_target_lib} -Wl,--no-whole-archive %{iotjs_lib_flag}
 
 %install
 mkdir -p %{buildroot}%{_bindir}
@@ -84,10 +90,10 @@ mkdir -p %{buildroot}%{_libdir}/pkgconfig
 
 
 cp ./build/noarch-tizen/%{build_mode}/bin/iotjs %{buildroot}%{_bindir}/
-cp ./build/noarch-tizen/%{build_mode}/lib/* %{buildroot}%{_libdir}/iotjs/
+cp ./build/noarch-tizen/%{build_mode}/lib/*.a %{buildroot}%{_libdir}/iotjs/
+cp ./build/noarch-tizen/%{build_mode}/lib/*.so %{buildroot}%{_libdir}/
 
-cp ./include/*.h %{buildroot}%{_includedir}
-cp ./src/*.h %{buildroot}%{_includedir}
+cp ./include/*.h %{buildroot}%{_includedir}/iotjs
 cp ./config/tizen/packaging/%{name}.pc.in %{buildroot}/%{_libdir}/pkgconfig/%{name}.pc
 
 %post -p /sbin/ldconfig
@@ -101,7 +107,9 @@ cp ./config/tizen/packaging/%{name}.pc.in %{buildroot}/%{_libdir}/pkgconfig/%{na
 %{_bindir}/*
 
 %files devel
+%manifest config/tizen/packaging/%{name}.manifest
 %defattr(-,root,root,-)
 %{_libdir}/iotjs/*.a
+%{_libdir}/libiotjs.so
 %{_libdir}/pkgconfig/%{name}.pc
 %{_includedir}/*

@@ -15,184 +15,216 @@
 
 var net = require('net');
 var util = require('util');
+var EventEmitter = require('events').EventEmitter;
 
-function Tls() {
+function TLSSocket(socket, options) {
+  if (!(this instanceof TLSSocket)) {
+    return new TLSSocket(socket, options);
+  }
+
+  if ('_tlsSocket' in socket) {
+    throw Error('Socket already bound');
+  }
+
+  this._socket = socket;
+  socket._tlsSocket = this;
+
+  EventEmitter.call(this);
+
+  this.authorized = false;
+
+  this._socket.on('connect', this.onconnect);
+  this._socket.on('data', this.ondata);
+  this._socket.on('error', this.onerror);
+  this._socket.on('close', this.onclose);
+  this._socket.on('finish', this.onfinish);
+  this._socket.on('end', this.onend);
+
+  // Native handle
+  var secureContext = options.secureContext;
+  if (!secureContext) {
+    secureContext = createSecureContext(options);
+  }
+
+  native.TlsInit(this, options, secureContext);
+}
+util.inherits(TLSSocket, EventEmitter);
+
+TLSSocket.prototype._read = native.read;
+TLSSocket.prototype._write = native.write;
+TLSSocket.prototype._connect = native.connect;
+
+TLSSocket.prototype.connect = function(options, callback) {
+  this._connect(options.servername || options.host || 'localhost');
+
+  if (util.isFunction(callback)) {
+    this.on('secureConnect', callback);
+  }
+
+  this._socket.connect(options);
+};
+
+TLSSocket.prototype.write = function(data, callback) {
+  if (!Buffer.isBuffer(data)) {
+    data = new Buffer(data);
+  }
+
+  data = this._write(data);
+  return this._socket.write(data, callback);
+};
+
+TLSSocket.prototype.pause = function() {
+  this._socket.pause();
+};
+
+TLSSocket.prototype.resume = function() {
+  this._socket.resume();
+};
+
+TLSSocket.prototype.end = function(data, callback) {
+  if (data) {
+    if (!Buffer.isBuffer(data)) {
+      data = new Buffer(data);
+    }
+    data = this._write(data, true);
+  } else {
+    data = this._write(null, true);
+  }
+
+  this._socket.end(data, callback);
+};
+
+TLSSocket.prototype.destroy = function() {
+  this._socket.destroy();
+};
+
+TLSSocket.prototype.destroySoon = function() {
+  this._socket.destroySoon();
+};
+
+TLSSocket.prototype.onconnect = function() {
+  var self = this._tlsSocket;
+  self._read(null);
+};
+
+TLSSocket.prototype.encrypted = function() {
+  return true;
+};
+
+TLSSocket.prototype.address = function() {
+  return this._socket.address();
+};
+
+TLSSocket.prototype.localAddress = function() {
+  return this._socket.address().address;
+};
+
+TLSSocket.prototype.ondata = function(data) {
+  var self = this._tlsSocket;
+  self._read(data);
+};
+
+TLSSocket.prototype.onerror = function(error) {
+  this._tlsSocket.emit('error', error);
+};
+
+TLSSocket.prototype.onclose = function() {
+  this._tlsSocket.emit('close');
+};
+
+TLSSocket.prototype.onfinish = function() {
+  this._tlsSocket.emit('finish');
+};
+
+TLSSocket.prototype.onend = function() {
+  this._tlsSocket.emit('end');
+};
+
+TLSSocket.prototype.onwrite = function(data) {
+  return this._socket.write(data);
+};
+
+TLSSocket.prototype.onread = function(chunk) {
+  this.emit('data', chunk);
+};
+
+TLSSocket.prototype.onhandshakedone = function(error, authorized) {
+  this.authorized = authorized;
+
+  var server = this._server;
+
+  if (error) {
+    error = Error('handshake failed');
+
+    if (server) {
+      server.emit('tlsClientError', error, this);
+    } else {
+      this.emit('error', error);
+    }
+    this.end();
+    return;
+  }
+
+  if (server) {
+    server.emit('secureConnection', this);
+  } else {
+    this.emit('secureConnect');
+  }
+};
+
+function tlsConnectionListener(rawSocket) {
+  var tlsSocket = new TLSSocket(rawSocket, {
+    isServer: true,
+    secureContext: this._secureContext,
+  });
+
+  tlsSocket._server = this;
 }
 
-Tls.Server = function(options) {
-  return net.Server(options);
-};
-
-Tls.Server.prototype.addContext = function(hostname, context) {
-  if (!util.isString(hostname)) {
-    throw new TypeError('hostname must be a string');
+function Server(options, listener) {
+  if (!(this instanceof Server)) {
+    return new Server(options, listener);
   }
 
-  if (!util.isObject(context)) {
-    throw new TypeError('context must be an object');
+  this._secureContext = createSecureContext(options);
+
+  // constructor call
+  net.Server.call(this, options, tlsConnectionListener);
+
+  if (listener) {
+    this.on('secureConnection', listener);
   }
-};
+}
+util.inherits(Server, net.Server);
 
-Tls.Server.prototype.address = function() {
-  throw new TypeError('Unimplemented');
-};
+function createSecureContext(options) {
+  return new native.TlsContext(options);
+}
 
-Tls.Server.prototype.close = function(callback) {
-  if (callback && !util.isFunction(callback)) {
-    throw new TypeError('callback must be a function');
+function createServer(options, secureConnectionListener) {
+  return new Server(options, secureConnectionListener);
+}
+
+function connect(options, callback) {
+  options = Object.create(options, {
+    isServer: { value: false, enumerable: true },
+  });
+
+  if (!options.host) {
+    options.host = 'localhost';
   }
-};
-
-Tls.Server.prototype.getTicketKeys = function() {
-  throw new TypeError('Unimplemented');
-};
-
-Tls.Server.prototype.listen = function() {
-  throw new TypeError('Unimplemented');
-};
-
-Tls.Server.prototype.setTicketKeys = function(keys) {
-  if (!util.isBuffer(keys)) {
-    throw new TypeError('keys must be a buffer');
-  }
-};
-
-
-Tls.TLSSocket = function(socket, opts) {
-  this._socket = socket;
-
-  if (!this._socket || !(socket instanceof net.Socket)) {
-    this._socket = new net.Socket();
+  if (!options.port) {
+    options.port = 443;
   }
 
-  this.encrypted = true;
-  this.isServer = !!opts.isServer || false;
-  this.requestCert = !!opts.requestCert || false;
+  var tlsSocket = new TLSSocket(new net.Socket(), options);
 
-  if (opts.NPNProtocols && !util.isBuffer(opts.NPNProtocols)) {
-    throw new TypeError('TLSSocket - options.NPNProtocols must be a buffer.');
-  }
+  tlsSocket.connect(options, callback);
+  return tlsSocket;
+}
 
-  if (opts.ALPNProtocols && !util.isBuffer(opts.ALPNProtocols)) {
-    throw new TypeError('TLSSocket - options.ALPNProtocols must be a buffer.');
-  }
-
-  if (opts.SNICallback && !util.isFunction(opts.SNICallback)) {
-    throw new TypeError('TLSSocket - options.SNICallback must be a function.');
-  }
-
-  if (opts.session && !util.isBuffer(opts.session)) {
-    throw new TypeError('TLSSocket - options.session should be a buffer.');
-  }
-};
-
-Tls.TLSSocket.prototype.address = function() {
-  throw new TypeError('Unimplemented');
-};
-
-Tls.TLSSocket.prototype.disableRenegotiation = function() {
-  this.disableRenegotiation = true;
-};
-
-Tls.TLSSocket.prototype.encrypted = function() {
-  return this.encrypted;
-};
-
-Tls.TLSSocket.prototype.getCipher = function() {
-  throw new TypeError('Unimplemented');
-};
-
-Tls.TLSSocket.prototype.getEphemeralKeyInfo = function() {
-  throw new TypeError('Unimplemented');
-};
-
-Tls.TLSSocket.prototype.getPeerCertificate = function(/* detailed */) {
-  throw new TypeError('Unimplemented');
-};
-
-Tls.TLSSocket.prototype.getProtocol = function() {
-  throw new TypeError('Unimplemented');
-};
-
-Tls.TLSSocket.prototype.getSession = function() {
-  throw new TypeError('Unimplemented');
-};
-
-Tls.TLSSocket.prototype.getTLSTicket = function() {
-  throw new TypeError('Unimplemented');
-};
-
-Tls.TLSSocket.prototype.write = function(message) {
-  return native.write(message);
-};
-
-Tls.TLSSocket.prototype.renegotiate = function(options, callback) {
-  if (!util.isObject(options)) {
-    throw new TypeError('options should be an object');
-  }
-
-  if (callback && !util.isFunction(callback)) {
-    throw new TypeError('callback should be a function');
-  }
-};
-
-Tls.TLSSocket.prototype.setMaxSendFragment = function(size) {
-  if (!util.isNumber(size)) {
-    throw new TypeError('size should be a number');
-  }
-};
-
-Tls.connect = function(options) {
-  if (options.socket || options.path) {
-    this._socket = options.socket || options.path;
-  } else {
-    this._socket = options.socket || new Tls.TLSSocket(new net.Socket, options);
-    this.host = options.host || 'localhost';
-    this.port = options.port;
-  }
-  this.servername = options.servername || 'default';
-  this.session = options.session;
-  this.minDHSize = options.minDHSize || 1024;
-
-
-  var res = native.connect(this.port.toString(), this.host, this.servername);
-  if (util.isString(res)) {
-    throw new Error(res);
-  }
-
-  return this._socket;
-};
-
-Tls.createSecureContext = function(options) {
-  this.pfx = options.pfx;
-  this.key = options.key;
-  this.passphrase = options.passphras;
-  this.cert = options.cert;
-  this.ca = options.ca;
-  this.ciphers = options.ciphers;
-  this.honorCipherOrder = false;
-  this.ecdhCurve = options.ecdhCurve;
-  this.clientCertEngine = options.clientCertEngine;
-  this.crl = options.crl;
-  if (options.dhparam && options.dhparam.length < 128) {
-    throw new RangeError('Key length must be at least 1024 bits');
-  }
-  this.dhparam = options.dhparam;
-
-};
-
-Tls.checkServerIdentity = function(/* host, cert */) {
-  throw new TypeError('Unimplemented');
-};
-
-Tls.createServer = function(options, secureConnectionListener) {
-  var server = new Tls.Server(options);
-
-  if (secureConnectionListener && util.isFunction(secureConnectionListener)) {
-    server.on('secureConnection', secureConnectionListener);
-  }
-
-  return server;
-};
-
-module.exports = Tls;
+exports.TLSSocket = TLSSocket;
+exports.Server = Server;
+exports.createSecureContext = createSecureContext;
+exports.createServer = createServer;
+exports.connect = connect;

@@ -65,26 +65,14 @@ iotjs_string_t iotjs_string_create_with_buffer(char* buffer, size_t size) {
 
 
 void iotjs_string_destroy(iotjs_string_t* str) {
-  if (str->data != NULL) {
-    iotjs_buffer_release(str->data);
-    str->size = 0;
-  }
+  IOTJS_RELEASE(str->data);
+  str->size = 0;
 }
 
 
 bool iotjs_string_is_empty(const iotjs_string_t* str) {
   return str->size == 0;
 }
-
-
-void iotjs_string_make_empty(iotjs_string_t* str) {
-  if (str->data != NULL) {
-    iotjs_buffer_release(str->data);
-    str->size = 0;
-    str->data = NULL;
-  }
-}
-
 
 void iotjs_string_append(iotjs_string_t* str, const char* data, size_t size) {
   IOTJS_ASSERT(data != NULL);

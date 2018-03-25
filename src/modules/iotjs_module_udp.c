@@ -141,8 +141,7 @@ static void OnAlloc(uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf) {
 static void OnRecv(uv_udp_t* handle, ssize_t nread, const uv_buf_t* buf,
                    const struct sockaddr* addr, unsigned int flags) {
   if (nread == 0 && addr == NULL) {
-    if (buf->base != NULL)
-      iotjs_buffer_release(buf->base);
+    iotjs_buffer_release(buf->base);
     return;
   }
 
@@ -162,8 +161,7 @@ static void OnRecv(uv_udp_t* handle, ssize_t nread, const uv_buf_t* buf,
   iotjs_jargs_append_jval(&jargs, judp);
 
   if (nread < 0) {
-    if (buf->base != NULL)
-      iotjs_buffer_release(buf->base);
+    iotjs_buffer_release(buf->base);
     iotjs_make_callback(jonmessage, jerry_create_undefined(), &jargs);
     jerry_release_value(jonmessage);
     iotjs_jargs_destroy(&jargs);

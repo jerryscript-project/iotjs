@@ -318,7 +318,7 @@ void iotjs_jargs_destroy(iotjs_jargs_t* jargs) {
     for (unsigned i = 0; i < jargs->argc; ++i) {
       jerry_release_value(jargs->argv[i]);
     }
-    iotjs_buffer_release((char*)jargs->argv);
+    IOTJS_RELEASE(jargs->argv);
   } else {
     IOTJS_ASSERT(jargs->argv == NULL);
   }

@@ -269,10 +269,10 @@ JS_FUNCTION(TransferSync) {
   }
 
   if (op == kSpiOpTransferArray) {
-    iotjs_buffer_release(spi->tx_buf_data);
+    IOTJS_RELEASE(spi->tx_buf_data);
   }
 
-  iotjs_buffer_release(spi->rx_buf_data);
+  IOTJS_RELEASE(spi->rx_buf_data);
 
   return result;
 }

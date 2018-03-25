@@ -116,9 +116,7 @@ bool iotjs_i2c_write(iotjs_i2c_t* i2c) {
 
   int ret = iotbus_i2c_write(platform_data->i2c_context, data, len);
 
-  if (i2c->buf_data != NULL) {
-    iotjs_buffer_release(i2c->buf_data);
-  }
+  IOTJS_RELEASE(i2c->buf_data);
 
   if (ret < 0) {
     DLOG("%s: cannot write data", __func__);

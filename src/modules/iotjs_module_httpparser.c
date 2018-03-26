@@ -60,8 +60,8 @@ typedef enum http_parser_type http_parser_type;
 static void iotjs_httpparserwrap_initialize(
     iotjs_httpparserwrap_t* httpparserwrap, http_parser_type type) {
   http_parser_init(&httpparserwrap->parser, type);
-  iotjs_string_make_empty(&httpparserwrap->url);
-  iotjs_string_make_empty(&httpparserwrap->status_msg);
+  iotjs_string_destroy(&httpparserwrap->url);
+  iotjs_string_destroy(&httpparserwrap->status_msg);
   httpparserwrap->n_fields = 0;
   httpparserwrap->n_values = 0;
   httpparserwrap->flushed = false;
@@ -140,7 +140,7 @@ static void iotjs_httpparserwrap_flush(iotjs_httpparserwrap_t* httpparserwrap) {
 
   iotjs_make_callback(func, jobj, &argv);
 
-  iotjs_string_make_empty(&httpparserwrap->url);
+  iotjs_string_destroy(&httpparserwrap->url);
   iotjs_jargs_destroy(&argv);
   jerry_release_value(func);
   httpparserwrap->flushed = true;
@@ -160,8 +160,8 @@ static void iotjs_httpparserwrap_set_buf(iotjs_httpparserwrap_t* httpparserwrap,
 static int iotjs_httpparserwrap_on_message_begin(http_parser* parser) {
   iotjs_httpparserwrap_t* httpparserwrap =
       (iotjs_httpparserwrap_t*)(parser->data);
-  iotjs_string_make_empty(&httpparserwrap->url);
-  iotjs_string_make_empty(&httpparserwrap->status_msg);
+  iotjs_string_destroy(&httpparserwrap->url);
+  iotjs_string_destroy(&httpparserwrap->status_msg);
   return 0;
 }
 
@@ -197,8 +197,7 @@ static int iotjs_httpparserwrap_on_header_field(http_parser* parser,
       httpparserwrap->n_fields = 1;
       httpparserwrap->n_values = 0;
     }
-    iotjs_string_make_empty(
-        &httpparserwrap->fields[httpparserwrap->n_fields - 1]);
+    iotjs_string_destroy(&httpparserwrap->fields[httpparserwrap->n_fields - 1]);
   }
   IOTJS_ASSERT(httpparserwrap->n_fields == httpparserwrap->n_values + 1);
   iotjs_string_append(&httpparserwrap->fields[httpparserwrap->n_fields - 1], at,
@@ -214,8 +213,7 @@ static int iotjs_httpparserwrap_on_header_value(http_parser* parser,
       (iotjs_httpparserwrap_t*)(parser->data);
   if (httpparserwrap->n_fields != httpparserwrap->n_values) {
     httpparserwrap->n_values++;
-    iotjs_string_make_empty(
-        &httpparserwrap->values[httpparserwrap->n_values - 1]);
+    iotjs_string_destroy(&httpparserwrap->values[httpparserwrap->n_values - 1]);
   }
 
   IOTJS_ASSERT(httpparserwrap->n_fields == httpparserwrap->n_values);

@@ -150,9 +150,7 @@ static void after_worker(uv_work_t* work_req, int status) {
           iotjs_jargs_append_jval(&jargs, result);
           jerry_release_value(result);
 
-          if (i2c->buf_data != NULL) {
-            iotjs_buffer_release(i2c->buf_data);
-          }
+          IOTJS_RELEASE(i2c->buf_data);
 #endif /* ENABLE_MODULE_I2C */
           break;
         }
@@ -169,7 +167,7 @@ static void after_worker(uv_work_t* work_req, int status) {
           iotjs_jargs_append_jval(&jargs, result);
           jerry_release_value(result);
 
-          iotjs_buffer_release(spi->rx_buf_data);
+          IOTJS_RELEASE(spi->rx_buf_data);
 #endif /* ENABLE_MODULE_SPI */
           break;
         }
@@ -182,7 +180,7 @@ static void after_worker(uv_work_t* work_req, int status) {
 #if ENABLE_MODULE_SPI
     if (reqwrap->op == kSpiOpTransferArray) {
       iotjs_spi_t* spi = (iotjs_spi_t*)reqwrap->data;
-      iotjs_buffer_release(spi->tx_buf_data);
+      IOTJS_RELEASE(spi->tx_buf_data);
     }
 #endif /* ENABLE_MODULE_SPI */
 #if ENABLE_MODULE_UART

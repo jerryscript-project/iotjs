@@ -400,9 +400,8 @@ void OnRead(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
   iotjs_jargs_append_bool(&jargs, false);
 
   if (nread <= 0) {
-    if (buf->base != NULL) {
-      iotjs_buffer_release(buf->base);
-    }
+    iotjs_buffer_release(buf->base);
+
     if (nread < 0) {
       if (nread == UV__EOF) {
         iotjs_jargs_replace(&jargs, 2, jerry_create_boolean(true));

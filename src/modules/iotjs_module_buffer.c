@@ -506,7 +506,7 @@ static jerry_value_t to_hex_string(const uint8_t* data, size_t length) {
   }
 
   jerry_value_t ret_value = jerry_create_string_sz(str, buffer_length);
-  iotjs_buffer_release((char*)str);
+  IOTJS_RELEASE(str);
 
   return ret_value;
 }
@@ -564,7 +564,7 @@ static jerry_value_t to_base64_string(const uint8_t* data, size_t length) {
   }
 
   jerry_value_t ret_value = jerry_create_string_sz(str, buffer_length);
-  iotjs_buffer_release((char*)str);
+  IOTJS_RELEASE(str);
 
   return ret_value;
 }

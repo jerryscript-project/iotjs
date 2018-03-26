@@ -89,9 +89,7 @@ bool iotjs_i2c_write(iotjs_i2c_t* i2c) {
   int ret = peripheral_i2c_write(platform_data->i2c_h, (uint8_t*)i2c->buf_data,
                                  i2c->buf_len);
 
-  if (i2c->buf_data != NULL) {
-    iotjs_buffer_release(i2c->buf_data);
-  }
+  IOTJS_RELEASE(i2c->buf_data);
 
   if (ret != PERIPHERAL_ERROR_NONE) {
     DLOG("%s : cannot write(%d)", __func__, ret);

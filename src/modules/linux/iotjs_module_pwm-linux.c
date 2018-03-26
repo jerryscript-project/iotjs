@@ -168,7 +168,7 @@ bool iotjs_pwm_set_period(iotjs_pwm_t* pwm) {
       if (snprintf(buf, sizeof(buf), "%d", value) > 0) {
         result = iotjs_systemio_open_write_close(devicePath, buf);
       }
-      iotjs_buffer_release(devicePath);
+      IOTJS_RELEASE(devicePath);
     }
   }
   return result;
@@ -197,7 +197,7 @@ bool iotjs_pwm_set_dutycycle(iotjs_pwm_t* pwm) {
       }
 
       result = iotjs_systemio_open_write_close(devicePath, buf);
-      iotjs_buffer_release(devicePath);
+      IOTJS_RELEASE(devicePath);
     }
   }
   return result;
@@ -223,7 +223,7 @@ bool iotjs_pwm_set_enable(iotjs_pwm_t* pwm) {
     }
 
     result = iotjs_systemio_open_write_close(devicePath, buf);
-    iotjs_buffer_release(devicePath);
+    IOTJS_RELEASE(devicePath);
   }
   return result;
 }

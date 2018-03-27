@@ -227,7 +227,9 @@ def check_tidy(src_dir, options=None):
                   'ble_hci_socket_bindings.js',
                   'ble_characteristic.js',
                   'test_ble_setservices.js',
-                  '.eslintrc.js'
+                  '.eslintrc.js',
+                  'c_source_templates.py',
+                  'cpp_source_templates.py'
                   ]
 
     style = StyleChecker()

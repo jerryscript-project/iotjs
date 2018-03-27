@@ -8,6 +8,11 @@
 /src/iotjs_module_inl.h
 /test/tmp/*
 /test/dynamicmodule/build/*
+/tools/module_generator/output
+/test/module_generator/test_c/*.a
+/test/module_generator/test_c/*.o
+/test/module_generator/test_cpp/*.a
+/test/module_generator/test_cpp/*.o
 eslint.log
 
 # IDE related files

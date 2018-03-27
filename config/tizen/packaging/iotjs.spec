@@ -69,6 +69,7 @@ cp %{SOURCE1001} .
   --target-os=tizen \
   --target-board=rpi3 \
   --external-lib=capi-system-peripheral-io \
+  --external-lib=dlog \
   --external-include-dir=/usr/include/dlog/ \
   --external-include-dir=/usr/include/appcore-agent/ \
   --external-include-dir=/usr/include/appfw/ \

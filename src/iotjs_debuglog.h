@@ -26,24 +26,37 @@ extern void iotjs_set_console_out(iotjs_console_out_t output);
 
 #ifdef ENABLE_DEBUG_LOG
 
-#include <stdio.h>
 
 extern int iotjs_debug_level;
 extern FILE* iotjs_log_stream;
 extern const char* iotjs_debug_prefix[4];
 
-#define IOTJS_DLOG(lvl, ...)                                         \
-  do {                                                               \
-    if (0 <= lvl && lvl <= iotjs_debug_level && iotjs_log_stream) {  \
-      if (iotjs_console_out) {                                       \
-        iotjs_console_out(lvl, __VA_ARGS__);                         \
-      } else {                                                       \
-        fprintf(iotjs_log_stream, "[%s] ", iotjs_debug_prefix[lvl]); \
-        fprintf(iotjs_log_stream, __VA_ARGS__);                      \
-        fprintf(iotjs_log_stream, "\n");                             \
-        fflush(iotjs_log_stream);                                    \
-      }                                                              \
-    }                                                                \
+#if defined(__TIZEN__)
+#include <dlog.h>
+#define DLOG_TAG "IOTJS"
+#define DLOG_PRINT(lvl, ...)                                       \
+  dlog_print((lvl == DBGLEV_ERR                                    \
+                  ? DLOG_ERROR                                     \
+                  : (lvl == DBGLEV_WARN ? DLOG_WARN : DLOG_INFO)), \
+             DLOG_TAG, __VA_ARGS__);
+#else
+#include <stdio.h>
+#define DLOG_PRINT(lvl, ...)                                   \
+  fprintf(iotjs_log_stream, "[%s] ", iotjs_debug_prefix[lvl]); \
+  fprintf(iotjs_log_stream, __VA_ARGS__);                      \
+  fprintf(iotjs_log_stream, "\n");                             \
+  fflush(iotjs_log_stream);
+#endif /* defined(__TIZEN__) */
+
+#define IOTJS_DLOG(lvl, ...)                                        \
+  do {                                                              \
+    if (0 <= lvl && lvl <= iotjs_debug_level && iotjs_log_stream) { \
+      if (iotjs_console_out) {                                      \
+        iotjs_console_out(lvl, __VA_ARGS__);                        \
+      } else {                                                      \
+        DLOG_PRINT(lvl, __VA_ARGS__)                                \
+      }                                                             \
+    }                                                               \
   } while (0)
 #define DLOG(...) IOTJS_DLOG(DBGLEV_ERR, __VA_ARGS__)
 #define DDLOG(...) IOTJS_DLOG(DBGLEV_WARN, __VA_ARGS__)

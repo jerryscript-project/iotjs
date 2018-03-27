@@ -27,6 +27,7 @@ if (process.platform === 'linux') {
 } else if (process.platform === 'tizen') {
   pin.led = 20;
   pin.switch = 13;
+  pin.pwm1 = 2;
   pin.i2c1 = 1;
   pin.spi1 = 0;
   pin.uart1 = 0;

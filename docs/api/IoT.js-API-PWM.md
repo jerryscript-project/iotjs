@@ -2,20 +2,20 @@
 
 The following shows PWM module APIs available for each platform.
 
-|  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | NuttX<br/>(STM32F4-Discovery) | TizenRT<br/>(Artik053) |
-| :---: | :---: | :---: | :---: | :---: |
-| pwm.open | O | O | O | O |
-| pwm.openSync | O | O | O | O |
-| pwmpin.setPeriod | O | O | O | O |
-| pwmpin.setPeriodSync | O | O | O | O |
-| pwmpin.setFrequency | O | O | O | O |
-| pwmpin.setFrequencySync | O | O | O | O |
-| pwmpin.setDutyCycle | O | O | O | O |
-| pwmpin.setDutyCycleSync | O | O | O | O |
-| pwmpin.setEnable | O | O | O | O |
-| pwmpin.setEnableSync | O | O | O | O |
-| pwmpin.close | O | O | O | O |
-| pwmpin.closeSync | O | O | O | O |
+|  | Linux<br/>(Ubuntu) | Tizen<br/>(ARTIK530) | Raspbian<br/>(Raspberry Pi) | NuttX<br/>(STM32F4-Discovery) | TizenRT<br/>(ARTIK053) |
+| :---: | :---: | :---: | :---: | :---: | :---: |
+| pwm.open | O | O | O | O | O |
+| pwm.openSync | O | O | O | O | O |
+| pwmpin.setPeriod | O | O | O | O | O |
+| pwmpin.setPeriodSync | O | O | O | O | O |
+| pwmpin.setFrequency | O | O | O | O | O |
+| pwmpin.setFrequencySync | O | O | O | O | O |
+| pwmpin.setDutyCycle | O | O | O | O | O |
+| pwmpin.setDutyCycleSync | O | O | O | O | O |
+| pwmpin.setEnable | O | O | O | O | O |
+| pwmpin.setEnableSync | O | O | O | O | O |
+| pwmpin.close | O | O | O | O | O |
+| pwmpin.closeSync | O | O | O | O | O |
 
 
 ## Class: PWM
@@ -35,6 +35,7 @@ Opens PWM pin with the specified configuration.
 
 To correctly open a PWM pin one must know the correct pin number:
 * On Linux, `pin` is a number which is `0` or `1`.
+* On Tizen, `pin` is a number which is `2`. (Only ARTIK530 board support PWM.)
 * On NuttX, you have to know pin name. The pin name is defined in target board module. For more module information, please see below list.
   * [STM32F4-discovery](../targets/nuttx/stm32f4dis/IoT.js-API-Stm32f4dis.md#pwm-pin)
 

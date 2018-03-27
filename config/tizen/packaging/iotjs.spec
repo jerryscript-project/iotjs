@@ -14,11 +14,11 @@ BuildRequires: python
 BuildRequires: cmake
 BuildRequires: glibc-static
 #BuildRequires: aul
-#BuildRequires: pkgconfig(appcore-agent)
-#BuildRequires: pkgconfig(capi-appfw-service-application)
+BuildRequires: pkgconfig(appcore-agent)
+BuildRequires: pkgconfig(capi-appfw-service-application)
 #BuildRequires: pkgconfig(capi-appfw-app-common)
 #BuildRequires: pkgconfig(capi-appfw-package-manager)
-#BuildRequires: pkgconfig(capi-appfw-application)
+BuildRequires: pkgconfig(capi-appfw-application)
 BuildRequires: pkgconfig(capi-system-peripheral-io)
 BuildRequires: pkgconfig(dlog)
 #BuildRequires: pkgconfig(st_things_sdkapi)
@@ -69,6 +69,9 @@ cp %{SOURCE1001} .
   --target-os=tizen \
   --target-board=rpi3 \
   --external-lib=capi-system-peripheral-io \
+  --external-include-dir=/usr/include/dlog/ \
+  --external-include-dir=/usr/include/appcore-agent/ \
+  --external-include-dir=/usr/include/appfw/ \
   --compile-flag=-D__TIZEN__ \
   --compile-flag=-fPIC \
   --no-init-submodule \
@@ -79,7 +82,7 @@ cp %{SOURCE1001} .
 # Create shared library
 cd ./build/noarch-tizen/%{build_mode}/lib/
 %define iotjs_target_lib libjerry-core.a libjerry-port-default.a libhttpparser.a libtuv.a libiotjs.a
-%define iotjs_lib_flag -lcapi-system-peripheral-io -lpthread -lcurl
+%define iotjs_lib_flag -lcapi-system-peripheral-io -lpthread -lcurl -ldlog -lappcore-agent -lcapi-appfw-app-common
 gcc -shared -o libiotjs.so -Wl,--whole-archive %{iotjs_target_lib} -Wl,--no-whole-archive %{iotjs_lib_flag}
 
 %install
@@ -90,10 +93,9 @@ mkdir -p %{buildroot}%{_libdir}/pkgconfig
 
 
 cp ./build/noarch-tizen/%{build_mode}/bin/iotjs %{buildroot}%{_bindir}/
-cp ./build/noarch-tizen/%{build_mode}/lib/*.a %{buildroot}%{_libdir}/iotjs/
 cp ./build/noarch-tizen/%{build_mode}/lib/*.so %{buildroot}%{_libdir}/
 
-cp ./include/*.h %{buildroot}%{_includedir}/iotjs
+cp ./src/platform/tizen/iotjs_tizen_service_app.h %{buildroot}%{_includedir}/iotjs
 cp ./config/tizen/packaging/%{name}.pc.in %{buildroot}/%{_libdir}/pkgconfig/%{name}.pc
 
 %post -p /sbin/ldconfig
@@ -109,7 +111,6 @@ cp ./config/tizen/packaging/%{name}.pc.in %{buildroot}/%{_libdir}/pkgconfig/%{na
 %files devel
 %manifest config/tizen/packaging/%{name}.manifest
 %defattr(-,root,root,-)
-%{_libdir}/iotjs/*.a
 %{_libdir}/libiotjs.so
 %{_libdir}/pkgconfig/%{name}.pc
 %{_includedir}/*

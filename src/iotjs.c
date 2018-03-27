@@ -34,7 +34,7 @@
 /**
  * Initialize JerryScript.
  */
-static bool iotjs_jerry_init(iotjs_environment_t* env) {
+bool iotjs_jerry_init(iotjs_environment_t* env) {
   // Set jerry run flags.
   jerry_init_flag_t jerry_flags = JERRY_INIT_EMPTY;
 
@@ -114,7 +114,7 @@ static void iotjs_run(iotjs_environment_t* env) {
 }
 
 
-static int iotjs_start(iotjs_environment_t* env) {
+int iotjs_start(iotjs_environment_t* env) {
   // Bind environment to global object.
   const jerry_value_t global = jerry_get_global_object();
   jerry_set_object_native_pointer(global, env, NULL);
@@ -167,7 +167,7 @@ static int iotjs_start(iotjs_environment_t* env) {
 }
 
 
-static void iotjs_uv_walk_to_close_callback(uv_handle_t* handle, void* arg) {
+void iotjs_uv_walk_to_close_callback(uv_handle_t* handle, void* arg) {
   iotjs_handlewrap_t* handle_wrap = iotjs_handlewrap_from_handle(handle);
   IOTJS_ASSERT(handle_wrap != NULL);
 

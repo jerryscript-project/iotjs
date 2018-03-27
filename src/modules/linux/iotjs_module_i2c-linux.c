@@ -134,9 +134,8 @@ bool iotjs_i2c_write(iotjs_i2c_t* i2c) {
   char* data = i2c->buf_data;
 
   int ret = write(platform_data->device_fd, data, len);
-  if (i2c->buf_data != NULL) {
-    iotjs_buffer_release(i2c->buf_data);
-  }
+
+  IOTJS_RELEASE(i2c->buf_data);
 
   return ret == len;
 }

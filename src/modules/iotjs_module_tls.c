@@ -79,7 +79,7 @@ static jerry_value_t tls_connect_error(iotjs_string_t* h, iotjs_string_t* p,
   iotjs_string_destroy(hn);
 
   jerry_value_t ret_val = JS_CREATE_ERROR(COMMON, (const jerry_char_t*)buf);
-  iotjs_buffer_release(buf);
+  IOTJS_RELEASE(buf);
 
   return ret_val;
 }

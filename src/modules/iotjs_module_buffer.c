@@ -82,6 +82,21 @@ size_t iotjs_bufferwrap_length(iotjs_bufferwrap_t* bufferwrap) {
 }
 
 
+iotjs_bufferwrap_t* iotjs_jbuffer_get_bufferwrap_ptr(
+    const jerry_value_t jbuffer) {
+  void* native_p;
+  const jerry_object_native_info_t* type_p;
+  bool has_native_pointer =
+      jerry_get_object_native_pointer(jbuffer, &native_p, &type_p);
+
+  if (has_native_pointer && type_p == &this_module_native_info) {
+    return (iotjs_bufferwrap_t*)native_p;
+  }
+
+  return NULL;
+}
+
+
 static size_t bound_range(size_t index, size_t low, size_t upper) {
   if (index == SIZE_MAX) {
     return low;

@@ -30,7 +30,7 @@
 
  var options = {
    key: fs.readFileSync('resources/my_key.pem').toString(),
-   cert: fs.readFileSync('resources/my_crt.pem').toString(),
+   cert: fs.readFileSync('resources/my_crt.pem'),
    rejectUnauthorized: false,
    isServer: true,
  };

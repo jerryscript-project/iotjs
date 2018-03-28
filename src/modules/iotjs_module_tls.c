@@ -210,29 +210,34 @@ JS_FUNCTION(TlsContext) {
   jerry_value_t jkey =
       iotjs_jval_get_property(joptions, IOTJS_MAGIC_STRING_KEY);
 
-  if (jerry_value_is_string(jcert) && jerry_value_is_string(jkey)) {
-    iotjs_string_t cert = iotjs_jval_as_string(jcert);
-    const char *cert_chars = iotjs_string_data(&cert);
+  iotjs_string_t cert_string;
+  iotjs_string_t key_string;
+
+  if (iotjs_jbuffer_as_string(jcert, &cert_string)) {
+    const char *cert_chars = iotjs_string_data(&cert_string);
 
     ret = mbedtls_x509_crt_parse(&tls_context->own_cert,
                                  (const unsigned char *)cert_chars,
-                                 (size_t)iotjs_string_size(&cert) + 1);
+                                 (size_t)iotjs_string_size(&cert_string) + 1);
 
-    iotjs_string_destroy(&cert);
+    if (cert_string.data != NULL) {
+      iotjs_string_destroy(&cert_string);
+    }
+  }
+
+  if (iotjs_jbuffer_as_string(jkey, &key_string)) {
+    const char *key_chars = iotjs_string_data(&key_string);
+
+    ret = mbedtls_pk_parse_key(&tls_context->pkey,
+                               (const unsigned char *)key_chars,
+                               (size_t)iotjs_string_size(&key_string) + 1, NULL,
+                               0);
 
     if (ret == 0) {
-      iotjs_string_t key = iotjs_jval_as_string(jkey);
-      const char *key_chars = iotjs_string_data(&key);
-
-      ret = mbedtls_pk_parse_key(&tls_context->pkey,
-                                 (const unsigned char *)key_chars,
-                                 (size_t)iotjs_string_size(&key) + 1, NULL, 0);
-
-      iotjs_string_destroy(&key);
-
-      if (ret == 0) {
-        tls_context->context_flags |= SSL_CONTEXT_HAS_KEY;
-      }
+      tls_context->context_flags |= SSL_CONTEXT_HAS_KEY;
+    }
+    if (key_string.data != NULL) {
+      iotjs_string_destroy(&key_string);
     }
   }
 
@@ -246,16 +251,17 @@ JS_FUNCTION(TlsContext) {
   // User provided trusted certificates
   jerry_value_t jcert_auth =
       iotjs_jval_get_property(joptions, IOTJS_MAGIC_STRING_CA);
+  iotjs_string_t cert_auth_string;
 
-  if (jerry_value_is_string(jcert_auth)) {
-    iotjs_string_t cert_auth = iotjs_jval_as_string(jcert_auth);
-    const char *cert_auth_chars = iotjs_string_data(&cert_auth);
+  if (iotjs_jbuffer_as_string(jcert_auth, &cert_auth_string)) {
+    const char *cert_auth_chars = iotjs_string_data(&cert_auth_string);
 
     ret = mbedtls_x509_crt_parse(&tls_context->cert_auth,
                                  (const unsigned char *)cert_auth_chars,
-                                 (size_t)iotjs_string_size(&cert_auth) + 1);
+                                 (size_t)iotjs_string_size(&cert_auth_string) +
+                                     1);
 
-    iotjs_string_destroy(&cert_auth);
+    iotjs_string_destroy(&cert_auth_string);
   } else {
     // Parse the default certificate authority
     ret = mbedtls_x509_crt_parse(&tls_context->cert_auth,

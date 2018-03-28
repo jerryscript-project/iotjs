@@ -17,6 +17,7 @@
 #include "iotjs_def.h"
 #include "iotjs_binding.h"
 #include "iotjs_js.h"
+#include "modules/iotjs_module_buffer.h"
 
 #include <string.h>
 
@@ -82,6 +83,42 @@ bool iotjs_jval_as_boolean(jerry_value_t jval) {
 double iotjs_jval_as_number(jerry_value_t jval) {
   IOTJS_ASSERT(jerry_value_is_number(jval));
   return jerry_get_number_value(jval);
+}
+
+
+bool iotjs_jbuffer_as_string(jerry_value_t jval, iotjs_string_t* out_string) {
+  iotjs_bufferwrap_t* buffer_wrap;
+  char* buffer;
+  jerry_size_t size = 0;
+
+  if (jerry_value_is_string(jval)) {
+    size = jerry_get_string_size(jval);
+
+    if (size > 0) {
+      buffer = iotjs_buffer_allocate(size + 1);
+      size_t check =
+          jerry_string_to_char_buffer(jval, (jerry_char_t*)buffer, size);
+
+      IOTJS_ASSERT(check == size);
+    }
+  } else if ((buffer_wrap = iotjs_jbuffer_get_bufferwrap_ptr(jval)) != NULL) {
+    size = buffer_wrap->length;
+
+    if (size > 0) {
+      buffer = iotjs_buffer_allocate(size + 1);
+      memcpy(buffer, buffer_wrap->buffer, size);
+    }
+  }
+
+  if (size == 0) {
+    *out_string = iotjs_string_create();
+    return false;
+  }
+
+  buffer[size] = '\0';
+  *out_string = iotjs_string_create_with_buffer(buffer, size);
+
+  return true;
 }
 
 

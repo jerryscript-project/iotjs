@@ -110,6 +110,9 @@ JS_FUNCTION(CompileModule) {
   jerry_value_t jrequire = JS_GET_ARG(1, function);
 
   jerry_value_t jid = iotjs_jval_get_property(jmodule, "id");
+  if (!jerry_value_is_string(jid)) {
+    return JS_CREATE_ERROR(COMMON, "Unknown native module");
+  }
   iotjs_string_t id = iotjs_jval_as_string(jid);
   jerry_release_value(jid);
   const char* name = iotjs_string_data(&id);

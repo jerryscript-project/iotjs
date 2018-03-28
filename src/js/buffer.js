@@ -97,8 +97,6 @@ Buffer.byteLength = function(str, encoding) {
       case 'hex':
         return bytes >>> 1;
       case 'base64':
-        bytes = (len >>> 2) * 3;
-
         var len = str.length;
 
         if (len >= 4 && str.charCodeAt(len - 1) === 0x3D) {

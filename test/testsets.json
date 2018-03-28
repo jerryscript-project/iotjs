@@ -98,7 +98,7 @@
     { "name": "test_timers_arguments.js" },
     { "name": "test_timers_error.js" },
     { "name": "test_timers_simple.js", "timeout": 10 },
-    { "name": "test_tls.js", "skip": ["all"], "reason": "disabled module" },
+    { "name": "test_tls.js", "skip": ["all"], "reason": "TLS module is not enabled by default" },
     { "name": "test_uart.js", "skip": ["all"], "reason": "need to setup test environment" },
     { "name": "test_uart_api.js" },
     { "name": "test_util.js" }

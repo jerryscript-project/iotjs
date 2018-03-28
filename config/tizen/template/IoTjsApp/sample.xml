@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<template>
+	<slp-property>
+		<property-group>
+			<sample-name>IoT.js Application</sample-name>
+			<category>Platform Template</category>
+			<sdk-version>1.00</sdk-version>
+			<project-type>org.tizen.nativecore.buildArtefactType.app</project-type>	
+			<sample-description>description.xml</sample-description>
+		</property-group>
+	</slp-property>
+	<process type="org.tizen.nativeappcommon.TizenCopyFolder">
+		<simple name="projectName" value="$(projectName)"/>
+		<simple name="folderPath" value="project"/>
+		<complex-array name="replaceableFiles">
+			<element>
+				<simple name="sourcePath" value="src/main.c"/>
+				<simple name="targetPath" value="src/$(appName).c"/>
+				<simple name="replaceable" value="true"/>
+			</element>
+			<element>
+				<simple name="sourcePath" value="inc/main.h"/>
+				<simple name="targetPath" value="inc/$(appName).h"/>
+				<simple name="replaceable" value="true"/>
+			</element>
+			<element>
+				<simple name="sourcePath" value="tizen-manifest.xml"/>
+				<simple name="targetPath" value="tizen-manifest.xml"/>
+				<simple name="replaceable" value="true"/>
+			</element>
+			<element>
+				<simple name="sourcePath" value="shared/res/mainmenu.png"/>
+				<simple name="targetPath" value="shared/res/$(appName).png"/>
+				<simple name="replaceable" value="false"/>
+			</element>
+			<element>
+				<simple name="sourcePath" value="project_def.prop"/>
+				<simple name="targetPath" value="project_def.prop"/>
+				<simple name="replaceable" value="true"/>
+			</element>
+		</complex-array>
+	</process>
+	<process type="org.tizen.nativecore.SetDefaultCoreFrameworks">
+		<simple name="projectName" value="$(projectName)"/>
+		<complex-array name="frameworkList">
+			<element>
+				<simple name="framework" value="Native_API"/>
+			</element>
+		</complex-array>
+	</process>
+</template>

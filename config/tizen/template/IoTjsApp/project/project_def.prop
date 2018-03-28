@@ -1,0 +1,11 @@
+APPNAME = $(appName)
+
+type = app
+profile = $(platform)
+
+USER_SRCS = src/$(appName).c
+USER_DEFS =
+USER_INC_DIRS = inc
+USER_OBJS =
+USER_LIBS =
+USER_EDCS =

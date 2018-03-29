@@ -94,7 +94,7 @@ var nocert_options = {
 
 var server2_port = 8081;
 
-var sockOpts = {
+sockOpts = {
   host: '127.0.0.1',
   port: server2_port,
   rejectUnauthorized: false,

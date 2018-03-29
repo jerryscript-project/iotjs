@@ -167,7 +167,7 @@
     "http": {
       "js_file": "js/http.js",
       "require": ["http_client", "http_common", "http_incoming",
-                  "http_outgoing", "http_server", "httpparser"]
+                  "http_outgoing", "http_server", "httpparser", "url"]
     },
     "http_client": {
       "js_file": "js/http_client.js",
@@ -195,7 +195,7 @@
     },
     "https": {
       "js_file": "js/https.js",
-      "require": ["https_client", "https_incoming", "https_native"],
+      "require": ["https_client", "https_incoming", "https_native", "url"],
       "external_libs": ["curl"]
     },
     "https_client": {
@@ -358,6 +358,9 @@
     "udp": {
       "native_files": ["modules/iotjs_module_udp.c"],
       "init": "InitUdp"
+    },
+    "url": {
+      "js_file": "js/url.js"
     },
     "util": {
       "js_file": "js/util.js"

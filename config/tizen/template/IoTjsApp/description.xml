@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Overview version="0.0.1">
+	<SampleName>IoTjs App</SampleName>
+	<SampleVersion>1.0</SampleVersion>
+	<PlatformList>
+		<Profile>
+			<ProfileName>iot-headless</ProfileName>
+			<RequiredVersion>4.0</RequiredVersion>
+		</Profile>
+	</PlatformList>
+	<ProjectType>org.tizen.nativecore.buildArtefactType.app</ProjectType>
+	<HasOption>False</HasOption>
+	<CategoryList>
+		<Category>Template</Category>
+	</CategoryList>
+	<IconSet>
+		<IconSmall>ic_s_service.png</IconSmall>
+		<IconMediumNormal>ic_m_service_n.png</IconMediumNormal>
+		<IconMediumSelect>ic_m_service_s.png</IconMediumSelect>
+		<IconLarge>ic_l_service.png</IconLarge>
+	</IconSet>
+	<Description>
+		This is the empty template for developing IoT.js application.
+	</Description>
+</Overview>

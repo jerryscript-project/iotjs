@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns="http://tizen.org/ns/packages" api-version="4.0" package="$(packageName)" version="1.0.0">
+	<profile name="$(packageProfile)" />
+	<service-application appid="$(packageName)" exec="$(appNameLower)" type="capp" multiple="false" taskmanage="false" nodisplay="true">
+		<icon>$(appName).png</icon>
+		<label>$(appName)</label>
+		<background-category value="iot-communication"/>
+	</service-application>
+	<privileges>
+		<privilege>http://tizen.org/privilege/network.get</privilege>
+		<privilege>http://tizen.org/privilege/network.set</privilege>
+		<privilege>http://tizen.org/privilege/internet</privilege>
+		<privilege>http://tizen.org/privilege/alarm.set</privilege>
+		<privilege>http://tizen.org/privilege/network.profile</privilege>
+		<privilege>http://tizen.org/privilege/peripheralio</privilege>
+	</privileges>
+</manifest>

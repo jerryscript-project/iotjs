@@ -68,9 +68,44 @@ function Driver() {
   return this;
 }
 
+function jsonMerge (json1, json2) {
+  var tempNewObj = json1;
+
+  if (json1.length === undefined && typeof json1 !== "number") {
+    for (var key in json2) {
+      if (json1[key] === undefined) {
+        tempNewObj[key] = json2[key];
+      } else {
+        tempNewObj[key] = jsonMerge(json1[key], json2[key]);
+      }
+    }
+  } else if (json1.length > 0 && typeof json1 !== "string") {
+    for (var key2 in json2) {
+      var isFound = false;
+      for (var key1 in json1) {
+        if (json2[key2].name && json1[key1].name === json2[key2].name) {
+          tempNewObj[key1] = json2[key2];
+          isFound = true;
+          break;
+        }
+      }
+
+      if (!isFound) {
+        tempNewObj.push(json2[key2]);
+      }
+    }
+  } else {
+    tempNewObj = json2;
+  }
+
+  return tempNewObj;
+};
+
 Driver.prototype.config = function() {
   var parser = new OptionParser();
 
+  parser.addOption('testsets', "", "",
+    "JSON file to extend or override the default testsets");
   parser.addOption('start-from', "", "",
     "a test case file name where the driver starts.");
   parser.addOption('quiet', "yes|no", "yes",
@@ -120,9 +155,17 @@ Driver.prototype.config = function() {
   this.options = options;
 
   var testfile = util.join(this.root, 'testsets.json');
-  var testsets = fs.readFileSync(testfile).toString();
+  var defaultTestsets = fs.readFileSync(testfile).toString();
 
-  this.tests = JSON.parse(testsets);
+  this.tests = JSON.parse(defaultTestsets);
+
+  testsets = options['testsets'];
+  if (testsets) {
+    var testsetsFile = util.join(this.root, testsets);
+    var testsetsData = fs.readFileSync(testsetsFile).toString();
+    var testsetJSON = JSON.parse(testsetsData);
+    this.tests = jsonMerge(this.tests, testsetJSON);
+  }
 
   this.dIdx = 0;
   this.dLength = Object.keys(this.tests).length;

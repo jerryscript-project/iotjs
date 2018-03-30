@@ -193,6 +193,8 @@ def init_options():
     parser.add_argument('-e', '--experimental',
         action='store_true', default=False,
         help='Enable to build experimental features')
+    parser.add_argument('--testsets',
+        help='Specify the additional testsets file for IoT.js')
 
     options = parser.parse_args(argv)
     options.config = build_config
@@ -381,8 +383,14 @@ def run_checktest(options):
     if options.test_driver == "js":
         cmd = iotjs
         args = [path.CHECKTEST_PATH]
+
+        # quiet
         if options.run_test == "quiet":
             args.append('quiet=yes')
+
+        # testsets
+        if options.testsets:
+            args.append('testsets=' + options.testsets);
 
         # experimental
         if options.experimental:
@@ -390,9 +398,13 @@ def run_checktest(options):
     else:
         cmd = fs.join(path.TOOLS_ROOT, 'testrunner.py')
         args = [iotjs]
+
+        # testsets
+        if options.testsets:
+            args.append('--testsets=' + options.testsets);
+
         if options.run_test == "quiet":
             args.append('--quiet')
-
 
     fs.chdir(path.PROJECT_ROOT)
     code = ex.run_cmd(cmd, args)

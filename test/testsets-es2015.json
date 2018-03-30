@@ -1,0 +1,6 @@
+{
+  "run_pass":  [
+    { "name": "test_iotjs_promise.js" },
+    { "name": "test_iotjs_promise_chain_calls.js" }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "modules": {
+    "bridge_sample": {
+      "js_file": "js/bridge_sample.js",
+      "native_files": ["src/iotjs_bridge_sample.c"],
+      "init": "InitBridgeSample",
+      "cmakefile": "module.cmake",
+      "require": ["bridge"]
+    }
+  }
+}

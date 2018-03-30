@@ -348,6 +348,29 @@ Where `native` is the JS object returned by the native `InitConsole` function in
 
 **Note**: `native` is undefined if there is no native part of the module.
 
+
+### Using bridge module to communicate between C and JavaScript module
+Bridge module provides two interfaces for sending synchronous and asynchronous message from Javascript to the native module. The Native module simply rersponds back to the requst using a simple inteface that can create return message. Of course you can use the IoT.js and JerryScript APIs to respond directly to the request of JavaScript module, but sometimes using a simpliffied method is more efficient in providing simple functionality in a short time.
+
+For example, JavaScript module can request resource path synchronously,
+and native module can simply return a resource path by just calling a function.
+
+in the bridge_sample.js of bridge_sample module
+```javascript
+bridge_sample.prototype.getResPath = function(){
+    return this.bridge.sendSync("getResPath", "");
+};
+```
+
+in the iotjs_bridge_sample.c of bridge_sample module
+```c
+if (strncmp(command, "getResPath", strlen("getResPath")) == 0) {
+    iotjs_bridge_set_return(return_message, "res/");
+    return 0;
+}
+```
+For the complete sample code, please see the bridge_sample in samples/bridge_sample folder.
+
 ## Advanced usage
 
 ### Module specific CMake file

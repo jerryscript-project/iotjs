@@ -20,12 +20,19 @@ set(DEPS_MBEDTLS_BUILD_DIR ${CMAKE_BINARY_DIR}/${DEPS_MBEDTLS}/library)
 set(MODULE_NAME "tls")
 set(MODULE_BINARY_DIR ${DEPS_MBEDTLS_BUILD_DIR})
 
+if("${TARGET_OS}" STREQUAL "TIZEN")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-cpp")
+endif()
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-sign-conversion")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -I${ROOT_DIR}/config/mbedtls")
 set(CMAKE_C_FLAGS
     "${CMAKE_C_FLAGS} -DMBEDTLS_CONFIG_FILE='<config-for-iotjs.h>'")
 
-#message(FATAL_ERROR "${CMAKE_C_FLAGS}")
+# FIXME:
+#       Remove this workaround when the related bug is fixed in
+#       mbedtls. https://github.com/ARMmbed/mbedtls/issues/1550
+set(CMAKE_C_FLAGS_BCK "${CMAKE_C_FLAGS}")
+string(REPLACE "-fsanitize=address" "" CMAKE_C_FLAGS ${CMAKE_C_FLAGS})
 
 ExternalProject_Add(mbedtls
   PREFIX ${DEPS_MBEDTLS}
@@ -74,3 +81,8 @@ set_property(DIRECTORY APPEND PROPERTY
 
 set(MBEDTLS_LIBS libmbedtls libmbedx509 libmbedcrypto)
 set(MBEDTLS_INCLUDE_DIR ${DEPS_MBEDTLS}/include)
+
+# FIXME:
+#       Remove this workaround when the related bug is fixed in
+#       mbedtls. https://github.com/ARMmbed/mbedtls/issues/1550
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS_BCK}")

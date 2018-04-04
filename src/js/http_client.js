@@ -14,19 +14,17 @@
  */
 
 var util = require('util');
-var net = require('net');
 var OutgoingMessage = require('http_outgoing').OutgoingMessage;
 var common = require('http_common');
 var HTTPParser = require('httpparser').HTTPParser;
 
-function ClientRequest(options, cb) {
+function ClientRequest(options, cb, socket) {
   OutgoingMessage.call(this);
 
   // get port, host and method.
-  var port = options.port = options.port || 80;
-  var host = options.host = options.hostname || options.host || '127.0.0.1';
   var method = options.method || 'GET';
   var path = options.path || '/';
+  options.host = options.hostname || options.host || '127.0.0.1';
 
   // If `options` contains header information, save it.
   if (options.headers) {
@@ -37,10 +35,10 @@ function ClientRequest(options, cb) {
     }
   }
 
-  if (host && !this.getHeader('host')) {
-    var hostHeader = host;
-    if (port && +port !== 80) {
-      hostHeader += ':' + port;
+  if (options.host && !this.getHeader('host')) {
+    var hostHeader = options.host;
+    if (this._port && +this._port !== 80) {
+      hostHeader += ':' + this._port;
     }
     this.setHeader('Host', hostHeader);
   }
@@ -53,22 +51,29 @@ function ClientRequest(options, cb) {
     this.once('response', cb);
   }
 
-  // Create socket.
-  var socket = new net.Socket();
-
-  // connect server.
-  socket.connect(port, host);
-
-  // setup connection information.
-  setupConnection(this, socket);
+  this.socket = socket;
+  this.options = options;
 }
 
 util.inherits(ClientRequest, OutgoingMessage);
 
 exports.ClientRequest = ClientRequest;
 
+ClientRequest.prototype.end = function(data, encoding, callback) {
+  var self = this;
 
-function setupConnection(req, socket) {
+  // connect server.
+  this.socket.connect(this.options, function() {
+    self._connected = true;
+    OutgoingMessage.prototype.end.call(self, data, encoding, callback);
+  });
+
+  // setup connection information.
+  setupConnection(this);
+};
+
+function setupConnection(req) {
+  var socket = req.socket;
   var parser = common.createHTTPParser();
   parser.reinitialize(HTTPParser.RESPONSE);
   socket.parser = parser;
@@ -79,15 +84,12 @@ function setupConnection(req, socket) {
   parser._headers = [];
   parser.onIncoming = parserOnIncomingClient;
 
-  req.socket = socket;
-  req.connection = socket;
   req.parser = parser;
 
   socket.on('error', socketOnError);
   socket.on('data', socketOnData);
   socket.on('end', socketOnEnd);
   socket.on('close', socketOnClose);
-  socket.on('lookup', socketOnLookup);
 
   // socket emitted when a socket is assigned to req
   process.nextTick(function() {
@@ -126,8 +128,6 @@ function socketOnClose() {
   var socket = this;
   var req = socket._httpMessage;
 
-  socket.read();
-
   req.emit('close');
 
   if (req.res && req.res.readable) {
@@ -144,10 +144,6 @@ function socketOnClose() {
 
 function socketOnError(err) {
   cleanUpSocket(this);
-  emitError(this, err);
-}
-
-function socketOnLookup(err/* , ip */) {
   emitError(this, err);
 }
 
@@ -203,20 +199,19 @@ var responseOnEnd = function() {
   }
 };
 
+ClientRequest.prototype.abort = function() {
+  this.emit('abort');
+  if (this.socket) {
+    cleanUpSocket(this.socket);
+  }
+};
 
 ClientRequest.prototype.setTimeout = function(ms, cb) {
   var self = this;
 
   if (cb) self.once('timeout', cb);
 
-  var emitTimeout = function() {
+  setTimeout(function() {
     self.emit('timeout');
-  };
-
-  // In IoT.js, socket is already assigned,
-  // thus, it is sufficient to trigger timeout on socket 'connect' event.
-  this.socket.once('connect', function() {
-    self.socket.setTimeout(ms, emitTimeout);
-  });
-
+  }, ms);
 };

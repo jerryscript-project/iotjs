@@ -52,6 +52,7 @@ BUILDOPTIONS_SANITIZER = [
     '--no-check-valgrind',
     '--no-snapshot',
     '--profile=test/profiles/host-linux.profile',
+    '--testsets=testsets-host-linux.json',
     '--run-test=full',
     '--target-arch=i686'
 ]
@@ -94,7 +95,8 @@ if __name__ == '__main__':
         for buildtype in BUILDTYPES:
             build_iotjs(buildtype, [
                         '--run-test=full',
-                        '--profile=test/profiles/host-linux.profile'])
+                        '--profile=test/profiles/host-linux.profile',
+                        '--testsets=testsets-host-linux.json'])
 
     elif test == 'rpi2':
         for buildtype in BUILDTYPES:
@@ -182,7 +184,8 @@ if __name__ == '__main__':
                              '--run-test=full',
                              '--buildtype=' + buildtype,
                              '--clean',
-                             '--profile=test/profiles/host-darwin.profile'])
+                             '--profile=test/profiles/host-darwin.profile',
+                             '--testsets=testsets-host-linux.json'])
 
     elif test == "asan":
         ex.check_run_cmd('./tools/build.py', [

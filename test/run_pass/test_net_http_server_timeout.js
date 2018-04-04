@@ -47,3 +47,5 @@ process.on('exit', function(code) {
   assert.equal(timeouted, true);
   assert.equal(code, 0);
 });
+
+getReq.end();

@@ -21,6 +21,7 @@ var https = require('https');
 options = {
   method: 'GET',
   host: 'httpbin.org',
+  rejectUnauthorized: false,
   path: '/delay/10'
 };
 

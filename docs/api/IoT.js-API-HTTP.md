@@ -271,6 +271,9 @@ This event is emitted when a socket is assigned to this request. `net.Socket` ob
 After response header is parsed, this event will be fired.
 
 
+### request.abort()
+Will abort the outgoing request, dropping any data to be sent/received and destroying the underlying socket.
+
 ### request.end([data][, callback])
 * `data` {Buffer | string}
 * `callback` {Function}
@@ -299,7 +302,10 @@ Sends `data` as a request body. `callback` will be called when data is flushed.
 
 ## Class: http.IncomingMessage
 
-http.IncomingMessage inherits `Stream.readable`.
+This object is created internally and returned to the callback in http.request(). It represents the response sent by a server to a request.
+
+http.IncomingMessage inherits [`Stream.readable`](IoT.js-API-Stream.md). See it's documentation to read incoming data from an HTTP request. Notable events are `'data'` (fired when there is data to read), `'close'`, `'end'` (Request has ended) and the method `readable.read()`.
+
 
 ### Event: 'close'
 When underlying connection is closed, 'close' event is emitted.

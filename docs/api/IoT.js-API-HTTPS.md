@@ -2,10 +2,13 @@
 
  The following shows Https module APIs available for each platform.
 
-|  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | Nuttx<br/>(STM32F4-Discovery) | TizenRT<br/>(Artik053) | Tizen<br/>(Artik 10) |
-| :---: | :---: | :---: | :---: | :---: | :---: |
-| https.request  | X | X | X | X | O |
-| https.get  | X | X | X | X | O |
+ |  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | NuttX<br/>(STM32F4-Discovery) | TizenRT<br/>(Artik053) |
+ | :---: | :---: | :---: | :---: | :---: |
+ | https.createServer | O | O | △ ¹ | △ ¹ |
+ | https.request | O | O | △ ¹ | △ ¹ |
+ | https.get | O | O | △ ¹ | △ ¹ |
+
+1. On NuttX/STM32F4-Discovery and TizenRT/Artik053, even a couple of sockets/server/requests might not work properly.
 
 
 # Https
@@ -70,7 +73,7 @@ Example:
 var https = require('https');
 
 https.get({
-  port: 80,
+  port: 443,
 }, function(res) {
 ...
 });
@@ -78,68 +81,17 @@ https.get({
 
 
 ### https.METHODS
-A list of HTTPS methods supported by the parser as `string` properties of an `Object`. Currently supported methods are `'DELETE'`, `'GET'`, `'HEAD'`, `'POST'`, `'PUT'`, `'CONNECT'`, `'OPTIONS'`, `'TRACE'`.
+A list of HTTPS methods supported by the parser as `string` properties of an `Object`.
 
 
 ## Class: https.ClientRequest
 
 This object is created internally and returned from https.request(). It represents an in-progress request whose header has already been queued.
 
-https.ClientRequest inherits [`Stream.writable`](IoT.js-API-Stream.md). See it's documentation to write data to an outgoing HTTP request. Notable methods are `'writable.write()'` (to send data as request body), `'writable.end()'` (to signal an end and flush remaining request body), and the event `'finish'`.
-
-### Event: 'close'
-This event is fired when the underlying socket is closed.
-
-### Event: 'response'
-* `response` {https.IncomingMessage}
-
-This event is emitted when server's response header is parsed. ` https.IncomingMessage` object is passed as argument to handler.
-
-### Event: 'socket'
-This event is emitted when a socket is assigned to this request.
-
-### request.abort()
-Will abort the outgoing request, dropping any data to be sent/received and destroying the underlying socket.
-
-### request.aborted
-If the request has been aborted, this contains the time at which the request was aborted in milliseconds since epoch as `Number`.
-
-### request.setTimeout(ms, cb)
-* `ms` {number}
-* `cb` {Function}
-
-Registers cb for 'timeout' event and set socket's timeout value to ms. This event will be triggered by the underlying socket's 'timeout' event.
-
-If cb is not provided, the socket will be destroyed automatically after timeout.
-If you provides cb, you should handle the socket's timeout.
-
+See also: [http.ClientRequest](IoT.js-API-HTTP.md#class-httpclientrequest)
 
 ## Class: https.IncomingMessage
 
 This object is created internally and returned to the callback in https.request(). It represents the response sent by a server to a request.
 
-https.IncomingMessage inherits [`Stream.readable`](IoT.js-API-Stream.md). See it's documentation to read incoming data from an HTTP request. Notable events are `'data'` (fired when there is data to read), `'close'`, `'end'` (Request has ended) and the method `readable.read()`.
-
-### message.headers
-HTTPS header object.
-
-### message.method
-Request's method as `string`
-
-### message.statusCode
-HTTPS response status code as `number` of 3-digit.
-
-### message.statusMessage
-HTTPS response status message as `string`
-
-### message.url
-Requests URL as `string`
-
-### message.setTimeout(ms, cb)
-* `ms` {number}
-* `cb` {Function}
-
-Registers cb for 'timeout' event set socket's timeout value to ms. This event will be triggered by the underlying socket's 'timeout' event.
-
-If cb is not provided, the socket will be destroyed automatically after timeout.
-If you provides cb, you should handle the socket's timeout.
+See also: [http.IncomingMessage](IoT.js-API-HTTP.md#class-httpincomingmessage)

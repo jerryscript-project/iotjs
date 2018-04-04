@@ -24,13 +24,14 @@ var data = JSON.stringify({ data: { temp: 50, onFire: false },
   type: 'message' });
 
 var options = {
-  "method": "POST",
-  "hostname": "api.artik.cloud",
-  "path": "/v1.1/messages",
-  "headers": {
-    "content-type": "application/json",
-    "content-length": data.length,
-    "authorization": "Bearer 1718113118564ad495ad03f04116f379"
+  method: 'POST',
+  hostname: 'api.artik.cloud',
+  path: '/v1.1/messages',
+  rejectUnauthorized: false,
+  headers: {
+    'content-type': 'application/json',
+    'content-length': data.length,
+    'authorization': 'Bearer 1718113118564ad495ad03f04116f379'
   }
 };
 

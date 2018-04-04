@@ -205,21 +205,56 @@ function createServer(options, secureConnectionListener) {
   return new Server(options, secureConnectionListener);
 }
 
-function connect(options, callback) {
-  options = Object.create(options, {
-    isServer: { value: false, enumerable: true },
-  });
-
-  if (!options.host) {
-    options.host = 'localhost';
+function connect(arg0, arg1, arg2, callback) {
+  var options;
+  var tlsSocket;
+  if (typeof arg0 == 'object') {
+    options = Object.create(arg0, {
+      isServer: { value: false, enumerable: true },
+    });
+    options.host = options.host || 'localhost';
+    options.port = options.port || 443;
+    options.rejectUnauthorized = options.rejectUnauthorized || false;
+    callback = arg1;
+  } else if (typeof arg0 == 'number') {
+    if (typeof arg1 == 'string') {
+      if (typeof arg2 == 'object') {
+        options = Object.create(arg2, {
+          isServer: { value: false, enumerable: true },
+        });
+        options.port = arg0;
+        options.host = arg1;
+        options.rejectUnauthorized = options.rejectUnauthorized || false;
+      } else {
+        options = {
+          isServer: false,
+          rejectUnauthorized: false,
+          port: arg0,
+          host: arg1,
+        };
+        callback = arg2;
+      }
+    } else if (typeof arg1 == 'object') {
+      options = Object.create(arg1, {
+        isServer: { value: false, enumerable: true },
+      });
+      options.port = arg0;
+      options.host = options.host || 'localhost';
+      options.rejectUnauthorized = options.rejectUnauthorized || false;
+      callback = arg2;
+    } else {
+      options = {
+        isServer: false,
+        rejectUnauthorized: false,
+        host: 'localhost',
+        port: arg0,
+      };
+      callback = arg1;
+    }
   }
-  if (!options.port) {
-    options.port = 443;
-  }
-
-  var tlsSocket = new TLSSocket(new net.Socket(), options);
-
+  tlsSocket = new TLSSocket(new net.Socket(), options);
   tlsSocket.connect(options, callback);
+
   return tlsSocket;
 }
 

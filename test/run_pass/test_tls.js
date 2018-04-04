@@ -114,6 +114,106 @@ socket3.on('error', function(error) {
   socket_handshake_error_caught = error instanceof Error;
 });
 
+var server3 = tls.createServer(options, function(socket) {
+   socket.write('Server hello');
+
+   socket.on('data', function(data) {
+     client_message = data.toString();
+   });
+
+}).listen(9090, function() { });
+
+server3.on('secureConnection', function() {
+ server_handshake_done = true;
+});
+
+server3.on('close', function() {
+ server_closed = true;
+});
+
+var opt = {
+   rejectUnauthorized: false,
+}
+
+var socket4 = tls.connect(9090);
+
+socket4.on('secureConnect', function(){
+  handshake_done = true;
+});
+
+socket4.on('data', function(data) {
+  server_message = data.toString();
+  socket4.write('Client hello');
+  socket4.end();
+});
+
+var socket5 = tls.connect(9090, 'localhost');
+
+socket5.on('secureConnect', function(){
+  handshake_done = true;
+});
+
+socket5.on('data', function(data) {
+  server_message = data.toString();
+  socket5.write('Client hello');
+  socket5.end();
+});
+
+var socket6 = tls.connect(9090, 'localhost', opt);
+
+socket6.on('secureConnect', function(){
+  handshake_done = true;
+});
+
+socket6.on('data', function(data) {
+  server_message = data.toString();
+  socket6.write('Client hello');
+  socket6.end();
+});
+
+var socket7 = tls.connect(9090, 'localhost', opt, function() {
+});
+
+socket7.on('secureConnect', function(){
+  handshake_done = true;
+});
+
+socket7.on('data', function(data) {
+  server_message = data.toString();
+  socket7.write('Client hello');
+  socket7.end();
+});
+
+var socket8 = tls.connect(9090, 'localhost', function() {
+});
+
+socket8.on('secureConnect', function(){
+ handshake_done = true;
+});
+
+socket8.on('data', function(data) {
+ server_message = data.toString();
+ socket8.write('Client hello');
+ socket8.end();
+});
+
+var socket9 = tls.connect(9090, function() {
+});
+
+socket9.on('secureConnect', function(){
+ handshake_done = true;
+});
+
+socket9.on('end', function() {
+ server3.close();
+});
+
+socket9.on('data', function(data) {
+ server_message = data.toString();
+ socket9.write('Client hello');
+ socket9.end();
+});
+
 process.on('exit', function() {
   assert.equal(error_caught, true);
   assert.equal(handshake_done, true);

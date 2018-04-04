@@ -1,0 +1,10 @@
+{
+  "run_pass":  [
+    { "name": "test_net_https_get.js", "timeout": 10 },
+    { "name": "test_net_https_post_status_codes.js", "timeout": 10 },
+    { "name": "test_net_https_request_response.js", "timeout": 10 },
+    { "name": "test_net_https_timeout.js", "timeout": 10 },
+    { "name": "test_net_https_server.js", "timeout": 10 },
+    { "name": "test_tls.js" }
+  ]
+}

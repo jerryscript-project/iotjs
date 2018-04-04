@@ -21,7 +21,6 @@ function IncomingMessage(socket) {
   stream.Readable.call(this);
 
   this.socket = socket;
-  this.connection = socket;
 
   this.readable = true;
 

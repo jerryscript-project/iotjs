@@ -24,8 +24,9 @@ var message = 'Hello IoT.js';
 // Options for further requests.
 var options = {
   method: 'POST',
-  host: "httpbin.org",
+  host: 'httpbin.org',
   path: '/post',
+  rejectUnauthorized: false,
   headers: {'Content-Length': message.length,
     'Content-Type': 'application/json'}
 };
@@ -67,12 +68,6 @@ request2.end(message, function() {
   isRequest2Finished = true;
 });
 
-// Call the request2 end again to test the finish state.
-request2.end(message, function() {
-  // This clabback should never be called.
-  assert.equal(isRequest2Finished, false);
-});
-
 
 // Simple request with buffer chunk as message parameter.
 var isRequest3Finished = false;
@@ -96,7 +91,8 @@ request3.end(new Buffer(message));
 var isRequest4Finished = false;
 var readRequest = https.request({
   method: 'GET',
-  host: "httpbin.org",
+  host: 'httpbin.org',
+  rejectUnauthorized: false,
   path: '/get'
 });
 

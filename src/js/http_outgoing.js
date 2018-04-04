@@ -27,9 +27,12 @@ function OutgoingMessage() {
 
   this.finished = false;
   this._sentHeader = false;
+  this._connected = false;
+
+  // storage for chunks when there is no connection established
+  this._chunks = [];
 
   this.socket = null;
-  this.connection = null;
   // response header string : same 'content' as this._headers
   this._header = null;
   // response header obj : (key, value) pairs
@@ -85,19 +88,13 @@ OutgoingMessage.prototype.end = function(data, encoding, callback) {
 
   this.finished = true;
 
-  this._finish();
+  this.emit('prefinish');
 
   return true;
 };
 
 
-OutgoingMessage.prototype._finish = function() {
-  this.emit('prefinish');
-};
-
-
 // This sends chunk directly into socket
-// TODO: buffering of chunk in the case of socket is not available
 OutgoingMessage.prototype._send = function(chunk, encoding, callback) {
   if (util.isFunction(encoding)) {
     callback = encoding;
@@ -112,7 +109,20 @@ OutgoingMessage.prototype._send = function(chunk, encoding, callback) {
     this._sentHeader = true;
   }
 
-  return this.connection.write(chunk, encoding, callback);
+  if (!this._connected) {
+    this._chunks.push(chunk);
+    return false;
+  } else {
+    while (this._chunks.length) {
+      this.socket.write(this._chunks.shift(), encoding, callback);
+    }
+  }
+
+  if (this.socket) {
+    return this.socket.write(chunk, encoding, callback);
+  }
+
+  return false;
 };
 
 
@@ -125,10 +135,7 @@ OutgoingMessage.prototype.write = function(chunk, encoding, callback) {
     return true;
   }
 
-  var ret = this._send(chunk, encoding, callback);
-
-  return ret;
-
+  return this._send(chunk, encoding, callback);
 };
 
 
@@ -182,13 +189,15 @@ OutgoingMessage.prototype.getHeader = function(name) {
 
 
 OutgoingMessage.prototype.setTimeout = function(ms, cb) {
-  if (cb)
+  if (cb) {
     this.once('timeout', cb);
+  }
 
   if (!this.socket) {
     this.once('socket', function(socket) {
       socket.setTimeout(ms);
     });
-  } else
+  } else {
     this.socket.setTimeout(ms);
+  }
 };

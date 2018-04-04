@@ -14,7 +14,6 @@
  */
 
 var util = require('util');
-var net = require('net');
 var OutgoingMessage = require('http_outgoing').OutgoingMessage;
 var common = require('http_common');
 
@@ -122,9 +121,9 @@ ServerResponse.prototype.writeHead = function(statusCode, reason, obj) {
 
 
 ServerResponse.prototype.assignSocket = function(socket) {
+  this._connected = true;
   socket._httpMessage = this;
   this.socket = socket;
-  this.connection = socket;
   socket.on('close', onServerResponseClose);
   this.emit('socket', socket);
 };
@@ -139,24 +138,18 @@ function onServerResponseClose() {
 
 ServerResponse.prototype.detachSocket = function() {
   this.socket._httpMessage = null;
-  this.socket = this.connection = null;
+  this.socket = null;
+  this._connected = false;
 };
 
 
-function Server(requestListener) {
-  if (!(this instanceof Server)) {
-    return new Server(requestListener);
-  }
-
-  net.Server.call(this, {allowHalfOpen: true});
-
+function initServer(options, requestListener) {
   if (util.isFunction(requestListener)) {
     this.addListener('request', requestListener);
   }
 
   this.httpAllowHalfOpen = false;
 
-  this.on('connection', connectionListener);
   this.on('clientError', function(err, conn) {
     conn.destroy(err);
   });
@@ -164,19 +157,7 @@ function Server(requestListener) {
   this.timeout = 2 * 1000 * 60; // default timeout is 2 min
 }
 
-util.inherits(Server, net.Server);
-exports.Server = Server;
-
-
-// TODO: Implement Server.prototype.setTimeout function
-// For this, socket.prototype.setTimeout is needed.
-Server.prototype.setTimeout = function(ms, cb) {
-  this.timeout = ms;
-  if (cb) {
-    this.on('timeout', cb);
-  }
-};
-
+exports.initServer = initServer;
 
 function connectionListener(socket) {
   var server = this;
@@ -204,6 +185,7 @@ function connectionListener(socket) {
   }
 }
 
+exports.connectionListener = connectionListener;
 
 function socketOnData(data) {
   var socket = this;

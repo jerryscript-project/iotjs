@@ -46,12 +46,14 @@ function(addModuleDependencies module varResult)
   string(TOUPPER ${module} MODULE)
   set(moduleDefines)
 
-  if(NOT "${${IOTJS_MODULE_${MODULE}_JSON}.modules.${module}.require}"
+  set(MODULE_PREFIX ${IOTJS_MODULE_${MODULE}_JSON}.modules.${module})
+
+  if(NOT "${${MODULE_PREFIX}.require}"
      STREQUAL "")
     foreach(idx
-            ${${IOTJS_MODULE_${MODULE}_JSON}.modules.${module}.require})
+            ${${MODULE_PREFIX}.require})
       set(dependency
-          ${${IOTJS_MODULE_${MODULE}_JSON}.modules.${module}.require_${idx}})
+          ${${MODULE_PREFIX}.require_${idx}})
       string(TOUPPER ${dependency} DEPENDENCY)
       if(NOT ${ENABLE_MODULE_${DEPENDENCY}})
         list(APPEND moduleDefines ENABLE_MODULE_${DEPENDENCY})
@@ -61,6 +63,18 @@ function(addModuleDependencies module varResult)
       endif()
     endforeach()
   endif()
+
+  set(PLATFORM_REQUIRE_PREFIX ${MODULE_PREFIX}.platforms.${IOTJS_SYSTEM_OS})
+  foreach(idx ${${PLATFORM_REQUIRE_PREFIX}.require})
+    set(dependency ${${PLATFORM_REQUIRE_PREFIX}.require_${idx}})
+    string(TOUPPER ${dependency} DEPENDENCY)
+    if (NOT ${ENABLE_MODULE_${DEPENDENCY}})
+      list(APPEND moduleDefines ENABLE_MODULE_${DEPENDENCY})
+      addModuleDependencies(${dependency} deps)
+      list(APPEND varResult ${deps})
+      list(REMOVE_DUPLICATES varResult)
+    endif()
+  endforeach()
 
   set(${varResult} ${moduleDefines} PARENT_SCOPE)
 endfunction()

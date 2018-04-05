@@ -61,6 +61,8 @@ if (process.env.IOTJS_EXTRA_MODULE_PATH) {
   });
 }
 
+var dynamicloader = Native.require('dynamicloader');
+
 function tryPath(modulePath, ext) {
   return Module.tryPath(modulePath) ||
          Module.tryPath(modulePath + ext);
@@ -116,6 +118,11 @@ Module.resolveFilepath = function(id, directories) {
 
     // index[.ext] as default
     if ((filepath = tryPath(modulePath + '/index', ext))) {
+      return filepath;
+    }
+
+    // id[.iotjs]
+    if (dynamicloader && (filepath = tryPath(modulePath, '.iotjs'))) {
       return filepath;
     }
   }
@@ -207,12 +214,16 @@ Module.load = function(id, parent) {
   module.filename = modPath;
   module.dirs = [modPath.substring(0, modPath.lastIndexOf('/') + 1)];
   var ext = modPath.substr(modPath.lastIndexOf('.') + 1);
-  var source = process.readSource(modPath);
+  var source;
 
   if (ext === 'js') {
+    source = process.readSource(modPath);
     module.compile(modPath, source);
   } else if (ext === 'json') {
+    source = process.readSource(modPath);
     module.exports = JSON.parse(source);
+  } else if (dynamicloader && ext === 'iotjs') {
+    module.exports = dynamicloader(modPath);
   }
 
   Module.cache[modPath] = module;

@@ -42,6 +42,8 @@ For each directory in search paths above:
 - If a directory `id` exists, module system consider the directory as a package:
   - If `id/package.json` contains **main** property, load the file named **main** property.
   - If `id/package.json` exists, but neither the **main** property nor the file named **main** property exist, load `index.js`.
+- Extra step for Linux/Tizen targets:
+  - If a file with `id.iotjs` exists, try to load it as an IoT.js dynamic module and return.
 
 **Adding extra paths for module loading**
 

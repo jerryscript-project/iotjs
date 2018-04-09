@@ -15,7 +15,7 @@
 
 var net = require('net');
 var ClientRequest = require('http_client').ClientRequest;
-var HTTPParser = require('httpparser');
+var HTTPParser = require('http_parser');
 var HTTPServer = require('http_server');
 var util = require('util');
 

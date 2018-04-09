@@ -16,7 +16,6 @@
 
 var Stream = require('stream_internal');
 var util = require('util');
-var assert = require('assert');
 
 
 function ReadableState(options) {
@@ -70,10 +69,6 @@ Readable.prototype.read = function(n) {
     res = null;
   }
 
-  if (state.ended && state.length == 0) {
-    emitEnd(this);
-  }
-
   return res;
 };
 
@@ -106,9 +101,7 @@ Readable.prototype.resume = function() {
   var state = this._readableState;
   if (!state.flowing) {
     state.flowing = true;
-    if (state.length > 0) {
-      emitData(this, readBuffer(this));
-    }
+    this.read();
   }
   return this;
 };
@@ -159,6 +152,7 @@ function readBuffer(stream, n) {
     res = Buffer.concat(state.buffer);
     state.buffer = [];
     state.length = 0;
+    emitData(stream, res);
   } else {
     throw new Error('not implemented');
   }
@@ -183,8 +177,9 @@ function emitEnd(stream) {
 function emitData(stream, data) {
   var state = stream._readableState;
 
-  assert.equal(readBuffer(stream), null);
-  stream.emit('data', data);
+  if (state.buffer.length === 0 || state.length === 0) {
+    stream.emit('data', data);
+  }
 
   if (state.ended && state.length == 0) {
     emitEnd(stream);

@@ -15,7 +15,7 @@
 
 var util = require('util');
 var IncomingMessage = require('http_incoming').IncomingMessage;
-var HTTPParser = require('httpparser').HTTPParser;
+var HTTPParser = require('http_parser').HTTPParser;
 
 var createHTTPParser = function() {
   // REQUEST is the default type.

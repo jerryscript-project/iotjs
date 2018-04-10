@@ -16,7 +16,7 @@
 var util = require('util');
 var OutgoingMessage = require('http_outgoing').OutgoingMessage;
 var common = require('http_common');
-var HTTPParser = require('httpparser').HTTPParser;
+var HTTPParser = require('http_parser').HTTPParser;
 
 function ClientRequest(options, cb, socket) {
   OutgoingMessage.call(this);

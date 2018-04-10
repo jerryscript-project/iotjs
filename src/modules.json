@@ -172,15 +172,15 @@
     "http": {
       "js_file": "js/http.js",
       "require": ["http_client", "http_common", "http_incoming",
-                  "http_outgoing", "http_server", "httpparser"]
+                  "http_outgoing", "http_server", "http_parser"]
     },
     "http_client": {
       "js_file": "js/http_client.js",
-      "require": ["http_common", "http_outgoing", "httpparser", "net", "util"]
+      "require": ["http_common", "http_outgoing", "http_parser", "net", "util"]
     },
     "http_common": {
       "js_file": "js/http_common.js",
-      "require": ["http_incoming", "httpparser"]
+      "require": ["http_incoming", "http_parser"]
     },
     "http_incoming": {
       "js_file": "js/http_incoming.js",
@@ -194,13 +194,13 @@
       "js_file": "js/http_server.js",
       "require": ["http_common", "http_outgoing", "net", "util"]
     },
-    "httpparser": {
-      "native_files": ["modules/iotjs_module_httpparser.c"],
-      "init": "InitHttpparser"
+    "http_parser": {
+      "native_files": ["modules/iotjs_module_http_parser.c"],
+      "init": "InitHttpParser"
     },
     "https": {
       "js_file": "js/https.js",
-      "require": ["http_client", "httpparser", "http_server", "net", "tls"]
+      "require": ["http_client", "http_parser", "http_server", "net", "tls"]
     },
     "i2c": {
       "platforms": {

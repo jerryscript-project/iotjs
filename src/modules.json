@@ -361,6 +361,11 @@
     },
     "util": {
       "js_file": "js/util.js"
+    },
+    "bridge": {
+      "js_file": "js/bridge.js",
+      "native_files": ["modules/iotjs_module_bridge.c"],
+      "init": "InitBridge"
     }
   }
 }

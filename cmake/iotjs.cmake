@@ -499,4 +499,6 @@ if(NOT BUILD_LIB_ONLY)
   target_include_directories(${TARGET_IOTJS} PRIVATE ${IOTJS_INCLUDE_DIRS})
   target_link_libraries(${TARGET_IOTJS} ${TARGET_LIB_IOTJS})
   install(TARGETS ${TARGET_IOTJS} DESTINATION ${BIN_INSTALL_DIR})
+
+  add_subdirectory(test)
 endif()

@@ -22,6 +22,7 @@
 #define XSTR(ARG) #ARG
 #define STR(ARG) XSTR(ARG)
 
+
 jerry_value_t iotjs_load_module(const char* path) {
   if (path == NULL) {
     const char* error = "Invalid module path";
@@ -60,6 +61,7 @@ jerry_value_t iotjs_load_module(const char* path) {
   return module->initializer();
 }
 
+
 JS_FUNCTION(DLload) {
   DJS_CHECK_ARGS(1, string);
 
@@ -72,6 +74,7 @@ JS_FUNCTION(DLload) {
 
   return jresult;
 }
+
 
 jerry_value_t InitDynamicloader() {
   jerry_value_t loader = jerry_create_external_function(DLload);

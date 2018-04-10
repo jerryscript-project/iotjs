@@ -21,6 +21,7 @@ BuildRequires: pkgconfig(capi-appfw-service-application)
 BuildRequires: pkgconfig(capi-appfw-application)
 BuildRequires: pkgconfig(capi-system-peripheral-io)
 BuildRequires: pkgconfig(dlog)
+BuildRequires: pkgconfig(glib-2.0)
 #BuildRequires: pkgconfig(st_things_sdkapi)
 
 #for https
@@ -73,6 +74,8 @@ cp %{SOURCE1001} .
   --external-include-dir=/usr/include/dlog/ \
   --external-include-dir=/usr/include/appcore-agent/ \
   --external-include-dir=/usr/include/appfw/ \
+  --external-include-dir=/usr/include/glib-2.0/ \
+  --external-include-dir=/usr/lib/glib-2.0/include/ \
   --compile-flag=-D__TIZEN__ \
   --compile-flag=-fPIC \
   --no-init-submodule \

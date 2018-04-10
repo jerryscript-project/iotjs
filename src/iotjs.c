@@ -31,10 +31,7 @@
 #include <string.h>
 
 
-/**
- * Initialize JerryScript.
- */
-bool iotjs_jerry_init(iotjs_environment_t* env) {
+static bool jerry_initialize(iotjs_environment_t* env) {
   // Set jerry run flags.
   jerry_init_flag_t jerry_flags = JERRY_INIT_EMPTY;
 
@@ -93,7 +90,35 @@ bool iotjs_jerry_init(iotjs_environment_t* env) {
 }
 
 
-static void iotjs_run(iotjs_environment_t* env) {
+bool iotjs_initialize(iotjs_environment_t* env) {
+  // Initialize debug log.
+  iotjs_debuglog_init();
+
+  // Initialize JerryScript
+  if (!jerry_initialize(env)) {
+    DLOG("iotjs_jerry_init failed");
+    return false;
+  }
+
+  // Set event loop.
+  iotjs_environment_set_loop(env, uv_default_loop());
+
+  // Bind environment to global object.
+  const jerry_value_t global = jerry_get_global_object();
+  jerry_set_object_native_pointer(global, env, NULL);
+
+  // Initialize builtin process module.
+  const jerry_value_t process = iotjs_module_get("process");
+  iotjs_jval_set_property_jval(global, "process", process);
+
+  // Release the global object
+  jerry_release_value(global);
+
+  return true;
+}
+
+
+void iotjs_run(iotjs_environment_t* env) {
 // Evaluating 'iotjs.js' returns a function.
 #ifndef ENABLE_SNAPSHOT
   jerry_value_t jmain = iotjs_jhelper_eval("iotjs.js", strlen("iotjs.js"),
@@ -114,18 +139,7 @@ static void iotjs_run(iotjs_environment_t* env) {
 }
 
 
-int iotjs_start(iotjs_environment_t* env) {
-  // Bind environment to global object.
-  const jerry_value_t global = jerry_get_global_object();
-  jerry_set_object_native_pointer(global, env, NULL);
-
-  // Initialize builtin process module.
-  const jerry_value_t process = iotjs_module_get("process");
-  iotjs_jval_set_property_jval(global, "process", process);
-
-  // Release the global object
-  jerry_release_value(global);
-
+static int iotjs_start(iotjs_environment_t* env) {
   iotjs_environment_set_state(env, kRunningMain);
 
   // Load and call iotjs.js.
@@ -167,45 +181,15 @@ int iotjs_start(iotjs_environment_t* env) {
 }
 
 
-void iotjs_uv_walk_to_close_callback(uv_handle_t* handle, void* arg) {
+static void iotjs_uv_walk_to_close_callback(uv_handle_t* handle, void* arg) {
   iotjs_handlewrap_t* handle_wrap = iotjs_handlewrap_from_handle(handle);
   IOTJS_ASSERT(handle_wrap != NULL);
 
   iotjs_handlewrap_close(handle_wrap, NULL);
 }
 
-void iotjs_conf_console_out(int (*out)(int lv, const char* fmt, ...)) {
-  iotjs_set_console_out(out);
-}
 
-int iotjs_entry(int argc, char** argv) {
-  int ret_code = 0;
-
-  // Initialize IoT.js
-
-  iotjs_debuglog_init();
-
-  iotjs_environment_t* env = iotjs_environment_get();
-  if (!iotjs_environment_parse_command_line_arguments(env, (uint32_t)argc,
-                                                      argv)) {
-    DLOG("iotjs_environment_parse_command_line_arguments failed");
-    ret_code = 1;
-    goto terminate;
-  }
-
-  if (!iotjs_jerry_init(env)) {
-    DLOG("iotjs_jerry_init failed");
-    ret_code = 1;
-    goto terminate;
-  }
-
-  // Set event loop.
-  iotjs_environment_set_loop(env, uv_default_loop());
-
-  // Start IoT.js.
-
-  ret_code = iotjs_start(env);
-
+void iotjs_dispose(iotjs_environment_t* env) {
   // Close uv loop.
   uv_walk(iotjs_environment_loop(env), iotjs_uv_walk_to_close_callback, NULL);
   uv_run(iotjs_environment_loop(env), UV_RUN_DEFAULT);
@@ -218,16 +202,50 @@ int iotjs_entry(int argc, char** argv) {
 
   // Release JerryScript engine.
   jerry_cleanup();
+}
 
-terminate:;
-  bool context_reset = false;
-  if (iotjs_environment_config(env)->debugger != NULL) {
-    context_reset = iotjs_environment_config(env)->debugger->context_reset;
-  }
+
+void iotjs_terminate(iotjs_environment_t* env) {
   // Release environment.
   iotjs_environment_release();
 
   iotjs_debuglog_release();
+
+  return;
+}
+
+
+void iotjs_conf_console_out(int (*out)(int lv, const char* fmt, ...)) {
+  iotjs_set_console_out(out);
+}
+
+
+int iotjs_entry(int argc, char** argv) {
+  iotjs_environment_t* env = iotjs_environment_get();
+  if (!iotjs_environment_parse_command_line_arguments(env, (uint32_t)argc,
+                                                      argv)) {
+    DLOG("iotjs_environment_parse_command_line_arguments failed");
+    iotjs_terminate(env);
+    return 1;
+  }
+
+  // Initialize IoT.js
+  if (!iotjs_initialize(env)) {
+    iotjs_terminate(env);
+    return 1;
+  }
+
+  // Start IoT.js.
+  int ret_code = iotjs_start(env);
+
+  iotjs_dispose(env);
+
+  bool context_reset = false;
+  if (iotjs_environment_config(env)->debugger != NULL) {
+    context_reset = iotjs_environment_config(env)->debugger->context_reset;
+  }
+
+  iotjs_terminate(env);
 
   if (context_reset) {
     return iotjs_entry(argc, argv);

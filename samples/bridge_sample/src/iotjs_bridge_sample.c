@@ -21,31 +21,30 @@ char* iotjs_bridge_sample_getSystemInfo(const char* message) {
   return "{'OS':'tizen'}";
 }
 
-/*
- * return value
- *  0: success
- * <0: error (return_message will be used as an error message)
- */
-int iotjs_bridge_sample_func(const char* command, const char* message,
-                             char** return_message) {
+void thread1_worker(void* return_handle) {
+  uv_sleep(500);
+  iotjs_bridge_set_msg(return_handle, "{'return':'from thread..'}");
+}
+
+void iotjs_bridge_sample_func(const char* command, const char* message,
+                              void* return_handle) {
   char* result = 0;
   if (strncmp(command, "getSystemInfo", strlen("getSystemInfo")) == 0) {
     result = iotjs_bridge_sample_getSystemInfo(message);
     if (result == 0) {
-      iotjs_bridge_set_return(return_message, "Can't get the resource path");
-      return -1;
+      iotjs_bridge_set_err(return_handle, "Can't get the resource path");
     } else {
-      iotjs_bridge_set_return(return_message, result);
+      iotjs_bridge_set_msg(return_handle, result);
     }
+  } else if (strncmp(command, "testThread", strlen("testThread")) == 0) {
+    uv_thread_t thread1;
+    uv_thread_create(&thread1, thread1_worker, return_handle);
+    uv_thread_join(&thread1);
   } else if (strncmp(command, "getResPath", strlen("getResPath")) == 0) {
-    iotjs_bridge_set_return(return_message, "res/");
-    return 0;
+    iotjs_bridge_set_msg(return_handle, "res/");
   } else {
-    iotjs_bridge_set_return(return_message, "Can't find command");
-    return -1;
+    iotjs_bridge_set_err(return_handle, "Can't find command");
   }
-
-  return 0;
 }
 
 /**

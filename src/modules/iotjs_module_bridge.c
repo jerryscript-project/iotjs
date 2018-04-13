@@ -17,16 +17,33 @@
 #include "iotjs_reqwrap.h"
 #include <stdio.h>
 
+typedef enum {
+  CALL_STATUS_ERROR = 0,
+  CALL_STATUS_INIT,
+  CALL_STATUS_CALLED,
+  CALL_STATUS_SETMSG,
+} iotjs_bridge_status_t;
 
+typedef struct _iotjs_bridge_object_t iotjs_bridge_object_t;
 typedef struct {
-  iotjs_reqwrap_t reqwrap;
+  jerry_value_t jobject;
+  jerry_value_t jcallback;
+  uv_mutex_t call_lock;
   uv_work_t req;
+  uv_async_t* async;
   iotjs_string_t module;
   iotjs_string_t command;
   iotjs_string_t message;
   iotjs_string_t ret_msg;
-  int err_flag;
-} iotjs_module_msg_reqwrap_t;
+  iotjs_bridge_status_t status;
+  iotjs_bridge_object_t* bridgeobj;
+} iotjs_bridge_call_t;
+
+struct _iotjs_bridge_object_t {
+  jerry_value_t jobject;
+  iotjs_bridge_call_t** calls;
+  size_t calls_alloc; // allocated size of calls
+};
 
 typedef struct {
   char* module_name;
@@ -36,10 +53,10 @@ typedef struct {
 static relation_info_t* g_module_list = 0;
 static unsigned int g_module_count = 0;
 
-unsigned int iotjs_bridge_init() {
+IOTJS_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(bridge_object);
+
+static unsigned int iotjs_bridge_init() {
   if (g_module_list == 0) {
-    // printf("__FUNCTION___ : %s(%d) module_count: %d \n",
-    //     __FUNCTION__, __LINE__, iotjs_module_count);
     g_module_list = (relation_info_t*)iotjs_buffer_allocate(
         sizeof(relation_info_t) * iotjs_module_count);
     IOTJS_ASSERT(g_module_list);
@@ -73,14 +90,15 @@ int iotjs_bridge_register(char* module_name, iotjs_bridge_func callback) {
   return empty_slot;
 }
 
-int iotjs_bridge_call(const char* module_name, const char* command,
-                      const char* message, char** return_message) {
+static int iotjs_bridge_call(const char* module_name, const char* command,
+                             const char* message, void* handle) {
   int ret = -1;
   for (int i = 0; i < (int)iotjs_module_count; i++) {
     if (g_module_list[i].module_name != 0) {
       if (strncmp(g_module_list[i].module_name, module_name,
                   strlen(module_name) + 1) == 0) {
-        ret = g_module_list[i].callback(command, message, return_message);
+        g_module_list[i].callback(command, message, handle);
+        ret = 0;
         break;
       }
     }
@@ -88,100 +106,230 @@ int iotjs_bridge_call(const char* module_name, const char* command,
   return ret;
 }
 
-int iotjs_bridge_set_return(char** return_message, char* result) {
-  if (result == NULL) {
-    *return_message = NULL;
+void iotjs_bridge_set_err(void* handle, char* err) {
+  iotjs_bridge_call_t* bridgecall = (iotjs_bridge_call_t*)handle;
+  IOTJS_ASSERT(iotjs_string_is_empty(&bridgecall->ret_msg));
+
+  if (err == NULL) {
+    err = "internal error";
+  }
+  if (bridgecall->jcallback) {
+    uv_mutex_lock(&bridgecall->call_lock);
+  }
+  bridgecall->ret_msg = iotjs_string_create_with_size(err, strlen(err) + 1);
+  bridgecall->status = CALL_STATUS_ERROR;
+
+  if (bridgecall->async != NULL) {
+    IOTJS_ASSERT(bridgecall->async->data == bridgecall);
+    uv_async_send(bridgecall->async);
+  }
+  if (bridgecall->jcallback)
+    uv_mutex_unlock(&bridgecall->call_lock);
+}
+
+void iotjs_bridge_set_msg(void* handle, char* msg) {
+  iotjs_bridge_call_t* bridgecall = (iotjs_bridge_call_t*)handle;
+  IOTJS_ASSERT(iotjs_string_is_empty(&bridgecall->ret_msg));
+
+  int size = strlen(msg);
+  if (size > MAX_RETURN_MESSAGE) {
+    iotjs_bridge_set_err(handle, "The message exceeds the maximum");
   } else {
-    *return_message =
-        iotjs_buffer_allocate(sizeof(char) * (strlen(result) + 1));
-    IOTJS_ASSERT(*return_message);
-    strncpy(*return_message, result, strlen(result) + 1);
+    if (bridgecall->jcallback) {
+      uv_mutex_lock(&bridgecall->call_lock);
+    }
+    bridgecall->ret_msg = iotjs_string_create_with_size(msg, strlen(msg) + 1);
+    bridgecall->status = CALL_STATUS_SETMSG;
+
+    if (bridgecall->async != NULL) {
+      IOTJS_ASSERT(bridgecall->async->data == bridgecall);
+      uv_async_send(bridgecall->async);
+    }
+    if (bridgecall->jcallback) {
+      uv_mutex_unlock(&bridgecall->call_lock);
+    }
+  }
+}
+
+static iotjs_bridge_call_t* iotjs_bridge_call_init(
+    iotjs_bridge_call_t* bridgecall, const jerry_value_t bridge,
+    const jerry_value_t jcallback, iotjs_string_t module,
+    iotjs_string_t command, iotjs_string_t message) {
+  if (bridge) {
+    bridgecall->jobject = jerry_acquire_value(bridge);
+  }
+  if (jcallback) {
+    bridgecall->jcallback = jerry_acquire_value(jcallback);
+    bridgecall->req.data = (void*)bridgecall;
+    uv_mutex_init(&bridgecall->call_lock);
+  }
+  bridgecall->async = NULL;
+  bridgecall->module = module;
+  bridgecall->command = command;
+  bridgecall->message = message;
+  bridgecall->ret_msg = iotjs_string_create();
+  bridgecall->status = CALL_STATUS_INIT;
+  bridgecall->bridgeobj = NULL;
+
+  return bridgecall;
+}
+
+static void iotjs_bridge_call_destroy(iotjs_bridge_call_t* bridgecall) {
+  if (bridgecall->jobject) {
+    jerry_release_value(bridgecall->jobject);
+  }
+  if (bridgecall->jcallback) {
+    uv_mutex_destroy(&bridgecall->call_lock);
+    jerry_release_value(bridgecall->jcallback);
+  }
+  if (bridgecall->async) {
+    uv_close((uv_handle_t*)bridgecall->async, NULL);
+    IOTJS_RELEASE(bridgecall->async);
+  }
+  iotjs_string_destroy(&bridgecall->module);
+  iotjs_string_destroy(&bridgecall->command);
+  iotjs_string_destroy(&bridgecall->message);
+  iotjs_string_destroy(&bridgecall->ret_msg);
+  bridgecall->bridgeobj = NULL;
+  IOTJS_RELEASE(bridgecall);
+}
+
+static iotjs_bridge_object_t* iotjs_bridge_get_object(jerry_value_t obj_val) {
+  iotjs_bridge_object_t* bridgeobj = NULL;
+  bool is_ok = false;
+  is_ok = jerry_get_object_native_pointer(obj_val, (void**)&bridgeobj, NULL);
+  if (!is_ok) {
+    bridgeobj = IOTJS_ALLOC(iotjs_bridge_object_t);
+    bridgeobj->jobject = obj_val;
+    bridgeobj->calls = NULL;
+    bridgeobj->calls_alloc = 0;
+    jerry_set_object_native_pointer(obj_val, bridgeobj,
+                                    &this_module_native_info);
+  }
+  IOTJS_ASSERT(bridgeobj != NULL);
+  IOTJS_ASSERT(bridgeobj->jobject == obj_val);
+  return bridgeobj;
+}
+
+static void iotjs_bridge_object_destroy(iotjs_bridge_object_t* bridgeobj) {
+  if (bridgeobj->calls_alloc == 0) {
+    if (bridgeobj->calls != NULL) {
+      iotjs_bridge_call_destroy((iotjs_bridge_call_t*)bridgeobj->calls);
+    }
+  } else {
+    for (size_t i = 0; i < bridgeobj->calls_alloc; i++) {
+      if (bridgeobj->calls[i] != NULL) {
+        iotjs_bridge_call_destroy(bridgeobj->calls[i]);
+      }
+    }
+    IOTJS_ASSERT(bridgeobj->calls);
+    iotjs_buffer_release((char*)bridgeobj->calls);
+  }
+  IOTJS_RELEASE(bridgeobj);
+}
+
+static int iotjs_bridge_add_call(iotjs_bridge_object_t* bridgeobj,
+                                 iotjs_bridge_call_t* callobj) {
+  IOTJS_ASSERT(bridgeobj);
+  IOTJS_ASSERT(callobj);
+  callobj->bridgeobj = bridgeobj;
+  if (bridgeobj->calls_alloc == 0) {
+    if (bridgeobj->calls == NULL) {
+      bridgeobj->calls = (iotjs_bridge_call_t**)callobj;
+    } else {
+      iotjs_bridge_call_t* prev_obj = (iotjs_bridge_call_t*)bridgeobj->calls;
+      bridgeobj->calls = (iotjs_bridge_call_t**)iotjs_buffer_allocate(
+          sizeof(iotjs_bridge_call_t*) * 4);
+      bridgeobj->calls_alloc = 4;
+      bridgeobj->calls[0] = prev_obj;
+      bridgeobj->calls[1] = callobj;
+    }
+  } else {
+    for (size_t i = 0; i < bridgeobj->calls_alloc; i++) {
+      if (bridgeobj->calls[i] == 0) {
+        bridgeobj->calls[i] = callobj;
+        return bridgeobj->calls_alloc;
+      }
+    }
+    size_t prev_size = sizeof(iotjs_bridge_call_t*) * bridgeobj->calls_alloc;
+    bridgeobj->calls =
+        (iotjs_bridge_call_t**)iotjs_buffer_reallocate((char*)bridgeobj->calls,
+                                                       prev_size * 2);
+    bridgeobj->calls[bridgeobj->calls_alloc] = callobj;
+    bridgeobj->calls_alloc *= 2;
+  }
+  return bridgeobj->calls_alloc;
+}
+
+static int iotjs_bridge_remove_call(iotjs_bridge_call_t* callobj) {
+  iotjs_bridge_object_t* bridgeobj = callobj->bridgeobj;
+
+  if (bridgeobj->calls_alloc == 0) {
+    if (bridgeobj->calls != NULL) {
+      iotjs_bridge_call_destroy((iotjs_bridge_call_t*)bridgeobj->calls);
+      bridgeobj->calls = NULL;
+    }
+  } else {
+    for (size_t i = 0; i < bridgeobj->calls_alloc; i++) {
+      if (bridgeobj->calls[i] == callobj) {
+        iotjs_bridge_call_destroy(bridgeobj->calls[i]);
+        bridgeobj->calls[i] = NULL;
+      }
+    }
   }
   return 0;
 }
 
-static iotjs_module_msg_reqwrap_t* iotjs_module_msg_reqwrap_create(
-    const jerry_value_t jcallback, iotjs_string_t module,
-    iotjs_string_t command, iotjs_string_t message) {
-  iotjs_module_msg_reqwrap_t* module_msg_reqwrap =
-      IOTJS_ALLOC(iotjs_module_msg_reqwrap_t);
-
-  iotjs_reqwrap_initialize(&module_msg_reqwrap->reqwrap, jcallback,
-                           (uv_req_t*)&module_msg_reqwrap->req);
-
-  module_msg_reqwrap->module = module;
-  module_msg_reqwrap->command = command;
-  module_msg_reqwrap->message = message;
-  module_msg_reqwrap->ret_msg = iotjs_string_create();
-  module_msg_reqwrap->err_flag = 0;
-  return module_msg_reqwrap;
-}
-
-static void after_worker(uv_work_t* work_req, int status) {
-  iotjs_module_msg_reqwrap_t* req_wrap =
-      (iotjs_module_msg_reqwrap_t*)iotjs_reqwrap_from_request(
-          (uv_req_t*)work_req);
+static void iotjs_bridge_js_call(iotjs_bridge_call_t* bridgecall) {
   iotjs_jargs_t jargs = iotjs_jargs_create(2);
-
-  if (status) {
-    iotjs_jargs_append_error(&jargs, "System error");
+  if (bridgecall->status == CALL_STATUS_ERROR) { // internal error
+    iotjs_jargs_append_error(&jargs, iotjs_string_data(&bridgecall->ret_msg));
+    iotjs_jargs_append_null(&jargs);
   } else {
-    // internal error
-    if (req_wrap->err_flag) {
-      iotjs_jargs_append_error(&jargs, iotjs_string_data(&req_wrap->ret_msg));
-      iotjs_jargs_append_null(&jargs);
-    } else {
-      iotjs_jargs_append_null(&jargs);
-      iotjs_jargs_append_string_raw(&jargs,
-                                    iotjs_string_data(&req_wrap->ret_msg));
-    }
+    iotjs_jargs_append_null(&jargs);
+    iotjs_jargs_append_string_raw(&jargs,
+                                  iotjs_string_data(&bridgecall->ret_msg));
   }
-
-  jerry_value_t jcallback = iotjs_reqwrap_jcallback(&req_wrap->reqwrap);
+  jerry_value_t jcallback = bridgecall->jcallback;
   if (jerry_value_is_function(jcallback)) {
     iotjs_make_callback(jcallback, jerry_create_undefined(), &jargs);
   }
-
-  iotjs_string_destroy(&req_wrap->ret_msg);
   iotjs_jargs_destroy(&jargs);
-  iotjs_reqwrap_destroy(&req_wrap->reqwrap);
-  IOTJS_RELEASE(req_wrap);
 }
 
-static void module_msg_worker(uv_work_t* work_req) {
-  iotjs_module_msg_reqwrap_t* req_wrap =
-      (iotjs_module_msg_reqwrap_t*)iotjs_reqwrap_from_request(
-          (uv_req_t*)work_req);
+static void aysnc_callback(uv_async_t* async) {
+  iotjs_bridge_call_t* bridgecall = (iotjs_bridge_call_t*)async->data;
+  iotjs_bridge_js_call(bridgecall);
+  iotjs_bridge_remove_call(bridgecall);
+}
 
-  char* return_message = NULL;
-  int return_value = -1;
-
-  return_value =
-      iotjs_bridge_call(iotjs_string_data(&req_wrap->module),
-                        iotjs_string_data(&req_wrap->command),
-                        iotjs_string_data(&req_wrap->message), &return_message);
-
-  if (return_value < 0) { // error..
-    req_wrap->err_flag = 1;
+void after_worker(uv_work_t* req, int status) {
+  iotjs_bridge_call_t* bridgecall = (iotjs_bridge_call_t*)req->data;
+  uv_mutex_lock(&bridgecall->call_lock);
+  if ((bridgecall->status == CALL_STATUS_ERROR) ||
+      (bridgecall->status == CALL_STATUS_SETMSG)) {
+    iotjs_bridge_js_call(bridgecall);
+    uv_mutex_unlock(&bridgecall->call_lock);
+    iotjs_bridge_remove_call(bridgecall);
+  } else {
+    uv_loop_t* loop = iotjs_environment_loop(iotjs_environment_get());
+    uv_async_t* async = IOTJS_ALLOC(uv_async_t);
+    async->data = (void*)bridgecall;
+    uv_async_init(loop, async, aysnc_callback);
+    uv_mutex_unlock(&bridgecall->call_lock);
   }
+}
 
-  if (return_message != NULL) {
-    int message_size = strlen(return_message);
-    if (message_size > MAX_RETURN_MESSAGE) {
-      req_wrap->err_flag = 1;
-      req_wrap->ret_msg =
-          iotjs_string_create_with_size("invalid return_message",
-                                        strlen("invalid return_message") + 1);
-    } else {
-      req_wrap->ret_msg =
-          iotjs_string_create_with_buffer(return_message,
-                                          strlen(return_message));
-    }
+void bridge_worker(uv_work_t* req) {
+  iotjs_bridge_call_t* bridgecall = (iotjs_bridge_call_t*)req->data;
+  bridgecall->status = CALL_STATUS_CALLED;
+  int ret = iotjs_bridge_call(iotjs_string_data(&bridgecall->module),
+                              iotjs_string_data(&bridgecall->command),
+                              iotjs_string_data(&bridgecall->message),
+                              (void*)bridgecall);
+  if (ret < 0) {
+    iotjs_bridge_set_err(bridgecall, "Can't find the module");
   }
-
-  iotjs_string_destroy(&req_wrap->module);
-  iotjs_string_destroy(&req_wrap->command);
-  iotjs_string_destroy(&req_wrap->message);
 }
 
 /**
@@ -192,45 +340,54 @@ JS_FUNCTION(MessageAsync) {
   DJS_CHECK_ARGS(3, string, string, string);
   DJS_CHECK_ARG_IF_EXIST(3, function);
 
+  jerry_value_t bridge_module = JS_GET_THIS();
   iotjs_string_t module_name = JS_GET_ARG(0, string);
   iotjs_string_t module_command = JS_GET_ARG(1, string);
   iotjs_string_t command_message = JS_GET_ARG(2, string);
   jerry_value_t jcallback = JS_GET_ARG_IF_EXIST(3, function);
 
+
   if (!jerry_value_is_null(jcallback)) { // async call
     uv_loop_t* loop = iotjs_environment_loop(iotjs_environment_get());
-    iotjs_module_msg_reqwrap_t* req_wrap =
-        iotjs_module_msg_reqwrap_create(jcallback, module_name, module_command,
-                                        command_message);
-    uv_queue_work(loop, &req_wrap->req, module_msg_worker, after_worker);
+    iotjs_bridge_object_t* bridgeobj = iotjs_bridge_get_object(bridge_module);
+    iotjs_bridge_call_t* bridgecall = IOTJS_ALLOC(iotjs_bridge_call_t);
+    iotjs_bridge_call_init(bridgecall, bridge_module, jcallback, module_name,
+                           module_command, command_message);
+    iotjs_bridge_add_call(bridgeobj, bridgecall);
+
+    uv_queue_work(loop, &bridgecall->req, bridge_worker, after_worker);
+
   } else { // sync call
     jerry_value_t jmsg;
-    int return_value;
-    char* return_message = NULL;
-
-    return_value =
-        iotjs_bridge_call(iotjs_string_data(&module_name),
-                          iotjs_string_data(&module_command),
-                          iotjs_string_data(&command_message), &return_message);
-
-    if (return_value < 0) { // error..
-      if (return_message != NULL) {
-        jmsg = JS_CREATE_ERROR(COMMON, return_message);
-        iotjs_buffer_release(return_message);
-      } else {
+    iotjs_bridge_call_t bridgecall_local;
+    iotjs_bridge_call_t* bridgecall = &bridgecall_local;
+    iotjs_bridge_call_init(bridgecall, 0, 0, module_name, module_command,
+                           command_message);
+    int ret = iotjs_bridge_call(iotjs_string_data(&module_name),
+                                iotjs_string_data(&module_command),
+                                iotjs_string_data(&command_message),
+                                (void*)bridgecall);
+    if (ret < 0) {
+      iotjs_bridge_set_err(bridgecall, "Can't find the module");
+    }
+    if (bridgecall->status == CALL_STATUS_ERROR) { // error..
+      if (iotjs_string_is_empty(&bridgecall->ret_msg)) {
         jmsg = JS_CREATE_ERROR(COMMON, (jerry_char_t*)"Unknown native error..");
+      } else {
+        jmsg = JS_CREATE_ERROR(COMMON, iotjs_string_data(&bridgecall->ret_msg));
       }
     } else {
-      if (return_message != NULL) {
-        jmsg = jerry_create_string((jerry_char_t*)return_message);
-        iotjs_buffer_release(return_message);
-      } else {
+      if (iotjs_string_is_empty(&bridgecall->ret_msg)) {
         jmsg = jerry_create_string((jerry_char_t*)"");
+      } else {
+        jmsg = jerry_create_string(
+            (jerry_char_t*)iotjs_string_data(&bridgecall->ret_msg));
       }
     }
-    iotjs_string_destroy(&module_name);
-    iotjs_string_destroy(&module_command);
-    iotjs_string_destroy(&command_message);
+    iotjs_string_destroy(&bridgecall->module);
+    iotjs_string_destroy(&bridgecall->command);
+    iotjs_string_destroy(&bridgecall->message);
+    iotjs_string_destroy(&bridgecall->ret_msg);
     return jmsg;
   }
 

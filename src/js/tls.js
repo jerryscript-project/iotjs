@@ -32,6 +32,8 @@ function TLSSocket(socket, options) {
   EventEmitter.call(this);
 
   this.authorized = false;
+  this.secureConnectionDone = false;
+  this.buff = [];
 
   this._socket.on('connect', this.onconnect);
   this._socket.on('data', this.ondata);
@@ -69,9 +71,17 @@ TLSSocket.prototype.write = function(data, callback) {
   if (!Buffer.isBuffer(data)) {
     data = new Buffer(data);
   }
-
-  data = this._write(data);
-  return this._socket.write(data, callback);
+  if (!this.secureConnectionDone) {
+    if (this.buff.length > 0) {
+      this.buff = Buffer.concat([this.buff, data]);
+      return;
+    }
+    this.buff = data;
+    return;
+  } else {
+    data = this._write(data);
+    return this._socket.write(data, callback);
+  }
 };
 
 TLSSocket.prototype.pause = function() {
@@ -170,10 +180,20 @@ TLSSocket.prototype.onhandshakedone = function(error, authorized) {
     return;
   }
 
+  this.secureConnectionDone = true;
+
   if (server) {
     server.emit('secureConnection', this);
   } else {
     this.emit('secureConnect');
+  }
+
+  if (this.buff.length > 0) {
+    var _chunk = {
+      chunk: this._write(this.buff),
+    };
+    this._socket._writableState.buffer.push(_chunk);
+    this._socket._readyToWrite();
   }
 };
 

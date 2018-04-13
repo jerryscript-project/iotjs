@@ -214,6 +214,50 @@ socket9.on('data', function(data) {
  socket9.end();
 });
 
+var server4 = tls.createServer(options, function(socket) {
+  socket.write('Server hello');
+
+  socket.on('data', function(data) {
+    client_message = data.toString();
+  });
+
+}).listen(9091, function() { });
+
+server4.on('secureConnection', function() {
+ server_handshake_done = true;
+});
+
+server4.on('close', function() {
+  server_closed = true;
+});
+
+sockOpts = {
+  host: '127.0.0.1',
+  port: 9091,
+  rejectUnauthorized: false,
+};
+
+var socket10 = tls.connect(sockOpts);
+
+socket10.on('data', function(data) {
+  server_message = data.toString();
+  socket10.end();
+});
+
+socket10._socket.on('connect', function() {
+  socket10.write("Client ");
+  socket10.write("hello");
+});
+
+socket10.on('secureConnect', function() {
+  handshake_done = true;
+  socket10.write('Client hello');
+});
+
+socket10.on('end', function() {
+  server4.close();
+});
+
 process.on('exit', function() {
   assert.equal(error_caught, true);
   assert.equal(handshake_done, true);

@@ -57,6 +57,25 @@ var socket = tls.connect(opts, function() {
 });
 ```
 
+### tls.connect(port[,host][,options][,callback])
+- `port` {number} Port the client should connect to.
+- `host` {string} Host the client should connect to, defaults to 'localhost'.
+- `options` {Object} See `tls.connect()`.
+- `callback` {Function} See `tls.connect()`.
+
+Same as tls.connect() except that port and host can be provided as arguments instead of options.
+A port or host option, if specified, will take precedence over any port or host argument.
+
+**Example**
+```js
+var tls = require('tls');
+
+var socket = tls.connect(443, 'localhost', function() {
+    socket.write('Hello IoT.js');
+    socket.end();
+});
+```
+
 ### tlsSocket.address()
 Returns an object containing the bound address, family name, and port of the socket.`{port: 443, family: 'IPv4', address: '127.0.0.1'}`
 

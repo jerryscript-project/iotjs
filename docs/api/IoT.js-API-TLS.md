@@ -2,14 +2,14 @@
 
 The following chart shows the availability of each TLS module API function on each platform.
 
-|  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | Nuttx<br/>(STM32F4-Discovery) | TizenRT<br/>(Artik053) | Tizen<br/>(Artik 10) |
+|  | Linux<br/>(Ubuntu) | Tizen<br/>(Raspberry Pi) | Raspbian<br/>(Raspberry Pi) | Nuttx<br/>(STM32F4-Discovery) | TizenRT<br/>(Artik053) |
 | :---: | :---: | :---: | :---: | :---: | :---: |
-| tls.connect  | X | O | O | O | O |
-| tls.write  | X | O | O | O | O |
-| tls.pause | X | O | O | O | O |
-| tls.end | X | O | O | O | O |
-| tls.resume | X | O | O | O | O |
-| tls.pause | X | O | O | O | O |
+| tls.connect  | X | O | O | O | O | O |
+| tls.write  | X | O | O | O | O | O |
+| tls.pause | X | O | O | O | O | O |
+| tls.end | X | O | O | O | O | O |
+| tls.resume | X | O | O | O | O | O |
+| tls.pause | X | O | O | O | O | O |
 
 # TLS
 

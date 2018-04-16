@@ -110,7 +110,7 @@ You can set up IP using WiFi or Ethernet
 #### Install
 Transfer iotjs binary and test file to the device:
 ``` bash
-(ubuntu)$ sdb push  ~/GBS-ROOT/local/repos/tizen_unified_preview1/armv7l/RPMS/iotjs-1.0.0-0.armv7l.rpm /tmp
+(ubuntu)$ sdb push  ~/GBS-ROOT/local/repos/tizen_unified_preview2/armv7l/RPMS/iotjs-1.0.0-0.armv7l.rpm /tmp
 (ubuntu)$ sdb push ./test/run_pass/test_console.js /home/owner/iotjs/
 (ubuntu)$ sdb root on
 (ubuntu)$ sdb shell

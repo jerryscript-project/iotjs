@@ -13,7 +13,9 @@ Welcome to the IoT.js!
 **[Getting Started](Getting-Started.md)**
 - [x86 / Linux](build/Build-for-x86-Linux.md)
 - [Raspberry Pi 2 / Linux](build/Build-for-RPi2-Linux.md)
+- [Raspberry Pi 3 / Tizen](build/Build-for-RPi3-Tizen.md)
 - [Stm32f4 / NuttX](build/Build-for-STM32F4-NuttX.md)
+- [ARTIK053 / TizenRT](build/Build-for-ARTIK053-TizenRT.md)
 
 **[Developer Guide](Developer's-Guide.md)**
 - [Development Process](devs/Development-Process.md)

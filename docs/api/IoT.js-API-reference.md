@@ -15,9 +15,11 @@
 * [(ADC)](IoT.js-API-ADC.md)
 * [(BLE)](IoT.js-API-BLE.md)
 * [(GPIO)](IoT.js-API-GPIO.md)
+* [HTTPS](IoT.js-API-HTTPS.md)
 * [(I2C)](IoT.js-API-I2C.md)
 * [(PWM)](IoT.js-API-PWM.md)
 * [(SPI)](IoT.js-API-SPI.md)
+* [TLS](IoT.js-API-TLS.md)
 * [(UART)](IoT.js-API-UART.md)
 * [UDP/Datagram](IoT.js-API-DGRAM.md)
 

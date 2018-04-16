@@ -2,16 +2,16 @@
 
 The following shows GPIO module APIs available for each platform.
 
-|  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | NuttX<br/>(STM32F4-Discovery) | TizenRT<br/>(Artik053) |
-| :---: | :---: | :---: | :---: | :---: |
-| gpio.open | O | O | O | O |
-| gpio.openSync | O | O | O | O |
-| gpiopin.write | O | O | O | O |
-| gpiopin.writeSync | O | O | O | O |
-| gpiopin.read | △ | △ | O | O |
-| gpiopin.readSync | O | O | O | O |
-| gpiopin.close | O | O | O | O |
-| gpiopin.closeSync | O | O | O | O |
+|  | Linux<br/>(Ubuntu) | Tizen<br/>(Raspberry Pi) | Raspbian<br/>(Raspberry Pi) | NuttX<br/>(STM32F4-Discovery) | TizenRT<br/>(Artik053) |
+| :---: | :---: | :---: | :---: | :---: | :---: |
+| gpio.open | X | O | O | O | O |
+| gpio.openSync | X | O | O | O | O |
+| gpiopin.write | X | O | O | O | O |
+| gpiopin.writeSync | X | O | O | O | O |
+| gpiopin.read | X | O | △ | O | O |
+| gpiopin.readSync | X | O | O | O | O |
+| gpiopin.close | X | O | O | O | O |
+| gpiopin.closeSync | X | O | O | O | O |
 
 
 # GPIO

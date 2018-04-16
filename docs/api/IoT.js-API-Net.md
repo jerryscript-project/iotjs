@@ -2,21 +2,21 @@
 
 The following shows net module APIs available for each platform.
 
-|  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | NuttX<br/>(STM32F4-Discovery) | TizenRT<br/>(Artik053) |
-| :---: | :---: | :---: | :---: | :---: |
-| net.createServer | O | O | △ ¹ | △ ¹ |
-| net.connect | O | O | △ ¹ | △ ¹ |
-| net.createConnection | O | O | △ ¹ | △ ¹ |
-| net.Server.listen | O | O | △ ¹ | △ ¹ |
-| net.Server.close | O | O | △ ²| O |
-| net.Socket.connect | O | O | △ ¹ | △ ¹ |
-| net.Socket.write | O | O | △ ¹ | △ ¹ |
-| net.Socket.end | O | O | △ ¹ ³ | △ ¹ ³ |
-| net.Socket.destroy | O | O | △ ¹ ³ | △ ¹ ³ |
-| net.Socket.pause | O | O | △ ¹ | △ ¹ |
-| net.Socket.resume | O | O | △ ¹ | △ ¹ |
-| net.Socket.setTimeout | O | O | △ ¹ | △ ¹ |
-| net.Socket.setKeepAlive | X | X | X | X |
+|  | Linux<br/>(Ubuntu) | Tizen<br/>(Raspberry Pi) | Raspbian<br/>(Raspberry Pi) | NuttX<br/>(STM32F4-Discovery) | TizenRT<br/>(Artik053) |
+| :---: | :---: | :---: | :---: | :---: | :---: |
+| net.createServer | O | O | O | △ ¹ | △ ¹ |
+| net.connect | O | O | O | △ ¹ | △ ¹ |
+| net.createConnection | O | O | O | △ ¹ | △ ¹ |
+| net.Server.listen | O | O | O | △ ¹ | △ ¹ |
+| net.Server.close | O | O | O | △ ²| O |
+| net.Socket.connect | O | O | O | △ ¹ | △ ¹ |
+| net.Socket.write | O | O | O | △ ¹ | △ ¹ |
+| net.Socket.end | O | O | O | △ ¹ ³ | △ ¹ ³ |
+| net.Socket.destroy | O | O | O | △ ¹ ³ | △ ¹ ³ |
+| net.Socket.pause | O | O | O | △ ¹ | △ ¹ |
+| net.Socket.resume | O | O | O | △ ¹ | △ ¹ |
+| net.Socket.setTimeout | O | O | O | △ ¹ | △ ¹ |
+| net.Socket.setKeepAlive | X | X | X | X | X |
 
 1. On NuttX/STM32F4-Discovery and TizenRT/Artik053, even a couple of sockets/server/requests might not work properly.
 

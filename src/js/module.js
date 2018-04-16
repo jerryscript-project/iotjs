@@ -213,6 +213,8 @@ Module.load = function(id, parent) {
 
   module.filename = modPath;
   module.dirs = [modPath.substring(0, modPath.lastIndexOf('/') + 1)];
+  iotjs_module_t.cache[modPath] = module;  
+
   var ext = modPath.substr(modPath.lastIndexOf('.') + 1);
   var source;
 
@@ -225,9 +227,7 @@ Module.load = function(id, parent) {
   } else if (dynamicloader && ext === 'iotjs') {
     module.exports = dynamicloader(modPath);
   }
-
   Module.cache[modPath] = module;
-
   return module.exports;
 };
 

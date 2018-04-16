@@ -16,7 +16,7 @@
 var EventEmitter = require('events').EventEmitter;
 var util = require('util');
 
-util.mixin(native, EventEmitter);
+util.mixin(native.prototype, EventEmitter.prototype);
 
 var uart = {
   open: function(config, callback) {

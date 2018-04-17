@@ -74,12 +74,23 @@ function inherits(ctor, superCtor) {
 }
 
 
-function mixin(target, source) {
-  for (var prop in source.prototype) {
-    if (source.hasOwnProperty(prop)) {
-      target.prototype[prop] = source.prototype[prop];
+function mixin(target) {
+  if (isNullOrUndefined(target)) {
+    throw new TypeError('target cannot be null or undefined');
+  }
+
+  for (var i = 1; i < arguments.length; ++i) {
+    var source = arguments[i];
+    if (!isNullOrUndefined(source)) {
+      for (var prop in source) {
+        if (source.hasOwnProperty(prop)) {
+          target[prop] = source[prop];
+        }
+      }
     }
   }
+
+  return target;
 }
 
 function format(s) {

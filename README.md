@@ -37,7 +37,7 @@ tools/build.py
 ### How to Test
 
 ```bash
-build/x86_64-linux/debug/bin/iotjs tools/check_test.js
+tools/testrunner.py build/x86_64-linux/debug/bin/iotjs
 ```
 
 

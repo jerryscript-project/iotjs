@@ -52,9 +52,6 @@ TUV_ROOT = fs.join(DEPS_ROOT, 'libtuv')
 # Root directory for http-parser submodule.
 HTTPPARSER_ROOT = fs.join(DEPS_ROOT, 'http-parser')
 
-# checktest
-CHECKTEST_PATH = fs.join(TOOLS_ROOT, 'check_test.js')
-
 # Build configuration file path.
 BUILD_CONFIG_PATH = fs.join(PROJECT_ROOT, 'build.config')
 

@@ -13,10 +13,10 @@ correctly specify the module name as the test executor relies on that informatio
 
 ### How to Test
 
-When you build ``iotjs`` binary successfully, you can run test driver with this binary.
+When you build ``iotjs`` binary successfully, you can run test runner with this binary.
 
 ```bash
-/path/to/iotjs tools/check_test.js
+tools/testrunner.py /path/to/iotjs
 ```
 
 #### Set test options

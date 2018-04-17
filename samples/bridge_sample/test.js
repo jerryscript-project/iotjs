@@ -15,9 +15,14 @@
 
 var bridgeSample = require('bridge_sample');
 
-console.log("TestApp: getResPath(): " + bridgeSample.getResPath());
 
-bridgeSample.getSystemInfo(function(err, msg) {
-    console.log("TestApp: getSystemInfo(): err: " + err + "  msg: " + msg);
+console.log('TestApp: getResPath(): ' + bridgeSample.getResPath());
+
+
+bridgeSample.testThread(function(err, msg) {
+    console.log('TestApp: testThread(): err: ' + err + '  msg: ' + msg);
 });
 
+bridgeSample.getSystemInfo(function(err, msg) {
+    console.log('TestApp: getSystemInfo(): err: ' + err + '  msg: ' + msg);
+});

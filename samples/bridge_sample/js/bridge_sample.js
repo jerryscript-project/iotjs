@@ -20,11 +20,17 @@ function bridge_sample(){
 }
 
 bridge_sample.prototype.getResPath = function(){
-    return this.bridge.sendSync("getResPath", "");
+    return this.bridge.sendSync('getResPath', '');
 };
 
 bridge_sample.prototype.getSystemInfo = function(callback){
-    this.bridge.send("getSystemInfo", "", function(err, msg){
+    this.bridge.send('getSystemInfo', '', function(err, msg){
+        callback(err, msg);
+    });
+};
+
+bridge_sample.prototype.testThread = function(callback){
+    this.bridge.send('testThread', '', function(err, msg){
         callback(err, msg);
     });
 };

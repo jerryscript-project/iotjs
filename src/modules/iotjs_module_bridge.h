@@ -19,13 +19,13 @@
 #define MAX_RETURN_MESSAGE 512 * 2
 
 /*
- * return value
- *  0: success
- * <0: error (return_message will be used as an error message)
  */
-typedef int (*iotjs_bridge_func)(const char* command, const char* message,
-                                 char** return_message);
+typedef void (*iotjs_bridge_func)(const char* command, const char* message,
+                                  void* return_handle);
 
 int iotjs_bridge_register(char* module_name, iotjs_bridge_func callback);
-int iotjs_bridge_set_return(char** return_message, char* result);
+
+void iotjs_bridge_set_err(void* return_handle, char* err);
+void iotjs_bridge_set_msg(void* return_handle, char* msg);
+
 #endif

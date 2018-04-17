@@ -2,11 +2,11 @@
 
  The following shows Https module APIs available for each platform.
 
- |  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | NuttX<br/>(STM32F4-Discovery) | TizenRT<br/>(Artik053) |
- | :---: | :---: | :---: | :---: | :---: |
- | https.createServer | O | O | △ ¹ | △ ¹ |
- | https.request | O | O | △ ¹ | △ ¹ |
- | https.get | O | O | △ ¹ | △ ¹ |
+ |  | Linux<br/>(Ubuntu) | Tizen<br/>(Raspberry Pi) | Raspbian<br/>(Raspberry Pi) | NuttX<br/>(STM32F4-Discovery) | TizenRT<br/>(Artik053) |
+ | :---: | :---: | :---: | :---: | :---: | :---: |
+ | https.createServer | O | O | O | △ ¹ | △ ¹ |
+ | https.request | O | O | O | △ ¹ | △ ¹ |
+ | https.get | O | O | O | △ ¹ | △ ¹ |
 
 1. On NuttX/STM32F4-Discovery and TizenRT/Artik053, even a couple of sockets/server/requests might not work properly.
 

@@ -2,9 +2,9 @@
 
 The following shows dns module APIs available for each platform.
 
-|  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | NuttX<br/>(STM32F4-Discovery) | TizenRT<br/>(Artik053) |
-| :---: | :---: | :---: | :---: | :---: |
-| dns.lookup | O | O | X | O |
+|  | Linux<br/>(Ubuntu) | Tizen<br/>(Raspberry Pi) | Raspbian<br/>(Raspberry Pi) | NuttX<br/>(STM32F4-Discovery) | TizenRT<br/>(Artik053) |
+| :---: | :---: | :---: | :---: | :---: | :---: |
+| dns.lookup | O | O | O | X | O |
 
 ※ dns.lookup currently only returns IPv4 addresses. Support for IPv6 addresses are on the roadmap.
 

@@ -2,16 +2,16 @@
 
 The following shows Assert module APIs available for each platform.
 
-|  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | NuttX<br/>(STM32F4-Discovery) | TizenRT<br/>(Artik053) |
-| :---: | :---: | :---: | :---: | :---: |
-| assert.assert | O | O | O | O |
-| assert.doesNotThrow | O | O | O | O |
-| assert.equal | O | O | O | O |
-| assert.fail | O | O | O | O |
-| assert.notEqual | O | O | O | O |
-| assert.notStrictEqual | O | O | O | O |
-| assert.strictEqual | O | O | O | O |
-| assert.throws | O | O | O | O |
+|  | Linux<br/>(Ubuntu) | Tizen<br/>(Raspberry Pi) | Raspbian<br/>(Raspberry Pi) | NuttX<br/>(STM32F4-Discovery) | TizenRT<br/>(Artik053) |
+| :---: | :---: | :---: | :---: | :---: | :---: |
+| assert.assert | O | O | O | O | O |
+| assert.doesNotThrow | O | O | O | O | O |
+| assert.equal | O | O | O | O | O |
+| assert.fail | O | O | O | O | O |
+| assert.notEqual | O | O | O | O | O |
+| assert.notStrictEqual | O | O | O | O | O |
+| assert.strictEqual | O | O | O | O | O |
+| assert.throws | O | O | O | O | O |
 
 # Assert
 

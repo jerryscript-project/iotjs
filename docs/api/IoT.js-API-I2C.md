@@ -4,14 +4,14 @@ The following shows I2C module APIs available for each platform.
 
 |  | Linux<br/>(Ubuntu) | Tizen<br/>(Raspberry Pi) | Raspbian<br/>(Raspberry Pi) | NuttX<br/>(STM32F4-Discovery) | TizenRT<br/>(Artik053) |
 | :---: | :---: | :---: | :---: | :---: | :---: |
-| i2c.open | O | O | O | O | O |
-| i2c.openSync | O | O | O | O | O |
-| i2cbus.read | O | O | O | O | O |
-| i2cbus.readSync | O | O | O | O | O |
-| i2cbus.write | O | O | O | O | O |
-| i2cbus.writeSync | O | O | O | O | O |
-| i2cbus.close | O | O | O | O | O |
-| i2cbus.closeSync | O | O | O | O | O |
+| i2c.open | X | O | O | O | O |
+| i2c.openSync | X | O | O | O | O |
+| i2cbus.read | X | O | O | O | O |
+| i2cbus.readSync | X | O | O | O | O |
+| i2cbus.write | X | O | O | O | O |
+| i2cbus.writeSync | X | O | O | O | O |
+| i2cbus.close | X | O | O | O | O |
+| i2cbus.closeSync | X | O | O | O | O |
 
 
 # I2C

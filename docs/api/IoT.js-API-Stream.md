@@ -2,14 +2,14 @@
 
 The following shows stream module APIs available for each platform.
 
-|  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | NuttX<br/>(STM32F4-Discovery) | TizenRT<br/>(Artik053) |
-| :---: | :---: | :---: | :---: | :---: |
-| readable.isPaused | O | O | O | O |
-| readable.pause | O | O | O | O |
-| readable.read | O | O | O | O |
-| readable.resume | O | O | O | O |
-| writable.end | O | O | O | O |
-| writable.write | O | O | O | O |
+|  | Linux<br/>(Ubuntu) | Tizen<br/>(Raspberry Pi) | Raspbian<br/>(Raspberry Pi) | NuttX<br/>(STM32F4-Discovery) | TizenRT<br/>(Artik053) |
+| :---: | :---: | :---: | :---: | :---: | :---: |
+| readable.isPaused | O | O | O | O | O |
+| readable.pause | O | O | O | O | O |
+| readable.read | O | O | O | O | O |
+| readable.resume | O | O | O | O | O |
+| writable.end | O | O | O | O | O |
+| writable.write | O | O | O | O | O |
 
 # Stream
 

@@ -53,7 +53,8 @@ void iotjs_bridge_sample_func(const char* command, const char* message,
 jerry_value_t InitBridgeSample() {
   char* module_name = "bridge_sample";
   jerry_value_t mymodule = jerry_create_object();
-  iotjs_jval_set_property_string_raw(mymodule, "MODULE_NAME", module_name);
+  iotjs_jval_set_property_string_raw(mymodule, IOTJS_MAGIC_STRING_MODULE_NAME,
+                                     module_name);
   iotjs_bridge_register(module_name, iotjs_bridge_sample_func);
   return mymodule;
 }

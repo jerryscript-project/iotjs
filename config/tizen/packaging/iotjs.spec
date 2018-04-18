@@ -16,7 +16,7 @@ BuildRequires: glibc-static
 #BuildRequires: aul
 BuildRequires: pkgconfig(appcore-agent)
 BuildRequires: pkgconfig(capi-appfw-service-application)
-#BuildRequires: pkgconfig(capi-appfw-app-common)
+BuildRequires: pkgconfig(capi-appfw-app-common)
 #BuildRequires: pkgconfig(capi-appfw-package-manager)
 BuildRequires: pkgconfig(capi-appfw-application)
 BuildRequires: pkgconfig(capi-system-peripheral-io)
@@ -70,6 +70,7 @@ cp %{SOURCE1001} .
   --target-os=tizen \
   --target-board=rpi3 \
   --external-lib=capi-system-peripheral-io \
+  --external-lib=capi-appfw-app-common \
   --external-lib=dlog \
   --external-include-dir=/usr/include/dlog/ \
   --external-include-dir=/usr/include/appcore-agent/ \

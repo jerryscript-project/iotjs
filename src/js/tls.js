@@ -15,7 +15,7 @@
 
 var net = require('net');
 var util = require('util');
-var EventEmitter = require('events').EventEmitter;
+var Duplex = require('stream').Duplex;
 
 function TLSSocket(socket, options) {
   if (!(this instanceof TLSSocket)) {
@@ -29,7 +29,7 @@ function TLSSocket(socket, options) {
   this._socket = socket;
   socket._tlsSocket = this;
 
-  EventEmitter.call(this);
+  Duplex.call(this);
 
   this.authorized = false;
 
@@ -48,15 +48,23 @@ function TLSSocket(socket, options) {
 
   native.TlsInit(this, options, secureContext);
   this._socketState = socket._socketState;
-}
-util.inherits(TLSSocket, EventEmitter);
 
-TLSSocket.prototype._read = native.read;
-TLSSocket.prototype._write = native.write;
-TLSSocket.prototype._connect = native.connect;
+  var self = this;
+  if (socket._writableState.ready && !options.isServer) {
+    process.nextTick(function() {
+      self._native_connect(options.servername || options.host || 'localhost');
+      self._native_read(null);
+    });
+  }
+}
+util.inherits(TLSSocket, Duplex);
+
+TLSSocket.prototype._native_read = native.read;
+TLSSocket.prototype._native_write = native.write;
+TLSSocket.prototype._native_connect = native.connect;
 
 TLSSocket.prototype.connect = function(options, callback) {
-  this._connect(options.servername || options.host || 'localhost');
+  this._native_connect(options.servername || options.host || 'localhost');
 
   if (util.isFunction(callback)) {
     this.on('secureConnect', callback);
@@ -65,34 +73,15 @@ TLSSocket.prototype.connect = function(options, callback) {
   this._socket.connect(options);
 };
 
-TLSSocket.prototype.write = function(data, callback) {
-  if (!Buffer.isBuffer(data)) {
-    data = new Buffer(data);
-  }
-
-  data = this._write(data);
-  return this._socket.write(data, callback);
-};
-
-TLSSocket.prototype.pause = function() {
-  this._socket.pause();
-};
-
-TLSSocket.prototype.resume = function() {
-  this._socket.resume();
+TLSSocket.prototype._write = function(chunk, callback, onwrite) {
+  chunk = this._native_write(chunk);
+  this._socket.write(chunk, callback);
+  onwrite();
 };
 
 TLSSocket.prototype.end = function(data, callback) {
-  if (data) {
-    if (!Buffer.isBuffer(data)) {
-      data = new Buffer(data);
-    }
-    data = this._write(data, true);
-  } else {
-    data = this._write(null, true);
-  }
-
-  this._socket.end(data, callback);
+  Duplex.prototype.end.call(this, data, callback);
+  this._socket.end();
 };
 
 TLSSocket.prototype.destroy = function() {
@@ -104,8 +93,7 @@ TLSSocket.prototype.destroySoon = function() {
 };
 
 TLSSocket.prototype.onconnect = function() {
-  var self = this._tlsSocket;
-  self._read(null);
+  this._tlsSocket._native_read(null);
 };
 
 TLSSocket.prototype.encrypted = function() {
@@ -126,7 +114,7 @@ TLSSocket.prototype.setTimeout = function(msecs, callback) {
 
 TLSSocket.prototype.ondata = function(data) {
   var self = this._tlsSocket;
-  self._read(data);
+  self._native_read(data);
 };
 
 TLSSocket.prototype.onerror = function(error) {
@@ -170,6 +158,8 @@ TLSSocket.prototype.onhandshakedone = function(error, authorized) {
     return;
   }
 
+  this._readyToWrite();
+
   if (server) {
     server.emit('secureConnection', this);
   } else {
@@ -212,7 +202,6 @@ function createServer(options, secureConnectionListener) {
 
 function connect(arg0, arg1, arg2, callback) {
   var options;
-  var tlsSocket;
   if (typeof arg0 == 'object') {
     options = Object.create(arg0, {
       isServer: { value: false, enumerable: true },
@@ -257,8 +246,13 @@ function connect(arg0, arg1, arg2, callback) {
       callback = arg1;
     }
   }
-  tlsSocket = new TLSSocket(new net.Socket(), options);
-  tlsSocket.connect(options, callback);
+
+  var tlsSocket = new TLSSocket(options.socket || new net.Socket(), options);
+  if (tlsSocket._socket instanceof net.Socket) {
+    tlsSocket.connect(options, callback);
+  } else if (util.isFunction(callback)) {
+    tlsSocket.on('secureConnect', callback);
+  }
 
   return tlsSocket;
 }

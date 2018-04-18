@@ -84,9 +84,10 @@ cp %{SOURCE1001} .
 # --external-lib=sdkapi \
 
 # Create shared library
-cd ./build/noarch-tizen/%{build_mode}/lib/
-%define iotjs_target_lib libjerry-core.a libjerry-port-default.a libhttpparser.a libtuv.a libiotjs.a
+%define iotjs_target_lib libjerry-core.a libjerry-port-default.a libhttpparser.a libtuv.a \\\
+  libmbedx509.a libmbedtls.a libmbedcrypto.a libiotjs.a
 %define iotjs_lib_flag -lcapi-system-peripheral-io -lpthread -lcurl -ldlog -lappcore-agent -lcapi-appfw-app-common
+cd ./build/noarch-tizen/%{build_mode}/lib/
 gcc -shared -o libiotjs.so -Wl,--whole-archive %{iotjs_target_lib} -Wl,--no-whole-archive %{iotjs_lib_flag}
 
 %install

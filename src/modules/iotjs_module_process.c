@@ -26,7 +26,8 @@ static jerry_value_t WrapEval(const char* name, size_t name_len,
   jerry_value_t res =
       jerry_parse_function((const jerry_char_t*)name, name_len,
                            (const jerry_char_t*)args, strlen(args),
-                           (const jerry_char_t*)source, length, false);
+                           (const jerry_char_t*)source, length,
+                           JERRY_PARSE_NO_OPTS);
 
   return res;
 }
@@ -136,8 +137,8 @@ JS_FUNCTION(CompileModule) {
 
   if (js_modules[i].name != NULL) {
 #ifdef ENABLE_SNAPSHOT
-    jres = jerry_exec_snapshot_at((const void*)iotjs_js_modules_s,
-                                  iotjs_js_modules_l, js_modules[i].idx, false);
+    jres = jerry_exec_snapshot((const void*)iotjs_js_modules_s,
+                               iotjs_js_modules_l, js_modules[i].idx, 0);
 #else
     jres = WrapEval(name, iotjs_string_size(&id),
                     (const char*)js_modules[i].code, js_modules[i].length);

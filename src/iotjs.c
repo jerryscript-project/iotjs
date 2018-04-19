@@ -69,7 +69,8 @@ static bool jerry_initialize(iotjs_environment_t* env) {
   jerry_set_vm_exec_stop_callback(vm_exec_stop_callback, &env->state, 2);
 
   // Do parse and run to generate initial javascript environment.
-  jerry_value_t parsed_code = jerry_parse((jerry_char_t*)"", 0, false);
+  jerry_value_t parsed_code =
+      jerry_parse(NULL, 0, (jerry_char_t*)"", 0, JERRY_PARSE_NO_OPTS);
   if (jerry_value_has_error_flag(parsed_code)) {
     DLOG("jerry_parse() failed");
     jerry_release_value(parsed_code);
@@ -125,8 +126,8 @@ void iotjs_run(iotjs_environment_t* env) {
                                            iotjs_s, iotjs_l, false);
 #else
   jerry_value_t jmain =
-      jerry_exec_snapshot_at((const void*)iotjs_js_modules_s,
-                             iotjs_js_modules_l, module_iotjs_idx, false);
+      jerry_exec_snapshot((const void*)iotjs_js_modules_s, iotjs_js_modules_l,
+                          module_iotjs_idx, 0);
 #endif
 
   if (jerry_value_has_error_flag(jmain) && !iotjs_environment_is_exiting(env)) {

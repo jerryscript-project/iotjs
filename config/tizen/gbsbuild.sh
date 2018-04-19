@@ -14,17 +14,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-USAGE="USAGE: $0 [--debug]"
+function print_usage {
+  echo "USAGE: $0 [--debug|--clean]"
+  echo ""
+  echo "Optional arguments:"
+  echo "--debug: Build IoT.js in debug mode. The default is release mode."
+  echo "--clean: Make a clean gbs build by deleting the old build root."
+  echo ""
+}
 
 buildtype="release"
+unset cleanbuild
 
 while [ -n "$1" ]; do
   case $1 in
     --debug )
       buildtype="debug"
     ;;
+    --clean )
+      cleanbuild=true
+    ;;
     * )
-      echo $USAGE
+      print_usage
       exit 1;
     ;;
   esac
@@ -59,8 +70,8 @@ fi
 
 echo -e "\n(3) Calling core gbs build command"
 gbsconf="config/tizen/sample.gbs.conf"
-gbscommand="gbs -c $gbsconf build -A armv7l --include-all --clean"
-gbscommand+=" --define='build_mode $buildtype'"
+gbscommand="gbs -c $gbsconf build -A armv7l --include-all"
+gbscommand+=" ${cleanbuild:+--clean} --define='build_mode $buildtype'"
 gbscommand+=" --define='external_build_options $IOTJS_BUILD_OPTION'"
 
 ret=0

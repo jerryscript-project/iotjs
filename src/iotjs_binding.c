@@ -264,9 +264,10 @@ jerry_value_t iotjs_jhelper_call(jerry_value_t jfunc, jerry_value_t jthis,
 jerry_value_t iotjs_jhelper_eval(const char* name, size_t name_len,
                                  const uint8_t* data, size_t size,
                                  bool strict_mode) {
-  jerry_value_t jres =
-      jerry_parse_named_resource((const jerry_char_t*)name, name_len,
-                                 (const jerry_char_t*)data, size, strict_mode);
+  uint32_t opts = strict_mode ? JERRY_PARSE_STRICT_MODE : JERRY_PARSE_NO_OPTS;
+
+  jerry_value_t jres = jerry_parse((const jerry_char_t*)name, name_len,
+                                   (const jerry_char_t*)data, size, opts);
 
   if (!jerry_value_has_error_flag(jres)) {
     jerry_value_t func = jres;

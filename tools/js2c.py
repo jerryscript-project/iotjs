@@ -55,7 +55,7 @@ def force_str(string):
 
 
 def parse_literals(code):
-    JERRY_SNAPSHOT_VERSION = 10
+    JERRY_SNAPSHOT_VERSION = 12
     JERRY_SNAPSHOT_MAGIC = 0x5952524A
 
     literals = set()
@@ -237,7 +237,6 @@ def get_snapshot_contents(js_path, snapshot_tool):
 
     ret = subprocess.call([snapshot_tool,
                            "generate",
-                           "--context", "eval",
                            "-o", snapshot_path,
                            wrapped_path])
 

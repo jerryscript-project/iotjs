@@ -71,130 +71,123 @@ def init_options():
     argv = argv + sys.argv[1:]
 
     # Prepare argument parser.
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description='Building tool for IoT.js '
+        'JavaScript framework for embedded systems.')
 
-    parser.add_argument('--buildtype',
+    iotjs_group = parser.add_argument_group('Arguments of IoT.js',
+        'The following arguments are related to the IoT.js framework.')
+    iotjs_group.add_argument('--buildtype',
         choices=['debug', 'release'], default='debug',
-        help='Specify the build type: %(choices)s (default: %(default)s)')
-
-    parser.add_argument('--builddir', default=path.BUILD_ROOT,
+        help='Specify the build type (default: %(default)s).')
+    iotjs_group.add_argument('--builddir', default=path.BUILD_ROOT,
         help='Specify the build directory (default: %(default)s)')
-    parser.add_argument('--buildlib', action='store_true', default=False,
+    iotjs_group.add_argument('--buildlib', action='store_true', default=False,
         help='Build IoT.js library only (default: %(default)s)')
-
-    parser.add_argument('--clean', action='store_true', default=False,
-        help='Clean build directory before build (default: %(default)s)')
-
-    parser.add_argument('--config', default=path.BUILD_CONFIG_PATH,
-        help='Specify the config file (default: %(default)s)',
-        dest='config_path')
-
-    parser.add_argument('--profile',
-        help='Specify the module profile file for IoT.js')
-
-    parser.add_argument('--target-arch',
-        choices=['arm', 'x86', 'i686', 'x86_64', 'x64', 'mips', 'noarch'],
-        default=platform.arch(),
-        help='Specify the target architecture: '
-             '%(choices)s (default: %(default)s)')
-    parser.add_argument('--target-os',
-        choices=['linux', 'darwin', 'osx', 'nuttx', 'tizen', 'tizenrt',
-                 'openwrt'],
-        default=platform.os(),
-        help='Specify the target os: %(choices)s (default: %(default)s)')
-
-    parser.add_argument('--target-board',
-        choices=[None, 'artik10', 'stm32f4dis', 'rpi2', 'rpi3', 'artik05x'],
-        default=None, help='Specify the target board (if needed): '
-             '%(choices)s (default: %(default)s)')
-    parser.add_argument('--nuttx-home', default=None, dest='sysroot',
-        help='Specify the NuttX base directory (required for NuttX build)')
-
-    parser.add_argument('--sysroot', action='store',
-        help='The location of the development tree root directory (sysroot).'
-        'Must be compatible with used toolchain.')
-
-    parser.add_argument('--cmake-param',
+    iotjs_group.add_argument('--cmake-param',
         action='append', default=[],
         help='Specify additional cmake parameters '
              '(can be used multiple times)')
-    parser.add_argument('--compile-flag',
+    iotjs_group.add_argument('--compile-flag',
         action='append', default=[],
         help='Specify additional compile flags (can be used multiple times)')
-    parser.add_argument('--link-flag',
-        action='append', default=[],
-        help='Specify additional linker flags (can be used multiple times)')
-
-    parser.add_argument('--external-include-dir',
+    iotjs_group.add_argument('--clean', action='store_true', default=False,
+        help='Clean build directory before build (default: %(default)s)')
+    iotjs_group.add_argument('--config', default=path.BUILD_CONFIG_PATH,
+        help='Specify the config file (default: %(default)s)',
+        dest='config_path')
+    iotjs_group.add_argument('-e', '--experimental',
+        action='store_true', default=False,
+        help='Enable to build experimental features')
+    iotjs_group.add_argument('--external-include-dir',
         action='append', default=[],
         help='Specify additional external include directory '
              '(can be used multiple times)')
-    parser.add_argument('--external-lib',
+    iotjs_group.add_argument('--external-lib',
         action='append', default=[],
         help='Specify additional external library '
              '(can be used multiple times)')
-
-    parser.add_argument('--external-modules',
+    iotjs_group.add_argument('--external-modules',
         action='store', default=set(), type=lambda x: set(x.split(',')),
         help='Specify the path of modules.json files which should be processed '
              '(format: path1,path2,...)')
-
-    parser.add_argument('--jerry-cmake-param',
+    iotjs_group.add_argument('--link-flag',
         action='append', default=[],
-        help='Specify additional cmake parameters for JerryScript '
-        '(can be used multiple times')
-    parser.add_argument('--jerry-compile-flag',
-        action='append', default=[],
-        help='Specify additional compile flags for JerryScript '
-             '(can be used multiple times')
-    parser.add_argument('--jerry-lto',
-        action='store_true', default=False,
-        help='Build JerryScript with LTO enabled')
-
-    parser.add_argument('--jerry-heap-section',
-        action='store', default=None,
-        help='Specify the name of the JerryScript heap section')
-    parser.add_argument('--jerry-heaplimit',
-        type=int, default=build_config['jerry-heaplimit'],
-        help='Specify the size of the JerryScript max heap size '
-             '(default: %(default)s)')
-
-    parser.add_argument('--jerry-memstat',
-        action='store_true', default=False,
-        help='Enable JerryScript heap statistics')
-
-    parser.add_argument('--jerry-profile',
-        choices=['es5.1', 'es2015-subset'], default='es5.1',
-        help='Specify the profile for JerryScript: %(choices)s'
-             ' (default: %(default)s)')
-    parser.add_argument('--jerry-debugger',
-        action='store_true', default=False,
-        help='Enable JerryScript-debugger')
-    parser.add_argument('--no-init-submodule',
-        action='store_true', default=False,
-        help='Disable initialization of git submodules')
-    parser.add_argument('--no-check-valgrind',
+        help='Specify additional linker flags (can be used multiple times)')
+    iotjs_group.add_argument('--no-check-valgrind',
         action='store_true', default=False,
         help='Disable test execution with valgrind after build')
-    parser.add_argument('--run-test',
+    iotjs_group.add_argument('--no-init-submodule',
+        action='store_true', default=False,
+        help='Disable initialization of git submodules')
+    iotjs_group.add_argument('--no-parallel-build',
+        action='store_true', default=False,
+        help='Disable parallel build')
+    iotjs_group.add_argument('--no-snapshot',
+        action='store_true', default=False,
+        help='Disable snapshot generation for IoT.js')
+    iotjs_group.add_argument('--nuttx-home', default=None, dest='sysroot',
+        help='Specify the NuttX base directory (required for NuttX build)')
+    iotjs_group.add_argument('--profile',
+        help='Specify the module profile file for IoT.js')
+    iotjs_group.add_argument('--run-test',
         nargs='?', default=False, const="quiet", choices=["full", "quiet"],
         help='Execute tests after build, optional argument specifies '
              'the level of output for the testrunner')
-    parser.add_argument('--no-parallel-build',
+    iotjs_group.add_argument('--sysroot', action='store',
+        help='The location of the development tree root directory (sysroot). '
+             'Must be compatible with used toolchain.')
+    iotjs_group.add_argument('--target-arch',
+        choices=['arm', 'x86', 'i686', 'x86_64', 'x64', 'mips', 'noarch'],
+        default=platform.arch(),
+        help='Specify the target architecture (default: %(default)s).')
+    iotjs_group.add_argument('--target-board',
+        choices=[None, 'artik10', 'stm32f4dis', 'rpi2', 'rpi3', 'artik05x'],
+        default=None, help='Specify the target board (default: %(default)s).')
+    iotjs_group.add_argument('--target-os',
+        choices=['linux', 'darwin', 'osx', 'nuttx', 'tizen', 'tizenrt',
+                 'openwrt'],
+        default=platform.os(),
+        help='Specify the target OS (default: %(default)s).')
+    iotjs_group.add_argument('--testsets',
+        help='Specify the additional testsets file for IoT.js')
+
+
+    jerry_group = parser.add_argument_group('Arguments of JerryScript',
+        'The following arguments are related to the JavaScript engine under '
+        'the framework. For example they can change the enabled features of '
+        'the ECMA-262 standard.')
+    jerry_group.add_argument('--jerry-cmake-param',
+        action='append', default=[],
+        help='Specify additional cmake parameters for JerryScript '
+        '(can be used multiple times)')
+    jerry_group.add_argument('--jerry-compile-flag',
+        action='append', default=[],
+        help='Specify additional compile flags for JerryScript '
+             '(can be used multiple times)')
+    jerry_group.add_argument('--jerry-debugger',
         action='store_true', default=False,
-        help='Disable parallel build')
-    parser.add_argument('--no-snapshot',
+        help='Enable JerryScript-debugger')
+    jerry_group.add_argument('--jerry-heaplimit',
+        type=int, default=build_config['jerry-heaplimit'],
+        help='Specify the size of the JerryScript max heap size '
+             '(default: %(default)s)')
+    jerry_group.add_argument('--jerry-heap-section',
+        action='store', default=None,
+        help='Specify the name of the JerryScript heap section')
+    jerry_group.add_argument('--jerry-lto',
         action='store_true', default=False,
-        help='Disable snapshot generation for IoT.js')
-    parser.add_argument('--js-backtrace',
+        help='Build JerryScript with LTO enabled')
+    jerry_group.add_argument('--jerry-memstat',
+        action='store_true', default=False,
+        help='Enable JerryScript heap statistics')
+    jerry_group.add_argument('--jerry-profile',
+        choices=['es5.1', 'es2015-subset'], default='es5.1',
+        help='Specify the profile for JerryScript (default: %(default)s).')
+    jerry_group.add_argument('--js-backtrace',
         choices=['ON', 'OFF'], type=str.upper,
         help='Enable/disable backtrace information of JavaScript code '
-        '(%(choices)s; default: ON in debug and OFF in release build)')
-    parser.add_argument('-e', '--experimental',
-        action='store_true', default=False,
-        help='Enable to build experimental features')
-    parser.add_argument('--testsets',
-        help='Specify the additional testsets file for IoT.js')
+             '(default: ON in debug and OFF in release build)')
+
 
     options = parser.parse_args(argv)
     options.config = build_config

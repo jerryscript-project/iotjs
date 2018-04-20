@@ -24,11 +24,12 @@
 
 extern bool iotjs_initialize(iotjs_environment_t* env);
 extern void iotjs_run(iotjs_environment_t* env);
-extern void iotjs_dispose(iotjs_environment_t* env);
+extern void iotjs_end(iotjs_environment_t* env);
 extern void iotjs_terminate(iotjs_environment_t* env);
 
 static char js_absolute_path[128];
 static GMainLoop* gmain_loop;
+static bool is_env_initialized = false;
 
 typedef struct {
   GSource source;
@@ -50,6 +51,7 @@ static gboolean gmain_loop_check(GSource* source) {
 static gboolean gmain_loop_dispatch(GSource* source, GSourceFunc callback,
                                     gpointer user_data) {
   iotjs_environment_t* env = ((iotjs_gmain_source_t*)source)->env;
+
   bool more = uv_run(iotjs_environment_loop(env), UV_RUN_NOWAIT);
   more |= iotjs_process_next_tick();
 
@@ -72,6 +74,10 @@ static gboolean gmain_loop_dispatch(GSource* source, GSourceFunc callback,
 static void loop_method_init_cb(int argc, char** argv, void* data) {
   int iotjs_argc = 2;
   char* iotjs_argv[2] = { "iotjs", js_absolute_path };
+
+  // Initialize debug log and environments
+  iotjs_debuglog_init();
+
   iotjs_environment_t* env = iotjs_environment_get();
 
 #ifdef ENABLE_DEBUG_LOG
@@ -84,9 +90,10 @@ static void loop_method_init_cb(int argc, char** argv, void* data) {
     service_app_exit();
     return;
   }
+  is_env_initialized = true;
 
   if (!iotjs_initialize(env)) {
-    DLOG("iotjs_jerry_init failed");
+    DLOG("iotjs_initialize failed");
     service_app_exit();
     return;
   }
@@ -126,6 +133,8 @@ static void loop_method_run_cb(void* data) {
                        (GIOCondition)(G_IO_IN | G_IO_OUT | G_IO_ERR));
   g_source_attach(&source->source, g_main_context_default());
 
+  iotjs_environment_set_state(env, kRunningLoop);
+
   g_main_loop_run(gmain_loop); // Blocks until loop is quit.
 
 
@@ -138,7 +147,7 @@ static void loop_method_run_cb(void* data) {
 
   DDDLOG("%s: Exit IoT.js(%d).", __func__, iotjs_process_exitcode());
 
-  iotjs_dispose(env);
+  iotjs_end(env);
 }
 
 static void loop_method_exit_cb(void* data) {
@@ -153,7 +162,13 @@ static void loop_method_exit_cb(void* data) {
 static void loop_method_fini_cb(void) {
   DDDLOG("%s", __func__);
   iotjs_environment_t* env = iotjs_environment_get();
-  iotjs_terminate(env);
+
+  if (is_env_initialized) {
+    iotjs_terminate(env);
+  }
+
+  iotjs_environment_release();
+  iotjs_debuglog_release();
 }
 
 int iotjs_service_app_start(int argc, char** argv, char* js_path,

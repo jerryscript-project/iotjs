@@ -92,9 +92,6 @@ static bool jerry_initialize(iotjs_environment_t* env) {
 
 
 bool iotjs_initialize(iotjs_environment_t* env) {
-  // Initialize debug log.
-  iotjs_debuglog_init();
-
   // Initialize JerryScript
   if (!jerry_initialize(env)) {
     DLOG("iotjs_jerry_init failed");
@@ -190,14 +187,18 @@ static void iotjs_uv_walk_to_close_callback(uv_handle_t* handle, void* arg) {
 }
 
 
-void iotjs_dispose(iotjs_environment_t* env) {
+void iotjs_end(iotjs_environment_t* env) {
+  uv_loop_t* loop = iotjs_environment_loop(env);
   // Close uv loop.
-  uv_walk(iotjs_environment_loop(env), iotjs_uv_walk_to_close_callback, NULL);
-  uv_run(iotjs_environment_loop(env), UV_RUN_DEFAULT);
+  uv_walk(loop, iotjs_uv_walk_to_close_callback, NULL);
+  uv_run(loop, UV_RUN_DEFAULT);
 
-  int res = uv_loop_close(iotjs_environment_loop(env));
+  int res = uv_loop_close(loop);
   IOTJS_ASSERT(res == 0);
+}
 
+
+void iotjs_terminate(iotjs_environment_t* env) {
   // Release builtin modules.
   iotjs_module_list_cleanup();
 
@@ -206,50 +207,50 @@ void iotjs_dispose(iotjs_environment_t* env) {
 }
 
 
-void iotjs_terminate(iotjs_environment_t* env) {
-  // Release environment.
-  iotjs_environment_release();
-
-  iotjs_debuglog_release();
-
-  return;
-}
-
-
 void iotjs_conf_console_out(int (*out)(int lv, const char* fmt, ...)) {
   iotjs_set_console_out(out);
 }
 
-
 int iotjs_entry(int argc, char** argv) {
+  int ret_code = 0;
+
+  // Initialize debug log and environments
+  iotjs_debuglog_init();
+
   iotjs_environment_t* env = iotjs_environment_get();
   if (!iotjs_environment_parse_command_line_arguments(env, (uint32_t)argc,
                                                       argv)) {
     DLOG("iotjs_environment_parse_command_line_arguments failed");
-    iotjs_terminate(env);
-    return 1;
+    ret_code = 1;
+    goto exit;
   }
 
   // Initialize IoT.js
   if (!iotjs_initialize(env)) {
-    iotjs_terminate(env);
-    return 1;
+    DLOG("iotjs_initialize failed");
+    ret_code = 1;
+    goto terminate;
   }
 
-  // Start IoT.js.
-  int ret_code = iotjs_start(env);
+  // Start IoT.js
+  ret_code = iotjs_start(env);
 
-  iotjs_dispose(env);
+  // Ends IoT.js
+  iotjs_end(env);
 
-  bool context_reset = false;
-  if (iotjs_environment_config(env)->debugger != NULL) {
-    context_reset = iotjs_environment_config(env)->debugger->context_reset;
-  }
-
+terminate:
   iotjs_terminate(env);
 
-  if (context_reset) {
+exit:
+  if (iotjs_environment_config(env)->debugger &&
+      iotjs_environment_config(env)->debugger->context_reset) {
+    iotjs_environment_release();
+    iotjs_debuglog_release();
+
     return iotjs_entry(argc, argv);
   }
+
+  iotjs_environment_release();
+  iotjs_debuglog_release();
   return ret_code;
 }

@@ -129,7 +129,13 @@
       }
     } else {
       // Exit if there are no handler for uncaught exception.
-      console.error('uncaughtException: ' + error);
+      console.error(error);
+      if (Array.isArray(error.stack)) {
+        error.stack.forEach(function(line) {
+          console.log('    at ' + line);
+        });
+      }
+
       process.exit(1);
     }
   }

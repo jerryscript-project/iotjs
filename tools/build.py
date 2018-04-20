@@ -190,6 +190,10 @@ def init_options():
     parser.add_argument('--no-snapshot',
         action='store_true', default=False,
         help='Disable snapshot generation for IoT.js')
+    parser.add_argument('--js-backtrace',
+        choices=['ON', 'OFF'], type=str.upper,
+        help='Enable/disable backtrace information of JavaScript code '
+        '(%(choices)s; default: ON in debug and OFF in release build)')
     parser.add_argument('-e', '--experimental',
         action='store_true', default=False,
         help='Enable to build experimental features')
@@ -343,7 +347,16 @@ def build_iotjs(options):
 
     # --jerry-debugger
     if options.jerry_debugger:
-        cmake_opt.append('-DFEATURE_DEBUGGER=ON')
+        cmake_opt.append("-DFEATURE_DEBUGGER=ON")
+
+    # --js-backtrace
+    if not options.js_backtrace:
+        if options.buildtype == 'debug':
+            options.js_backtrace = "ON"
+        else:
+            options.js_backtrace = "OFF"
+    cmake_opt.append("-DFEATURE_JS_BACKTRACE=%s" %
+                     options.js_backtrace)
 
     # --cmake-param
     cmake_opt.extend(options.cmake_param)

@@ -102,6 +102,10 @@ bool iotjs_initialize(iotjs_environment_t* env) {
   }
 
   // Set event loop.
+  if (!uv_default_loop()) {
+    DLOG("iotjs uvloop init failed");
+    return false;
+  }
   iotjs_environment_set_loop(env, uv_default_loop());
 
   // Bind environment to global object.

@@ -146,9 +146,10 @@ if __name__ == '__main__':
             if buildtype == "debug":
                 exec_docker(DOCKER_IOTJS_PATH, [
                             'config/tizen/gbsbuild.sh',
-                            '--debug'])
+                            '--debug', '--clean'])
             else:
-                exec_docker(DOCKER_IOTJS_PATH, ['config/tizen/gbsbuild.sh'])
+                exec_docker(DOCKER_IOTJS_PATH, ['config/tizen/gbsbuild.sh',
+                            '--clean'])
 
     elif test == "misc":
         ex.check_run_cmd('tools/check_signed_off.sh', ['--travis'])

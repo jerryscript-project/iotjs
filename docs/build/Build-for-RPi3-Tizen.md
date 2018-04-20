@@ -52,6 +52,7 @@ Compile:
 The following options are provided.
 ```
 --debug: Build output is 'debug'. If this option is not specified, it is 'release'.
+--clean: Make a clean gbs build by deleting the old build root.
 ```
 
 ### 2. Bring up RPi3 with Tizen

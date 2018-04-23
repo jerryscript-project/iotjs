@@ -89,7 +89,7 @@ Module.resolveFilepath = function(id, directories) {
       modulePath = process.cwd() + '/' + modulePath;
     }
 
-    if (process.platform === 'tizenrt' &&
+    if ((process.platform === 'tizenrt' || process.platform === 'nuttx') &&
         (modulePath.indexOf('../') != -1 || modulePath.indexOf('./') != -1)) {
       modulePath = Module.normalizePath(modulePath);
     }

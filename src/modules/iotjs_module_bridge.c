@@ -113,7 +113,7 @@ void iotjs_bridge_set_err(void* handle, char* err) {
   if (err == NULL) {
     err = "internal error";
   }
-  if (bridgecall->jcallback) {
+  if (!jerry_value_is_undefined(bridgecall->jcallback)) {
     uv_mutex_lock(&bridgecall->call_lock);
   }
   bridgecall->ret_msg = iotjs_string_create_with_size(err, strlen(err) + 1);
@@ -123,29 +123,34 @@ void iotjs_bridge_set_err(void* handle, char* err) {
     IOTJS_ASSERT(bridgecall->async->data == bridgecall);
     uv_async_send(bridgecall->async);
   }
-  if (bridgecall->jcallback)
+  if (!jerry_value_is_undefined(bridgecall->jcallback)) {
     uv_mutex_unlock(&bridgecall->call_lock);
+  }
 }
 
 void iotjs_bridge_set_msg(void* handle, char* msg) {
   iotjs_bridge_call_t* bridgecall = (iotjs_bridge_call_t*)handle;
   IOTJS_ASSERT(iotjs_string_is_empty(&bridgecall->ret_msg));
-
-  int size = strlen(msg);
+  size_t size = 0;
+  if (msg == NULL) {
+    msg = "";
+  } else {
+    size = strlen(msg) + 1;
+  }
   if (size > MAX_RETURN_MESSAGE) {
     iotjs_bridge_set_err(handle, "The message exceeds the maximum");
   } else {
-    if (bridgecall->jcallback) {
+    if (!jerry_value_is_undefined(bridgecall->jcallback)) {
       uv_mutex_lock(&bridgecall->call_lock);
     }
-    bridgecall->ret_msg = iotjs_string_create_with_size(msg, strlen(msg) + 1);
+    bridgecall->ret_msg = iotjs_string_create_with_size(msg, size);
     bridgecall->status = CALL_STATUS_SETMSG;
 
     if (bridgecall->async != NULL) {
       IOTJS_ASSERT(bridgecall->async->data == bridgecall);
       uv_async_send(bridgecall->async);
     }
-    if (bridgecall->jcallback) {
+    if (!jerry_value_is_undefined(bridgecall->jcallback)) {
       uv_mutex_unlock(&bridgecall->call_lock);
     }
   }
@@ -157,11 +162,15 @@ static iotjs_bridge_call_t* iotjs_bridge_call_init(
     iotjs_string_t command, iotjs_string_t message) {
   if (bridge) {
     bridgecall->jobject = jerry_acquire_value(bridge);
+  } else {
+    bridgecall->jobject = jerry_create_undefined();
   }
-  if (jcallback) {
+  if (!jerry_value_is_null(jcallback)) {
     bridgecall->jcallback = jerry_acquire_value(jcallback);
     bridgecall->req.data = (void*)bridgecall;
     uv_mutex_init(&bridgecall->call_lock);
+  } else {
+    bridgecall->jcallback = jerry_create_undefined();
   }
   bridgecall->async = NULL;
   bridgecall->module = module;
@@ -175,10 +184,10 @@ static iotjs_bridge_call_t* iotjs_bridge_call_init(
 }
 
 static void iotjs_bridge_call_destroy(iotjs_bridge_call_t* bridgecall) {
-  if (bridgecall->jobject) {
+  if (!jerry_value_is_undefined(bridgecall->jobject)) {
     jerry_release_value(bridgecall->jobject);
   }
-  if (bridgecall->jcallback) {
+  if (!jerry_value_is_undefined(bridgecall->jcallback)) {
     uv_mutex_destroy(&bridgecall->call_lock);
     jerry_release_value(bridgecall->jcallback);
   }
@@ -346,7 +355,6 @@ JS_FUNCTION(MessageAsync) {
   iotjs_string_t command_message = JS_GET_ARG(2, string);
   jerry_value_t jcallback = JS_GET_ARG_IF_EXIST(3, function);
 
-
   if (!jerry_value_is_null(jcallback)) { // async call
     uv_loop_t* loop = iotjs_environment_loop(iotjs_environment_get());
     iotjs_bridge_object_t* bridgeobj = iotjs_bridge_get_object(bridge_module);
@@ -361,6 +369,7 @@ JS_FUNCTION(MessageAsync) {
     jerry_value_t jmsg;
     iotjs_bridge_call_t bridgecall_local;
     iotjs_bridge_call_t* bridgecall = &bridgecall_local;
+
     iotjs_bridge_call_init(bridgecall, 0, 0, module_name, module_command,
                            command_message);
     int ret = iotjs_bridge_call(iotjs_string_data(&module_name),

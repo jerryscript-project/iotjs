@@ -38,8 +38,9 @@ iotjs_string_t iotjs_string_create_with_size(const char* data, size_t size) {
 
   if (size > 0) {
     IOTJS_ASSERT(data != NULL);
-    str.data = iotjs_buffer_allocate(size);
+    str.data = iotjs_buffer_allocate(size + 1);
     memcpy(str.data, data, size);
+    str.data[size] = '\0';
   } else {
     str.data = NULL;
   }

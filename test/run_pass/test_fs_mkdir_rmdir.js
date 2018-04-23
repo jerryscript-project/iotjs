@@ -54,34 +54,33 @@ function unlink(path) {
 
     fs.rmdir(root, function() {
       assert.equal(fs.existsSync(root), false);
-    });
+      var root2 = testRoot + "/test_dir2";
 
-    var root2 = testRoot + "/test_dir2";
+      fs.mkdir(root2, 777, function(err) {
+        assert.equal(err, null);
+        assert.equal(fs.existsSync(root2), true);
 
-    fs.mkdir(root2, 777, function(err) {
-      assert.equal(err, null);
-      assert.equal(fs.existsSync(root2), true);
-
-      fs.rmdir(root2, function() {
-        assert.equal(fs.existsSync(root2), false);
-      });
-
-      // Run read-only directory test only on linux and Tizen
-      // NuttX does not support read-only attribute.
-      if (process.platform === 'linux' || process.platform === 'tizen') {
-        var testMode = '0444';
-        fs.mkdir(root, testMode, function(err) {
-          assert.equal(err, null);
-          assert.equal(fs.existsSync(root), true);
-
-          var mode = fs.statSync(root).mode;
-          assert.strictEqual(mode.toString(8).slice(-4), testMode);
-
-          fs.rmdir(root, function() {
-            assert.equal(fs.existsSync(root), false);
-          });
+        fs.rmdir(root2, function() {
+          assert.equal(fs.existsSync(root2), false);
         });
-      }
+
+        // Run read-only directory test only on linux and Tizen
+        // NuttX does not support read-only attribute.
+        if (process.platform === 'linux' || process.platform === 'tizen') {
+          var testMode = '0444';
+          fs.mkdir(root, testMode, function(err) {
+            assert.equal(err, null);
+            assert.equal(fs.existsSync(root), true);
+
+            var mode = fs.statSync(root).mode;
+            assert.strictEqual(mode.toString(8).slice(-4), testMode);
+
+            fs.rmdir(root, function() {
+              assert.equal(fs.existsSync(root), false);
+            });
+          });
+        }
+      });
     });
   });
 }

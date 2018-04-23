@@ -116,7 +116,7 @@ void iotjs_bridge_set_err(void* handle, char* err) {
   if (!jerry_value_is_undefined(bridgecall->jcallback)) {
     uv_mutex_lock(&bridgecall->call_lock);
   }
-  bridgecall->ret_msg = iotjs_string_create_with_size(err, strlen(err) + 1);
+  bridgecall->ret_msg = iotjs_string_create_with_size(err, strlen(err));
   bridgecall->status = CALL_STATUS_ERROR;
 
   if (bridgecall->async != NULL) {
@@ -135,7 +135,7 @@ void iotjs_bridge_set_msg(void* handle, char* msg) {
   if (msg == NULL) {
     msg = "";
   } else {
-    size = strlen(msg) + 1;
+    size = strlen(msg);
   }
   if (size > MAX_RETURN_MESSAGE) {
     iotjs_bridge_set_err(handle, "The message exceeds the maximum");

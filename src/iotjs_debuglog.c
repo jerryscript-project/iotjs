@@ -26,7 +26,7 @@ void iotjs_set_console_out(iotjs_console_out_t output) {
 
 #ifdef ENABLE_DEBUG_LOG
 int iotjs_debug_level = DBGLEV_ERR;
-FILE* iotjs_log_stream;
+FILE* iotjs_log_stream = NULL;
 const char* iotjs_debug_prefix[4] = { "", "ERR", "WRN", "INF" };
 #endif // ENABLE_DEBUG_LOG
 
@@ -61,7 +61,8 @@ void iotjs_debuglog_init() {
 
 void iotjs_debuglog_release() {
 #ifdef ENABLE_DEBUG_LOG
-  if (iotjs_log_stream != stderr && iotjs_log_stream != stdout) {
+  if (iotjs_log_stream && iotjs_log_stream != stderr &&
+      iotjs_log_stream != stdout) {
     fclose(iotjs_log_stream);
   }
   // some embed systems(ex, nuttx) may need this

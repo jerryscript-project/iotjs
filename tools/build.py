@@ -180,10 +180,6 @@ def init_options():
         nargs='?', default=False, const="quiet", choices=["full", "quiet"],
         help='Execute tests after build, optional argument specifies '
              'the level of output for the testrunner')
-    parser.add_argument('--test-driver',
-        choices=['js', 'py'], default='py',
-        help='Specify the test driver for IoT.js: %(choices)s'
-             ' (default: %(default)s)')
     parser.add_argument('--no-parallel-build',
         action='store_true', default=False,
         help='Disable parallel build')
@@ -391,33 +387,15 @@ def run_checktest(options):
     # IoT.js executable
     iotjs = fs.join(options.build_root, 'bin', 'iotjs')
 
-    cmd = []
-    args = []
-    if options.test_driver == "js":
-        cmd = iotjs
-        args = [path.CHECKTEST_PATH]
+    cmd = fs.join(path.TOOLS_ROOT, 'testrunner.py')
+    args = [iotjs]
 
-        # quiet
-        if options.run_test == "quiet":
-            args.append('quiet=yes')
+    # testsets
+    if options.testsets:
+        args.append('--testsets=' + options.testsets);
 
-        # testsets
-        if options.testsets:
-            args.append('testsets=' + options.testsets);
-
-        # experimental
-        if options.experimental:
-            args.append('experimental=yes');
-    else:
-        cmd = fs.join(path.TOOLS_ROOT, 'testrunner.py')
-        args = [iotjs]
-
-        # testsets
-        if options.testsets:
-            args.append('--testsets=' + options.testsets);
-
-        if options.run_test == "quiet":
-            args.append('--quiet')
+    if options.run_test == "quiet":
+        args.append('--quiet')
 
     fs.chdir(path.PROJECT_ROOT)
     code = ex.run_cmd(cmd, args)
@@ -425,19 +403,9 @@ def run_checktest(options):
         ex.fail('Failed to pass unit tests')
 
     if not options.no_check_valgrind:
-        if options.test_driver == "js":
-            code = ex.run_cmd('valgrind', ['--leak-check=full',
-                                           '--error-exitcode=5',
-                                           '--undef-value-errors=no',
-                                           cmd] + args)
-            if code == 5:
-                ex.fail('Failed to pass valgrind test')
-            if code != 0:
-                ex.fail('Failed to pass unit tests in valgrind environment')
-        else:
-            code = ex.run_cmd(cmd, ['--valgrind'] + args)
-            if code != 0:
-                ex.fail('Failed to pass unit tests in valgrind environment')
+        code = ex.run_cmd(cmd, ['--valgrind'] + args)
+        if code != 0:
+            ex.fail('Failed to pass unit tests in valgrind environment')
 
 
 if __name__ == '__main__':
@@ -473,9 +441,5 @@ if __name__ == '__main__':
         print("\n%sTo run tests use '--run-test' "
               "or one of the folowing commands:%s"
               % (ex._TERM_BLUE, ex._TERM_EMPTY))
-        print("\n    tools/testrunner.py %s/%s/%s/bin/iotjs"
+        print("\n    tools/testrunner.py %s/%s/%s/bin/iotjs\n"
               % (options.builddir, options.target_tuple, options.buildtype))
-        print("OR\n    %s(deprecated)%s %s/%s/%s/bin/iotjs "
-              "tools/check_test.js\n"
-              % (ex._TERM_RED, ex._TERM_EMPTY, options.builddir,
-                 options.target_tuple, options.buildtype))

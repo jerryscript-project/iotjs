@@ -1,7 +1,7 @@
 {
   "modules": {
     "iotjs_basic_modules": {
-      "require": ["assert", "dns", "http", "net", "stream", "testdriver"]
+      "require": ["assert", "dns", "http", "net", "stream"]
     },
     "iotjs_core_modules": {
       "require": ["buffer", "console", "events", "fs", "module", "process",
@@ -315,11 +315,6 @@
     "tcp": {
       "native_files": ["modules/iotjs_module_tcp.c"],
       "init": "InitTcp"
-    },
-    "testdriver": {
-      "native_files": ["modules/iotjs_module_testdriver.c"],
-      "init": "InitTestdriver",
-      "require": ["assert"]
     },
     "timers": {
       "native_files": ["modules/iotjs_module_timer.c"],

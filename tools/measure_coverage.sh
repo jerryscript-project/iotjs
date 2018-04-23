@@ -48,10 +48,6 @@ print_usage()
   echo "  --node-modules-dir  Specifies the node_module directory, where"
   echo "                      the nodejs dependencies are installed."
   echo ""
-  echo "  --testdriver        Specifies the testrunner that should be used"
-  echo "                      for measuring JavaScript coverage."
-  echo "                      Possible values: jsdriver, pydriver"
-  echo ""
   echo "  --target-board      Specifies the target board, where the"
   echo "                      coverage measurement will happen."
   echo "                      Possible values: rpi2"
@@ -76,9 +72,6 @@ fail_with_msg()
   exit 1
 }
 
-# Use Python based testrunner by default.
-test_driver="pydriver"
-
 # Parse the given arguments.
 while [[ $# -gt 0 ]]
 do
@@ -87,10 +80,6 @@ do
     case $key in
         --node-modules-dir)
             node_modules_dir="$2"
-            shift
-            ;;
-        --testdriver)
-            test_driver="$2"
             shift
             ;;
         --target-board)
@@ -204,15 +193,7 @@ else
 fi
 
 # Run the appropriate testrunner.
-if [ $test_driver = "jsdriver" ];
-then
-    ${build_path}/bin/iotjs tools/check_test.js output-coverage=yes
-elif [ $test_driver = "pydriver" ];
-then
-    python tools/testrunner.py ${build_path}/bin/iotjs --quiet --coverage
-else
-    fail_with_msg "Not supported testdriver: $test_driver"
-fi
+python tools/testrunner.py ${build_path}/bin/iotjs --quiet --coverage
 
 # Revert to original module files
 rm -rf src/js

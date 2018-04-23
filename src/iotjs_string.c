@@ -21,6 +21,7 @@
 #include <string.h>
 
 
+
 iotjs_string_t iotjs_string_create() {
   iotjs_string_t str;
 
@@ -38,7 +39,7 @@ iotjs_string_t iotjs_string_create_with_size(const char* data, size_t size) {
 
   if (size > 0) {
     IOTJS_ASSERT(data != NULL);
-    str.data = iotjs_buffer_allocate(size);
+    str.data = iotjs_buffer_allocate(size + 1);
     memcpy(str.data, data, size);
   } else {
     str.data = NULL;
@@ -46,7 +47,6 @@ iotjs_string_t iotjs_string_create_with_size(const char* data, size_t size) {
 
   return str;
 }
-
 
 iotjs_string_t iotjs_string_create_with_buffer(char* buffer, size_t size) {
   iotjs_string_t str;
@@ -82,10 +82,10 @@ void iotjs_string_append(iotjs_string_t* str, const char* data, size_t size) {
   }
 
   if (str->data != NULL) {
-    str->data = iotjs_buffer_reallocate(str->data, str->size + size);
+    str->data = iotjs_buffer_reallocate(str->data, str->size + size + 1) ;
   } else {
     IOTJS_ASSERT(str->size == 0);
-    str->data = iotjs_buffer_allocate(size);
+    str->data = iotjs_buffer_allocate(size + 1);
   }
 
   memcpy(str->data + str->size, data, size);

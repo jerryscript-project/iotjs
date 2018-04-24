@@ -72,6 +72,10 @@ if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
   iotjs_add_compile_flags(-DDEBUG -DENABLE_DEBUG_LOG)
 endif()
 
+if (CREATE_SHARED_LIB)
+  iotjs_add_compile_flags(-fPIC)
+endif()
+
 if(EXPERIMENTAL)
   iotjs_add_compile_flags(-DEXPERIMENTAL)
 endif()

@@ -328,6 +328,7 @@
 #endif
 #if ENABLE_MODULE_TIZEN
 #define IOTJS_MAGIC_STRING_TIZEN "tizen"
+#define IOTJS_MAGIC_STRING_APP_CONTROL "appControl"
 #endif
 
 #endif /* IOTJS_MAGIC_STRINGS_H */

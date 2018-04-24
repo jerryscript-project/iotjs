@@ -22,6 +22,8 @@ BuildRequires: pkgconfig(capi-appfw-application)
 BuildRequires: pkgconfig(capi-system-peripheral-io)
 BuildRequires: pkgconfig(dlog)
 BuildRequires: pkgconfig(glib-2.0)
+BuildRequires: pkgconfig(capi-appfw-app-control)
+BuildRequires: pkgconfig(bundle)
 #BuildRequires: pkgconfig(st_things_sdkapi)
 
 #for https
@@ -72,6 +74,8 @@ cp %{SOURCE1001} .
   --external-lib=capi-system-peripheral-io \
   --external-lib=capi-appfw-app-common \
   --external-lib=dlog \
+  --external-lib=bundle \
+  --external-lib=capi-appfw-app-control \
   --external-include-dir=/usr/include/dlog/ \
   --external-include-dir=/usr/include/appcore-agent/ \
   --external-include-dir=/usr/include/appfw/ \
@@ -87,7 +91,7 @@ cp %{SOURCE1001} .
 # Create shared library
 %define iotjs_target_lib libjerry-core.a libjerry-port-default.a libhttpparser.a libtuv.a \\\
   libmbedx509.a libmbedtls.a libmbedcrypto.a libiotjs.a
-%define iotjs_lib_flag -lcapi-system-peripheral-io -lpthread -lcurl -ldlog -lappcore-agent -lcapi-appfw-app-common
+%define iotjs_lib_flag -lcapi-system-peripheral-io -lpthread -lcurl -ldlog -lappcore-agent -lcapi-appfw-app-common -lbundle -lcapi-appfw-app-control
 cd ./build/noarch-tizen/%{build_mode}/lib/
 gcc -shared -o libiotjs.so -Wl,--whole-archive %{iotjs_target_lib} -Wl,--no-whole-archive %{iotjs_lib_flag}
 

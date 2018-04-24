@@ -75,14 +75,14 @@ static void loop_method_init_cb(int argc, char** argv, void* data) {
   int iotjs_argc = 2;
   char* iotjs_argv[2] = { "iotjs", js_absolute_path };
 
+#ifdef ENABLE_DEBUG_LOG
+  setenv("IOTJS_DEBUG_LEVEL", "3", 0); // Enable all log.
+#endif
+
   // Initialize debug log and environments
   iotjs_debuglog_init();
 
   iotjs_environment_t* env = iotjs_environment_get();
-
-#ifdef ENABLE_DEBUG_LOG
-  setenv("IOTJS_DEBUG_LEVEL", "3", 0); // Enable all log.
-#endif
 
   if (!iotjs_environment_parse_command_line_arguments(env, (uint32_t)iotjs_argc,
                                                       iotjs_argv)) {

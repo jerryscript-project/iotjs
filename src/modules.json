@@ -371,7 +371,7 @@
       "native_files": ["modules/iotjs_module_tizen.c"],
       "init": "InitTizen",
       "js_file": "js/tizen.js",
-      "require": ["bridge"]
+      "require": ["bridge", "events", "util"]
     }
   }
 }

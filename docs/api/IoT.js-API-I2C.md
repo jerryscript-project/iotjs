@@ -18,6 +18,8 @@ The following shows I2C module APIs available for each platform.
 
 The I2C module supports the I2C protocol. I2C bus has two signals - SDA and SCL.
 
+* On Tizen, the bus number is defined in [this documentation](../targets/tizen/SystemIO-Pin-Information-Tizen.md#i2c).
+
 ### i2c.open(configuration, callback)
 * `configuration` {Object} Configuration for open I2CBus.
   * `device` {string} Device path. (only on Linux)

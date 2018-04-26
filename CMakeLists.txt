@@ -13,6 +13,7 @@
 # limitations under the License.
 
 cmake_minimum_required(VERSION 2.8)
+include(CheckCCompilerFlag)
 
 project(IOTJS C)
 
@@ -67,9 +68,14 @@ macro(iotjs_add_link_flags)
   iotjs_add_flags(IOTJS_LINKER_FLAGS ${ARGV})
 endmacro()
 
+CHECK_C_COMPILER_FLAG(-no-pie HAS_NO_PIE)
+
 # Add buildtype-related flags
 if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
   iotjs_add_compile_flags(-DDEBUG -DENABLE_DEBUG_LOG)
+  if(HAS_NO_PIE)
+    iotjs_add_link_flags(-no-pie)
+  endif()
 endif()
 
 if(EXPERIMENTAL)

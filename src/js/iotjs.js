@@ -21,12 +21,15 @@
     this.exports = {};
   }
 
-
   Module.cache = {};
+  Module.builtin_modules = {};
 
+  mixin(Module.builtin_modules, process.builtin_modules);
+  mixin(Module, process._private);
+  process._private = undefined;
 
   Module.require = function(id) {
-    if (id == 'native') {
+    if (id === 'builtin') {
       return Module;
     }
 
@@ -44,7 +47,7 @@
 
 
   Module.prototype.compile = function() {
-    process.compileModule(this, Module.require);
+    Module.compileModule(this, Module.require);
   };
 
 
@@ -69,12 +72,13 @@
 
   EventEmitter.call(process);
 
-  var keys = Object.keys(EventEmitter.prototype);
-  var keysLength = keys.length;
-  for (var i = 0; i < keysLength; ++i) {
-    var key = keys[i];
-    if (!process[key]) {
-      process[key] = EventEmitter.prototype[key];
+  mixin(process, EventEmitter.prototype);
+
+  function mixin(target, source) {
+    for (var prop in source) {
+      if (source.hasOwnProperty(prop) && !target[prop]) {
+        target[prop] = source[prop];
+      }
     }
   }
 

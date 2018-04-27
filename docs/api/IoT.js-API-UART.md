@@ -15,6 +15,8 @@ The following shows uart module APIs available for each platform.
 
 The UART (Universal Asynchronous Receiver/Transmitter) class supports asynchronous serial communication.
 
+* On Tizen, the port number is defined in [this documentation](../targets/tizen/SystemIO-Pin-Information-Tizen.md#uart).
+
 ### uart.open(configuration, callback)
 * `configuration` {Object}
   * `device` {string} Mandatory configuration. The specified device path.(Linux, Nuttx and TizenRT only)

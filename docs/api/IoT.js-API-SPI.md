@@ -16,7 +16,8 @@ The following shows spi module APIs available for each platform.
 
 SPI (Serial Peripheral Interface) is a communication protocol which defines a way to communicate between devices.
 
-On NuttX, you have to know the number of pins that is defined on the target board module. For more information, please see the list below.
+* On Tizen, the bus number is defined in [this documentation](../targets/tizen/SystemIO-Pin-Information-Tizen.md#spi).
+* On NuttX, you have to know the number of pins that is defined on the target board module. For more information, please see the list below.
   * [STM32F4-discovery](../targets/nuttx/stm32f4dis/IoT.js-API-Stm32f4dis.md)
 
 ### SPI.MODE

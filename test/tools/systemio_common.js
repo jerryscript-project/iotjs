@@ -25,12 +25,19 @@ if (process.platform === 'linux') {
   pin.spi1 = '/dev/spidev0.0';
   pin.uart1 = '/dev/ttyS0';
 } else if (process.platform === 'tizen') {
-  pin.led = 20;
-  pin.switch = 13;
-  pin.pwm1 = 2;
+  if (process.iotjs.board === 'rpi3') {
+    pin.led = 20;
+    pin.switch = 13;
+    pin.spi1 = 0;
+    pin.uart1 = 0;
+  } else if (process.iotjs.board === 'artik530') {
+    pin.led = 128;
+    pin.switch = 27;
+    pin.pwm1 = 2;
+    pin.spi1 = 2;
+    pin.uart1 = 4;
+  }
   pin.i2c1 = 1;
-  pin.spi1 = 0;
-  pin.uart1 = 0;
 } else if (process.platform === 'nuttx') {
   var stm32_pin = require('stm32f4dis').pin;
   pin.led = stm32_pin.PA10;

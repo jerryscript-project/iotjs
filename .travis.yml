@@ -70,4 +70,15 @@ matrix:
           build_command: "tools/travis_script.py"
           branch_pattern: master
       env: OPTS="coverity"
+    - os: linux
+      addons:
+        sonarcloud:
+          organization: "samsung-iotjs"
+          token:
+            secure: "NmBlRv6YK9+SiuJRp9E4tQRq8zVGF1MojYnikyIOPGZvWT4jd6eKr86dAwKN6BTevX4nXJ3doGFeF/QVHbXqWDecawpT30OEabpQE7ryYlLyDoNWJ0MfVFzAvBgkpZ0+G52yROgo9yr01r4vDJRoG7QSvDZHh6eGXSTygbJQKej1vmjsRs5bwa2Nyvt+oDhm78V1TroBHGSFMT7ZBWTnzC+YYMdazappJCCYi1ikFLk1aZ6c0tvUaeHl/7a0Tifh0Xt8wQmIaSr60hqZ1Hrq+Z5zJoOoXJ75VzNoHNksuffS4HS84h1KU2I/Z0P9PngHra9y04s4e0RS+tRX+RWkwjhsN8VJgVD8/EMUvaxG5WkQ/Czweiqfe78sTM1jpmdupaGP/IVmsqujodzTho8sY6hyzXcoHXj1fPZPx75HCwaOA7MqMZA1pyKh6U6W4gNVSeDw/+Y6z18fB+VZBXnrljmfWYY2QD/faLccF89ICYOVz/vAFn3b6D6sJwekeM0Nj6h0XO+Ny/81Y6H47u9otXmuDd0pZoGgypBjeSbiRJsGLJNnxZQziBnIl7cUguEA7fqJZh5K5qjIzV+WyNU4pnBvJcwhRo2txWGVgqVOhEuBLaZSpzfQ7exq/6tMueCNaNTHLHX+ZhYdar2ZEckxeaxn/F1woCPKLgchCwcEfj8="
+      script: ./tools/check_sonarqube.sh
+      cache:
+        directories:
+          - '$HOME/.sonar/cache'
+      env: OPTS="sonarqube"
   fast_finish: true

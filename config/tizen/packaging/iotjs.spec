@@ -85,6 +85,7 @@ V=1 VERBOSE=1 ./tools/build.py \
   --external-include-dir=/usr/include/glib-2.0/ \
   --external-include-dir=/usr/lib/glib-2.0/include/ \
   --compile-flag=-D__TIZEN__ \
+  --compile-flag=-DENABLE_DEBUG_LOG \
   --create-shared-lib \
   --no-init-submodule \
   --no-parallel-build \

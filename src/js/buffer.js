@@ -150,7 +150,7 @@ Buffer.prototype.equals = function(otherBuffer) {
     throw new TypeError('Bad arguments: buffer.equals(Buffer)');
   }
 
-  return native.compare(this, otherBuffer) == 0;
+  return this.compare(otherBuffer) == 0;
 };
 
 

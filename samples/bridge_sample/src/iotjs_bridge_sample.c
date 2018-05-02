@@ -39,7 +39,6 @@ void iotjs_bridge_sample_func(const char* command, const char* message,
   } else if (strncmp(command, "testThread", strlen("testThread")) == 0) {
     uv_thread_t thread1;
     uv_thread_create(&thread1, thread1_worker, return_handle);
-    uv_thread_join(&thread1);
   } else if (strncmp(command, "getResPath", strlen("getResPath")) == 0) {
     iotjs_bridge_set_msg(return_handle, "res/");
   } else {

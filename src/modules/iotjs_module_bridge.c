@@ -323,6 +323,7 @@ void after_worker(uv_work_t* req, int status) {
   } else {
     uv_loop_t* loop = iotjs_environment_loop(iotjs_environment_get());
     uv_async_t* async = IOTJS_ALLOC(uv_async_t);
+    bridgecall->async = async;
     async->data = (void*)bridgecall;
     uv_async_init(loop, async, aysnc_callback);
     uv_mutex_unlock(&bridgecall->call_lock);

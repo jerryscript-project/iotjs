@@ -75,7 +75,7 @@ matrix:
         sonarcloud:
           organization: "samsung-iotjs"
           token:
-            secure: "NmBlRv6YK9+SiuJRp9E4tQRq8zVGF1MojYnikyIOPGZvWT4jd6eKr86dAwKN6BTevX4nXJ3doGFeF/QVHbXqWDecawpT30OEabpQE7ryYlLyDoNWJ0MfVFzAvBgkpZ0+G52yROgo9yr01r4vDJRoG7QSvDZHh6eGXSTygbJQKej1vmjsRs5bwa2Nyvt+oDhm78V1TroBHGSFMT7ZBWTnzC+YYMdazappJCCYi1ikFLk1aZ6c0tvUaeHl/7a0Tifh0Xt8wQmIaSr60hqZ1Hrq+Z5zJoOoXJ75VzNoHNksuffS4HS84h1KU2I/Z0P9PngHra9y04s4e0RS+tRX+RWkwjhsN8VJgVD8/EMUvaxG5WkQ/Czweiqfe78sTM1jpmdupaGP/IVmsqujodzTho8sY6hyzXcoHXj1fPZPx75HCwaOA7MqMZA1pyKh6U6W4gNVSeDw/+Y6z18fB+VZBXnrljmfWYY2QD/faLccF89ICYOVz/vAFn3b6D6sJwekeM0Nj6h0XO+Ny/81Y6H47u9otXmuDd0pZoGgypBjeSbiRJsGLJNnxZQziBnIl7cUguEA7fqJZh5K5qjIzV+WyNU4pnBvJcwhRo2txWGVgqVOhEuBLaZSpzfQ7exq/6tMueCNaNTHLHX+ZhYdar2ZEckxeaxn/F1woCPKLgchCwcEfj8="
+            secure: "u9HWNQNhAqQQdgl3yldKcQVH8plMQRwIdpzjsM4j3GBC4Wrh9u8guLJB3o003i0UsyaGg2knYFdLgOmEsgcvXAo2aIUyzf9CfK9RLRw5RtIuPMpmR7UjHdlf+QfCF+nY+BB2j0nAiWnxHve95du7sZflNxi+eNJJzquyBh1Wm8eqwoiRpCgiDzjRDEAUoz0FWMNny/x5545E970jpQ2bjHGx98tCMUO8ikINeL8sC99sumffaFONG8GVpwLjc8McfQfYpWbk0e0OPxZtGDyqKcyMxcbAGctklsigtsBZKlpj69uba3w4OSA3zJPCdQ4dKwCyBOcAAP8qeF5Jf0eLI8WLEgnKir2Pfc/rKkY0owuz7S+tUmizm3+T06wDFgwpLu0/PcA5oOcp4WpGXbAX7WujaAHB7YKAEsk324XC7Bdf+39OuZ0dbKWMiwU7rYV4NOYNPjN2BCb1XqyE0Ung41Ls6P4t/zwzYRZtiovhr6ibNBcwLVclfQZ/tbyBDuh++8dh7Ixe+x5RFiiCB0w/fiKqqXYM8/we4JU3f71y4DK6fP+nSN/vIYttvkN28HCCvBVSdyuuvPRM6Ro1yLNw9U9PHCJ1CIgcx8+I8Mep3PzBhDILXWjzlVu4sa/+aIoEq7MvWBDMhrFEP6RX+M6CiPmgj5+Lu/GZNivbu51RASI="
       script: ./tools/check_sonarqube.sh
       cache:
         directories:

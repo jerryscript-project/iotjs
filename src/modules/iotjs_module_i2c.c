@@ -159,11 +159,16 @@ JS_FUNCTION(ReadSync) {
 
   JS_GET_REQUIRED_ARG_VALUE(0, i2c->buf_len, IOTJS_MAGIC_STRING_LENGTH, number);
 
-  if (!iotjs_i2c_read(i2c)) {
-    return JS_CREATE_ERROR(COMMON, iotjs_periph_error_str(kI2cOpRead));
+  jerry_value_t result;
+  if (iotjs_i2c_read(i2c)) {
+    result = iotjs_jval_create_byte_array(i2c->buf_len, i2c->buf_data);
+  } else {
+    result = JS_CREATE_ERROR(COMMON, iotjs_periph_error_str(kI2cOpRead));
   }
 
-  return iotjs_jval_create_byte_array(i2c->buf_len, i2c->buf_data);
+  IOTJS_RELEASE(i2c->buf_data);
+
+  return result;
 }
 
 jerry_value_t InitI2c() {

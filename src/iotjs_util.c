@@ -25,6 +25,8 @@
 #include <execinfo.h>
 #endif
 
+void force_terminate();
+
 iotjs_string_t iotjs_file_read(const char* path) {
   FILE* file = fopen(path, "rb");
   if (file == NULL) {
@@ -68,7 +70,10 @@ iotjs_string_t iotjs_file_read(const char* path) {
 
 char* iotjs_buffer_allocate(size_t size) {
   char* buffer = (char*)(calloc(size, sizeof(char)));
-  IOTJS_ASSERT(buffer != NULL);
+  if (buffer == NULL) {
+    DLOG("Out of memory");
+    force_terminate();
+  }
   return buffer;
 }
 
@@ -87,7 +92,12 @@ char* iotjs_buffer_allocate_from_number_array(size_t size,
 
 char* iotjs_buffer_reallocate(char* buffer, size_t size) {
   IOTJS_ASSERT(buffer != NULL);
-  return (char*)(realloc(buffer, size));
+  char* newbuffer = (char*)(realloc(buffer, size));
+  if (newbuffer == NULL) {
+    DLOG("Out of memmory");
+    force_terminate();
+  }
+  return newbuffer;
 }
 
 

@@ -64,7 +64,7 @@ cat LICENSE
 cp %{SOURCE1001} .
 
 %build
-./tools/build.py \
+V=1 VERBOSE=1 ./tools/build.py \
   --clean \
   --buildtype=%{build_mode} \
   --profile=test/profiles/tizen.profile \
@@ -76,24 +76,20 @@ cp %{SOURCE1001} .
   --external-lib=dlog \
   --external-lib=bundle \
   --external-lib=capi-appfw-app-control \
+  --external-lib=appcore-agent \
+  --external-lib=pthread \
+  --external-lib=curl \
   --external-include-dir=/usr/include/dlog/ \
   --external-include-dir=/usr/include/appcore-agent/ \
   --external-include-dir=/usr/include/appfw/ \
   --external-include-dir=/usr/include/glib-2.0/ \
   --external-include-dir=/usr/lib/glib-2.0/include/ \
   --compile-flag=-D__TIZEN__ \
-  --compile-flag=-fPIC \
+  --create-shared-lib \
   --no-init-submodule \
   --no-parallel-build \
   %{external_build_options}
 # --external-lib=sdkapi \
-
-# Create shared library
-%define iotjs_target_lib libjerry-core.a libjerry-port-default.a libhttpparser.a libtuv.a \\\
-  libmbedx509.a libmbedtls.a libmbedcrypto.a libiotjs.a
-%define iotjs_lib_flag -lcapi-system-peripheral-io -lpthread -lcurl -ldlog -lappcore-agent -lcapi-appfw-app-common -lbundle -lcapi-appfw-app-control
-cd ./build/noarch-tizen/%{build_mode}/lib/
-gcc -shared -o libiotjs.so -Wl,--whole-archive %{iotjs_target_lib} -Wl,--no-whole-archive %{iotjs_lib_flag}
 
 %install
 mkdir -p %{buildroot}%{_bindir}

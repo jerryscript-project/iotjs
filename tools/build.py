@@ -82,7 +82,10 @@ def init_options():
     iotjs_group.add_argument('--builddir', default=path.BUILD_ROOT,
         help='Specify the build directory (default: %(default)s)')
     iotjs_group.add_argument('--buildlib', action='store_true', default=False,
-        help='Build IoT.js library only (default: %(default)s)')
+        help='Build IoT.js static library only (default: %(default)s)')
+    iotjs_group.add_argument('--create-shared-lib',
+        action='store_true', default=False,
+        help='Create shared library (default: %(default)s)')
     iotjs_group.add_argument('--cmake-param',
         action='append', default=[],
         help='Specify additional cmake parameters '
@@ -311,6 +314,7 @@ def build_iotjs(options):
         '-DENABLE_LTO=%s' % get_on_off(options.jerry_lto), # --jerry-lto
         '-DENABLE_SNAPSHOT=%s' % get_on_off(not options.no_snapshot),
         '-DBUILD_LIB_ONLY=%s' % get_on_off(options.buildlib), # --buildlib
+        '-DCREATE_SHARED_LIB=%s' % get_on_off(options.create_shared_lib),
         # --jerry-memstat
         '-DFEATURE_MEM_STATS=%s' % get_on_off(options.jerry_memstat),
         # --external-modules

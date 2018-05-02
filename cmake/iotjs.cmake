@@ -463,14 +463,14 @@ message(STATUS "TARGET_SYSTEMROOT        ${TARGET_SYSTEMROOT}")
 iotjs_add_compile_flags(${IOTJS_MODULE_DEFINES})
 
 # Configure the libiotjs.a
-set(TARGET_LIB_IOTJS libiotjs)
-add_library(${TARGET_LIB_IOTJS} STATIC ${LIB_IOTJS_SRC})
-set_target_properties(${TARGET_LIB_IOTJS} PROPERTIES
+set(TARGET_STATIC_IOTJS libiotjs)
+add_library(${TARGET_STATIC_IOTJS} STATIC ${LIB_IOTJS_SRC})
+set_target_properties(${TARGET_STATIC_IOTJS} PROPERTIES
   OUTPUT_NAME iotjs
   ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
 )
-target_include_directories(${TARGET_LIB_IOTJS} PRIVATE ${IOTJS_INCLUDE_DIRS})
-target_link_libraries(${TARGET_LIB_IOTJS}
+target_include_directories(${TARGET_STATIC_IOTJS} PRIVATE ${IOTJS_INCLUDE_DIRS})
+target_link_libraries(${TARGET_STATIC_IOTJS}
   ${JERRY_LIBS}
   ${TUV_LIBS}
   libhttp-parser
@@ -486,7 +486,27 @@ if("${BIN_INSTALL_DIR}" STREQUAL "")
   set(BIN_INSTALL_DIR "bin")
 endif()
 
-install(TARGETS ${TARGET_LIB_IOTJS} DESTINATION ${LIB_INSTALL_DIR})
+install(TARGETS ${TARGET_STATIC_IOTJS} DESTINATION ${LIB_INSTALL_DIR})
+
+# Configure the libiotjs.so
+if (NOT BUILD_LIB_ONLY AND CREATE_SHARED_LIB)
+  set(TARGET_SHARED_IOTJS shared_iotjs)
+  add_library(${TARGET_SHARED_IOTJS} SHARED)
+  set_target_properties(${TARGET_SHARED_IOTJS} PROPERTIES
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+    LIBRARY_OUTPUT_NAME iotjs
+    LINKER_LANGUAGE C
+  )
+  target_link_libraries(${TARGET_SHARED_IOTJS}
+    -Wl,--whole-archive
+    ${TARGET_STATIC_IOTJS}
+    ${JERRY_LIBS}
+    ${TUV_LIBS}
+    libhttp-parser
+    ${MBEDTLS_LIBS}
+    -Wl,--no-whole-archive
+    ${EXTERNAL_LIBS})
+endif()
 
 # Configure the iotjs executable
 if(NOT BUILD_LIB_ONLY)
@@ -497,7 +517,7 @@ if(NOT BUILD_LIB_ONLY)
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
   )
   target_include_directories(${TARGET_IOTJS} PRIVATE ${IOTJS_INCLUDE_DIRS})
-  target_link_libraries(${TARGET_IOTJS} ${TARGET_LIB_IOTJS})
+  target_link_libraries(${TARGET_IOTJS} ${TARGET_STATIC_IOTJS})
   install(TARGETS ${TARGET_IOTJS} DESTINATION ${BIN_INSTALL_DIR})
 
   add_subdirectory(test)

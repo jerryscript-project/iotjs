@@ -40,6 +40,13 @@ iotjs_string_t iotjs_file_read(const char* path) {
   fseek_ret = fseek(file, 0, SEEK_SET);
   IOTJS_ASSERT(fseek_ret == 0);
 
+  if (ftell_ret < 0 || fseek_ret != 0) {
+    iotjs_string_t empty_content = iotjs_string_create();
+    fclose(file);
+    DLOG("iotjs_file_read error");
+    return empty_content;
+  }
+
   char* buffer = iotjs_buffer_allocate(len + 1);
 
 #if defined(__NUTTX__) || defined(__TIZENRT__)

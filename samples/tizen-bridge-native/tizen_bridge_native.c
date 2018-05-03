@@ -14,7 +14,7 @@
  */
 
 #include "iotjs.h"
-#include "iotjs_module_tizen.h"
+#include "iotjs_tizen_service_app.h"
 
 /* thread */
 #include <pthread.h>

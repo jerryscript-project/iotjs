@@ -16,6 +16,7 @@
 var net = require('net');
 var util = require('util');
 var EventEmitter = require('events').EventEmitter;
+var tls = require('tls');
 
 util.inherits(MQTTClient, EventEmitter);
 
@@ -57,6 +58,8 @@ function MQTTClient(options) {
   this._onpubrec = onpubrec;
   this._onpubrel = onpubrel;
   this._onsuback = onsuback;
+
+  native.MqttInit(this);
 }
 
 /*
@@ -75,6 +78,8 @@ MQTTClient.prototype.connect = function(callback) {
     this._socket.on('connect', function() {
       MqttConnect(this, jsref._clientOptions);
     });
+  } else if ('TLSSocket' in tls && this._socket instanceof tls.TLSSocket) {
+    MqttConnect(this._socket, jsref._clientOptions);
   }
 
   if (util.isFunction(callback)) {
@@ -198,11 +203,7 @@ function onpubrel(jsref, data) {
 }
 
 function ondata(jsref, data) {
-  var ret_val = native.MqttHandle(jsref, data);
-  if (ret_val instanceof Error) {
-    jsref.disconnect();
-    onerror(jsref, ret_val);
-  }
+  native.MqttReceive(jsref, data);
 }
 
 function onconnect(jsref) {

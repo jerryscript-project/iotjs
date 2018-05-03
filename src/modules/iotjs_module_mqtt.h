@@ -42,6 +42,18 @@ enum {
   DISCONNECT = 0xE
 } iotjs_mqtt_control_packet_type;
 
+// Packet error types
+typedef enum {
+  MQTT_ERR_UNACCEPTABLE_PROTOCOL = 1,
+  MQTT_ERR_BAD_IDENTIFIER = 2,
+  MQTT_ERR_SERVER_UNAVIABLE = 3,
+  MQTT_ERR_BAD_CREDENTIALS = 4,
+  MQTT_ERR_UNAUTHORISED = 5,
+  MQTT_ERR_CORRUPTED_PACKET = 6,
+  MQTT_ERR_UNALLOWED_PACKET = 7,
+  MQTT_ERR_SUBSCRIPTION_FAILED = 8,
+} iotjs_mqtt_packet_error_t;
+
 /*
  * The values of the Quality of Service.
  */
@@ -50,14 +62,6 @@ enum {
   QoS1 = 1, // At least once delivery.
   QoS2 = 2  // Exactly once delivery.
 } iotjs_mqtt_quality_of_service;
-
-enum {
-  UNACCEPTABLE_PROTOCOL = 1,
-  BAD_IDENTIFIER = 2,
-  SERVER_UNAVIABLE = 3,
-  BAD_CREDENTIALS = 4,
-  UNAUTHORISED = 5
-} iotjs_mqtt_connection_error;
 
 /*
  * First byte of the message's fixed header.
@@ -126,5 +130,10 @@ enum {
   // Whether username is sent
   MQTT_FLAG_USERNAME = 1 << 7
 } iotjs_mqtt_connect_flag_t;
+
+typedef struct {
+  char *buffer;
+  uint32_t buffer_length;
+} iotjs_mqttclient_t;
 
 #endif /* IOTJS_MODULE_MQTT_H */

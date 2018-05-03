@@ -24,26 +24,21 @@
 #include "iotjs_handlewrap.h"
 #include "iotjs_reqwrap.h"
 
+static void iotjs_mqttclient_destroy(iotjs_mqttclient_t *mqttclient) {
+  IOTJS_RELEASE(mqttclient->buffer);
+  IOTJS_RELEASE(mqttclient);
+}
 
-static jerry_value_t mqtt_client_connack_error(const unsigned char error_code) {
-  switch (error_code) {
-    case UNACCEPTABLE_PROTOCOL:
-      return JS_CREATE_ERROR(COMMON,
-                             "MQTT: Connection refused: unacceptable protocol");
-    case BAD_IDENTIFIER:
-      return JS_CREATE_ERROR(COMMON,
-                             "MQTT: Connection refused: bad client identifier");
-    case SERVER_UNAVIABLE:
-      return JS_CREATE_ERROR(COMMON,
-                             "MQTT: Connection refused: server unaviable");
-    case BAD_CREDENTIALS:
-      return JS_CREATE_ERROR(
-          COMMON, "MQTT: Connection refused: bad username or password");
-    case UNAUTHORISED:
-      return JS_CREATE_ERROR(COMMON, "MQTT: Connection refused: unauthorised");
-    default:
-      return JS_CREATE_ERROR(COMMON, "MQTT: Unknown error");
-  }
+static const jerry_object_native_info_t mqttclient_native_info = {
+  .free_cb = (jerry_object_native_free_callback_t)iotjs_mqttclient_destroy
+};
+
+
+iotjs_mqttclient_t *iotjs_mqttclient_create(const jerry_value_t jobject) {
+  iotjs_mqttclient_t *mqttclient = IOTJS_ALLOC(iotjs_mqttclient_t);
+
+  jerry_set_object_native_pointer(jobject, mqttclient, &mqttclient_native_info);
+  return mqttclient;
 }
 
 
@@ -74,24 +69,35 @@ static size_t get_remaining_length_size(uint32_t len) {
 }
 
 
-static uint32_t iotjs_decode_remaining_length(char *buffer, size_t *offset) {
-  unsigned char c;
-  uint32_t remaining_length = 0;
-  uint32_t length = 0;
-  uint32_t shift = 0;
+static uint32_t iotjs_decode_remaining_length(char *buffer,
+                                              uint32_t *out_length) {
+  // There must be at least 2 bytes to decode
+  uint32_t c = (uint32_t)(*buffer);
+  uint32_t decoded_length = (c & 0x7F);
+  uint32_t length = 1;
+  uint32_t shift = 7;
+
+  buffer++;
 
   do {
     if (++length > IOTJS_MODULE_MQTT_MAX_REMAINING_LENGTH_BYTES) {
-      return UINT32_MAX;
+      return 0;
     }
-    c = (unsigned char)buffer[*offset];
-    remaining_length += (uint32_t)(c & 0x7F) << shift;
+    c = (uint32_t)(*buffer);
+    decoded_length += (c & 0x7F) << shift;
+
     shift += 7;
+    buffer++;
+  } while ((c & 0x80) != 0);
 
-    (*offset)++;
-  } while ((c & 128) != 0);
+  if (c == 0) {
+    // The length must be encoded with the least amount of bytes.
+    // This rule is not fulfilled if the last byte is zero.
+    return 0;
+  }
 
-  return remaining_length;
+  *out_length = length;
+  return decoded_length;
 }
 
 
@@ -125,6 +131,19 @@ void iotjs_create_ack_callback(char *buffer, char *name, jerry_value_t jsref) {
   iotjs_make_callback(fn, jsref, &args);
   jerry_release_value(fn);
   iotjs_jargs_destroy(&args);
+}
+
+
+JS_FUNCTION(MqttInit) {
+  DJS_CHECK_THIS();
+
+  const jerry_value_t jmqtt = JS_GET_ARG(0, object);
+
+  iotjs_mqttclient_t *mqttclient = iotjs_mqttclient_create(jmqtt);
+  mqttclient->buffer = NULL;
+  mqttclient->buffer_length = 0;
+
+  return jerry_create_undefined();
 }
 
 
@@ -333,8 +352,10 @@ JS_FUNCTION(MqttPublish) {
   *buff_ptr++ = header_byte;
   buff_ptr = iotjs_encode_remaining_length(buff_ptr, remaining_length);
   buff_ptr = iotjs_mqtt_string_serialize(buff_ptr, topic_payload);
-  *buff_ptr++ = packet_identifier_msb;
-  *buff_ptr++ = packet_identifier_lsb;
+  if (qos > 0) {
+    *buff_ptr++ = packet_identifier_msb;
+    *buff_ptr++ = packet_identifier_lsb;
+  }
 
   // Don't need to put length before the payload, so we can't use the
   // iotjs_mqtt_string_serialize. The broker and the other clients calculate
@@ -349,32 +370,20 @@ JS_FUNCTION(MqttPublish) {
 }
 
 
-JS_FUNCTION(MqttHandle) {
-  DJS_CHECK_THIS();
-  DJS_CHECK_ARGS(2, object, object);
-
-  jerry_value_t jsref = JS_GET_ARG(0, object);
-  jerry_value_t jparam = JS_GET_ARG(1, object);
-
-  iotjs_bufferwrap_t *buffer_wrap = iotjs_bufferwrap_from_jbuffer(jparam);
-  char *buffer = buffer_wrap->buffer;
-
-  char first_byte = buffer[0];
+static int iotjs_mqtt_handle(jerry_value_t jsref, char first_byte, char *buffer,
+                             uint32_t packet_size) {
   char packet_type = (first_byte >> 4) & 0x0F;
-
-  size_t offset = 1;
-  uint32_t remaining_length = iotjs_decode_remaining_length(buffer, &offset);
 
   switch (packet_type) {
     case CONNACK: {
-      if (remaining_length != 2) {
-        return JS_CREATE_ERROR(COMMON, "MQTT: CONNACK packet is corrupted");
+      if (packet_size != 2) {
+        return MQTT_ERR_CORRUPTED_PACKET;
       }
 
-      uint8_t return_code = (uint8_t)buffer[++offset];
+      uint8_t return_code = (uint8_t)buffer[1];
 
       if (return_code != 0) {
-        return mqtt_client_connack_error(return_code);
+        return return_code;
       }
 
       jerry_value_t fn =
@@ -394,11 +403,9 @@ JS_FUNCTION(MqttHandle) {
       header.bits.qos = (first_byte & 0x06) >> 1;
       header.bits.retain = first_byte & 0x01;
 
-      uint8_t topic_length_MSB = (uint8_t)buffer[offset];
-      offset += sizeof(topic_length_MSB);
-
-      uint8_t topic_length_LSB = (uint8_t)buffer[offset];
-      offset += sizeof(topic_length_LSB);
+      uint8_t topic_length_MSB = (uint8_t)buffer[0];
+      uint8_t topic_length_LSB = (uint8_t)buffer[1];
+      buffer += 2;
 
       uint16_t topic_length =
           iotjs_mqtt_calculate_length(topic_length_MSB, topic_length_LSB);
@@ -406,29 +413,23 @@ JS_FUNCTION(MqttHandle) {
       jerry_value_t jtopic = iotjs_bufferwrap_create_buffer(topic_length);
       iotjs_bufferwrap_t *topic_wrap = iotjs_bufferwrap_from_jbuffer(jtopic);
 
-      memcpy(topic_wrap->buffer, buffer + offset, topic_length);
-      offset += topic_length;
+      memcpy(topic_wrap->buffer, buffer, topic_length);
+      buffer += topic_length;
 
       // The Packet Identifier field is only present in PUBLISH packets
       // where the QoS level is 1 or 2.
       uint16_t packet_identifier = 0;
       if (header.bits.qos > 0) {
-        uint8_t packet_identifier_MSB = 0;
-        uint8_t packet_identifier_LSB = 0;
-
-
-        memcpy(&packet_identifier_MSB, buffer + offset, sizeof(uint8_t));
-        offset += sizeof(packet_identifier_MSB);
-
-        memcpy(&packet_identifier_LSB, buffer + offset, sizeof(uint8_t));
-        offset += sizeof(packet_identifier_LSB);
+        uint8_t packet_identifier_MSB = (uint8_t)buffer[0];
+        uint8_t packet_identifier_LSB = (uint8_t)buffer[1];
+        buffer += 2;
 
         packet_identifier = iotjs_mqtt_calculate_length(packet_identifier_MSB,
                                                         packet_identifier_LSB);
       }
 
       size_t payload_length =
-          (size_t)remaining_length - topic_length - sizeof(topic_length);
+          (size_t)packet_size - topic_length - sizeof(topic_length);
 
       if (header.bits.qos > 0) {
         payload_length -= sizeof(packet_identifier);
@@ -437,19 +438,16 @@ JS_FUNCTION(MqttHandle) {
       jerry_value_t jmessage = iotjs_bufferwrap_create_buffer(payload_length);
       iotjs_bufferwrap_t *msg_wrap = iotjs_bufferwrap_from_jbuffer(jmessage);
 
-      IOTJS_ASSERT(jerry_is_valid_utf8_string((const uint8_t *)msg_wrap->buffer,
-                                              msg_wrap->length));
+      if (!jerry_is_valid_utf8_string((const uint8_t *)topic_wrap->buffer,
+                                      topic_wrap->length)) {
+        return MQTT_ERR_CORRUPTED_PACKET;
+      }
 
-      IOTJS_ASSERT(
-          jerry_is_valid_utf8_string((const uint8_t *)topic_wrap->buffer,
-                                     topic_wrap->length));
-
-      memcpy(msg_wrap->buffer, buffer + offset, payload_length);
-      offset += payload_length;
+      memcpy(msg_wrap->buffer, buffer, payload_length);
 
       iotjs_jargs_t args = iotjs_jargs_create(5);
       iotjs_jargs_append_jval(&args, jsref);
-      iotjs_jargs_append_string_raw(&args, msg_wrap->buffer);
+      iotjs_jargs_append_jval(&args, jmessage);
       iotjs_jargs_append_string_raw(&args, topic_wrap->buffer);
       iotjs_jargs_append_number(&args, header.bits.qos);
       iotjs_jargs_append_number(&args, packet_identifier);
@@ -466,37 +464,37 @@ JS_FUNCTION(MqttHandle) {
       break;
     }
     case PUBACK: {
-      if (remaining_length != 2) {
-        return JS_CREATE_ERROR(COMMON, "MQTT: PUBACK packet is corrupted");
+      if (packet_size != 2) {
+        return MQTT_ERR_CORRUPTED_PACKET;
       }
 
       iotjs_create_ack_callback(buffer, IOTJS_MAGIC_STRING__ONPUBACK, jsref);
       break;
     }
     case PUBREC: {
-      if (remaining_length != 2) {
-        return JS_CREATE_ERROR(COMMON, "MQTT: RUBREC packet is corrupted");
+      if (packet_size != 2) {
+        return MQTT_ERR_CORRUPTED_PACKET;
       }
 
       iotjs_create_ack_callback(buffer, IOTJS_MAGIC_STRING__ONPUBREC, jsref);
       break;
     }
     case PUBREL: {
-      if (remaining_length != 2) {
-        return JS_CREATE_ERROR(COMMON, "MQTT: PUBREL packet is corrupted");
+      if (packet_size != 2) {
+        return MQTT_ERR_CORRUPTED_PACKET;
       }
 
       char control_packet_reserved = first_byte & 0x0F;
       if (control_packet_reserved != 2) {
-        return JS_CREATE_ERROR(COMMON, "MQTT: PUBREL packet is corrupted");
+        return MQTT_ERR_CORRUPTED_PACKET;
       }
 
       iotjs_create_ack_callback(buffer, IOTJS_MAGIC_STRING__ONPUBREL, jsref);
       break;
     }
     case PUBCOMP: {
-      if (remaining_length != 2) {
-        return JS_CREATE_ERROR(COMMON, "MQTT: PUBCOMP packet is corrupted");
+      if (packet_size != 2) {
+        return MQTT_ERR_CORRUPTED_PACKET;
       }
 
       iotjs_create_ack_callback(buffer, IOTJS_MAGIC_STRING__ONPUBCOMP, jsref);
@@ -504,13 +502,13 @@ JS_FUNCTION(MqttHandle) {
     }
     case SUBACK: {
       // We assume that only one topic was in the SUBSCRIBE packet.
-      if (remaining_length != 3) {
-        return JS_CREATE_ERROR(COMMON, "MQTT: SUBACK packet is corrupted");
+      if (packet_size != 3) {
+        return MQTT_ERR_CORRUPTED_PACKET;
       }
 
-      uint8_t return_code = (uint8_t)buffer[4];
+      uint8_t return_code = (uint8_t)buffer[2];
       if (return_code == 128) {
-        return JS_CREATE_ERROR(COMMON, "MQTT: Subscription was unsuccessful");
+        return MQTT_ERR_SUBSCRIPTION_FAILED;
       }
 
       // The callback takes the granted QoS as parameter.
@@ -526,17 +524,18 @@ JS_FUNCTION(MqttHandle) {
       break;
     }
     case UNSUBACK: {
-      if (remaining_length != 2) {
-        return JS_CREATE_ERROR(COMMON, "MQTT: UNSUBACK packet is corrupted");
+      if (packet_size != 2) {
+        return MQTT_ERR_CORRUPTED_PACKET;
       }
 
       iotjs_create_ack_callback(buffer, IOTJS_MAGIC_STRING__ONUNSUBACK, jsref);
       break;
     }
     case PINGRESP: {
-      if (remaining_length != 0) {
-        return JS_CREATE_ERROR(COMMON, "MQTT: PingRESP packet is corrupted");
+      if (packet_size != 0) {
+        return MQTT_ERR_CORRUPTED_PACKET;
       }
+
       jerry_value_t fn =
           iotjs_jval_get_property(jsref, IOTJS_MAGIC_STRING__ONPINGRESP);
       iotjs_jargs_t jargs = iotjs_jargs_create(1);
@@ -547,6 +546,10 @@ JS_FUNCTION(MqttHandle) {
       break;
     }
     case DISCONNECT: {
+      if (packet_size != 0) {
+        return MQTT_ERR_CORRUPTED_PACKET;
+      }
+
       iotjs_jargs_t jargs = iotjs_jargs_create(2);
       iotjs_jargs_append_jval(&jargs, jsref);
       jerry_value_t str_arg = jerry_create_string(
@@ -565,9 +568,156 @@ JS_FUNCTION(MqttHandle) {
     case SUBSCRIBE:
     case UNSUBSCRIBE:
     case PINGREQ:
-      return JS_CREATE_ERROR(
-          COMMON, "MQTT: Unallowed packet has arrived to the client");
+      return MQTT_ERR_UNALLOWED_PACKET;
   }
+
+  return 0;
+}
+
+
+static void iotjs_mqtt_concat_buffers(iotjs_mqttclient_t *mqttclient,
+                                      iotjs_bufferwrap_t *buff_recv) {
+  char *tmp_buf = mqttclient->buffer;
+  mqttclient->buffer =
+      IOTJS_CALLOC(mqttclient->buffer_length + buff_recv->length, char);
+  memcpy(mqttclient->buffer, tmp_buf, mqttclient->buffer_length);
+  memcpy(mqttclient->buffer + mqttclient->buffer_length, buff_recv->buffer,
+         buff_recv->length);
+  mqttclient->buffer_length += buff_recv->length;
+  IOTJS_RELEASE(tmp_buf);
+}
+
+
+static jerry_value_t iotjs_mqtt_handle_error(
+    iotjs_mqtt_packet_error_t error_code) {
+  switch (error_code) {
+    case MQTT_ERR_UNACCEPTABLE_PROTOCOL:
+      return JS_CREATE_ERROR(COMMON,
+                             "MQTT: Connection refused: unacceptable protocol");
+    case MQTT_ERR_BAD_IDENTIFIER:
+      return JS_CREATE_ERROR(COMMON,
+                             "MQTT: Connection refused: bad client identifier");
+    case MQTT_ERR_SERVER_UNAVIABLE:
+      return JS_CREATE_ERROR(COMMON,
+                             "MQTT: Connection refused: server unavailable");
+    case MQTT_ERR_BAD_CREDENTIALS:
+      return JS_CREATE_ERROR(
+          COMMON, "MQTT: Connection refused: bad username or password");
+    case MQTT_ERR_UNAUTHORISED:
+      return JS_CREATE_ERROR(COMMON, "MQTT: Connection refused: unauthorised");
+    case MQTT_ERR_CORRUPTED_PACKET:
+      return JS_CREATE_ERROR(COMMON, "MQTT: Corrupted packet");
+    case MQTT_ERR_UNALLOWED_PACKET:
+      return JS_CREATE_ERROR(COMMON, "MQTT: Broker sent an unallowed packet");
+    case MQTT_ERR_SUBSCRIPTION_FAILED:
+      return JS_CREATE_ERROR(COMMON, "MQTT: Subscription failed");
+    default:
+      return JS_CREATE_ERROR(COMMON, "MQTT: Unknown error");
+  }
+}
+
+
+JS_FUNCTION(MqttReceive) {
+  DJS_CHECK_THIS();
+  DJS_CHECK_ARGS(2, object, object);
+
+  jerry_value_t jnat = JS_GET_ARG(0, object);
+
+  void *native_p;
+  JNativeInfoType *out_native_info;
+  bool has_p =
+      jerry_get_object_native_pointer(jnat, &native_p, &out_native_info);
+  if (!has_p || out_native_info != &mqttclient_native_info) {
+    return JS_CREATE_ERROR(COMMON, "MQTT native pointer not available");
+  }
+  iotjs_mqttclient_t *mqttclient = (iotjs_mqttclient_t *)native_p;
+
+  jerry_value_t jbuffer = JS_GET_ARG(1, object);
+  iotjs_bufferwrap_t *buff_recv = iotjs_bufferwrap_from_jbuffer(jbuffer);
+  if (buff_recv->length == 0) {
+    return jerry_create_undefined();
+  }
+
+  char *current_buffer = buff_recv->buffer;
+  char *current_buffer_end = current_buffer + buff_recv->length;
+
+  // Concat the buffers if we previously needed to
+  if (mqttclient->buffer_length > 0) {
+    iotjs_mqtt_concat_buffers(mqttclient, buff_recv);
+    current_buffer = mqttclient->buffer;
+    current_buffer_end = current_buffer + mqttclient->buffer_length;
+  }
+
+  // Keep on going, if data remains just continue looping
+  while (true) {
+    if (current_buffer >= current_buffer_end) {
+      if (mqttclient->buffer_length > 0) {
+        IOTJS_RELEASE(mqttclient->buffer);
+        mqttclient->buffer_length = 0;
+      }
+      return jerry_create_undefined();
+    }
+
+    if (current_buffer + 2 > current_buffer_end) {
+      break;
+    }
+
+    uint32_t packet_size;
+    uint32_t packet_size_length;
+
+    if ((uint8_t)current_buffer[1] <= 0x7f) {
+      packet_size = (uint32_t)current_buffer[1];
+      packet_size_length = 1;
+
+      if (current_buffer + 2 + packet_size > current_buffer_end) {
+        break;
+      }
+    } else {
+      // At least 128 bytes arrived
+      if (current_buffer + 5 >= current_buffer_end) {
+        break;
+      }
+
+      packet_size =
+          iotjs_decode_remaining_length(current_buffer, &packet_size_length);
+
+      if (packet_size == 0) {
+        return iotjs_mqtt_handle_error(MQTT_ERR_CORRUPTED_PACKET);
+      }
+
+      if (current_buffer + 1 + packet_size_length + packet_size >=
+          current_buffer_end) {
+        break;
+      }
+    }
+
+    char first_byte = current_buffer[0];
+    current_buffer += 1 + packet_size_length;
+
+    int ret_val =
+        iotjs_mqtt_handle(jnat, first_byte, current_buffer, packet_size);
+
+    if (ret_val != 0) {
+      return iotjs_mqtt_handle_error(ret_val);
+    }
+
+    current_buffer += packet_size;
+  }
+
+  if (current_buffer == mqttclient->buffer) {
+    return jerry_create_undefined();
+  }
+
+  uint32_t remaining_size = (uint32_t)(current_buffer_end - current_buffer);
+  char *buffer = IOTJS_CALLOC(remaining_size, char);
+  memcpy(buffer, current_buffer, remaining_size);
+
+  if (mqttclient->buffer != NULL) {
+    IOTJS_RELEASE(mqttclient->buffer);
+  }
+
+  mqttclient->buffer = buffer;
+  mqttclient->buffer_length = remaining_size;
 
   return jerry_create_undefined();
 }
@@ -787,9 +937,10 @@ jerry_value_t InitMQTT() {
   jerry_value_t jMQTT = jerry_create_object();
   iotjs_jval_set_method(jMQTT, IOTJS_MAGIC_STRING_CONNECT, MqttConnect);
   iotjs_jval_set_method(jMQTT, IOTJS_MAGIC_STRING_DISCONNECT, MqttDisconnect);
-  iotjs_jval_set_method(jMQTT, IOTJS_MAGIC_STRING_MQTTHANDLE, MqttHandle);
   iotjs_jval_set_method(jMQTT, IOTJS_MAGIC_STRING_PING, MqttPing);
   iotjs_jval_set_method(jMQTT, IOTJS_MAGIC_STRING_PUBLISH, MqttPublish);
+  iotjs_jval_set_method(jMQTT, IOTJS_MAGIC_STRING_MQTTINIT, MqttInit);
+  iotjs_jval_set_method(jMQTT, IOTJS_MAGIC_STRING_MQTTRECEIVE, MqttReceive);
   iotjs_jval_set_method(jMQTT, IOTJS_MAGIC_STRING_SENDACK, MqttSendAck);
   iotjs_jval_set_method(jMQTT, IOTJS_MAGIC_STRING_SUBSCRIBE, MqttSubscribe);
   iotjs_jval_set_method(jMQTT, IOTJS_MAGIC_STRING_UNSUBSCRIBE, MqttUnsubscribe);

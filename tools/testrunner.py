@@ -29,8 +29,6 @@ from common_py import path
 from common_py.system.filesystem import FileSystem as fs
 from common_py.system.executor import Executor as ex
 from common_py.system.platform import Platform
-from jsonmerge import Merger
-
 
 # Defines the folder that will contain the coverage info.
 # The path must be consistent with the measure_coverage.sh script.
@@ -54,15 +52,6 @@ process.on('exit', function() {{
 }})
 """
 )
-
-JSON_SCHEMA = {
-                "properties": {
-                    "run_pass": {
-                        "mergeStrategy": "arrayMergeById",
-                        "mergeOptions": { "idRef": "name"}
-                    }
-                }
-}
 
 # Append coverage source to the appropriate test.
 def append_coverage_code(testfile, coverage):
@@ -154,7 +143,6 @@ class TestRunner(object):
     def __init__(self, options):
         self.iotjs = fs.abspath(options.iotjs)
         self.quiet = options.quiet
-        self.testsets = options.testsets
         self.timeout = options.timeout
         self.valgrind = options.valgrind
         self.coverage = options.coverage
@@ -169,7 +157,8 @@ class TestRunner(object):
                                     [path.BUILD_INFO_PATH])
         build_info = json.loads(iotjs_output)
 
-        self.builtins = build_info["builtins"]
+        self.builtins = set(build_info["builtins"])
+        self.features = set(build_info["features"])
         self.stability = build_info["stability"]
 
         # Define own alarm handler to handle timeout.
@@ -187,13 +176,6 @@ class TestRunner(object):
 
         with open(fs.join(path.TEST_ROOT, "testsets.json")) as testsets_file:
             testsets = json.load(testsets_file, object_pairs_hook=OrderedDict)
-
-        if self.testsets:
-            with open(fs.join(path.TEST_ROOT, self.testsets)) as testsets_file:
-                ext_testsets = json.load(testsets_file,
-                                         object_pairs_hook=OrderedDict)
-                merger = Merger(JSON_SCHEMA)
-                testsets = merger.merge(testsets, ext_testsets)
 
         for testset, tests in testsets.items():
             self.run_testset(testset, tests)
@@ -273,32 +255,39 @@ class TestRunner(object):
         return exitcode, stdout, runtime
 
     def skip_test(self, test):
-        skip_list = test.get("skip", [])
+        skip_list = set(test.get("skip", []))
 
         # Skip by the `skip` attribute in testsets.json file.
         for i in ["all", Platform().os(), self.stability]:
             if i in skip_list:
                 return True
 
-        name_parts = test["name"][0:-3].split('_')
+        required_modules = set(test.get("required-modules", []))
+        required_features = set(test.get("required-features", []))
 
-        # Test filename does not start with 'test_' so we'll just
-        # assume we support it.
-        if name_parts[0] != 'test':
-            return False
+        unsupported_modules = required_modules - self.builtins
+        unsupported_features = required_features - self.features
+        skipped_modules = required_modules.intersection(skip_list)
 
-        tested_module = name_parts[1]
-
-        # Skip the test if it requires a module that is defined by
-        # the `--skip-modules` flag.
-        if tested_module in self.skip_modules:
-            test["reason"] = "the required module is skipped by testrunner"
+        # Skip the test if the tested module requires a module
+        # which is not compiled into the binary
+        if unsupported_modules:
+            test["reason"] = "Required module(s) unsupported by iotjs build: "
+            test["reason"] += ', '.join(sorted(unsupported_modules))
             return True
 
-        # Skip the test if it requires a module that is not
-        # compiled into the binary.
-        if tested_module not in self.builtins:
-            test["reason"] = "unsupported module by iotjs build"
+        # Skip the test if it requires a module that is skipped by the
+        # testrunner
+        if skipped_modules:
+            test["reason"] = "Required module(s) skipped by testrunner: "
+            test["reason"] += ', '.join(sorted(skipped_modules))
+            return True
+
+        # Skip the test if it uses features which are
+        # unavailable in the current iotjs build
+        if unsupported_features:
+            test["reason"] = "Required feature(s) unsupported by iotjs build: "
+            test["reason"] += ', '.join(sorted(unsupported_features))
             return True
 
         return False
@@ -313,9 +302,6 @@ def get_args():
                         help="show or hide the output of the tests")
     parser.add_argument("--skip-modules", action="store", metavar='list',
                         help="module list to skip test of specific modules")
-    parser.add_argument("--testsets", action="store",
-                        help="JSON file to extend or override the default "
-                             "testsets")
     parser.add_argument("--timeout", action="store", default=300, type=int,
                         help="default timeout for the tests in seconds")
     parser.add_argument("--valgrind", action="store_true", default=False,

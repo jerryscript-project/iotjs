@@ -21,8 +21,55 @@ if (process.env.IOTJS_ENV.indexOf("experimental") > -1)
 else
     stability = "stable"
 
+/* Check if certain es2015 features are available */
+function hasFeatures(object, features) {
+  supported = true;
+
+  for (feature in features) {
+    supported = supported && object.hasOwnProperty(feature);
+  }
+
+  return supported;
+}
+
+function hasArrowFunction() {
+  try {
+    eval("a => {}");
+    return true;
+  } catch(e) {}
+
+  return false;
+}
+
+var features = {};
+
+var typedArrayFeatures = [
+  'Int8Array',
+  'Uint8Array',
+  'Uint8ClampedArray',
+  'Int168Array',
+  'Uint16Array',
+  'Int32Array',
+  'Uint32Array',
+  'Float32Array',
+  'Float64Array'
+];
+
+if (hasFeatures(this, ['Promise']))
+  features.Promise = true;
+
+if (hasFeatures(this, ['ArrayBuffer']))
+  features.ArrayBuffer = true;
+
+if (hasFeatures(this, typedArrayFeatures))
+  features.TypedArray = true;
+
+if (hasArrowFunction())
+  features.ArrowFunction = true;
+
 result = {
     'builtins': builtins,
+    'features': features,
     'stability': stability
 }
 

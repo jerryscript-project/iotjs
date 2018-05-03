@@ -14,8 +14,9 @@
  */
 
 
-var Native = require('native');
-var fs = Native.require('fs');
+var Builtin = require('builtin');
+var fs = Builtin.require('fs');
+var dynamicloader = Builtin.require('dynamicloader');
 
 function Module(id, parent) {
   this.id = id;
@@ -61,8 +62,6 @@ if (process.env.IOTJS_EXTRA_MODULE_PATH) {
   });
 }
 
-var dynamicloader = Native.require('dynamicloader');
-
 function tryPath(modulePath, ext) {
   return Module.tryPath(modulePath) ||
          Module.tryPath(modulePath + ext);
@@ -106,7 +105,7 @@ Module.resolveFilepath = function(id, directories) {
     var jsonpath = modulePath + '/package.json';
 
     if (Module.tryPath(jsonpath)) {
-      var pkgSrc = process.readSource(jsonpath);
+      var pkgSrc = Builtin.readSource(jsonpath);
       var pkgMainFile = JSON.parse(pkgSrc).main;
 
       // pkgmain[.ext]
@@ -190,8 +189,8 @@ Module.tryPath = function(path) {
 
 
 Module.load = function(id, parent) {
-  if (process.builtin_modules[id]) {
-    return Native.require(id);
+  if (Builtin.builtin_modules[id]) {
+    return Builtin.require(id);
   }
   if (Module.remoteCache[id]) {
     Module.compileRemoteSource(id, Module.remoteCache[id]);
@@ -219,10 +218,10 @@ Module.load = function(id, parent) {
   var source;
 
   if (ext === 'js') {
-    source = process.readSource(modPath);
+    source = Builtin.readSource(modPath);
     module.compile(modPath, source);
   } else if (ext === 'json') {
-    source = process.readSource(modPath);
+    source = Builtin.readSource(modPath);
     module.exports = JSON.parse(source);
   } else if (dynamicloader && ext === 'iotjs') {
     module.exports = dynamicloader(modPath);
@@ -250,14 +249,14 @@ Module.compileRemoteSource = function(filename, source) {
 
 
 Module.prototype.compile = function(filename, source) {
-    var fn = process.compile(filename, source);
+    var fn = Builtin.compile(filename, source);
     fn.call(this.exports, this.exports, this.require.bind(this), this);
 };
 
 
 Module.runMain = function() {
-  if (process.debuggerWaitSource) {
-    var sources = process.debuggerGetSource();
+  if (Builtin.debuggerWaitSource) {
+    var sources = Builtin.debuggerGetSource();
     sources.forEach(function(rModule) {
       Module.remoteCache[rModule[0]] = rModule[1];
     });

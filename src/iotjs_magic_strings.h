@@ -269,6 +269,7 @@
 #endif
 #define IOTJS_MAGIC_STRING_PLATFORM "platform"
 #define IOTJS_MAGIC_STRING_PORT "port"
+#define IOTJS_MAGIC_STRING_PRIVATE "_private"
 #define IOTJS_MAGIC_STRING_PROTOTYPE "prototype"
 #if ENABLE_MODULE_MQTT
 #define IOTJS_MAGIC_STRING_PUBLISH "publish"

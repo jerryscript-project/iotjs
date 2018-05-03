@@ -322,18 +322,33 @@ static void SetBuiltinModules(jerry_value_t builtin_modules) {
   }
 }
 
+static void SetProcessPrivate(jerry_value_t process, bool wait_source) {
+  jerry_value_t private = jerry_create_object();
+  iotjs_jval_set_property_jval(process, IOTJS_MAGIC_STRING_PRIVATE, private);
+
+  iotjs_jval_set_method(private, IOTJS_MAGIC_STRING_COMPILE, Compile);
+  iotjs_jval_set_method(private, IOTJS_MAGIC_STRING_COMPILEMODULE,
+                        CompileModule);
+  iotjs_jval_set_method(private, IOTJS_MAGIC_STRING_READSOURCE, ReadSource);
+
+  // debugger
+  iotjs_jval_set_method(private, IOTJS_MAGIC_STRING_DEBUGGERGETSOURCE,
+                        DebuggerGetSource);
+
+  jerry_value_t wait_source_val = jerry_create_boolean(wait_source);
+  iotjs_jval_set_property_jval(private, IOTJS_MAGIC_STRING_DEBUGGERWAITSOURCE,
+                               wait_source_val);
+
+  jerry_release_value(wait_source_val);
+  jerry_release_value(private);
+}
+
 
 jerry_value_t InitProcess() {
   jerry_value_t process = jerry_create_object();
 
-  iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_COMPILE, Compile);
-  iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_COMPILEMODULE,
-                        CompileModule);
-  iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_READSOURCE, ReadSource);
   iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_CWD, Cwd);
   iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_CHDIR, Chdir);
-  iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_DEBUGGERGETSOURCE,
-                        DebuggerGetSource);
   iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_DOEXIT, DoExit);
   SetProcessEnv(process);
 
@@ -358,22 +373,17 @@ jerry_value_t InitProcess() {
 
   // Set iotjs
   SetProcessIotjs(process);
-  bool wait_source;
+  bool wait_source = false;
   if (iotjs_environment_config(iotjs_environment_get())->debugger != NULL) {
     wait_source = iotjs_environment_config(iotjs_environment_get())
                       ->debugger->wait_source;
-  } else {
-    wait_source = false;
   }
 
   if (!wait_source) {
     SetProcessArgv(process);
   }
 
-  jerry_value_t wait_source_val = jerry_create_boolean(wait_source);
-  iotjs_jval_set_property_jval(process, IOTJS_MAGIC_STRING_DEBUGGERWAITSOURCE,
-                               wait_source_val);
-  jerry_release_value(wait_source_val);
+  SetProcessPrivate(process, wait_source);
 
   return process;
 }

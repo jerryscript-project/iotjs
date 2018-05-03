@@ -32,6 +32,9 @@ void iotjs_buffer_release(char* buff);
 #define IOTJS_ALLOC(type) /* Allocate (type)-sized, (type*)-typed memory */ \
   (type*)iotjs_buffer_allocate(sizeof(type))
 
+#define IOTJS_CALLOC(num, type) \
+  (type*)iotjs_buffer_allocate((num * sizeof(type)))
+
 #define IOTJS_RELEASE(ptr) /* Release memory allocated by IOTJS_ALLOC() */ \
   ({                                                                       \
     iotjs_buffer_release((char*)ptr);                                      \

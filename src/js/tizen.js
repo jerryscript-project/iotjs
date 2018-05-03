@@ -134,7 +134,7 @@ function launchAppControl(option) {
 
 
 var getResPath = function() {
-  return this.bridge.sendSync('getResPath', '');
+  return bridge.sendSync('getResPath', '');
 };
 
 

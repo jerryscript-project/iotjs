@@ -17,20 +17,22 @@
 #include "modules/iotjs_module_bridge.h"
 
 #include <app_common.h>
-#include <app_control.h>
-#include <bundle.h>
 
 typedef enum {
-  IOTJS_ERROR_NONE = 0,
-  IOTJS_ERROR_RESULT_FAILED,
+  IOTJS_ERROR_RESULT_FAILED = INT_MIN,
   IOTJS_ERROR_INVALID_PARAMETER,
+  IOTJS_ERROR_OUT_OF_MEMORY,
+  IOTJS_ERROR_NONE = 0,
 } iotjs_error_t;
 
-// application control
+// # tizen app-control
+#include <app_control.h>
 #include <app_control_internal.h>
+#include <bundle.h>
 #include <bundle_internal.h>
 
-iotjs_error_t send_launch_request(const char* json, void* hbridge) {
+static iotjs_error_t tizen_send_launch_request(const char* json,
+                                               void* hbridge) {
   DDDLOG("%s", __func__);
 
   bundle* b;
@@ -87,7 +89,7 @@ iotjs_error_t send_launch_request(const char* json, void* hbridge) {
 }
 
 
-void iotjs_service_app_control_cb(app_control_h app_control, void* user_data) {
+void iotjs_tizen_app_control_cb(app_control_h app_control, void* user_data) {
   DDDLOG("%s", __func__);
 
   iotjs_environment_t* env = iotjs_environment_get();
@@ -131,6 +133,7 @@ void iotjs_service_app_control_cb(app_control_h app_control, void* user_data) {
 }
 
 
+// # tizen bridge
 void iotjs_tizen_func(const char* command, const char* message, void* handle) {
   DDDLOG("%s, cmd: %s, msg: %s", __func__, command, message);
 
@@ -140,7 +143,7 @@ void iotjs_tizen_func(const char* command, const char* message, void* handle) {
 
   } else if (strncmp(command, "launchAppControl", strlen("launchAppControl")) ==
              0) {
-    iotjs_error_t err = send_launch_request(message, handle);
+    iotjs_error_t err = tizen_send_launch_request(message, handle);
     if (err == IOTJS_ERROR_NONE) {
       iotjs_bridge_set_msg(handle, "OK");
     }
@@ -148,4 +151,108 @@ void iotjs_tizen_func(const char* command, const char* message, void* handle) {
   } else {
     iotjs_bridge_set_err(handle, "Can't find command");
   }
+}
+
+
+// # tizen bridge-native
+typedef void (*user_callback_t)(int error, const char* data);
+
+typedef struct {
+  uv_async_t async;
+  char* module;
+  char* fn_name;
+  char* message;
+  user_callback_t cb;
+} iotjs_call_jfunc_t;
+
+
+static char* create_string_buffer(const char* src, size_t size) {
+  char* dest = IOTJS_CALLOC(size + 1, char);
+  strncpy(dest, src, size);
+  dest[size] = '\0'; // just for being sure
+  return dest;
+}
+
+
+static bool bridge_native_call(const char* module_name, const char* func_name,
+                               const char* message,
+                               iotjs_string_t* output_str) {
+  bool result = false;
+
+  jerry_value_t jmodule = iotjs_module_get(module_name);
+  jerry_value_t jfunc = iotjs_jval_get_property(jmodule, func_name);
+
+  if (jerry_value_is_function(jfunc) == false) {
+    return result;
+  }
+
+  iotjs_jargs_t jargv = iotjs_jargs_create(1);
+  iotjs_jargs_append_string_raw(&jargv, message);
+  jerry_value_t jres = iotjs_make_callback_with_result(jfunc, jmodule, &jargv);
+
+  if (jerry_value_is_string(jres)) {
+    IOTJS_ASSERT(output_str != NULL);
+    *output_str = iotjs_jval_as_string(jres);
+    result = true;
+  }
+
+  jerry_release_value(jfunc);
+  jerry_release_value(jres);
+  iotjs_jargs_destroy(&jargv);
+  return result;
+}
+
+
+static void bridge_native_async_handler(uv_async_t* handle) {
+  DDDLOG("%s\n", __func__);
+  iotjs_call_jfunc_t* data = (iotjs_call_jfunc_t*)handle->data;
+
+  bool result;
+  iotjs_string_t output;
+
+  result = bridge_native_call(IOTJS_MAGIC_STRING_TIZEN, data->fn_name,
+                              data->message, &output);
+
+  if (data->cb) {
+    data->cb((int)!result, iotjs_string_data(&output));
+  }
+
+  iotjs_string_destroy(&output);
+
+  // release
+  uv_close((uv_handle_t*)&data->async, NULL);
+  IOTJS_RELEASE(data->module);
+  IOTJS_RELEASE(data->fn_name);
+  IOTJS_RELEASE(data->message);
+  IOTJS_RELEASE(data);
+}
+
+
+int iotjs_tizen_bridge_native(const char* fn_name, unsigned fn_name_size,
+                              const char* message, unsigned message_size,
+                              user_callback_t cb) {
+  iotjs_environment_t* env = iotjs_environment_get();
+
+  if (env->state != kRunningMain && env->state != kRunningLoop) {
+    return IOTJS_ERROR_RESULT_FAILED;
+  }
+
+  iotjs_call_jfunc_t* handle = IOTJS_ALLOC(iotjs_call_jfunc_t);
+
+  if (handle == NULL) {
+    return IOTJS_ERROR_OUT_OF_MEMORY;
+  }
+
+  handle->async.data = (void*)handle;
+  handle->fn_name = create_string_buffer(fn_name, fn_name_size);
+  handle->message = create_string_buffer(message, message_size);
+  handle->module = create_string_buffer(IOTJS_MAGIC_STRING_TIZEN,
+                                        sizeof(IOTJS_MAGIC_STRING_TIZEN));
+  handle->cb = cb;
+
+  uv_loop_t* loop = iotjs_environment_loop(env);
+  uv_async_init(loop, &handle->async, bridge_native_async_handler);
+  uv_async_send(&handle->async);
+
+  return IOTJS_ERROR_NONE;
 }

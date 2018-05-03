@@ -16,6 +16,7 @@
 var util = require('util');
 var OutgoingMessage = require('http_outgoing').OutgoingMessage;
 var common = require('http_common');
+var HTTPParser = require('http_parser').HTTPParser;
 
 // RFC 7231 (http://tools.ietf.org/html/rfc7231#page-49)
 var STATUS_CODES = exports.STATUS_CODES = {
@@ -164,7 +165,7 @@ function connectionListener(socket) {
 
   // cf) In Node.js, freelist returns a new parser.
   // parser initialize
-  var parser = common.createHTTPParser();
+  var parser = common.createHTTPParser(HTTPParser.REQUEST);
   parser._headers = [];
   parser._url = '';
 

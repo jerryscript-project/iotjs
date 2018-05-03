@@ -74,8 +74,7 @@ ClientRequest.prototype.end = function(data, encoding, callback) {
 
 function setupConnection(req) {
   var socket = req.socket;
-  var parser = common.createHTTPParser();
-  parser.reinitialize(HTTPParser.RESPONSE);
+  var parser = common.createHTTPParser(HTTPParser.RESPONSE);
   socket.parser = parser;
   socket._httpMessage = req;
 

@@ -19,6 +19,9 @@ void service_app_terminate(void *data)
 void service_app_control(app_control_h app_control, void *data)
 {
 	// Todo: add your code here.
+
+	// Emit 'appControl' event to the JavaScript side.
+	iotjs_tizen_app_control_cb(app_control, data);
 	return;
 }
 

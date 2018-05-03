@@ -10,6 +10,33 @@ correctly specify the module name as the test executor relies on that informatio
 1. Write a test case and place it into the proper directory.
 2. List up the test case in [test/testsets.json](https://github.com/Samsung/iotjs/blob/master/test/testsets.json), and set attributes (timeout, skip, ...) on the test case if it needs.
 
+#### Test set descriptor
+* [`test/testsets.json`](https://github.com/Samsung/iotjs/blob/master/test/testsets.json)
+
+```
+{
+  "directory": [
+    { "name": "filename",
+      "skip": ["all"],
+      "reason": "reason of skipping",
+      "timeout": seconds,
+      "expected-failure": true,
+      "required-modules": ["my_module"],
+      "required-features": ["es-262-feature"]
+    },
+    ...
+  ],
+  ...
+}
+```
+
+ - _directory_: group of tests
+ - _name_: filename = testname
+ - _skip_: platform where the test must be skipped. ["all", "darwin", "linux", "nuttx", "tizen", "tizenrt"] **(optional)**
+ - _reason_: it belongs to skip property, reason of skipping. **(optional)**
+ - _timeout_: timeout in seconds **(optional)**
+ - _expected-failure_: identifies the "must fail" testcases. Still catches segfaults, IOTJS_ASSERT and JERRY_ASSERT. Default: false [true, false]  **(optional)**
+
 
 ### How to Test
 
@@ -25,26 +52,11 @@ Some basic options are provided.
 
 Existing test options are listed as follows;
 ```
-start-from
-quiet=yes|no (default is yes)
-output-file
-skip-module
-output-coverage=yes|no (default is no)
-experimental=yes|no (default is no)
-```
-
-To give options, please use two dashes '--' **once** before the option name as described in the following sections.
-
-Options that may need explanations.
-* start-from: a test case file name where the driver starts.
-* quiet: a flag that indicates if the driver suppresses console outputs of test case.
-* output-file: a file name where the driver leaves output.
-* skip-module: a module list to skip test of specific modules.
-* output-coverage: a flag that indicates wether coverage data should be written to disk
-* experimental: a flag that indicates if tests for experimental are needed
-
-#### Options example
-
-```bash
-build/x86_64-linux/debug/bin/iotjs tools/check_test.js -- start-from=test_console.js quiet=no
+-h, --help           show this help message and exit
+--quiet              show or hide the output of the tests
+--skip-modules list  module list to skip test of specific modules
+--testsets TESTSETS  JSON file to extend or override the default testsets
+--timeout TIMEOUT    default timeout for the tests in seconds
+--valgrind           check tests with Valgrind
+--coverage           measure JavaScript coverage
 ```

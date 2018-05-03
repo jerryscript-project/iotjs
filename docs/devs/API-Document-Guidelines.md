@@ -13,11 +13,11 @@
 
 The following shows `{Your_module_name}` module APIs available for each platform.
 
-|  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | NuttX<br/>(STM32F4-Discovery) |
-| :---: | :---: | :---: | :---: |
-| {class_name}.{functionName1} | O | O | O |
-| {class_name}.{functionName2} | O | O | O |
-| {class_name}.{functionName3} | O | O | O |
+|  | Linux<br/>(Ubuntu) | Tizen<br/>(Raspberry Pi) | Raspbian<br/>(Raspberry Pi) | NuttX<br/>(STM32F4-Discovery) | TizenRT<br/>(Artik053) |
+| :---: | :---: | :---: | :---: | :---: | :---: |
+| {class_name}.{functionName1} | O | O | O | O | O |
+| {class_name}.{functionName2} | O | O | O | O | O |
+| {class_name}.{functionName3} | O | O | O | O | O |
 
 # {Your_module_name}
 

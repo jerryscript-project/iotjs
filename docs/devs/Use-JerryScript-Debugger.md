@@ -29,8 +29,11 @@ If you want to specify the port number of the debugger-server (default: 5001),
 you can do so with the `--debugger-port <PORT>` option:
 `<iotjs binary> --start-debug-server --debugger-port 8080 test.js`
 
-Two clients are included, a [python](https://github.com/jerryscript-project/jerryscript/blob/master/jerry-debugger/jerry-client-ws.py)
-and an [HTML](https://github.com/jerryscript-project/jerryscript/blob/master/jerry-debugger/jerry-client-ws.html) variant, they can be found under `deps/jerry/jerry-debugger/`.
+#### Available Clients
 
-*Note*: When snapshot support is enabled, you won't be able to examine js-modules
+* [JerryScript console debugger client](https://github.com/jerryscript-project/jerryscript/blob/master/jerry-debugger/jerry-client-ws.py)
+* [Iot.js Code](https://github.com/Samsung/iotjscode)
+* [Jerryscript debugger Chrome webtool](https://github.com/jerryscript-project/jerryscript-debugger-ts)
+
+**Note**: When snapshot support is enabled, you won't be able to examine js-modules
 that are loaded from snapshots.

@@ -3,17 +3,16 @@ Inside IoT.js
 
 * [Design](#design)
 * [Javascript Binding](#javascript-binding)
-  * jerry_value_t
-  * iotjs_jobjectwrap_t
-  * Native handler
-  * Embedding API
+  * [jerry_value_t](#jerry_value_t)
+  * [Native handler](#native-handler)
+  * [Embedding API](#embedding-api)
 * [libuv Binding](#libuv-binding)
-  * iotjs_handlewrap_t
-  * iotjs_reqwrap_t
+  * [iotjs_handlewrap_t](#iotjs_handlewrap_t)
+  * [iotjs_reqwrap_t](#iotjs_reqwrap_t)
 * [IoT.js Core](#iotjscoe)
-  * Life cycle of IoT.js
-  * Builtin modules
-  * Event loop
+  * [Life cycle of IoT.js](#life-cycle-of-iot.js)
+  * [Builtin modules](#builtin-modules)
+  * [Event loop](#event-loop)
 
 # Design
 
@@ -53,43 +52,6 @@ This struct provides following functionalities:
 * Calling a Javascript function.
 * Evaluating a Javascript script.
 * Set and Get corresponding native data to the Javascript object.
-
-## iotjs_jobjectwrap_t
-
-You can refer Javascript object from C code side using `jerry_value_t` as saw above.
-When a reference for a Javascript object was made using `jerry_value_t`, it will increase the reference count and will decrease the count when it goes out of scope.
-
-```c
-{
-  // Create JavaScript object
-  // It increases reference count in JerryScript side.
-  jerry_value_t jobject = iotjs_jval_create();
-
-  // Use `jobject`
-  ...
-
-  // Before jobject goes out of scope, destroy it.
-  // It decreases reference count in JerryScript side so that it can be GC-ed.
-  iotjs_jval_destroy(&jobject)
-}
-```
-
-But the situation is different if you want to refer a Javascript object through out program execution until the object is live.
-You may write code like this:
-
-```c
-  jerry_value_t* jobject = (jerry_value_t*)malloc(sizeof(jerry_value_t)); // Not allowed
-```
-
-To achieve your wish, we recommend using `iotjs_jobjectwrap_t` for that purpose.
-`iotjs_jobjectwrap_t` is kind of weak pointer to a Javascript Object.
-It refers a Javascript object but never increase reference count so that Javascript engine can collect the object when it turns into garbage.
-The `iotjs_jobjectwrap_t` instance will be released at the time the corresponding Javascript object is being reclaimed.
-
-Do not hold pointer to the wrapper in native code side globally because even if you are holding a wrapper by pointer, Javascript engine probably releases the corresponding Javascript object resulting deallocation of wrapper. Consequentially your pointer will turned into dangling.
-
-The only safe way to get wrapper is to get it from Javascript object. When a wrapper is being created, it links itself with corresponding Javascript object with `iotjs_jval_set_object_native_handle()` method of `jerry_value_t`. And you can get the wrapper from the object with `iotjs_jval_get_object_native_handle()` method of `jerry_value_t` later when you need it.
-
 
 ## Native handler
 

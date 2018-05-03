@@ -180,8 +180,11 @@ int iotjs_service_app_start(int argc, char** argv, char* js_path,
     return 1;
   }
 
+  // The JavaScript entry file is located in application res directory.
   snprintf(js_absolute_path, sizeof(js_absolute_path), "%s%s", app_res_path,
            js_path);
+  setenv(IOTJS_MAGIC_STRING_IOTJS_WORKING_DIR_PATH_U, app_res_path, 1);
+
   IOTJS_RELEASE(app_res_path);
 
   service_app_loop_method_s loop_method = {.init = loop_method_init_cb,

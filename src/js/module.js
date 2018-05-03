@@ -32,13 +32,12 @@ Module.cache = {};
 // Cache to store not yet compiled remote modules
 Module.remoteCache = {};
 
+var moduledirs = [''];
 
 var cwd;
 try {
-  cwd = process.cwd();
+  cwd = process.env.IOTJS_WORKING_DIR_PATH || process.cwd();
 } catch (e) { }
-
-var moduledirs = [''];
 if (cwd) {
   moduledirs.push(cwd + '/');
   moduledirs.push(cwd + '/iotjs_modules/');

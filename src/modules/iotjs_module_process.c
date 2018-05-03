@@ -242,7 +242,8 @@ void SetNativeSources(jerry_value_t native_sources) {
 
 
 static void SetProcessEnv(jerry_value_t process) {
-  const char *homedir, *iotjspath, *iotjsenv, *extra_module_path;
+  const char *homedir, *iotjspath, *iotjsenv, *extra_module_path,
+      *working_dir_path;
 
   homedir = getenv(IOTJS_MAGIC_STRING_HOME_U);
   if (homedir == NULL) {
@@ -265,6 +266,7 @@ static void SetProcessEnv(jerry_value_t process) {
 #endif
 
   extra_module_path = getenv(IOTJS_MAGIC_STRING_IOTJS_EXTRA_MODULE_PATH_U);
+  working_dir_path = getenv(IOTJS_MAGIC_STRING_IOTJS_WORKING_DIR_PATH_U);
 
   jerry_value_t env = jerry_create_object();
   iotjs_jval_set_property_string_raw(env, IOTJS_MAGIC_STRING_HOME_U, homedir);
@@ -275,6 +277,9 @@ static void SetProcessEnv(jerry_value_t process) {
   iotjs_jval_set_property_string_raw(
       env, IOTJS_MAGIC_STRING_IOTJS_EXTRA_MODULE_PATH_U,
       extra_module_path ? extra_module_path : "");
+  iotjs_jval_set_property_string_raw(
+      env, IOTJS_MAGIC_STRING_IOTJS_WORKING_DIR_PATH_U,
+      working_dir_path ? working_dir_path : "");
 
   iotjs_jval_set_property_jval(process, IOTJS_MAGIC_STRING_ENV, env);
 

@@ -45,6 +45,10 @@ For each directory in search paths above:
 - Extra step for Linux/Tizen targets:
   - If a file with `id.iotjs` exists, try to load it as an IoT.js dynamic module and return.
 
+**Changing current working directory**
+
+You can explicitly change current working directory by setting `IOTJS_WORKING_DIR_PATH` environment variable. It is not recommended that you set this variable, if possible.
+
 **Adding extra paths for module loading**
 
 In order to add more directories to look for modules, you can set `IOTJS_EXTRA_MODULE_PATH` as an environment variable of your system. For instance, `./node_modules` and `./my_modules` will be referred if they're declared as follows.

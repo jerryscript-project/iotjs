@@ -17,6 +17,7 @@
 #include "modules/iotjs_module_bridge.h"
 
 #include <app_common.h>
+#include <stdlib.h>
 
 typedef enum {
   IOTJS_ERROR_RESULT_FAILED = INT_MIN,
@@ -125,7 +126,7 @@ void iotjs_tizen_app_control_cb(app_control_h app_control, void* user_data) {
 
   iotjs_make_callback(fn, tizen, &jargv);
 
-  IOTJS_RELEASE(json);
+  free(json);
   bundle_free(b);
 
   jerry_release_value(fn);
@@ -140,6 +141,9 @@ void iotjs_tizen_func(const char* command, const char* message, void* handle) {
   if (strncmp(command, "getResPath", strlen("getResPath")) == 0) {
     char* app_res_path = app_get_resource_path();
     iotjs_bridge_set_msg(handle, app_res_path);
+    if (app_res_path != NULL) {
+      free(app_res_path);
+    }
 
   } else if (strncmp(command, "launchAppControl", strlen("launchAppControl")) ==
              0) {

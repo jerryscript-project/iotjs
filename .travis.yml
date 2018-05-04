@@ -33,6 +33,9 @@ env:
     - OPTS="misc" RUN_DOCKER=yes
 
 matrix:
+  allow_failures:
+    - env: OPTS="sonarqube"
+    - env: OPTS="coverity"
   include:
     - os: osx
       env: OPTS="host-darwin"

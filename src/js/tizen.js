@@ -138,8 +138,14 @@ var getResPath = function() {
 };
 
 
+var getDataPath = function() {
+  return bridge.sendSync('getDataPath', '');
+};
+
+
 module.exports = util.mixin(native, EventEmitter.prototype, {
   launchAppControl: launchAppControl,
   getResPath: getResPath,
+  getDataPath: getDataPath,
   on: on,
 });

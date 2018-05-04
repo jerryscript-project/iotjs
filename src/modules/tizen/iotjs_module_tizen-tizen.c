@@ -144,7 +144,12 @@ void iotjs_tizen_func(const char* command, const char* message, void* handle) {
     if (app_res_path != NULL) {
       free(app_res_path);
     }
-
+  } else if (strncmp(command, "getDataPath", strlen("getDataPath")) == 0) {
+    char* app_data_path = app_get_data_path();
+    iotjs_bridge_set_msg(handle, app_data_path);
+    if (app_data_path != NULL) {
+      free(app_data_path);
+    }
   } else if (strncmp(command, "launchAppControl", strlen("launchAppControl")) ==
              0) {
     iotjs_error_t err = tizen_send_launch_request(message, handle);

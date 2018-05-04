@@ -184,13 +184,14 @@ def init_options():
         action='store_true', default=False,
         help='Enable JerryScript heap statistics')
     jerry_group.add_argument('--jerry-profile',
-        choices=['es5.1', 'es2015-subset'], default='es5.1',
-        help='Specify the profile for JerryScript (default: %(default)s).')
+        metavar='FILE', action='store', default='es5.1',
+        help='Specify the profile for JerryScript (default: %(default)s). '
+             'Possible values are "es5.1", "es2015-subset" or an absolute '
+             'path to a custom JerryScript profile file.')
     jerry_group.add_argument('--js-backtrace',
         choices=['ON', 'OFF'], type=str.upper,
         help='Enable/disable backtrace information of JavaScript code '
              '(default: ON in debug and OFF in release build)')
-
 
     options = parser.parse_args(argv)
     options.config = build_config
@@ -235,9 +236,12 @@ def adjust_options(options):
     cmake_path = fs.join(path.PROJECT_ROOT, 'cmake', 'config', '%s.cmake')
     options.cmake_toolchain_file = cmake_path % options.target_tuple
 
-    # Specify the file of JerryScript profile.
-    options.jerry_profile = fs.join(path.JERRY_PROFILE_ROOT,
-                                    options.jerry_profile + '.profile')
+    # Set the default value of '--js-backtrace' if it is not defined.
+    if not options.js_backtrace:
+        if options.buildtype == 'debug':
+            options.js_backtrace = "ON"
+        else:
+            options.js_backtrace = "OFF"
 
 
 def print_progress(msg):
@@ -343,11 +347,6 @@ def build_iotjs(options):
         cmake_opt.append("-DFEATURE_DEBUGGER=ON")
 
     # --js-backtrace
-    if not options.js_backtrace:
-        if options.buildtype == 'debug':
-            options.js_backtrace = "ON"
-        else:
-            options.js_backtrace = "OFF"
     cmake_opt.append("-DFEATURE_JS_BACKTRACE=%s" %
                      options.js_backtrace)
 

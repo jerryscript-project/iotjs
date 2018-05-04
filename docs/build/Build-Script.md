@@ -297,12 +297,22 @@ Enable memstat of JerryScript engine.
 
 ---
 #### `--jerry-profile`
-* `es5.1` | `es2015-subset`
+* `es5.1` | `es2015-subset | absolute path to a custom profile file`
 
-Specify the profile for JerryScript (default: es5.1).
+Specify the profile for JerryScript (default: es5.1). In JerryScript all of the features are enabled by default, so an empty profile file turns on all of the available ECMA features. See also the related [README.md](https://github.com/jerryscript-project/jerryscript/blob/master/jerry-core/profiles/README.md).
+
+E.g.:
+**/home/iotjs/my-jerry-profile.profile**
+```
+# Turn off every ES2015 feature EXCEPT the arrow functions
+CONFIG_DISABLE_ES2015_BUILTIN
+CONFIG_DISABLE_ES2015_PROMISE_BUILTIN
+CONFIG_DISABLE_ES2015_TEMPLATE_STRINGS
+CONFIG_DISABLE_ES2015_TYPEDARRAY_BUILTIN
+```
 
 ```
-./tools/build.py --jerry-profile=es2015-subset
+./tools/build.py --jerry-profile=/home/iotjs/my-jerry-profile.profile
 ```
 
 ---

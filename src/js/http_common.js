@@ -17,10 +17,8 @@ var util = require('util');
 var IncomingMessage = require('http_incoming').IncomingMessage;
 var HTTPParser = require('http_parser').HTTPParser;
 
-var createHTTPParser = function() {
-  // REQUEST is the default type.
-  // For RESPONSE, use HTTPParser.reinitialize(HTTPParser.RESPONSE)
-  var parser = new HTTPParser(HTTPParser.REQUEST);
+exports.createHTTPParser = function(type) {
+  var parser = new HTTPParser(type);
   // cb during  http parsing from C side(http_parser)
   parser.OnHeaders = parserOnHeaders;
   parser.OnHeadersComplete = parserOnHeadersComplete;
@@ -28,9 +26,6 @@ var createHTTPParser = function() {
   parser.OnMessageComplete = parserOnMessageComplete;
   return parser;
 };
-
-exports.createHTTPParser = createHTTPParser;
-
 
 // This is called when parsing of incoming http msg done
 function parserOnMessageComplete() {

@@ -21,7 +21,6 @@
 #include <tinyara/arch.h>
 #include <tinyara/config.h>
 
-#include <setjmp.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -77,29 +76,6 @@ void jerryx_port_handler_print_char(char c) { /**< the character to print */
   // printf("%c", c);
 } /* jerryx_port_handler_print_char */
 
-
-/**
- * Compiler built-in setjmp function.
- *
- * @return 0 when called the first time
- *         1 when returns from a longjmp call
- */
-
-int setjmp(jmp_buf buf) {
-  return __builtin_setjmp(buf);
-} /* setjmp */
-
-/**
- * Compiler built-in longjmp function.
- *
- * Note:
- *   ignores value argument
- */
-
-void longjmp(jmp_buf buf, int value) {
-  /* Must be called with 1. */
-  __builtin_longjmp(buf, 1);
-} /* longjmp */
 
 int iotjs_entry(int argc, char **argv);
 int tuv_cleanup(void);

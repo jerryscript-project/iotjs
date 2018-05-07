@@ -143,24 +143,24 @@ Buffer.concat = function(list) {
 // Buffer.isBuffer(object)
 Buffer.isBuffer = util.isBuffer;
 
+//Equals and Compare methods checker
+function bufPrototypeCompare (otherBuffer, equalsOrCompare) {
+  if (!util.isBuffer(otherBuffer)) {
+    throw new TypeError('Bad arguments: buffer.' + equalsOrCompare + '(Buffer)');
+  }
+
+  return native.compare(this, otherBuffer);
+};
 
 // buffer.equals(otherBuffer)
 Buffer.prototype.equals = function(otherBuffer) {
-  if (!util.isBuffer(otherBuffer)) {
-    throw new TypeError('Bad arguments: buffer.equals(Buffer)');
-  }
-
-  return native.compare(this, otherBuffer) == 0;
+  bufPrototypeCompare(otherBuffer,"equals") == 0;
 };
 
 
 // buffer.compare(otherBuffer)
 Buffer.prototype.compare = function(otherBuffer) {
-  if (!util.isBuffer(otherBuffer)) {
-    throw new TypeError('Bad arguments: buffer.compare(Buffer)');
-  }
-
-  return native.compare(this, otherBuffer);
+  bufPrototypeCompare(otherBuffer,'compare');
 };
 
 

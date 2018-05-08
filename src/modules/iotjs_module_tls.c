@@ -545,6 +545,9 @@ JS_FUNCTION(Read) {
     iotjs_bufferwrap_t *buf = iotjs_bufferwrap_from_jbuffer(jbuffer);
     data = buf->buffer;
     length = iotjs_bufferwrap_length(buf);
+  } else {
+    iotjs_tls_notify_error(tls_data);
+    return jerry_create_boolean(false);
   }
 
   do {

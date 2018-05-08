@@ -171,6 +171,10 @@ set(ARCHIVE_DIR ${CMAKE_BINARY_DIR}/lib)
 
 include(ExternalProject)
 
+if(NOT ${EXTERNAL_LIBC_INTERFACE} STREQUAL "")
+  iotjs_add_compile_flags(-isystem ${EXTERNAL_LIBC_INTERFACE})
+endif()
+
 # Include external projects
 include(cmake/jerry.cmake)
 include(cmake/http-parser.cmake)

@@ -147,18 +147,14 @@ bool iotjs_systemio_device_open(const char* export_path, uint32_t value,
   int count_limit = created_files_length * 10;
   char buffer[DEVICE_IO_PIN_BUFFER_SIZE];
   char path[DEVICE_IO_PATH_BUFFER_SIZE] = { 0 };
-  char check_format[DEVICE_IO_PATH_BUFFER_SIZE] = { 0 };
 
   while (!iotjs_systemio_check_path(exported_path) && count < count_limit) {
     usleep(100 * 1000); // sleep 100 miliseconds.
     count++;
   }
 
-  strcat(check_format, exported_path);
-  strcat(check_format, "%s");
-
   for (int i = 0; i < created_files_length; i++) {
-    snprintf(path, DEVICE_IO_PATH_BUFFER_SIZE - 1, check_format,
+    snprintf(path, DEVICE_IO_PATH_BUFFER_SIZE - 1, "%s%s", exported_path,
              created_files[i]);
 
     DDDLOG("%s - created file: %s", __func__, path);

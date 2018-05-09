@@ -68,6 +68,8 @@ V=1 VERBOSE=1 ./tools/build.py \
   --clean \
   --buildtype=%{build_mode} \
   --profile=test/profiles/tizen.profile \
+  --jerry-profile $PWD/test/profiles/tizen-jerry.profile \
+  --js-backtrace ON \
   --target-arch=noarch \
   --target-os=tizen \
   --target-board=rpi3 \

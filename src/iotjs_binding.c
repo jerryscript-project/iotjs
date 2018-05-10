@@ -87,37 +87,38 @@ double iotjs_jval_as_number(jerry_value_t jval) {
 
 
 bool iotjs_jbuffer_as_string(jerry_value_t jval, iotjs_string_t* out_string) {
-  iotjs_bufferwrap_t* buffer_wrap;
-  char* buffer;
-  jerry_size_t size = 0;
+  IOTJS_ASSERT(out_string != NULL);
 
   if (jerry_value_is_string(jval)) {
-    size = jerry_get_string_size(jval);
+    jerry_size_t size = jerry_get_string_size(jval);
 
-    if (size > 0) {
-      buffer = iotjs_buffer_allocate(size + 1);
-      size_t check =
-          jerry_string_to_char_buffer(jval, (jerry_char_t*)buffer, size);
-
-      IOTJS_ASSERT(check == size);
+    if (size == 0) {
+      return false;
     }
-  } else if ((buffer_wrap = iotjs_jbuffer_get_bufferwrap_ptr(jval)) != NULL) {
-    size = buffer_wrap->length;
 
-    if (size > 0) {
-      buffer = iotjs_buffer_allocate(size + 1);
-      memcpy(buffer, buffer_wrap->buffer, size);
-    }
+    char* buffer = iotjs_buffer_allocate(size + 1);
+    size_t check =
+        jerry_string_to_char_buffer(jval, (jerry_char_t*)buffer, size);
+
+    IOTJS_ASSERT(check == size);
+
+    buffer[size] = '\0';
+    *out_string = iotjs_string_create_with_buffer(buffer, size);
+    return true;
   }
 
-  if (size == 0) {
-    *out_string = iotjs_string_create();
+  iotjs_bufferwrap_t* buffer_wrap = iotjs_jbuffer_get_bufferwrap_ptr(jval);
+
+  if (buffer_wrap == NULL || buffer_wrap->length == 0) {
     return false;
   }
 
+  size_t size = buffer_wrap->length;
+
+  char* buffer = iotjs_buffer_allocate(size + 1);
+  memcpy(buffer, buffer_wrap->buffer, size);
   buffer[size] = '\0';
   *out_string = iotjs_string_create_with_buffer(buffer, size);
-
   return true;
 }
 

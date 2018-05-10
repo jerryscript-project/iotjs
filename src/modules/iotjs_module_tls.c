@@ -205,6 +205,7 @@ JS_FUNCTION(TlsContext) {
 
   // User provided certificate
   int ret = 0;
+
   jerry_value_t jcert =
       iotjs_jval_get_property(joptions, IOTJS_MAGIC_STRING_CERT);
   jerry_value_t jkey =
@@ -220,25 +221,28 @@ JS_FUNCTION(TlsContext) {
                                  (const unsigned char *)cert_chars,
                                  (size_t)iotjs_string_size(&cert_string) + 1);
 
-    if (cert_string.data != NULL) {
-      iotjs_string_destroy(&cert_string);
-    }
-  }
+    iotjs_string_destroy(&cert_string);
 
-  if (iotjs_jbuffer_as_string(jkey, &key_string)) {
-    const char *key_chars = iotjs_string_data(&key_string);
+    if (ret == 0 && iotjs_jbuffer_as_string(jkey, &key_string)) {
+      const char *key_chars = iotjs_string_data(&key_string);
 
-    ret = mbedtls_pk_parse_key(&tls_context->pkey,
-                               (const unsigned char *)key_chars,
-                               (size_t)iotjs_string_size(&key_string) + 1, NULL,
-                               0);
+      ret = mbedtls_pk_parse_key(&tls_context->pkey,
+                                 (const unsigned char *)key_chars,
+                                 (size_t)iotjs_string_size(&key_string) + 1,
+                                 NULL, 0);
 
-    if (ret == 0) {
-      tls_context->context_flags |= SSL_CONTEXT_HAS_KEY;
-    }
-    if (key_string.data != NULL) {
       iotjs_string_destroy(&key_string);
+
+      if (ret == 0) {
+        // Both own_cert and pkey must be valid for setting this flag.
+        tls_context->context_flags |= SSL_CONTEXT_HAS_KEY;
+      }
+    } else {
+      ret = -1;
     }
+  } else if (!jerry_value_is_undefined(jcert) ||
+             !jerry_value_is_undefined(jkey)) {
+    ret = -1;
   }
 
   jerry_release_value(jcert);
@@ -262,6 +266,8 @@ JS_FUNCTION(TlsContext) {
                                      1);
 
     iotjs_string_destroy(&cert_auth_string);
+  } else if (!jerry_value_is_undefined(jcert_auth)) {
+    ret = -1;
   } else {
     // Parse the default certificate authority
     ret = mbedtls_x509_crt_parse(&tls_context->cert_auth,

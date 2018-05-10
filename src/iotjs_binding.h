@@ -36,11 +36,11 @@ jerry_value_t iotjs_jval_create_error_without_error_flag(const char* msg);
 /* Type Converters */
 bool iotjs_jval_as_boolean(jerry_value_t);
 double iotjs_jval_as_number(jerry_value_t);
-bool iotjs_jbuffer_as_string(jerry_value_t jval, iotjs_string_t* out_string);
 iotjs_string_t iotjs_jval_as_string(jerry_value_t);
 jerry_value_t iotjs_jval_as_object(jerry_value_t);
 jerry_value_t iotjs_jval_as_array(jerry_value_t);
 jerry_value_t iotjs_jval_as_function(jerry_value_t);
+bool iotjs_jbuffer_as_string(jerry_value_t jval, iotjs_string_t* out_string);
 
 /* Methods for General JavaScript Object */
 void iotjs_jval_set_method(jerry_value_t jobj, const char* name,

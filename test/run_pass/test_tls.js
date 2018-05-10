@@ -13,79 +13,78 @@
  * limitations under the License.
  */
 
- var tls = require('tls');
- var assert = require('assert');
- var fs = require('fs');
+var tls = require('tls');
+var assert = require('assert');
+var fs = require('fs');
 
- var port = 8080;
+var port = 8080;
 
- var server_closed = false;
- var expected_client_msg = 'Client hello';
- var expected_server_msg = 'Server hello';
- var client_message = '';
- var server_message = '';
- var server_handshake_done = false;
- var tlsClientError_caught = false;
- var socket_handshake_error_caught = false;
+var server_closed = false;
+var expected_client_msg = 'Client hello';
+var expected_server_msg = 'Server hello';
+var client_message = '';
+var server_message = '';
+var server_handshake_done = false;
+var tlsClientError_caught = false;
+var socket_handshake_error_caught = false;
 
- var options = {
-   key: fs.readFileSync('resources/my_key.pem').toString(),
-   cert: fs.readFileSync('resources/my_crt.pem'),
-   rejectUnauthorized: false,
-   isServer: true,
- };
+var options = {
+  key: fs.readFileSync('resources/my_key.pem').toString(),
+  cert: fs.readFileSync('resources/my_crt.pem'),
+  rejectUnauthorized: false,
+  isServer: true,
+};
 
- var server = tls.createServer(options, function(socket) {
-     socket.write('Server hello');
+var server = tls.createServer(options, function(socket) {
+  socket.write('Server hello');
 
-     socket.on('data', function(data) {
-       client_message += data.toString();
-     });
+  socket.on('data', function(data) {
+    client_message += data.toString();
+  });
 
- }).listen(port, function() { });
+}).listen(port, function() { });
 
- server.on('secureConnection', function() {
-   server_handshake_done = true;
- });
+server.on('secureConnection', function() {
+  server_handshake_done = true;
+});
 
- server.on('close', function() {
-   server_closed = true;
- });
+server.on('close', function() {
+  server_closed = true;
+});
 
- var error_caught = false;
- var handshake_done = false;
+var error_caught = false;
+var handshake_done = false;
 
- var sockOpts = {
-   host: '127.0.0.1',
-   port: 8080,
-   rejectUnauthorized: false,
- }
+var sockOpts = {
+  host: '127.0.0.1',
+  port: 8080,
+  rejectUnauthorized: false,
+}
 
- var socket = tls.connect(sockOpts, function() {
- });
+var socket = tls.connect(sockOpts, function() {
+});
 
- socket.on('secureConnect', function(){
-   handshake_done = true;
- });
+socket.on('secureConnect', function(){
+  handshake_done = true;
+});
 
- socket.on('end', function() {
-   server.close();
- });
+socket.on('end', function() {
+  server.close();
+});
 
- socket.on('data', function(data) {
-   server_message += data.toString();
-   socket.write('Client hello');
-   socket.end();
- });
+socket.on('data', function(data) {
+  server_message += data.toString();
+  socket.write('Client hello');
+  socket.end();
+});
 
- var socket2 = tls.connect({host: '127.123.123.123', port: 444}, function() {
-   socket2.end();
- });
+var socket2 = tls.connect({host: '127.123.123.123', port: 444}, function() {
+  socket2.end();
+});
 
- socket2.on('error', function(err) {
-   error_caught = true;
- });
-
+socket2.on('error', function(err) {
+  error_caught = true;
+});
 
 var nocert_options = {
   rejectUnauthorized: false,
@@ -213,6 +212,20 @@ socket9.on('data', function(data) {
  socket9.write('Client hello');
  socket9.end();
 });
+
+options = {
+};
+
+function createServerFailed(options) {
+  assert.throws(function() {
+    return tls.createServer(options);
+  });
+}
+
+createServerFailed({ key:0 });
+createServerFailed({ cert:null });
+createServerFailed({ key:false, cert:7 });
+createServerFailed({ ca:true });
 
 process.on('exit', function() {
   assert.equal(error_caught, true);

@@ -56,4 +56,4 @@ HTTPPARSER_ROOT = fs.join(DEPS_ROOT, 'http-parser')
 BUILD_CONFIG_PATH = fs.join(PROJECT_ROOT, 'build.config')
 
 # IoT.js build information.
-BUILD_INFO_PATH = fs.join(TOOLS_ROOT, 'iotjs_build_info.js')
+BUILD_INFO_PATH = fs.join(TEST_ROOT, 'tools', 'iotjs_build_info.js')

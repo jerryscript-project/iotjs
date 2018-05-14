@@ -16,10 +16,8 @@
 var assert = require('assert');
 var fs = require('fs');
 
-var iotjs_path = process.env["IOTJS_PATH"]
-/* Currenlty it is expected tha the loadable test module is at a given path. */
-var dynamicmodule_dir = iotjs_path + "/../test/dynamicmodule/"
-var dynamicmodule_name = "test-dynamicmodule"
+var dynamicmodule_dir = "dynamicmodule/"
+var dynamicmodule_name = "dynamicmodule"
 var dynamicmodule_path = dynamicmodule_dir + dynamicmodule_name + ".iotjs";
 
 assert.assert(fs.existsSync(dynamicmodule_path),

@@ -17,7 +17,7 @@
 # only requires the iotjs and jerry header file(s).
 #
 cmake_minimum_required(VERSION 2.8)
-set(NAME test-dynamicmodule)
+set(NAME dynamicmodule)
 
 # Currently only Linux and Tizen targets are supported
 if(("${TARGET_OS}" STREQUAL "LINUX") OR ("${TARGET_OS}" STREQUAL "TIZEN"))
@@ -33,6 +33,7 @@ if(("${TARGET_OS}" STREQUAL "LINUX") OR ("${TARGET_OS}" STREQUAL "TIZEN"))
   target_include_directories(${NAME}
                              PRIVATE ${IOTJS_INCLUDE_DIR} ${JERRY_INCLUDE_DIR})
   set_target_properties(${NAME} PROPERTIES
+                        LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
                         PREFIX ""
                         SUFFIX ".iotjs")
 endif()

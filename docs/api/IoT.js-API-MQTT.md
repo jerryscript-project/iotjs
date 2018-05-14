@@ -32,9 +32,10 @@ The `MQTTClient` can subscribe or publish data to a broker. It sends data over a
 
 ### mqtt.getClient(options)
 - `options` {Object}
-    -  `clientId` {Buffer | string} Optional. The broker identifies each client by its `clientId`. If not specified, a randomly generated `clientId` is created.
-    -  `host` {Buffer | string} The address of the broker.
-    -  `port` {number} The port of the broker.
+    - `clientId` {Buffer | string} Optional. The broker identifies each client by its `clientId`. If not specified, a randomly generated `clientId` is created.
+    - `host` {Buffer | string} The address of the broker.
+    - `port` {number} The port of the broker.
+    - `socket` {net.Socket | TLSSocket} If a `TLSSocket` is given for secure communication it is the user's responsibility to connect it to establish the TLS connection first. Otherwise the client automatically connects the socket to the server.
     - `username` {Buffer | string} Optional. Use username when onnecting to a broker.
     - `password` {Buffer | string} Optional. Use password authentication when connecting to a broker.
     - `keepalive` {number} Keepalive time in seconds. If no data is sent on the connection in the given time window the broker disconnects the client.

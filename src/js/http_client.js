@@ -117,7 +117,7 @@ function emitError(socket, err) {
   if (err) {
     var host;
     if ((host = req.getHeader('host'))) {
-      err.message += ': ' + (host ? host : '');
+      err.message += ': ' + host;
     }
     req.emit('error', err);
   }

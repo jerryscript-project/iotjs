@@ -201,7 +201,7 @@ function createServer(options, secureConnectionListener) {
 }
 
 function connect(arg0, arg1, arg2, callback) {
-  var options;
+  var options = {};
   if (typeof arg0 == 'object') {
     options = Object.create(arg0, {
       isServer: { value: false, enumerable: true },

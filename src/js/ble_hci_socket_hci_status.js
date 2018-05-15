@@ -34,7 +34,7 @@
  * SOFTWARE.
  */
 
-[
+module.exports = [
   "Success",
   "Unknown HCI Command",
   "Unknown Connection Identifier",
@@ -100,4 +100,4 @@
   "Connection Failed to be Established",
   "MAC Connection Failed",
   "Coarse Clock Adjustment Rejected but Will Try to Adjust Using Clock Dragging"
-]
+];

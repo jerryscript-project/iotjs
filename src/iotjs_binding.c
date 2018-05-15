@@ -42,7 +42,9 @@ jerry_value_t iotjs_jval_create_string(const iotjs_string_t* v) {
 
 
 jerry_value_t iotjs_jval_create_byte_array(uint32_t len, const char* data) {
-  IOTJS_ASSERT(data != NULL);
+  if (data == NULL) {
+    len = 0;
+  }
 
   jerry_value_t jval = jerry_create_array(len);
 
@@ -87,7 +89,9 @@ double iotjs_jval_as_number(jerry_value_t jval) {
 
 
 bool iotjs_jbuffer_as_string(jerry_value_t jval, iotjs_string_t* out_string) {
-  IOTJS_ASSERT(out_string != NULL);
+  if (out_string == NULL) {
+    return false;
+  }
 
   if (jerry_value_is_string(jval)) {
     jerry_size_t size = jerry_get_string_size(jval);
@@ -352,7 +356,7 @@ const iotjs_jargs_t* iotjs_jargs_get_empty() {
 void iotjs_jargs_destroy(iotjs_jargs_t* jargs) {
   IOTJS_ASSERT(jargs && jargs->argc <= jargs->capacity);
 
-  if (jargs->capacity > 0) {
+  if (jargs && jargs->capacity > 0) {
     IOTJS_ASSERT(jargs->argv);
     for (unsigned i = 0; i < jargs->argc; ++i) {
       jerry_release_value(jargs->argv[i]);
@@ -366,7 +370,7 @@ void iotjs_jargs_destroy(iotjs_jargs_t* jargs) {
 
 uint16_t iotjs_jargs_length(const iotjs_jargs_t* jargs) {
   IOTJS_ASSERT(jargs);
-  return jargs->argc;
+  return jargs ? jargs->argc : 0;
 }
 
 

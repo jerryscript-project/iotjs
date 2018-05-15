@@ -5,6 +5,7 @@
     { "name": "test_net_https_request_response.js", "timeout": 10 },
     { "name": "test_net_https_timeout.js", "timeout": 10 },
     { "name": "test_net_https_server.js", "timeout": 10 },
-    { "name": "test_tls.js" }
+    { "name": "test_tls.js" },
+    { "name": "test_tls_stream_duplex.js" }
   ]
 }

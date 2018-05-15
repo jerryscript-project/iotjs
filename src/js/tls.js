@@ -37,7 +37,11 @@ function TLSSocket(socket, options) {
   this._socket.on('data', this.ondata);
   this._socket.on('error', this.onerror);
   this._socket.on('close', this.onclose);
-  this._socket.on('finish', this.onfinish);
+  if (this._socket instanceof net.Socket) {
+    this._socket.on('finish', this.onfinish);
+  } else {
+    this._socket.on('finish', this.onend);
+  }
   this._socket.on('end', this.onend);
 
   // Native handle

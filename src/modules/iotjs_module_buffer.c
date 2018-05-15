@@ -70,7 +70,10 @@ iotjs_bufferwrap_t* iotjs_bufferwrap_from_jbuffer(const jerry_value_t jbuffer) {
 
 
 size_t iotjs_bufferwrap_length(iotjs_bufferwrap_t* bufferwrap) {
-  IOTJS_ASSERT(bufferwrap != NULL);
+  if (bufferwrap == NULL) {
+    IOTJS_ASSERT(0);
+    return 0;
+  }
 #ifndef NDEBUG
   jerry_value_t jlength =
       iotjs_jval_get_property(bufferwrap->jobject, IOTJS_MAGIC_STRING_LENGTH);

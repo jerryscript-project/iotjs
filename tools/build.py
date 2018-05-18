@@ -151,8 +151,6 @@ def init_options():
                  'openwrt'],
         default=platform.os(),
         help='Specify the target OS (default: %(default)s).')
-    iotjs_group.add_argument('--testsets',
-        help='Specify the additional testsets file for IoT.js')
 
 
     jerry_group = parser.add_argument_group('Arguments of JerryScript',
@@ -385,10 +383,6 @@ def run_checktest(options):
 
     cmd = fs.join(path.TOOLS_ROOT, 'testrunner.py')
     args = [iotjs]
-
-    # testsets
-    if options.testsets:
-        args.append('--testsets=' + options.testsets);
 
     if options.run_test == "quiet":
         args.append('--quiet')

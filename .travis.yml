@@ -12,9 +12,6 @@ before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then tools/brew-install-deps.sh; fi
   - if [[ "$OPTS" == "misc" ]]; then tools/apt-get-install-deps.sh; fi
 
-install:
-  pip install --user jsonmerge
-
 script:
   tools/travis_script.py
 

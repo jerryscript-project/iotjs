@@ -52,7 +52,6 @@ BUILDOPTIONS_SANITIZER = [
     '--no-check-valgrind',
     '--no-snapshot',
     '--profile=test/profiles/host-linux.profile',
-    '--testsets=testsets-host-linux.json',
     '--run-test=full',
     '--target-arch=i686'
 ]
@@ -89,14 +88,12 @@ if __name__ == '__main__':
             build_iotjs(buildtype, [
                         '--cmake-param=-DENABLE_MODULE_ASSERT=ON',
                         '--run-test=full',
-                        '--profile=profiles/minimal.profile',
-                        '--testsets=testsets-minimal.json'])
+                        '--profile=profiles/minimal.profile'])
 
         for buildtype in BUILDTYPES:
             build_iotjs(buildtype, [
                         '--run-test=full',
-                        '--profile=test/profiles/host-linux.profile',
-                        '--testsets=testsets-host-linux.json'])
+                        '--profile=test/profiles/host-linux.profile'])
 
     elif test == 'rpi2':
         for buildtype in BUILDTYPES:
@@ -160,7 +157,6 @@ if __name__ == '__main__':
         for buildtype in BUILDTYPES:
             build_iotjs(buildtype, [
                         '--run-test=full',
-                        '--testsets=testsets-external-modules.json',
                         '--profile=test/profiles/host-linux.profile',
                         '--external-modules=test/external_modules/'
                         'mymodule1,test/external_modules/mymodule2',
@@ -171,8 +167,7 @@ if __name__ == '__main__':
         for buildtype in BUILDTYPES:
             build_iotjs(buildtype, [
                         '--run-test=full',
-                        '--jerry-profile=es2015-subset',
-                        '--testsets=testsets-es2015.json'])
+                        '--jerry-profile=es2015-subset'])
 
     elif test == "no-snapshot":
         for buildtype in BUILDTYPES:
@@ -185,8 +180,7 @@ if __name__ == '__main__':
                              '--run-test=full',
                              '--buildtype=' + buildtype,
                              '--clean',
-                             '--profile=test/profiles/host-darwin.profile',
-                             '--testsets=testsets-host-linux.json'])
+                             '--profile=test/profiles/host-darwin.profile'])
 
     elif test == "asan":
         ex.check_run_cmd('./tools/build.py', [

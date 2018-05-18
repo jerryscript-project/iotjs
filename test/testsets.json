@@ -1,155 +1,1007 @@
 {
-  "run_pass":  [
-    { "name": "test_adc.js", "skip": ["all"], "reason": "need to setup test environment" },
-    { "name": "test_assert.js" },
-    { "name": "test_ble_advertisement.js", "skip": ["all"], "reason": "need to setup test environment" },
-    { "name": "test_ble_setservices.js", "skip": ["all"], "reason": "need to setup test environment" },
-    { "name": "test_ble_setservices_central.js", "skip": ["all"], "reason": "run it with nodejs after running test_ble_setservices.js" },
-    { "name": "test_buffer.js" },
-    { "name": "test_buffer_str_conv.js" },
-    { "name": "test_console.js" },
-    { "name": "test_dgram_1_server_1_client.js" },
-    { "name": "test_dgram_1_server_n_clients.js", "skip": ["linux"], "reason": "[linux]: flaky on Travis" },
-    { "name": "test_dgram_address.js" },
-    { "name": "test_dgram_broadcast.js", "skip": ["all"], "reason": "need to setup test environment" },
-    { "name": "test_dgram_multicast_membership.js", "skip": ["all"], "reason": "need to setup test environment" },
-    { "name": "test_dgram_multicast_set_multicast_loop.js" },
-    { "name": "test_dgram_setttl_client.js", "skip": ["all"], "reason": "need to setup test environment" },
-    { "name": "test_dgram_setttl_server.js", "skip": ["all"], "reason": "need to setup test environment" },
-    { "name": "test_dns.js" },
-    { "name": "test_dns_lookup.js" },
-    { "name": "test_events.js" },
-    { "name": "test_events_assert_emit_error.js" },
-    { "name": "test_events_uncaught_error.js" },
-    { "name": "test_fs_exists.js" },
-    { "name": "test_fs_exists_sync.js" },
-    { "name": "test_fs_fstat.js", "skip": ["nuttx", "tizenrt"], "reason": "not implemented for nuttx/TizenRT" },
-    { "name": "test_fs_fstat_sync.js", "skip": ["nuttx", "tizenrt"], "reason": "not implemented for nuttx/TizenRT" },
-    { "name": "test_fs_mkdir_rmdir.js", "skip": ["nuttx"], "reason": "[nuttx]: implemented, run manually in default configuration" },
-    { "name": "test_fs_open_close.js", "skip": ["nuttx"], "reason": "not implemented for nuttx" },
-    { "name": "test_fs_readdir.js" },
-    { "name": "test_fs_readfile.js" },
-    { "name": "test_fs_readfile_sync.js" },
-    { "name": "test_fs_rename.js", "skip": ["nuttx"], "reason": "depends on the type of the memory (testrunner uses Read Only Memory)" },
-    { "name": "test_fs_rename_sync.js", "skip": ["nuttx"], "reason": "depends on the type of the memory (testrunner uses Read Only Memory)" },
-    { "name": "test_fs_stat.js" },
-    { "name": "test_fs_write.js", "skip": ["nuttx"], "reason": "not implemented for nuttx" },
-    { "name": "test_fs_writefile.js", "skip": ["nuttx"], "reason": "depends on the type of the memory (testrunner uses Read Only Memory)" },
-    { "name": "test_fs_writefile_sync.js", "skip": ["nuttx"], "reason": "depends on the type of the memory (testrunner uses Read Only Memory)" },
-    { "name": "test_fs_writefile_unlink.js", "skip": ["nuttx"], "reason": "depends on the type of the memory (testrunner uses Read Only Memory)" },
-    { "name": "test_fs_writefile_unlink_sync.js", "skip": ["nuttx"], "reason": "depends on the type of the memory (testrunner uses Read Only Memory)" },
-    { "name": "test_fs_event.js", "skip": ["nuttx"], "reason": "not implemented for nuttx" },
-    { "name": "test_fs_open_read.js" },
-    { "name": "test_fs_open_read_sync_1.js", "skip": ["nuttx"], "reason": "not implemented for nuttx" },
-    { "name": "test_fs_open_read_sync_2.js" },
-    { "name": "test_fs_open_read_sync_3.js" },
-    { "name": "test_gpio_input.js", "skip": ["all"], "reason": "need to setup test environment" },
-    { "name": "test_gpio_output.js", "skip": ["all"], "reason": "need to setup test environment"},
-    { "name": "test_i2c_gy30.js", "skip": ["all"], "reason": "need to setup test environment" },
-    { "name": "test_iotjs_promise.js", "skip": ["all"], "reason": "es2015 is off by default" },
-    { "name": "test_iotjs_promise_chain_calls.js", "skip": ["all"], "reason": "es2015 is off by default" },
-    { "name": "test_module_cache.js" },
-    { "name": "test_module_json.js" },
-    { "name": "test_module_require.js" },
-    { "name": "test_module_dynamicload.js", "skip": ["darwin", "nuttx", "tizenrt"], "reason": "embedded and macos does not support dynamic loading" },
-    { "name": "test_mqtt.js", "skip": ["all"], "reason": "MQTT module is not enabled by default" },
-    { "name": "test_net_1.js" },
-    { "name": "test_net_2.js" },
-    { "name": "test_net_3.js", "skip": ["nuttx"], "reason": "[nuttx]: requires too many socket descriptors and too large buffers" },
-    { "name": "test_net_4.js" },
-    { "name": "test_net_5.js" },
-    { "name": "test_net_6.js" },
-    { "name": "test_net_7.js", "skip": ["nuttx"], "reason": "requires too many socket descriptors" },
-    { "name": "test_net_8.js" },
-    { "name": "test_net_9.js" },
-    { "name": "test_net_10.js" },
-    { "name": "test_net_connect.js" },
-    { "name": "test_net_headers.js" },
-    { "name": "test_net_http_get.js" },
-    { "name": "test_net_http_response_twice.js" },
-    { "name": "test_net_http_request_response.js", "skip": ["nuttx"], "reason": "not implemented for nuttx" },
-    { "name": "test_net_http_status_codes.js" },
-    { "name": "test_net_httpclient_error.js" },
-    { "name": "test_net_httpclient_parse_error.js" },
-    { "name": "test_net_httpclient_timeout_1.js" },
-    { "name": "test_net_httpclient_timeout_2.js" },
-    { "name": "test_net_http_server_timeout.js" },
-    { "name": "test_net_http_server.js" },
-    { "name": "test_net_https_get.js", "timeout": 10, "skip": ["all"], "reason": "HTTPS module is not enabled by default" },
-    { "name": "test_net_https_post_status_codes.js", "timeout": 10, "skip": ["all"], "reason": "HTTPS module is not enabled by default" },
-    { "name": "test_net_https_request_response.js", "timeout": 10, "skip": ["all"], "reason": "HTTPS module is not enabled by default" },
-    { "name": "test_net_https_timeout.js", "timeout": 10, "skip": ["all"], "reason": "HTTPS module is not enabled by default" },
-    { "name": "test_net_https_server.js", "timeout": 10, "skip": ["all"], "reason": "HTTPS module is not enabled by default" },
-    { "name": "test_process.js" },
-    { "name": "test_process_chdir.js" },
-    { "name": "test_process_cwd.js" },
-    { "name": "test_process_exit.js" },
-    { "name": "test_process_experimental_off.js", "skip": ["experimental"], "reason": "needed if testing stablity is set with stable" },
-    { "name": "test_process_experimental_on.js", "skip": ["stable"], "reason": "needed if testing stablity is set with experimental" },
-    { "name": "test_process_next_tick.js" },
-    { "name": "test_process_uncaught_order.js" },
-    { "name": "test_process_uncaught_simple.js" },
-    { "name": "test_pwm_async.js", "skip": ["all"], "reason": "need to setup test environment" },
-    { "name": "test_pwm_sync.js", "skip": ["all"], "reason": "need to setup test environment" },
-    { "name": "test_spi.js", "skip": ["linux"], "reason": "Different env on Linux desktop/travis/rpi" },
-    { "name": "test_spi_buffer_async.js", "skip": ["all"], "reason": "need to setup test environment" },
-    { "name": "test_spi_buffer_sync.js", "skip": ["all"], "reason": "need to setup test environment" },
-    { "name": "test_spi_mcp3008.js", "skip": ["all"], "reason": "need to setup test environment" },
-    { "name": "test_stream.js" },
-    { "name": "test_stream_duplex.js" },
-    { "name": "test_timers_arguments.js" },
-    { "name": "test_timers_error.js" },
-    { "name": "test_timers_simple.js", "timeout": 10 },
-    { "name": "test_tizen_app_control.js", "skip": ["all"], "reason": "need to setup test environment" },
-    { "name": "test_tls.js", "skip": ["all"], "reason": "TLS module is not enabled by default" },
-    { "name": "test_tls_stream_duplex.js", "skip": ["all"], "reason": "TLS module is not enabled by default" },
-    { "name": "test_uart.js", "skip": ["all"], "reason": "need to setup test environment" },
-    { "name": "test_uart_api.js" },
-    { "name": "test_util.js" }
+  "run_pass": [
+    {
+      "name": "test_adc.js",
+      "skip": [
+        "all"
+      ],
+      "reason": "need to setup test environment",
+      "required-modules": [
+        "adc"
+      ]
+    },
+    {
+      "name": "test_assert.js"
+    },
+    {
+      "name": "test_ble_advertisement.js",
+      "skip": [
+        "all"
+      ],
+      "reason": "need to setup test environment",
+      "required-modules": [
+        "ble"
+      ]
+    },
+    {
+      "name": "test_ble_setservices.js",
+      "skip": [
+        "all"
+      ],
+      "reason": "need to setup test environment",
+      "required-modules": [
+        "ble"
+      ]
+    },
+    {
+      "name": "test_ble_setservices_central.js",
+      "skip": [
+        "all"
+      ],
+      "reason": "run it with nodejs after running test_ble_setservices.js"
+    },
+    {
+      "name": "test_buffer.js"
+    },
+    {
+      "name": "test_buffer_str_conv.js"
+    },
+    {
+      "name": "test_console.js",
+      "required-modules": [
+        "console"
+      ]
+    },
+    {
+      "name": "test_dgram_1_server_1_client.js",
+      "required-modules": [
+        "dgram"
+      ]
+    },
+    {
+      "name": "test_dgram_1_server_n_clients.js",
+      "skip": [
+        "linux"
+      ],
+      "reason": "[linux]: flaky on Travis",
+      "required-modules": [
+        "dgram"
+      ]
+    },
+    {
+      "name": "test_dgram_address.js",
+      "required-modules": [
+        "dgram"
+      ]
+    },
+    {
+      "name": "test_dgram_broadcast.js",
+      "skip": [
+        "all"
+      ],
+      "reason": "need to setup test environment",
+      "required-modules": [
+        "dgram"
+      ]
+    },
+    {
+      "name": "test_dgram_multicast_membership.js",
+      "skip": [
+        "all"
+      ],
+      "reason": "need to setup test environment",
+      "required-modules": [
+        "dgram"
+      ]
+    },
+    {
+      "name": "test_dgram_multicast_set_multicast_loop.js",
+      "required-modules": [
+        "dgram"
+      ]
+    },
+    {
+      "name": "test_dgram_setttl_client.js",
+      "skip": [
+        "all"
+      ],
+      "reason": "need to setup test environment",
+      "required-modules": [
+        "dgram"
+      ]
+    },
+    {
+      "name": "test_dgram_setttl_server.js",
+      "skip": [
+        "all"
+      ],
+      "reason": "need to setup test environment",
+      "required-modules": [
+        "dgram"
+      ]
+    },
+    {
+      "name": "test_dns.js",
+      "required-modules": [
+        "net"
+      ]
+    },
+    {
+      "name": "test_dns_lookup.js",
+      "required-modules": [
+        "dns"
+      ]
+    },
+    {
+      "name": "test_events.js",
+      "required-modules": [
+        "events"
+      ]
+    },
+    {
+      "name": "test_events_assert_emit_error.js",
+      "required-modules": [
+        "events"
+      ]
+    },
+    {
+      "name": "test_events_uncaught_error.js",
+      "required-modules": [
+        "events"
+      ]
+    },
+    {
+      "name": "test_fs_exists.js",
+      "required-modules": [
+        "fs"
+      ]
+    },
+    {
+      "name": "test_fs_exists_sync.js",
+      "required-modules": [
+        "fs"
+      ]
+    },
+    {
+      "name": "test_fs_fstat.js",
+      "skip": [
+        "nuttx",
+        "tizenrt"
+      ],
+      "reason": "not implemented for nuttx/TizenRT",
+      "required-modules": [
+        "fs"
+      ]
+    },
+    {
+      "name": "test_fs_fstat_sync.js",
+      "skip": [
+        "nuttx",
+        "tizenrt"
+      ],
+      "reason": "not implemented for nuttx/TizenRT",
+      "required-modules": [
+        "fs"
+      ]
+    },
+    {
+      "name": "test_fs_mkdir_rmdir.js",
+      "skip": [
+        "nuttx"
+      ],
+      "reason": "[nuttx]: implemented, run manually in default configuration",
+      "required-modules": [
+        "fs"
+      ]
+    },
+    {
+      "name": "test_fs_open_close.js",
+      "skip": [
+        "nuttx"
+      ],
+      "reason": "not implemented for nuttx",
+      "required-modules": [
+        "fs"
+      ]
+    },
+    {
+      "name": "test_fs_readdir.js",
+      "required-modules": [
+        "fs"
+      ]
+    },
+    {
+      "name": "test_fs_readfile.js",
+      "required-modules": [
+        "fs"
+      ]
+    },
+    {
+      "name": "test_fs_readfile_sync.js",
+      "required-modules": [
+        "fs"
+      ]
+    },
+    {
+      "name": "test_fs_rename.js",
+      "skip": [
+        "nuttx"
+      ],
+      "reason": "depends on the type of the memory (testrunner uses Read Only Memory)",
+      "required-modules": [
+        "fs"
+      ]
+    },
+    {
+      "name": "test_fs_rename_sync.js",
+      "skip": [
+        "nuttx"
+      ],
+      "reason": "depends on the type of the memory (testrunner uses Read Only Memory)",
+      "required-modules": [
+        "fs"
+      ]
+    },
+    {
+      "name": "test_fs_stat.js",
+      "required-modules": [
+        "fs"
+      ]
+    },
+    {
+      "name": "test_fs_write.js",
+      "skip": [
+        "nuttx"
+      ],
+      "reason": "not implemented for nuttx",
+      "required-modules": [
+        "fs"
+      ]
+    },
+    {
+      "name": "test_fs_writefile.js",
+      "skip": [
+        "nuttx"
+      ],
+      "reason": "depends on the type of the memory (testrunner uses Read Only Memory)",
+      "required-modules": [
+        "fs"
+      ]
+    },
+    {
+      "name": "test_fs_writefile_sync.js",
+      "skip": [
+        "nuttx"
+      ],
+      "reason": "depends on the type of the memory (testrunner uses Read Only Memory)",
+      "required-modules": [
+        "fs"
+      ]
+    },
+    {
+      "name": "test_fs_writefile_unlink.js",
+      "skip": [
+        "nuttx"
+      ],
+      "reason": "depends on the type of the memory (testrunner uses Read Only Memory)",
+      "required-modules": [
+        "fs"
+      ]
+    },
+    {
+      "name": "test_fs_writefile_unlink_sync.js",
+      "skip": [
+        "nuttx"
+      ],
+      "reason": "depends on the type of the memory (testrunner uses Read Only Memory)",
+      "required-modules": [
+        "fs"
+      ]
+    },
+    {
+      "name": "test_fs_event.js",
+      "skip": [
+        "nuttx"
+      ],
+      "reason": "not implemented for nuttx",
+      "required-modules": [
+        "fs"
+      ]
+    },
+    {
+      "name": "test_fs_open_read.js",
+      "required-modules": [
+        "fs"
+      ]
+    },
+    {
+      "name": "test_fs_open_read_sync_1.js",
+      "skip": [
+        "nuttx"
+      ],
+      "reason": "not implemented for nuttx",
+      "required-modules": [
+        "fs"
+      ]
+    },
+    {
+      "name": "test_fs_open_read_sync_2.js",
+      "required-modules": [
+        "fs"
+      ]
+    },
+    {
+      "name": "test_fs_open_read_sync_3.js",
+      "required-modules": [
+        "fs"
+      ]
+    },
+    {
+      "name": "test_gpio_input.js",
+      "skip": [
+        "all"
+      ],
+      "reason": "need to setup test environment",
+      "required-modules": [
+        "gpio",
+        "tools/systemio_common"
+      ]
+    },
+    {
+      "name": "test_gpio_output.js",
+      "skip": [
+        "all"
+      ],
+      "reason": "need to setup test environment",
+      "required-modules": [
+        "gpio",
+        "tools/systemio_common"
+      ]
+    },
+    {
+      "name": "test_i2c_gy30.js",
+      "skip": [
+        "all"
+      ],
+      "reason": "need to setup test environment",
+      "required-modules": [
+        "i2c",
+        "tools/systemio_common"
+      ]
+    },
+    {
+      "name": "test_iotjs_promise.js",
+      "required-features": [
+        "Promise"
+      ]
+    },
+    {
+      "name": "test_iotjs_promise_chain_calls.js",
+      "required-modules": [
+        "fs"
+      ],
+      "required-features": [
+        "Promise"
+      ]
+    },
+    {
+      "name": "test_module_cache.js"
+    },
+    {
+      "name": "test_module_json.js"
+    },
+    {
+      "name": "test_module_require.js"
+    },
+    {
+      "name": "test_module_dynamicload.js",
+      "skip": [
+        "darwin",
+        "nuttx",
+        "tizenrt"
+      ],
+      "reason": "embedded and macos does not support dynamic loading",
+      "required-modules": [
+        "fs"
+      ]
+    },
+    {
+      "name": "test_mqtt.js",
+      "required-modules": [
+        "mqtt"
+      ]
+    },
+    {
+      "name": "test_net_1.js",
+      "required-modules": [
+        "net"
+      ]
+    },
+    {
+      "name": "test_net_2.js",
+      "required-modules": [
+        "net"
+      ]
+    },
+    {
+      "name": "test_net_3.js",
+      "skip": [
+        "nuttx"
+      ],
+      "reason": "[nuttx]: requires too many socket descriptors and too large buffers",
+      "required-modules": [
+        "net"
+      ]
+    },
+    {
+      "name": "test_net_4.js",
+      "required-modules": [
+        "net",
+        "timers"
+      ]
+    },
+    {
+      "name": "test_net_5.js",
+      "required-modules": [
+        "net",
+        "timers"
+      ]
+    },
+    {
+      "name": "test_net_6.js",
+      "required-modules": [
+        "net",
+        "timers"
+      ]
+    },
+    {
+      "name": "test_net_7.js",
+      "skip": [
+        "nuttx"
+      ],
+      "reason": "requires too many socket descriptors",
+      "required-modules": [
+        "net",
+        "timers"
+      ]
+    },
+    {
+      "name": "test_net_8.js",
+      "required-modules": [
+        "net",
+        "timers"
+      ]
+    },
+    {
+      "name": "test_net_9.js",
+      "required-modules": [
+        "net"
+      ]
+    },
+    {
+      "name": "test_net_10.js",
+      "required-modules": [
+        "net"
+      ]
+    },
+    {
+      "name": "test_net_connect.js",
+      "required-modules": [
+        "net"
+      ]
+    },
+    {
+      "name": "test_net_headers.js",
+      "required-modules": [
+        "http"
+      ]
+    },
+    {
+      "name": "test_net_http_get.js",
+      "required-modules": [
+        "http"
+      ]
+    },
+    {
+      "name": "test_net_http_response_twice.js",
+      "required-modules": [
+        "http",
+        "net"
+      ]
+    },
+    {
+      "name": "test_net_http_request_response.js",
+      "skip": [
+        "nuttx"
+      ],
+      "reason": "not implemented for nuttx",
+      "required-modules": [
+        "http",
+        "net"
+      ]
+    },
+    {
+      "name": "test_net_http_status_codes.js",
+      "required-modules": [
+        "http"
+      ]
+    },
+    {
+      "name": "test_net_httpclient_error.js",
+      "required-modules": [
+        "http"
+      ]
+    },
+    {
+      "name": "test_net_httpclient_parse_error.js",
+      "required-modules": [
+        "http",
+        "net"
+      ]
+    },
+    {
+      "name": "test_net_httpclient_timeout_1.js",
+      "required-modules": [
+        "http",
+        "net"
+      ]
+    },
+    {
+      "name": "test_net_httpclient_timeout_2.js",
+      "required-modules": [
+        "http"
+      ]
+    },
+    {
+      "name": "test_net_http_server_timeout.js",
+      "required-modules": [
+        "http"
+      ]
+    },
+    {
+      "name": "test_net_http_server.js",
+      "required-modules": [
+        "http"
+      ]
+    },
+    {
+      "name": "test_net_https_get.js",
+      "timeout": 10,
+      "required-modules": [
+        "https"
+      ]
+    },
+    {
+      "name": "test_net_https_post_status_codes.js",
+      "timeout": 10,
+      "required-modules": [
+        "https"
+      ]
+    },
+    {
+      "name": "test_net_https_request_response.js",
+      "timeout": 10,
+      "required-modules": [
+        "https",
+        "http",
+        "net"
+      ]
+    },
+    {
+      "name": "test_net_https_timeout.js",
+      "timeout": 10,
+      "required-modules": [
+        "https"
+      ]
+    },
+    {
+      "name": "test_net_https_server.js",
+      "timeout": 10,
+      "required-modules": [
+        "https",
+        "fs"
+      ]
+    },
+    {
+      "name": "test_process.js"
+    },
+    {
+      "name": "test_process_chdir.js"
+    },
+    {
+      "name": "test_process_cwd.js"
+    },
+    {
+      "name": "test_process_exit.js"
+    },
+    {
+      "name": "test_process_experimental_off.js",
+      "skip": [
+        "experimental"
+      ],
+      "reason": "needed if testing stablity is set with stable"
+    },
+    {
+      "name": "test_process_experimental_on.js",
+      "skip": [
+        "stable"
+      ],
+      "reason": "needed if testing stablity is set with experimental"
+    },
+    {
+      "name": "test_process_next_tick.js"
+    },
+    {
+      "name": "test_process_uncaught_order.js"
+    },
+    {
+      "name": "test_process_uncaught_simple.js"
+    },
+    {
+      "name": "test_pwm_async.js",
+      "skip": [
+        "all"
+      ],
+      "reason": "need to setup test environment",
+      "required-modules": [
+        "pwm",
+        "tools/systemio_common"
+      ]
+    },
+    {
+      "name": "test_pwm_sync.js",
+      "skip": [
+        "all"
+      ],
+      "reason": "need to setup test environment",
+      "required-modules": [
+        "pwm",
+        "tools/systemio_common"
+      ]
+    },
+    {
+      "name": "test_spi.js",
+      "skip": [
+        "linux"
+      ],
+      "reason": "Different env on Linux desktop/travis/rpi",
+      "required-modules": [
+        "spi",
+        "tools/systemio_common"
+      ]
+    },
+    {
+      "name": "test_spi_buffer_async.js",
+      "skip": [
+        "all"
+      ],
+      "reason": "need to setup test environment",
+      "required-modules": [
+        "spi",
+        "tools/systemio_common"
+      ]
+    },
+    {
+      "name": "test_spi_buffer_sync.js",
+      "skip": [
+        "all"
+      ],
+      "reason": "need to setup test environment",
+      "required-modules": [
+        "spi",
+        "tools/systemio_common"
+      ]
+    },
+    {
+      "name": "test_spi_mcp3008.js",
+      "skip": [
+        "all"
+      ],
+      "reason": "need to setup test environment",
+      "required-modules": [
+        "spi",
+        "tools/systemio_common"
+      ]
+    },
+    {
+      "name": "test_stream.js",
+      "required-modules": [
+        "stream"
+      ]
+    },
+    {
+      "name": "test_stream_duplex.js",
+      "required-modules": [
+        "stream"
+      ]
+    },
+    {
+      "name": "test_timers_arguments.js"
+    },
+    {
+      "name": "test_timers_error.js"
+    },
+    {
+      "name": "test_timers_simple.js",
+      "timeout": 10
+    },
+    {
+      "name": "test_tizen_app_control.js",
+      "skip": [
+        "all"
+      ],
+      "reason": "need to setup test environment",
+      "required-modules": [
+        "tizen"
+      ]
+    },
+    {
+      "name": "test_tls.js",
+      "required-modules": [
+        "tls",
+        "fs"
+      ]
+    },
+    {
+      "name": "test_tls_stream_duplex.js",
+      "required-modules": [
+        "tls",
+        "fs",
+        "stream"
+      ]
+    },
+    {
+      "name": "test_uart.js",
+      "skip": [
+        "all"
+      ],
+      "reason": "need to setup test environment",
+      "required-modules": [
+        "uart",
+        "tools/systemio_common"
+      ]
+    },
+    {
+      "name": "test_uart_api.js",
+      "required-modules": [
+        "uart"
+      ]
+    },
+    {
+      "name": "test_util.js",
+      "required-modules": [
+        "util"
+      ]
+    }
   ],
   "run_pass/issue": [
-    { "name": "issue-133.js" },
-    { "name": "issue-137.js" },
-    { "name": "issue-198.js" },
-    { "name": "issue-223.js" },
-    { "name": "issue-266.js" },
-    { "name": "issue-323.js" },
-    { "name": "issue-816.js" },
-    { "name": "issue-1046.js" },
-    { "name": "issue-1077.js" },
-    { "name": "issue-1101.js", "skip": ["all"], "reason": "need to setup test environment" },
-    { "name": "issue-1348.js" },
-    { "name": "issue-1485.js" },
-    { "name": "issue-1507.js" },
-    { "name": "issue-1557.js" }
+    {
+      "name": "issue-133.js"
+    },
+    {
+      "name": "issue-137.js"
+    },
+    {
+      "name": "issue-198.js"
+    },
+    {
+      "name": "issue-223.js",
+      "required-modules": [
+        "net"
+      ]
+    },
+    {
+      "name": "issue-266.js",
+      "required-modules": [
+        "net"
+      ]
+    },
+    {
+      "name": "issue-323.js",
+      "required-modules": [
+        "fs"
+      ]
+    },
+    {
+      "name": "issue-816.js",
+      "required-modules": [
+        "buffer"
+      ]
+    },
+    {
+      "name": "issue-1046.js",
+      "required-modules": [
+        "buffer"
+      ]
+    },
+    {
+      "name": "issue-1077.js"
+    },
+    {
+      "name": "issue-1101.js",
+      "skip": [
+        "all"
+      ],
+      "reason": "need to setup test environment",
+      "required-modules": [
+        "uart"
+      ]
+    },
+    {
+      "name": "issue-1348.js"
+    },
+    {
+      "name": "issue-1485.js"
+    },
+    {
+      "name": "issue-1507.js",
+      "required-modules": [
+        "console"
+      ]
+    },
+    {
+      "name": "issue-1557.js"
+    }
   ],
-  "run_fail":  [
-    { "name": "test_assert_equal.js", "expected-failure": true },
-    { "name": "test_assert_fail.js", "expected-failure": true },
-    { "name": "test_assert_notequal.js", "expected-failure": true },
-    { "name": "test_events_emit_error.js", "expected-failure": true },
-    { "name": "test_fs_callbacks_called.js", "expected-failure": true },
-    { "name": "test_iotjs_runtime_error.js", "expected-failure": true },
-    { "name": "test_iotjs_syntax_error.js", "expected-failure": true },
-    { "name": "test-issue-1349.js", "expected-failure": true},
-    { "name": "test-issue-1360.js", "expected-failure": true},
-    { "name": "test_module_require_invalid_file.js", "expected-failure": true },
-    { "name": "test_module_require_path_below_root.js", "expected-failure": true },
-    { "name": "test_process_exitcode_arg.js", "expected-failure": true },
-    { "name": "test_process_exitcode_var.js", "expected-failure": true },
-    { "name": "test_process_explicit_exit.js", "expected-failure": true },
-    { "name": "test_process_implicit_exit.js", "expected-failure": true },
-    { "name": "test_timers_issue_1353.js", "expected-failure": true }
+  "run_fail": [
+    {
+      "name": "test_assert_equal.js",
+      "expected-failure": true
+    },
+    {
+      "name": "test_assert_fail.js",
+      "expected-failure": true
+    },
+    {
+      "name": "test_assert_notequal.js",
+      "expected-failure": true
+    },
+    {
+      "name": "test_events_emit_error.js",
+      "expected-failure": true,
+      "required-modules": [
+        "events"
+      ]
+    },
+    {
+      "name": "test_fs_callbacks_called.js",
+      "expected-failure": true,
+      "required-modules": [
+        "fs"
+      ]
+    },
+    {
+      "name": "test_iotjs_runtime_error.js",
+      "expected-failure": true
+    },
+    {
+      "name": "test_iotjs_syntax_error.js",
+      "expected-failure": true
+    },
+    {
+      "name": "test-issue-1349.js",
+      "expected-failure": true,
+      "required-modules": [
+        "dns"
+      ]
+    },
+    {
+      "name": "test-issue-1360.js",
+      "expected-failure": true
+    },
+    {
+      "name": "test_module_require_invalid_file.js",
+      "expected-failure": true
+    },
+    {
+      "name": "test_module_require_path_below_root.js",
+      "expected-failure": true
+    },
+    {
+      "name": "test_process_exitcode_arg.js",
+      "expected-failure": true
+    },
+    {
+      "name": "test_process_exitcode_var.js",
+      "expected-failure": true
+    },
+    {
+      "name": "test_process_explicit_exit.js",
+      "expected-failure": true
+    },
+    {
+      "name": "test_process_implicit_exit.js",
+      "expected-failure": true
+    },
+    {
+      "name": "test_timers_issue_1353.js",
+      "expected-failure": true
+    }
   ],
   "node/parallel": [
-    { "name": "test-assert.js" },
-    { "name": "test-module-circular.js" },
-    { "name": "test-http-catch-uncaughtexception.js" },
-    { "name": "test-http-status-message.js" },
-    { "name": "test-http-write-head.js" },
-    { "name": "test-net-bind-twice.js" },
-    { "name": "test-net-end-without-connect.js" },
-    { "name": "test-net-keepalive.js" },
-    { "name": "test-timers-clear-null-does-not-throw-error.js" }
+    {
+      "name": "test-assert.js",
+      "required-modules": [
+        "fs",
+        "stream"
+      ]
+    },
+    {
+      "name": "test-module-circular.js",
+      "required-modules": [
+        "fs",
+        "stream"
+      ]
+    },
+    {
+      "name": "test-http-catch-uncaughtexception.js",
+      "required-modules": [
+        "http",
+        "fs",
+        "stream"
+      ]
+    },
+    {
+      "name": "test-http-status-message.js",
+      "required-modules": [
+        "http",
+        "net",
+        "fs",
+        "stream"
+      ]
+    },
+    {
+      "name": "test-http-write-head.js",
+      "required-modules": [
+        "http",
+        "fs",
+        "stream"
+      ]
+    },
+    {
+      "name": "test-net-bind-twice.js",
+      "required-modules": [
+        "net",
+        "fs",
+        "stream"
+      ]
+    },
+    {
+      "name": "test-net-end-without-connect.js",
+      "required-modules": [
+        "net",
+        "fs",
+        "stream"
+      ]
+    },
+    {
+      "name": "test-net-keepalive.js",
+      "required-modules": [
+        "net",
+        "fs",
+        "stream"
+      ]
+    },
+    {
+      "name": "test-timers-clear-null-does-not-throw-error.js",
+      "required-modules": [
+        "fs",
+        "stream"
+      ]
+    }
+  ],
+  "external_modules": [
+    {
+      "name": "test-external-module1.js",
+      "required-modules": [
+        "mymodule1"
+      ]
+    },
+    {
+      "name": "test-external-module2.js",
+      "required-modules": [
+        "mymodule2"
+      ]
+    }
   ]
 }

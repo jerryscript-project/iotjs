@@ -410,7 +410,12 @@ if __name__ == '__main__':
     adjust_options(options)
 
     if options.clean:
-        print_progress('Clear build directory')
+        print_progress('Clear build directories')
+        test_build_root = fs.join(path.TEST_ROOT,
+                                  'dynamicmodule',
+                                  'build',
+                                  options.target_os)
+        fs.rmtree(test_build_root)
         fs.rmtree(options.build_root)
 
     # Perform init-submodule.

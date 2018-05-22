@@ -410,6 +410,10 @@ static int iotjs_mqtt_handle(jerry_value_t jsref, char first_byte, char *buffer,
       uint16_t topic_length =
           iotjs_mqtt_calculate_length(topic_length_MSB, topic_length_LSB);
 
+      if (!jerry_is_valid_utf8_string((const uint8_t *)buffer, topic_length)) {
+        return MQTT_ERR_CORRUPTED_PACKET;
+      }
+
       jerry_value_t jtopic = iotjs_bufferwrap_create_buffer(topic_length);
       iotjs_bufferwrap_t *topic_wrap = iotjs_bufferwrap_from_jbuffer(jtopic);
 
@@ -437,11 +441,6 @@ static int iotjs_mqtt_handle(jerry_value_t jsref, char first_byte, char *buffer,
 
       jerry_value_t jmessage = iotjs_bufferwrap_create_buffer(payload_length);
       iotjs_bufferwrap_t *msg_wrap = iotjs_bufferwrap_from_jbuffer(jmessage);
-
-      if (!jerry_is_valid_utf8_string((const uint8_t *)topic_wrap->buffer,
-                                      topic_wrap->length)) {
-        return MQTT_ERR_CORRUPTED_PACKET;
-      }
 
       memcpy(msg_wrap->buffer, buffer, payload_length);
 
@@ -678,8 +677,8 @@ JS_FUNCTION(MqttReceive) {
         break;
       }
 
-      packet_size =
-          iotjs_decode_remaining_length(current_buffer, &packet_size_length);
+      packet_size = iotjs_decode_remaining_length(current_buffer + 1,
+                                                  &packet_size_length);
 
       if (packet_size == 0) {
         return iotjs_mqtt_handle_error(MQTT_ERR_CORRUPTED_PACKET);

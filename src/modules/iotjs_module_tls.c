@@ -560,7 +560,7 @@ JS_FUNCTION(Read) {
       copy_size = length;
     }
 
-    iotjs_bio_write(receive_bio, data, length);
+    iotjs_bio_write(receive_bio, data, copy_size);
     data += copy_size;
     length -= copy_size;
 
@@ -611,7 +611,7 @@ JS_FUNCTION(Read) {
       }
 
       if (ret_val == MBEDTLS_ERR_SSL_WANT_READ) {
-        return jerry_create_boolean(true);
+        break;
       }
 
       if (ret_val == MBEDTLS_ERR_SSL_WANT_WRITE) {

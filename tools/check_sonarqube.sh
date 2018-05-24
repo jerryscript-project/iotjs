@@ -14,12 +14,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-if [[ -n "${TRAVIS_PULL_REQUEST_SLUG}" &&
-         "${TRAVIS_PULL_REQUEST_SLUG}" != "${TRAVIS_REPO_SLUG}" ]]; then
-  echo "Skip: The pull request from ${TRAVIS_PULL_REQUEST_SLUG} is an \
-  external one. It's not supported yet in Travis-CI";
+if [[ "${TRAVIS_REPO_SLUG}" == "Samsung/iotjs"
+          && ${TRAVIS_BRANCH} == "master"
+          && ${TRAVIS_EVENT_TYPE} == "push" ]]
+then
+  git fetch --unshallow
+  build-wrapper-linux-x86-64 --out-dir bw-output ./tools/build.py
+  sonar-scanner
 else
-  git fetch --unshallow;
-  build-wrapper-linux-x86-64 --out-dir bw-output ./tools/build.py;
-  sonar-scanner;
+  echo "Skip: The pull request from ${TRAVIS_PULL_REQUEST_SLUG} is an \
+  external one. It's not supported yet in Travis-CI"
 fi

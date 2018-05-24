@@ -75,9 +75,13 @@ bool iotjs_gpio_write(iotjs_gpio_t* gpio) {
 
 
 bool iotjs_gpio_read(iotjs_gpio_t* gpio) {
-  if (iotbus_gpio_read(gpio->platform_data->gpio_context) < 0) {
+  int ret = iotbus_gpio_read(gpio->platform_data->gpio_context);
+  if (ret < 0) {
+    DLOG("%s, Cannot read value(%d).", __func__, ret);
     return false;
   }
+
+  gpio->value = (bool)ret;
   return true;
 }
 

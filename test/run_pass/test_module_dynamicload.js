@@ -16,8 +16,8 @@
 var assert = require('assert');
 var fs = require('fs');
 
-var dynamicmodule_dir = "dynamicmodule/"
-var dynamicmodule_name = "dynamicmodule"
+var dynamicmodule_dir = "dynamicmodule/build/" + process.platform + "/";
+var dynamicmodule_name = "dynamicmodule";
 var dynamicmodule_path = dynamicmodule_dir + dynamicmodule_name + ".iotjs";
 
 assert.assert(fs.existsSync(dynamicmodule_path),

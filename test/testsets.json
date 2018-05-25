@@ -785,6 +785,12 @@
       "required-modules": [
         "util"
       ]
+    },
+    {
+      "name": "test_websocket.js",
+      "required-modules": [
+        "websocket"
+      ]
     }
   ],
   "run_pass/issue": [

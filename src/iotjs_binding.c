@@ -70,9 +70,7 @@ jerry_value_t iotjs_jval_create_function(jerry_external_handler_t handler) {
 jerry_value_t iotjs_jval_create_error_without_error_flag(const char* msg) {
   jerry_value_t jval =
       jerry_create_error(JERRY_ERROR_COMMON, (const jerry_char_t*)(msg));
-  jerry_value_clear_error_flag(&jval);
-
-  return jval;
+  return jerry_get_value_from_error(jval, true);
 }
 
 
@@ -169,7 +167,7 @@ jerry_value_t iotjs_jval_as_function(jerry_value_t jval) {
 
 bool iotjs_jval_set_prototype(const jerry_value_t jobj, jerry_value_t jproto) {
   jerry_value_t ret = jerry_set_prototype(jobj, jproto);
-  bool error_found = jerry_value_has_error_flag(ret);
+  bool error_found = jerry_value_is_error(ret);
   jerry_release_value(ret);
 
   return !error_found;
@@ -194,7 +192,7 @@ void iotjs_jval_set_property_jval(jerry_value_t jobj, const char* name,
   jerry_value_t ret_val = jerry_set_property(jobj, prop_name, value);
   jerry_release_value(prop_name);
 
-  IOTJS_ASSERT(!jerry_value_has_error_flag(ret_val));
+  IOTJS_ASSERT(!jerry_value_is_error(ret_val));
   jerry_release_value(ret_val);
 }
 
@@ -246,7 +244,7 @@ jerry_value_t iotjs_jval_get_property(jerry_value_t jobj, const char* name) {
   jerry_value_t res = jerry_get_property(jobj, prop_name);
   jerry_release_value(prop_name);
 
-  if (jerry_value_has_error_flag(res)) {
+  if (jerry_value_is_error(res)) {
     jerry_release_value(res);
     return jerry_create_undefined();
   }
@@ -271,7 +269,7 @@ void iotjs_jval_set_property_by_index(jerry_value_t jarr, uint32_t idx,
   IOTJS_ASSERT(jerry_value_is_object(jarr));
 
   jerry_value_t ret_val = jerry_set_property_by_index(jarr, idx, jval);
-  IOTJS_ASSERT(!jerry_value_has_error_flag(ret_val));
+  IOTJS_ASSERT(!jerry_value_is_error(ret_val));
   jerry_release_value(ret_val);
 }
 
@@ -282,7 +280,7 @@ jerry_value_t iotjs_jval_get_property_by_index(jerry_value_t jarr,
 
   jerry_value_t res = jerry_get_property_by_index(jarr, idx);
 
-  if (jerry_value_has_error_flag(res)) {
+  if (jerry_value_is_error(res)) {
     jerry_release_value(res);
     return jerry_create_undefined();
   }
@@ -311,7 +309,7 @@ jerry_value_t iotjs_jhelper_eval(const char* name, size_t name_len,
   jerry_value_t jres = jerry_parse((const jerry_char_t*)name, name_len,
                                    (const jerry_char_t*)data, size, opts);
 
-  if (!jerry_value_has_error_flag(jres)) {
+  if (!jerry_value_is_error(jres)) {
     jerry_value_t func = jres;
     jres = jerry_run(func);
     jerry_release_value(func);

@@ -145,7 +145,7 @@ JS_FUNCTION(GpioCons) {
 
   jerry_value_t config_res =
       gpio_set_configuration(gpio, JS_GET_ARG(0, object));
-  if (jerry_value_has_error_flag(config_res)) {
+  if (jerry_value_is_error(config_res)) {
     return config_res;
   }
   IOTJS_ASSERT(jerry_value_is_undefined(config_res));

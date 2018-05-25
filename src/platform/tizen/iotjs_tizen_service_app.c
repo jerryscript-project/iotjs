@@ -56,7 +56,7 @@ static gboolean gmain_loop_dispatch(GSource* source, GSourceFunc callback,
   more |= iotjs_process_next_tick();
 
   jerry_value_t ret_val = jerry_run_all_enqueued_jobs();
-  if (jerry_value_has_error_flag(ret_val)) {
+  if (jerry_value_is_error(ret_val)) {
     DLOG("jerry_run_all_enqueued_jobs() failed");
   }
 

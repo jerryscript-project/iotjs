@@ -128,7 +128,7 @@ JS_FUNCTION(CompileModule) {
   }
 
   jerry_value_t native_module_jval = iotjs_module_get(name);
-  if (jerry_value_has_error_flag(native_module_jval)) {
+  if (jerry_value_is_error(native_module_jval)) {
     return native_module_jval;
   }
 
@@ -137,14 +137,14 @@ JS_FUNCTION(CompileModule) {
 
   if (js_modules[i].name != NULL) {
 #ifdef ENABLE_SNAPSHOT
-    jres = jerry_exec_snapshot((const void*)iotjs_js_modules_s,
+    jres = jerry_exec_snapshot((const uint32_t*)iotjs_js_modules_s,
                                iotjs_js_modules_l, js_modules[i].idx, 0);
 #else
     jres = WrapEval(name, iotjs_string_size(&id),
                     (const char*)js_modules[i].code, js_modules[i].length);
 #endif
 
-    if (!jerry_value_has_error_flag(jres)) {
+    if (!jerry_value_is_error(jres)) {
       jerry_value_t args[] = { jexports, jrequire, jmodule,
                                native_module_jval };
 

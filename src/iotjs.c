@@ -71,14 +71,14 @@ static bool jerry_initialize(iotjs_environment_t* env) {
   // Do parse and run to generate initial javascript environment.
   jerry_value_t parsed_code =
       jerry_parse(NULL, 0, (jerry_char_t*)"", 0, JERRY_PARSE_NO_OPTS);
-  if (jerry_value_has_error_flag(parsed_code)) {
+  if (jerry_value_is_error(parsed_code)) {
     DLOG("jerry_parse() failed");
     jerry_release_value(parsed_code);
     return false;
   }
 
   jerry_value_t ret_val = jerry_run(parsed_code);
-  if (jerry_value_has_error_flag(ret_val)) {
+  if (jerry_value_is_error(ret_val)) {
     DLOG("jerry_run() failed");
     jerry_release_value(parsed_code);
     jerry_release_value(ret_val);
@@ -127,12 +127,12 @@ void iotjs_run(iotjs_environment_t* env) {
                                            iotjs_s, iotjs_l, false);
 #else
   jerry_value_t jmain =
-      jerry_exec_snapshot((const void*)iotjs_js_modules_s, iotjs_js_modules_l,
-                          module_iotjs_idx, 0);
+      jerry_exec_snapshot((const uint32_t*)iotjs_js_modules_s,
+                          iotjs_js_modules_l, module_iotjs_idx, 0);
 #endif
 
-  if (jerry_value_has_error_flag(jmain) && !iotjs_environment_is_exiting(env)) {
-    jerry_value_t errval = jerry_get_value_without_error_flag(jmain);
+  if (jerry_value_is_error(jmain) && !iotjs_environment_is_exiting(env)) {
+    jerry_value_t errval = jerry_get_value_from_error(jmain, false);
     iotjs_uncaught_exception(errval);
     jerry_release_value(errval);
   }
@@ -158,7 +158,7 @@ static int iotjs_start(iotjs_environment_t* env) {
       more |= iotjs_process_next_tick();
 
       jerry_value_t ret_val = jerry_run_all_enqueued_jobs();
-      if (jerry_value_has_error_flag(ret_val)) {
+      if (jerry_value_is_error(ret_val)) {
         DLOG("jerry_run_all_enqueued_jobs() failed");
       }
 

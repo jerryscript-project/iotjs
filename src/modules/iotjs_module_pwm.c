@@ -87,13 +87,13 @@ JS_FUNCTION(PwmCons) {
   JS_GET_REQUIRED_ARG_VALUE(0, jconfig, IOTJS_MAGIC_STRING_CONFIG, object);
 
   jerry_value_t res = iotjs_pwm_set_platform_config(pwm, jconfig);
-  if (jerry_value_has_error_flag(res)) {
+  if (jerry_value_is_error(res)) {
     return res;
   }
   IOTJS_ASSERT(jerry_value_is_undefined(res));
 
   res = pwm_set_configuration(pwm, jconfig);
-  if (jerry_value_has_error_flag(res)) {
+  if (jerry_value_is_error(res)) {
     return res;
   }
   IOTJS_ASSERT(jerry_value_is_undefined(res));

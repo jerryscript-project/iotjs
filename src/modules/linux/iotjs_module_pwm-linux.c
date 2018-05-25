@@ -58,7 +58,7 @@ jerry_value_t iotjs_pwm_set_platform_config(iotjs_pwm_t* pwm,
   jerry_value_t jchip =
       iotjs_jval_get_property(jconfig, IOTJS_MAGIC_STRING_CHIP);
 
-  if (jerry_value_has_error_flag(jchip)) {
+  if (jerry_value_is_error(jchip)) {
     return jchip;
   }
 

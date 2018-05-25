@@ -290,7 +290,7 @@ void iotjs_blehcisocket_poll(iotjs_blehcisocket_t* blehcisocket) {
     iotjs_jargs_append_jval(&jargs, str);
     iotjs_jargs_append_jval(&jargs, jbuf);
     jerry_value_t jres = iotjs_jhelper_call(jemit, jhcisocket, &jargs);
-    IOTJS_ASSERT(!jerry_value_has_error_flag(jres));
+    IOTJS_ASSERT(!jerry_value_is_error(jres));
 
     jerry_release_value(jres);
     jerry_release_value(str);
@@ -324,7 +324,7 @@ void iotjs_blehcisocket_emitErrnoError(iotjs_blehcisocket_t* blehcisocket) {
   iotjs_jargs_append_jval(&jargs, str);
   iotjs_jargs_append_error(&jargs, strerror(errno));
   jerry_value_t jres = iotjs_jhelper_call(jemit, jhcisocket, &jargs);
-  IOTJS_ASSERT(!jerry_value_has_error_flag(jres));
+  IOTJS_ASSERT(!jerry_value_is_error(jres));
 
   jerry_release_value(jres);
   jerry_release_value(str);

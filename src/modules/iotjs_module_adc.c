@@ -62,7 +62,7 @@ JS_FUNCTION(AdcCons) {
   JS_GET_REQUIRED_ARG_VALUE(0, jconfig, IOTJS_MAGIC_STRING_CONFIG, object);
 
   jerry_value_t config_res = iotjs_adc_set_platform_config(adc, jconfig);
-  if (jerry_value_has_error_flag(config_res)) {
+  if (jerry_value_is_error(config_res)) {
     return config_res;
   }
   IOTJS_ASSERT(jerry_value_is_undefined(config_res));

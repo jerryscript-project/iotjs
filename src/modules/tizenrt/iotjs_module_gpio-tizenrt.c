@@ -93,3 +93,22 @@ bool iotjs_gpio_close(iotjs_gpio_t* gpio) {
   }
   return true;
 }
+
+
+bool iotjs_gpio_set_direction(iotjs_gpio_t* gpio) {
+  iotbus_gpio_direction_e direction;
+  if (gpio->direction == kGpioDirectionIn) {
+    direction = IOTBUS_GPIO_DIRECTION_IN;
+  } else {
+    direction = IOTBUS_GPIO_DIRECTION_OUT;
+  }
+
+  int ret =
+      iotbus_gpio_set_direction(gpio->platform_data->gpio_context, direction);
+  if (ret != 0) {
+    DLOG("%s, Cannot set direction(%d).", __func__, ret);
+    return false;
+  }
+
+  return true;
+}

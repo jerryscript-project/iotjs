@@ -70,7 +70,7 @@ bool iotjs_gpio_open(iotjs_gpio_t* gpio) {
   if (gpio->direction == kGpioDirectionIn) {
     _direction = PERIPHERAL_GPIO_DIRECTION_IN;
   } else {
-    _direction = PERIPHERAL_GPIO_DIRECTION_OUT_INITIALLY_HIGH;
+    _direction = PERIPHERAL_GPIO_DIRECTION_OUT_INITIALLY_LOW;
   }
 
   retVal = peripheral_gpio_set_direction(_gpio, _direction);
@@ -99,6 +99,25 @@ bool iotjs_gpio_open(iotjs_gpio_t* gpio) {
 
   retVal = peripheral_gpio_set_edge_mode(_gpio, _edge);
   if (retVal != PERIPHERAL_ERROR_NONE) {
+    return false;
+  }
+
+  return true;
+}
+
+
+bool iotjs_gpio_set_direction(iotjs_gpio_t* gpio) {
+  peripheral_gpio_direction_e direction;
+  if (gpio->direction == kGpioDirectionIn) {
+    direction = PERIPHERAL_GPIO_DIRECTION_IN;
+  } else {
+    direction = PERIPHERAL_GPIO_DIRECTION_OUT_INITIALLY_LOW;
+  }
+
+  int ret = peripheral_gpio_set_direction(gpio->platform_data->peripheral_gpio,
+                                          direction);
+  if (ret != PERIPHERAL_ERROR_NONE) {
+    DLOG("%s, Cannot set direction(%d).", __func__, ret);
     return false;
   }
 

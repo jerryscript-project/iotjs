@@ -337,6 +337,17 @@
       ]
     },
     {
+      "name": "test_gpio_direction.js",
+      "skip": [
+        "all"
+      ],
+      "reason": "need to setup test environment",
+      "required-modules": [
+        "gpio",
+        "tools/systemio_common"
+      ]
+    },
+    {
       "name": "test_gpio_input.js",
       "skip": [
         "all"

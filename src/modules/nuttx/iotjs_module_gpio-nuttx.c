@@ -53,7 +53,9 @@ bool iotjs_gpio_write(iotjs_gpio_t* gpio) {
 
 bool iotjs_gpio_read(iotjs_gpio_t* gpio) {
   DDDLOG("%s - pin: %d", __func__, gpio->pin);
-  return stm32_gpioread(gpio->pin);
+
+  gpio->value = stm32_gpioread(gpio->pin);
+  return true;
 }
 
 

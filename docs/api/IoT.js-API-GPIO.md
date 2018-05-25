@@ -6,9 +6,10 @@ The following shows GPIO module APIs available for each platform.
 | :---: | :---: | :---: | :---: | :---: | :---: |
 | gpio.open | X | O | O | O | O |
 | gpio.openSync | X | O | O | O | O |
+| gpiopin.setDirectionSync | X | O | O | O | O |
 | gpiopin.write | X | O | O | O | O |
 | gpiopin.writeSync | X | O | O | O | O |
-| gpiopin.read | X | O | △ | O | O |
+| gpiopin.read | X | O | O | O | O |
 | gpiopin.readSync | X | O | O | O | O |
 | gpiopin.close | X | O | O | O | O |
 | gpiopin.closeSync | X | O | O | O | O |
@@ -121,6 +122,21 @@ var gpio10 = gpio.openSync({
 
 This class represents an opened and configured GPIO pin.
 It allows getting and setting the status of the pin.
+
+### gpiopin.setDirectionSync(direction)
+  * `direction` {[gpio.DIRECTION](#direction)} Pin direction.
+
+Set the direction of a GPIO pin.
+
+**Example**
+
+```js
+gpio10.setDirectionSync(gpio.DIRECTION.OUT);
+gpio10.writeSync(1);
+
+gpio10.setDirectionSync(gpio.DIRECTION.IN);
+var value = gpio10.readSync();
+```
 
 ### gpiopin.write(value[, callback])
 * `value` {number|boolean}

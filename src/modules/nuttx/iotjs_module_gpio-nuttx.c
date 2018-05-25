@@ -66,10 +66,7 @@ bool iotjs_gpio_close(iotjs_gpio_t* gpio) {
 }
 
 
-bool iotjs_gpio_open(iotjs_gpio_t* gpio) {
-  DDDLOG("%s - pin: %d, dir: %d, mode: %d", __func__, gpio->pin,
-         gpio->direction, gpio->mode);
-
+static bool gpio_set_config(iotjs_gpio_t* gpio) {
   uint32_t cfgset = 0;
 
   // Set pin direction and mode
@@ -80,4 +77,16 @@ bool iotjs_gpio_open(iotjs_gpio_t* gpio) {
   }
 
   return true;
+}
+
+
+bool iotjs_gpio_open(iotjs_gpio_t* gpio) {
+  DDDLOG("%s - pin: %d, dir: %d, mode: %d", __func__, gpio->pin,
+         gpio->direction, gpio->mode);
+  return gpio_set_config(gpio);
+}
+
+
+bool iotjs_gpio_set_direction(iotjs_gpio_t* gpio) {
+  return gpio_set_config(gpio);
 }

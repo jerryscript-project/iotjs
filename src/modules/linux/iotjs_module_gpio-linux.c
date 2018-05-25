@@ -283,3 +283,12 @@ bool iotjs_gpio_open(iotjs_gpio_t* gpio) {
 
   return true;
 }
+
+
+bool iotjs_gpio_set_direction(iotjs_gpio_t* gpio) {
+  if (!gpio_set_direction(gpio->pin, gpio->direction)) {
+    DLOG("%s, Cannot set direction.", __func__);
+    return false;
+  }
+  return true;
+}

@@ -247,6 +247,26 @@ JS_FUNCTION(ReadSync) {
   return jerry_create_boolean(gpio->value);
 }
 
+JS_FUNCTION(SetDirectionSync) {
+  DJS_CHECK_ARGS(1, number);
+  JS_DECLARE_THIS_PTR(gpio, gpio);
+
+  int direction;
+  JS_GET_REQUIRED_ARG_VALUE(0, direction, IOTJS_MAGIC_STRING_DIRECTION, number);
+  if (direction >= __kGpioDirectionMax) {
+    return JS_CREATE_ERROR(
+        TYPE, "Bad arguments - gpio.direction should be DIRECTION.IN or OUT");
+  }
+  gpio->direction = direction;
+
+  if (!iotjs_gpio_set_direction(gpio)) {
+    return JS_CREATE_ERROR(
+        COMMON, "GPIO SetDirectionSync Error - Cannot set direction");
+  }
+
+  return jerry_create_undefined();
+}
+
 jerry_value_t InitGpio() {
   jerry_value_t jgpioConstructor = jerry_create_external_function(GpioCons);
 
@@ -258,6 +278,8 @@ jerry_value_t InitGpio() {
   iotjs_jval_set_method(jprototype, IOTJS_MAGIC_STRING_WRITESYNC, WriteSync);
   iotjs_jval_set_method(jprototype, IOTJS_MAGIC_STRING_READ, Read);
   iotjs_jval_set_method(jprototype, IOTJS_MAGIC_STRING_READSYNC, ReadSync);
+  iotjs_jval_set_method(jprototype, IOTJS_MAGIC_STRING_SETDIRECTIONSYNC,
+                        SetDirectionSync);
 
   iotjs_jval_set_property_jval(jgpioConstructor, IOTJS_MAGIC_STRING_PROTOTYPE,
                                jprototype);

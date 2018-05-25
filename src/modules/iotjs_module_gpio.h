@@ -65,6 +65,7 @@ bool iotjs_gpio_open(iotjs_gpio_t* gpio);
 bool iotjs_gpio_write(iotjs_gpio_t* gpio);
 bool iotjs_gpio_read(iotjs_gpio_t* gpio);
 bool iotjs_gpio_close(iotjs_gpio_t* gpio);
+bool iotjs_gpio_set_direction(iotjs_gpio_t* gpio);
 
 // Platform-related functions; they are implemented
 // by platform code (i.e.: linux, nuttx, tizen).

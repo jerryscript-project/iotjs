@@ -201,13 +201,13 @@ JS_FUNCTION(SpiCons) {
   JS_GET_REQUIRED_ARG_VALUE(0, jconfig, IOTJS_MAGIC_STRING_CONFIG, object);
 
   jerry_value_t res = iotjs_spi_set_platform_config(spi, jconfig);
-  if (jerry_value_has_error_flag(res)) {
+  if (jerry_value_is_error(res)) {
     return res;
   }
   IOTJS_ASSERT(jerry_value_is_undefined(res));
 
   res = spi_set_configuration(spi, jconfig);
-  if (jerry_value_has_error_flag(res)) {
+  if (jerry_value_is_error(res)) {
     return res;
   }
   IOTJS_ASSERT(jerry_value_is_undefined(res));

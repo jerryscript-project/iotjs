@@ -312,7 +312,7 @@ jerry_value_t iotjs_bufferwrap_create_buffer(size_t len) {
   jerry_value_t arg = jerry_create_number(len);
 
   jerry_value_t jres = jerry_construct_object(jbuffer, &arg, 1);
-  IOTJS_ASSERT(!jerry_value_has_error_flag(jres));
+  IOTJS_ASSERT(!jerry_value_is_error(jres));
   IOTJS_ASSERT(jerry_value_is_object(jres));
 
   jerry_release_value(arg);

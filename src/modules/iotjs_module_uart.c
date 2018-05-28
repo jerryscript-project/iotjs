@@ -82,7 +82,7 @@ static void iotjs_uart_read_cb(uv_poll_t* req, int status, int events) {
     jerry_value_t jres =
         iotjs_jhelper_call(jemit, iotjs_handlewrap_jobject(&uart->handlewrap),
                            &jargs);
-    IOTJS_ASSERT(!jerry_value_has_error_flag(jres));
+    IOTJS_ASSERT(!jerry_value_is_error(jres));
 
     jerry_release_value(jres);
     jerry_release_value(str);
@@ -161,12 +161,12 @@ JS_FUNCTION(UartCons) {
 
   // set configuration
   jerry_value_t res = iotjs_uart_set_platform_config(uart, jconfig);
-  if (jerry_value_has_error_flag(res)) {
+  if (jerry_value_is_error(res)) {
     return res;
   }
 
   res = uart_set_configuration(uart, jconfig);
-  if (jerry_value_has_error_flag(res)) {
+  if (jerry_value_is_error(res)) {
     return res;
   }
 

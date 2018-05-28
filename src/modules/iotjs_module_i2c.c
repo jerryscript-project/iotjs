@@ -64,7 +64,7 @@ JS_FUNCTION(I2cCons) {
   JS_GET_REQUIRED_ARG_VALUE(0, jconfig, IOTJS_MAGIC_STRING_CONFIG, object);
 
   jerry_value_t res = iotjs_i2c_set_platform_config(i2c, jconfig);
-  if (jerry_value_has_error_flag(res)) {
+  if (jerry_value_is_error(res)) {
     return res;
   }
 

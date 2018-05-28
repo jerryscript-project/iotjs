@@ -35,7 +35,7 @@ void iotjs_uncaught_exception(jerry_value_t jexception) {
   iotjs_jargs_destroy(&args);
   jerry_release_value(jonuncaughtexception);
 
-  if (jerry_value_has_error_flag(jres)) {
+  if (jerry_value_is_error(jres)) {
     iotjs_environment_t* env = iotjs_environment_get();
 
     if (!iotjs_environment_is_exiting(env)) {
@@ -60,7 +60,7 @@ void iotjs_process_emit_exit(int code) {
 
     jerry_value_t jres = iotjs_jhelper_call(jexit, process, &jargs);
 
-    if (jerry_value_has_error_flag(jres)) {
+    if (jerry_value_is_error(jres)) {
       iotjs_set_process_exitcode(2);
     }
 
@@ -92,7 +92,7 @@ bool iotjs_process_next_tick() {
 
   bool ret = false;
 
-  if (!jerry_value_has_error_flag(jres)) {
+  if (!jerry_value_is_error(jres)) {
     ret = iotjs_jval_as_boolean(jres);
   }
 
@@ -123,8 +123,8 @@ jerry_value_t iotjs_make_callback_with_result(jerry_value_t jfunction,
   }
   // Calls back the function.
   jerry_value_t jres = iotjs_jhelper_call(jfunction, jthis, jargs);
-  if (jerry_value_has_error_flag(jres)) {
-    jerry_value_t errval = jerry_get_value_without_error_flag(jres);
+  if (jerry_value_is_error(jres)) {
+    jerry_value_t errval = jerry_get_value_from_error(jres, false);
     iotjs_uncaught_exception(errval);
     jerry_release_value(errval);
   }
@@ -144,9 +144,8 @@ int iotjs_process_exitcode() {
       iotjs_jval_get_property(process, IOTJS_MAGIC_STRING_EXITCODE);
   uint8_t exitcode = 0;
   jerry_value_t num_val = jerry_value_to_number(jexitcode);
-  if (jerry_value_has_error_flag(num_val)) {
+  if (jerry_value_is_error(num_val)) {
     exitcode = 1;
-    jerry_value_clear_error_flag(&num_val);
   } else {
     exitcode = (uint8_t)iotjs_jval_as_number(num_val);
   }

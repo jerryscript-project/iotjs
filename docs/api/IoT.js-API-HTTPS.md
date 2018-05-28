@@ -19,7 +19,7 @@ IoT.js provides HTTPS to support HTTPS clients enabling users to send HTTPS requ
 * `options` {Object}
   * `host` {string} A domain name or IP address of the server to issue the request to. **Default:** 'localhost'.
   * `hostname` {string} Alias for host.
-  * `port` {number} Port of remote server. **Default:** 80.
+  * `port` {number} Port of remote server. **Default:** 443.
   * `method` {string} A string specifying the HTTPS request method. **Default:** 'GET'.
   * `path` {string} Request path. **Default:** '/'. Should include query string if any. E.G. '/index.html?page=12'. An exception is thrown when the request path contains illegal characters. Currently, only spaces are rejected but that may change in the future.
   * `headers` {Object} An object containing request headers.
@@ -53,7 +53,7 @@ Note that in the example `req.end()` was called. With `https.request()` one must
 * `options` {Object}
   * `host` {string} A domain name or IP address of the server to issue the request to. **Default:** 'localhost'.
   * `hostname` {string} Alias for host.
-  * `port` {number} Port of remote server. **Default:** 80.
+  * `port` {number} Port of remote server. **Default:** 443.
   * `method` {string} A string specifying the HTTPS request method. **Default:** 'GET'.
   * `path` {string} Request path. **Default:** '/'. Should include query string if any. E.G. '/index.html?page=12'. An exception is thrown when the request path contains illegal characters. Currently, only spaces are rejected but that may change in the future.
   * `headers` {Object} An object containing request headers.

@@ -208,8 +208,8 @@ class TestRunner(object):
                 continue
 
             # Show the output.
-            if not self.quiet:
-                print(output, end="")
+            if not self.quiet and output:
+                print(output.decode("utf8"), end="")
 
             is_normal_run = (not expected_failure and exitcode == 0)
             is_expected_fail = (expected_failure and exitcode <= 2)

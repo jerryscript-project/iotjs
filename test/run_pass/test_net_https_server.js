@@ -18,8 +18,8 @@ var https = require('https');
 var fs = require('fs');
 
 var server_options = {
-  key: fs.readFileSync('resources/my_key.pem').toString(),
-  cert: fs.readFileSync('resources/my_crt.pem').toString()
+  key: fs.readFileSync('resources/my_key.key').toString(),
+  cert: fs.readFileSync('resources/my_crt.crt').toString()
 };
 
 var server = https.createServer(server_options, function(req, res) {

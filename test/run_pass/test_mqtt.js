@@ -34,8 +34,7 @@ var subClientOpts = {
   keepalive: 30,
 };
 
-var subClient = mqtt.getClient(subClientOpts);
-subClient.connect(function() {
+var subClient = mqtt.connect(subClientOpts, function() {
   connected = true;
 
   subClient.on('pingresp', function() {
@@ -50,8 +49,8 @@ subClient.connect(function() {
 
   subClient.on('message', function(data) {
     msg_received = data.message;
-    subClient.disconnect();
-    pubClient.disconnect();
+    subClient.end();
+    pubClient.end();
   });
 
   subClient.ping();
@@ -70,8 +69,7 @@ var pubOpts = {
   qos: 1,
 };
 
-var pubClient = mqtt.getClient(pubClientOpts);
-pubClient.connect();
+var pubClient = mqtt.connect(pubClientOpts);
 
 process.on('exit', function() {
   assert.equal(connected, true);

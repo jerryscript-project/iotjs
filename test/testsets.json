@@ -423,6 +423,12 @@
       ]
     },
     {
+      "name": "test_mqtt_frags.js",
+      "required-modules": [
+        "mqtt"
+      ]
+    },
+    {
       "name": "test_net_1.js",
       "required-modules": [
         "net"

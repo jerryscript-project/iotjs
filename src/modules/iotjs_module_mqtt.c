@@ -123,8 +123,7 @@ void iotjs_create_ack_callback(char *buffer, char *name, jerry_value_t jsref) {
       iotjs_mqtt_calculate_length(packet_identifier_MSB, packet_identifier_LSB);
 
   // The callback takes the packet identifier as parameter.
-  iotjs_jargs_t args = iotjs_jargs_create(2);
-  iotjs_jargs_append_jval(&args, jsref);
+  iotjs_jargs_t args = iotjs_jargs_create(1);
   iotjs_jargs_append_number(&args, package_id);
 
   jerry_value_t fn = iotjs_jval_get_property(jsref, name);
@@ -387,12 +386,9 @@ static int iotjs_mqtt_handle(jerry_value_t jsref, char first_byte, char *buffer,
       }
 
       jerry_value_t fn =
-          iotjs_jval_get_property(jsref, IOTJS_MAGIC_STRING__ONCONNECT);
-      iotjs_jargs_t jargs = iotjs_jargs_create(1);
-      iotjs_jargs_append_jval(&jargs, jsref);
-      iotjs_make_callback(fn, jsref, &jargs);
+          iotjs_jval_get_property(jsref, IOTJS_MAGIC_STRING_ONCONNECTION);
+      iotjs_make_callback(fn, jsref, iotjs_jargs_get_empty());
 
-      iotjs_jargs_destroy(&jargs);
       jerry_release_value(fn);
       break;
     }
@@ -444,15 +440,14 @@ static int iotjs_mqtt_handle(jerry_value_t jsref, char first_byte, char *buffer,
 
       memcpy(msg_wrap->buffer, buffer, payload_length);
 
-      iotjs_jargs_t args = iotjs_jargs_create(5);
-      iotjs_jargs_append_jval(&args, jsref);
+      iotjs_jargs_t args = iotjs_jargs_create(4);
       iotjs_jargs_append_jval(&args, jmessage);
       iotjs_jargs_append_string_raw(&args, topic_wrap->buffer);
       iotjs_jargs_append_number(&args, header.bits.qos);
       iotjs_jargs_append_number(&args, packet_identifier);
 
       jerry_value_t fn =
-          iotjs_jval_get_property(jsref, IOTJS_MAGIC_STRING__ONMESSAGE);
+          iotjs_jval_get_property(jsref, IOTJS_MAGIC_STRING_ONMESSAGE);
       iotjs_make_callback(fn, jsref, &args);
       jerry_release_value(fn);
 
@@ -467,7 +462,7 @@ static int iotjs_mqtt_handle(jerry_value_t jsref, char first_byte, char *buffer,
         return MQTT_ERR_CORRUPTED_PACKET;
       }
 
-      iotjs_create_ack_callback(buffer, IOTJS_MAGIC_STRING__ONPUBACK, jsref);
+      iotjs_create_ack_callback(buffer, IOTJS_MAGIC_STRING_ONPUBACK, jsref);
       break;
     }
     case PUBREC: {
@@ -475,7 +470,7 @@ static int iotjs_mqtt_handle(jerry_value_t jsref, char first_byte, char *buffer,
         return MQTT_ERR_CORRUPTED_PACKET;
       }
 
-      iotjs_create_ack_callback(buffer, IOTJS_MAGIC_STRING__ONPUBREC, jsref);
+      iotjs_create_ack_callback(buffer, IOTJS_MAGIC_STRING_ONPUBREC, jsref);
       break;
     }
     case PUBREL: {
@@ -488,7 +483,7 @@ static int iotjs_mqtt_handle(jerry_value_t jsref, char first_byte, char *buffer,
         return MQTT_ERR_CORRUPTED_PACKET;
       }
 
-      iotjs_create_ack_callback(buffer, IOTJS_MAGIC_STRING__ONPUBREL, jsref);
+      iotjs_create_ack_callback(buffer, IOTJS_MAGIC_STRING_ONPUBREL, jsref);
       break;
     }
     case PUBCOMP: {
@@ -496,7 +491,7 @@ static int iotjs_mqtt_handle(jerry_value_t jsref, char first_byte, char *buffer,
         return MQTT_ERR_CORRUPTED_PACKET;
       }
 
-      iotjs_create_ack_callback(buffer, IOTJS_MAGIC_STRING__ONPUBCOMP, jsref);
+      iotjs_create_ack_callback(buffer, IOTJS_MAGIC_STRING_ONPUBCOMP, jsref);
       break;
     }
     case SUBACK: {
@@ -511,12 +506,11 @@ static int iotjs_mqtt_handle(jerry_value_t jsref, char first_byte, char *buffer,
       }
 
       // The callback takes the granted QoS as parameter.
-      iotjs_jargs_t args = iotjs_jargs_create(2);
-      iotjs_jargs_append_jval(&args, jsref);
+      iotjs_jargs_t args = iotjs_jargs_create(1);
       iotjs_jargs_append_number(&args, return_code);
 
       jerry_value_t sub_fn =
-          iotjs_jval_get_property(jsref, IOTJS_MAGIC_STRING__ONSUBACK);
+          iotjs_jval_get_property(jsref, IOTJS_MAGIC_STRING_ONSUBACK);
       iotjs_make_callback(sub_fn, jsref, &args);
       jerry_release_value(sub_fn);
       iotjs_jargs_destroy(&args);
@@ -527,7 +521,7 @@ static int iotjs_mqtt_handle(jerry_value_t jsref, char first_byte, char *buffer,
         return MQTT_ERR_CORRUPTED_PACKET;
       }
 
-      iotjs_create_ack_callback(buffer, IOTJS_MAGIC_STRING__ONUNSUBACK, jsref);
+      iotjs_create_ack_callback(buffer, IOTJS_MAGIC_STRING_ONUNSUBACK, jsref);
       break;
     }
     case PINGRESP: {
@@ -536,12 +530,9 @@ static int iotjs_mqtt_handle(jerry_value_t jsref, char first_byte, char *buffer,
       }
 
       jerry_value_t fn =
-          iotjs_jval_get_property(jsref, IOTJS_MAGIC_STRING__ONPINGRESP);
-      iotjs_jargs_t jargs = iotjs_jargs_create(1);
-      iotjs_jargs_append_jval(&jargs, jsref);
-      iotjs_make_callback(fn, jsref, &jargs);
+          iotjs_jval_get_property(jsref, IOTJS_MAGIC_STRING_ONPINGRESP);
+      iotjs_make_callback(fn, jsref, iotjs_jargs_get_empty());
       jerry_release_value(fn);
-      iotjs_jargs_destroy(&jargs);
       break;
     }
     case DISCONNECT: {
@@ -549,17 +540,10 @@ static int iotjs_mqtt_handle(jerry_value_t jsref, char first_byte, char *buffer,
         return MQTT_ERR_CORRUPTED_PACKET;
       }
 
-      iotjs_jargs_t jargs = iotjs_jargs_create(2);
-      iotjs_jargs_append_jval(&jargs, jsref);
-      jerry_value_t str_arg = jerry_create_string(
-          (jerry_char_t *)"The broker disconnected the client");
-      iotjs_jargs_append_jval(&jargs, str_arg);
       jerry_value_t fn =
-          iotjs_jval_get_property(jsref, IOTJS_MAGIC_STRING__ONDISCONNECT);
-      iotjs_make_callback(fn, jsref, &jargs);
-      jerry_release_value(str_arg);
+          iotjs_jval_get_property(jsref, IOTJS_MAGIC_STRING_ONEND);
+      iotjs_make_callback(fn, jsref, iotjs_jargs_get_empty());
       jerry_release_value(fn);
-      iotjs_jargs_destroy(&jargs);
       break;
     }
 
@@ -684,7 +668,7 @@ JS_FUNCTION(MqttReceive) {
         return iotjs_mqtt_handle_error(MQTT_ERR_CORRUPTED_PACKET);
       }
 
-      if (current_buffer + 1 + packet_size_length + packet_size >=
+      if (current_buffer + 1 + packet_size_length + packet_size >
           current_buffer_end) {
         break;
       }
@@ -869,52 +853,24 @@ JS_FUNCTION(MqttDisconnect) {
 
 JS_FUNCTION(MqttSendAck) {
   DJS_CHECK_THIS();
-  DJS_CHECK_ARGS(1, object);
+  DJS_CHECK_ARGS(2, number, number);
 
-  jerry_value_t joptions = JS_GET_ARG(0, object);
-  jerry_value_t jack_type =
-      iotjs_jval_get_property(joptions, IOTJS_MAGIC_STRING_ACKTYPE);
-  jerry_value_t jpacket_id =
-      iotjs_jval_get_property(joptions, IOTJS_MAGIC_STRING_PACKETID);
+  jerry_value_t jack_type = JS_GET_ARG(0, number);
+  jerry_value_t jpacket_id = JS_GET_ARG(1, number);
 
-  uint16_t packet_id = 0;
-  if (!jerry_value_is_undefined(jpacket_id)) {
-    packet_id = (uint16_t)jerry_get_number_value(jpacket_id);
-  }
+  uint8_t ack_type = (uint8_t)jerry_get_number_value(jack_type);
+  uint16_t packet_id = (uint16_t)jerry_get_number_value(jpacket_id);
 
-  uint8_t ack_type = 0;
-  if (!jerry_value_is_undefined(jack_type)) {
-    ack_type = (uint8_t)jerry_get_number_value(jack_type);
-  }
+  uint8_t header_byte = (ack_type << 4);
 
-  uint8_t header_byte = 0;
-  uint8_t remaining_length = 2;
-
-  switch (ack_type) {
-    case PUBACK: {
-      header_byte |= (PUBACK << 4);
-      break;
-    }
-    case PUBREC: {
-      header_byte |= (PUBREC << 4);
-      break;
-    }
-    case PUBREL: {
-      header_byte |= (PUBREL << 4);
-      header_byte |= 2;
-      break;
-    }
-    case PUBCOMP: {
-      header_byte |= (PUBCOMP << 4);
-      break;
-    }
+  if (ack_type == PUBREL) {
+    header_byte |= 2;
   }
 
   uint8_t packet_identifier_msb = (uint8_t)(packet_id >> 8);
   uint8_t packet_identifier_lsb = (uint8_t)(packet_id & 0x00FF);
 
-  size_t full_len =
-      sizeof(header_byte) + sizeof(remaining_length) + sizeof(packet_id);
+  size_t full_len = sizeof(uint8_t) * 2 + sizeof(packet_id);
 
   jerry_value_t jbuff = iotjs_bufferwrap_create_buffer(full_len);
   iotjs_bufferwrap_t *buffer_wrap = iotjs_bufferwrap_from_jbuffer(jbuff);
@@ -922,12 +878,9 @@ JS_FUNCTION(MqttSendAck) {
   uint8_t *buff_ptr = (uint8_t *)buffer_wrap->buffer;
 
   buff_ptr[0] = header_byte;
-  buff_ptr[1] = remaining_length;
+  buff_ptr[1] = 2; /* length */
   buff_ptr[2] = packet_identifier_msb;
   buff_ptr[3] = packet_identifier_lsb;
-
-  jerry_release_value(jpacket_id);
-  jerry_release_value(jack_type);
 
   return jbuff;
 }

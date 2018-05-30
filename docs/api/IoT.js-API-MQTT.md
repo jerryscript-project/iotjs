@@ -4,7 +4,6 @@ The following chart shows the availability of each TLS module API function on ea
 
 |  | Linux<br/>(Ubuntu) | Tizen<br/>(Raspberry Pi) | Raspbian<br/>(Raspberry Pi) | Nuttx<br/>(STM32F4-Discovery) | TizenRT<br/>(Artik053) |
 | :---: | :---: | :---: | :---: | :---: | :---: |
-| mqtt.getClient  | O | X | X | X | X | X |
 | mqtt.publish  | O | X | X | X | X | X |
 | mqtt.subscribe | O | X | X | X | X | X |
 | mqtt.unsubscribe | X | X | X | X | X | X |
@@ -30,7 +29,7 @@ Topics can be wildcarded and they also can be structured into multiple levels. T
 ## Class: MQTTClient
 The `MQTTClient` can subscribe or publish data to a broker. It sends data over a `net.socket`.
 
-### mqtt.getClient(options)
+### mqtt.connect(options, callback)
 - `options` {Object}
     - `clientId` {Buffer | string} Optional. The broker identifies each client by its `clientId`. If not specified, a randomly generated `clientId` is created.
     - `host` {Buffer | string} The address of the broker.
@@ -43,13 +42,10 @@ The `MQTTClient` can subscribe or publish data to a broker. It sends data over a
     - `qos` {number} If `will` is set to `true`, the message will be sent with the given QoS.
     - `topic` {Buffer | string} Only processed when `will` is set to `true`. The topic the `message` should be sent to.
     - `message` {Buffer | string} Only processed when `will` is set to `true`. The message to be sent to the broker when connecting.
-
-Returns an MQTTClient.
-
-### mqtt.connect(callback)
 - `callback` {function} The function will be executed when the client successfuly connected to the broker.
 
-Connects the client to a broker. Emits a `connect` event.
+Returns with an MQTTClient object and starts connecting to a broker. Emits a `connect` event after the connection is completed.
+
 
 **Example**
 ```js

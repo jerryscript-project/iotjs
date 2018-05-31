@@ -8,7 +8,7 @@ URL: https://www.iotjs.net/
 Source:     %{name}-%{version}.tar.gz
 Source1:    %{name}.pc.in
 Source1001: %{name}.manifest
-ExclusiveArch: %arm
+
 
 BuildRequires: python
 BuildRequires: cmake
@@ -72,7 +72,9 @@ V=1 VERBOSE=1 ./tools/build.py \
   --js-backtrace ON \
   --target-arch=noarch \
   --target-os=tizen \
+%ifarch %{arm}
   --target-board=rpi3 \
+%endif
   --external-lib=capi-system-peripheral-io \
   --external-lib=capi-appfw-app-common \
   --external-lib=dlog \
@@ -84,8 +86,7 @@ V=1 VERBOSE=1 ./tools/build.py \
   --external-include-dir=/usr/include/dlog/ \
   --external-include-dir=/usr/include/appcore-agent/ \
   --external-include-dir=/usr/include/appfw/ \
-  --external-include-dir=/usr/include/glib-2.0/ \
-  --external-include-dir=/usr/lib/glib-2.0/include/ \
+  --compile-flag="%(pkg-config --cflags glib-2.0)" \
   --compile-flag=-D__TIZEN__ \
   --compile-flag=-DENABLE_DEBUG_LOG \
   --create-shared-lib \

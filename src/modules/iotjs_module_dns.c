@@ -149,7 +149,7 @@ static void AfterGetAddrInfo(uv_getaddrinfo_t* req, int status,
 #endif
 
 
-JS_FUNCTION(GetAddrInfo) {
+JS_FUNCTION(GetAddressInfo) {
   DJS_CHECK_THIS();
   DJS_CHECK_ARGS(4, string, number, number, function);
 
@@ -239,7 +239,7 @@ JS_FUNCTION(GetAddrInfo) {
 jerry_value_t InitDns() {
   jerry_value_t dns = jerry_create_object();
 
-  iotjs_jval_set_method(dns, IOTJS_MAGIC_STRING_GETADDRINFO, GetAddrInfo);
+  iotjs_jval_set_method(dns, IOTJS_MAGIC_STRING_GETADDRINFO, GetAddressInfo);
   SET_CONSTANT(dns, AI_ADDRCONFIG);
   SET_CONSTANT(dns, AI_V4MAPPED);
 

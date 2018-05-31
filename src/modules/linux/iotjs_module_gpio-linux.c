@@ -78,8 +78,7 @@ static void gpio_emit_change_event(iotjs_gpio_t* gpio) {
   jerry_value_t jonChange = iotjs_jval_get_property(jgpio, "onChange");
   IOTJS_ASSERT(jerry_value_is_function(jonChange));
 
-  jerry_value_t jres =
-      iotjs_jhelper_call(jonChange, jgpio, iotjs_jargs_get_empty());
+  jerry_value_t jres = jerry_call_function(jonChange, jgpio, NULL, 0);
   IOTJS_ASSERT(!jerry_value_is_error(jres));
 
   jerry_release_value(jres);

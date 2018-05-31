@@ -143,8 +143,7 @@ void AfterClose(uv_handle_t* handle) {
   jerry_value_t jcallback =
       iotjs_jval_get_property(jtcp, IOTJS_MAGIC_STRING_ONCLOSE);
   if (jerry_value_is_function(jcallback)) {
-    iotjs_make_callback(jcallback, jerry_create_undefined(),
-                        iotjs_jargs_get_empty());
+    iotjs_make_callback(jcallback, jerry_create_undefined(), NULL, 0);
   }
   jerry_release_value(jcallback);
 }
@@ -197,14 +196,13 @@ static void AfterConnect(uv_connect_t* req, int status) {
   IOTJS_ASSERT(jerry_value_is_function(jcallback));
 
   // Only parameter is status code.
-  iotjs_jargs_t args = iotjs_jargs_create(1);
-  iotjs_jargs_append_number(&args, status);
+  jerry_value_t jstatus = jerry_create_number(status);
 
   // Make callback.
-  iotjs_make_callback(jcallback, jerry_create_undefined(), &args);
+  iotjs_make_callback(jcallback, jerry_create_undefined(), &jstatus, 1);
 
   // Destroy args
-  iotjs_jargs_destroy(&args);
+  jerry_release_value(jstatus);
 
   // Release request wrapper.
   iotjs_connect_reqwrap_destroy(req_wrap);
@@ -265,8 +263,7 @@ static void OnConnection(uv_stream_t* handle, int status) {
   // The callback takes two parameter
   // [0] status
   // [1] client tcp object
-  iotjs_jargs_t args = iotjs_jargs_create(2);
-  iotjs_jargs_append_number(&args, status);
+  jerry_value_t args[2] = { jerry_create_number(status), jerry_create_null() };
 
   if (status == 0) {
     // Create client socket handle wrapper.
@@ -275,8 +272,7 @@ static void OnConnection(uv_stream_t* handle, int status) {
     IOTJS_ASSERT(jerry_value_is_function(jcreate_tcp));
 
     jerry_value_t jclient_tcp =
-        iotjs_jhelper_call(jcreate_tcp, jerry_create_undefined(),
-                           iotjs_jargs_get_empty());
+        jerry_call_function(jcreate_tcp, jerry_create_undefined(), NULL, 0);
     IOTJS_ASSERT(!jerry_value_is_error(jclient_tcp));
     IOTJS_ASSERT(jerry_value_is_object(jclient_tcp));
 
@@ -288,19 +284,19 @@ static void OnConnection(uv_stream_t* handle, int status) {
 
     int err = uv_accept(handle, client_handle);
     if (err) {
-      iotjs_jargs_destroy(&args);
+      jerry_release_value(args[0]);
       return;
     }
 
-    iotjs_jargs_append_jval(&args, jclient_tcp);
+    args[1] = jclient_tcp;
     jerry_release_value(jcreate_tcp);
-    jerry_release_value(jclient_tcp);
   }
 
-  iotjs_make_callback(jonconnection, jtcp, &args);
+  iotjs_make_callback(jonconnection, jtcp, args, 2);
 
   jerry_release_value(jonconnection);
-  iotjs_jargs_destroy(&args);
+  jerry_release_value(args[0]);
+  jerry_release_value(args[1]);
 }
 
 
@@ -327,14 +323,13 @@ void AfterWrite(uv_write_t* req, int status) {
   jerry_value_t jcallback = iotjs_reqwrap_jcallback(&req_wrap->reqwrap);
 
   // Only parameter is status code.
-  iotjs_jargs_t args = iotjs_jargs_create(1);
-  iotjs_jargs_append_number(&args, status);
+  jerry_value_t jstatus = jerry_create_number(status);
 
   // Make callback.
-  iotjs_make_callback(jcallback, jerry_create_undefined(), &args);
+  iotjs_make_callback(jcallback, jerry_create_undefined(), &jstatus, 1);
 
   // Destroy args
-  iotjs_jargs_destroy(&args);
+  jerry_release_value(jstatus);
 
   // Release request wrapper.
   iotjs_write_reqwrap_destroy(req_wrap);
@@ -394,20 +389,18 @@ void OnRead(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
       iotjs_jval_get_property(jtcp, IOTJS_MAGIC_STRING_ONREAD);
   IOTJS_ASSERT(jerry_value_is_function(jonread));
 
-  iotjs_jargs_t jargs = iotjs_jargs_create(4);
-  iotjs_jargs_append_jval(&jargs, jsocket);
-  iotjs_jargs_append_number(&jargs, nread);
-  iotjs_jargs_append_bool(&jargs, false);
+  jerry_value_t jargs[4] = { jsocket, jerry_create_number(nread),
+                             jerry_create_boolean(false), jerry_create_null() };
 
   if (nread <= 0) {
     iotjs_buffer_release(buf->base);
 
     if (nread < 0) {
       if (nread == UV__EOF) {
-        iotjs_jargs_replace(&jargs, 2, jerry_create_boolean(true));
+        jargs[2] = jerry_create_boolean(true);
       }
 
-      iotjs_make_callback(jonread, jerry_create_undefined(), &jargs);
+      iotjs_make_callback(jonread, jerry_create_undefined(), jargs, 3);
     }
   } else {
     jerry_value_t jbuffer = iotjs_bufferwrap_create_buffer((size_t)nread);
@@ -415,16 +408,16 @@ void OnRead(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
 
     iotjs_bufferwrap_copy(buffer_wrap, buf->base, (size_t)nread);
 
-    iotjs_jargs_append_jval(&jargs, jbuffer);
-    iotjs_make_callback(jonread, jerry_create_undefined(), &jargs);
+    jargs[3] = jbuffer;
+    iotjs_make_callback(jonread, jerry_create_undefined(), jargs, 4);
 
-    jerry_release_value(jbuffer);
     iotjs_buffer_release(buf->base);
   }
 
-  iotjs_jargs_destroy(&jargs);
+  for (uint8_t i = 0; i < 4; i++) {
+    jerry_release_value(jargs[i]);
+  }
   jerry_release_value(jonread);
-  jerry_release_value(jsocket);
 }
 
 
@@ -448,12 +441,11 @@ static void AfterShutdown(uv_shutdown_t* req, int status) {
   jerry_value_t jonshutdown = iotjs_reqwrap_jcallback(&req_wrap->reqwrap);
   IOTJS_ASSERT(jerry_value_is_function(jonshutdown));
 
-  iotjs_jargs_t args = iotjs_jargs_create(1);
-  iotjs_jargs_append_number(&args, status);
+  jerry_value_t jstatus = jerry_create_number(status);
 
-  iotjs_make_callback(jonshutdown, jerry_create_undefined(), &args);
+  iotjs_make_callback(jonshutdown, jerry_create_undefined(), &jstatus, 1);
 
-  iotjs_jargs_destroy(&args);
+  jerry_release_value(jstatus);
 
   iotjs_shutdown_reqwrap_destroy(req_wrap);
 }

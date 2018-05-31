@@ -156,36 +156,34 @@ static void OnRecv(uv_udp_t* handle, ssize_t nread, const uv_buf_t* buf,
       iotjs_jval_get_property(judp, IOTJS_MAGIC_STRING_ONMESSAGE);
   IOTJS_ASSERT(jerry_value_is_function(jonmessage));
 
-  iotjs_jargs_t jargs = iotjs_jargs_create(4);
-  iotjs_jargs_append_number(&jargs, nread);
-  iotjs_jargs_append_jval(&jargs, judp);
+  jerry_value_t jargs[4] = { jerry_create_number(nread),
+                             jerry_acquire_value(judp), jerry_create_null(),
+                             jerry_create_object() };
 
   if (nread < 0) {
     iotjs_buffer_release(buf->base);
-    iotjs_make_callback(jonmessage, jerry_create_undefined(), &jargs);
+    iotjs_make_callback(jonmessage, jerry_create_undefined(), jargs, 2);
     jerry_release_value(jonmessage);
-    iotjs_jargs_destroy(&jargs);
+
+    for (int i = 0; i < 4; i++) {
+      jerry_release_value(jargs[i]);
+    }
     return;
   }
 
-  jerry_value_t jbuffer = iotjs_bufferwrap_create_buffer((size_t)nread);
-  iotjs_bufferwrap_t* buffer_wrap = iotjs_bufferwrap_from_jbuffer(jbuffer);
-
+  jargs[2] = iotjs_bufferwrap_create_buffer((size_t)nread);
+  iotjs_bufferwrap_t* buffer_wrap = iotjs_bufferwrap_from_jbuffer(jargs[2]);
   iotjs_bufferwrap_copy(buffer_wrap, buf->base, (size_t)nread);
+  AddressToJS(jargs[3], addr);
 
-  iotjs_jargs_append_jval(&jargs, jbuffer);
+  iotjs_make_callback(jonmessage, jerry_create_undefined(), jargs, 4);
 
-  jerry_value_t rinfo = jerry_create_object();
-  AddressToJS(rinfo, addr);
-  iotjs_jargs_append_jval(&jargs, rinfo);
-
-  iotjs_make_callback(jonmessage, jerry_create_undefined(), &jargs);
-
-  jerry_release_value(rinfo);
-  jerry_release_value(jbuffer);
   jerry_release_value(jonmessage);
   iotjs_buffer_release(buf->base);
-  iotjs_jargs_destroy(&jargs);
+
+  for (int i = 0; i < 4; i++) {
+    jerry_release_value(jargs[i]);
+  }
 }
 
 
@@ -222,12 +220,12 @@ static void OnSend(uv_udp_send_t* req, int status) {
   if (jerry_value_is_function(jcallback)) {
     // Take callback function object.
 
-    iotjs_jargs_t jargs = iotjs_jargs_create(2);
-    iotjs_jargs_append_number(&jargs, status);
-    iotjs_jargs_append_number(&jargs, req_wrap->msg_size);
+    jerry_value_t jargs[2] = { jerry_create_number(status),
+                               jerry_create_number(req_wrap->msg_size) };
 
-    iotjs_make_callback(jcallback, jerry_create_undefined(), &jargs);
-    iotjs_jargs_destroy(&jargs);
+    iotjs_make_callback(jcallback, jerry_create_undefined(), jargs, 2);
+    jerry_release_value(jargs[0]);
+    jerry_release_value(jargs[1]);
   }
 
   iotjs_send_reqwrap_destroy(req_wrap);

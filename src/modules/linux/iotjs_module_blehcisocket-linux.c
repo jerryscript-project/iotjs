@@ -281,21 +281,18 @@ void iotjs_blehcisocket_poll(iotjs_blehcisocket_t* blehcisocket) {
     jerry_value_t jemit = iotjs_jval_get_property(jhcisocket, "emit");
     IOTJS_ASSERT(jerry_value_is_function(jemit));
 
-    iotjs_jargs_t jargs = iotjs_jargs_create(2);
     jerry_value_t str = jerry_create_string((const jerry_char_t*)"data");
     IOTJS_ASSERT(length >= 0);
     jerry_value_t jbuf = iotjs_bufferwrap_create_buffer((size_t)length);
     iotjs_bufferwrap_t* buf_wrap = iotjs_bufferwrap_from_jbuffer(jbuf);
     iotjs_bufferwrap_copy(buf_wrap, data, (size_t)length);
-    iotjs_jargs_append_jval(&jargs, str);
-    iotjs_jargs_append_jval(&jargs, jbuf);
-    jerry_value_t jres = iotjs_jhelper_call(jemit, jhcisocket, &jargs);
+    jerry_value_t jargs[2] = { str, jbuf };
+    jerry_value_t jres = jerry_call_function(jemit, jhcisocket, jargs, 2);
     IOTJS_ASSERT(!jerry_value_is_error(jres));
 
     jerry_release_value(jres);
     jerry_release_value(str);
     jerry_release_value(jbuf);
-    iotjs_jargs_destroy(&jargs);
     jerry_release_value(jemit);
   }
 }
@@ -319,16 +316,16 @@ void iotjs_blehcisocket_emitErrnoError(iotjs_blehcisocket_t* blehcisocket) {
   jerry_value_t jemit = iotjs_jval_get_property(jhcisocket, "emit");
   IOTJS_ASSERT(jerry_value_is_function(jemit));
 
-  iotjs_jargs_t jargs = iotjs_jargs_create(2);
   jerry_value_t str = jerry_create_string((const jerry_char_t*)"error");
-  iotjs_jargs_append_jval(&jargs, str);
-  iotjs_jargs_append_error(&jargs, strerror(errno));
-  jerry_value_t jres = iotjs_jhelper_call(jemit, jhcisocket, &jargs);
+  jerry_value_t jerror =
+      iotjs_jval_create_error_without_error_flag(strerror(errno));
+  jerry_value_t jargs[2] = { str, jerror };
+  jerry_value_t jres = jerry_call_function(jemit, jhcisocket, jargs, 2);
   IOTJS_ASSERT(!jerry_value_is_error(jres));
 
   jerry_release_value(jres);
   jerry_release_value(str);
-  iotjs_jargs_destroy(&jargs);
+  jerry_release_value(jerror);
   jerry_release_value(jemit);
 }
 

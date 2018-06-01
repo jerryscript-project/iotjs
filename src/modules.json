@@ -33,7 +33,7 @@
     },
     "ble": {
       "js_file": "js/ble.js",
-      "require": ["blehcisocket", "ble_characteristic", "ble_descriptor",
+      "require": ["ble_hci_socket", "ble_characteristic", "ble_descriptor",
                   "ble_hci_socket_acl_stream", "ble_hci_socket_bindings",
                   "ble_hci_socket_crypto", "ble_hci_socket_gap",
                   "ble_hci_socket_gatt", "ble_hci_socket_hci",
@@ -73,14 +73,14 @@
     "ble_hci_socket_hci": {
       "js_file": "js/ble_hci_socket_hci.js",
       "require": ["console", "events", "util", "ble_uuid_util",
-                  "blehcisocket"]
+                  "ble_hci_socket"]
     },
     "ble_hci_socket_hci_status": {
       "js_file": "js/ble_hci_socket_hci_status.js"
     },
     "ble_hci_socket_mgmt": {
       "js_file": "js/ble_hci_socket_mgmt.js",
-      "require": ["console", "events", "util", "blehcisocket"]
+      "require": ["console", "events", "util", "ble_hci_socket"]
     },
     "ble_hci_socket_smp": {
       "js_file": "js/ble_hci_socket_smp.js",
@@ -94,7 +94,7 @@
     "ble_uuid_util": {
       "js_file": "js/ble_uuid_util.js"
     },
-    "blehcisocket": {
+    "ble_hci_socket": {
       "platforms": {
         "linux": {
           "native_files": ["modules/linux/iotjs_module_blehcisocket-linux.c"]

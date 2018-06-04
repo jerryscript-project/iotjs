@@ -10,6 +10,7 @@ OSX 10.10 as development host
 * [Build for ARTIK053 / TizenRT](build/Build-for-ARTIK053-TizenRT.md)
 * [Build for ARTIK530 / Tizen](build/Build-for-RPi3-Tizen.md)
 * [Build for OpenWrt (non-tested)](build/Build-for-OpenWrt.md)
+* [Build for Windows (experimental)](build/Build-for-Windows.md)
 
 #### H/W boards
 * Current supporting

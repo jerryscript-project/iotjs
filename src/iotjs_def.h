@@ -70,7 +70,9 @@ extern void force_terminate();
 #define TARGET_OS "darwin"
 #elif defined(__TIZENRT__)
 #define TARGET_OS "tizenrt"
-#else /* !__linux__ && !__NUTTX__ !__APPLE__ && !__TIZENRT__*/
+#elif defined(WIN32)
+#define TARGET_OS "windows"
+#else /* !__linux__ && !__NUTTX__ !__APPLE__ && !__TIZENRT__ && !WIN32 */
 #define TARGET_OS "unknown"
 #endif /* __linux__ */
 

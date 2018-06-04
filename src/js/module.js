@@ -18,6 +18,81 @@ var Builtin = require('builtin');
 var fs = Builtin.require('fs');
 var dynamicloader = Builtin.require('dynamicloader');
 
+function normalizePathString(path) {
+  // Assume all path separators are '/'
+  var input = path.split('/');
+  var output = [];
+  while (input.length > 0) {
+    if (input[0] === '.' || (input[0] === '' && input.length > 1)) {
+      input.shift();
+      continue;
+    }
+    if (input[0] === '..') {
+      input.shift();
+      if (output.length > 0 && output[output.length - 1] !== '..') {
+        output.pop();
+      } else {
+        throw new Error('Requested path is below root: ' + path);
+      }
+      continue;
+    }
+    output.push(input.shift());
+  }
+  return output;
+}
+
+var path;
+if (process.platform === 'windows') {
+  /* In case of windows:
+   * replace all '\' characters to '/' for ease of use for now.
+   */
+  path = {
+    pathReplacer: new RegExp('\\\\', 'g'),
+    pathSeparator: '\\',
+    normalizeSeparators: function(pathString) {
+      return pathString.replace(path.pathReplacer, '/');
+    },
+    isDeviceRoot: function(pathString) {
+      if (pathString.charCodeAt(1) !== 0x3A /* ':' */) {
+        return false;
+      }
+      var drive = pathString.charCodeAt(0);
+      return (drive >= 0x61 /* a */ && drive <= 0x7A /* z */)
+             || (drive >= 0x41 /* A */ && drive <= 0x5A /* Z */);
+    },
+    normalizePath: function(pathString) {
+      pathString = path.normalizeSeparators(pathString);
+
+      var deviceRoot = '';
+      if (!path.isDeviceRoot(pathString)) {
+        deviceRoot = path.cwd().substr(0, 2) + '/';
+      }
+
+      var pathElements = normalizePathString(pathString);
+      return deviceRoot + pathElements.join('/');
+    },
+    cwd: function() {
+      return path.normalizeSeparators(process.cwd());
+    },
+  };
+} else {
+  path = {
+    isDeviceRoot: function(pathString) {
+      return pathString.charCodeAt(0) === 0x2F; /* '/' */
+    },
+    normalizePath: function(path) {
+      var beginning = '';
+      if (path.indexOf('/') === 0) {
+        beginning = '/';
+      }
+
+      var pathElements = normalizePathString(path);
+      return beginning + pathElements.join('/');
+    },
+    cwd: process.cwd,
+  };
+}
+
 function Module(id, parent) {
   this.id = id;
   this.exports = {};
@@ -36,7 +111,7 @@ var moduledirs = [''];
 
 var cwd;
 try {
-  cwd = process.env.IOTJS_WORKING_DIR_PATH || process.cwd();
+  cwd = process.env.IOTJS_WORKING_DIR_PATH || path.cwd();
 } catch (e) { }
 if (cwd) {
   moduledirs.push(cwd + '/');
@@ -83,13 +158,13 @@ Module.resolveFilepath = function(id, directories) {
     var dir = directories[i];
     var modulePath = dir + id;
 
-    if (modulePath[0] !== '/') {
-      modulePath = process.cwd() + '/' + modulePath;
+    if (!path.isDeviceRoot(modulePath)) {
+      modulePath = path.cwd() + '/' + modulePath;
     }
 
     if ((process.platform === 'tizenrt' || process.platform === 'nuttx') &&
         (modulePath.indexOf('../') != -1 || modulePath.indexOf('./') != -1)) {
-      modulePath = Module.normalizePath(modulePath);
+      modulePath = path.normalizePath(modulePath);
     }
 
     var filepath,
@@ -140,38 +215,10 @@ Module.resolveModPath = function(id, parent) {
   var filepath = Module.resolveFilepath(id, directories);
 
   if (filepath) {
-    return Module.normalizePath(filepath);
+    return path.normalizePath(filepath);
   }
 
   return false;
-};
-
-
-Module.normalizePath = function(path) {
-  var beginning = '';
-  if (path.indexOf('/') === 0) {
-    beginning = '/';
-  }
-
-  var input = path.split('/');
-  var output = [];
-  while (input.length > 0) {
-    if (input[0] === '.' || (input[0] === '' && input.length > 1)) {
-      input.shift();
-      continue;
-    }
-    if (input[0] === '..') {
-      input.shift();
-      if (output.length > 0 && output[output.length - 1] !== '..') {
-        output.pop();
-      } else {
-        throw new Error('Requested path is below root: ' + path);
-      }
-      continue;
-    }
-    output.push(input.shift());
-  }
-  return beginning + output.join('/');
 };
 
 

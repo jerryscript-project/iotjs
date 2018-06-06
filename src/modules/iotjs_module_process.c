@@ -14,6 +14,7 @@
  */
 
 #include "iotjs_def.h"
+#include "iotjs_compatibility.h"
 #include "iotjs_js.h"
 #include "jerryscript-debugger.h"
 

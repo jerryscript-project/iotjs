@@ -52,8 +52,8 @@ $ brew install gcc-arm-none-eabi libusb minicom
 #### Supported Nuttx version
 |Repository|Tag Name|
 |----------|:------:|
-| nuttx | nuttx-7.19 |
-| app | nuttx-7.19 |
+| nuttx | nuttx-7.25 |
+| app | nuttx-7.25 |
 
 We only guarantee that the specified version will work well. It is recommended to check out with the specified tag from a git repository.
 
@@ -65,8 +65,8 @@ Clone IoT.js and NuttX into iotjs-nuttx directory
 $ mkdir iotjs-nuttx
 $ cd iotjs-nuttx
 $ git clone https://github.com/Samsung/iotjs.git
-$ git clone https://bitbucket.org/nuttx/nuttx.git --branch nuttx-7.19
-$ git clone https://bitbucket.org/nuttx/apps.git --branch nuttx-7.19
+$ git clone https://bitbucket.org/nuttx/nuttx.git --branch nuttx-7.25
+$ git clone https://bitbucket.org/nuttx/apps.git --branch nuttx-7.25
 $ git clone https://github.com/texane/stlink.git
 ```
 

@@ -28,6 +28,7 @@
 #include "jerryscript.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 
@@ -220,6 +221,7 @@ int iotjs_entry(int argc, char** argv) {
 
   // Initialize debug log and environments
   iotjs_debuglog_init();
+  srand((unsigned)jerry_port_get_current_time());
 
   iotjs_environment_t* env = iotjs_environment_get();
   if (!iotjs_environment_parse_command_line_arguments(env, (uint32_t)argc,

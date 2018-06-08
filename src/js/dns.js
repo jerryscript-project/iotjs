@@ -45,7 +45,7 @@ exports.lookup = function lookup(hostname, options, callback) {
   if (family !== 0 && family !== 4 && family !== 6)
     throw new TypeError('invalid argument: family must be 4 or 6');
 
-  if (process.platform != 'nuttx' && process.platform != 'tizenrt') {
+  if (process.platform != 'nuttx') {
     native.getaddrinfo(hostname, family, hints, callback);
   } else {
     // native.getaddrinfo is synchronous on these platforms.

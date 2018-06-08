@@ -16,6 +16,7 @@
 #include <unistd.h>
 
 #include "iotjs_def.h"
+#include "iotjs_module_buffer.h"
 #include "iotjs_module_uart.h"
 
 
@@ -67,7 +68,7 @@ static void iotjs_uart_read_cb(uv_poll_t* req, int status, int events) {
   int i = read(uart->device_fd, buf, UART_WRITE_BUFFER_SIZE - 1);
   if (i > 0) {
     buf[i] = '\0';
-    DDDLOG("%s - read data: %s", __func__, buf);
+    DDDLOG("%s - read length: %d", __func__, i);
     jerry_value_t jemit =
         iotjs_jval_get_property(iotjs_handlewrap_jobject(&uart->handlewrap),
                                 IOTJS_MAGIC_STRING_EMIT);
@@ -76,9 +77,13 @@ static void iotjs_uart_read_cb(uv_poll_t* req, int status, int events) {
     iotjs_jargs_t jargs = iotjs_jargs_create(2);
     jerry_value_t str =
         jerry_create_string((const jerry_char_t*)IOTJS_MAGIC_STRING_DATA);
-    jerry_value_t data = jerry_create_string((const jerry_char_t*)buf);
+
+    jerry_value_t jbuf = iotjs_bufferwrap_create_buffer((size_t)i);
+    iotjs_bufferwrap_t* buf_wrap = iotjs_bufferwrap_from_jbuffer(jbuf);
+    iotjs_bufferwrap_copy(buf_wrap, buf, (size_t)i);
+
     iotjs_jargs_append_jval(&jargs, str);
-    iotjs_jargs_append_jval(&jargs, data);
+    iotjs_jargs_append_jval(&jargs, jbuf);
     jerry_value_t jres =
         iotjs_jhelper_call(jemit, iotjs_handlewrap_jobject(&uart->handlewrap),
                            &jargs);
@@ -86,7 +91,7 @@ static void iotjs_uart_read_cb(uv_poll_t* req, int status, int events) {
 
     jerry_release_value(jres);
     jerry_release_value(str);
-    jerry_release_value(data);
+    jerry_release_value(jbuf);
     iotjs_jargs_destroy(&jargs);
     jerry_release_value(jemit);
   }

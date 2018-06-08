@@ -133,7 +133,7 @@ Closes the UART device synchronously.
 
 ### Event: 'data'
 * `callback` {Function}
-  * `data` {string} A string from the sender.
+  * `data` {Buffer} A data from the sender.
 
 **Example**
 

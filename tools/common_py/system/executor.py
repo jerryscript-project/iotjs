@@ -14,15 +14,34 @@
 
 from __future__ import print_function
 
+import collections
+import os
 import subprocess
+
+_colors = {
+    "empty": "\033[0m",
+    "red": "\033[1;31m",
+    "green": "\033[1;32m",
+    "yellow": "\033[1;33m",
+    "blue": "\033[1;34m"
+}
+
+if "TERM" not in os.environ:
+    # if there is no "TERM" environment variable
+    # assume that we can't output colors.
+    # So reset the ANSI color escapes.
+    _colors = _colors.fromkeys(_colors, "")
+
+_TerminalType = collections.namedtuple('Terminal', _colors.keys())
+class _Terminal(_TerminalType):
+
+    def pprint(self, text, color=_colors["empty"]):
+        print("%s%s%s" % (color, text, self.empty))
+
+Terminal = _Terminal(**_colors)
 
 
 class Executor(object):
-    _TERM_RED = "\033[1;31m"
-    _TERM_YELLOW = "\033[1;33m"
-    _TERM_GREEN = "\033[1;32m"
-    _TERM_BLUE = "\033[1;34m"
-    _TERM_EMPTY = "\033[0m"
 
     @staticmethod
     def cmd_line(cmd, args=[]):
@@ -30,14 +49,13 @@ class Executor(object):
 
     @staticmethod
     def print_cmd_line(cmd, args=[]):
-        print("%s%s%s" % (Executor._TERM_BLUE, Executor.cmd_line(cmd, args),
-                          Executor._TERM_EMPTY))
+        Terminal.pprint(Executor.cmd_line(cmd, args), Terminal.blue)
         print()
 
     @staticmethod
     def fail(msg):
         print()
-        print("%s%s%s" % (Executor._TERM_RED, msg, Executor._TERM_EMPTY))
+        Terminal.pprint(msg, Terminal.red)
         print()
         exit(1)
 

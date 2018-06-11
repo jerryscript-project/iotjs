@@ -50,7 +50,7 @@ jerry_value_t iotjs_getaddrinfo_reqwrap_jcallback(
 }
 
 
-#if !defined(__NUTTX__) && !defined(__TIZENRT__)
+#if !defined(__NUTTX__)
 char* getaddrinfo_error_str(int status) {
   switch (status) {
     case UV__EAI_ADDRFAMILY:
@@ -175,7 +175,7 @@ JS_FUNCTION(GetAddressInfo) {
     return JS_CREATE_ERROR(TYPE, "bad address family");
   }
 
-#if defined(__NUTTX__) || defined(__TIZENRT__)
+#if defined(__NUTTX__)
   iotjs_jargs_t args = iotjs_jargs_create(3);
   char ip[INET6_ADDRSTRLEN] = "";
   const char* hostname_data = iotjs_string_data(&hostname);

@@ -4,11 +4,11 @@ The following chart shows the availability of each TLS module API function on ea
 
 |  | Linux<br/>(Ubuntu) | Tizen<br/>(Raspberry Pi) | Raspbian<br/>(Raspberry Pi) | Nuttx<br/>(STM32F4-Discovery) | TizenRT<br/>(Artik053) |
 | :---: | :---: | :---: | :---: | :---: | :---: |
+| mqtt.connect | O | X | X | X | X | X |
+| mqtt.end | O | X | X | X | X | X |
 | mqtt.publish  | O | X | X | X | X | X |
 | mqtt.subscribe | O | X | X | X | X | X |
 | mqtt.unsubscribe | X | X | X | X | X | X |
-| mqtt.ping | O | X | X | X | X | X |
-| mqtt.connect | O | X | X | X | X | X |
 
 # MQTT
 
@@ -29,7 +29,8 @@ Topics can be wildcarded and they also can be structured into multiple levels. T
 ## Class: MQTTClient
 The `MQTTClient` can subscribe or publish data to a broker. It sends data over a `net.socket`.
 
-### mqtt.connect(options, callback)
+### mqtt.connect([url], [options], [callback])
+- `url` {string} host name optionally prefixed by `mqtt://` or `mqtts://`.
 - `options` {Object}
     - `clientId` {Buffer | string} Optional. The broker identifies each client by its `clientId`. If not specified, a randomly generated `clientId` is created.
     - `host` {Buffer | string} The address of the broker.
@@ -42,7 +43,7 @@ The `MQTTClient` can subscribe or publish data to a broker. It sends data over a
     - `qos` {number} If `will` is set to `true`, the message will be sent with the given QoS.
     - `topic` {Buffer | string} Only processed when `will` is set to `true`. The topic the `message` should be sent to.
     - `message` {Buffer | string} Only processed when `will` is set to `true`. The message to be sent to the broker when connecting.
-- `callback` {function} The function will be executed when the client successfuly connected to the broker.
+- `callback` {function} the function which will be executed when the client successfuly connected to the broker.
 
 Returns with an MQTTClient object and starts connecting to a broker. Emits a `connect` event after the connection is completed.
 
@@ -52,50 +53,28 @@ Returns with an MQTTClient object and starts connecting to a broker. Emits a `co
 var mqtt = require('mqtt');
 
 var opts = {
-    host: '127.0.0.1',
-    port: 443,
-    keepalive: 10,
-    clientId: 'IoT.js Client',
+  port: 443,
+  keepalive: 10,
+  clientId: 'IoT.js Client',
 }
 
-var client = mqtt.getClient(opts);
-client.connect(function () {
-    client.disconnect();
+var client = mqtt.connect('mqtt://127.0.0.1', opts, function () {
+  client.end();
 });
 ```
 
-### mqtt.disconnect()
+### mqtt.end([force])
+- `force` {boolean} force network connection abort
+
 Disconnects the client from the broker.
 
-### mqtt.ping()
-Sends a ping request to the server. If the server doesn't respond within 3 seconds, the client closes the connection. Emits a `pingresp` event if the server responded.
-
-**Example**
-```js
-var mqtt = require('mqtt');
-
-var opts = {
-    host: '127.0.0.1',
-    port: 443,
-    keepalive: 10,
-    clientId: 'IoT.js Client',
-}
-
-var client = mqtt.getClient(opts);
-client.connect(function () {
-    client.ping();
-});
-
-client.on('pingresp', function() {
-  client.disconnect();
-});
-```
-
-### mqtt.subscribe(options)
+### mqtt.subscribe(topic, [options], [callback])
+- `topic` {Buffer | string} topic to subscribe to
 - `options` {Object}
-    - `topic` {Buffer | string} The topic the client subscribes to.
     - `qos` {number} Optional. Defaults to 0.
     - `retain` {boolean} Optional. If retain is `true` the client receives the messages that were sent to the desired `topic` before it connected. Defaults to `false`.
+- `callback` {function} the function which will be executed when the subscribe is completed.
+
 
 The client subscribes to a given `topic`. If there are messages available on the `topic` the client emits a `data` event with the message received from the broker.
 
@@ -104,40 +83,47 @@ The client subscribes to a given `topic`. If there are messages available on the
 var mqtt = require('mqtt');
 
 var opts = {
-    host: '127.0.0.1',
-    port: 443,
-    keepalive: 10,
-    clientId: 'IoT.js Client',
+  host: '127.0.0.1',
+  port: 443,
+  keepalive: 10,
+  clientId: 'IoT.js Client',
 }
 
 var subscribe_opts {
-  topic: 'hello/#/iotjs',
   retain: false,
   qos: 2
 }
 
-var client = mqtt.getClient(opts);
-client.connect(function () {
-    client.subscribe(subscribe_opts);
+var client = mqtt.connect(opts, function () {
+  client.subscribe('hello/#/iotjs', subscribe_opts, function(error) {
+    if (error) {
+      console.log('Subscribe is failed');
+    } else {
+      console.log('Subscribe is successfully completed');
+    }
+  });
 });
 
-client.on('data', function(data) {
-  console.log('I received something: ' + data.toString());
+client.on('message', function(data) {
+  console.log('I received something: ' + data.message.toString());
 });
 ```
 
-### mqtt.unsubscribe(topic)
-- `options` {Buffer | string} The topic to unsubscribe from.
+### mqtt.unsubscribe(topic, [callback])
+- `topic` {Buffer | string} topic to unsubscribe from
+- `callback` {function} the function which will be executed when the unsubscribe is completed.
 
 Unsubscribes the client from a given topic. If QoS was turned on on the subscription the remaining packets will be sent by the server.
 
 
-### mqtt.publish(options)
+### mqtt.publish(topic, message, [options], [callback])
+- `topic` {Buffer | string} topic to publish to
+- `message` {Buffer | string} message to send
 - `options` {Object}
-    - `topic` {Buffer | string} The topic to send the `message` to.
-    - `message` {Buffer | string} The message to be sent.
     - `qos` {number} Optional. Defaults to 0.
     - `retain` {boolean} Optional. If retain is `true` the broker stores the message for clients subscribing with retain `true` flag, therefore they can receive it later.
+- `callback` {function} the function which will be executed when the publish is completed
+
 
 Publishes a `message` to the broker under the given `topic`.
 
@@ -146,22 +132,16 @@ Publishes a `message` to the broker under the given `topic`.
 var mqtt = require('mqtt');
 
 var opts = {
-    host: '127.0.0.1',
-    port: 443,
-    keepalive: 10,
-    clientId: 'IoT.js Client',
+  host: '127.0.0.1',
+  port: 443,
+  keepalive: 10,
+  clientId: 'IoT.js Client',
 }
 
-var publish_opts {
-  topic: 'hello/#/iotjs',
-  message: 'MQTT now works!',
-  retain: false,
-  qos: 1
-}
-
-var client = mqtt.getClient(opts);
-client.connect(function () {
-    client.publish(publish_opts);
+var client = mqtt.connect(opts, function () {
+  client.publish('hello/#/iotjs', 'Hello MQTT clients!', { qos:1 }, function() {
+    console.log('Message has been published');
+  });
 });
 ```
 
@@ -181,15 +161,3 @@ When data is received from the server a `message` event is emitted with a `data`
    - `topic`: The topic the message was sent from.
    - `qos`: The QoS level the message was sent with.
    - `packet_id`: The id of the packet if QoS was enabled.
-
-### `pingresp`
-Emitted when we receive a ping response from the server.
-
-### `puback`
-`puback` is emitted if the server has successfully received the QoS 1 packet sent with `publish`.
-
-### `pubcomp`
-If a QoS level 2 package has successfully arrived a `pubcomp` is emitted.
-
-### `suback`
-If a subscription was accepted by the broker to a topic, a `suback` event is emitted.

@@ -42,6 +42,21 @@ jerry_value_t iotjs_jval_as_array(jerry_value_t);
 jerry_value_t iotjs_jval_as_function(jerry_value_t);
 bool iotjs_jbuffer_as_string(jerry_value_t jval, iotjs_string_t* out_string);
 
+/* Temporary Buffers for JavaScript Values */
+
+typedef struct {
+  jerry_value_t jval;
+  char* buffer;
+  size_t length;
+} iotjs_tmp_buffer_t;
+
+void iotjs_jval_as_tmp_buffer(jerry_value_t jval,
+                              iotjs_tmp_buffer_t* out_buffer);
+void iotjs_jval_get_jproperty_as_tmp_buffer(jerry_value_t jobj,
+                                            const char* name,
+                                            iotjs_tmp_buffer_t* out_buffer);
+void iotjs_free_tmp_buffer(iotjs_tmp_buffer_t* tmp_buffer);
+
 /* Methods for General JavaScript Object */
 void iotjs_jval_set_method(jerry_value_t jobj, const char* name,
                            jerry_external_handler_t handler);
@@ -111,6 +126,9 @@ jerry_value_t iotjs_jhelper_eval(const char* name, size_t name_len,
  */
 #define JS_CREATE_ERROR(TYPE, message) \
   jerry_create_error(JERRY_ERROR_##TYPE, (const jerry_char_t*)message)
+
+#define jerry_value_is_any(value) true
+#define iotjs_jval_as_any(value) (value)
 
 #define JS_CHECK(predicate)                           \
   if (!(predicate)) {                                 \

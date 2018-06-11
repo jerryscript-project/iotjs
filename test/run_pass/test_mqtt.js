@@ -18,14 +18,20 @@ var assert = require('assert');
 
 var connected = false;
 var subscribed = false;
-var pingresp = false;
 
-var msg = 'hello iotjs';
-var msg_received;
+// The number of the variable is the qos level (0-2)
 
-var subOpts = {
-  topic: 'iotjs-test-topic',
-};
+var msg0 = 'hello iotjs 1';
+var msg1 = 'hello iotjs 2';
+var msg2 = 'hello iotjs 3';
+
+var published0 = false;
+var published1 = false;
+var published2 = false;
+
+var received0 = false;
+var received1 = false;
+var received2 = false;
 
 var subClientOpts = {
   clientId: 'iotjs-mqtt-test-sub',
@@ -37,43 +43,59 @@ var subClientOpts = {
 var subClient = mqtt.connect(subClientOpts, function() {
   connected = true;
 
-  subClient.on('pingresp', function() {
-    pingresp = true;
-    subClient.subscribe(subOpts);
-  });
-
-  subClient.on('suback', function() {
+  subClient.subscribe('iotjs-test-topic', { qos:2 }, function() {
     subscribed = true;
-    pubClient.publish(pubOpts);
+
+    pubClient.publish('iotjs-test-topic', msg0, { qos:0 }, function() {
+      published0 = true;
+    });
+
+    pubClient.publish('iotjs-test-topic', msg1, { qos:1 }, function() {
+      published1 = true;
+    });
+
+    pubClient.publish('iotjs-test-topic', msg2, { qos:2 }, function() {
+      published2 = true;
+    });
   });
 
   subClient.on('message', function(data) {
-    msg_received = data.message;
-    subClient.end();
-    pubClient.end();
-  });
+    var str = data.message.toString();
 
-  subClient.ping();
+    if (str == msg0) {
+      received0 = true;
+    }
+
+    if (str == msg1) {
+      received1 = true;
+    }
+
+    if (str == msg2) {
+      received2 = true;
+    }
+
+    if (received0 && received1 && received2) {
+      subClient.end();
+      pubClient.end();
+    }
+  });
 });
 
 var pubClientOpts = {
   clientId: 'iotjs-mqtt-test-pub',
-  host: 'test.mosquitto.org',
   port: 1883,
-  keepalive: 30,
+  keepalive: 30
 };
 
-var pubOpts = {
-  topic: 'iotjs-test-topic',
-  message: msg,
-  qos: 1,
-};
-
-var pubClient = mqtt.connect(pubClientOpts);
+var pubClient = mqtt.connect('mqtt://test.mosquitto.org', pubClientOpts);
 
 process.on('exit', function() {
   assert.equal(connected, true);
   assert.equal(subscribed, true);
-  assert.equal(pingresp, true);
-  assert.equal(msg_received, msg);
+  assert.equal(published0, true);
+  assert.equal(published1, true);
+  assert.equal(published2, true);
+  assert.equal(received0, true);
+  assert.equal(received1, true);
+  assert.equal(received2, true);
 });

@@ -87,6 +87,10 @@ size_t iotjs_bufferwrap_length(iotjs_bufferwrap_t* bufferwrap) {
 
 iotjs_bufferwrap_t* iotjs_jbuffer_get_bufferwrap_ptr(
     const jerry_value_t jbuffer) {
+  if (!jerry_value_is_object(jbuffer)) {
+    return NULL;
+  }
+
   void* native_p;
   const jerry_object_native_info_t* type_p;
   bool has_native_pointer =

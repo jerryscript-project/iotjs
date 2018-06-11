@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-var net = require('net');
 var util = require('util');
 var EventEmitter = require('events').EventEmitter;
+var net, tls;
 
 var PacketTypeEnum = {
   PUBACK: 4,
@@ -24,149 +24,47 @@ var PacketTypeEnum = {
   PUBCOMP: 7,
 };
 
-function MQTTHandle(client) {
+// In seconds (should be divisible by 8)
+var MQTTTimeout = 64;
+
+function MQTTHandle(client, keepalive) {
   this.client = client;
   this.isConnected = false;
-  this.package_id = 0;
+  this.nextPacketId = 0;
+  this.keepalive = keepalive;
+  this.keepaliveCounter = 0;
+  this.pingrespCounter = 0;
+  this.storage = { };
+  this.storageCount = 0;
 
   native.MqttInit(this);
 }
-
 MQTTHandle.prototype = {};
 
-function MQTTClient(options, callback) {
-  if (!(this instanceof MQTTClient)) {
-    return new MQTTClient(options);
-  }
-
-  EventEmitter.call(this);
-
-  if (util.isFunction(callback)) {
-    this.on('connect', callback);
-  }
-
-  options = Object.create(options, {
-    host: { value: options.host || '127.0.0.1'},
-    port: { value: options.port || 8883 },
-    qos: { value: options.qos || 0 },
-    keepalive: { value: options.keepalive || 60 },
-  });
-
-  this._handle = new MQTTHandle(this);
-
-  var socket;
-
-  if (options.socket) {
-    socket = options.socket;
-
-    socket.write(native.connect(options));
-  } else {
-    socket = net.connect(options);
-
-    var connectionMessage = native.connect(options);
-
-    socket.on('connect', function() {
-      this.write(connectionMessage);
-    });
-  }
-
-  this._handle.socket = socket;
-  socket._mqttSocket = this;
-
-  socket.on('error', onerror);
-  socket.on('data', ondata);
-  socket.on('finish', onfinish);
-}
-util.inherits(MQTTClient, EventEmitter);
-
-MQTTClient.prototype.end = function(error) {
-  var handle = this._handle;
-
-  handle.isConnected = false;
-
-  if (error) {
-    this.emit('error', error);
-  }
-
-  handle.socket.end(native.disconnect());
+MQTTHandle.prototype.write = function(buf) {
+  this.socket.write(buf);
+  this.keepaliveCounter = 0;
 };
-
-MQTTClient.prototype.publish = function(options) {
-  if (!Buffer.isBuffer(options.message)) {
-    options.message = new Buffer(options.message);
-  }
-  if (!Buffer.isBuffer(options.topic)) {
-    options.topic = new Buffer(options.topic);
-  }
-
-  var handle = this._handle;
-
-  if (util.isNumber(options.qos) && options.qos > 0) {
-    options.packet_id = handle.package_id;
-    handle.package_id++;
-
-    var buffer = native.publish(options);
-    handle.socket.write(buffer);
-
-    var interval = setInterval(function() {
-      handle.socket.write(buffer);
-    }, 3000);
-
-    this.on('puback', function() {
-      clearInterval(interval);
-    });
-    this.on('pubrec', function() {
-      clearInterval(interval);
-    });
-
-    return;
-  }
-
-  handle.socket.write(native.publish(options));
-};
-
-MQTTClient.prototype.subscribe = function(options) {
-  if (!Buffer.isBuffer(options.topic)) {
-    options.topic = new Buffer(options.topic);
-  }
-
-  this._handle.socket.write(native.subscribe(options));
-};
-
-MQTTClient.prototype.ping = function() {
-  this._handle.socket.write(native.ping());
-};
-
-MQTTClient.prototype.unsubscribe = function(topic) {
-  if (!Buffer.isBuffer(topic)) {
-    topic = new Buffer(topic);
-  }
-
-  this._handle.socket.write(native.unsubscribe(topic));
-};
-
-function onerror(error) {
-  this._mqttSocket.emit('error', error);
-}
-
-function ondata(data) {
-  native.MqttReceive(this._mqttSocket._handle, data);
-}
-
-function onfinish() {
-  this._mqttSocket._handle._isConnected = false;
-  this._mqttSocket.emit('finish');
-}
 
 MQTTHandle.prototype.sendAck = function(type, packet_id) {
-  this.socket.write(native.sendAck(type, packet_id));
+  this.write(native.sendAck(type, packet_id));
 };
 
 MQTTHandle.prototype.onconnection = function() {
+  this.isConnected = true;
+  this.timer = setInterval(storageTimerHit.bind(this), 1000);
+
   this.client.emit('connect');
 };
 
 MQTTHandle.prototype.onEnd = function() {
+  this.isConnected = false;
+
+  // Abort outgoing messages.
+  clearInterval(this.timer);
+  this.storage = null;
+  this.storageCount = 0;
+
   this.client.emit('end');
 };
 
@@ -187,49 +85,60 @@ MQTTHandle.prototype.onmessage = function(message, topic, qos, packet_id) {
   this.client.emit('message', data);
 };
 
+MQTTHandle.prototype.getPacketId = function() {
+  while (true) {
+    var packet_id = this.nextPacketId;
+    this.nextPacketId = (this.nextPacketId + 1) & 0xffff;
+
+    if (!(packet_id in this.storage)) {
+      this.storage[packet_id] = { remainingTime: MQTTTimeout };
+      this.storageCount++;
+
+      return packet_id;
+    }
+  }
+};
+
+MQTTHandle.prototype.releasePacket = function(packet_id, error) {
+  // callback will be invalid after delete
+  var callback = this.storage[packet_id].callback;
+
+  delete this.storage[packet_id];
+  this.storageCount--;
+
+  // This function should never fail.
+  try {
+    if (typeof callback == 'function') {
+      callback(error);
+    } else if (error) {
+      this.client.emit('error', error);
+    }
+  } catch (e) {
+    // Do nothing.
+  }
+};
+
 MQTTHandle.prototype.onpingresp = function() {
-  this.client.emit('pingresp');
+  this.pingrespCounter = 0;
 };
 
-MQTTHandle.prototype.onpuback = function(data) {
-  /*
-   * QoS level 1
-   * Handle PUBACK package. If this package isn't arrived (properly),
-   * we have to resend the last message.
-   *
-   * The 'data' contains the packet identifier.
-   */
-  this.client.emit('puback', data);
+MQTTHandle.prototype.onack = function(packet_id, error) {
+  this.releasePacket(packet_id, error);
 };
 
-MQTTHandle.prototype.onpubcomp = function(data) {
-  /*
-   * Qos level 2
-   * Handle PUBCOMP package. If this package is arrived, the sending process
-   * is done.
-   */
-  this.client.emit('pubcomp', data);
-};
-
-MQTTHandle.prototype.onpubrec = function(data) {
+MQTTHandle.prototype.onpubrec = function(packet_id) {
   /*
    * Qos level 2
    * Handle PUBREC package. If this package is arrived, we have to send back
    * a PUBREL package to the server.
    */
-  var jsref = this;
+  var buffer = native.sendAck(PacketTypeEnum.PUBREL, packet_id);
+  this.write(buffer);
 
-  this.sendAck(PacketTypeEnum.PUBREL, data);
-
-  var interval = setInterval(function() {
-    jsref.sendAck(PacketTypeEnum.PUBREL, data);
-  }, 3000);
-
-  jsref.on('pubcomp', function() {
-    clearInterval(interval);
-  });
-
-  jsref.emit('pubrec', data);
+  // Upodate packet rather than create a new one
+  var packet = this.storage[packet_id];
+  packet.remainingTime = MQTTTimeout;
+  packet.packet = buffer;
 };
 
 MQTTHandle.prototype.onpubrel = function(data) {
@@ -241,21 +150,300 @@ MQTTHandle.prototype.onpubrel = function(data) {
   this.sendAck(PacketTypeEnum.PUBCOMP, data);
 };
 
-MQTTHandle.prototype.onsuback = function(data) {
-  /*
-   * Successful subscription, the client will get messages from the requested
-   * topic. The granted QoS is given in data.
-   */
-  this.client.emit('suback', data);
+function MQTTClient(url, options, callback) {
+  if (!(this instanceof MQTTClient)) {
+    return new MQTTClient(url, options, callback);
+  }
+
+  EventEmitter.call(this);
+
+  var socket;
+
+  if (typeof url == 'string') {
+    if (typeof options == 'function') {
+      callback = options;
+      options = {};
+    }
+  } else {
+    if (typeof url == 'function') {
+      callback = url;
+      options = {};
+    } else if (typeof options == 'function') {
+      callback = options;
+      options = url;
+    } else {
+      options = url;
+    }
+
+    if (options.socket) {
+      socket = options.socket;
+    } else {
+      url = options.host || '127.0.0.1';
+    }
+  }
+
+  if (typeof callback == 'function') {
+    this.on('connect', callback);
+  }
+
+  if (options.will) {
+    if (typeof options.topic == 'undefined' ||
+        typeof options.message == 'undefined' ||
+        options.qos < 0 || options.qos > 2) {
+      throw new Error('Incorrect mqtt will options');
+    }
+  }
+
+  var host = '';
+  var create_tls = false;
+
+  if (!socket) {
+    if (url.substring(0, 8) == 'mqtts://') {
+      create_tls = true;
+      host = url.substring(8);
+    } else if (url.substring(0, 7) == 'mqtt://') {
+      host = url.substring(7);
+    } else {
+      host = url;
+    }
+  }
+
+  var keepalive = (options.keepalive || 60) | 0;
+
+  if (keepalive < 30) {
+    keepalive = 30;
+  }
+
+  if (keepalive > 65535) {
+    keepalive = 65535;
+  }
+
+  options = Object.create(options, {
+    clientId: { value: options.clientId || defaultClientId() },
+    host: { value: host },
+    port: { value: options.port || 8883 },
+    qos: { value: options.qos || 0 },
+    keepalive: { value: keepalive },
+  });
+
+  // Since network transmission takes time, the
+  // actual keepalive message is sent a bit earlier
+  this._handle = new MQTTHandle(this, keepalive - 5);
+
+  var connectionMessage = native.connect(options);
+
+  var onconnect = function() {
+    // Currently the connect message is tried only once.
+    // Multiple tries can be implemented later.
+    this.write(connectionMessage);
+  };
+
+  if (socket) {
+    onconnect.call(socket);
+  } else {
+    if (create_tls) {
+      if (!tls) {
+        tls = require('tls');
+      }
+
+      socket = tls.connect(options, onconnect);
+    } else {
+      if (!net) {
+        net = require('net');
+      }
+
+      socket = net.connect(options, onconnect);
+    }
+  }
+
+  this._handle.socket = socket;
+  socket._mqttSocket = this;
+
+  socket.on('error', onerror);
+  socket.on('data', ondata);
+  socket.on('finish', onfinish);
+}
+util.inherits(MQTTClient, EventEmitter);
+
+MQTTClient.prototype.end = function(force) {
+  var handle = this._handle;
+
+  handle.isConnected = false;
+
+  if (force || handle.storageCount == 0) {
+    handle.socket.end(native.disconnect());
+
+    // Abort ongoing messages.
+    clearInterval(this.timer);
+    this.storage = null;
+    this.storageCount = 0;
+  }
 };
 
-MQTTHandle.prototype.onunsuback = function(data) {
-  /*
-   * Successful unsubscription, the client will not get messages from
-   * the requested topic in the future
-   */
-  this.client.emit('unsuback', data);
+MQTTClient.prototype.checkConnection = function() {
+  if (!this._handle.isConnected) {
+    throw new Error('MQTT client is not connected');
+  }
 };
+
+MQTTClient.prototype.publish = function(topic, message, options, callback) {
+  this.checkConnection();
+
+  var handle = this._handle;
+
+  // header bits: | 16 bit packet id | 4 bit PUBLISH header |
+  var header = 0;
+  var qos = 0;
+
+  if (options) {
+    if (options.retain) {
+      header = 0x1;
+    }
+
+    qos = options.qos;
+
+    if (qos !== 1 && qos !== 2) {
+      qos = 0;
+    }
+
+    header |= (qos << 1);
+  }
+
+  if (qos > 0) {
+    var packet_id = handle.getPacketId();
+    header |= (packet_id << 4);
+
+    var buffer = native.publish(topic, message, header);
+    handle.write(buffer);
+
+    // Set dup flag.
+    buffer.writeUInt8(buffer.readUInt8(0) | 0x08, 0);
+
+    var packet = handle.storage[packet_id];
+
+    packet.packet = buffer;
+    packet.callback = callback;
+    return;
+  }
+
+  handle.write(native.publish(topic, message, header));
+
+  if (typeof callback == 'function') {
+    process.nextTick(callback);
+  }
+};
+
+MQTTClient.prototype.subscribe = function(topic, options, callback) {
+  this.checkConnection();
+
+  var handle = this._handle;
+
+  var packet_id = handle.getPacketId();
+
+  // header bits: | 16 bit packet id | 2 bit qos |
+  var header = (packet_id << 2);
+
+  var qos = 0;
+
+  if (options) {
+    qos = options.qos;
+
+    if (qos !== 1 || qos !== 2) {
+      qos = 0;
+    }
+
+    header |= qos;
+  }
+
+  var buffer = native.subscribe(topic, header);
+
+  handle.write(buffer);
+
+  var packet = handle.storage[packet_id];
+
+  packet.packet = buffer;
+  packet.callback = callback;
+};
+
+MQTTClient.prototype.unsubscribe = function(topic, callback) {
+  this.checkConnection();
+
+  var handle = this._handle;
+
+  var packet_id = handle.getPacketId();
+
+  // header bits: | 16 bit packet id |
+  var header = packet_id;
+
+  var buffer = native.unsubscribe(topic, header);
+
+  handle.write(buffer);
+
+  var packet = handle.storage[packet_id];
+
+  packet.packet = buffer;
+  packet.callback = callback;
+};
+
+function onerror(error) {
+  this._mqttSocket.emit('error', error);
+}
+
+function ondata(data) {
+  native.MqttReceive(this._mqttSocket._handle, data);
+}
+
+function onfinish() {
+  this._mqttSocket._handle.onEnd();
+}
+
+function storageTimerHit() {
+  // this: MQTTHandle
+
+  // eslint-disable-next-line guard-for-in
+  for (var packet_id in this.storage) {
+    var packet = this.storage[packet_id];
+
+    packet.remainingTime--;
+
+    if (packet.remainingTime <= 0) {
+      this.releasePacket(packet_id, new Error('Undelivered message'));
+      continue;
+    }
+
+    // Every 8 seconds, the message is retransmitted.
+    if (!(packet.remainingTime & 0x7)) {
+      this.write(packet.packet);
+    }
+  }
+
+  if (this.storageCount == 0 && !this.isConnected) {
+    // Graceful disconnect after all messages transmitted.
+    this.socket.end(native.disconnect());
+
+    clearInterval(this.timer);
+    this.storage = null;
+    return;
+  }
+
+  if (this.pingrespCounter > 0) {
+    this.pingrespCounter--;
+
+    if (this.pingrespCounter <= 0) {
+      this.onEnd();
+    }
+  }
+
+  this.keepaliveCounter++;
+
+  if (this.keepaliveCounter >= this.keepalive) {
+    this.write(native.ping());
+
+    if (this.pingrespCounter == 0) {
+      this.pingrespCounter = ((this.keepalive + 5) * 1.5) | 0;
+    }
+  }
+}
 
 /*
  * Returns an unique client ID based on current time.
@@ -264,40 +452,8 @@ function defaultClientId() {
   return 'iotjs_mqtt_client_' + Date.now();
 }
 
-function connect(connectOptions, callback) {
-  if (util.isUndefined(connectOptions.clientId)) {
-    connectOptions.clientId = defaultClientId();
-  }
-  if (!Buffer.isBuffer(connectOptions.clientId)) {
-    connectOptions.clientId =
-        new Buffer(connectOptions.clientId.toString());
-  }
-  if (!util.isUndefined(connectOptions.username) &&
-      !Buffer.isBuffer(connectOptions.username)) {
-    connectOptions.username = new Buffer(connectOptions.username.toString());
-  }
-  if (!util.isUndefined(connectOptions.password) &&
-      !Buffer.isBuffer(connectOptions.password)) {
-    connectOptions.password = new Buffer(connectOptions.password.toString());
-  }
-  if (connectOptions.will) {
-    if (util.isUndefined(connectOptions.topic) ||
-        util.isUndefined(connectOptions.message) ||
-        connectOptions.qos < 0 || connectOptions.qos > 2) {
-      throw new Error('Wrong options given! Please refer to the documentation');
-    }
-
-    if (!util.isUndefined(connectOptions.topic) &&
-        !Buffer.isBuffer(connectOptions.topic)) {
-      connectOptions.topic = new Buffer(connectOptions.topic.toString());
-    }
-    if (!util.isUndefined(connectOptions.message) &&
-        !Buffer.isBuffer(connectOptions.message)) {
-      connectOptions.message = new Buffer(connectOptions.message.toString());
-    }
-  }
-
-  return new MQTTClient(connectOptions, callback);
+function connect(url, options, callback) {
+  return new MQTTClient(url, options, callback);
 }
 
 exports.connect = connect;

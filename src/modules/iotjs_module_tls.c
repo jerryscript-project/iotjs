@@ -457,7 +457,7 @@ JS_FUNCTION(Write) {
 
     if (ret_val > 0) {
       data += ret_val;
-      length -= ret_val;
+      length -= (size_t)ret_val;
     } else if (ret_val != MBEDTLS_ERR_SSL_WANT_WRITE) {
       tls_data->state = TLS_CLOSED;
       return jerry_create_null();

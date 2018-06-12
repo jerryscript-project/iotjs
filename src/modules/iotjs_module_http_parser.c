@@ -131,19 +131,20 @@ static void iotjs_http_parserwrap_flush(
       iotjs_jval_get_property(jobj, IOTJS_MAGIC_STRING_ONHEADERS);
   IOTJS_ASSERT(jerry_value_is_function(func));
 
-  iotjs_jargs_t argv = iotjs_jargs_create(2);
   jerry_value_t jheader = iotjs_http_parserwrap_make_header(http_parserwrap);
-  iotjs_jargs_append_jval(&argv, jheader);
-  jerry_release_value(jheader);
+  size_t argc = 1;
+  jerry_value_t argv[2] = { jheader, jerry_create_null() };
+
   if (http_parserwrap->parser.type == HTTP_REQUEST &&
       !iotjs_string_is_empty(&http_parserwrap->url)) {
-    iotjs_jargs_append_string(&argv, &http_parserwrap->url);
+    argv[argc++] = iotjs_jval_create_string(&http_parserwrap->url);
   }
 
-  iotjs_make_callback(func, jobj, &argv);
+  iotjs_make_callback(func, jobj, argv, argc);
 
   iotjs_string_destroy(&http_parserwrap->url);
-  iotjs_jargs_destroy(&argv);
+  jerry_release_value(argv[0]);
+  jerry_release_value(argv[1]);
   jerry_release_value(func);
   http_parserwrap->flushed = true;
 }
@@ -240,7 +241,6 @@ static int iotjs_http_parserwrap_on_headers_complete(http_parser* parser) {
   IOTJS_ASSERT(jerry_value_is_function(func));
 
   // URL
-  iotjs_jargs_t argv = iotjs_jargs_create(1);
   jerry_value_t info = jerry_create_object();
 
   if (http_parserwrap->flushed) {
@@ -286,10 +286,7 @@ static int iotjs_http_parserwrap_on_headers_complete(http_parser* parser) {
                                   http_should_keep_alive(
                                       &http_parserwrap->parser));
 
-
-  iotjs_jargs_append_jval(&argv, info);
-
-  jerry_value_t res = iotjs_make_callback_with_result(func, jobj, &argv);
+  jerry_value_t res = iotjs_make_callback_with_result(func, jobj, &info, 1);
 
   int ret = 1;
   if (jerry_value_is_boolean(res)) {
@@ -300,7 +297,6 @@ static int iotjs_http_parserwrap_on_headers_complete(http_parser* parser) {
     ret = 0;
   }
 
-  iotjs_jargs_destroy(&argv);
   jerry_release_value(func);
   jerry_release_value(res);
   jerry_release_value(info);
@@ -317,15 +313,14 @@ static int iotjs_http_parserwrap_on_body(http_parser* parser, const char* at,
   jerry_value_t func = iotjs_jval_get_property(jobj, IOTJS_MAGIC_STRING_ONBODY);
   IOTJS_ASSERT(jerry_value_is_function(func));
 
-  iotjs_jargs_t argv = iotjs_jargs_create(3);
-  iotjs_jargs_append_jval(&argv, http_parserwrap->cur_jbuf);
-  iotjs_jargs_append_number(&argv, at - http_parserwrap->cur_buf);
-  iotjs_jargs_append_number(&argv, length);
+  jerry_value_t argv[3] = { http_parserwrap->cur_jbuf,
+                            jerry_create_number(at - http_parserwrap->cur_buf),
+                            jerry_create_number(length) };
 
+  iotjs_make_callback(func, jobj, argv, 3);
 
-  iotjs_make_callback(func, jobj, &argv);
-
-  iotjs_jargs_destroy(&argv);
+  jerry_release_value(argv[1]);
+  jerry_release_value(argv[2]);
   jerry_release_value(func);
 
   return 0;
@@ -340,7 +335,7 @@ static int iotjs_http_parserwrap_on_message_complete(http_parser* parser) {
       iotjs_jval_get_property(jobj, IOTJS_MAGIC_STRING_ONMESSAGECOMPLETE);
   IOTJS_ASSERT(jerry_value_is_function(func));
 
-  iotjs_make_callback(func, jobj, iotjs_jargs_get_empty());
+  iotjs_make_callback(func, jobj, NULL, 0);
 
   jerry_release_value(func);
 

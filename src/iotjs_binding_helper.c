@@ -27,12 +27,9 @@ void iotjs_uncaught_exception(jerry_value_t jexception) {
       iotjs_jval_get_property(process, IOTJS_MAGIC_STRING__ONUNCAUGHTEXCEPTION);
   IOTJS_ASSERT(jerry_value_is_function(jonuncaughtexception));
 
-  iotjs_jargs_t args = iotjs_jargs_create(1);
-  iotjs_jargs_append_jval(&args, jexception);
+  jerry_value_t jres =
+      jerry_call_function(jonuncaughtexception, process, &jexception, 1);
 
-  jerry_value_t jres = iotjs_jhelper_call(jonuncaughtexception, process, &args);
-
-  iotjs_jargs_destroy(&args);
   jerry_release_value(jonuncaughtexception);
 
   if (jerry_value_is_error(jres)) {
@@ -55,16 +52,14 @@ void iotjs_process_emit_exit(int code) {
       iotjs_jval_get_property(process, IOTJS_MAGIC_STRING_EMITEXIT);
 
   if (jerry_value_is_function(jexit)) {
-    iotjs_jargs_t jargs = iotjs_jargs_create(1);
-    iotjs_jargs_append_number(&jargs, code);
-
-    jerry_value_t jres = iotjs_jhelper_call(jexit, process, &jargs);
+    jerry_value_t jcode = jerry_create_number(code);
+    jerry_value_t jres = jerry_call_function(jexit, process, &jcode, 1);
 
     if (jerry_value_is_error(jres)) {
       iotjs_set_process_exitcode(2);
     }
 
-    iotjs_jargs_destroy(&jargs);
+    jerry_release_value(jcode);
     jerry_release_value(jres);
   }
 
@@ -87,8 +82,7 @@ bool iotjs_process_next_tick() {
   IOTJS_ASSERT(jerry_value_is_function(jon_next_tick));
 
   jerry_value_t jres =
-      iotjs_jhelper_call(jon_next_tick, jerry_create_undefined(),
-                         iotjs_jargs_get_empty());
+      jerry_call_function(jon_next_tick, jerry_create_undefined(), NULL, 0);
 
   bool ret = false;
 
@@ -106,23 +100,27 @@ bool iotjs_process_next_tick() {
 // Make a callback for the given `function` with `this_` binding and `args`
 // arguments. The next tick callbacks registered via `process.nextTick()`
 // will be called after the callback function `function` returns.
-void iotjs_make_callback(jerry_value_t jfunction, jerry_value_t jthis,
-                         const iotjs_jargs_t* jargs) {
+void iotjs_make_callback(jerry_value_t jfunc, jerry_value_t jthis,
+                         const jerry_value_t* jargv, size_t jargc) {
   jerry_value_t result =
-      iotjs_make_callback_with_result(jfunction, jthis, jargs);
+      iotjs_make_callback_with_result(jfunc, jthis, jargv, jargc);
   jerry_release_value(result);
 }
 
 
-jerry_value_t iotjs_make_callback_with_result(jerry_value_t jfunction,
+jerry_value_t iotjs_make_callback_with_result(jerry_value_t jfunc,
                                               jerry_value_t jthis,
-                                              const iotjs_jargs_t* jargs) {
+                                              const jerry_value_t* jargv,
+                                              size_t jargc) {
+  IOTJS_ASSERT(jerry_value_is_function(jfunc));
+
   // If the environment is already exiting just return an undefined value.
   if (iotjs_environment_is_exiting(iotjs_environment_get())) {
     return jerry_create_undefined();
   }
+
   // Calls back the function.
-  jerry_value_t jres = iotjs_jhelper_call(jfunction, jthis, jargs);
+  jerry_value_t jres = jerry_call_function(jfunc, jthis, jargv, jargc);
   if (jerry_value_is_error(jres)) {
     jerry_value_t errval = jerry_get_value_from_error(jres, false);
     iotjs_uncaught_exception(errval);

@@ -123,13 +123,12 @@ void iotjs_create_ack_callback(char *buffer, char *name, jerry_value_t jsref) {
       iotjs_mqtt_calculate_length(packet_identifier_MSB, packet_identifier_LSB);
 
   // The callback takes the packet identifier as parameter.
-  iotjs_jargs_t args = iotjs_jargs_create(1);
-  iotjs_jargs_append_number(&args, package_id);
+  jerry_value_t jpkg_id = jerry_create_number(package_id);
 
   jerry_value_t fn = iotjs_jval_get_property(jsref, name);
-  iotjs_make_callback(fn, jsref, &args);
+  iotjs_make_callback(fn, jsref, &jpkg_id, 1);
   jerry_release_value(fn);
-  iotjs_jargs_destroy(&args);
+  jerry_release_value(jpkg_id);
 }
 
 
@@ -387,7 +386,7 @@ static int iotjs_mqtt_handle(jerry_value_t jsref, char first_byte, char *buffer,
 
       jerry_value_t fn =
           iotjs_jval_get_property(jsref, IOTJS_MAGIC_STRING_ONCONNECTION);
-      iotjs_make_callback(fn, jsref, iotjs_jargs_get_empty());
+      iotjs_make_callback(fn, jsref, NULL, 0);
 
       jerry_release_value(fn);
       break;
@@ -440,19 +439,20 @@ static int iotjs_mqtt_handle(jerry_value_t jsref, char first_byte, char *buffer,
 
       memcpy(msg_wrap->buffer, buffer, payload_length);
 
-      iotjs_jargs_t args = iotjs_jargs_create(4);
-      iotjs_jargs_append_jval(&args, jmessage);
-      iotjs_jargs_append_string_raw(&args, topic_wrap->buffer);
-      iotjs_jargs_append_number(&args, header.bits.qos);
-      iotjs_jargs_append_number(&args, packet_identifier);
+      jerry_value_t args[4] = { jmessage,
+                                jerry_create_string_from_utf8(
+                                    (const jerry_char_t *)topic_wrap->buffer),
+                                jerry_create_number(header.bits.qos),
+                                jerry_create_number(packet_identifier) };
 
       jerry_value_t fn =
           iotjs_jval_get_property(jsref, IOTJS_MAGIC_STRING_ONMESSAGE);
-      iotjs_make_callback(fn, jsref, &args);
+      iotjs_make_callback(fn, jsref, args, 4);
       jerry_release_value(fn);
 
-      iotjs_jargs_destroy(&args);
-      jerry_release_value(jmessage);
+      for (int i = 0; i < 4; i++) {
+        jerry_release_value(args[i]);
+      }
       jerry_release_value(jtopic);
 
       break;
@@ -506,14 +506,13 @@ static int iotjs_mqtt_handle(jerry_value_t jsref, char first_byte, char *buffer,
       }
 
       // The callback takes the granted QoS as parameter.
-      iotjs_jargs_t args = iotjs_jargs_create(1);
-      iotjs_jargs_append_number(&args, return_code);
+      jerry_value_t jreturn_code = jerry_create_number(return_code);
 
       jerry_value_t sub_fn =
           iotjs_jval_get_property(jsref, IOTJS_MAGIC_STRING_ONSUBACK);
-      iotjs_make_callback(sub_fn, jsref, &args);
+      iotjs_make_callback(sub_fn, jsref, &jreturn_code, 1);
       jerry_release_value(sub_fn);
-      iotjs_jargs_destroy(&args);
+      jerry_release_value(jreturn_code);
       break;
     }
     case UNSUBACK: {
@@ -531,7 +530,7 @@ static int iotjs_mqtt_handle(jerry_value_t jsref, char first_byte, char *buffer,
 
       jerry_value_t fn =
           iotjs_jval_get_property(jsref, IOTJS_MAGIC_STRING_ONPINGRESP);
-      iotjs_make_callback(fn, jsref, iotjs_jargs_get_empty());
+      iotjs_make_callback(fn, jsref, NULL, 0);
       jerry_release_value(fn);
       break;
     }
@@ -542,7 +541,7 @@ static int iotjs_mqtt_handle(jerry_value_t jsref, char first_byte, char *buffer,
 
       jerry_value_t fn =
           iotjs_jval_get_property(jsref, IOTJS_MAGIC_STRING_ONEND);
-      iotjs_make_callback(fn, jsref, iotjs_jargs_get_empty());
+      iotjs_make_callback(fn, jsref, NULL, 0);
       jerry_release_value(fn);
       break;
     }

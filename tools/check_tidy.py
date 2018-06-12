@@ -29,6 +29,7 @@ from distutils import spawn
 from check_license import CheckLicenser
 from common_py.system.filesystem import FileSystem as fs
 from common_py.system.executor import Executor as ex
+from common_py.system.executor import Terminal
 
 
 def parse_option():
@@ -110,11 +111,11 @@ class ClangFormat(object):
         if not clang_format:
             clang_format = spawn.find_executable("clang-format")
             if clang_format:
-                print("%sUsing %s instead of %s%s"
-                      % (ex._TERM_YELLOW, clang_format, base, ex._TERM_EMPTY))
+                Terminal.pprint(
+                    "Using %s instead of %s" % (clang_format, base),
+                    Terminal.yellow)
             else:
-                print("%sNo %s found, skipping checks!%s"
-                      % (ex._TERM_RED, base, ex._TERM_EMPTY))
+                Terminal.pprint("No %s found, skipping checks!", Terminal.red)
 
         self._clang_format = clang_format
 
@@ -161,16 +162,14 @@ class EslintChecker(object):
     def _check_eslint(self):
         self._node = spawn.find_executable('node')
         if not self._node:
-            print('%sNo node found.%s'
-                    % (ex._TERM_RED, ex._TERM_EMPTY))
+            Terminal.pprint('No node found,', Terminal.red)
             return
 
         self._eslint = spawn.find_executable('node_modules/.bin/eslint')
         if not self._eslint:
             self._eslint = spawn.find_executable('eslint')
             if not self._eslint:
-                print('%sNo eslint found.%s'
-                        % (ex._TERM_RED, ex._TERM_EMPTY))
+                Terminal.pprint('No eslint found.', Terminal.red)
 
     def check(self):
         self.error_count = 0
@@ -264,8 +263,8 @@ def check_tidy(src_dir, options=None):
     print("* clang-format errors: %d" % clang.error_count)
     print("* eslint errors: %d" % eslint.error_count)
 
-    msg_color = ex._TERM_RED if total_errors > 0 else ex._TERM_GREEN
-    print("%s* total errors: %d%s" % (msg_color, total_errors, ex._TERM_EMPTY))
+    msg_color = Terminal.red if total_errors > 0 else Terminal.green
+    Terminal.pprint("* total errors: %d" % (total_errors), msg_color)
     print()
 
     if total_errors:

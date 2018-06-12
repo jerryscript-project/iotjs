@@ -30,6 +30,7 @@ import os
 from common_py import path
 from common_py.system.filesystem import FileSystem as fs
 from common_py.system.executor import Executor as ex
+from common_py.system.executor import Terminal
 from common_py.system.platform import Platform
 
 platform = Platform()
@@ -419,7 +420,7 @@ if __name__ == '__main__':
 
     build_iotjs(options)
 
-    print("\n%sIoT.js Build Succeeded!!%s\n" % (ex._TERM_GREEN, ex._TERM_EMPTY))
+    Terminal.pprint("\nIoT.js Build Succeeded!!\n", Terminal.green)
 
     # Run tests.
     if options.run_test:
@@ -433,8 +434,8 @@ if __name__ == '__main__':
         else:
             print("Skip unit tests - target-host pair is not allowed\n")
     else:
-        print("\n%sTo run tests use '--run-test' "
-              "or one of the folowing commands:%s"
-              % (ex._TERM_BLUE, ex._TERM_EMPTY))
+        Terminal.pprint("\nTo run tests use '--run-test' "
+                        "or one of the folowing commands:",
+                        Terminal.blue)
         print("\n    tools/testrunner.py %s/%s/%s/bin/iotjs\n"
               % (options.builddir, options.target_tuple, options.buildtype))

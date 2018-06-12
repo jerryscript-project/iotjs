@@ -343,8 +343,7 @@
       ],
       "reason": "need to setup test environment",
       "required-modules": [
-        "gpio",
-        "tools/systemio_common"
+        "gpio"
       ]
     },
     {
@@ -354,8 +353,7 @@
       ],
       "reason": "need to setup test environment",
       "required-modules": [
-        "gpio",
-        "tools/systemio_common"
+        "gpio"
       ]
     },
     {
@@ -365,8 +363,7 @@
       ],
       "reason": "need to setup test environment",
       "required-modules": [
-        "gpio",
-        "tools/systemio_common"
+        "gpio"
       ]
     },
     {
@@ -376,8 +373,7 @@
       ],
       "reason": "need to setup test environment",
       "required-modules": [
-        "i2c",
-        "tools/systemio_common"
+        "i2c"
       ]
     },
     {
@@ -661,8 +657,7 @@
       ],
       "reason": "need to setup test environment",
       "required-modules": [
-        "pwm",
-        "tools/systemio_common"
+        "pwm"
       ]
     },
     {
@@ -672,8 +667,7 @@
       ],
       "reason": "need to setup test environment",
       "required-modules": [
-        "pwm",
-        "tools/systemio_common"
+        "pwm"
       ]
     },
     {
@@ -683,8 +677,7 @@
       ],
       "reason": "Different env on Linux desktop/travis/rpi",
       "required-modules": [
-        "spi",
-        "tools/systemio_common"
+        "spi"
       ]
     },
     {
@@ -694,8 +687,7 @@
       ],
       "reason": "need to setup test environment",
       "required-modules": [
-        "spi",
-        "tools/systemio_common"
+        "spi"
       ]
     },
     {
@@ -705,8 +697,7 @@
       ],
       "reason": "need to setup test environment",
       "required-modules": [
-        "spi",
-        "tools/systemio_common"
+        "spi"
       ]
     },
     {
@@ -716,8 +707,7 @@
       ],
       "reason": "need to setup test environment",
       "required-modules": [
-        "spi",
-        "tools/systemio_common"
+        "spi"
       ]
     },
     {
@@ -781,8 +771,7 @@
       ],
       "reason": "need to setup test environment",
       "required-modules": [
-        "uart",
-        "tools/systemio_common"
+        "uart"
       ]
     },
     {

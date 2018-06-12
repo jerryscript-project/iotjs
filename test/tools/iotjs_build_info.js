@@ -26,7 +26,7 @@ function hasFeatures(object, features) {
   supported = true;
 
   for (feature in features) {
-    supported = supported && object.hasOwnProperty(feature);
+    supported = supported && object.hasOwnProperty(features[feature]);
   }
 
   return supported;
@@ -55,13 +55,13 @@ var typedArrayFeatures = [
   'Float64Array'
 ];
 
-if (hasFeatures(this, ['Promise']))
+if (hasFeatures(global, ['Promise']))
   features.Promise = true;
 
-if (hasFeatures(this, ['ArrayBuffer']))
+if (hasFeatures(global, ['ArrayBuffer']))
   features.ArrayBuffer = true;
 
-if (hasFeatures(this, typedArrayFeatures))
+if (hasFeatures(global, typedArrayFeatures))
   features.TypedArray = true;
 
 if (hasArrowFunction())

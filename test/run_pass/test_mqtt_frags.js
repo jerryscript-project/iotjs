@@ -123,10 +123,7 @@ var mqtt_client = mqtt.connect({
   socket: duplex,
 }, function() {
   /* Just subscribe a random topic. */
-  mqtt_client.subscribe({
-    topic: "general/topic",
-    qos:0
-  });
+  mqtt_client.subscribe('general/topic');
 });
 
 mqtt_client.on('message', function(data) {

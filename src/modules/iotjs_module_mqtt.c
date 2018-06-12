@@ -107,7 +107,7 @@ static uint16_t iotjs_mqtt_calculate_length(uint8_t msb, uint8_t lsb) {
 
 
 static uint8_t *iotjs_mqtt_string_serialize(uint8_t *dst_buffer,
-                                            iotjs_bufferwrap_t *src_buffer) {
+                                            iotjs_tmp_buffer_t *src_buffer) {
   uint16_t len = src_buffer->length;
   dst_buffer[0] = (uint8_t)(len >> 8);
   dst_buffer[1] = (uint8_t)(len & 0x00FF);
@@ -115,16 +115,20 @@ static uint8_t *iotjs_mqtt_string_serialize(uint8_t *dst_buffer,
   return (dst_buffer + 2 + src_buffer->length);
 }
 
-void iotjs_create_ack_callback(char *buffer, char *name, jerry_value_t jsref) {
-  uint8_t packet_identifier_MSB = (uint8_t)buffer[2];
-  uint8_t packet_identifier_LSB = (uint8_t)buffer[3];
-
+void iotjs_mqtt_ack(char *buffer, char *name, jerry_value_t jsref,
+                    char *error) {
   uint16_t package_id =
-      iotjs_mqtt_calculate_length(packet_identifier_MSB, packet_identifier_LSB);
+      iotjs_mqtt_calculate_length((uint8_t)buffer[0], (uint8_t)buffer[1]);
 
   // The callback takes the packet identifier as parameter.
-  iotjs_jargs_t args = iotjs_jargs_create(1);
+  iotjs_jargs_t args = iotjs_jargs_create(2);
   iotjs_jargs_append_number(&args, package_id);
+
+  if (error) {
+    iotjs_jargs_append_error(&args, error);
+  } else {
+    iotjs_jargs_append_undefined(&args);
+  }
 
   jerry_value_t fn = iotjs_jval_get_property(jsref, name);
   iotjs_make_callback(fn, jsref, &args);
@@ -153,45 +157,57 @@ JS_FUNCTION(MqttConnect) {
 
   jerry_value_t joptions = JS_GET_ARG(0, object);
 
-  jerry_value_t jclient_id =
-      iotjs_jval_get_property(joptions, IOTJS_MAGIC_STRING_CLIENTID);
-  jerry_value_t jusername =
-      iotjs_jval_get_property(joptions, IOTJS_MAGIC_STRING_USERNAME);
-  jerry_value_t jpassword =
-      iotjs_jval_get_property(joptions, IOTJS_MAGIC_STRING_PASSWORD);
+  iotjs_tmp_buffer_t client_id;
+  iotjs_jval_get_jproperty_as_tmp_buffer(joptions, IOTJS_MAGIC_STRING_CLIENTID,
+                                         &client_id);
+  iotjs_tmp_buffer_t username;
+  iotjs_jval_get_jproperty_as_tmp_buffer(joptions, IOTJS_MAGIC_STRING_USERNAME,
+                                         &username);
+  iotjs_tmp_buffer_t password;
+  iotjs_jval_get_jproperty_as_tmp_buffer(joptions, IOTJS_MAGIC_STRING_PASSWORD,
+                                         &password);
+  iotjs_tmp_buffer_t message;
+  iotjs_jval_get_jproperty_as_tmp_buffer(joptions, IOTJS_MAGIC_STRING_MESSAGE,
+                                         &message);
+  iotjs_tmp_buffer_t topic;
+  iotjs_jval_get_jproperty_as_tmp_buffer(joptions, IOTJS_MAGIC_STRING_TOPIC,
+                                         &topic);
+
+  if (client_id.buffer == NULL || client_id.length >= UINT16_MAX ||
+      username.length >= UINT16_MAX || password.length >= UINT16_MAX ||
+      message.length >= UINT16_MAX || topic.length >= UINT16_MAX) {
+    iotjs_free_tmp_buffer(&client_id);
+    iotjs_free_tmp_buffer(&username);
+    iotjs_free_tmp_buffer(&password);
+    iotjs_free_tmp_buffer(&message);
+    iotjs_free_tmp_buffer(&topic);
+    return JS_CREATE_ERROR(COMMON, "mqtt id too long (max: 65535)");
+  }
+
   jerry_value_t jkeepalive =
       iotjs_jval_get_property(joptions, IOTJS_MAGIC_STRING_KEEPALIVE);
   jerry_value_t jwill =
       iotjs_jval_get_property(joptions, IOTJS_MAGIC_STRING_WILL);
   jerry_value_t jqos =
       iotjs_jval_get_property(joptions, IOTJS_MAGIC_STRING_QOS);
-  jerry_value_t jmessage =
-      iotjs_jval_get_property(joptions, IOTJS_MAGIC_STRING_MESSAGE);
-  jerry_value_t jtopic =
-      iotjs_jval_get_property(joptions, IOTJS_MAGIC_STRING_TOPIC);
   jerry_value_t jretain =
-      iotjs_jval_get_property(joptions, IOTJS_MAGIC_STRING_TOPIC);
+      iotjs_jval_get_property(joptions, IOTJS_MAGIC_STRING_RETAIN);
 
   uint8_t connect_flags = 0;
-  uint8_t keep_alive_msb = 0;
-  uint8_t keep_alive_lsb = 10;
   connect_flags |= MQTT_FLAG_CLEANSESSION;
-  iotjs_bufferwrap_t *username = NULL;
-  iotjs_bufferwrap_t *password = NULL;
-  iotjs_bufferwrap_t *message = NULL;
-  iotjs_bufferwrap_t *topic = NULL;
 
   uint8_t header_byte = 0;
   header_byte |= (CONNECT << 4);
 
-
   if (!jerry_value_is_undefined(jwill) && jerry_get_boolean_value(jwill)) {
     connect_flags |= MQTT_FLAG_WILL;
-    if (!jerry_value_is_undefined(jqos)) {
-      uint8_t qos = 0;
-      qos = jerry_get_number_value(qos);
-      if (qos) {
-        connect_flags |= (qos == 1) ? MQTT_FLAG_WILLQOS_1 : MQTT_FLAG_WILLQOS_2;
+    if (jerry_value_is_number(jqos)) {
+      double qos = jerry_get_number_value(jqos);
+
+      if (qos == 1.0) {
+        connect_flags |= MQTT_FLAG_WILLQOS_1;
+      } else if (qos == 2.0) {
+        connect_flags |= MQTT_FLAG_WILLQOS_2;
       }
     }
 
@@ -199,26 +215,24 @@ JS_FUNCTION(MqttConnect) {
         jerry_get_boolean_value(jretain)) {
       connect_flags |= MQTT_FLAG_WILLRETAIN;
     }
-    message = iotjs_bufferwrap_from_jbuffer(jmessage);
-    topic = iotjs_bufferwrap_from_jbuffer(jtopic);
   }
 
-  if (!jerry_value_is_undefined(jusername)) {
+  if (username.buffer != NULL) {
     connect_flags |= MQTT_FLAG_USERNAME;
-    username = iotjs_bufferwrap_from_jbuffer(jusername);
   }
-  if (!jerry_value_is_undefined(jpassword)) {
+  if (password.buffer != NULL) {
     connect_flags |= MQTT_FLAG_PASSWORD;
-    password = iotjs_bufferwrap_from_jbuffer(jpassword);
-  }
-  if (!jerry_value_is_undefined(jkeepalive)) {
-    uint16_t len = jerry_get_number_value(jkeepalive);
-    keep_alive_msb = (uint8_t)(len >> 8);
-    keep_alive_lsb = (uint8_t)(len & 0x00FF);
   }
 
+  uint16_t keepalive = 0;
 
-  iotjs_bufferwrap_t *client_id = iotjs_bufferwrap_from_jbuffer(jclient_id);
+  if (jerry_value_is_number(jkeepalive)) {
+    keepalive = (uint16_t)jerry_get_number_value(jkeepalive);
+  }
+
+  if (keepalive < 30) {
+    keepalive = 30;
+  }
 
   unsigned char variable_header_protocol[7];
   variable_header_protocol[0] = 0;
@@ -230,20 +244,21 @@ JS_FUNCTION(MqttConnect) {
   variable_header_protocol[6] = 4;
 
   size_t variable_header_len = sizeof(variable_header_protocol) +
-                               sizeof(connect_flags) + sizeof(keep_alive_lsb) +
-                               sizeof(keep_alive_msb);
+                               sizeof(connect_flags) + IOTJS_MQTT_LSB_MSB_SIZE;
 
-  size_t payload_len = client_id->length + IOTJS_MQTT_LSB_MSB_SIZE;
+  size_t payload_len = IOTJS_MQTT_LSB_MSB_SIZE + client_id.length;
+
   if (connect_flags & MQTT_FLAG_USERNAME) {
-    payload_len += IOTJS_MQTT_LSB_MSB_SIZE + username->length;
+    payload_len += IOTJS_MQTT_LSB_MSB_SIZE + username.length;
   }
   if (connect_flags & MQTT_FLAG_PASSWORD) {
-    payload_len += IOTJS_MQTT_LSB_MSB_SIZE + password->length;
+    payload_len += IOTJS_MQTT_LSB_MSB_SIZE + password.length;
   }
   if (connect_flags & MQTT_FLAG_WILL) {
-    payload_len += IOTJS_MQTT_LSB_MSB_SIZE + topic->length;
-    payload_len += IOTJS_MQTT_LSB_MSB_SIZE + message->length;
+    payload_len += IOTJS_MQTT_LSB_MSB_SIZE + topic.length;
+    payload_len += IOTJS_MQTT_LSB_MSB_SIZE + message.length;
   }
+
   uint32_t remaining_length = payload_len + variable_header_len;
   size_t full_len = sizeof(header_byte) +
                     get_remaining_length_size(remaining_length) +
@@ -260,32 +275,33 @@ JS_FUNCTION(MqttConnect) {
   memcpy(buff_ptr, variable_header_protocol, sizeof(variable_header_protocol));
   buff_ptr += sizeof(variable_header_protocol);
   *buff_ptr++ = connect_flags;
-  *buff_ptr++ = keep_alive_msb;
-  *buff_ptr++ = keep_alive_lsb;
+  *buff_ptr++ = (uint8_t)(keepalive >> 8);
+  *buff_ptr++ = (uint8_t)(keepalive & 0x00FF);
 
-  buff_ptr = iotjs_mqtt_string_serialize(buff_ptr, client_id);
+  buff_ptr = iotjs_mqtt_string_serialize(buff_ptr, &client_id);
 
   if (connect_flags & MQTT_FLAG_WILL) {
-    buff_ptr = iotjs_mqtt_string_serialize(buff_ptr, topic);
-    buff_ptr = iotjs_mqtt_string_serialize(buff_ptr, message);
+    buff_ptr = iotjs_mqtt_string_serialize(buff_ptr, &topic);
+    buff_ptr = iotjs_mqtt_string_serialize(buff_ptr, &message);
   }
 
   if (connect_flags & MQTT_FLAG_USERNAME) {
-    buff_ptr = iotjs_mqtt_string_serialize(buff_ptr, username);
+    buff_ptr = iotjs_mqtt_string_serialize(buff_ptr, &username);
   }
   if (connect_flags & MQTT_FLAG_PASSWORD) {
-    buff_ptr = iotjs_mqtt_string_serialize(buff_ptr, password);
+    buff_ptr = iotjs_mqtt_string_serialize(buff_ptr, &password);
   }
 
-  jerry_release_value(jretain);
-  jerry_release_value(jtopic);
-  jerry_release_value(jmessage);
-  jerry_release_value(jqos);
-  jerry_release_value(jwill);
+  iotjs_free_tmp_buffer(&client_id);
+  iotjs_free_tmp_buffer(&username);
+  iotjs_free_tmp_buffer(&password);
+  iotjs_free_tmp_buffer(&message);
+  iotjs_free_tmp_buffer(&topic);
+
   jerry_release_value(jkeepalive);
-  jerry_release_value(jclient_id);
-  jerry_release_value(jusername);
-  jerry_release_value(jpassword);
+  jerry_release_value(jwill);
+  jerry_release_value(jqos);
+  jerry_release_value(jretain);
 
   return jbuff;
 }
@@ -294,50 +310,45 @@ JS_FUNCTION(MqttConnect) {
 JS_FUNCTION(MqttPublish) {
   DJS_CHECK_THIS();
 
-  DJS_CHECK_ARGS(1, object);
+  DJS_CHECK_ARGS(3, any, any, number);
 
-  jerry_value_t joptions = JS_GET_ARG(0, object);
+  iotjs_tmp_buffer_t topic;
+  iotjs_jval_as_tmp_buffer(JS_GET_ARG(0, any), &topic);
 
-  jerry_value_t jmessage =
-      iotjs_jval_get_property(joptions, IOTJS_MAGIC_STRING_MESSAGE);
-  jerry_value_t jtopic =
-      iotjs_jval_get_property(joptions, IOTJS_MAGIC_STRING_TOPIC);
-  jerry_value_t jretain =
-      iotjs_jval_get_property(joptions, IOTJS_MAGIC_STRING_RETAIN);
-  jerry_value_t jqos =
-      iotjs_jval_get_property(joptions, IOTJS_MAGIC_STRING_QOS);
-  jerry_value_t jpacket_id =
-      iotjs_jval_get_property(joptions, IOTJS_MAGIC_STRING_PACKETID);
-
-  uint8_t qos = 0;
-  if (jerry_value_is_number(jqos)) {
-    qos = jerry_get_number_value(jqos);
+  if (jerry_value_is_error(topic.jval)) {
+    return topic.jval;
   }
 
-  bool dup = false;
+  if (topic.buffer == NULL || topic.length >= UINT16_MAX) {
+    iotjs_free_tmp_buffer(&topic);
+
+    return JS_CREATE_ERROR(COMMON, "Topic for PUBLISH is empty or too long.");
+  }
+
+  iotjs_tmp_buffer_t message;
+  iotjs_jval_as_tmp_buffer(JS_GET_ARG(1, any), &message);
+
+  if (jerry_value_is_error(message.jval)) {
+    iotjs_free_tmp_buffer(&topic);
+    return message.jval;
+  }
+
+  // header bits: | 16 bit packet id | 4 bit PUBLISH header |
+  uint32_t header = (uint32_t)JS_GET_ARG(2, number);
+  uint32_t packet_identifier = (header >> 4);
 
   uint8_t header_byte = 0;
-  header_byte |= (PUBLISH << 4);
-  header_byte |= (dup << 3);
-  header_byte |= (qos << 1);
-  header_byte |= (jerry_get_boolean_value(jretain));
+  header_byte |= (PUBLISH << 4) | (header & 0xf);
 
-  iotjs_bufferwrap_t *message_payload = iotjs_bufferwrap_from_jbuffer(jmessage);
-  iotjs_bufferwrap_t *topic_payload = iotjs_bufferwrap_from_jbuffer(jtopic);
+  const uint8_t qos_mask = (0x3 << 1);
 
-  uint8_t packet_identifier_lsb = 0;
-  uint8_t packet_identifier_msb = 0;
+  size_t payload_len = message.length + IOTJS_MQTT_LSB_MSB_SIZE;
+  size_t variable_header_len = topic.length + IOTJS_MQTT_LSB_MSB_SIZE;
 
-  if (qos > 0 && jerry_value_is_number(jpacket_id)) {
-    uint16_t packet_identifier = jerry_get_number_value(jpacket_id);
-    packet_identifier_msb = (uint8_t)(packet_identifier >> 8);
-    packet_identifier_lsb = (uint8_t)(packet_identifier & 0x00FF);
+  if (header_byte & qos_mask) {
+    variable_header_len += IOTJS_MQTT_LSB_MSB_SIZE;
   }
 
-  size_t payload_len = message_payload->length + IOTJS_MQTT_LSB_MSB_SIZE;
-  size_t variable_header_len = topic_payload->length + IOTJS_MQTT_LSB_MSB_SIZE +
-                               sizeof(packet_identifier_msb) +
-                               sizeof(packet_identifier_lsb);
   uint32_t remaining_length = payload_len + variable_header_len;
   size_t full_len = sizeof(header_byte) +
                     get_remaining_length_size(remaining_length) +
@@ -350,21 +361,21 @@ JS_FUNCTION(MqttPublish) {
 
   *buff_ptr++ = header_byte;
   buff_ptr = iotjs_encode_remaining_length(buff_ptr, remaining_length);
-  buff_ptr = iotjs_mqtt_string_serialize(buff_ptr, topic_payload);
-  if (qos > 0) {
-    *buff_ptr++ = packet_identifier_msb;
-    *buff_ptr++ = packet_identifier_lsb;
+  buff_ptr = iotjs_mqtt_string_serialize(buff_ptr, &topic);
+
+  if (header_byte & qos_mask) {
+    // Packet id format is MSB / LSB.
+    *buff_ptr++ = (uint8_t)(packet_identifier >> 8);
+    *buff_ptr++ = (uint8_t)(packet_identifier & 0x00FF);
   }
 
   // Don't need to put length before the payload, so we can't use the
   // iotjs_mqtt_string_serialize. The broker and the other clients calculate
   // the payload length from remaining length and the topic length.
-  memcpy(buff_ptr, message_payload->buffer, message_payload->length);
+  memcpy(buff_ptr, message.buffer, message.length);
 
-  jerry_release_value(jmessage);
-  jerry_release_value(jtopic);
-  jerry_release_value(jretain);
-
+  iotjs_free_tmp_buffer(&message);
+  iotjs_free_tmp_buffer(&topic);
   return jbuff;
 }
 
@@ -410,10 +421,8 @@ static int iotjs_mqtt_handle(jerry_value_t jsref, char first_byte, char *buffer,
         return MQTT_ERR_CORRUPTED_PACKET;
       }
 
-      jerry_value_t jtopic = iotjs_bufferwrap_create_buffer(topic_length);
-      iotjs_bufferwrap_t *topic_wrap = iotjs_bufferwrap_from_jbuffer(jtopic);
-
-      memcpy(topic_wrap->buffer, buffer, topic_length);
+      const jerry_char_t *topic = (const jerry_char_t *)buffer;
+      jerry_value_t jtopic = jerry_create_string_sz(topic, topic_length);
       buffer += topic_length;
 
       // The Packet Identifier field is only present in PUBLISH packets
@@ -442,7 +451,7 @@ static int iotjs_mqtt_handle(jerry_value_t jsref, char first_byte, char *buffer,
 
       iotjs_jargs_t args = iotjs_jargs_create(4);
       iotjs_jargs_append_jval(&args, jmessage);
-      iotjs_jargs_append_string_raw(&args, topic_wrap->buffer);
+      iotjs_jargs_append_jval(&args, jtopic);
       iotjs_jargs_append_number(&args, header.bits.qos);
       iotjs_jargs_append_number(&args, packet_identifier);
 
@@ -458,74 +467,62 @@ static int iotjs_mqtt_handle(jerry_value_t jsref, char first_byte, char *buffer,
       break;
     }
     case PUBACK: {
-      if (packet_size != 2) {
+      if (packet_size != 2 || (first_byte & 0x0F) != 0x0) {
         return MQTT_ERR_CORRUPTED_PACKET;
       }
 
-      iotjs_create_ack_callback(buffer, IOTJS_MAGIC_STRING_ONPUBACK, jsref);
+      iotjs_mqtt_ack(buffer, IOTJS_MAGIC_STRING_ONACK, jsref, NULL);
       break;
     }
     case PUBREC: {
-      if (packet_size != 2) {
+      if (packet_size != 2 || (first_byte & 0x0F) != 0x0) {
         return MQTT_ERR_CORRUPTED_PACKET;
       }
 
-      iotjs_create_ack_callback(buffer, IOTJS_MAGIC_STRING_ONPUBREC, jsref);
+      iotjs_mqtt_ack(buffer, IOTJS_MAGIC_STRING_ONPUBREC, jsref, NULL);
       break;
     }
     case PUBREL: {
-      if (packet_size != 2) {
+      if (packet_size != 2 || (first_byte & 0x0F) != 0x2) {
         return MQTT_ERR_CORRUPTED_PACKET;
       }
 
-      char control_packet_reserved = first_byte & 0x0F;
-      if (control_packet_reserved != 2) {
-        return MQTT_ERR_CORRUPTED_PACKET;
-      }
-
-      iotjs_create_ack_callback(buffer, IOTJS_MAGIC_STRING_ONPUBREL, jsref);
+      iotjs_mqtt_ack(buffer, IOTJS_MAGIC_STRING_ONPUBREL, jsref, NULL);
       break;
     }
     case PUBCOMP: {
-      if (packet_size != 2) {
+      if (packet_size != 2 || (first_byte & 0x0F) != 0x0) {
         return MQTT_ERR_CORRUPTED_PACKET;
       }
 
-      iotjs_create_ack_callback(buffer, IOTJS_MAGIC_STRING_ONPUBCOMP, jsref);
+      iotjs_mqtt_ack(buffer, IOTJS_MAGIC_STRING_ONACK, jsref, NULL);
       break;
     }
     case SUBACK: {
       // We assume that only one topic was in the SUBSCRIBE packet.
-      if (packet_size != 3) {
+      if (packet_size != 3 || (first_byte & 0x0F) != 0x0) {
         return MQTT_ERR_CORRUPTED_PACKET;
       }
 
-      uint8_t return_code = (uint8_t)buffer[2];
-      if (return_code == 128) {
-        return MQTT_ERR_SUBSCRIPTION_FAILED;
+      char *error = NULL;
+
+      if ((uint8_t)buffer[2] == 0x80) {
+        error = "Subscribe failed";
       }
 
-      // The callback takes the granted QoS as parameter.
-      iotjs_jargs_t args = iotjs_jargs_create(1);
-      iotjs_jargs_append_number(&args, return_code);
-
-      jerry_value_t sub_fn =
-          iotjs_jval_get_property(jsref, IOTJS_MAGIC_STRING_ONSUBACK);
-      iotjs_make_callback(sub_fn, jsref, &args);
-      jerry_release_value(sub_fn);
-      iotjs_jargs_destroy(&args);
+      iotjs_mqtt_ack(buffer, IOTJS_MAGIC_STRING_ONACK, jsref, error);
       break;
     }
     case UNSUBACK: {
-      if (packet_size != 2) {
+      if (packet_size != 2 || (first_byte & 0x0F) != 0x0) {
         return MQTT_ERR_CORRUPTED_PACKET;
       }
 
-      iotjs_create_ack_callback(buffer, IOTJS_MAGIC_STRING_ONUNSUBACK, jsref);
+      iotjs_mqtt_ack(buffer, IOTJS_MAGIC_STRING_ONACK, jsref, NULL);
       break;
     }
     case PINGRESP: {
-      if (packet_size != 0) {
+      if (packet_size != 0 || (first_byte & 0x0F) != 0x0) {
         return MQTT_ERR_CORRUPTED_PACKET;
       }
 
@@ -536,7 +533,7 @@ static int iotjs_mqtt_handle(jerry_value_t jsref, char first_byte, char *buffer,
       break;
     }
     case DISCONNECT: {
-      if (packet_size != 0) {
+      if (packet_size != 0 || (first_byte & 0x0F) != 0x0) {
         return MQTT_ERR_CORRUPTED_PACKET;
       }
 
@@ -708,38 +705,31 @@ JS_FUNCTION(MqttReceive) {
 
 JS_FUNCTION(MqttSubscribe) {
   DJS_CHECK_THIS();
-  DJS_CHECK_ARGS(1, object);
+  DJS_CHECK_ARGS(2, any, number);
 
-  jerry_value_t joptions = JS_GET_ARG(0, object);
+  iotjs_tmp_buffer_t topic;
+  iotjs_jval_as_tmp_buffer(JS_GET_ARG(0, any), &topic);
 
-  jerry_value_t jtopic =
-      iotjs_jval_get_property(joptions, IOTJS_MAGIC_STRING_TOPIC);
-  jerry_value_t jqos =
-      iotjs_jval_get_property(joptions, IOTJS_MAGIC_STRING_QOS);
-
-  uint8_t qos = 0;
-  if (jerry_value_is_number(jqos)) {
-    qos = (uint8_t)jerry_get_number_value(jqos);
+  if (jerry_value_is_error(topic.jval)) {
+    return topic.jval;
   }
 
-  bool dup = false;
-  bool retain = false;
+  if (topic.buffer == NULL || topic.length >= UINT16_MAX) {
+    iotjs_free_tmp_buffer(&topic);
 
-  uint8_t header_byte = 0;
-  header_byte |= (SUBSCRIBE << 4);
-  header_byte |= (dup << 3);
-  header_byte |= (1 << 1); // always 1
-  header_byte |= retain;
+    return JS_CREATE_ERROR(COMMON, "Topic for SUBSCRIBE is empty or too long.");
+  }
 
-  iotjs_bufferwrap_t *topic_payload = iotjs_bufferwrap_from_jbuffer(jtopic);
+  // header bits: | 16 bit packet id | 2 bit qos |
+  uint32_t header = (uint32_t)JS_GET_ARG(1, number);
+  uint32_t packet_identifier = (header >> 2);
+  uint8_t qos = (header & 0x3);
 
-  uint8_t packet_identifier_lsb = 0;
-  uint8_t packet_identifier_msb = 0;
+  // Low 4 bits must be 0,0,1,0
+  uint8_t header_byte = (SUBSCRIBE << 4) | (1 << 1);
 
-  size_t payload_len =
-      sizeof(qos) + topic_payload->length + IOTJS_MQTT_LSB_MSB_SIZE;
-  size_t variable_header_len =
-      sizeof(packet_identifier_msb) + sizeof(packet_identifier_lsb);
+  size_t payload_len = sizeof(uint8_t) + topic.length + IOTJS_MQTT_LSB_MSB_SIZE;
+  size_t variable_header_len = IOTJS_MQTT_LSB_MSB_SIZE;
   uint32_t remaining_length = payload_len + variable_header_len;
   size_t full_len = sizeof(header_byte) +
                     get_remaining_length_size(remaining_length) +
@@ -754,16 +744,65 @@ JS_FUNCTION(MqttSubscribe) {
 
   buff_ptr = iotjs_encode_remaining_length(buff_ptr, remaining_length);
 
-  *buff_ptr++ = packet_identifier_msb;
-  *buff_ptr++ = packet_identifier_lsb;
+  // Packet id format is MSB / LSB.
+  *buff_ptr++ = (uint8_t)(packet_identifier >> 8);
+  *buff_ptr++ = (uint8_t)(packet_identifier & 0x00FF);
 
-  buff_ptr = iotjs_mqtt_string_serialize(buff_ptr, topic_payload);
+  buff_ptr = iotjs_mqtt_string_serialize(buff_ptr, &topic);
 
   buff_ptr[0] = qos;
 
-  jerry_release_value(jtopic);
-  jerry_release_value(jqos);
+  iotjs_free_tmp_buffer(&topic);
+  return jbuff;
+}
 
+
+JS_FUNCTION(MqttUnsubscribe) {
+  DJS_CHECK_THIS();
+  DJS_CHECK_ARGS(2, any, number);
+
+  iotjs_tmp_buffer_t topic;
+  iotjs_jval_as_tmp_buffer(JS_GET_ARG(0, any), &topic);
+
+  if (jerry_value_is_error(topic.jval)) {
+    return topic.jval;
+  }
+
+  if (topic.buffer == NULL || topic.length >= UINT16_MAX) {
+    iotjs_free_tmp_buffer(&topic);
+
+    return JS_CREATE_ERROR(COMMON, "Topic for SUBSCRIBE is empty or too long.");
+  }
+
+  // header bits: | 16 bit packet id |
+  uint32_t packet_identifier = (uint32_t)JS_GET_ARG(1, number);
+
+  // Low 4 bits must be 0,0,1,0
+  uint8_t header_byte = (UNSUBSCRIBE << 4) | (1 << 1);
+
+  size_t payload_len = topic.length + IOTJS_MQTT_LSB_MSB_SIZE;
+  size_t variable_header_len = IOTJS_MQTT_LSB_MSB_SIZE;
+  uint32_t remaining_length = payload_len + variable_header_len;
+  size_t full_len = sizeof(header_byte) +
+                    get_remaining_length_size(remaining_length) +
+                    variable_header_len + payload_len;
+
+  jerry_value_t jbuff = iotjs_bufferwrap_create_buffer(full_len);
+  iotjs_bufferwrap_t *buffer_wrap = iotjs_bufferwrap_from_jbuffer(jbuff);
+
+  uint8_t *buff_ptr = (uint8_t *)buffer_wrap->buffer;
+
+  *buff_ptr++ = header_byte;
+
+  buff_ptr = iotjs_encode_remaining_length(buff_ptr, remaining_length);
+
+  // Packet id format is MSB / LSB.
+  *buff_ptr++ = (uint8_t)(packet_identifier >> 8);
+  *buff_ptr++ = (uint8_t)(packet_identifier & 0x00FF);
+
+  buff_ptr = iotjs_mqtt_string_serialize(buff_ptr, &topic);
+
+  iotjs_free_tmp_buffer(&topic);
   return jbuff;
 }
 
@@ -784,48 +823,6 @@ JS_FUNCTION(MqttPing) {
 
   buff_ptr[0] = header_byte;
   buff_ptr[1] = remaining_length;
-
-  return jbuff;
-}
-
-
-JS_FUNCTION(MqttUnsubscribe) {
-  DJS_CHECK_THIS();
-  DJS_CHECK_ARGS(1, object);
-
-  jerry_value_t jtopic = JS_GET_ARG(0, object);
-
-  iotjs_bufferwrap_t *topic_payload = iotjs_bufferwrap_from_jbuffer(jtopic);
-
-  uint8_t header_byte = 0;
-  header_byte |= (UNSUBSCRIBE << 4);
-  // Reserved
-  header_byte |= (1 << 1);
-
-  uint8_t packet_identifier_msb = 0;
-  uint8_t packet_identifier_lsb = 0;
-
-  size_t payload_len = topic_payload->length + IOTJS_MQTT_LSB_MSB_SIZE;
-  size_t variable_header_len =
-      sizeof(packet_identifier_msb) + sizeof(packet_identifier_lsb);
-  uint32_t remaining_length = payload_len + variable_header_len;
-  size_t full_len = sizeof(header_byte) +
-                    get_remaining_length_size(remaining_length) +
-                    variable_header_len + payload_len;
-
-  jerry_value_t jbuff = iotjs_bufferwrap_create_buffer(full_len);
-  iotjs_bufferwrap_t *buffer_wrap = iotjs_bufferwrap_from_jbuffer(jbuff);
-
-  uint8_t *buff_ptr = (uint8_t *)buffer_wrap->buffer;
-
-  *buff_ptr++ = header_byte;
-
-  buff_ptr = iotjs_encode_remaining_length(buff_ptr, remaining_length);
-
-  *buff_ptr++ = packet_identifier_msb;
-  *buff_ptr++ = packet_identifier_lsb;
-
-  buff_ptr = iotjs_mqtt_string_serialize(buff_ptr, topic_payload);
 
   return jbuff;
 }
@@ -855,16 +852,13 @@ JS_FUNCTION(MqttSendAck) {
   DJS_CHECK_THIS();
   DJS_CHECK_ARGS(2, number, number);
 
-  jerry_value_t jack_type = JS_GET_ARG(0, number);
-  jerry_value_t jpacket_id = JS_GET_ARG(1, number);
-
-  uint8_t ack_type = (uint8_t)jerry_get_number_value(jack_type);
-  uint16_t packet_id = (uint16_t)jerry_get_number_value(jpacket_id);
+  uint8_t ack_type = (uint8_t)JS_GET_ARG(0, number);
+  uint16_t packet_id = (uint16_t)JS_GET_ARG(1, number);
 
   uint8_t header_byte = (ack_type << 4);
 
   if (ack_type == PUBREL) {
-    header_byte |= 2;
+    header_byte |= 0x2;
   }
 
   uint8_t packet_identifier_msb = (uint8_t)(packet_id >> 8);

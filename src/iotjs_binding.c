@@ -125,6 +125,97 @@ bool iotjs_jbuffer_as_string(jerry_value_t jval, iotjs_string_t* out_string) {
 }
 
 
+void iotjs_jval_as_tmp_buffer(jerry_value_t jval,
+                              iotjs_tmp_buffer_t* out_buffer) {
+  out_buffer->jval = jerry_create_undefined();
+  out_buffer->buffer = NULL;
+  out_buffer->length = 0;
+
+  if (jerry_value_is_undefined(jval)) {
+    return;
+  }
+
+  iotjs_bufferwrap_t* buffer_wrap = iotjs_jbuffer_get_bufferwrap_ptr(jval);
+
+  if (buffer_wrap != NULL) {
+    IOTJS_ASSERT(buffer_wrap->jobject == jval);
+
+    jerry_acquire_value(jval);
+    out_buffer->jval = buffer_wrap->jobject;
+    out_buffer->buffer = buffer_wrap->buffer;
+    out_buffer->length = buffer_wrap->length;
+    return;
+  }
+
+  bool was_string = true;
+
+  if (!jerry_value_is_string(jval)) {
+    jval = jerry_value_to_string(jval);
+
+    if (jerry_value_is_error(jval)) {
+      out_buffer->jval = jval;
+      return;
+    }
+
+    was_string = false;
+  }
+
+  jerry_size_t size = jerry_get_string_size(jval);
+
+  if (size == 0) {
+    if (!was_string) {
+      jerry_release_value(jval);
+    }
+    return;
+  }
+
+  char* buffer = iotjs_buffer_allocate(size);
+  size_t check = jerry_string_to_char_buffer(jval, (jerry_char_t*)buffer, size);
+
+  IOTJS_ASSERT(check == size);
+
+  out_buffer->buffer = buffer;
+  out_buffer->length = size;
+
+  if (!was_string) {
+    jerry_release_value(jval);
+  }
+}
+
+
+void iotjs_jval_get_jproperty_as_tmp_buffer(jerry_value_t jobj,
+                                            const char* name,
+                                            iotjs_tmp_buffer_t* out_buffer) {
+  jerry_value_t jproperty = iotjs_jval_get_property(jobj, name);
+
+  if (jerry_value_is_error(jproperty)) {
+    out_buffer->jval = jproperty;
+    out_buffer->buffer = NULL;
+    out_buffer->length = 0;
+    return;
+  }
+
+  iotjs_jval_as_tmp_buffer(jproperty, out_buffer);
+
+  jerry_release_value(jproperty);
+}
+
+
+void iotjs_free_tmp_buffer(iotjs_tmp_buffer_t* tmp_buffer) {
+  if (jerry_value_is_undefined(tmp_buffer->jval)) {
+    if (tmp_buffer->buffer != NULL) {
+      iotjs_buffer_release(tmp_buffer->buffer);
+    }
+    return;
+  }
+
+  IOTJS_ASSERT(!jerry_value_is_error(tmp_buffer->jval) ||
+               tmp_buffer->buffer == NULL);
+
+  jerry_release_value(tmp_buffer->jval);
+}
+
+
 iotjs_string_t iotjs_jval_as_string(jerry_value_t jval) {
   IOTJS_ASSERT(jerry_value_is_string(jval));
 

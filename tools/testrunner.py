@@ -18,11 +18,18 @@ from __future__ import print_function
 
 import argparse
 import json
+import multiprocessing
 import os
-import signal
 import subprocess
 import sys
 import time
+
+try:
+    import queue
+except ImportError:
+    # Backwards compatibility
+    import Queue as queue
+
 
 from collections import OrderedDict
 from common_py import path
@@ -132,16 +139,9 @@ class Reporter(object):
         Reporter.message("  SKIP:    %d" % results["skip"], Terminal.yellow)
 
 
-class TimeoutException(Exception):
-    pass
-
-
-def alarm_handler(signum, frame):
-    raise TimeoutException
-
-
 class TestRunner(object):
     def __init__(self, options):
+        self._process_pool = multiprocessing.Pool(processes=1)
         self.iotjs = fs.abspath(options.iotjs)
         self.quiet = options.quiet
         self.timeout = options.timeout
@@ -149,6 +149,7 @@ class TestRunner(object):
         self.coverage = options.coverage
         self.skip_modules = []
         self.results = {}
+        self._msg_queue = multiprocessing.Queue(1)
 
         if options.skip_modules:
             self.skip_modules = options.skip_modules.split(",")
@@ -162,8 +163,6 @@ class TestRunner(object):
         self.features = set(build_info["features"])
         self.stability = build_info["stability"]
 
-        # Define own alarm handler to handle timeout.
-        signal.signal(signal.SIGALRM, alarm_handler)
 
     def run(self):
         Reporter.report_configuration(self)
@@ -221,6 +220,17 @@ class TestRunner(object):
                 Reporter.report_fail(test["name"], runtime)
                 self.results["fail"] += 1
 
+    @staticmethod
+    def run_subprocess(parent_queue, command):
+        process = subprocess.Popen(args=command,
+                                   cwd=path.TEST_ROOT,
+                                   stdout=subprocess.PIPE,
+                                   stderr=subprocess.STDOUT)
+
+        stdout = process.communicate()[0]
+        exitcode = process.returncode
+
+        parent_queue.put_nowait([exitcode, stdout])
 
     def run_test(self, testfile, timeout):
         command = [self.iotjs, testfile]
@@ -234,23 +244,23 @@ class TestRunner(object):
 
             command = ["valgrind"] + valgrind_options + command
 
-        signal.alarm(timeout)
-
         try:
+            process = multiprocessing.Process(target=TestRunner.run_subprocess,
+                                              args=(self._msg_queue, command,))
             start = time.time()
-            process = subprocess.Popen(args=command,
-                                       cwd=path.TEST_ROOT,
-                                       stdout=subprocess.PIPE,
-                                       stderr=subprocess.STDOUT)
-
-            stdout = process.communicate()[0]
-            exitcode = process.returncode
+            process.start()
+            process.join(timeout)
             runtime = round((time.time() - start), 2)
 
-            signal.alarm(0)
+            if process.is_alive():
+                raise multiprocessing.TimeoutError("Test still running")
 
-        except TimeoutException:
-            process.kill()
+            # At this point the queue must have data!
+            # If not then it is also a timeout event
+            exitcode, stdout = self._msg_queue.get_nowait()
+
+        except (multiprocessing.TimeoutError, queue.Full):
+            process.terminate()
             return -1, None, None
 
         return exitcode, stdout, runtime

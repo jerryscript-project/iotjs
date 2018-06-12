@@ -844,6 +844,12 @@
       "name": "issue-1348.js"
     },
     {
+      "name": "issue-1463.js",
+      "required-features": [
+        "Promise"
+      ]
+    },
+    {
       "name": "issue-1485.js"
     },
     {

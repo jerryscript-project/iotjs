@@ -84,8 +84,8 @@ var port = 8080;
 var server_message = '';
 
 var options = {
-  key: fs.readFileSync('resources/my_key.key').toString(),
-  cert: fs.readFileSync('resources/my_crt.crt')
+  key: fs.readFileSync(process.cwd() + '/resources/my_key.key').toString(),
+  cert: fs.readFileSync(process.cwd() + '/resources/my_crt.crt')
 };
 
 var server = tls.createServer(options, function(socket) {
@@ -98,7 +98,7 @@ var sockOpts = {
   host: 'localhost',
   port: port,
   rejectUnauthorized: true,
-  ca: fs.readFileSync('resources/my_ca.crt')
+  ca: fs.readFileSync(process.cwd() + '/resources/my_ca.crt')
 }
 
 var socket = tls.connect(sockOpts, function() {

@@ -103,3 +103,37 @@ make download ALL
 >Bus 004 Device 001: ID 1d6b:0003 Linux Foundation 3.0 root hub
 >Bus 003 Device 005: ID 0403:6010 Future Technology Devices International, Ltd >FT2232C Dual USB-UART/FIFO IC
 >```
+
+
+#### 7. Run IoT.js
+
+You should use `minicom` to login to the device:
+
+```bash
+$ sudo minicom -s
+```
+The following changes are necessaries in the `Serial port setup` menu:
+
+```
+Serial Device         : /dev/<device-id>      # e.g. /dev/ttyUSB0
+Hardware Flow Control : No
+```
+After `Exit`, press an enter and the prompt should be available:
+
+```bash
+TASH>>
+```
+The following commands help to establish Internet connection on the device:
+
+```bash
+TASH>> wifi startsta
+TASH>> wifi join <ssid> <password>
+TASH>> ifconfig wl1 dhcp
+```
+Finally, the `iotjs` built-in command can be executed:
+
+```bash
+TASH>> iotjs
+Usage: iotjs [options] {FILE | FILE.js} [arguments]
+TASH>>
+```

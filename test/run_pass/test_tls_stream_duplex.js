@@ -48,8 +48,8 @@ duplex1._readyToWrite();
 duplex2._readyToWrite();
 
 var server_opts = {
-  key: fs.readFileSync('resources/my_key.key').toString(),
-  cert: fs.readFileSync('resources/my_crt.crt').toString(),
+  key: fs.readFileSync(process.cwd() + '/resources/my_key.key').toString(),
+  cert: fs.readFileSync(process.cwd() + '/resources/my_crt.crt').toString(),
   isServer: true,
   rejectUnauthorized: false,
 };

@@ -29,8 +29,8 @@ var tlsClientError_caught = false;
 var socket_handshake_error_caught = false;
 
 var options = {
-  key: fs.readFileSync('resources/my_key.key').toString(),
-  cert: fs.readFileSync('resources/my_crt.crt'),
+  key: fs.readFileSync(process.cwd() + '/resources/my_key.key').toString(),
+  cert: fs.readFileSync(process.cwd() + '/resources/my_crt.crt'),
   rejectUnauthorized: false,
   isServer: true,
 };

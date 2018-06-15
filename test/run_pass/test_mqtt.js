@@ -40,22 +40,32 @@ var subClientOpts = {
   keepalive: 30,
 };
 
+var pubClientOpts = {
+  clientId: 'iotjs-mqtt-test-pub',
+  port: 1883,
+  keepalive: 30
+};
+
+var pubClient;
+
 var subClient = mqtt.connect(subClientOpts, function() {
   connected = true;
 
   subClient.subscribe('iotjs-test-topic', { qos:2 }, function() {
     subscribed = true;
 
-    pubClient.publish('iotjs-test-topic', msg0, { qos:0 }, function() {
-      published0 = true;
-    });
+    pubClient = mqtt.connect('test.mosquitto.org', pubClientOpts, function() {
+      pubClient.publish('iotjs-test-topic', msg0, { qos:0 }, function() {
+        published0 = true;
+      });
 
-    pubClient.publish('iotjs-test-topic', msg1, { qos:1 }, function() {
-      published1 = true;
-    });
+      pubClient.publish('iotjs-test-topic', msg1, { qos:1 }, function() {
+        published1 = true;
+      });
 
-    pubClient.publish('iotjs-test-topic', msg2, { qos:2 }, function() {
-      published2 = true;
+      pubClient.publish('iotjs-test-topic', msg2, { qos:2 }, function() {
+        published2 = true;
+      });
     });
   });
 
@@ -80,14 +90,6 @@ var subClient = mqtt.connect(subClientOpts, function() {
     }
   });
 });
-
-var pubClientOpts = {
-  clientId: 'iotjs-mqtt-test-pub',
-  port: 1883,
-  keepalive: 30
-};
-
-var pubClient = mqtt.connect('mqtt://test.mosquitto.org', pubClientOpts);
 
 process.on('exit', function() {
   assert.equal(connected, true);

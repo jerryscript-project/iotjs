@@ -60,27 +60,37 @@ def run_docker():
     ex.check_run_cmd('docker', ['run', '-dit', '--privileged',
                      '--name', DOCKER_NAME, '-v',
                      '%s:%s' % (TRAVIS_BUILD_PATH, DOCKER_IOTJS_PATH),
-                     'iotjs/ubuntu:0.7'])
+                     '--add-host', 'test.mosquitto.org:127.0.0.1',
+                     'iotjs/ubuntu:0.8'])
 
-def exec_docker(cwd, cmd):
+def exec_docker(cwd, cmd, env=[]):
     exec_cmd = 'cd %s && ' % cwd + ' '.join(cmd)
-    ex.check_run_cmd('docker', [
-                     'exec', '-it', DOCKER_NAME, 'bash', '-c', exec_cmd])
+    docker_args = ['exec', '-it']
+    for e in env:
+        docker_args.append('-e')
+        docker_args.append(e)
+
+    docker_args += [DOCKER_NAME, 'bash', '-c', exec_cmd]
+    ex.check_run_cmd('docker', docker_args)
+
+def start_mosquitto_server():
+    exec_docker(DOCKER_ROOT_PATH, ['mosquitto', '-d'])
 
 def set_release_config_tizenrt():
     exec_docker(DOCKER_ROOT_PATH, [
                 'cp', 'tizenrt_release_config',
                 fs.join(DOCKER_TIZENRT_OS_PATH, '.config')])
 
-def build_iotjs(buildtype, args=[]):
+def build_iotjs(buildtype, args=[], env=[]):
     exec_docker(DOCKER_IOTJS_PATH, [
                 './tools/build.py',
                 '--clean',
-                '--buildtype=' + buildtype] + args)
+                '--buildtype=' + buildtype] + args, env)
 
 if __name__ == '__main__':
     if os.getenv('RUN_DOCKER') == 'yes':
         run_docker()
+        start_mosquitto_server()
 
     test = os.getenv('OPTS')
     if test == 'host-linux':
@@ -183,15 +193,19 @@ if __name__ == '__main__':
                              '--profile=test/profiles/host-darwin.profile'])
 
     elif test == "asan":
-        ex.check_run_cmd('./tools/build.py', [
-                         '--compile-flag=-fsanitize=address',
-                         '--compile-flag=-O2'
-                         ] + BUILDOPTIONS_SANITIZER)
+        build_iotjs('debug', [
+                    '--compile-flag=-fsanitize=address',
+                    '--compile-flag=-O2'
+                    ] + BUILDOPTIONS_SANITIZER,
+                    ['ASAN_OPTIONS=detect_stack_use_after_return=1:'
+                    'check_initialization_order=true:strict_init_order=true',
+                    'TIMEOUT=600'])
 
     elif test == "ubsan":
-        ex.check_run_cmd('./tools/build.py', [
-                         '--compile-flag=-fsanitize=undefined'
-                         ] + BUILDOPTIONS_SANITIZER)
+        build_iotjs('debug', [
+                    '--compile-flag=-fsanitize=undefined'
+                    ] + BUILDOPTIONS_SANITIZER,
+                    ['UBSAN_OPTIONS=print_stacktrace=1', 'TIMEOUT=600'])
 
     elif test == "coverity":
         ex.check_run_cmd('./tools/build.py', ['--clean'])

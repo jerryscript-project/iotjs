@@ -26,10 +26,10 @@ void iotjs_process_emit_exit(int code);
 
 bool iotjs_process_next_tick();
 
-void iotjs_make_callback(jerry_value_t jfunction, jerry_value_t jthis,
+void iotjs_make_callback(jerry_value_t jfunc, jerry_value_t jthis,
                          const iotjs_jargs_t* jargs);
 
-jerry_value_t iotjs_make_callback_with_result(jerry_value_t jfunction,
+jerry_value_t iotjs_make_callback_with_result(jerry_value_t jfunc,
                                               jerry_value_t jthis,
                                               const iotjs_jargs_t* jargs);
 

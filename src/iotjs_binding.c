@@ -380,18 +380,6 @@ jerry_value_t iotjs_jval_get_property_by_index(jerry_value_t jarr,
 }
 
 
-jerry_value_t iotjs_jhelper_call(jerry_value_t jfunc, jerry_value_t jthis,
-                                 const iotjs_jargs_t* jargs) {
-  IOTJS_ASSERT(jerry_value_is_object(jfunc));
-
-  jerry_length_t jargc_ = iotjs_jargs_length(jargs);
-
-  jerry_value_t jres = jerry_call_function(jfunc, jthis, jargs->argv, jargc_);
-
-  return jres;
-}
-
-
 jerry_value_t iotjs_jhelper_eval(const char* name, size_t name_len,
                                  const uint8_t* data, size_t size,
                                  bool strict_mode) {

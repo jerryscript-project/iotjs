@@ -74,7 +74,6 @@ static void iotjs_uart_read_cb(uv_poll_t* req, int status, int events) {
                                 IOTJS_MAGIC_STRING_EMIT);
     IOTJS_ASSERT(jerry_value_is_function(jemit));
 
-    iotjs_jargs_t jargs = iotjs_jargs_create(2);
     jerry_value_t str =
         jerry_create_string((const jerry_char_t*)IOTJS_MAGIC_STRING_DATA);
 
@@ -82,17 +81,15 @@ static void iotjs_uart_read_cb(uv_poll_t* req, int status, int events) {
     iotjs_bufferwrap_t* buf_wrap = iotjs_bufferwrap_from_jbuffer(jbuf);
     iotjs_bufferwrap_copy(buf_wrap, buf, (size_t)i);
 
-    iotjs_jargs_append_jval(&jargs, str);
-    iotjs_jargs_append_jval(&jargs, jbuf);
+    jerry_value_t jargs[] = { str, jbuf };
     jerry_value_t jres =
-        iotjs_jhelper_call(jemit, iotjs_handlewrap_jobject(&uart->handlewrap),
-                           &jargs);
+        jerry_call_function(jemit, iotjs_handlewrap_jobject(&uart->handlewrap),
+                            jargs, 2);
     IOTJS_ASSERT(!jerry_value_is_error(jres));
 
     jerry_release_value(jres);
     jerry_release_value(str);
     jerry_release_value(jbuf);
-    iotjs_jargs_destroy(&jargs);
     jerry_release_value(jemit);
   }
 }

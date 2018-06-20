@@ -8,7 +8,7 @@ services:
   - docker
 
 before_install:
-  - if [[ "$RUN_DOCKER" == "yes" ]]; then docker pull iotjs/ubuntu:0.7; fi
+  - if [[ "$RUN_DOCKER" == "yes" ]]; then docker pull iotjs/ubuntu:0.8; fi
 
 script:
   tools/travis_script.py
@@ -62,23 +62,11 @@ matrix:
     - env:
       - JOBNAME="ASAN Tests"
       - OPTS="asan"
-      - ASAN_OPTIONS=detect_stack_use_after_return=1:check_initialization_order=true:strict_init_order=true
-      - TIMEOUT=600
-      compiler: gcc-4.9
-      addons:
-        apt:
-          sources: ubuntu-toolchain-r-test
-          packages: [gcc-4.9, gcc-multilib, gcc-4.9-multilib]
+      - RUN_DOCKER=yes
     - env:
       - JOBNAME="UBSAN Tests"
       - OPTS="ubsan"
-      - UBSAN_OPTIONS=print_stacktrace=1
-      - TIMEOUT=600
-      compiler: gcc-4.9
-      addons:
-        apt:
-          sources: ubuntu-toolchain-r-test
-          packages: [gcc-4.9, gcc-multilib, gcc-4.9-multilib]
+      - RUN_DOCKER=yes
     - env:
       - JOBNAME="Coverity Scan"
       - OPTS="coverity"

@@ -31,20 +31,14 @@ IOTJS_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(bufferwrap);
 
 iotjs_bufferwrap_t* iotjs_bufferwrap_create(const jerry_value_t jobject,
                                             size_t length) {
-  iotjs_bufferwrap_t* bufferwrap = IOTJS_ALLOC(iotjs_bufferwrap_t);
+  iotjs_bufferwrap_t* bufferwrap = (iotjs_bufferwrap_t*)iotjs_buffer_allocate(
+      sizeof(iotjs_bufferwrap_t) + length);
 
   bufferwrap->jobject = jobject;
   jerry_set_object_native_pointer(jobject, bufferwrap,
                                   &this_module_native_info);
 
-  if (length > 0) {
-    bufferwrap->length = length;
-    bufferwrap->buffer = iotjs_buffer_allocate(length);
-    IOTJS_ASSERT(bufferwrap->buffer != NULL);
-  } else {
-    bufferwrap->length = 0;
-    bufferwrap->buffer = NULL;
-  }
+  bufferwrap->length = length;
 
   IOTJS_ASSERT(
       bufferwrap ==
@@ -55,7 +49,6 @@ iotjs_bufferwrap_t* iotjs_bufferwrap_create(const jerry_value_t jobject,
 
 
 static void iotjs_bufferwrap_destroy(iotjs_bufferwrap_t* bufferwrap) {
-  IOTJS_RELEASE(bufferwrap->buffer);
   IOTJS_RELEASE(bufferwrap);
 }
 
@@ -306,23 +299,32 @@ static size_t index_normalizer(int64_t index, size_t max_length) {
 }
 
 jerry_value_t iotjs_bufferwrap_create_buffer(size_t len) {
-  jerry_value_t jglobal = jerry_get_global_object();
+  jerry_value_t jres_buffer = jerry_create_object();
 
+  iotjs_bufferwrap_create(jres_buffer, len);
+
+  iotjs_jval_set_property_number(jres_buffer, IOTJS_MAGIC_STRING_LENGTH, len);
+
+  // Support for 'instanceof' operator
+  jerry_value_t jglobal = jerry_get_global_object();
   jerry_value_t jbuffer =
       iotjs_jval_get_property(jglobal, IOTJS_MAGIC_STRING_BUFFER);
   jerry_release_value(jglobal);
-  IOTJS_ASSERT(jerry_value_is_function(jbuffer));
 
-  jerry_value_t arg = jerry_create_number(len);
+  if (!jerry_value_is_error(jbuffer) && jerry_value_is_object(jbuffer)) {
+    jerry_value_t jbuffer_proto =
+        iotjs_jval_get_property(jbuffer, IOTJS_MAGIC_STRING_PROTOTYPE);
 
-  jerry_value_t jres = jerry_construct_object(jbuffer, &arg, 1);
-  IOTJS_ASSERT(!jerry_value_is_error(jres));
-  IOTJS_ASSERT(jerry_value_is_object(jres));
+    if (!jerry_value_is_error(jbuffer_proto) &&
+        jerry_value_is_object(jbuffer_proto)) {
+      jerry_set_prototype(jres_buffer, jbuffer_proto);
+    }
 
-  jerry_release_value(arg);
+    jerry_release_value(jbuffer_proto);
+  }
   jerry_release_value(jbuffer);
 
-  return jres;
+  return jres_buffer;
 }
 
 
@@ -463,19 +465,17 @@ JS_FUNCTION(ReadUInt8) {
   DJS_CHECK_ARGS(2, object, number);
   JS_DECLARE_OBJECT_PTR(0, bufferwrap, buffer_wrap);
 
-
   size_t buffer_length = iotjs_bufferwrap_length(buffer_wrap);
+
+  if (buffer_length == 0) {
+    return jerry_create_number(0);
+  }
+
   size_t offset = iotjs_convert_double_to_sizet(JS_GET_ARG(1, number));
   offset = bound_range(offset, 0, buffer_length - 1);
 
   char* buffer = buffer_wrap->buffer;
-  uint8_t result = 0;
-
-  if (buffer != NULL) {
-    result = (uint8_t)buffer[offset];
-  }
-
-  return jerry_create_number(result);
+  return jerry_create_number((uint8_t)buffer[offset]);
 }
 
 

@@ -19,8 +19,8 @@
 
 typedef struct {
   jerry_value_t jobject;
-  char* buffer;
   size_t length;
+  char buffer[];
 } iotjs_bufferwrap_t;
 
 
@@ -38,7 +38,7 @@ size_t iotjs_bufferwrap_copy(iotjs_bufferwrap_t* bufferwrap, const char* src,
                              size_t len);
 iotjs_bufferwrap_t* iotjs_jbuffer_get_bufferwrap_ptr(const jerry_value_t);
 
-// Create buffer object.
+// Fail-safe creation of Buffer object.
 jerry_value_t iotjs_bufferwrap_create_buffer(size_t len);
 
 

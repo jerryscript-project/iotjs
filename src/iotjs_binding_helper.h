@@ -26,9 +26,15 @@ void iotjs_process_emit_exit(int code);
 
 bool iotjs_process_next_tick();
 
+void iotjs_invoke_callback(jerry_value_t jfunc, jerry_value_t jthis,
+                           const jerry_value_t* jargv, size_t jargc);
+jerry_value_t iotjs_invoke_callback_with_result(jerry_value_t jfunc,
+                                                jerry_value_t jthis,
+                                                const jerry_value_t* jargv,
+                                                size_t jargc);
+
 void iotjs_make_callback(jerry_value_t jfunc, jerry_value_t jthis,
                          const iotjs_jargs_t* jargs);
-
 jerry_value_t iotjs_make_callback_with_result(jerry_value_t jfunc,
                                               jerry_value_t jthis,
                                               const iotjs_jargs_t* jargs);

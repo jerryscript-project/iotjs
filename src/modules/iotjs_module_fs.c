@@ -58,13 +58,13 @@ static void AfterAsync(uv_fs_t* req) {
   const jerry_value_t cb = iotjs_reqwrap_jcallback(&req_wrap->reqwrap);
   IOTJS_ASSERT(jerry_value_is_function(cb));
 
-  iotjs_jargs_t jarg = iotjs_jargs_create(2);
+  jerry_value_t jargs[2] = { 0 };
+  size_t jargc = 0;
   if (req->result < 0) {
     jerry_value_t jerror = iotjs_create_uv_exception(req->result, "open");
-    iotjs_jargs_append_jval(&jarg, jerror);
-    jerry_release_value(jerror);
+    jargs[jargc++] = jerror;
   } else {
-    iotjs_jargs_append_null(&jarg);
+    jargs[jargc++] = jerry_create_null();
     switch (req->fs_type) {
       case UV_FS_CLOSE: {
         break;
@@ -72,43 +72,37 @@ static void AfterAsync(uv_fs_t* req) {
       case UV_FS_OPEN:
       case UV_FS_READ:
       case UV_FS_WRITE: {
-        iotjs_jargs_append_number(&jarg, (double)req->result);
+        jargs[jargc++] = jerry_create_number((double)req->result);
         break;
       }
       case UV_FS_SCANDIR: {
         int r;
         uv_dirent_t ent;
         uint32_t idx = 0;
-        jerry_value_t ret = jerry_create_array(0);
+        jargs[jargc++] = jerry_create_array(0);
         while ((r = uv_fs_scandir_next(req, &ent)) != UV_EOF) {
           jerry_value_t name =
               jerry_create_string((const jerry_char_t*)ent.name);
-          iotjs_jval_set_property_by_index(ret, idx, name);
+          iotjs_jval_set_property_by_index(jargs[1], idx, name);
           jerry_release_value(name);
           idx++;
         }
-        iotjs_jargs_append_jval(&jarg, ret);
-        jerry_release_value(ret);
         break;
       }
       case UV_FS_FSTAT:
       case UV_FS_STAT: {
         uv_stat_t s = (req->statbuf);
-        jerry_value_t ret = MakeStatObject(&s);
-        iotjs_jargs_append_jval(&jarg, ret);
-        jerry_release_value(ret);
+        jargs[jargc++] = MakeStatObject(&s);
         break;
       }
-      default: {
-        iotjs_jargs_append_null(&jarg);
-        break;
-      }
+      default: { break; }
     }
   }
 
-  iotjs_make_callback(cb, jerry_create_undefined(), &jarg);
+  iotjs_invoke_callback(cb, jerry_create_undefined(), jargs, jargc);
 
-  iotjs_jargs_destroy(&jarg);
+  jerry_release_value(jargs[0]);
+  jerry_release_value(jargs[1]);
   iotjs_fs_reqwrap_destroy(req_wrap);
 }
 

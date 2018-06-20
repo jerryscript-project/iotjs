@@ -395,13 +395,10 @@ static void iotjs_tls_send_pending(iotjs_tls_t *tls_data) {
   jerry_value_t jthis = tls_data->jobject;
   jerry_value_t fn = iotjs_jval_get_property(jthis, IOTJS_MAGIC_STRING_ONWRITE);
 
-  iotjs_jargs_t jargv = iotjs_jargs_create(1);
-  iotjs_jargs_append_jval(&jargv, jbuffer);
-  iotjs_make_callback(fn, jthis, &jargv);
+  iotjs_invoke_callback(fn, jthis, &jbuffer, 1);
 
   jerry_release_value(fn);
   jerry_release_value(jbuffer);
-  iotjs_jargs_destroy(&jargv);
 }
 
 
@@ -413,13 +410,12 @@ static void iotjs_tls_notify_error(iotjs_tls_t *tls_data) {
   jerry_value_t jthis = tls_data->jobject;
   jerry_value_t fn = iotjs_jval_get_property(jthis, IOTJS_MAGIC_STRING_EMIT);
 
-  iotjs_jargs_t jargv = iotjs_jargs_create(2);
-  iotjs_jargs_append_jval(&jargv, jerror);
-  iotjs_jargs_append_jval(&jargv, jmessage);
-  iotjs_make_callback(fn, jthis, &jargv);
+  jerry_value_t jargv[2] = { jerror, jmessage };
+  iotjs_invoke_callback(fn, jthis, jargv, 2);
 
   jerry_release_value(fn);
-  iotjs_jargs_destroy(&jargv);
+  jerry_release_value(jargv[0]);
+  jerry_release_value(jargv[1]);
 }
 
 
@@ -521,16 +517,16 @@ static void tls_handshake(iotjs_tls_t *tls_data, jerry_value_t jthis) {
   }
 
   // Result of certificate verification
-  iotjs_jargs_t jargv = iotjs_jargs_create(2);
-  iotjs_jargs_append_bool(&jargv, error);
-  iotjs_jargs_append_bool(&jargv, authorized);
+  jerry_value_t jargv[2] = { jerry_create_boolean(error),
+                             jerry_create_boolean(authorized) };
 
   jerry_value_t fn =
       iotjs_jval_get_property(jthis, IOTJS_MAGIC_STRING_ONHANDSHAKEDONE);
-  iotjs_make_callback(fn, jthis, &jargv);
+  iotjs_invoke_callback(fn, jthis, jargv, 2);
 
   jerry_release_value(fn);
-  iotjs_jargs_destroy(&jargv);
+  jerry_release_value(jargv[0]);
+  jerry_release_value(jargv[1]);
 }
 
 
@@ -599,14 +595,10 @@ JS_FUNCTION(Read) {
 
         jerry_value_t fn =
             iotjs_jval_get_property(jthis, IOTJS_MAGIC_STRING_ONREAD);
-        iotjs_jargs_t jargv = iotjs_jargs_create(1);
-
-        iotjs_jargs_append_jval(&jargv, jbuffer);
-        iotjs_make_callback(fn, jthis, &jargv);
+        iotjs_invoke_callback(fn, jthis, &jbuffer, 1);
 
         jerry_release_value(jbuffer);
         jerry_release_value(fn);
-        iotjs_jargs_destroy(&jargv);
         continue;
       }
 

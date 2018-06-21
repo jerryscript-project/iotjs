@@ -57,6 +57,7 @@ exports.isLinuxPPCBE = (process.platform === 'linux') &&
 exports.isSunOS = process.platform === 'sunos';
 exports.isFreeBSD = process.platform === 'freebsd';
 exports.isLinux = process.platform === 'linux';
+exports.isNuttX = process.platform === 'nuttx';
 exports.isTizen = process.platform === 'tizen';
 exports.isOSX = process.platform === 'darwin';
 

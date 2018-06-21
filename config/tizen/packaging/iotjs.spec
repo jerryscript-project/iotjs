@@ -116,6 +116,7 @@ cp ./config/tizen/packaging/%{name}.pc.in %{buildroot}/%{_libdir}/pkgconfig/%{na
 %files
 %manifest config/tizen/packaging/%{name}.manifest
 %defattr(-,root,root,-)
+%{_libdir}/libiotjs.so
 %license LICENSE
 %{_bindir}/*
 

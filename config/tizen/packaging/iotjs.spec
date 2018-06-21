@@ -83,6 +83,7 @@ V=1 VERBOSE=1 ./tools/build.py \
   --external-lib=appcore-agent \
   --external-lib=pthread \
   --external-lib=curl \
+  --external-lib=glib-2.0 \
   --external-include-dir=/usr/include/dlog/ \
   --external-include-dir=/usr/include/appcore-agent/ \
   --external-include-dir=/usr/include/appfw/ \

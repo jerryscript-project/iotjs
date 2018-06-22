@@ -81,7 +81,7 @@ static void iotjs_timerwrap_on_timeout(iotjs_timerwrap_t* timerwrap) {
   jerry_value_t jobject = iotjs_timerwrap_jobject(timerwrap);
   jerry_value_t jcallback =
       iotjs_jval_get_property(jobject, IOTJS_MAGIC_STRING_HANDLETIMEOUT);
-  iotjs_make_callback(jcallback, jobject, iotjs_jargs_get_empty());
+  iotjs_invoke_callback(jcallback, jobject, NULL, 0);
   jerry_release_value(jcallback);
 }
 

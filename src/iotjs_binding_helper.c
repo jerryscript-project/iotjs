@@ -100,16 +100,17 @@ bool iotjs_process_next_tick() {
 // Make a callback for the given `function` with `this_` binding and `args`
 // arguments. The next tick callbacks registered via `process.nextTick()`
 // will be called after the callback function `function` returns.
-void iotjs_make_callback(jerry_value_t jfunc, jerry_value_t jthis,
-                         const iotjs_jargs_t* jargs) {
-  jerry_value_t result = iotjs_make_callback_with_result(jfunc, jthis, jargs);
+void iotjs_invoke_callback(jerry_value_t jfunc, jerry_value_t jthis,
+                           const jerry_value_t* jargv, size_t jargc) {
+  jerry_value_t result =
+      iotjs_invoke_callback_with_result(jfunc, jthis, jargv, jargc);
   jerry_release_value(result);
 }
 
-
-jerry_value_t iotjs_make_callback_with_result(jerry_value_t jfunc,
-                                              jerry_value_t jthis,
-                                              const iotjs_jargs_t* jargs) {
+jerry_value_t iotjs_invoke_callback_with_result(jerry_value_t jfunc,
+                                                jerry_value_t jthis,
+                                                const jerry_value_t* jargv,
+                                                size_t jargc) {
   IOTJS_ASSERT(jerry_value_is_function(jfunc));
 
   // If the environment is already exiting just return an undefined value.
@@ -117,8 +118,7 @@ jerry_value_t iotjs_make_callback_with_result(jerry_value_t jfunc,
     return jerry_create_undefined();
   }
   // Calls back the function.
-  jerry_value_t jres =
-      jerry_call_function(jfunc, jthis, jargs->argv, jargs->argc);
+  jerry_value_t jres = jerry_call_function(jfunc, jthis, jargv, jargc);
   if (jerry_value_is_error(jres)) {
     jerry_value_t errval = jerry_get_value_from_error(jres, false);
     iotjs_uncaught_exception(errval);
@@ -130,6 +130,24 @@ jerry_value_t iotjs_make_callback_with_result(jerry_value_t jfunc,
 
   // Return value.
   return jres;
+}
+
+
+// Make a callback for the given `function` with `this_` binding and `args`
+// arguments. The next tick callbacks registered via `process.nextTick()`
+// will be called after the callback function `function` returns.
+void iotjs_make_callback(jerry_value_t jfunc, jerry_value_t jthis,
+                         const iotjs_jargs_t* jargs) {
+  jerry_value_t result = iotjs_make_callback_with_result(jfunc, jthis, jargs);
+  jerry_release_value(result);
+}
+
+
+jerry_value_t iotjs_make_callback_with_result(jerry_value_t jfunc,
+                                              jerry_value_t jthis,
+                                              const iotjs_jargs_t* jargs) {
+  return iotjs_invoke_callback_with_result(jfunc, jthis, jargs->argv,
+                                           jargs->argc);
 }
 
 

@@ -103,7 +103,8 @@ static void AfterGetAddrInfo(uv_getaddrinfo_t* req, int status,
   iotjs_getaddrinfo_reqwrap_t* req_wrap =
       (iotjs_getaddrinfo_reqwrap_t*)(req->data);
 
-  iotjs_jargs_t args = iotjs_jargs_create(3);
+  size_t argc = 0;
+  jerry_value_t args[3] = { 0 };
 
   if (status == 0) {
     char ip[INET6_ADDRSTRLEN];
@@ -124,25 +125,28 @@ static void AfterGetAddrInfo(uv_getaddrinfo_t* req, int status,
     int err = uv_inet_ntop(res->ai_family, addr, ip, INET6_ADDRSTRLEN);
     if (err) {
       ip[0] = 0;
-      iotjs_jargs_append_error(&args,
-                               "EAFNOSUPPORT, DNS could not resolve hostname");
+      args[argc++] = iotjs_jval_create_error_without_error_flag(
+          "EAFNOSUPPORT, DNS could not resolve hostname");
     } else {
-      iotjs_jargs_append_null(&args);
+      args[argc++] = jerry_create_null();
     }
 
-    iotjs_jargs_append_string_raw(&args, ip);
-    iotjs_jargs_append_number(&args, family);
+    args[argc++] = jerry_create_string_from_utf8((const jerry_char_t*)ip);
+    args[argc++] = jerry_create_number(family);
   } else {
-    iotjs_jargs_append_error(&args, getaddrinfo_error_str(status));
+    args[argc++] = iotjs_jval_create_error_without_error_flag(
+        getaddrinfo_error_str(status));
   }
 
   uv_freeaddrinfo(res);
 
   // Make the callback into JavaScript
   jerry_value_t jcallback = iotjs_getaddrinfo_reqwrap_jcallback(req_wrap);
-  iotjs_make_callback(jcallback, jerry_create_undefined(), &args);
+  iotjs_invoke_callback(jcallback, jerry_create_undefined(), args, argc);
 
-  iotjs_jargs_destroy(&args);
+  for (size_t i = 0; i < argc; i++) {
+    jerry_release_value(args[i]);
+  }
 
   iotjs_getaddrinfo_reqwrap_dispatched(req_wrap);
 }
@@ -176,7 +180,6 @@ JS_FUNCTION(GetAddressInfo) {
   }
 
 #if defined(__NUTTX__)
-  iotjs_jargs_t args = iotjs_jargs_create(3);
   char ip[INET6_ADDRSTRLEN] = "";
   const char* hostname_data = iotjs_string_data(&hostname);
 
@@ -192,17 +195,23 @@ JS_FUNCTION(GetAddressInfo) {
     }
   }
 
+  size_t argc = 0;
+  jerry_value_t args[3] = { 0 };
+
   if (error) {
-    iotjs_jargs_append_error(&args, "EAFNOSUPPORT, could not resolve hostname");
+    args[argc++] = iotjs_jval_create_error_without_error_flag(
+        "EAFNOSUPPORT, could not resolve hostname");
   } else {
-    iotjs_jargs_append_null(&args);
+    args[argc++] = jerry_create_null();
   }
 
-  iotjs_jargs_append_string_raw(&args, ip);
-  iotjs_jargs_append_number(&args, option);
+  args[argc++] = jerry_create_string_from_utf8((const jerry_char_t*)ip);
+  args[argc++] = jerry_create_number(option);
 
-  iotjs_make_callback(jcallback, jerry_create_undefined(), &args);
-  iotjs_jargs_destroy(&args);
+  iotjs_invoke_callback(jcallback, jerry_create_undefined(), args, argc);
+  for (size_t i = 0; i < argc; i++) {
+    jerry_release_value(args[i]);
+  }
   IOTJS_UNUSED(flags);
 #else
   iotjs_getaddrinfo_reqwrap_t* req_wrap =

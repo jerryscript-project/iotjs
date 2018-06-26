@@ -1,14 +1,14 @@
 ### Platform Support
 
-The following chart shows the availability of each TLS module API function on each platform.
+The following chart shows the availability of each MQTT module API function on each platform.
 
 |  | Linux<br/>(Ubuntu) | Tizen<br/>(Raspberry Pi) | Raspbian<br/>(Raspberry Pi) | Nuttx<br/>(STM32F4-Discovery) | TizenRT<br/>(Artik053) |
 | :---: | :---: | :---: | :---: | :---: | :---: |
-| mqtt.connect | O | X | X | X | X | X |
-| mqtt.end | O | X | X | X | X | X |
-| mqtt.publish  | O | X | X | X | X | X |
-| mqtt.subscribe | O | X | X | X | X | X |
-| mqtt.unsubscribe | X | X | X | X | X | X |
+| mqtt.connect | O | O | O | X | O |
+| mqtt.end | O | O | O | X | O |
+| mqtt.publish  | O | O | O | X | O |
+| mqtt.subscribe | O | O | O | X | O |
+| mqtt.unsubscribe | O | O | O | X | O |
 
 # MQTT
 

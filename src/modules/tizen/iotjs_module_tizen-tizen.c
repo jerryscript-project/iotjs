@@ -99,6 +99,17 @@ void iotjs_tizen_app_control_cb(app_control_h app_control, void* user_data) {
     return;
   }
 
+  const char* event_emitter_name = IOTJS_MAGIC_STRING_TIZEN;
+  const char* event_name = IOTJS_MAGIC_STRING_APP_CONTROL;
+
+  jerry_value_t tizen = iotjs_module_get(event_emitter_name);
+  jerry_value_t fn = iotjs_jval_get_property(tizen, IOTJS_MAGIC_STRING_EMIT);
+
+  if (jerry_value_is_function(fn) == false) {
+    DDDLOG("tizen module is not loaded");
+    goto exit;
+  }
+
   // parse app control
   char* json = NULL;
   bundle* b = NULL;
@@ -112,25 +123,19 @@ void iotjs_tizen_app_control_cb(app_control_h app_control, void* user_data) {
   }
   DDDLOG("JSON: %s", json);
 
-  // prepare emit
-  const char* event_emitter_name = IOTJS_MAGIC_STRING_TIZEN;
-  const char* event_name = IOTJS_MAGIC_STRING_APP_CONTROL;
-
-  jerry_value_t tizen = iotjs_module_get(event_emitter_name);
-  jerry_value_t fn = iotjs_jval_get_property(tizen, IOTJS_MAGIC_STRING_EMIT);
-
   // call emit
   iotjs_jargs_t jargv = iotjs_jargs_create(2);
   iotjs_jargs_append_string_raw(&jargv, event_name);
   iotjs_jargs_append_string_raw(&jargv, json);
 
   iotjs_make_callback(fn, tizen, &jargv);
+  iotjs_jargs_destroy(&jargv);
 
   free(json);
   bundle_free(b);
 
+exit:
   jerry_release_value(fn);
-  iotjs_jargs_destroy(&jargv);
 }
 
 

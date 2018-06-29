@@ -909,6 +909,10 @@
       "expected-failure": true
     },
     {
+      "name": "test-issue-1570.js",
+      "expected-failure": true
+    },
+    {
       "name": "test_module_require_invalid_file.js",
       "expected-failure": true
     },

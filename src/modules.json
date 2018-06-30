@@ -363,6 +363,13 @@
     "util": {
       "js_file": "js/util.js"
     },
+    "websocket": {
+      "native_files": ["modules/iotjs_module_websocket.h",
+                       "modules/iotjs_module_websocket.c"],
+      "init": "InitWebsocket",
+      "js_file": "js/websocket.js",
+      "require": ["events", "net", "tls", "util"]
+    },
     "bridge": {
       "native_files": ["modules/iotjs_module_bridge.c"],
       "init": "InitBridge",

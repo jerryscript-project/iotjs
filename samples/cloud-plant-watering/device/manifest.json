@@ -1,0 +1,154 @@
+{
+  "fields": [
+    {
+      "name": "id",
+      "type": "ID",
+      "valueClass": "String",
+      "isCollection": false,
+      "description": "device id",
+      "tags": []
+    },
+    {
+      "name": "soilHumidity",
+      "type": "CUSTOM",
+      "valueClass": "Double",
+      "isCollection": false,
+      "description": "Humidity of the solid which the plant resides",
+      "tags": [],
+      "unitSymbol": "%"
+    },
+    {
+      "name": "light",
+      "type": "CUSTOM",
+      "valueClass": "Float",
+      "isCollection": false,
+      "description": "the amount of light that reaches plant",
+      "tags": [],
+      "unitSymbol": ""
+    },
+    {
+      "name": "lastWatered",
+      "type": "CUSTOM",
+      "valueClass": "Integer",
+      "isCollection": false,
+      "description": "last watering timestamp",
+      "tags": [],
+      "unitSymbol": ""
+    },
+    {
+      "name": "overflow",
+      "type": "CUSTOM",
+      "valueClass": "Integer",
+      "isCollection": false,
+      "description": "Makrs if water overflowed",
+      "tags": []
+    },
+    {
+      "name": "hasWater",
+      "type": "CUSTOM",
+      "valueClass": "Integer",
+      "isCollection": false,
+      "description": "a flag that describes if the gardener has any water left",
+      "tags": []
+    },
+    {
+      "name": "uptime",
+      "type": "CUSTOM",
+      "valueClass": "Integer",
+      "isCollection": false,
+      "description": "device uptime",
+      "tags": []
+    }
+  ],
+  "actions": [
+    {
+      "name": "setOn",
+      "description": "Set state to On",
+      "parameters": [],
+      "isStandard": true,
+      "type": "CUSTOM"
+    },
+    {
+      "name": "setOff",
+      "description": "Set state to Off",
+      "parameters": [],
+      "isStandard": true,
+      "type": "CUSTOM"
+    },
+    {
+      "name": "setTriggerOn",
+      "description": "turn on a specific trigger",
+      "parameters": [
+        {
+          "name": "trigger",
+          "type": "CUSTOM",
+          "valueClass": "String"
+        }
+      ],
+      "isStandard": false,
+      "type": "CUSTOM"
+    },
+    {
+      "name": "setTriggerOff",
+      "description": "disable a trigger type",
+      "parameters": [
+        {
+          "name": "trigger",
+          "type": "CUSTOM",
+          "valueClass": "String"
+        }
+      ],
+      "isStandard": false,
+      "type": "CUSTOM"
+    },
+    {
+      "name": "setTriggerLevelRange",
+      "description": "set a rane of values which will cause trigger to be fullfilled",
+      "parameters": [
+        {
+          "name": "trigger",
+          "type": "CUSTOM",
+          "valueClass": "String",
+          "metaData": [
+            {
+              "type": "VALUES_STRING",
+              "value": [
+                "0",
+                "1",
+                "2",
+                "3",
+                "4"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "min",
+          "type": "CUSTOM",
+          "valueClass": "Float"
+        },
+        {
+          "name": "max",
+          "type": "CUSTOM",
+          "valueClass": "Float"
+        }
+      ],
+      "isStandard": false,
+      "type": "CUSTOM"
+    },
+    {
+      "name": "startWatering",
+      "description": "starts watering directly",
+      "parameters": [
+        {
+          "name": "time",
+          "type": "CUSTOM",
+          "valueClass": "Integer"
+        }
+      ],
+      "isStandard": false,
+      "type": "CUSTOM"
+    }
+  ],
+  "messageFormat": "json"
+}

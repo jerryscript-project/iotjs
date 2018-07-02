@@ -290,20 +290,22 @@ static int iotjs_bridge_remove_call(iotjs_bridge_call_t* callobj) {
 }
 
 static void iotjs_bridge_js_call(iotjs_bridge_call_t* bridgecall) {
-  iotjs_jargs_t jargs = iotjs_jargs_create(2);
+  jerry_value_t jargs[2] = { 0 };
   if (bridgecall->status == CALL_STATUS_ERROR) { // internal error
-    iotjs_jargs_append_error(&jargs, iotjs_string_data(&bridgecall->ret_msg));
-    iotjs_jargs_append_null(&jargs);
+    jargs[0] = iotjs_jval_create_error_without_error_flag(
+        iotjs_string_data(&bridgecall->ret_msg));
+    jargs[1] = jerry_create_null();
   } else {
-    iotjs_jargs_append_null(&jargs);
-    iotjs_jargs_append_string_raw(&jargs,
-                                  iotjs_string_data(&bridgecall->ret_msg));
+    jargs[0] = jerry_create_null();
+    jargs[1] = jerry_create_string_from_utf8(
+        (const jerry_char_t*)iotjs_string_data(&bridgecall->ret_msg));
   }
   jerry_value_t jcallback = bridgecall->jcallback;
   if (jerry_value_is_function(jcallback)) {
-    iotjs_make_callback(jcallback, jerry_create_undefined(), &jargs);
+    iotjs_invoke_callback(jcallback, jerry_create_undefined(), jargs, 2);
   }
-  iotjs_jargs_destroy(&jargs);
+  jerry_release_value(jargs[0]);
+  jerry_release_value(jargs[1]);
 }
 
 static void aysnc_callback(uv_async_t* async) {

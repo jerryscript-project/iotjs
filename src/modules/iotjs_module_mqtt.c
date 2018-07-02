@@ -121,19 +121,18 @@ void iotjs_mqtt_ack(char *buffer, char *name, jerry_value_t jsref,
       iotjs_mqtt_calculate_length((uint8_t)buffer[0], (uint8_t)buffer[1]);
 
   // The callback takes the packet identifier as parameter.
-  iotjs_jargs_t args = iotjs_jargs_create(2);
-  iotjs_jargs_append_number(&args, package_id);
+  jerry_value_t args[2] = { jerry_create_number(package_id),
+                            jerry_create_undefined() };
 
   if (error) {
-    iotjs_jargs_append_error(&args, error);
-  } else {
-    iotjs_jargs_append_undefined(&args);
+    args[1] = iotjs_jval_create_error_without_error_flag(error);
   }
 
   jerry_value_t fn = iotjs_jval_get_property(jsref, name);
-  iotjs_make_callback(fn, jsref, &args);
+  iotjs_invoke_callback(fn, jsref, args, 2);
   jerry_release_value(fn);
-  iotjs_jargs_destroy(&args);
+  jerry_release_value(args[0]);
+  jerry_release_value(args[1]);
 }
 
 
@@ -449,20 +448,18 @@ static int iotjs_mqtt_handle(jerry_value_t jsref, char first_byte, char *buffer,
 
       memcpy(msg_wrap->buffer, buffer, payload_length);
 
-      iotjs_jargs_t args = iotjs_jargs_create(4);
-      iotjs_jargs_append_jval(&args, jmessage);
-      iotjs_jargs_append_jval(&args, jtopic);
-      iotjs_jargs_append_number(&args, header.bits.qos);
-      iotjs_jargs_append_number(&args, packet_identifier);
+      jerry_value_t args[4] = { jmessage, jtopic,
+                                jerry_create_number(header.bits.qos),
+                                jerry_create_number(packet_identifier) };
 
       jerry_value_t fn =
           iotjs_jval_get_property(jsref, IOTJS_MAGIC_STRING_ONMESSAGE);
-      iotjs_make_callback(fn, jsref, &args);
+      iotjs_invoke_callback(fn, jsref, args, 4);
       jerry_release_value(fn);
 
-      iotjs_jargs_destroy(&args);
-      jerry_release_value(jmessage);
-      jerry_release_value(jtopic);
+      for (uint8_t i = 0; i < 4; i++) {
+        jerry_release_value(args[i]);
+      }
 
       break;
     }

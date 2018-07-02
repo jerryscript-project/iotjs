@@ -91,14 +91,17 @@ static void after_worker(uv_work_t* work_req, int status) {
   iotjs_periph_reqwrap_t* reqwrap =
       (iotjs_periph_reqwrap_t*)iotjs_reqwrap_from_request((uv_req_t*)work_req);
 
-  iotjs_jargs_t jargs = iotjs_jargs_create(2);
+  size_t jargc = 0;
+  jerry_value_t jargs[2] = { 0 };
 
   if (status) {
-    iotjs_jargs_append_error(&jargs, "System error");
+    jargs[jargc++] = iotjs_jval_create_error_without_error_flag("System error");
   } else {
     if (!reqwrap->result) {
-      iotjs_jargs_append_error(&jargs, iotjs_periph_error_str(reqwrap->op));
+      jargs[jargc++] = iotjs_jval_create_error_without_error_flag(
+          iotjs_periph_error_str(reqwrap->op));
     } else {
+      jargs[jargc++] = jerry_create_null();
       switch (reqwrap->op) {
         case kAdcOpClose:
         case kAdcOpOpen:
@@ -119,37 +122,27 @@ static void after_worker(uv_work_t* work_req, int status) {
         case kUartOpClose:
         case kUartOpOpen:
         case kUartOpWrite: {
-          iotjs_jargs_append_null(&jargs);
           break;
         }
         case kAdcOpRead: {
 #if ENABLE_MODULE_ADC
           iotjs_adc_t* adc = (iotjs_adc_t*)reqwrap->data;
-
-          iotjs_jargs_append_null(&jargs);
-          iotjs_jargs_append_number(&jargs, adc->value);
+          jargs[jargc++] = jerry_create_number(adc->value);
 #endif /* ENABLE_MODULE_ADC */
           break;
         }
         case kGpioOpRead: {
 #if ENABLE_MODULE_GPIO
           iotjs_gpio_t* gpio = (iotjs_gpio_t*)reqwrap->data;
-
-          iotjs_jargs_append_null(&jargs);
-          iotjs_jargs_append_bool(&jargs, gpio->value);
+          jargs[jargc++] = jerry_create_boolean(gpio->value);
 #endif /* ENABLE_MODULE_GPIO */
           break;
         }
         case kI2cOpRead: {
 #if ENABLE_MODULE_I2C
           iotjs_i2c_t* i2c = (iotjs_i2c_t*)reqwrap->data;
-
-          iotjs_jargs_append_null(&jargs);
-          jerry_value_t result =
+          jargs[jargc++] =
               iotjs_jval_create_byte_array(i2c->buf_len, i2c->buf_data);
-          iotjs_jargs_append_jval(&jargs, result);
-          jerry_release_value(result);
-
           IOTJS_RELEASE(i2c->buf_data);
 #endif /* ENABLE_MODULE_I2C */
           break;
@@ -158,15 +151,9 @@ static void after_worker(uv_work_t* work_req, int status) {
         case kSpiOpTransferBuffer: {
 #if ENABLE_MODULE_SPI
           iotjs_spi_t* spi = (iotjs_spi_t*)reqwrap->data;
-
-          iotjs_jargs_append_null(&jargs);
-
           // Append read data
-          jerry_value_t result =
+          jargs[jargc++] =
               iotjs_jval_create_byte_array(spi->buf_len, spi->rx_buf_data);
-          iotjs_jargs_append_jval(&jargs, result);
-          jerry_release_value(result);
-
           IOTJS_RELEASE(spi->rx_buf_data);
 #endif /* ENABLE_MODULE_SPI */
           break;
@@ -193,10 +180,13 @@ static void after_worker(uv_work_t* work_req, int status) {
 
   jerry_value_t jcallback = iotjs_reqwrap_jcallback(&reqwrap->reqwrap);
   if (jerry_value_is_function(jcallback)) {
-    iotjs_make_callback(jcallback, jerry_create_undefined(), &jargs);
+    iotjs_invoke_callback(jcallback, jerry_create_undefined(), jargs, jargc);
   }
 
-  iotjs_jargs_destroy(&jargs);
+  for (size_t i = 0; i < jargc; i++) {
+    jerry_release_value(jargs[i]);
+  }
+
   iotjs_reqwrap_destroy(&reqwrap->reqwrap);
   IOTJS_RELEASE(reqwrap);
 }

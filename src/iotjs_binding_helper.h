@@ -33,12 +33,6 @@ jerry_value_t iotjs_invoke_callback_with_result(jerry_value_t jfunc,
                                                 const jerry_value_t* jargv,
                                                 size_t jargc);
 
-void iotjs_make_callback(jerry_value_t jfunc, jerry_value_t jthis,
-                         const iotjs_jargs_t* jargs);
-jerry_value_t iotjs_make_callback_with_result(jerry_value_t jfunc,
-                                              jerry_value_t jthis,
-                                              const iotjs_jargs_t* jargs);
-
 int iotjs_process_exitcode();
 void iotjs_set_process_exitcode(int code);
 

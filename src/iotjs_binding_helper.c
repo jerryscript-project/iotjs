@@ -133,24 +133,6 @@ jerry_value_t iotjs_invoke_callback_with_result(jerry_value_t jfunc,
 }
 
 
-// Make a callback for the given `function` with `this_` binding and `args`
-// arguments. The next tick callbacks registered via `process.nextTick()`
-// will be called after the callback function `function` returns.
-void iotjs_make_callback(jerry_value_t jfunc, jerry_value_t jthis,
-                         const iotjs_jargs_t* jargs) {
-  jerry_value_t result = iotjs_make_callback_with_result(jfunc, jthis, jargs);
-  jerry_release_value(result);
-}
-
-
-jerry_value_t iotjs_make_callback_with_result(jerry_value_t jfunc,
-                                              jerry_value_t jthis,
-                                              const iotjs_jargs_t* jargs) {
-  return iotjs_invoke_callback_with_result(jfunc, jthis, jargs->argv,
-                                           jargs->argc);
-}
-
-
 int iotjs_process_exitcode() {
   const jerry_value_t process = iotjs_module_get("process");
 

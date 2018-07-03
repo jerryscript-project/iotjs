@@ -83,34 +83,6 @@ void iotjs_jval_set_property_by_index(jerry_value_t jarr, uint32_t idx,
 jerry_value_t iotjs_jval_get_property_by_index(jerry_value_t jarr,
                                                uint32_t idx);
 
-
-typedef struct {
-  uint16_t capacity;
-  uint16_t argc;
-  jerry_value_t* argv;
-} iotjs_jargs_t;
-
-
-iotjs_jargs_t iotjs_jargs_create(uint16_t capacity);
-
-const iotjs_jargs_t* iotjs_jargs_get_empty();
-
-void iotjs_jargs_destroy(iotjs_jargs_t* jargs);
-
-uint16_t iotjs_jargs_length(const iotjs_jargs_t* jargs);
-
-void iotjs_jargs_append_jval(iotjs_jargs_t* jargs, jerry_value_t x);
-void iotjs_jargs_append_undefined(iotjs_jargs_t* jargs);
-void iotjs_jargs_append_null(iotjs_jargs_t* jargs);
-void iotjs_jargs_append_bool(iotjs_jargs_t* jargs, bool x);
-void iotjs_jargs_append_number(iotjs_jargs_t* jargs, double x);
-void iotjs_jargs_append_string(iotjs_jargs_t* jargs, const iotjs_string_t* x);
-void iotjs_jargs_append_string_raw(iotjs_jargs_t* jargs, const char* x);
-void iotjs_jargs_append_error(iotjs_jargs_t* jargs, const char* msg);
-
-
-void iotjs_jargs_replace(iotjs_jargs_t* jargs, uint16_t index, jerry_value_t x);
-
 // Evaluates javascript source file.
 jerry_value_t iotjs_jhelper_eval(const char* name, size_t name_len,
                                  const uint8_t* data, size_t size,

@@ -124,12 +124,13 @@ void iotjs_tizen_app_control_cb(app_control_h app_control, void* user_data) {
   DDDLOG("JSON: %s", json);
 
   // call emit
-  iotjs_jargs_t jargv = iotjs_jargs_create(2);
-  iotjs_jargs_append_string_raw(&jargv, event_name);
-  iotjs_jargs_append_string_raw(&jargv, json);
+  jerry_value_t jargv[2] = { jerry_create_string(
+                                 (const jerry_char_t*)event_name),
+                             jerry_create_string((const jerry_char_t*)json) };
 
-  iotjs_make_callback(fn, tizen, &jargv);
-  iotjs_jargs_destroy(&jargv);
+  iotjs_invoke_callback(fn, tizen, jargv, 2);
+  jerry_release_value(jargv[0]);
+  jerry_release_value(jargv[1]);
 
   free(json);
   bundle_free(b);
@@ -200,9 +201,9 @@ static bool bridge_native_call(const char* module_name, const char* func_name,
     return result;
   }
 
-  iotjs_jargs_t jargv = iotjs_jargs_create(1);
-  iotjs_jargs_append_string_raw(&jargv, message);
-  jerry_value_t jres = iotjs_make_callback_with_result(jfunc, jmodule, &jargv);
+  jerry_value_t jval = jerry_create_string((const jerry_char_t*)message);
+  jerry_value_t jres =
+      iotjs_invoke_callback_with_result(jfunc, jmodule, &jval, 1);
 
   if (jerry_value_is_string(jres)) {
     IOTJS_ASSERT(output_str != NULL);
@@ -212,7 +213,7 @@ static bool bridge_native_call(const char* module_name, const char* func_name,
 
   jerry_release_value(jfunc);
   jerry_release_value(jres);
-  iotjs_jargs_destroy(&jargv);
+  jerry_release_value(jval);
   return result;
 }
 

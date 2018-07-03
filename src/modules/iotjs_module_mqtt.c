@@ -397,7 +397,7 @@ static int iotjs_mqtt_handle(jerry_value_t jsref, char first_byte, char *buffer,
 
       jerry_value_t fn =
           iotjs_jval_get_property(jsref, IOTJS_MAGIC_STRING_ONCONNECTION);
-      iotjs_make_callback(fn, jsref, iotjs_jargs_get_empty());
+      iotjs_invoke_callback(fn, jsref, NULL, 0);
 
       jerry_release_value(fn);
       break;
@@ -525,7 +525,7 @@ static int iotjs_mqtt_handle(jerry_value_t jsref, char first_byte, char *buffer,
 
       jerry_value_t fn =
           iotjs_jval_get_property(jsref, IOTJS_MAGIC_STRING_ONPINGRESP);
-      iotjs_make_callback(fn, jsref, iotjs_jargs_get_empty());
+      iotjs_invoke_callback(fn, jsref, NULL, 0);
       jerry_release_value(fn);
       break;
     }
@@ -536,7 +536,7 @@ static int iotjs_mqtt_handle(jerry_value_t jsref, char first_byte, char *buffer,
 
       jerry_value_t fn =
           iotjs_jval_get_property(jsref, IOTJS_MAGIC_STRING_ONEND);
-      iotjs_make_callback(fn, jsref, iotjs_jargs_get_empty());
+      iotjs_invoke_callback(fn, jsref, NULL, 0);
       jerry_release_value(fn);
       break;
     }

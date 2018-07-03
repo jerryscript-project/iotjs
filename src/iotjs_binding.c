@@ -22,9 +22,6 @@
 #include <string.h>
 
 
-static iotjs_jargs_t jargs_empty;
-
-
 jerry_value_t iotjs_jval_create_string(const iotjs_string_t* v) {
   jerry_value_t jval;
 
@@ -406,106 +403,4 @@ jerry_value_t vm_exec_stop_callback(void* user_p) {
   }
 
   return jerry_create_string((const jerry_char_t*)"Abort script");
-}
-
-
-iotjs_jargs_t iotjs_jargs_create(uint16_t capacity) {
-  if (capacity == 0) {
-    return jargs_empty;
-  }
-
-  iotjs_jargs_t jargs;
-
-  jargs.capacity = capacity;
-  jargs.argc = 0;
-  unsigned buffer_size = sizeof(jerry_value_t) * capacity;
-  jargs.argv = (jerry_value_t*)iotjs_buffer_allocate(buffer_size);
-
-  return jargs;
-}
-
-
-const iotjs_jargs_t* iotjs_jargs_get_empty() {
-  return &jargs_empty;
-}
-
-
-void iotjs_jargs_destroy(iotjs_jargs_t* jargs) {
-  IOTJS_ASSERT(jargs && jargs->argc <= jargs->capacity);
-
-  if (jargs && jargs->capacity > 0) {
-    IOTJS_ASSERT(jargs->argv);
-    for (unsigned i = 0; i < jargs->argc; ++i) {
-      jerry_release_value(jargs->argv[i]);
-    }
-    IOTJS_RELEASE(jargs->argv);
-  } else {
-    IOTJS_ASSERT(jargs->argv == NULL);
-  }
-}
-
-
-uint16_t iotjs_jargs_length(const iotjs_jargs_t* jargs) {
-  IOTJS_ASSERT(jargs);
-  return jargs ? jargs->argc : 0;
-}
-
-
-void iotjs_jargs_append_jval(iotjs_jargs_t* jargs, jerry_value_t x) {
-  IOTJS_ASSERT(jargs && jargs->argc < jargs->capacity);
-  IOTJS_ASSERT(jargs->argv);
-  jargs->argv[jargs->argc++] = jerry_acquire_value(x);
-}
-
-
-void iotjs_jargs_append_undefined(iotjs_jargs_t* jargs) {
-  iotjs_jargs_append_jval(jargs, jerry_create_undefined());
-}
-
-
-void iotjs_jargs_append_null(iotjs_jargs_t* jargs) {
-  iotjs_jargs_append_jval(jargs, jerry_create_null());
-}
-
-
-void iotjs_jargs_append_bool(iotjs_jargs_t* jargs, bool x) {
-  iotjs_jargs_append_jval(jargs, jerry_create_boolean(x));
-}
-
-
-void iotjs_jargs_append_number(iotjs_jargs_t* jargs, double x) {
-  jerry_value_t jval = jerry_create_number(x);
-  iotjs_jargs_append_jval(jargs, jval);
-  jerry_release_value(jval);
-}
-
-
-void iotjs_jargs_append_string(iotjs_jargs_t* jargs, const iotjs_string_t* x) {
-  jerry_value_t jval = iotjs_jval_create_string(x);
-  iotjs_jargs_append_jval(jargs, jval);
-  jerry_release_value(jval);
-}
-
-
-void iotjs_jargs_append_error(iotjs_jargs_t* jargs, const char* msg) {
-  jerry_value_t error = iotjs_jval_create_error_without_error_flag(msg);
-  iotjs_jargs_append_jval(jargs, error);
-  jerry_release_value(error);
-}
-
-
-void iotjs_jargs_append_string_raw(iotjs_jargs_t* jargs, const char* x) {
-  jerry_value_t jval = jerry_create_string((const jerry_char_t*)x);
-  iotjs_jargs_append_jval(jargs, jval);
-  jerry_release_value(jval);
-}
-
-
-void iotjs_jargs_replace(iotjs_jargs_t* jargs, uint16_t index,
-                         jerry_value_t x) {
-  IOTJS_ASSERT(jargs && index < jargs->argc);
-  IOTJS_ASSERT(jargs->argv);
-
-  jerry_release_value(jargs->argv[index]);
-  jargs->argv[index] = jerry_acquire_value(x);
 }

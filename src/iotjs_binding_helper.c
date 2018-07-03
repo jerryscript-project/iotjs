@@ -171,5 +171,11 @@ int iotjs_process_exitcode() {
 
 void iotjs_set_process_exitcode(int code) {
   const jerry_value_t process = iotjs_module_get("process");
-  iotjs_jval_set_property_number(process, IOTJS_MAGIC_STRING_EXITCODE, code);
+  jerry_value_t jstring =
+      jerry_create_string((jerry_char_t*)IOTJS_MAGIC_STRING_EXITCODE);
+  jerry_value_t jcode = jerry_create_number(code);
+  jerry_release_value(jerry_set_property(process, jstring, jcode));
+
+  jerry_release_value(jstring);
+  jerry_release_value(jcode);
 }

@@ -345,8 +345,11 @@ foreach(module ${IOTJS_MODULES})
 endforeach()
 
 # Common compile flags
-iotjs_add_compile_flags(-Wall -Wextra -Werror -Wno-unused-parameter)
-iotjs_add_compile_flags(-Wsign-conversion -std=gnu99)
+iotjs_add_compile_flags(-Wall)
+if(NOT USING_MSVC)
+  iotjs_add_compile_flags(-Wextra -Werror -Wno-unused-parameter)
+  iotjs_add_compile_flags(-Wsign-conversion -std=gnu99)
+endif()
 
 if(ENABLE_SNAPSHOT)
   set(JS2C_SNAPSHOT_ARG --snapshot-tool=${JERRY_HOST_SNAPSHOT})
@@ -359,15 +362,21 @@ if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
   set(JS2C_RUN_MODE "debug")
 endif()
 
+if(USING_MSVC)
+  set(JS2C_PREPROCESS_ARGS /EP /d1PP)
+else()
+  set(JS2C_PREPROCESS_ARGS -E -dD)
+endif()
+
+string (REPLACE ";" "," IOTJS_JS_MODULES_STR "${IOTJS_JS_MODULES}")
 add_custom_command(
   OUTPUT ${IOTJS_SOURCE_DIR}/iotjs_js.c ${IOTJS_SOURCE_DIR}/iotjs_js.h
-  COMMAND ${CMAKE_C_COMPILER} -E -dD ${IOTJS_MODULE_DEFINES}
+  COMMAND ${CMAKE_C_COMPILER} ${JS2C_PREPROCESS_ARGS} ${IOTJS_MODULE_DEFINES}
             ${IOTJS_SOURCE_DIR}/iotjs_magic_strings.h
-          | grep IOTJS_MAGIC_STRING
           > ${IOTJS_SOURCE_DIR}/iotjs_magic_strings.in
   COMMAND python ${ROOT_DIR}/tools/js2c.py
   ARGS --buildtype=${JS2C_RUN_MODE}
-       --modules '${IOTJS_JS_MODULES}'
+       --modules "${IOTJS_JS_MODULES_STR}"
        ${JS2C_SNAPSHOT_ARG}
   COMMAND ${CMAKE_COMMAND} -E remove
             -f ${IOTJS_SOURCE_DIR}/iotjs_magic_strings.in
@@ -431,6 +440,8 @@ set(IOTJS_INCLUDE_DIRS
 if(NOT BUILD_LIB_ONLY)
   if("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
     iotjs_add_link_flags("-Xlinker -map -Xlinker iotjs.map")
+  elseif(USING_MSVC)
+    iotjs_add_link_flags("/MAP:iotjs.map")
   else()
     iotjs_add_link_flags("-Xlinker -Map -Xlinker iotjs.map")
   endif()

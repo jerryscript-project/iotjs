@@ -405,9 +405,10 @@
       "skip": [
         "darwin",
         "nuttx",
-        "tizenrt"
+        "tizenrt",
+        "windows"
       ],
-      "reason": "embedded and macos does not support dynamic loading",
+      "reason": "embedded, macos, and windows does not support dynamic loading",
       "required-modules": [
         "fs"
       ]

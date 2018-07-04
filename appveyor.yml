@@ -1,0 +1,30 @@
+version: 1.0.{build}
+pull_requests:
+  do_not_increment_build_number: true
+branches:
+  except:
+  - coverity_scan
+  - gh_pages
+skip_tags: true
+image:
+  - Visual Studio 2017
+configuration:
+  - Debug
+  - Release
+platform:
+  - Win32
+init:
+  - cmd: |
+      cmake -version
+before_build:
+  - cmd: |
+      tools\build.py --experimental --buildtype=debug
+
+artifacts:
+  - path: build\i686-windows\debug\bin\$(configuration)\
+    name: IoTjsbinary
+
+build:
+  project: build\i686-windows\debug\IOTJS.sln
+  parallel: true
+  verbosity: minimal

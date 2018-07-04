@@ -18,6 +18,7 @@
 /* Windows compatiblity defines */
 #ifdef WIN32
 #include <fcntl.h>
+#include <windows.h>
 /* Map windows _O_* to O_* defines as on Linux systems. */
 #define O_APPEND _O_APPEND
 #define O_CREAT _O_CREAT
@@ -28,6 +29,11 @@
 #define O_WRONLY _O_WRONLY
 /* On windows there is no O_SYNC directly, disable it for now. */
 #define O_SYNC 0x0
+
+#ifndef PATH_MAX
+#define PATH_MAX MAX_PATH
+#endif
+
 #endif
 
 #ifndef S_ISREG

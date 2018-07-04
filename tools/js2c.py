@@ -384,5 +384,5 @@ if __name__ == "__main__":
     else:
         print('Using "%s" as snapshot tool' % options.snapshot_tool)
 
-    modules = options.modules.replace(',', ' ').split()
+    modules = options.modules.split(',')
     js2c(options.buildtype, modules, options.snapshot_tool, options.verbose)

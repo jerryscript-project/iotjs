@@ -18,6 +18,7 @@ cmake_minimum_required(VERSION 2.8)
 set(DEPS_TUV deps/libtuv)
 set(DEPS_TUV_SRC ${ROOT_DIR}/${DEPS_TUV})
 
+build_lib_name(LIBTUV_NAME tuv)
 set(DEPS_TUV_TOOLCHAIN
   ${DEPS_TUV_SRC}/cmake/config/config_${PLATFORM_DESCRIPTOR}.cmake)
 message(STATUS "libtuv toolchain file: ${DEPS_TUV_TOOLCHAIN}")
@@ -27,8 +28,8 @@ ExternalProject_Add(libtuv
   BUILD_IN_SOURCE 0
   BINARY_DIR ${DEPS_TUV}
   INSTALL_COMMAND
-    ${CMAKE_COMMAND} -E copy
-    ${CMAKE_BINARY_DIR}/${DEPS_TUV}/lib/libtuv.a
+    ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_BINARY_DIR}/${DEPS_TUV}/lib/${CONFIG_TYPE}/
     ${CMAKE_BINARY_DIR}/lib/
   CMAKE_ARGS
     -DCMAKE_TOOLCHAIN_FILE=${DEPS_TUV_TOOLCHAIN}
@@ -44,12 +45,20 @@ ExternalProject_Add(libtuv
 add_library(tuv STATIC IMPORTED)
 add_dependencies(tuv libtuv)
 set_property(TARGET tuv PROPERTY
-  IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/lib/libtuv.a)
+  IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/lib/${LIBTUV_NAME})
 set_property(DIRECTORY APPEND PROPERTY
-  ADDITIONAL_MAKE_CLEAN_FILES ${CMAKE_BINARY_DIR}/lib/libtuv.a)
+  ADDITIONAL_MAKE_CLEAN_FILES ${CMAKE_BINARY_DIR}/lib/${LIBTUV_NAME})
 set(TUV_INCLUDE_DIR ${DEPS_TUV_SRC}/include)
 set(TUV_LIBS tuv)
 
 if("${TARGET_OS}" STREQUAL "LINUX")
   list(APPEND TUV_LIBS pthread)
+elseif("${TARGET_OS}" STREQUAL "WINDOWS")
+  list(APPEND TUV_LIBS
+        ws2_32.lib
+        UserEnv.lib
+        advapi32.lib
+        iphlpapi.lib
+        psapi.lib
+        shell32.lib)
 endif()

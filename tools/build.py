@@ -149,7 +149,7 @@ def init_options():
         default=None, help='Specify the target board (default: %(default)s).')
     iotjs_group.add_argument('--target-os',
         choices=['linux', 'darwin', 'osx', 'nuttx', 'tizen', 'tizenrt',
-                 'openwrt'],
+                 'openwrt', 'windows'],
         default=platform.os(),
         help='Specify the target OS (default: %(default)s).')
 
@@ -217,6 +217,11 @@ def adjust_options(options):
     if options.target_os == 'darwin':
         options.no_check_valgrind = True
 
+    # Switch to no-snapshot mode on windows for now.
+    # TODO: After Jerry update this could be removed.
+    if options.target_os == 'windows':
+        options.no_snapshot = True
+
     if options.target_board in ['rpi2', 'rpi3', 'artik10', 'artik05x']:
         options.no_check_valgrind = True
 
@@ -278,6 +283,8 @@ def build_cmake_args(options):
 
     if options.target_os == 'tizenrt':
         include_dirs.append('%s/../framework/include/iotbus' % options.sysroot)
+    elif options.target_os == 'windows':
+        cmake_args.append("-GVisual Studio 15 2017")
 
     include_dirs.extend(options.external_include_dir)
     cmake_args.append("-DEXTERNAL_INCLUDE_DIR='%s'" % (' '.join(include_dirs)))
@@ -308,7 +315,7 @@ def build_iotjs(options):
     cmake_opt = [
         '-B%s' % options.build_root,
         '-H%s' % path.PROJECT_ROOT,
-        "-DCMAKE_TOOLCHAIN_FILE='%s'" % options.cmake_toolchain_file,
+        "-DCMAKE_TOOLCHAIN_FILE=%s" % options.cmake_toolchain_file,
         '-DCMAKE_BUILD_TYPE=%s' % options.buildtype.capitalize(),
         '-DTARGET_ARCH=%s' % options.target_arch,
         '-DTARGET_OS=%s' % options.target_os,
@@ -375,7 +382,10 @@ def build_iotjs(options):
     # Run cmake.
     ex.check_run_cmd('cmake', cmake_opt)
 
-    run_make(options, options.build_root)
+    if options.target_os == 'windows':
+        print("\nPlease open the iot.js solution file in Visual Studio!")
+    else:
+        run_make(options, options.build_root)
 
 
 def run_checktest(options):

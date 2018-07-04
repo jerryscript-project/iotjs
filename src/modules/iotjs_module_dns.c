@@ -110,19 +110,33 @@ static void AfterGetAddrInfo(uv_getaddrinfo_t* req, int status,
     char ip[INET6_ADDRSTRLEN];
     int family;
     const char* addr;
+    struct addrinfo* info;
 
-    // Only first address is used
-    if (res->ai_family == AF_INET) {
-      struct sockaddr_in* sockaddr = (struct sockaddr_in*)(res->ai_addr);
+    /* search for the first AF_INET entry */
+    for (info = res; info != NULL; info = info->ai_next) {
+      if (info->ai_family == AF_INET) {
+        break;
+      }
+    }
+
+    if (info == NULL) {
+      /* Did not find an AF_INET addr, using the first one */
+      info = res;
+    }
+
+    IOTJS_ASSERT(info != NULL);
+
+    if (info->ai_family == AF_INET) {
+      struct sockaddr_in* sockaddr = (struct sockaddr_in*)(info->ai_addr);
       addr = (char*)(&(sockaddr->sin_addr));
       family = 4;
     } else {
-      struct sockaddr_in6* sockaddr = (struct sockaddr_in6*)(res->ai_addr);
+      struct sockaddr_in6* sockaddr = (struct sockaddr_in6*)(info->ai_addr);
       addr = (char*)(&(sockaddr->sin6_addr));
       family = 6;
     }
 
-    int err = uv_inet_ntop(res->ai_family, addr, ip, INET6_ADDRSTRLEN);
+    int err = uv_inet_ntop(info->ai_family, addr, ip, INET6_ADDRSTRLEN);
     if (err) {
       ip[0] = 0;
       args[argc++] = iotjs_jval_create_error_without_error_flag(

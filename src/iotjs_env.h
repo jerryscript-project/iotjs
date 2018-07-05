@@ -53,6 +53,9 @@ typedef struct {
 
   // Run config
   Config config;
+
+  // Exitcode
+  uint8_t exitcode;
 } iotjs_environment_t;
 
 

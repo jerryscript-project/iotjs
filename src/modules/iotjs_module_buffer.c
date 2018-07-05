@@ -173,26 +173,58 @@ static int32_t base64_to_bin(char c) {
 }
 
 
-static size_t base64_decode(char* buf, size_t len, const char* src,
+static size_t base64_decode(char* dst, size_t len, const char* src,
                             const size_t srcLen) {
   if (srcLen == 0) {
-    return 0 + 1;
+    return 1;
   }
 
-  if ((srcLen & 0x3) != 0) {
+  char* decoded_base64 = NULL;
+  size_t decoded_len = iotjs_base64_decode(&decoded_base64, src, srcLen);
+  size_t ret_val = 0;
+  if (decoded_len) {
+    char* buf = dst;
+    char* bufEnd = len > decoded_len ? dst + decoded_len : dst + len;
+
+    char* pos = decoded_base64;
+    while (buf < bufEnd) {
+      *buf++ = *pos++;
+    }
+    ret_val = (size_t)(buf - dst) + 1;
+  }
+
+  IOTJS_RELEASE(decoded_base64);
+  return ret_val;
+}
+
+
+size_t iotjs_base64_decode(char** out_buff, const char* src,
+                           const size_t srcLen) {
+  if ((srcLen & 0x3) != 0 || srcLen == 0) {
     return 0;
   }
 
-  const char* bufStart = buf;
-  const char* bufEnd = buf + len;
+  size_t len = (3 * (srcLen / 4));
+
   const char* srcEnd = src + srcLen;
 
   if (srcEnd[-1] == '=') {
     srcEnd--;
+    len--;
     if (srcEnd[-1] == '=') {
       srcEnd--;
+      len--;
     }
   }
+
+  if (*out_buff == NULL) {
+    *out_buff = IOTJS_CALLOC(len, char);
+  }
+
+  char* buf = *out_buff;
+
+  const char* bufStart = buf;
+  const char* bufEnd = buf + len;
 
   int32_t current_bits = 0;
   int32_t shift = 8;
@@ -218,12 +250,12 @@ static size_t base64_decode(char* buf, size_t len, const char* src,
       shift = 8;
     }
 
-    if (buf < bufEnd) {
-      *buf++ = (char)byte;
+    if (buf <= bufEnd) {
+      *buf++ = byte;
     }
   }
 
-  return (size_t)((buf - bufStart) + 1);
+  return (size_t)((buf - bufStart));
 }
 
 
@@ -533,62 +565,73 @@ static jerry_value_t to_hex_string(const uint8_t* data, size_t length) {
   return ret_value;
 }
 
-static char to_base64_char(uint8_t digit) {
-  if (digit <= 25) {
-    return (char)digit + 'A';
-  }
-  if (digit <= 51) {
-    return (char)digit + 'a' - 26;
-  }
-  if (digit <= 61) {
-    return (char)digit + '0' - 52;
-  }
-
-  return (digit == 62) ? '+' : '/';
-}
 
 static jerry_value_t to_base64_string(const uint8_t* data, size_t length) {
-  if (length == 0) {
-    return jerry_create_string_sz(NULL, 0);
-  }
-
-  const uint8_t* end = data + length;
-
-  size_t buffer_length = ((length + 2) / 3) * 4;
-  char* buffer = iotjs_buffer_allocate(buffer_length);
-  const jerry_char_t* str = (const jerry_char_t*)buffer;
-
-  uint32_t current_bits = 0;
-  int32_t shift = 2;
-
-  while (data < end) {
-    current_bits = (current_bits << 8) | *data++;
-
-    *buffer++ = to_base64_char(current_bits >> shift);
-    current_bits &= (uint32_t)((1 << shift) - 1);
-
-    shift += 2;
-
-    if (shift == 8) {
-      *buffer++ = to_base64_char(current_bits);
-      current_bits = 0;
-      shift = 2;
-    }
-  }
-
-  char* buffer_end = (char*)str + buffer_length;
-  if (buffer < buffer_end) {
-    buffer[0] = to_base64_char(current_bits << (8 - shift));
-    buffer[1] = '=';
-
-    if (buffer + 2 < buffer_end)
-      buffer[2] = '=';
-  }
-
-  jerry_value_t ret_value = jerry_create_string_sz(str, buffer_length);
-  IOTJS_RELEASE(str);
+  unsigned char* buffer = NULL;
+  size_t buffer_length = iotjs_base64_encode(&buffer, data, length);
+  jerry_value_t ret_value = jerry_create_string_sz(buffer, buffer_length);
+  IOTJS_RELEASE(buffer);
 
   return ret_value;
+}
+
+static const unsigned char base64_enc_map[65] =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+
+size_t iotjs_base64_encode(unsigned char** out_buff, const unsigned char* data,
+                           size_t buff_len) {
+  size_t i, n;
+  int C1, C2, C3;
+  unsigned char* p;
+
+  if (buff_len == 0) {
+    return 0;
+  }
+
+  n = buff_len / 3 + (buff_len % 3 != 0);
+
+  if (n > ((size_t)-2) / 4) {
+    return 0;
+  }
+
+  if (*out_buff == NULL) {
+    *out_buff = IOTJS_CALLOC(n * 4 + 1, unsigned char);
+  }
+
+  n = (buff_len / 3) * 3;
+
+  for (i = 0, p = *out_buff; i < n; i += 3) {
+    C1 = *data++;
+    C2 = *data++;
+    C3 = *data++;
+
+    *p++ = base64_enc_map[(C1 >> 2) & 0x3F];
+    *p++ = base64_enc_map[(((C1 & 3) << 4) + (C2 >> 4)) & 0x3F];
+    *p++ = base64_enc_map[(((C2 & 15) << 2) + (C3 >> 6)) & 0x3F];
+    *p++ = base64_enc_map[C3 & 0x3F];
+  }
+
+  if (i < buff_len) {
+    C1 = *data++;
+    C2 = ((i + 1) < buff_len) ? *data++ : 0;
+
+    *p++ = base64_enc_map[(C1 >> 2) & 0x3F];
+    *p++ = base64_enc_map[(((C1 & 3) << 4) + (C2 >> 4)) & 0x3F];
+
+    if ((i + 1) < buff_len) {
+      *p++ = base64_enc_map[((C2 & 15) << 2) & 0x3F];
+    } else {
+      *p++ = '=';
+    }
+
+    *p++ = '=';
+  }
+
+  size_t ret_len = (size_t)(p - *out_buff);
+  *p = 0;
+
+  return ret_len;
 }
 
 

@@ -19,10 +19,9 @@
 #include "iotjs_def.h"
 #include "iotjs_handlewrap.h"
 #include "iotjs_module_buffer.h"
+#include "iotjs_module_crypto.h"
 #include "iotjs_module_websocket.h"
 #include "iotjs_reqwrap.h"
-#include "mbedtls/base64.h"
-#include "mbedtls/sha1.h"
 
 
 static void iotjs_wsclient_destroy(iotjs_wsclient_t *wsclient) {
@@ -86,13 +85,9 @@ static unsigned char *ws_generate_key(jerry_value_t jsref) {
     key[i] = rand() % 256;
   }
 
-  size_t buff_len;
   unsigned char *ret_val = NULL;
-  mbedtls_base64_encode(ret_val, 0, &buff_len, key, 16);
 
-  ret_val = IOTJS_CALLOC(buff_len, unsigned char);
-
-  if (mbedtls_base64_encode(ret_val, buff_len, &buff_len, key, 16)) {
+  if (!iotjs_base64_encode(&ret_val, key, 16)) {
     jerry_value_t ret_str =
         jerry_create_string((jerry_char_t *)"mbedtls base64 encode failed");
     iotjs_websocket_create_callback(jsref, ret_str, IOTJS_MAGIC_STRING_ONERROR);
@@ -117,15 +112,8 @@ static char *iotjs_ws_write_data(char *buff, void *data, size_t size) {
 
 
 static bool iotjs_check_handshake_key(char *server_key) {
-  unsigned char out_buff[20] = { 0 };
+  unsigned char *out_buff = NULL;
 
-  mbedtls_sha1_context sha_ctx;
-  mbedtls_sha1_init(&sha_ctx);
-#if defined(__TIZENRT__)
-  mbedtls_sha1_starts(&sha_ctx);
-#else
-  mbedtls_sha1_starts_ret(&sha_ctx);
-#endif
   size_t concatenated_size = strlen(WS_GUID) + strlen((char *)generated_key);
   unsigned char concatenated[concatenated_size + 1];
 
@@ -133,30 +121,19 @@ static bool iotjs_check_handshake_key(char *server_key) {
   memcpy(concatenated + strlen((char *)generated_key), WS_GUID,
          strlen(WS_GUID));
   concatenated[concatenated_size] = '\0';
-#if defined(__TIZENRT__)
-  mbedtls_sha1_update(&sha_ctx, concatenated, strlen((char *)concatenated));
-  mbedtls_sha1_finish(&sha_ctx, out_buff);
-#else
-  mbedtls_sha1_update_ret(&sha_ctx, concatenated, strlen((char *)concatenated));
-  mbedtls_sha1_finish_ret(&sha_ctx, out_buff);
-#endif
-  mbedtls_sha1_free(&sha_ctx);
 
-  size_t buff_len;
+  size_t out_buff_size =
+      iotjs_sha1_encode(&out_buff, concatenated, concatenated_size);
   bool ret_val = true;
   unsigned char *key_out = NULL;
-  mbedtls_base64_encode(key_out, 0, &buff_len, out_buff, sizeof(out_buff));
-
-  key_out = IOTJS_CALLOC(buff_len, unsigned char);
-
-  if (mbedtls_base64_encode(key_out, buff_len, &buff_len, out_buff,
-                            sizeof(out_buff)) ||
+  if (!iotjs_base64_encode(&key_out, out_buff, out_buff_size) ||
       strncmp(server_key, (const char *)key_out, 28)) {
     ret_val = false;
   }
 
   IOTJS_RELEASE(generated_key);
   IOTJS_RELEASE(key_out);
+  IOTJS_RELEASE(out_buff);
 
   return ret_val;
 }
@@ -198,18 +175,18 @@ static jerry_value_t iotjs_websocket_encode_frame(uint8_t opcode, bool mask,
   iotjs_bufferwrap_t *frame_wrap = iotjs_bufferwrap_from_jbuffer(jframe);
   char *buff_ptr = frame_wrap->buffer;
 
-  *buff_ptr++ = header[0];
-  *buff_ptr++ = header[1];
+  *buff_ptr++ = (char)header[0];
+  *buff_ptr++ = (char)header[1];
 
   if (extended_len_size) {
     if (extended_len_size == 2) {
       uint16_t len = payload_len;
-      *buff_ptr++ = *((uint8_t *)&len + 1);
-      *buff_ptr++ = *((uint8_t *)&len);
+      *buff_ptr++ = *((int8_t *)&len + 1);
+      *buff_ptr++ = *((int8_t *)&len);
     } else {
       uint64_t len = payload_len;
       for (int8_t i = sizeof(uint64_t) - 1; i >= 0; i--) {
-        *buff_ptr++ = *((uint8_t *)&len + i);
+        *buff_ptr++ = *((int8_t *)&len + i);
       }
     }
   }
@@ -727,7 +704,6 @@ JS_FUNCTION(WsPingOrPong) {
 
 
 jerry_value_t InitWebsocket() {
-  IOTJS_UNUSED(WS_GUID);
   jerry_value_t jws = jerry_create_object();
   iotjs_jval_set_method(jws, IOTJS_MAGIC_STRING_CLOSE, WsClose);
   iotjs_jval_set_method(jws, IOTJS_MAGIC_STRING_PARSEHANDSHAKEDATA,

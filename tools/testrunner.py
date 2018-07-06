@@ -212,7 +212,7 @@ class TestRunner(object):
                 print(output.decode("utf8"), end="")
 
             is_normal_run = (not expected_failure and exitcode == 0)
-            is_expected_fail = (expected_failure and exitcode <= 2)
+            is_expected_fail = (expected_failure and exitcode in [1, 2])
             if is_normal_run or is_expected_fail:
                 Reporter.report_pass(test["name"], runtime)
                 self.results["pass"] += 1

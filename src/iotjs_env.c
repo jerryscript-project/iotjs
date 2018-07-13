@@ -80,6 +80,7 @@ static void initialize(iotjs_environment_t* env) {
   env->config.memstat = false;
   env->config.show_opcode = false;
   env->config.debugger = NULL;
+  env->exitcode = 0;
 }
 
 

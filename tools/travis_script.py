@@ -31,6 +31,9 @@ TRAVIS_BUILD_PATH = fs.join(os.environ['TRAVIS_BUILD_DIR'])
 # IoT.js path in docker
 DOCKER_IOTJS_PATH = fs.join(DOCKER_ROOT_PATH, 'work_space/iotjs')
 
+# Node server path in docker
+DOCKER_NODE_SERVER_PATH = fs.join(DOCKER_ROOT_PATH, 'work_space/node_server')
+
 DOCKER_TIZENRT_PATH = fs.join(DOCKER_ROOT_PATH, 'TizenRT')
 DOCKER_TIZENRT_OS_PATH = fs.join(DOCKER_TIZENRT_PATH, 'os')
 DOCKER_TIZENRT_OS_TOOLS_PATH = fs.join(DOCKER_TIZENRT_OS_PATH, 'tools')
@@ -61,11 +64,17 @@ def run_docker():
                      '--name', DOCKER_NAME, '-v',
                      '%s:%s' % (TRAVIS_BUILD_PATH, DOCKER_IOTJS_PATH),
                      '--add-host', 'test.mosquitto.org:127.0.0.1',
-                     'iotjs/ubuntu:0.8'])
+                     '--add-host', 'echo.websocket.org:127.0.0.1',
+                     '--add-host', 'httpbin.org:127.0.0.1',
+                     'iotjs/ubuntu:0.9'])
 
-def exec_docker(cwd, cmd, env=[]):
+def exec_docker(cwd, cmd, env=[], is_background=False):
     exec_cmd = 'cd %s && ' % cwd + ' '.join(cmd)
-    docker_args = ['exec', '-it']
+    if is_background:
+        docker_args = ['exec', '-dit']
+    else:
+        docker_args = ['exec', '-it']
+
     for e in env:
         docker_args.append('-e')
         docker_args.append(e)
@@ -75,6 +84,9 @@ def exec_docker(cwd, cmd, env=[]):
 
 def start_mosquitto_server():
     exec_docker(DOCKER_ROOT_PATH, ['mosquitto', '-d'])
+
+def start_node_server():
+    exec_docker(DOCKER_NODE_SERVER_PATH, ['node', 'server.js'], [], True)
 
 def set_release_config_tizenrt():
     exec_docker(DOCKER_ROOT_PATH, [
@@ -91,6 +103,7 @@ if __name__ == '__main__':
     if os.getenv('RUN_DOCKER') == 'yes':
         run_docker()
         start_mosquitto_server()
+        start_node_server()
 
     test = os.getenv('OPTS')
     if test == 'host-linux':

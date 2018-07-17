@@ -8,7 +8,7 @@ services:
   - docker
 
 before_install:
-  - if [[ "$RUN_DOCKER" == "yes" ]]; then docker pull iotjs/ubuntu:0.8; fi
+  - if [[ "$RUN_DOCKER" == "yes" ]]; then docker pull iotjs/ubuntu:0.9; fi
 
 script:
   tools/travis_script.py

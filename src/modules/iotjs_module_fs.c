@@ -110,8 +110,8 @@ static void AfterAsync(uv_fs_t* req) {
 static jerry_value_t AfterSync(uv_fs_t* req, int err,
                                const char* syscall_name) {
   if (err < 0) {
-    jerry_value_t jerror = iotjs_create_uv_exception(err, syscall_name);
-    jerry_value_set_error_flag(&jerror);
+    jerry_value_t jvalue = iotjs_create_uv_exception(err, syscall_name);
+    jerry_value_t jerror = jerry_create_error_from_value(jvalue, true);
     return jerror;
   }
 

@@ -106,7 +106,7 @@ static void AfterGetAddrInfo(uv_getaddrinfo_t* req, int status,
   size_t argc = 0;
   jerry_value_t args[3] = { 0 };
 
-  if (status == 0) {
+  if (status == 0 && res != NULL) {
     char ip[INET6_ADDRSTRLEN];
     int family;
     const char* addr;

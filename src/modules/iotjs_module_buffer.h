@@ -23,7 +23,10 @@ typedef struct {
   char buffer[];
 } iotjs_bufferwrap_t;
 
-
+size_t iotjs_base64_decode(char** out_buff, const char* src,
+                           const size_t srcLen);
+size_t iotjs_base64_encode(unsigned char** out_buff, const uint8_t* data,
+                           size_t length);
 iotjs_bufferwrap_t* iotjs_bufferwrap_create(const jerry_value_t jbuiltin,
                                             size_t length);
 

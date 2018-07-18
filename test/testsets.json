@@ -53,6 +53,12 @@
       ]
     },
     {
+      "name": "test_crypto.js",
+      "required-modules": [
+        "crypto"
+      ]
+    },
+    {
       "name": "test_dgram_1_server_1_client.js",
       "required-modules": [
         "dgram"

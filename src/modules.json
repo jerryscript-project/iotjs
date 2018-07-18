@@ -124,6 +124,11 @@
       "native_files": ["modules/iotjs_module_constants.c"],
       "init": "InitConstants"
     },
+    "crypto": {
+      "native_files": ["modules/iotjs_module_crypto.c"],
+      "init": "InitCrypto",
+      "js_file": "js/crypto.js"
+    },
     "dgram": {
       "js_file": "js/dgram.js",
       "require": ["events", "udp", "util"]
@@ -368,7 +373,7 @@
                        "modules/iotjs_module_websocket.c"],
       "init": "InitWebsocket",
       "js_file": "js/websocket.js",
-      "require": ["events", "net", "tls", "util"]
+      "require": ["crypto", "events", "net", "util"]
     },
     "bridge": {
       "native_files": ["modules/iotjs_module_bridge.c"],

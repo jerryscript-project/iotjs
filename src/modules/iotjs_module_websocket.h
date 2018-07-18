@@ -12,6 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#ifndef IOTJS_MODULE_WEBSOCKET_H
+#define IOTJS_MODULE_WEBSOCKET_H
 
 enum {
   WS_OP_CONTINUE = 0x00,
@@ -55,3 +57,5 @@ typedef struct {
     bool masked;
   } ws_buff;
 } iotjs_wsclient_t;
+
+#endif /* IOTJS_MODULE_WEBSOCKET_H */

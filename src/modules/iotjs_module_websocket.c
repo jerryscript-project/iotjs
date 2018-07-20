@@ -26,6 +26,7 @@
 static void iotjs_wsclient_destroy(iotjs_wsclient_t *wsclient) {
   IOTJS_RELEASE(wsclient->tcp_buff.buffer);
   IOTJS_RELEASE(wsclient->ws_buff.data);
+  IOTJS_RELEASE(wsclient->generated_key);
   IOTJS_RELEASE(wsclient);
 }
 
@@ -44,7 +45,6 @@ iotjs_wsclient_t *iotjs_wsclient_create(const jerry_value_t jobject) {
 
 
 static const char WS_GUID[] = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
-static unsigned char *generated_key = NULL;
 
 /**
  * The protocol is as follows:
@@ -78,7 +78,7 @@ static void iotjs_websocket_create_callback(jerry_value_t jsref,
 }
 
 
-static unsigned char *ws_generate_key(jerry_value_t jsref) {
+static unsigned char *ws_generate_key(jerry_value_t jsref, size_t *key_len) {
   unsigned char *key = IOTJS_CALLOC(16, unsigned char);
   for (int i = 0; i < 16; i++) {
     key[i] = rand() % 256;
@@ -86,7 +86,7 @@ static unsigned char *ws_generate_key(jerry_value_t jsref) {
 
   unsigned char *ret_val = NULL;
 
-  if (!iotjs_base64_encode(&ret_val, key, 16)) {
+  if (!(*key_len = iotjs_base64_encode(&ret_val, key, 16))) {
     jerry_value_t ret_str =
         jerry_create_string((jerry_char_t *)"mbedtls base64 encode failed");
     iotjs_websocket_create_callback(jsref, ret_str, IOTJS_MAGIC_STRING_ONERROR);
@@ -110,15 +110,24 @@ static char *iotjs_ws_write_data(char *buff, void *data, size_t size) {
 }
 
 
-static bool iotjs_check_handshake_key(char *server_key) {
-  unsigned char *out_buff = NULL;
+static bool iotjs_check_handshake_key(char *server_key, jerry_value_t jsref) {
+  void *native_p;
+  JNativeInfoType *out_native_info;
+  bool has_p =
+      jerry_get_object_native_pointer(jsref, &native_p, &out_native_info);
+  if (!has_p || out_native_info != &wsclient_native_info) {
+    return false;
+  }
+  iotjs_wsclient_t *wsclient = (iotjs_wsclient_t *)native_p;
 
-  size_t concatenated_size = strlen(WS_GUID) + strlen((char *)generated_key);
+  unsigned char *out_buff = NULL;
+  size_t ws_guid_size = strlen(WS_GUID);
+  size_t generated_key_size = strnlen((char *)wsclient->generated_key, 24);
+  size_t concatenated_size = ws_guid_size + generated_key_size;
   unsigned char concatenated[concatenated_size + 1];
 
-  memcpy(concatenated, generated_key, strlen((char *)generated_key));
-  memcpy(concatenated + strlen((char *)generated_key), WS_GUID,
-         strlen(WS_GUID));
+  memcpy(concatenated, wsclient->generated_key, generated_key_size);
+  memcpy(concatenated + generated_key_size, WS_GUID, ws_guid_size);
   concatenated[concatenated_size] = '\0';
 
   size_t out_buff_size =
@@ -130,7 +139,7 @@ static bool iotjs_check_handshake_key(char *server_key) {
     ret_val = false;
   }
 
-  IOTJS_RELEASE(generated_key);
+  IOTJS_RELEASE(wsclient->generated_key);
   IOTJS_RELEASE(key_out);
   IOTJS_RELEASE(out_buff);
 
@@ -229,6 +238,33 @@ static void iotjs_websocket_create_buffer_and_cb(char **buff_ptr,
 }
 
 
+static jerry_value_t iotjs_websocket_check_error(uint8_t code) {
+  switch (code) {
+    case WS_ERR_INVALID_UTF8: {
+      return JS_CREATE_ERROR(COMMON, "Invalid UTF8 string in UTF8 message");
+    }
+
+    case WS_ERR_INVALID_TERMINATE_CODE: {
+      return JS_CREATE_ERROR(COMMON, "Invalid terminate code received");
+    }
+
+    case WS_ERR_UNKNOWN_OPCODE: {
+      return JS_CREATE_ERROR(COMMON, "Uknown opcode received");
+    }
+
+    case WS_ERR_NATIVE_POINTER_ERR: {
+      return JS_CREATE_ERROR(COMMON, "WebSocket native pointer unavailable");
+    }
+
+    case WS_ERR_FRAME_SIZE_LIMIT: {
+      return JS_CREATE_ERROR(COMMON, "Frame size received exceeds limit");
+    }
+
+    default: { return jerry_create_undefined(); };
+  }
+}
+
+
 JS_FUNCTION(PrepareHandshakeRequest) {
   DJS_CHECK_THIS();
 
@@ -243,8 +279,17 @@ JS_FUNCTION(PrepareHandshakeRequest) {
     return JS_CREATE_ERROR(COMMON, "Invalid host and/or path arguments!");
   };
 
-  generated_key = ws_generate_key(jsref);
-  size_t generated_key_len = strlen((char *)generated_key);
+  void *native_p;
+  JNativeInfoType *out_native_info;
+  bool has_p =
+      jerry_get_object_native_pointer(jsref, &native_p, &out_native_info);
+  if (!has_p || out_native_info != &wsclient_native_info) {
+    return iotjs_websocket_check_error(WS_ERR_NATIVE_POINTER_ERR);
+  }
+  iotjs_wsclient_t *wsclient = (iotjs_wsclient_t *)native_p;
+
+  size_t generated_key_len = 0;
+  wsclient->generated_key = ws_generate_key(jsref, &generated_key_len);
 
   jerry_value_t jfinal = iotjs_bufferwrap_create_buffer(
       header_fixed_size + iotjs_string_size(&l_endpoint) +
@@ -265,7 +310,7 @@ JS_FUNCTION(PrepareHandshakeRequest) {
   buff_ptr = iotjs_ws_write_header(buff_ptr, upgrade);
   buff_ptr = iotjs_ws_write_header(buff_ptr, connection);
   buff_ptr = iotjs_ws_write_header(buff_ptr, sec_websocket_key);
-  memcpy(buff_ptr, generated_key, generated_key_len);
+  memcpy(buff_ptr, wsclient->generated_key, generated_key_len);
   buff_ptr += generated_key_len;
   buff_ptr = iotjs_ws_write_header(buff_ptr, line_end);
   buff_ptr = iotjs_ws_write_header(buff_ptr, sec_websocket_ver);
@@ -279,7 +324,7 @@ JS_FUNCTION(PrepareHandshakeRequest) {
 
 JS_FUNCTION(ParseHandshakeData) {
   DJS_CHECK_THIS();
-  DJS_CHECK_ARGS(1, object);
+  DJS_CHECK_ARGS(2, object, object);
 
   jerry_value_t jbuffer = JS_GET_ARG(0, object);
   iotjs_bufferwrap_t *buff_wrap = iotjs_bufferwrap_from_jbuffer(jbuffer);
@@ -287,6 +332,7 @@ JS_FUNCTION(ParseHandshakeData) {
     return JS_CREATE_ERROR(COMMON, "WebSocket connection failed");
   }
 
+  jerry_value_t jsref = JS_GET_ARG(1, object);
   char ws_accept[] = "Sec-WebSocket-Accept: ";
 
   char *frame_end = strstr(buff_wrap->buffer, "\r\n\r\n");
@@ -296,7 +342,7 @@ JS_FUNCTION(ParseHandshakeData) {
 
   frame_end += 4; // \r\n\r\n
 
-  if (!iotjs_check_handshake_key(key)) {
+  if (!iotjs_check_handshake_key(key, jsref)) {
     return JS_CREATE_ERROR(COMMON, "WebSocket handshake key comparison failed");
   }
 
@@ -327,33 +373,6 @@ static void iotjs_websocket_concat_tcp_buffers(iotjs_wsclient_t *wsclient,
          buff_recv->buffer, buff_recv->length);
   wsclient->tcp_buff.length += buff_recv->length;
   IOTJS_RELEASE(tmp_buf);
-}
-
-
-static jerry_value_t iotjs_websocket_check_error(uint8_t code) {
-  switch (code) {
-    case WS_ERR_INVALID_UTF8: {
-      return JS_CREATE_ERROR(COMMON, "Invalid UTF8 string in UTF8 message");
-    }
-
-    case WS_ERR_INVALID_TERMINATE_CODE: {
-      return JS_CREATE_ERROR(COMMON, "Invalid terminate code received");
-    }
-
-    case WS_ERR_UNKNOWN_OPCODE: {
-      return JS_CREATE_ERROR(COMMON, "Uknown opcode received");
-    }
-
-    case WS_ERR_NATIVE_POINTER_ERR: {
-      return JS_CREATE_ERROR(COMMON, "WebSocket native pointer unavailable");
-    }
-
-    case WS_ERR_FRAME_SIZE_LIMIT: {
-      return JS_CREATE_ERROR(COMMON, "Frame size received exceeds limit");
-    }
-
-    default: { return jerry_create_undefined(); };
-  }
 }
 
 
@@ -488,7 +507,7 @@ JS_FUNCTION(WsReceive) {
   bool has_p =
       jerry_get_object_native_pointer(jsref, &native_p, &out_native_info);
   if (!has_p || out_native_info != &wsclient_native_info) {
-    return WS_ERR_NATIVE_POINTER_ERR;
+    return iotjs_websocket_check_error(WS_ERR_NATIVE_POINTER_ERR);
   }
   iotjs_wsclient_t *wsclient = (iotjs_wsclient_t *)native_p;
 
@@ -599,6 +618,8 @@ JS_FUNCTION(WsInit) {
 
   wsclient->ws_buff.data = NULL;
   wsclient->ws_buff.length = 0;
+
+  wsclient->generated_key = NULL;
 
   return jerry_create_undefined();
 }

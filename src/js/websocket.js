@@ -155,7 +155,7 @@ Websocket.prototype.connect = function(url, port, path, callback) {
 
   this._socket.on('data', function(data) {
     if (self._firstMessage) {
-      var remaining_data = native.parseHandshakeData(data);
+      var remaining_data = native.parseHandshakeData(data, self._handle);
       self._handle.onhandshakedone(remaining_data);
     } else {
       self._handle.ondata(data);

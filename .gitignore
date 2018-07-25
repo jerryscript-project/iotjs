@@ -9,6 +9,7 @@
 /test/tmp/*
 /test/dynamicmodule/build/*
 eslint.log
+/obj-*-*/
 
 # IDE related files
 nbproject
@@ -44,3 +45,16 @@ TAGS
 # config files
 *.config
 !build.config
+
+# Local developer temporary place
+/tmp/
+
+# Debian files
+/debian/files
+/debian/*.debhelper.log
+/debian/*.substvars
+/debian/iotjs*/
+/debian/tmp/
+/debian/.debhelper/
+/debian/debhelper-build-stamp
+/debian/iotjs.1

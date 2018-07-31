@@ -569,6 +569,10 @@ JS_FUNCTION(Read) {
         IOTJS_ASSERT(tls_data->state == TLS_HANDSHAKE_IN_PROGRESS ||
                      tls_data->state == TLS_CLOSED);
 
+        if (length > 0 && tls_data->state == TLS_HANDSHAKE_IN_PROGRESS) {
+          continue;
+        }
+
         bool result = (tls_data->state != TLS_CLOSED);
         return jerry_create_boolean(result);
       }

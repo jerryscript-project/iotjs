@@ -199,6 +199,10 @@
       "js_file": "js/http_server.js",
       "require": ["http_common", "http_outgoing", "net", "util"]
     },
+    "http_signature": {
+      "js_file": "js/http_signature.js",
+      "require": ["tls", "crypto"]
+    },
     "http_parser": {
       "native_files": ["modules/iotjs_module_http_parser.c"],
       "init": "InitHttpParser"

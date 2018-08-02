@@ -17,4 +17,6 @@
 
 size_t iotjs_sha1_encode(unsigned char **out_buff, const unsigned char *in_buff,
                          size_t buff_len);
+size_t iotjs_sha256_encode(unsigned char **out_buff,
+                           const unsigned char *in_buff, size_t buff_len);
 #endif /* IOTJS_MODULE_CRYPTO_H */

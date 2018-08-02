@@ -13,7 +13,60 @@
  * limitations under the License.
  */
 
-var hashes = ['sha1'];
+var shaTypes = {
+  'sha1': 4,
+  'sha256': 6,
+};
+
+var hashes = ['sha1', 'sha256'];
+
+function Verify(signtype) {
+  if (!(this instanceof Verify)) {
+    return new Verify(signtype);
+  }
+
+  signtype = signtype.toLowerCase();
+
+  if (hashes.indexOf(signtype) < 0) {
+    throw new Error('Unknown signing algorithm.' +
+                    'Please use crypto.getSignatures()');
+  }
+
+  Object.defineProperty(this, 'hashtype', {
+    // defaults to writable: false, configurable: false
+    value: signtype,
+    enumerable: true,
+  });
+}
+
+Verify.prototype.update = function(data) {
+  if (this.data) {
+    if (Buffer.isBuffer(data)) {
+      this.data = Buffer.concat([this.data, data]);
+      return;
+    }
+
+    this.data = Buffer.concat([this.data, new Buffer(data)]);
+    return;
+  }
+
+  if (Buffer.isBuffer(data)) {
+    this.data = data;
+    return;
+  }
+
+  this.data = new Buffer(data);
+};
+
+Verify.prototype.verify = function(publicKey, signature) {
+  if (this.data) {
+    var type = shaTypes[this.hashtype];
+    var hash = native.shaEncode(this.data, type);
+    return native.rsaVerify(type, hash, publicKey, signature);
+  }
+
+  throw new Error('verify shouldn\'t be called on an empty Verify');
+};
 
 function Hash(hashtype) {
   if (!(this instanceof Hash)) {
@@ -49,12 +102,8 @@ Hash.prototype.digest = function(encoding) {
   }
 
   var result;
-  switch (this.hashtype) {
-    case 'sha1': {
-      result = native.sha1Encode(this.data);
-      break;
-    }
-  }
+  var type = shaTypes[this.hashtype];
+  result = native.shaEncode(this.data, type);
 
   if (encoding == 'base64') {
     result = native.base64Encode(result);
@@ -79,6 +128,10 @@ function createHash(hashtype) {
   return new Hash(hashtype);
 }
 
+function createVerify(signtype) {
+  return new Verify(signtype);
+}
 
 exports.createHash = createHash;
 exports.getHashes = getHashes;
+exports.createVerify = createVerify;

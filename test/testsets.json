@@ -59,6 +59,14 @@
       ]
     },
     {
+      "name": "test_crypto_tls.js",
+      "required-modules": [
+        "crypto",
+        "fs",
+        "tls"
+      ]
+    },
+    {
       "name": "test_dgram_1_server_1_client.js",
       "required-modules": [
         "dgram"
@@ -370,6 +378,12 @@
       "reason": "need to setup test environment",
       "required-modules": [
         "gpio"
+      ]
+    },
+    {
+      "name": "test_http_signature.js",
+      "required-modules": [
+        "http_signature"
       ]
     },
     {

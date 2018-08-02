@@ -41,11 +41,19 @@
  */
 
 #include "iotjs_def.h"
+#include "iotjs_module_crypto.h"
 #include "iotjs_handlewrap.h"
 #include "iotjs_module_buffer.h"
 
+/* These enum values are the same as the ones in crypto.js as well as the
+   corresponding ones in sha.h in mbedTLS.*/
+typedef enum {
+  IOTJS_CRYPTO_SHA1 = 4,
+  IOTJS_CRYPTO_SHA256 = 6,
+} iotjs_crypto_sha_t;
 
 #if !ENABLE_MODULE_TLS
+const char no_tls_err_str[] = "TLS module must be enabled to use this feature";
 
 /*
  * 32-bit integer manipulation macros (big endian)
@@ -317,14 +325,16 @@ static int iotjs_sha1_finish(uint32_t total[2], uint32_t state[5],
 }
 #else /* ENABLE_MODULE_TLS */
 
+#include "mbedtls/pk.h"
 #include "mbedtls/sha1.h"
+#include "mbedtls/sha256.h"
 
 #endif /* !ENABLE_MODULE_TLS */
 
 size_t iotjs_sha1_encode(unsigned char **out_buff, const unsigned char *in_buff,
                          size_t buff_len) {
-  size_t sha_size = 20; // 160 bytes
-  *out_buff = IOTJS_CALLOC(sha_size, unsigned char);
+  size_t sha1_size = 20; // 160 bytes
+  *out_buff = IOTJS_CALLOC(sha1_size, unsigned char);
 #if !ENABLE_MODULE_TLS
   uint32_t total[2] = { 0 };
   uint32_t state[5] = { 0 };
@@ -339,30 +349,56 @@ size_t iotjs_sha1_encode(unsigned char **out_buff, const unsigned char *in_buff,
   state[3] = 0x10325476;
   state[4] = 0xC3D2E1F0;
 
-  iotjs_sha1_update(total, state, buffer, (const unsigned char *)in_buff,
-                    buff_len);
+  iotjs_sha1_update(total, state, buffer, in_buff, buff_len);
   iotjs_sha1_finish(total, state, buffer, *out_buff);
 #else /* ENABLE_MODULE_TLS */
   mbedtls_sha1_context sha_ctx;
   mbedtls_sha1_init(&sha_ctx);
 #if defined(__TIZENRT__)
   mbedtls_sha1_starts(&sha_ctx);
-  mbedtls_sha1_update(&sha_ctx, (const unsigned char *)in_buff, buff_len);
+  mbedtls_sha1_update(&sha_ctx, in_buff, buff_len);
   mbedtls_sha1_finish(&sha_ctx, *out_buff);
 #else  /* !__TIZENRT__ */
   mbedtls_sha1_starts_ret(&sha_ctx);
-  mbedtls_sha1_update_ret(&sha_ctx, (const unsigned char *)in_buff, buff_len);
+  mbedtls_sha1_update_ret(&sha_ctx, in_buff, buff_len);
   mbedtls_sha1_finish_ret(&sha_ctx, *out_buff);
 #endif /* __TIZENRT__ */
   mbedtls_sha1_free(&sha_ctx);
 #endif /* ENABLE_MODULE_TLS */
 
-  return sha_size;
+  return sha1_size;
 }
 
 
-JS_FUNCTION(Sha1Encode) {
+#if ENABLE_MODULE_TLS
+size_t iotjs_sha256_encode(unsigned char **out_buff,
+                           const unsigned char *in_buff, size_t buff_len) {
+  size_t sha256_size = 32;
+  *out_buff = IOTJS_CALLOC(sha256_size, unsigned char);
+
+  mbedtls_sha256_context sha_ctx;
+  mbedtls_sha256_init(&sha_ctx);
+#if defined(__TIZENRT__)
+  mbedtls_sha256_starts(&sha_ctx, 0);
+  mbedtls_sha256_update(&sha_ctx, in_buff, buff_len);
+  mbedtls_sha256_finish(&sha_ctx, *out_buff);
+#else  /* !__TIZENRT__ */
+  mbedtls_sha256_starts_ret(&sha_ctx, 0);
+  mbedtls_sha256_update_ret(&sha_ctx, in_buff, buff_len);
+  mbedtls_sha256_finish_ret(&sha_ctx, *out_buff);
+#endif /* __TIZENRT__ */
+  mbedtls_sha256_free(&sha_ctx);
+
+  return sha256_size;
+}
+#endif /* ENABLE_MODULE_TLS */
+
+
+JS_FUNCTION(ShaEncode) {
   DJS_CHECK_THIS();
+  DJS_CHECK_ARGS(2, any, number);
+
+  uint8_t type = JS_GET_ARG(1, number);
 
   jerry_value_t jstring = JS_GET_ARG(0, any);
   iotjs_string_t user_str = iotjs_string_create();
@@ -371,21 +407,103 @@ JS_FUNCTION(Sha1Encode) {
     return jerry_create_undefined();
   }
 
-  unsigned char *sha1_ret = NULL;
-  size_t sha1_sz =
-      iotjs_sha1_encode(&sha1_ret,
-                        (const unsigned char *)iotjs_string_data(&user_str),
-                        iotjs_string_size(&user_str));
+  const unsigned char *user_str_data =
+      (const unsigned char *)iotjs_string_data(&user_str);
+  size_t user_str_sz = iotjs_string_size(&user_str);
+
+  size_t sha_sz = 0;
+
+  unsigned char *sha_ret = NULL;
+
+  switch (type) {
+    case IOTJS_CRYPTO_SHA1: {
+      sha_sz = iotjs_sha1_encode(&sha_ret, user_str_data, user_str_sz);
+      break;
+    }
+    case IOTJS_CRYPTO_SHA256: {
+#if !ENABLE_MODULE_TLS
+      iotjs_string_destroy(&user_str);
+      return JS_CREATE_ERROR(COMMON, no_tls_err_str);
+#else  /* ENABLE_MODULE_TLS */
+      sha_sz = iotjs_sha256_encode(&sha_ret, user_str_data, user_str_sz);
+      break;
+#endif /* !ENABLE_MODULE_TLS */
+    }
+    default: {
+      iotjs_string_destroy(&user_str);
+      return JS_CREATE_ERROR(COMMON, "Unknown SHA hashing algorithm");
+    }
+  }
+
   iotjs_string_destroy(&user_str);
 
   jerry_value_t ret_val;
-  ret_val = iotjs_bufferwrap_create_buffer(sha1_sz);
+  ret_val = iotjs_bufferwrap_create_buffer(sha_sz);
   iotjs_bufferwrap_t *ret_wrap = iotjs_bufferwrap_from_jbuffer(ret_val);
-  memcpy(ret_wrap->buffer, sha1_ret, sha1_sz);
-  ret_wrap->length = sha1_sz;
+  memcpy(ret_wrap->buffer, sha_ret, sha_sz);
+  ret_wrap->length = sha_sz;
 
-  IOTJS_RELEASE(sha1_ret);
+  IOTJS_RELEASE(sha_ret);
   return ret_val;
+}
+
+
+JS_FUNCTION(RsaVerify) {
+#if !ENABLE_MODULE_TLS
+  return JS_CREATE_ERROR(COMMON, no_tls_err_str);
+#else  /* ENABLE_MODULE_TLS */
+  DJS_CHECK_THIS();
+  DJS_CHECK_ARGS(2, any, any);
+
+  uint8_t type = JS_GET_ARG(0, number);
+  jerry_value_t jdata = JS_GET_ARG(1, any);
+  jerry_value_t jkey = JS_GET_ARG(2, any);
+  jerry_value_t jsignature = JS_GET_ARG(3, any);
+
+  iotjs_string_t key = iotjs_string_create();
+  iotjs_string_t data = iotjs_string_create();
+  iotjs_string_t signature = iotjs_string_create();
+
+  if ((!iotjs_jbuffer_as_string(jkey, &key)) ||
+      (!iotjs_jbuffer_as_string(jdata, &data)) ||
+      (!iotjs_jbuffer_as_string(jsignature, &signature))) {
+    iotjs_string_destroy(&key);
+    iotjs_string_destroy(&data);
+    iotjs_string_destroy(&signature);
+
+    return jerry_create_boolean(false);
+  }
+
+  mbedtls_pk_context pk;
+
+  char *raw_signature = NULL;
+  size_t raw_signature_sz =
+      iotjs_base64_decode(&raw_signature, iotjs_string_data(&signature),
+                          iotjs_string_size(&signature));
+  mbedtls_pk_init(&pk);
+  int ret_val =
+      mbedtls_pk_parse_public_key(&pk, (const unsigned char *)iotjs_string_data(
+                                           &key),
+                                  iotjs_string_size(&key) + 1);
+
+
+  jerry_value_t js_ret_val = jerry_create_boolean(true);
+  if ((ret_val =
+           mbedtls_pk_verify(&pk, type,
+                             (const unsigned char *)iotjs_string_data(&data), 0,
+                             (const unsigned char *)raw_signature,
+                             raw_signature_sz))) {
+    js_ret_val = jerry_create_boolean(false);
+  }
+
+  iotjs_string_destroy(&key);
+  iotjs_string_destroy(&data);
+  iotjs_string_destroy(&signature);
+  mbedtls_pk_free(&pk);
+  IOTJS_RELEASE(raw_signature);
+
+  return js_ret_val;
+#endif /* !ENABLE_MODULE_TLS */
 }
 
 
@@ -416,8 +534,9 @@ JS_FUNCTION(Base64Encode) {
 jerry_value_t InitCrypto() {
   jerry_value_t jcrypto = jerry_create_object();
 
-  iotjs_jval_set_method(jcrypto, IOTJS_MAGIC_STRING_SHA1ENCODE, Sha1Encode);
+  iotjs_jval_set_method(jcrypto, IOTJS_MAGIC_STRING_SHAENCODE, ShaEncode);
   iotjs_jval_set_method(jcrypto, IOTJS_MAGIC_STRING_BASE64ENCODE, Base64Encode);
+  iotjs_jval_set_method(jcrypto, IOTJS_MAGIC_STRING_RSAVERIFY, RsaVerify);
 
   return jcrypto;
 }

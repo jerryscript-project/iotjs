@@ -821,6 +821,19 @@
       "required-modules": [
         "websocket"
       ]
+    },
+    {
+      "name": "test_websocket_server.js",
+      "required-modules": [
+        "websocket"
+      ]
+    },
+    {
+      "name": "test_websocket_server_secure.js",
+      "required-modules": [
+        "websocket",
+        "tls"
+      ]
     }
   ],
   "run_pass/issue": [

@@ -16,6 +16,177 @@ WebSocket provides full-duplex communication over a TCP connection. It is design
 ### Requirements
 WebSocket requires you to enable both the `TLS` and the `WebSocket` module. This can be done by compiling IoT.js with `--cmake-param=-DENABLE_MODULE_WEBSOCKET=ON`. Currently WebSocket only works if TLS is enabled as well.
 
+## Class: Websocket.Server
+Create a new Websocket server instance.
+
+### Websocket.Server(options[, callback])
+Create a new server instance. One of `port` or `server` must be provided or an error is thrown. An HTTP server is automatically created, started, and used if `port` is set. If `secure` is set TLS server is automatically created, started and used. The `tls` module is required or an error is thrown. To use an external HTTP/S server instead, specify only `server`. In this case the HTTP/S server must be started manually.
+
+- `options` {Object}
+  - `port` {Number}
+  - `host` {String} Optional. Defaults to `localhost`.
+  - `server` {Object} Optional.
+  - `path` {String} Optional. Defaults to `/`.
+  - `secure` {Boolean} Optional.
+  - `key` {String} Optional. (Required on `secure` server)
+  - `cert` {String} Optional. (Required on `secure` server)
+- `callback` {Function} Optional. The function which will be executed when the client successfully connected to the server.
+
+Emits a `connection` event when the connection is established.
+
+**Example**
+```js
+var websocket = require('websocket');
+
+var options = {
+  port: 9999
+}
+
+var server = new websocket.Server(options, Listener);
+
+function Listener(ws) {
+  console.log('Client connected: handshake done!');
+  ws.on('message', function (msg) {
+    console.log('Message received: %s', msg.toString());
+    ws.send(msg.toString(), {mask: true, binary: false}); //echo
+    server.close();
+  });
+  ws.on('ping', function (msg) {
+    console.log('Ping received: %s', msg.toString());
+  });
+  ws.on('close', function (msg) {
+    console.log('Client close :\n'
+      'Reason: ' + msg.reason + ' Code: ' + msg.code);
+  });
+  ws.on('error', function (msg) {
+    console.log('Error: %s', msg.toString());
+  });
+
+server.broadcast('Message to all clients', {mask: false, binary: false});
+};
+
+server.on('error', function (msg) {
+  console.log('Error: %s', msg.toString());
+});
+
+server.on('close', function (msg) {
+  console.log('Server close: \nReason: ' +
+              msg.reason + ' Code: ' + msg.code);
+});
+```
+
+**Example using http server**
+```js
+var websocket = require('websocket');
+var http = require('http');
+
+var httpserver = http.createServer().listen(9999);
+
+options = {
+  server: httpserver
+};
+
+var wss3 = new websocket.Server(options, Listener);
+
+function Listener(ws) {
+  console.log('Client connected: handshake done!');
+};
+```
+
+### server.address()
+
+Returns an object with `port`, `family`, and `address` properties specifying
+the bound address, the family name, and port of the server.
+
+**Example**
+```js
+var websocket = require('websocket');
+
+var options = {
+  port: 9999
+}
+
+var server = new websocket.Server(options, function(ws) {
+});
+
+console.log(server.address());
+```
+
+### server.close([reason], [code])
+You can specify a close message and a close code as well. More info on them can be read here: [https://tools.ietf.org/html/rfc6455#section-7.4.1](https://tools.ietf.org/html/rfc6455#section-7.4.1 "The WebSocket Protocol Status Codes")
+
+- `reason` {String} Optional. Defaults to `Connection successfully closed`.
+- `code` {Number} Optional. Defaults to `1000`.
+
+Close the Websocket server, terminate all clients and emit the `close` event.
+
+**Example**
+```js
+var websocket = require('websocket');
+
+var options = {
+  port: 9999
+}
+
+var server = new websocket.Server(options, Listener);
+
+function Listener(ws) {
+  console.log('Client connected: handshake done!');
+  server.close('Connection successfully closed', 1000);
+};
+```
+
+### server.broadcast(message [, options])
+You can specify a message that will be sent to every clients.
+The `mask` will specify whether the data frame should be masked or not.
+The `binary` will specify that if the data frame mode should be text or binary, default to text.
+More info on them can be read here: [https://tools.ietf.org/html/rfc6455#section-5.6](https://tools.ietf.org/html/rfc6455#section-5.6 "The WebSocket Protocol Data Frames")
+
+- `message` {String}
+- `options` {Object} Optional.
+  - `mask` {Boolean} Optional. Defaults to `true`.
+  - `binary` {Boolean} Optional. Defaults to `false`.
+
+Send message to all clients.
+
+**Example**
+```js
+var websocket = require('websocket');
+
+var options = {
+  port: 9999
+}
+
+var server = new websocket.Server(options, Listener);
+
+function Listener(ws) {
+  console.log('Client connected: handshake done!');
+};
+
+server.broadcast('Message to receive all client',
+                 {mask: true, binary: false});
+```
+
+### Event: 'connection'
+
+- `socket` {Websocket}
+
+Emitted when the handshake is complete.
+
+### Event: 'close'
+
+- `message` {Object}
+  - `reason` {String}
+  - `code` {Number}
+
+Emitted when the server close.
+
+### Event: 'error'
+
+- `error` {Error}
+
+Emmitted when an error occurs on the server.
+
 ## Class: Websocket
 The `Websocket` client can simultaneously receive and send data. Both `net` and `TLS` sockets are supported, however the latter is recommended, since `websocket` itself doesn't provide a secure enough context to communicate sensitive data.
 

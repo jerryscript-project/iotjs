@@ -19,24 +19,18 @@
 #include "iotjs_reqwrap.h"
 
 
-typedef struct {
-  iotjs_reqwrap_t reqwrap;
-  uv_fs_t req;
-} iotjs_fs_reqwrap_t;
-
-
-iotjs_fs_reqwrap_t* iotjs_fs_reqwrap_create(const jerry_value_t jcallback) {
-  iotjs_fs_reqwrap_t* fs_reqwrap = IOTJS_ALLOC(iotjs_fs_reqwrap_t);
-  iotjs_reqwrap_initialize(&fs_reqwrap->reqwrap, jcallback,
-                           (uv_req_t*)&fs_reqwrap->req);
-  return fs_reqwrap;
+static uv_fs_t* iotjs_uv_fs_create(const jerry_value_t jcallback) {
+  uv_fs_t* fs_req = IOTJS_ALLOC(uv_fs_t);
+  iotjs_reqwrap_create_for_uv_data((uv_req_t*)fs_req, jcallback);
+  return fs_req;
 }
 
 
-static void iotjs_fs_reqwrap_destroy(iotjs_fs_reqwrap_t* fs_reqwrap) {
-  uv_fs_req_cleanup(&fs_reqwrap->req);
-  iotjs_reqwrap_destroy(&fs_reqwrap->reqwrap);
-  IOTJS_RELEASE(fs_reqwrap);
+static void iotjs_uv_fs_destroy(uv_fs_t* req) {
+  uv_fs_req_cleanup(req);
+  iotjs_reqwrap_destroy((iotjs_reqwrap_t*)req->data);
+  IOTJS_RELEASE(req->data);
+  IOTJS_RELEASE(req);
 }
 
 jerry_value_t MakeStatObject(uv_stat_t* statbuf);
@@ -51,11 +45,10 @@ static jerry_value_t iotjs_create_uv_exception(int errorno,
 
 
 static void AfterAsync(uv_fs_t* req) {
-  iotjs_fs_reqwrap_t* req_wrap = (iotjs_fs_reqwrap_t*)(req->data);
+  iotjs_reqwrap_t* req_wrap = (iotjs_reqwrap_t*)(req->data);
   IOTJS_ASSERT(req_wrap != NULL);
-  IOTJS_ASSERT(&req_wrap->req == req);
 
-  const jerry_value_t cb = iotjs_reqwrap_jcallback(&req_wrap->reqwrap);
+  const jerry_value_t cb = iotjs_reqwrap_jcallback(req_wrap);
   IOTJS_ASSERT(jerry_value_is_function(cb));
 
   jerry_value_t jargs[2] = { 0 };
@@ -103,7 +96,7 @@ static void AfterAsync(uv_fs_t* req) {
 
   jerry_release_value(jargs[0]);
   jerry_release_value(jargs[1]);
-  iotjs_fs_reqwrap_destroy(req_wrap);
+  iotjs_uv_fs_destroy(req);
 }
 
 
@@ -163,8 +156,7 @@ static inline bool IsWithinBounds(size_t off, size_t len, size_t max) {
 
 
 #define FS_ASYNC(env, syscall, pcallback, ...)                                \
-  iotjs_fs_reqwrap_t* req_wrap = iotjs_fs_reqwrap_create(pcallback);          \
-  uv_fs_t* fs_req = &req_wrap->req;                                           \
+  uv_fs_t* fs_req = iotjs_uv_fs_create(pcallback);                            \
   int err = uv_fs_##syscall(iotjs_environment_loop(env), fs_req, __VA_ARGS__, \
                             AfterAsync);                                      \
   if (err < 0) {                                                              \

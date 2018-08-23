@@ -19,22 +19,6 @@
 
 
 #include "iotjs_def.h"
-#include "iotjs_reqwrap.h"
-
-
-typedef struct {
-  iotjs_reqwrap_t reqwrap;
-  uv_getaddrinfo_t req;
-} iotjs_getaddrinfo_reqwrap_t;
-
-iotjs_getaddrinfo_reqwrap_t* iotjs_getaddrinfo_reqwrap_create(
-    const jerry_value_t jcallback);
-
-void iotjs_getaddrinfo_reqwrap_dispatched(
-    iotjs_getaddrinfo_reqwrap_t* getaddrinfo_reqwrap);
-
-jerry_value_t iotjs_getaddrinfo_reqwrap_jcallback(
-    iotjs_getaddrinfo_reqwrap_t* getaddrinfo_reqwrap);
 
 
 #endif /* IOTJS_MODULE_DNS_H */

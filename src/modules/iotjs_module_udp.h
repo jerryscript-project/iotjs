@@ -20,7 +20,6 @@
 
 #include "iotjs_def.h"
 #include "iotjs_handlewrap.h"
-#include "iotjs_reqwrap.h"
 
 
 typedef struct {
@@ -35,16 +34,6 @@ iotjs_udpwrap_t* iotjs_udpwrap_from_handle(uv_udp_t* handle);
 iotjs_udpwrap_t* iotjs_udpwrap_from_jobject(jerry_value_t judp);
 
 uv_udp_t* iotjs_udpwrap_udp_handle(iotjs_udpwrap_t* udpwrap);
-
-
-typedef struct {
-  iotjs_reqwrap_t reqwrap;
-  uv_udp_send_t req;
-  size_t msg_size;
-} iotjs_send_reqwrap_t;
-
-iotjs_send_reqwrap_t* iotjs_send_reqwrap_create(jerry_value_t jcallback,
-                                                const size_t msg_size);
 
 
 #endif /* IOTJS_MODULE_UDP_H */

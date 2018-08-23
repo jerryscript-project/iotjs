@@ -16,22 +16,7 @@
 #include "iotjs_def.h"
 
 #include "iotjs_module_buffer.h"
-#include "iotjs_reqwrap.h"
-
-
-static uv_fs_t* iotjs_uv_fs_create(const jerry_value_t jcallback) {
-  uv_fs_t* fs_req = IOTJS_ALLOC(uv_fs_t);
-  iotjs_reqwrap_create_for_uv_data((uv_req_t*)fs_req, jcallback);
-  return fs_req;
-}
-
-
-static void iotjs_uv_fs_destroy(uv_fs_t* req) {
-  uv_fs_req_cleanup(req);
-  iotjs_reqwrap_destroy((iotjs_reqwrap_t*)req->data);
-  IOTJS_RELEASE(req->data);
-  IOTJS_RELEASE(req);
-}
+#include "iotjs_uv_request.h"
 
 jerry_value_t MakeStatObject(uv_stat_t* statbuf);
 
@@ -45,10 +30,7 @@ static jerry_value_t iotjs_create_uv_exception(int errorno,
 
 
 static void AfterAsync(uv_fs_t* req) {
-  iotjs_reqwrap_t* req_wrap = (iotjs_reqwrap_t*)(req->data);
-  IOTJS_ASSERT(req_wrap != NULL);
-
-  const jerry_value_t cb = iotjs_reqwrap_jcallback(req_wrap);
+  const jerry_value_t cb = *IOTJS_UV_REQUEST_JSCALLBACK(req);
   IOTJS_ASSERT(jerry_value_is_function(cb));
 
   jerry_value_t jargs[2] = { 0 };
@@ -96,7 +78,8 @@ static void AfterAsync(uv_fs_t* req) {
 
   jerry_release_value(jargs[0]);
   jerry_release_value(jargs[1]);
-  iotjs_uv_fs_destroy(req);
+  uv_fs_req_cleanup(req);
+  iotjs_uv_request_destroy((uv_req_t*)req);
 }
 
 
@@ -156,7 +139,8 @@ static inline bool IsWithinBounds(size_t off, size_t len, size_t max) {
 
 
 #define FS_ASYNC(env, syscall, pcallback, ...)                                \
-  uv_fs_t* fs_req = iotjs_uv_fs_create(pcallback);                            \
+  uv_fs_t* fs_req =                                                           \
+      (uv_fs_t*)iotjs_uv_request_create(sizeof(uv_fs_t), pcallback, 0);       \
   int err = uv_fs_##syscall(iotjs_environment_loop(env), fs_req, __VA_ARGS__, \
                             AfterAsync);                                      \
   if (err < 0) {                                                              \

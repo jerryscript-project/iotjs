@@ -42,32 +42,6 @@ iotjs_tcpwrap_t* iotjs_tcpwrap_from_jobject(jerry_value_t jtcp);
 
 uv_tcp_t* iotjs_tcpwrap_tcp_handle(iotjs_tcpwrap_t* tcpwrap);
 
-
-typedef struct {
-  iotjs_reqwrap_t reqwrap;
-  uv_connect_t req;
-} iotjs_connect_reqwrap_t;
-
-iotjs_connect_reqwrap_t* iotjs_connect_reqwrap_create(jerry_value_t jcallback);
-
-
-typedef struct {
-  iotjs_reqwrap_t reqwrap;
-  uv_write_t req;
-} iotjs_write_reqwrap_t;
-
-iotjs_write_reqwrap_t* iotjs_write_reqwrap_create(jerry_value_t jcallback);
-
-
-typedef struct {
-  iotjs_reqwrap_t reqwrap;
-  uv_shutdown_t req;
-} iotjs_shutdown_reqwrap_t;
-
-iotjs_shutdown_reqwrap_t* iotjs_shutdown_reqwrap_create(
-    jerry_value_t jcallback);
-
-
 void AddressToJS(jerry_value_t obj, const sockaddr* addr);
 
 

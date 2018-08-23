@@ -25,6 +25,14 @@ void iotjs_reqwrap_initialize(iotjs_reqwrap_t* reqwrap, jerry_value_t jcallback,
 }
 
 
+void iotjs_reqwrap_create_for_uv_data(uv_req_t* request,
+                                      jerry_value_t jcallback) {
+  IOTJS_ASSERT(request != NULL);
+  iotjs_reqwrap_t* reqwrap = IOTJS_ALLOC(iotjs_reqwrap_t);
+  iotjs_reqwrap_initialize(reqwrap, jcallback, request);
+}
+
+
 void iotjs_reqwrap_destroy(iotjs_reqwrap_t* reqwrap) {
   jerry_release_value(reqwrap->jcallback);
 }

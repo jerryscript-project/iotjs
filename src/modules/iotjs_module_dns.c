@@ -16,39 +16,7 @@
 #include "iotjs_def.h"
 
 #include "iotjs_module_dns.h"
-
-#include "iotjs_reqwrap.h"
-#include "uv.h"
-
-
-iotjs_getaddrinfo_reqwrap_t* iotjs_getaddrinfo_reqwrap_create(
-    const jerry_value_t jcallback) {
-  iotjs_getaddrinfo_reqwrap_t* getaddrinfo_reqwrap =
-      IOTJS_ALLOC(iotjs_getaddrinfo_reqwrap_t);
-  iotjs_reqwrap_initialize(&getaddrinfo_reqwrap->reqwrap, jcallback,
-                           (uv_req_t*)&getaddrinfo_reqwrap->req);
-  return getaddrinfo_reqwrap;
-}
-
-
-static void iotjs_getaddrinfo_reqwrap_destroy(
-    iotjs_getaddrinfo_reqwrap_t* getaddrinfo_reqwrap) {
-  iotjs_reqwrap_destroy(&getaddrinfo_reqwrap->reqwrap);
-  IOTJS_RELEASE(getaddrinfo_reqwrap);
-}
-
-
-void iotjs_getaddrinfo_reqwrap_dispatched(
-    iotjs_getaddrinfo_reqwrap_t* getaddrinfo_reqwrap) {
-  iotjs_getaddrinfo_reqwrap_destroy(getaddrinfo_reqwrap);
-}
-
-
-jerry_value_t iotjs_getaddrinfo_reqwrap_jcallback(
-    iotjs_getaddrinfo_reqwrap_t* getaddrinfo_reqwrap) {
-  return iotjs_reqwrap_jcallback(&getaddrinfo_reqwrap->reqwrap);
-}
-
+#include "iotjs_uv_request.h"
 
 #if !defined(__NUTTX__)
 char* getaddrinfo_error_str(int status) {
@@ -100,9 +68,6 @@ char* getaddrinfo_error_str(int status) {
 
 static void AfterGetAddrInfo(uv_getaddrinfo_t* req, int status,
                              struct addrinfo* res) {
-  iotjs_getaddrinfo_reqwrap_t* req_wrap =
-      (iotjs_getaddrinfo_reqwrap_t*)(req->data);
-
   size_t argc = 0;
   jerry_value_t args[3] = { 0 };
 
@@ -155,14 +120,14 @@ static void AfterGetAddrInfo(uv_getaddrinfo_t* req, int status,
   uv_freeaddrinfo(res);
 
   // Make the callback into JavaScript
-  jerry_value_t jcallback = iotjs_getaddrinfo_reqwrap_jcallback(req_wrap);
+  jerry_value_t jcallback = *IOTJS_UV_REQUEST_JSCALLBACK(req);
   iotjs_invoke_callback(jcallback, jerry_create_undefined(), args, argc);
 
   for (size_t i = 0; i < argc; i++) {
     jerry_release_value(args[i]);
   }
 
-  iotjs_getaddrinfo_reqwrap_dispatched(req_wrap);
+  iotjs_uv_request_destroy((uv_req_t*)req);
 }
 #endif
 
@@ -228,8 +193,8 @@ JS_FUNCTION(GetAddressInfo) {
   }
   IOTJS_UNUSED(flags);
 #else
-  iotjs_getaddrinfo_reqwrap_t* req_wrap =
-      iotjs_getaddrinfo_reqwrap_create(jcallback);
+  uv_req_t* req_addr =
+      iotjs_uv_request_create(sizeof(uv_getaddrinfo_t), jcallback, 0);
 
   static const struct addrinfo empty_hints;
   struct addrinfo hints = empty_hints;
@@ -238,11 +203,11 @@ JS_FUNCTION(GetAddressInfo) {
   hints.ai_flags = flags;
 
   error = uv_getaddrinfo(iotjs_environment_loop(iotjs_environment_get()),
-                         &req_wrap->req, AfterGetAddrInfo,
+                         (uv_getaddrinfo_t*)req_addr, AfterGetAddrInfo,
                          iotjs_string_data(&hostname), NULL, &hints);
 
   if (error) {
-    iotjs_getaddrinfo_reqwrap_dispatched(req_wrap);
+    iotjs_uv_request_destroy(req_addr);
   }
 #endif
 

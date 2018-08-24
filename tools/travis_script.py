@@ -135,10 +135,15 @@ if __name__ == '__main__':
         for buildtype in BUILDTYPES:
             if buildtype == 'release':
                 set_release_config_tizenrt()
+            # FIXME: EXTRA_LIBPATHS and EXTRA_LIB can be deleted
+            # when TizenRT uses jerry-ext.
             exec_docker(DOCKER_TIZENRT_OS_PATH, [
                         'make', 'IOTJS_ROOT_DIR=' + DOCKER_IOTJS_PATH,
                         'IOTJS_BUILD_OPTION='
-                        '--profile=test/profiles/tizenrt.profile'])
+                        '--profile=test/profiles/tizenrt.profile',
+                        'EXTRA_LIBPATHS=-L' + DOCKER_IOTJS_PATH +
+                        '/build/arm-tizenrt/' + buildtype + '/lib/',
+                        'EXTRA_LIBS=-ljerry-ext'])
 
     elif test == 'stm32f4dis':
         for buildtype in BUILDTYPES:

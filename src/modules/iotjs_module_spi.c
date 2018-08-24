@@ -16,6 +16,7 @@
 #include "iotjs_def.h"
 #include "iotjs_module_spi.h"
 #include "iotjs_module_buffer.h"
+#include "iotjs_uv_request.h"
 
 
 IOTJS_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(spi);
@@ -163,23 +164,22 @@ static jerry_value_t spi_set_configuration(iotjs_spi_t* spi,
  * SPI worker function
  */
 static void spi_worker(uv_work_t* work_req) {
-  iotjs_periph_reqwrap_t* req_wrap =
-      (iotjs_periph_reqwrap_t*)(iotjs_reqwrap_from_request(
-          (uv_req_t*)work_req));
-  iotjs_spi_t* spi = (iotjs_spi_t*)req_wrap->data;
+  iotjs_periph_data_t* worker_data =
+      (iotjs_periph_data_t*)IOTJS_UV_REQUEST_EXTRA_DATA(work_req);
+  iotjs_spi_t* spi = (iotjs_spi_t*)worker_data->data;
 
-  switch (req_wrap->op) {
+  switch (worker_data->op) {
     case kSpiOpClose: {
-      req_wrap->result = iotjs_spi_close(spi);
+      worker_data->result = iotjs_spi_close(spi);
       break;
     }
     case kSpiOpOpen: {
-      req_wrap->result = iotjs_spi_open(spi);
+      worker_data->result = iotjs_spi_open(spi);
       break;
     }
     case kSpiOpTransferArray:
     case kSpiOpTransferBuffer: {
-      req_wrap->result = iotjs_spi_transfer(spi);
+      worker_data->result = iotjs_spi_transfer(spi);
       break;
     }
     default:

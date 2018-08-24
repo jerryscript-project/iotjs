@@ -15,6 +15,7 @@
 
 #include "iotjs_def.h"
 #include "iotjs_module_adc.h"
+#include "iotjs_uv_request.h"
 
 
 IOTJS_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(adc);
@@ -27,20 +28,19 @@ static void iotjs_adc_destroy(iotjs_adc_t* adc) {
 }
 
 static void adc_worker(uv_work_t* work_req) {
-  iotjs_periph_reqwrap_t* req_wrap =
-      (iotjs_periph_reqwrap_t*)(iotjs_reqwrap_from_request(
-          (uv_req_t*)work_req));
-  iotjs_adc_t* adc = (iotjs_adc_t*)req_wrap->data;
+  iotjs_periph_data_t* worker_data =
+      (iotjs_periph_data_t*)IOTJS_UV_REQUEST_EXTRA_DATA(work_req);
+  iotjs_adc_t* adc = (iotjs_adc_t*)worker_data->data;
 
-  switch (req_wrap->op) {
+  switch (worker_data->op) {
     case kAdcOpOpen:
-      req_wrap->result = iotjs_adc_open(adc);
+      worker_data->result = iotjs_adc_open(adc);
       break;
     case kAdcOpRead:
-      req_wrap->result = iotjs_adc_read(adc);
+      worker_data->result = iotjs_adc_read(adc);
       break;
     case kAdcOpClose:
-      req_wrap->result = iotjs_adc_close(adc);
+      worker_data->result = iotjs_adc_close(adc);
       break;
     default:
       IOTJS_ASSERT(!"Invalid Adc Operation");

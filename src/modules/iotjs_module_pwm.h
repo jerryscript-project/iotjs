@@ -19,7 +19,6 @@
 
 #include "iotjs_def.h"
 #include "iotjs_module_periph_common.h"
-#include "iotjs_reqwrap.h"
 
 #if defined(__TIZENRT__)
 #include <iotbus_pwm.h>

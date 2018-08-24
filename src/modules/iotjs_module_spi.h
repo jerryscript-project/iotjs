@@ -20,7 +20,6 @@
 #include "iotjs_def.h"
 #include "iotjs_module_buffer.h"
 #include "iotjs_module_periph_common.h"
-#include "iotjs_reqwrap.h"
 
 
 typedef enum {

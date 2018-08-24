@@ -22,7 +22,6 @@
 
 
 #include "iotjs_handlewrap.h"
-#include "iotjs_reqwrap.h"
 
 static void iotjs_mqttclient_destroy(iotjs_mqttclient_t *mqttclient) {
   IOTJS_RELEASE(mqttclient->buffer);

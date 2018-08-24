@@ -17,7 +17,6 @@
 #define IOTJS_MODULE_PERIPH_COMMON_H
 
 #include "iotjs_def.h"
-#include "iotjs_reqwrap.h"
 
 typedef enum {
   kAdcOpOpen,

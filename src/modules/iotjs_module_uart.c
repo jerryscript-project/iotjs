@@ -18,6 +18,7 @@
 #include "iotjs_def.h"
 #include "iotjs_module_buffer.h"
 #include "iotjs_module_uart.h"
+#include "iotjs_uv_request.h"
 
 
 IOTJS_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(uart);
@@ -41,21 +42,20 @@ static void iotjs_uart_destroy(iotjs_uart_t* uart) {
 }
 
 static void uart_worker(uv_work_t* work_req) {
-  iotjs_periph_reqwrap_t* req_wrap =
-      (iotjs_periph_reqwrap_t*)(iotjs_reqwrap_from_request(
-          (uv_req_t*)work_req));
-  iotjs_uart_t* uart = (iotjs_uart_t*)req_wrap->data;
+  iotjs_periph_data_t* worker_data =
+      (iotjs_periph_data_t*)IOTJS_UV_REQUEST_EXTRA_DATA(work_req);
+  iotjs_uart_t* uart = (iotjs_uart_t*)worker_data->data;
 
-  switch (req_wrap->op) {
+  switch (worker_data->op) {
     case kUartOpOpen:
-      req_wrap->result = iotjs_uart_open(uart);
+      worker_data->result = iotjs_uart_open(uart);
       break;
     case kUartOpWrite:
-      req_wrap->result = iotjs_uart_write(uart);
+      worker_data->result = iotjs_uart_write(uart);
       break;
     case kUartOpClose:
       iotjs_handlewrap_close(&uart->handlewrap, iotjs_uart_handlewrap_close_cb);
-      req_wrap->result = true;
+      worker_data->result = true;
       break;
     default:
       IOTJS_ASSERT(!"Invalid Operation");

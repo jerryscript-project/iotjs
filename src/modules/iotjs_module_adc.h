@@ -19,7 +19,6 @@
 
 #include "iotjs_def.h"
 #include "iotjs_module_periph_common.h"
-#include "iotjs_reqwrap.h"
 
 // Forward declaration of platform data. These are only used by platform code.
 // Generic ADC module never dereferences platform data pointer.

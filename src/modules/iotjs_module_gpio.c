@@ -15,6 +15,7 @@
 
 #include "iotjs_def.h"
 #include "iotjs_module_gpio.h"
+#include "iotjs_uv_request.h"
 
 
 IOTJS_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(gpio);
@@ -27,23 +28,22 @@ static void iotjs_gpio_destroy(iotjs_gpio_t* gpio) {
 }
 
 static void gpio_worker(uv_work_t* work_req) {
-  iotjs_periph_reqwrap_t* req_wrap =
-      (iotjs_periph_reqwrap_t*)(iotjs_reqwrap_from_request(
-          (uv_req_t*)work_req));
-  iotjs_gpio_t* gpio = (iotjs_gpio_t*)req_wrap->data;
+  iotjs_periph_data_t* worker_data =
+      (iotjs_periph_data_t*)IOTJS_UV_REQUEST_EXTRA_DATA(work_req);
+  iotjs_gpio_t* gpio = (iotjs_gpio_t*)worker_data->data;
 
-  switch (req_wrap->op) {
+  switch (worker_data->op) {
     case kGpioOpOpen:
-      req_wrap->result = iotjs_gpio_open(gpio);
+      worker_data->result = iotjs_gpio_open(gpio);
       break;
     case kGpioOpWrite:
-      req_wrap->result = iotjs_gpio_write(gpio);
+      worker_data->result = iotjs_gpio_write(gpio);
       break;
     case kGpioOpRead:
-      req_wrap->result = iotjs_gpio_read(gpio);
+      worker_data->result = iotjs_gpio_read(gpio);
       break;
     case kGpioOpClose:
-      req_wrap->result = iotjs_gpio_close(gpio);
+      worker_data->result = iotjs_gpio_close(gpio);
       break;
     default:
       IOTJS_ASSERT(!"Invalid Operation");

@@ -47,12 +47,10 @@ typedef enum {
 } iotjs_periph_op_t;
 
 typedef struct {
-  iotjs_reqwrap_t reqwrap; /* Note: must be the first */
-  uv_work_t req;
   uint8_t op;
   bool result;
   void* data;
-} iotjs_periph_reqwrap_t;
+} iotjs_periph_data_t;
 
 const char* iotjs_periph_error_str(uint8_t op);
 void iotjs_periph_call_async(void* type_p, jerry_value_t jcallback, uint8_t op,

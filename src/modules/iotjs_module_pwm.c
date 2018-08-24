@@ -16,6 +16,7 @@
 
 #include "iotjs_def.h"
 #include "iotjs_module_pwm.h"
+#include "iotjs_uv_request.h"
 
 
 IOTJS_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(pwm);
@@ -28,27 +29,26 @@ static void iotjs_pwm_destroy(iotjs_pwm_t* pwm) {
 }
 
 static void pwm_worker(uv_work_t* work_req) {
-  iotjs_periph_reqwrap_t* req_wrap =
-      (iotjs_periph_reqwrap_t*)(iotjs_reqwrap_from_request(
-          (uv_req_t*)work_req));
-  iotjs_pwm_t* pwm = (iotjs_pwm_t*)req_wrap->data;
+  iotjs_periph_data_t* worker_data =
+      (iotjs_periph_data_t*)IOTJS_UV_REQUEST_EXTRA_DATA(work_req);
+  iotjs_pwm_t* pwm = (iotjs_pwm_t*)worker_data->data;
 
-  switch (req_wrap->op) {
+  switch (worker_data->op) {
     case kPwmOpClose:
-      req_wrap->result = iotjs_pwm_close(pwm);
+      worker_data->result = iotjs_pwm_close(pwm);
       break;
     case kPwmOpOpen:
-      req_wrap->result = iotjs_pwm_open(pwm);
+      worker_data->result = iotjs_pwm_open(pwm);
       break;
     case kPwmOpSetDutyCycle:
-      req_wrap->result = iotjs_pwm_set_dutycycle(pwm);
+      worker_data->result = iotjs_pwm_set_dutycycle(pwm);
       break;
     case kPwmOpSetEnable:
-      req_wrap->result = iotjs_pwm_set_enable(pwm);
+      worker_data->result = iotjs_pwm_set_enable(pwm);
       break;
     case kPwmOpSetFrequency: /* update the period */
     case kPwmOpSetPeriod:
-      req_wrap->result = iotjs_pwm_set_period(pwm);
+      worker_data->result = iotjs_pwm_set_period(pwm);
       break;
     default:
       IOTJS_ASSERT(!"Invalid Operation");

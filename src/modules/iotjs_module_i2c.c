@@ -16,6 +16,7 @@
 
 #include "iotjs_def.h"
 #include "iotjs_module_i2c.h"
+#include "iotjs_uv_request.h"
 
 
 IOTJS_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(i2c);
@@ -28,23 +29,22 @@ static void iotjs_i2c_destroy(iotjs_i2c_t* i2c) {
 }
 
 static void i2c_worker(uv_work_t* work_req) {
-  iotjs_periph_reqwrap_t* req_wrap =
-      (iotjs_periph_reqwrap_t*)(iotjs_reqwrap_from_request(
-          (uv_req_t*)work_req));
-  iotjs_i2c_t* i2c = (iotjs_i2c_t*)req_wrap->data;
+  iotjs_periph_data_t* worker_data =
+      (iotjs_periph_data_t*)IOTJS_UV_REQUEST_EXTRA_DATA(work_req);
+  iotjs_i2c_t* i2c = (iotjs_i2c_t*)worker_data->data;
 
-  switch (req_wrap->op) {
+  switch (worker_data->op) {
     case kI2cOpOpen:
-      req_wrap->result = iotjs_i2c_open(i2c);
+      worker_data->result = iotjs_i2c_open(i2c);
       break;
     case kI2cOpWrite:
-      req_wrap->result = iotjs_i2c_write(i2c);
+      worker_data->result = iotjs_i2c_write(i2c);
       break;
     case kI2cOpRead:
-      req_wrap->result = iotjs_i2c_read(i2c);
+      worker_data->result = iotjs_i2c_read(i2c);
       break;
     case kI2cOpClose:
-      req_wrap->result = iotjs_i2c_close(i2c);
+      worker_data->result = iotjs_i2c_close(i2c);
       break;
     default:
       IOTJS_ASSERT(!"Invalid Operation");

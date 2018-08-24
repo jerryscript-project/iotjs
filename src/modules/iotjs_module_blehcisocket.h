@@ -38,7 +38,6 @@
 #define IOTJS_MODULE_BLE_HCI_SOCKET_H
 
 #include "iotjs_def.h"
-#include "iotjs_reqwrap.h"
 
 typedef struct {
   jerry_value_t jobject;

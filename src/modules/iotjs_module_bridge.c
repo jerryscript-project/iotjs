@@ -14,7 +14,6 @@
  */
 #include "iotjs_def.h"
 #include "iotjs_module_bridge.h"
-#include "iotjs_reqwrap.h"
 #include <stdio.h>
 
 typedef enum {

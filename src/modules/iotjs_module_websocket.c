@@ -21,7 +21,6 @@
 #include "iotjs_module_buffer.h"
 #include "iotjs_module_crypto.h"
 #include "iotjs_module_websocket.h"
-#include "iotjs_reqwrap.h"
 
 
 static void iotjs_wsclient_destroy(iotjs_wsclient_t *wsclient) {

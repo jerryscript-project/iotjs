@@ -20,7 +20,6 @@
 
 #include "iotjs_binding.h"
 #include "iotjs_handlewrap.h"
-#include "iotjs_reqwrap.h"
 
 
 typedef struct sockaddr sockaddr;

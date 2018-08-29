@@ -41,12 +41,6 @@ else()
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -I${ROOT_DIR}/config/mbedtls")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DMBEDTLS_CONFIG_FILE=${MBED_CONFIG}")
 
-  # FIXME:
-  #       Remove this workaround when the related bug is fixed in
-  #       mbedtls. https://github.com/ARMmbed/mbedtls/issues/1550
-  set(CMAKE_C_FLAGS_BCK "${CMAKE_C_FLAGS}")
-  string(REPLACE "-fsanitize=address" "" CMAKE_C_FLAGS ${CMAKE_C_FLAGS})
-
   build_lib_name(MBED_X509_NAME mbedx509)
   build_lib_name(MBED_TLS_NAME mbedtls)
   build_lib_name(MBED_CRYPTO_NAME mbedcrypto)
@@ -97,9 +91,4 @@ else()
 
   set(MBEDTLS_LIBS libmbedtls libmbedx509 libmbedcrypto)
   set(MBEDTLS_INCLUDE_DIR ${DEPS_MBEDTLS}/include)
-
-  # FIXME:
-  #       Remove this workaround when the related bug is fixed in
-  #       mbedtls. https://github.com/ARMmbed/mbedtls/issues/1550
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS_BCK}")
 endif()

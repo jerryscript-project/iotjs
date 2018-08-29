@@ -320,6 +320,9 @@ HTTP header object.
 ### message.method
 Requests method as `string`
 
+### message.httpVersion
+The HTTP version sent by the client. One of the following value: `'1.1'` or `'1.0'`.
+
 ### message.socket
 Underlying socket
 

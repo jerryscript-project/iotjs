@@ -287,6 +287,12 @@ static int iotjs_http_parserwrap_on_headers_complete(http_parser* parser) {
                                   http_should_keep_alive(
                                       &http_parserwrap->parser));
 
+  // http version number
+  iotjs_jval_set_property_number(info, IOTJS_MAGIC_STRING_HTTP_VERSION_MAJOR,
+                                 parser->http_major);
+  iotjs_jval_set_property_number(info, IOTJS_MAGIC_STRING_HTTP_VERSION_MINOR,
+                                 parser->http_minor);
+
   jerry_value_t res = iotjs_invoke_callback_with_result(func, jobj, &info, 1);
 
   int ret = 1;

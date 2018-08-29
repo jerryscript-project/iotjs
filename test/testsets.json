@@ -541,6 +541,12 @@
       ]
     },
     {
+      "name": "test_net_http_request_http_version.js",
+      "required-modules": [
+        "http"
+      ]
+    },
+    {
       "name": "test_net_http_status_codes.js",
       "required-modules": [
         "http"

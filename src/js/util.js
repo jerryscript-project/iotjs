@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+var Buffer = require('buffer');
+
 
 function isNull(arg) {
   return arg === null;
@@ -54,11 +56,6 @@ function isObject(arg) {
 
 function isFunction(arg) {
   return typeof arg === 'function';
-}
-
-
-function isBuffer(arg) {
-  return arg instanceof Buffer;
 }
 
 
@@ -231,7 +228,7 @@ exports.isString = isString;
 exports.isObject = isObject;
 exports.isFinite = isFinite;
 exports.isFunction = isFunction;
-exports.isBuffer = isBuffer;
+exports.isBuffer = Buffer.isBuffer;
 exports.isArray = Array.isArray;
 exports.exceptionWithHostPort = exceptionWithHostPort;
 exports.errnoException = errnoException;

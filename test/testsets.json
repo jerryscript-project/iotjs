@@ -47,6 +47,9 @@
       "name": "test_buffer_str_conv.js"
     },
     {
+      "name": "test_buffer_inmutability_creation.js"
+    },
+    {
       "name": "test_console.js",
       "required-modules": [
         "console"

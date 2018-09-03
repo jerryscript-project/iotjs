@@ -338,10 +338,9 @@ jerry_value_t iotjs_bufferwrap_create_buffer(size_t len) {
   iotjs_jval_set_property_number(jres_buffer, IOTJS_MAGIC_STRING_LENGTH, len);
 
   // Support for 'instanceof' operator
-  jerry_value_t jglobal = jerry_get_global_object();
+  jerry_value_t native_buffer = iotjs_module_get("buffer");
   jerry_value_t jbuffer =
-      iotjs_jval_get_property(jglobal, IOTJS_MAGIC_STRING_BUFFER);
-  jerry_release_value(jglobal);
+      iotjs_jval_get_property(native_buffer, IOTJS_MAGIC_STRING_BUFFER);
 
   if (!jerry_value_is_error(jbuffer) && jerry_value_is_object(jbuffer)) {
     jerry_value_t jbuffer_proto =

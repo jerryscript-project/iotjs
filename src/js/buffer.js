@@ -13,8 +13,6 @@
  * limitations under the License.
  */
 
-var util = require('util');
-
 
 function checkInt(buffer, value, offset, ext, max, min) {
   if (value > max || value < min)
@@ -49,15 +47,15 @@ function getEncodingType(encoding) {
 // [4] new Buffer(string, encoding)
 // [5] new Buffer(array)
 function Buffer(subject, encoding) {
-  if (!util.isBuffer(this)) {
+  if (!Buffer.isBuffer(this)) {
     return new Buffer(subject, encoding);
   }
 
-  if (util.isNumber(subject)) {
+  if (typeof subject === 'number') {
     this.length = subject > 0 ? subject >>> 0 : 0;
-  } else if (util.isString(subject)) {
+  } else if (typeof subject === 'string') {
     this.length = Buffer.byteLength(subject, encoding);
-  } else if (util.isBuffer(subject) || util.isArray(subject)) {
+  } else if (Buffer.isBuffer(subject) || Array.isArray(subject)) {
     this.length = subject.length;
   } else {
     throw new TypeError('Bad arguments: Buffer(string|number|Buffer|Array)');
@@ -66,7 +64,7 @@ function Buffer(subject, encoding) {
   // 'native' is the buffer object created via the C API.
   native(this, this.length);
 
-  if (util.isString(subject)) {
+  if (typeof subject === 'string') {
     if (typeof encoding === 'string') {
       encoding = getEncodingType(encoding);
       if (encoding != -1) {
@@ -77,9 +75,9 @@ function Buffer(subject, encoding) {
     } else {
       this.write(subject);
     }
-  } else if (util.isBuffer(subject)) {
+  } else if (Buffer.isBuffer(subject)) {
     subject.copy(this);
-  } else if (util.isArray(subject)) {
+  } else if (Array.isArray(subject)) {
     for (var i = 0; i < this.length; ++i) {
       native.writeUInt8(this, subject[i], i);
     }
@@ -116,14 +114,14 @@ Buffer.byteLength = function(str, encoding) {
 
 // Buffer.concat(list)
 Buffer.concat = function(list) {
-  if (!util.isArray(list)) {
+  if (!Array.isArray(list)) {
     throw new TypeError('Bad arguments: Buffer.concat([Buffer])');
   }
 
   var length = 0;
   var i;
   for (i = 0; i < list.length; ++i) {
-    if (!util.isBuffer(list[i])) {
+    if (!Buffer.isBuffer(list[i])) {
       throw new TypeError('Bad arguments: Buffer.concat([Buffer])');
     }
     length += list[i].length;
@@ -141,12 +139,14 @@ Buffer.concat = function(list) {
 
 
 // Buffer.isBuffer(object)
-Buffer.isBuffer = util.isBuffer;
+Buffer.isBuffer = function(arg) {
+  return arg instanceof Buffer;
+};
 
 
 // buffer.equals(otherBuffer)
 Buffer.prototype.equals = function(otherBuffer) {
-  if (!util.isBuffer(otherBuffer)) {
+  if (!Buffer.isBuffer(otherBuffer)) {
     throw new TypeError('Bad arguments: buffer.equals(Buffer)');
   }
 
@@ -156,7 +156,7 @@ Buffer.prototype.equals = function(otherBuffer) {
 
 // buffer.compare(otherBuffer)
 Buffer.prototype.compare = function(otherBuffer) {
-  if (!util.isBuffer(otherBuffer)) {
+  if (!Buffer.isBuffer(otherBuffer)) {
     throw new TypeError('Bad arguments: buffer.compare(Buffer)');
   }
 
@@ -173,7 +173,7 @@ Buffer.prototype.compare = function(otherBuffer) {
 // * sourceStart - default to 0
 // * sourceEnd - default to buffer.length
 Buffer.prototype.copy = function(target, targetStart, sourceStart, sourceEnd) {
-  if (!util.isBuffer(target)) {
+  if (!Buffer.isBuffer(target)) {
     throw new TypeError('Bad arguments: buff.copy(Buffer)');
   }
 
@@ -196,7 +196,7 @@ Buffer.prototype.copy = function(target, targetStart, sourceStart, sourceEnd) {
 // * offset - default to 0
 // * length - default to buffer.length - offset
 Buffer.prototype.write = function(string, offset, length, encoding) {
-  if (!util.isString(string)) {
+  if (typeof string !== 'string') {
     throw new TypeError('Bad arguments: buff.write(string)');
   }
 
@@ -334,7 +334,7 @@ Buffer.prototype.readUInt16LE = function(offset, noAssert) {
 
 // buff.fill(value)
 Buffer.prototype.fill = function(value) {
-  if (util.isNumber(value)) {
+  if (typeof value === 'number') {
     value = value & 255;
     for (var i = 0; i < this.length; i++) {
       native.writeUInt8(this, value, i);
@@ -343,6 +343,11 @@ Buffer.prototype.fill = function(value) {
   return this;
 };
 
+/* Register the Buffer object back to the native C
+ * so the other side can get the prototype in a consistent
+ * and safe manner.
+ */
+native.Buffer = Buffer;
 
 module.exports = Buffer;
 module.exports.Buffer = Buffer;

@@ -536,7 +536,9 @@ jerry_value_t InitCrypto() {
 
   iotjs_jval_set_method(jcrypto, IOTJS_MAGIC_STRING_SHAENCODE, ShaEncode);
   iotjs_jval_set_method(jcrypto, IOTJS_MAGIC_STRING_BASE64ENCODE, Base64Encode);
+#if ENABLE_MODULE_TLS
   iotjs_jval_set_method(jcrypto, IOTJS_MAGIC_STRING_RSAVERIFY, RsaVerify);
+#endif
 
   return jcrypto;
 }

@@ -15,54 +15,21 @@
 
 #include "iotjs_def.h"
 
-#include "iotjs_module_udp.h"
-
-#include "iotjs_handlewrap.h"
 #include "iotjs_module_buffer.h"
 #include "iotjs_module_tcp.h"
+#include "iotjs_uv_handle.h"
 #include "iotjs_uv_request.h"
 
-IOTJS_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(udpwrap);
+
+static const jerry_object_native_info_t this_module_native_info = { NULL };
 
 
-iotjs_udpwrap_t* iotjs_udpwrap_create(jerry_value_t judp) {
-  iotjs_udpwrap_t* udpwrap = IOTJS_ALLOC(iotjs_udpwrap_t);
-
-  iotjs_handlewrap_initialize(&udpwrap->handlewrap, judp,
-                              (uv_handle_t*)(&udpwrap->handle),
-                              &this_module_native_info);
+void iotjs_udp_object_init(jerry_value_t judp) {
+  uv_handle_t* handle = iotjs_uv_handle_create(sizeof(uv_udp_t), judp,
+                                               &this_module_native_info, 0);
 
   const iotjs_environment_t* env = iotjs_environment_get();
-  uv_udp_init(iotjs_environment_loop(env), &udpwrap->handle);
-
-  return udpwrap;
-}
-
-
-static void iotjs_udpwrap_destroy(iotjs_udpwrap_t* udpwrap) {
-  iotjs_handlewrap_destroy(&udpwrap->handlewrap);
-  IOTJS_RELEASE(udpwrap);
-}
-
-
-iotjs_udpwrap_t* iotjs_udpwrap_from_handle(uv_udp_t* udp_handle) {
-  uv_handle_t* handle = (uv_handle_t*)(udp_handle);
-  iotjs_handlewrap_t* handlewrap = iotjs_handlewrap_from_handle(handle);
-  iotjs_udpwrap_t* udpwrap = (iotjs_udpwrap_t*)handlewrap;
-  IOTJS_ASSERT(iotjs_udpwrap_udp_handle(udpwrap) == udp_handle);
-  return udpwrap;
-}
-
-
-iotjs_udpwrap_t* iotjs_udpwrap_from_jobject(jerry_value_t judp) {
-  iotjs_handlewrap_t* handlewrap = iotjs_handlewrap_from_jobject(judp);
-  return (iotjs_udpwrap_t*)handlewrap;
-}
-
-
-uv_udp_t* iotjs_udpwrap_udp_handle(iotjs_udpwrap_t* udpwrap) {
-  uv_handle_t* handle = iotjs_handlewrap_get_uv_handle(&udpwrap->handlewrap);
-  return (uv_udp_t*)handle;
+  uv_udp_init(iotjs_environment_loop(env), (uv_udp_t*)handle);
 }
 
 
@@ -70,14 +37,14 @@ JS_FUNCTION(UDP) {
   DJS_CHECK_THIS();
 
   jerry_value_t judp = JS_GET_THIS();
-  iotjs_udpwrap_create(judp);
+  iotjs_udp_object_init(judp);
 
   return jerry_create_undefined();
 }
 
 
 JS_FUNCTION(Bind) {
-  JS_DECLARE_THIS_PTR(udpwrap, udp_wrap);
+  JS_DECLARE_PTR(jthis, uv_udp_t, udp_handle);
   DJS_CHECK_ARGS(2, string, number);
 
   iotjs_string_t address = JS_GET_ARG(0, string);
@@ -98,8 +65,7 @@ JS_FUNCTION(Bind) {
       uv_ip4_addr(iotjs_string_data(&address), port, (sockaddr_in*)(&addr));
 
   if (err == 0) {
-    err = uv_udp_bind(iotjs_udpwrap_udp_handle(udp_wrap),
-                      (const sockaddr*)(&addr), flags);
+    err = uv_udp_bind(udp_handle, (const sockaddr*)(&addr), flags);
   }
 
   jerry_release_value(reuse_addr);
@@ -126,10 +92,8 @@ static void OnRecv(uv_udp_t* handle, ssize_t nread, const uv_buf_t* buf,
     return;
   }
 
-  iotjs_udpwrap_t* udp_wrap = iotjs_udpwrap_from_handle(handle);
-
   // udp handle
-  jerry_value_t judp = iotjs_handlewrap_jobject(&udp_wrap->handlewrap);
+  jerry_value_t judp = IOTJS_UV_HANDLE_DATA(handle)->jobject;
   IOTJS_ASSERT(jerry_value_is_object(judp));
 
   // onmessage callback
@@ -169,10 +133,9 @@ static void OnRecv(uv_udp_t* handle, ssize_t nread, const uv_buf_t* buf,
 
 
 JS_FUNCTION(RecvStart) {
-  JS_DECLARE_THIS_PTR(udpwrap, udp_wrap);
+  JS_DECLARE_PTR(jthis, uv_udp_t, udp_handle);
 
-  int err =
-      uv_udp_recv_start(iotjs_udpwrap_udp_handle(udp_wrap), OnAlloc, OnRecv);
+  int err = uv_udp_recv_start(udp_handle, OnAlloc, OnRecv);
 
   // UV_EALREADY means that the socket is already bound but that's okay
   if (err == UV_EALREADY)
@@ -183,9 +146,9 @@ JS_FUNCTION(RecvStart) {
 
 
 JS_FUNCTION(RecvStop) {
-  JS_DECLARE_THIS_PTR(udpwrap, udp_wrap);
+  JS_DECLARE_PTR(jthis, uv_udp_t, udp_handle);
 
-  int r = uv_udp_recv_stop(iotjs_udpwrap_udp_handle(udp_wrap));
+  int r = uv_udp_recv_stop(udp_handle);
 
   return jerry_create_number(r);
 }
@@ -217,7 +180,7 @@ static void OnSend(uv_udp_send_t* req, int status) {
 // [2] ip
 // [3] callback function
 JS_FUNCTION(Send) {
-  JS_DECLARE_THIS_PTR(udpwrap, udp_wrap);
+  JS_DECLARE_PTR(jthis, uv_udp_t, udp_handle);
   DJS_CHECK_ARGS(3, object, number, string);
   IOTJS_ASSERT(jerry_value_is_function(jargv[3]) ||
                jerry_value_is_undefined(jargv[3]));
@@ -243,8 +206,7 @@ JS_FUNCTION(Send) {
       uv_ip4_addr(iotjs_string_data(&address), port, (sockaddr_in*)(&addr));
 
   if (err == 0) {
-    err = uv_udp_send((uv_udp_send_t*)req_send,
-                      iotjs_udpwrap_udp_handle(udp_wrap), &buf, 1,
+    err = uv_udp_send((uv_udp_send_t*)req_send, udp_handle, &buf, 1,
                       (const sockaddr*)(&addr), OnSend);
   }
 
@@ -260,36 +222,35 @@ JS_FUNCTION(Send) {
 
 // Close socket
 JS_FUNCTION(Close) {
-  JS_DECLARE_THIS_PTR(handlewrap, wrap);
+  JS_DECLARE_PTR(jthis, uv_handle_t, uv_handle);
 
-  iotjs_handlewrap_close(wrap, NULL);
+  iotjs_uv_handle_close(uv_handle, NULL);
 
   return jerry_create_undefined();
 }
 
 
 JS_FUNCTION(GetSockeName) {
+  JS_DECLARE_PTR(jthis, uv_udp_t, udp_handle);
   DJS_CHECK_ARGS(1, object);
-  iotjs_udpwrap_t* wrap = iotjs_udpwrap_from_jobject(JS_GET_THIS());
-  IOTJS_ASSERT(wrap != NULL);
 
   sockaddr_storage storage;
   int addrlen = sizeof(storage);
   sockaddr* const addr = (sockaddr*)(&storage);
-  int err = uv_udp_getsockname(iotjs_udpwrap_udp_handle(wrap), addr, &addrlen);
+  int err = uv_udp_getsockname(udp_handle, addr, &addrlen);
   if (err == 0)
     AddressToJS(JS_GET_ARG(0, object), addr);
   return jerry_create_number(err);
 }
 
 
-#define IOTJS_UV_SET_SOCKOPT(fn)                          \
-  JS_DECLARE_THIS_PTR(udpwrap, udp_wrap);                 \
-  DJS_CHECK_ARGS(1, number);                              \
-                                                          \
-  int flag = JS_GET_ARG(0, number);                       \
-  int err = fn(iotjs_udpwrap_udp_handle(udp_wrap), flag); \
-                                                          \
+#define IOTJS_UV_SET_SOCKOPT(fn)               \
+  JS_DECLARE_PTR(jthis, uv_udp_t, udp_handle); \
+  DJS_CHECK_ARGS(1, number);                   \
+                                               \
+  int flag = JS_GET_ARG(0, number);            \
+  int err = fn(udp_handle, flag);              \
+                                               \
   return jerry_create_number(err);
 
 
@@ -344,7 +305,7 @@ static jerry_value_t SetMembership(const jerry_value_t jthis,
                                    const jerry_length_t jargc,
                                    uv_membership membership) {
 #if !defined(__NUTTX__)
-  JS_DECLARE_THIS_PTR(udpwrap, udp_wrap);
+  JS_DECLARE_PTR(jthis, uv_udp_t, udp_handle);
   DJS_CHECK_ARGS(1, string);
 
   iotjs_string_t address = JS_GET_ARG(0, string);
@@ -360,9 +321,8 @@ static jerry_value_t SetMembership(const jerry_value_t jthis,
     iface_cstr = iotjs_string_data(&iface);
   }
 
-  int err = uv_udp_set_membership(iotjs_udpwrap_udp_handle(udp_wrap),
-                                  iotjs_string_data(&address), iface_cstr,
-                                  membership);
+  int err = uv_udp_set_membership(udp_handle, iotjs_string_data(&address),
+                                  iface_cstr, membership);
 
   if (!isUndefinedOrNull)
     iotjs_string_destroy(&iface);

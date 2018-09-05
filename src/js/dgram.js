@@ -350,8 +350,18 @@ Socket.prototype.address = function() {
 };
 
 
+// These object represents the different config types that
+// this._handle.configure can do.
+// The order of these must match the order in the udp C module.
+var configTypes = {
+  'BROADCAST': 0,
+  'TTL': 1,
+  'MULTICASTTTL': 2,
+  'MULTICASTLOOPBACK': 3,
+};
+
 Socket.prototype.setBroadcast = function(arg) {
-  var err = this._handle.setBroadcast(arg ? 1 : 0);
+  var err = this._handle.configure(configTypes.BROADCAST, arg ? 1 : 0);
   if (err) {
     throw util.errnoException(err, 'setBroadcast');
   }
@@ -363,7 +373,7 @@ Socket.prototype.setTTL = function(arg) {
     throw new TypeError('Argument must be a number');
   }
 
-  var err = this._handle.setTTL(arg);
+  var err = this._handle.configure(configTypes.TTL, arg);
   if (err) {
     throw util.errnoException(err, 'setTTL');
   }
@@ -377,7 +387,7 @@ Socket.prototype.setMulticastTTL = function(arg) {
     throw new TypeError('Argument must be a number');
   }
 
-  var err = this._handle.setMulticastTTL(arg);
+  var err = this._handle.configure(configTypes.MULTICASTTTL, arg);
   if (err) {
     throw util.errnoException(err, 'setMulticastTTL');
   }
@@ -387,7 +397,8 @@ Socket.prototype.setMulticastTTL = function(arg) {
 
 
 Socket.prototype.setMulticastLoopback = function(arg) {
-  var err = this._handle.setMulticastLoopback(arg ? 1 : 0);
+  var err = this._handle.configure(configTypes.MULTICASTLOOPBACK,
+                                   arg ? 1 : 0);
   if (err) {
     throw util.errnoException(err, 'setMulticastLoopback');
   }

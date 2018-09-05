@@ -244,60 +244,49 @@ JS_FUNCTION(GetSockeName) {
 }
 
 
-#define IOTJS_UV_SET_SOCKOPT(fn)               \
-  JS_DECLARE_PTR(jthis, uv_udp_t, udp_handle); \
-  DJS_CHECK_ARGS(1, number);                   \
-                                               \
-  int flag = JS_GET_ARG(0, number);            \
-  int err = fn(udp_handle, flag);              \
-                                               \
-  return jerry_create_number(err);
+// The order of these config types must match the order
+// in the dgram js module.
+enum config_type { BROADCAST, TTL, MULTICASTTTL, MULTICASTLOOPBACK };
 
+JS_FUNCTION(Configure) {
+  JS_DECLARE_PTR(jthis, uv_udp_t, udp_handle);
+  DJS_CHECK_ARGS(2, number, number);
 
-JS_FUNCTION(SetBroadcast) {
+  jerry_value_t ret_value = jerry_create_null();
+
 #if !defined(__NUTTX__)
-  IOTJS_UV_SET_SOCKOPT(uv_udp_set_broadcast);
+  enum config_type type = JS_GET_ARG(0, number);
+  int flag = JS_GET_ARG(1, number);
+  int (*fn)(uv_udp_t*, int) = NULL;
+
+  switch (type) {
+    case BROADCAST: {
+      fn = &uv_udp_set_broadcast;
+      break;
+    }
+    case TTL: {
+      fn = &uv_udp_set_ttl;
+      break;
+    }
+    case MULTICASTTTL: {
+      fn = &uv_udp_set_multicast_ttl;
+      break;
+    }
+    case MULTICASTLOOPBACK: {
+      fn = &uv_udp_set_multicast_loop;
+      break;
+    }
+    default: {
+      IOTJS_ASSERT(!"Unknown config type");
+      return jerry_create_null();
+    }
+  }
+  ret_value = jerry_create_number(fn(udp_handle, flag));
 #else
   IOTJS_ASSERT(!"Not implemented");
-
-  return jerry_create_null();
 #endif
+  return ret_value;
 }
-
-
-JS_FUNCTION(SetTTL) {
-#if !defined(__NUTTX__)
-  IOTJS_UV_SET_SOCKOPT(uv_udp_set_ttl);
-#else
-  IOTJS_ASSERT(!"Not implemented");
-
-  return jerry_create_null();
-#endif
-}
-
-
-JS_FUNCTION(SetMulticastTTL) {
-#if !defined(__NUTTX__)
-  IOTJS_UV_SET_SOCKOPT(uv_udp_set_multicast_ttl);
-#else
-  IOTJS_ASSERT(!"Not implemented");
-
-  return jerry_create_null();
-#endif
-}
-
-
-JS_FUNCTION(SetMulticastLoopback) {
-#if !defined(__NUTTX__)
-  IOTJS_UV_SET_SOCKOPT(uv_udp_set_multicast_loop);
-#else
-  IOTJS_ASSERT(!"Not implemented");
-
-  return jerry_create_null();
-#endif
-}
-
-#undef IOTJS_UV_SET_SOCKOPT
 
 
 static jerry_value_t SetMembership(const jerry_value_t jthis,
@@ -374,13 +363,7 @@ jerry_value_t InitUdp() {
   iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_CLOSE, Close);
   iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_GETSOCKNAME,
                         GetSockeName);
-  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_SETBROADCAST,
-                        SetBroadcast);
-  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_SETTTL, SetTTL);
-  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_SETMULTICASTTTL,
-                        SetMulticastTTL);
-  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_SETMULTICASTLOOPBACK,
-                        SetMulticastLoopback);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_CONFIGURE, Configure);
   iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_ADDMEMBERSHIP,
                         AddMembership);
   iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_DROPMEMBERSHIP,

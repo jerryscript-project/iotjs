@@ -18,43 +18,38 @@
 #include "iotjs_def.h"
 #include "iotjs_module_buffer.h"
 #include "iotjs_module_uart.h"
+#include "iotjs_uv_handle.h"
 #include "iotjs_uv_request.h"
 
 
-IOTJS_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(uart);
+static void iotjs_uart_object_destroy(uv_handle_t* handle);
 
-static iotjs_uart_t* uart_create(const jerry_value_t juart) {
-  iotjs_uart_t* uart = IOTJS_ALLOC(iotjs_uart_t);
-  iotjs_uart_create_platform_data(uart);
+static const jerry_object_native_info_t this_module_native_info = {
+  .free_cb = (jerry_object_native_free_callback_t)iotjs_uart_object_destroy,
+};
 
-  iotjs_handlewrap_initialize(&uart->handlewrap, juart,
-                              (uv_handle_t*)(&uart->poll_handle),
-                              &this_module_native_info);
 
-  uart->device_fd = -1;
-  return uart;
-}
+void iotjs_uart_object_destroy(uv_handle_t* handle) {
+  iotjs_uart_t* uart = (iotjs_uart_t*)IOTJS_UV_HANDLE_EXTRA_DATA(handle);
 
-static void iotjs_uart_destroy(iotjs_uart_t* uart) {
-  iotjs_handlewrap_destroy(&uart->handlewrap);
   iotjs_uart_destroy_platform_data(uart->platform_data);
-  IOTJS_RELEASE(uart);
 }
+
 
 static void uart_worker(uv_work_t* work_req) {
   iotjs_periph_data_t* worker_data =
       (iotjs_periph_data_t*)IOTJS_UV_REQUEST_EXTRA_DATA(work_req);
-  iotjs_uart_t* uart = (iotjs_uart_t*)worker_data->data;
+  uv_handle_t* uart_poll_handle = (uv_handle_t*)worker_data->data;
 
   switch (worker_data->op) {
     case kUartOpOpen:
-      worker_data->result = iotjs_uart_open(uart);
+      worker_data->result = iotjs_uart_open(uart_poll_handle);
       break;
     case kUartOpWrite:
-      worker_data->result = iotjs_uart_write(uart);
+      worker_data->result = iotjs_uart_write(uart_poll_handle);
       break;
     case kUartOpClose:
-      iotjs_handlewrap_close(&uart->handlewrap, iotjs_uart_handlewrap_close_cb);
+      iotjs_uv_handle_close(uart_poll_handle, iotjs_uart_handle_close_cb);
       worker_data->result = true;
       break;
     default:
@@ -69,9 +64,9 @@ static void iotjs_uart_read_cb(uv_poll_t* req, int status, int events) {
   if (i > 0) {
     buf[i] = '\0';
     DDDLOG("%s - read length: %d", __func__, i);
+    jerry_value_t juart = IOTJS_UV_HANDLE_DATA(req)->jobject;
     jerry_value_t jemit =
-        iotjs_jval_get_property(iotjs_handlewrap_jobject(&uart->handlewrap),
-                                IOTJS_MAGIC_STRING_EMIT);
+        iotjs_jval_get_property(juart, IOTJS_MAGIC_STRING_EMIT);
     IOTJS_ASSERT(jerry_value_is_function(jemit));
 
     jerry_value_t str =
@@ -83,8 +78,8 @@ static void iotjs_uart_read_cb(uv_poll_t* req, int status, int events) {
 
     jerry_value_t jargs[] = { str, jbuf };
     jerry_value_t jres =
-        jerry_call_function(jemit, iotjs_handlewrap_jobject(&uart->handlewrap),
-                            jargs, 2);
+        jerry_call_function(jemit, IOTJS_UV_HANDLE_DATA(req)->jobject, jargs,
+                            2);
     IOTJS_ASSERT(!jerry_value_is_error(jres));
 
     jerry_release_value(jres);
@@ -94,12 +89,12 @@ static void iotjs_uart_read_cb(uv_poll_t* req, int status, int events) {
   }
 }
 
-void iotjs_uart_register_read_cb(iotjs_uart_t* uart) {
-  uv_poll_t* poll_handle = &uart->poll_handle;
+void iotjs_uart_register_read_cb(uv_poll_t* uart_poll_handle) {
+  iotjs_uart_t* uart =
+      (iotjs_uart_t*)IOTJS_UV_HANDLE_EXTRA_DATA(uart_poll_handle);
   uv_loop_t* loop = iotjs_environment_loop(iotjs_environment_get());
-  uv_poll_init(loop, poll_handle, uart->device_fd);
-  poll_handle->data = uart;
-  uv_poll_start(poll_handle, UV_READABLE, iotjs_uart_read_cb);
+  uv_poll_init(loop, uart_poll_handle, uart->device_fd);
+  uv_poll_start(uart_poll_handle, UV_READABLE, iotjs_uart_read_cb);
 }
 
 static jerry_value_t uart_set_configuration(iotjs_uart_t* uart,
@@ -156,8 +151,15 @@ JS_FUNCTION(UartCons) {
   DJS_CHECK_ARG_IF_EXIST(1, function);
 
   // Create UART object
-  jerry_value_t juart = JS_GET_THIS();
-  iotjs_uart_t* uart = uart_create(juart);
+  const jerry_value_t juart = JS_GET_THIS();
+  uv_handle_t* uart_poll_handle =
+      iotjs_uv_handle_create(sizeof(uv_poll_t), juart, &this_module_native_info,
+                             sizeof(iotjs_uart_t));
+  iotjs_uart_t* uart =
+      (iotjs_uart_t*)IOTJS_UV_HANDLE_EXTRA_DATA(uart_poll_handle);
+  // TODO: merge platform data allocation into the handle allocation.
+  iotjs_uart_create_platform_data(uart);
+  uart->device_fd = -1;
 
   jerry_value_t jconfig = JS_GET_ARG(0, object);
 
@@ -180,8 +182,9 @@ JS_FUNCTION(UartCons) {
   // If the callback doesn't exist, it is completed synchronously.
   // Otherwise, it will be executed asynchronously.
   if (!jerry_value_is_null(jcallback)) {
-    iotjs_periph_call_async(uart, jcallback, kUartOpOpen, uart_worker);
-  } else if (!iotjs_uart_open(uart)) {
+    iotjs_periph_call_async(uart_poll_handle, jcallback, kUartOpOpen,
+                            uart_worker);
+  } else if (!iotjs_uart_open(uart_poll_handle)) {
     return JS_CREATE_ERROR(COMMON, iotjs_periph_error_str(kUartOpOpen));
   }
 
@@ -189,27 +192,31 @@ JS_FUNCTION(UartCons) {
 }
 
 JS_FUNCTION(Write) {
-  JS_DECLARE_THIS_PTR(uart, uart);
+  JS_DECLARE_PTR(jthis, uv_poll_t, uart_poll_handle);
   DJS_CHECK_ARGS(1, string);
   DJS_CHECK_ARG_IF_EXIST(1, function);
 
+  iotjs_uart_t* uart =
+      (iotjs_uart_t*)IOTJS_UV_HANDLE_EXTRA_DATA(uart_poll_handle);
   uart->buf_data = JS_GET_ARG(0, string);
   uart->buf_len = iotjs_string_size(&uart->buf_data);
 
-  iotjs_periph_call_async(uart, JS_GET_ARG_IF_EXIST(1, function), kUartOpWrite,
-                          uart_worker);
+  iotjs_periph_call_async(uart_poll_handle, JS_GET_ARG_IF_EXIST(1, function),
+                          kUartOpWrite, uart_worker);
 
   return jerry_create_undefined();
 }
 
 JS_FUNCTION(WriteSync) {
-  JS_DECLARE_THIS_PTR(uart, uart);
+  JS_DECLARE_PTR(jthis, uv_handle_t, uart_poll_handle);
   DJS_CHECK_ARGS(1, string);
 
+  iotjs_uart_t* uart =
+      (iotjs_uart_t*)IOTJS_UV_HANDLE_EXTRA_DATA(uart_poll_handle);
   uart->buf_data = JS_GET_ARG(0, string);
   uart->buf_len = iotjs_string_size(&uart->buf_data);
 
-  bool result = iotjs_uart_write(uart);
+  bool result = iotjs_uart_write(uart_poll_handle);
   iotjs_string_destroy(&uart->buf_data);
 
   if (!result) {
@@ -220,19 +227,19 @@ JS_FUNCTION(WriteSync) {
 }
 
 JS_FUNCTION(Close) {
-  JS_DECLARE_THIS_PTR(uart, uart);
+  JS_DECLARE_PTR(jthis, uv_poll_t, uart_poll_handle);
   DJS_CHECK_ARG_IF_EXIST(0, function);
 
-  iotjs_periph_call_async(uart, JS_GET_ARG_IF_EXIST(0, function), kUartOpClose,
-                          uart_worker);
+  iotjs_periph_call_async(uart_poll_handle, JS_GET_ARG_IF_EXIST(0, function),
+                          kUartOpClose, uart_worker);
 
   return jerry_create_undefined();
 }
 
 JS_FUNCTION(CloseSync) {
-  JS_DECLARE_THIS_PTR(uart, uart);
+  JS_DECLARE_PTR(jthis, uv_handle_t, uart_poll_handle);
 
-  iotjs_handlewrap_close(&uart->handlewrap, iotjs_uart_handlewrap_close_cb);
+  iotjs_uv_handle_close(uart_poll_handle, iotjs_uart_handle_close_cb);
   return jerry_create_undefined();
 }
 

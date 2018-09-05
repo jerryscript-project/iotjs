@@ -42,7 +42,6 @@
 
 #include "iotjs_def.h"
 #include "iotjs_module_crypto.h"
-#include "iotjs_handlewrap.h"
 #include "iotjs_module_buffer.h"
 
 /* These enum values are the same as the ones in crypto.js as well as the

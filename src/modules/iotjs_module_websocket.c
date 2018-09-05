@@ -17,7 +17,6 @@
 #include <time.h>
 
 #include "iotjs_def.h"
-#include "iotjs_handlewrap.h"
 #include "iotjs_module_buffer.h"
 #include "iotjs_module_crypto.h"
 #include "iotjs_module_websocket.h"

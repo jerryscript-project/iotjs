@@ -14,71 +14,25 @@
  */
 
 #include "iotjs_def.h"
-#include "iotjs_module_timer.h"
+#include "iotjs_uv_handle.h"
 
 
-static void iotjs_timerwrap_destroy(iotjs_timerwrap_t* timerwrap);
-static void iotjs_timerwrap_on_timeout(iotjs_timerwrap_t* timerwrap);
-IOTJS_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(timerwrap);
+static const jerry_object_native_info_t this_module_native_info = { NULL };
 
 
-iotjs_timerwrap_t* iotjs_timerwrap_create(const jerry_value_t jtimer) {
-  iotjs_timerwrap_t* timerwrap = IOTJS_ALLOC(iotjs_timerwrap_t);
-  uv_timer_t* uv_timer = IOTJS_ALLOC(uv_timer_t);
+void iotjs_timer_object_init(jerry_value_t jtimer) {
+  uv_handle_t* handle = iotjs_uv_handle_create(sizeof(uv_timer_t), jtimer,
+                                               &this_module_native_info, 0);
 
-  iotjs_handlewrap_initialize(&timerwrap->handlewrap, jtimer,
-                              (uv_handle_t*)(uv_timer),
-                              &this_module_native_info);
-
-  // Initialize timer handler.
   const iotjs_environment_t* env = iotjs_environment_get();
-  uv_timer_init(iotjs_environment_loop(env), uv_timer);
-
-  return timerwrap;
+  uv_timer_init(iotjs_environment_loop(env), (uv_timer_t*)handle);
 }
 
 
-static void iotjs_timerwrap_destroy(iotjs_timerwrap_t* timerwrap) {
-  iotjs_handlewrap_destroy(&timerwrap->handlewrap);
-
-  IOTJS_RELEASE(timerwrap);
-}
-
-static void TimoutHandlerDestroy(uv_handle_t* handle) {
-  IOTJS_RELEASE(handle);
-}
-
-// This function is called from uv when timeout expires.
 static void TimeoutHandler(uv_timer_t* handle) {
-  // Find timer wrap from handle.
-  iotjs_timerwrap_t* timer_wrap = iotjs_timerwrap_from_handle(handle);
+  IOTJS_ASSERT(handle != NULL);
 
-  // Call the timeout handler.
-  iotjs_timerwrap_on_timeout(timer_wrap);
-}
-
-
-int iotjs_timerwrap_start(iotjs_timerwrap_t* timerwrap, uint64_t timeout,
-                          uint64_t repeat) {
-  // Start uv timer.
-  uv_timer_t* uv_timer =
-      (uv_timer_t*)iotjs_handlewrap_get_uv_handle(&timerwrap->handlewrap);
-  return uv_timer_start(uv_timer, TimeoutHandler, timeout, repeat);
-}
-
-
-int iotjs_timerwrap_stop(iotjs_timerwrap_t* timerwrap) {
-  if (!uv_is_closing(iotjs_handlewrap_get_uv_handle(&timerwrap->handlewrap))) {
-    iotjs_handlewrap_close(&timerwrap->handlewrap, TimoutHandlerDestroy);
-  }
-
-  return 0;
-}
-
-
-static void iotjs_timerwrap_on_timeout(iotjs_timerwrap_t* timerwrap) {
-  // Call javascript timeout handler function.
-  jerry_value_t jobject = iotjs_timerwrap_jobject(timerwrap);
+  jerry_value_t jobject = IOTJS_UV_HANDLE_DATA(handle)->jobject;
   jerry_value_t jcallback =
       iotjs_jval_get_property(jobject, IOTJS_MAGIC_STRING_HANDLETIMEOUT);
   iotjs_invoke_callback(jcallback, jobject, NULL, 0);
@@ -86,36 +40,9 @@ static void iotjs_timerwrap_on_timeout(iotjs_timerwrap_t* timerwrap) {
 }
 
 
-uv_timer_t* iotjs_timerwrap_handle(iotjs_timerwrap_t* timerwrap) {
-  return (uv_timer_t*)iotjs_handlewrap_get_uv_handle(&timerwrap->handlewrap);
-}
-
-
-jerry_value_t iotjs_timerwrap_jobject(iotjs_timerwrap_t* timerwrap) {
-  jerry_value_t jobject = iotjs_handlewrap_jobject(&timerwrap->handlewrap);
-  IOTJS_ASSERT(jerry_value_is_object(jobject));
-  return jobject;
-}
-
-
-iotjs_timerwrap_t* iotjs_timerwrap_from_handle(uv_timer_t* timer_handle) {
-  uv_handle_t* handle = (uv_handle_t*)(timer_handle);
-  iotjs_handlewrap_t* handlewrap = iotjs_handlewrap_from_handle(handle);
-  iotjs_timerwrap_t* timerwrap = (iotjs_timerwrap_t*)handlewrap;
-  IOTJS_ASSERT(iotjs_timerwrap_handle(timerwrap) == timer_handle);
-  return timerwrap;
-}
-
-
-iotjs_timerwrap_t* iotjs_timerwrap_from_jobject(const jerry_value_t jtimer) {
-  iotjs_handlewrap_t* handlewrap = iotjs_handlewrap_from_jobject(jtimer);
-  return (iotjs_timerwrap_t*)handlewrap;
-}
-
-
 JS_FUNCTION(Start) {
   // Check parameters.
-  JS_DECLARE_THIS_PTR(timerwrap, timer_wrap);
+  JS_DECLARE_PTR(jthis, uv_timer_t, timer_handle);
   DJS_CHECK_ARGS(2, number, number);
 
   // parameters.
@@ -123,18 +50,21 @@ JS_FUNCTION(Start) {
   uint64_t repeat = JS_GET_ARG(1, number);
 
   // Start timer.
-  int res = iotjs_timerwrap_start(timer_wrap, timeout, repeat);
+  int res = uv_timer_start(timer_handle, TimeoutHandler, timeout, repeat);
 
   return jerry_create_number(res);
 }
 
 
 JS_FUNCTION(Stop) {
-  JS_DECLARE_THIS_PTR(timerwrap, timer_wrap);
+  JS_DECLARE_PTR(jthis, uv_handle_t, timer_handle);
   // Stop timer.
-  int res = iotjs_timerwrap_stop(timer_wrap);
 
-  return jerry_create_number(res);
+  if (!uv_is_closing(timer_handle)) {
+    iotjs_uv_handle_close(timer_handle, NULL);
+  }
+
+  return jerry_create_number(0);
 }
 
 
@@ -143,12 +73,7 @@ JS_FUNCTION(Timer) {
 
   const jerry_value_t jtimer = JS_GET_THIS();
 
-  iotjs_timerwrap_t* timer_wrap = iotjs_timerwrap_create(jtimer);
-
-  jerry_value_t jobject = iotjs_timerwrap_jobject(timer_wrap);
-  IOTJS_ASSERT(jerry_value_is_object(jobject));
-  IOTJS_ASSERT(iotjs_jval_get_object_native_handle(jtimer, NULL) != NULL);
-
+  iotjs_timer_object_init(jtimer);
   return jerry_create_undefined();
 }
 

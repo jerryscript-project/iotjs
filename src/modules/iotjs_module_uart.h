@@ -18,7 +18,6 @@
 #define IOTJS_MODULE_UART_H
 
 #include "iotjs_def.h"
-#include "iotjs_handlewrap.h"
 #include "iotjs_module_periph_common.h"
 
 
@@ -27,25 +26,24 @@
 typedef struct iotjs_uart_platform_data_s iotjs_uart_platform_data_t;
 
 typedef struct {
-  iotjs_handlewrap_t handlewrap;
-  iotjs_uart_platform_data_t* platform_data;
   int device_fd;
   unsigned baud_rate;
   uint8_t data_bits;
   iotjs_string_t buf_data;
   unsigned buf_len;
-  uv_poll_t poll_handle;
+
+  iotjs_uart_platform_data_t* platform_data;
 } iotjs_uart_t;
 
-jerry_value_t iotjs_uart_set_platform_config(iotjs_uart_t* uart,
-                                             const jerry_value_t jconfig);
-
-void iotjs_uart_register_read_cb(iotjs_uart_t* uart);
-bool iotjs_uart_open(iotjs_uart_t* uart);
-bool iotjs_uart_write(iotjs_uart_t* uart);
-void iotjs_uart_handlewrap_close_cb(uv_handle_t* handle);
+void iotjs_uart_handle_close_cb(uv_handle_t* handle);
+void iotjs_uart_register_read_cb(uv_poll_t* uart_poll_handle);
 
 void iotjs_uart_create_platform_data(iotjs_uart_t* uart);
+jerry_value_t iotjs_uart_set_platform_config(iotjs_uart_t* uart,
+                                             const jerry_value_t jconfig);
 void iotjs_uart_destroy_platform_data(iotjs_uart_platform_data_t* pdata);
+
+bool iotjs_uart_open(uv_handle_t* uart_poll_handle);
+bool iotjs_uart_write(uv_handle_t* uart_poll_handle);
 
 #endif /* IOTJS_MODULE_UART_H */

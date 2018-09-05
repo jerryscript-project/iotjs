@@ -18,6 +18,7 @@
 #include <termios.h>
 #include <unistd.h>
 
+#include "iotjs_uv_handle.h"
 #include "modules/iotjs_module_uart.h"
 
 struct iotjs_uart_platform_data_s {
@@ -100,7 +101,9 @@ jerry_value_t iotjs_uart_set_platform_config(iotjs_uart_t* uart,
   return jerry_create_undefined();
 }
 
-bool iotjs_uart_open(iotjs_uart_t* uart) {
+bool iotjs_uart_open(uv_handle_t* uart_poll_handle) {
+  iotjs_uart_t* uart =
+      (iotjs_uart_t*)IOTJS_UV_HANDLE_EXTRA_DATA(uart_poll_handle);
   int fd = open(iotjs_string_data(&uart->platform_data->device_path),
                 O_RDWR | O_NOCTTY | O_NDELAY);
   if (fd < 0) {
@@ -119,12 +122,15 @@ bool iotjs_uart_open(iotjs_uart_t* uart) {
   tcsetattr(fd, TCSANOW, &options);
 
   uart->device_fd = fd;
-  iotjs_uart_register_read_cb(uart);
+  iotjs_uart_register_read_cb((uv_poll_t*)uart_poll_handle);
 
   return true;
 }
 
-bool iotjs_uart_write(iotjs_uart_t* uart) {
+bool iotjs_uart_write(uv_handle_t* uart_poll_handle) {
+  iotjs_uart_t* uart =
+      (iotjs_uart_t*)IOTJS_UV_HANDLE_EXTRA_DATA(uart_poll_handle);
+
   int bytesWritten = 0;
   unsigned offset = 0;
   int fd = uart->device_fd;
@@ -155,8 +161,9 @@ bool iotjs_uart_write(iotjs_uart_t* uart) {
   return true;
 }
 
-void iotjs_uart_handlewrap_close_cb(uv_handle_t* handle) {
-  iotjs_uart_t* uart = (iotjs_uart_t*)handle->data;
+void iotjs_uart_handle_close_cb(uv_handle_t* uart_poll_handle) {
+  iotjs_uart_t* uart =
+      (iotjs_uart_t*)IOTJS_UV_HANDLE_EXTRA_DATA(uart_poll_handle);
 
   if (close(uart->device_fd) < 0) {
     DLOG(iotjs_periph_error_str(kUartOpClose));

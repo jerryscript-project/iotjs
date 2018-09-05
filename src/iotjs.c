@@ -16,7 +16,6 @@
 #include "iotjs_def.h"
 
 #include "iotjs.h"
-#include "iotjs_handlewrap.h"
 #include "iotjs_js.h"
 #include "iotjs_string_ext.h"
 
@@ -26,6 +25,8 @@
 #endif
 #include "jerryscript-port.h"
 #include "jerryscript.h"
+
+#include "iotjs_uv_handle.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -184,18 +185,10 @@ static int iotjs_start(iotjs_environment_t* env) {
 }
 
 
-static void iotjs_uv_walk_to_close_callback(uv_handle_t* handle, void* arg) {
-  iotjs_handlewrap_t* handle_wrap = iotjs_handlewrap_from_handle(handle);
-  IOTJS_ASSERT(handle_wrap != NULL);
-
-  iotjs_handlewrap_close(handle_wrap, NULL);
-}
-
-
 void iotjs_end(iotjs_environment_t* env) {
   uv_loop_t* loop = iotjs_environment_loop(env);
   // Close uv loop.
-  uv_walk(loop, iotjs_uv_walk_to_close_callback, NULL);
+  uv_walk(loop, (uv_walk_cb)iotjs_uv_handle_close, NULL);
   uv_run(loop, UV_RUN_DEFAULT);
 
   int res = uv_loop_close(loop);

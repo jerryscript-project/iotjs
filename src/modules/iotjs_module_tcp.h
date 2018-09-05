@@ -19,7 +19,6 @@
 
 
 #include "iotjs_binding.h"
-#include "iotjs_handlewrap.h"
 
 
 typedef struct sockaddr sockaddr;
@@ -27,19 +26,6 @@ typedef struct sockaddr_in sockaddr_in;
 typedef struct sockaddr_in6 sockaddr_in6;
 typedef struct sockaddr_storage sockaddr_storage;
 
-
-typedef struct {
-  iotjs_handlewrap_t handlewrap;
-  uv_tcp_t handle;
-} iotjs_tcpwrap_t;
-
-
-iotjs_tcpwrap_t* iotjs_tcpwrap_create(jerry_value_t jtcp);
-
-iotjs_tcpwrap_t* iotjs_tcpwrap_from_handle(uv_tcp_t* handle);
-iotjs_tcpwrap_t* iotjs_tcpwrap_from_jobject(jerry_value_t jtcp);
-
-uv_tcp_t* iotjs_tcpwrap_tcp_handle(iotjs_tcpwrap_t* tcpwrap);
 
 void AddressToJS(jerry_value_t obj, const sockaddr* addr);
 

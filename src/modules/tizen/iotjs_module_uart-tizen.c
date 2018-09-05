@@ -15,6 +15,7 @@
 
 #include <peripheral_io.h>
 
+#include "iotjs_uv_handle.h"
 #include "modules/iotjs_module_uart.h"
 
 struct _peripheral_uart_s {
@@ -108,7 +109,9 @@ jerry_value_t iotjs_uart_set_platform_config(iotjs_uart_t* uart,
   return jerry_create_undefined();
 }
 
-bool iotjs_uart_open(iotjs_uart_t* uart) {
+bool iotjs_uart_open(uv_handle_t* uart_poll_handle) {
+  iotjs_uart_t* uart =
+      (iotjs_uart_t*)IOTJS_UV_HANDLE_EXTRA_DATA(uart_poll_handle);
   iotjs_uart_platform_data_t* platform_data = uart->platform_data;
   IOTJS_ASSERT(platform_data);
 
@@ -137,12 +140,14 @@ bool iotjs_uart_open(iotjs_uart_t* uart) {
   }
 
   uart->device_fd = platform_data->uart_h->fd;
-  iotjs_uart_register_read_cb(uart);
+  iotjs_uart_register_read_cb((uv_poll_t*)uart_poll_handle);
 
   return true;
 }
 
-bool iotjs_uart_write(iotjs_uart_t* uart) {
+bool iotjs_uart_write(uv_handle_t* uart_poll_handle) {
+  iotjs_uart_t* uart =
+      (iotjs_uart_t*)IOTJS_UV_HANDLE_EXTRA_DATA(uart_poll_handle);
   iotjs_uart_platform_data_t* platform_data = uart->platform_data;
   IOTJS_ASSERT(platform_data);
   if (!platform_data->uart_h) {
@@ -163,8 +168,9 @@ bool iotjs_uart_write(iotjs_uart_t* uart) {
   return true;
 }
 
-void iotjs_uart_handlewrap_close_cb(uv_handle_t* handle) {
-  iotjs_uart_t* uart = (iotjs_uart_t*)handle->data;
+void iotjs_uart_handle_close_cb(uv_handle_t* uart_poll_handle) {
+  iotjs_uart_t* uart =
+      (iotjs_uart_t*)IOTJS_UV_HANDLE_EXTRA_DATA(uart_poll_handle);
 
   if (peripheral_uart_close(uart->platform_data->uart_h) !=
       PERIPHERAL_ERROR_NONE) {

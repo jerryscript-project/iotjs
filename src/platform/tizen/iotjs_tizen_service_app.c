@@ -86,7 +86,6 @@ static void loop_method_init_cb(int argc, char** argv, void* data) {
 
   if (!iotjs_environment_parse_command_line_arguments(env, (uint32_t)iotjs_argc,
                                                       iotjs_argv)) {
-    DLOG("iotjs_environment_parse_command_line_arguments failed");
     service_app_exit();
     return;
   }

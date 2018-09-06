@@ -223,7 +223,8 @@ static void OnConnection(uv_stream_t* handle, int status) {
     IOTJS_ASSERT(jerry_value_is_object(jclient_tcp));
 
     iotjs_tcpwrap_t* tcp_wrap_client =
-        (iotjs_tcpwrap_t*)(iotjs_jval_get_object_native_handle(jclient_tcp));
+        (iotjs_tcpwrap_t*)(iotjs_jval_get_object_native_handle(
+            jclient_tcp, &this_module_native_info));
 
     uv_stream_t* client_handle =
         (uv_stream_t*)(iotjs_tcpwrap_tcp_handle(tcp_wrap_client));

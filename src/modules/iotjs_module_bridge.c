@@ -203,10 +203,11 @@ static void iotjs_bridge_call_destroy(iotjs_bridge_call_t* bridgecall) {
 }
 
 static iotjs_bridge_object_t* iotjs_bridge_get_object(jerry_value_t obj_val) {
-  iotjs_bridge_object_t* bridgeobj = NULL;
-  bool is_ok = false;
-  is_ok = jerry_get_object_native_pointer(obj_val, (void**)&bridgeobj, NULL);
-  if (!is_ok) {
+  iotjs_bridge_object_t* bridgeobj =
+      (iotjs_bridge_object_t*)iotjs_jval_get_object_native_handle(obj_val,
+                                                                  NULL);
+
+  if (bridgeobj == NULL) {
     bridgeobj = IOTJS_ALLOC(iotjs_bridge_object_t);
     bridgeobj->jobject = obj_val;
     bridgeobj->calls = NULL;

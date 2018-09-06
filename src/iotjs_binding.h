@@ -76,7 +76,8 @@ void iotjs_jval_set_property_string_raw(jerry_value_t jobj, const char* name,
 
 jerry_value_t iotjs_jval_get_property(jerry_value_t jobj, const char* name);
 
-uintptr_t iotjs_jval_get_object_native_handle(jerry_value_t jobj);
+void* iotjs_jval_get_object_native_handle(jerry_value_t jobj,
+                                          JNativeInfoType* required_info);
 
 void iotjs_jval_set_property_by_index(jerry_value_t jarr, uint32_t idx,
                                       jerry_value_t jval);
@@ -167,20 +168,21 @@ jerry_value_t iotjs_jhelper_eval(const char* name, size_t name_len,
 #define DJS_CHECK_ARG_IF_EXIST(index, type) JS_CHECK_ARG_IF_EXIST(index, type)
 #endif
 
-#define __JS_DECLARE_PTR(type, name, value)                                  \
-  iotjs_##type##_t* name;                                                    \
+#define JS_DECLARE_PTR(JOBJ, TYPE, NAME)                                     \
+  TYPE* NAME;                                                                \
   do {                                                                       \
-    JNativeInfoType* out_native_info;                                        \
-    jerry_get_object_native_pointer(value, (void**)&name, &out_native_info); \
-    if (!name || out_native_info != &this_module_native_info) {              \
-      return JS_CREATE_ERROR(COMMON, "");                                    \
+    NAME =                                                                   \
+        iotjs_jval_get_object_native_handle(JOBJ, &this_module_native_info); \
+    if (NAME == NULL) {                                                      \
+      return JS_CREATE_ERROR(COMMON, "Internal");                            \
     }                                                                        \
   } while (0)
 
-#define JS_DECLARE_THIS_PTR(type, name) __JS_DECLARE_PTR(type, name, jthis)
+#define JS_DECLARE_THIS_PTR(type, name) \
+  JS_DECLARE_PTR(jthis, iotjs_##type##_t, name)
 
 #define JS_DECLARE_OBJECT_PTR(index, type, name) \
-  __JS_DECLARE_PTR(type, name, jargv[index])
+  JS_DECLARE_PTR(jargv[index], iotjs_##type##_t, name)
 
 #define __JS_GET_REQUIRED_VALUE(target, property, type, value)              \
   do {                                                                      \

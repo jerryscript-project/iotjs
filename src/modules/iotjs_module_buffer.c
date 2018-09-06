@@ -42,7 +42,8 @@ iotjs_bufferwrap_t* iotjs_bufferwrap_create(const jerry_value_t jobject,
 
   IOTJS_ASSERT(
       bufferwrap ==
-      (iotjs_bufferwrap_t*)(iotjs_jval_get_object_native_handle(jobject)));
+      (iotjs_bufferwrap_t*)(iotjs_jval_get_object_native_handle(jobject,
+                                                                NULL)));
 
   return bufferwrap;
 }
@@ -55,8 +56,8 @@ static void iotjs_bufferwrap_destroy(iotjs_bufferwrap_t* bufferwrap) {
 
 iotjs_bufferwrap_t* iotjs_bufferwrap_from_jbuffer(const jerry_value_t jbuffer) {
   IOTJS_ASSERT(jerry_value_is_object(jbuffer));
-  iotjs_bufferwrap_t* buffer =
-      (iotjs_bufferwrap_t*)iotjs_jval_get_object_native_handle(jbuffer);
+  iotjs_bufferwrap_t* buffer = (iotjs_bufferwrap_t*)
+      iotjs_jval_get_object_native_handle(jbuffer, &this_module_native_info);
   IOTJS_ASSERT(buffer != NULL);
   return buffer;
 }
@@ -84,13 +85,10 @@ iotjs_bufferwrap_t* iotjs_jbuffer_get_bufferwrap_ptr(
     return NULL;
   }
 
-  void* native_p;
-  const jerry_object_native_info_t* type_p;
-  bool has_native_pointer =
-      jerry_get_object_native_pointer(jbuffer, &native_p, &type_p);
-
-  if (has_native_pointer && type_p == &this_module_native_info) {
-    return (iotjs_bufferwrap_t*)native_p;
+  iotjs_bufferwrap_t* buffer = (iotjs_bufferwrap_t*)
+      iotjs_jval_get_object_native_handle(jbuffer, &this_module_native_info);
+  if (buffer != NULL) {
+    return buffer;
   }
 
   return NULL;

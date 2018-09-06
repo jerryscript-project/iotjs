@@ -599,14 +599,11 @@ JS_FUNCTION(MqttReceive) {
 
   jerry_value_t jnat = JS_GET_ARG(0, object);
 
-  void *native_p;
-  JNativeInfoType *out_native_info;
-  bool has_p =
-      jerry_get_object_native_pointer(jnat, &native_p, &out_native_info);
-  if (!has_p || out_native_info != &mqttclient_native_info) {
+  iotjs_mqttclient_t *mqttclient = (iotjs_mqttclient_t *)
+      iotjs_jval_get_object_native_handle(jnat, &mqttclient_native_info);
+  if (mqttclient == NULL) {
     return JS_CREATE_ERROR(COMMON, "MQTT native pointer not available");
   }
-  iotjs_mqttclient_t *mqttclient = (iotjs_mqttclient_t *)native_p;
 
   jerry_value_t jbuffer = JS_GET_ARG(1, object);
   iotjs_bufferwrap_t *buff_recv = iotjs_bufferwrap_from_jbuffer(jbuffer);

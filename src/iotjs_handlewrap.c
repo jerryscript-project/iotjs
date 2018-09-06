@@ -50,7 +50,7 @@ iotjs_handlewrap_t* iotjs_handlewrap_from_handle(uv_handle_t* handle) {
 
 iotjs_handlewrap_t* iotjs_handlewrap_from_jobject(jerry_value_t jobject) {
   iotjs_handlewrap_t* handlewrap =
-      (iotjs_handlewrap_t*)(iotjs_jval_get_object_native_handle(jobject));
+      (iotjs_handlewrap_t*)(iotjs_jval_get_object_native_handle(jobject, NULL));
   iotjs_handlewrap_validate(handlewrap);
   return handlewrap;
 }
@@ -104,6 +104,6 @@ void iotjs_handlewrap_close(iotjs_handlewrap_t* handlewrap,
 void iotjs_handlewrap_validate(iotjs_handlewrap_t* handlewrap) {
   IOTJS_ASSERT(handlewrap);
   IOTJS_ASSERT((void*)handlewrap == handlewrap->handle->data);
-  IOTJS_ASSERT((uintptr_t)handlewrap ==
-               iotjs_jval_get_object_native_handle(handlewrap->jobject));
+  IOTJS_ASSERT((void*)handlewrap ==
+               iotjs_jval_get_object_native_handle(handlewrap->jobject, NULL));
 }

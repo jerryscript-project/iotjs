@@ -20,7 +20,7 @@
 #include "iotjs_js.h"
 #include "iotjs_string_ext.h"
 
-#include "jerryscript-debugger.h"
+#include "jerryscript-ext/debugger.h"
 #ifndef __NUTTX__
 #include "jerryscript-port-default.h"
 #endif
@@ -53,10 +53,12 @@ static bool jerry_initialize(iotjs_environment_t* env) {
   jerry_init(jerry_flags);
 
   if (iotjs_environment_config(env)->debugger != NULL) {
-    jerry_debugger_init(iotjs_environment_config(env)->debugger->port);
+    uint16_t port = iotjs_environment_config(env)->debugger->port;
+    jerryx_debugger_after_connect(jerryx_debugger_tcp_create(port) &&
+                                  jerryx_debugger_ws_create());
 
     if (!jerry_debugger_is_connected()) {
-      DLOG("jerry_debugger_init() failed");
+      DLOG("jerry debugger connection failed");
       return false;
     }
 

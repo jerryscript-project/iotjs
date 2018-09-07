@@ -26,10 +26,9 @@ ExternalProject_Add(hostjerry
     -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/${DEPS_HOST_JERRY}
     -DENABLE_ALL_IN_ONE=ON
     -DENABLE_LTO=${ENABLE_LTO}
-    -DJERRY_LIBC=OFF
     -DJERRY_CMDLINE=OFF
     -DJERRY_CMDLINE_SNAPSHOT=ON
-    -DJERRY_EXT=OFF
+    -DJERRY_EXT=ON
     -DFEATURE_SNAPSHOT_SAVE=${ENABLE_SNAPSHOT}
     -DFEATURE_PROFILE=${FEATURE_PROFILE}
 )
@@ -48,7 +47,7 @@ macro(add_cmake_arg TARGET_ARG KEY)
 endmacro(add_cmake_arg)
 
 # Target libjerry
-set(JERRY_LIBS jerry-core jerry-port-default)
+set(JERRY_LIBS jerry-core jerry-port-default jerry-ext)
 set(DEPS_LIB_JERRY_ARGS)
 
 # Configure the MinSizeRel as the default build type
@@ -60,25 +59,22 @@ else()
 endif()
 
 
-# use system libc/libm on Unix like targets
+# use system libm on Unix like targets
 if("${TARGET_OS}" MATCHES "TIZENRT|NUTTX")
   list(APPEND JERRY_LIBS jerry-libm)
   list(APPEND DEPS_LIB_JERRY_ARGS
-    -DJERRY_LIBC=OFF
     -DJERRY_LIBM=ON
     -DEXTERNAL_CMAKE_SYSTEM_PROCESSOR=${EXTERNAL_CMAKE_SYSTEM_PROCESSOR}
   )
 elseif("${TARGET_OS}" MATCHES "LINUX|TIZEN|DARWIN|OPENWRT")
   list(APPEND JERRY_LIBS m)
   list(APPEND DEPS_LIB_JERRY_ARGS
-    -DJERRY_LIBC=OFF
     -DJERRY_LIBM=OFF)
 elseif("${TARGET_OS}" MATCHES "WINDOWS")
   list(APPEND DEPS_LIB_JERRY_ARGS
-    -DJERRY_LIBC=OFF
     -DJERRY_LIBM=OFF)
 else()
-  list(APPEND JERRY_LIBS jerry-libm jerry-libc)
+  list(APPEND JERRY_LIBS jerry-libm)
   list(APPEND DEPS_LIB_JERRY_ARGS
     -DEXTERNAL_CMAKE_SYSTEM_PROCESSOR=${EXTERNAL_CMAKE_SYSTEM_PROCESSOR}
   )
@@ -106,8 +102,8 @@ add_cmake_arg(DEPS_LIB_JERRY_ARGS JERRY_HEAP_SECTION_ATTR)
 separate_arguments(EXTRA_JERRY_CMAKE_PARAMS)
 
 build_lib_name(JERRY_CORE_NAME jerry-core)
-build_lib_name(JERRY_LIBC_NAME jerry-libc)
 build_lib_name(JERRY_LIBM_NAME jerry-libm)
+build_lib_name(JERRY_EXT_NAME jerry-ext)
 
 set(DEPS_LIB_JERRY deps/jerry)
 set(DEPS_LIB_JERRY_SRC ${ROOT_DIR}/${DEPS_LIB_JERRY})
@@ -139,8 +135,8 @@ ExternalProject_Add(libjerry
 set_property(DIRECTORY APPEND PROPERTY
   ADDITIONAL_MAKE_CLEAN_FILES
     ${CMAKE_BINARY_DIR}/lib/${JERRY_CORE_NAME}
-    ${CMAKE_BINARY_DIR}/lib/${JERRY_LIBC_NAME}
     ${CMAKE_BINARY_DIR}/lib/${JERRY_LIBM_NAME}
+    ${CMAKE_BINARY_DIR}/lib/${JERRY_EXT_NAME}
 )
 
 # define external jerry-core target
@@ -149,17 +145,17 @@ add_dependencies(jerry-core libjerry)
 set_property(TARGET jerry-core PROPERTY
   IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/lib/${JERRY_CORE_NAME})
 
-# define external jerry-libc target
-add_library(jerry-libc STATIC IMPORTED)
-add_dependencies(jerry-libc libjerry)
-set_property(TARGET jerry-libc PROPERTY
-  IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/lib/${JERRY_LIBC_NAME})
-
 # define external jerry-libm target
 add_library(jerry-libm STATIC IMPORTED)
 add_dependencies(jerry-libm libjerry)
 set_property(TARGET jerry-libm PROPERTY
   IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/lib/${JERRY_LIBM_NAME})
+
+# define external jerry-ext target
+add_library(jerry-ext STATIC IMPORTED)
+add_dependencies(jerry-ext libjerry)
+set_property(TARGET jerry-ext PROPERTY
+  IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/lib/${JERRY_EXT_NAME})
 
 if(NOT "${TARGET_OS}" MATCHES "NUTTX")
   build_lib_name(JERRY_PORT_NAME jerry-port)
@@ -179,3 +175,4 @@ if(NOT "${TARGET_OS}" MATCHES "NUTTX")
 endif()
 
 set(JERRY_INCLUDE_DIR ${DEPS_LIB_JERRY_SRC}/jerry-core/include)
+set(JERRY_EXT_DIR ${DEPS_LIB_JERRY_SRC}/jerry-ext)

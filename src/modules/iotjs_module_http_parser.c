@@ -298,9 +298,7 @@ static int iotjs_http_parserwrap_on_headers_complete(http_parser* parser) {
   int ret = 1;
   if (jerry_value_is_boolean(res)) {
     ret = iotjs_jval_as_boolean(res);
-  } else if (jerry_value_is_object(res)) {
-    // if exception throw occurs in iotjs_invoke_callback_with_result, then
-    // the result can be an object.
+  } else if (jerry_value_is_error(res)) {
     ret = 0;
   }
 

@@ -111,14 +111,11 @@ static char *iotjs_ws_write_data(char *buff, void *data, size_t size) {
 
 
 static bool iotjs_check_handshake_key(char *server_key, jerry_value_t jsref) {
-  void *native_p;
-  JNativeInfoType *out_native_info;
-  bool has_p =
-      jerry_get_object_native_pointer(jsref, &native_p, &out_native_info);
-  if (!has_p || out_native_info != &wsclient_native_info) {
+  iotjs_wsclient_t *wsclient = (iotjs_wsclient_t *)
+      iotjs_jval_get_object_native_handle(jsref, &wsclient_native_info);
+  if (wsclient == NULL) {
     return false;
   }
-  iotjs_wsclient_t *wsclient = (iotjs_wsclient_t *)native_p;
 
   unsigned char *out_buff = NULL;
   size_t ws_guid_size = strlen(WS_GUID);
@@ -279,14 +276,11 @@ JS_FUNCTION(PrepareHandshakeRequest) {
     return JS_CREATE_ERROR(COMMON, "Invalid host and/or path arguments!");
   };
 
-  void *native_p;
-  JNativeInfoType *out_native_info;
-  bool has_p =
-      jerry_get_object_native_pointer(jsref, &native_p, &out_native_info);
-  if (!has_p || out_native_info != &wsclient_native_info) {
+  iotjs_wsclient_t *wsclient = (iotjs_wsclient_t *)
+      iotjs_jval_get_object_native_handle(jsref, &wsclient_native_info);
+  if (wsclient == NULL) {
     return iotjs_websocket_check_error(WS_ERR_NATIVE_POINTER_ERR);
   }
-  iotjs_wsclient_t *wsclient = (iotjs_wsclient_t *)native_p;
 
   size_t generated_key_len = 0;
   wsclient->generated_key = ws_generate_key(jsref, &generated_key_len);
@@ -502,14 +496,11 @@ JS_FUNCTION(WsReceive) {
 
   jerry_value_t jsref = JS_GET_ARG(0, object);
 
-  void *native_p;
-  JNativeInfoType *out_native_info;
-  bool has_p =
-      jerry_get_object_native_pointer(jsref, &native_p, &out_native_info);
-  if (!has_p || out_native_info != &wsclient_native_info) {
+  iotjs_wsclient_t *wsclient = (iotjs_wsclient_t *)
+      iotjs_jval_get_object_native_handle(jsref, &wsclient_native_info);
+  if (wsclient == NULL) {
     return iotjs_websocket_check_error(WS_ERR_NATIVE_POINTER_ERR);
   }
-  iotjs_wsclient_t *wsclient = (iotjs_wsclient_t *)native_p;
 
   jerry_value_t jbuffer = JS_GET_ARG(1, object);
   iotjs_bufferwrap_t *buffer_wrap = iotjs_bufferwrap_from_jbuffer(jbuffer);

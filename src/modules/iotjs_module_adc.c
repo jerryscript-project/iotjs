@@ -55,8 +55,8 @@ JS_FUNCTION(AdcCons) {
   // Create ADC object
   const jerry_value_t jadc = JS_GET_THIS();
   iotjs_adc_t* adc = adc_create(jadc);
-  IOTJS_ASSERT(adc ==
-               (iotjs_adc_t*)(iotjs_jval_get_object_native_handle(jadc)));
+  IOTJS_ASSERT(adc == (iotjs_adc_t*)(iotjs_jval_get_object_native_handle(
+                          jadc, &this_module_native_info)));
 
   jerry_value_t jconfig;
   JS_GET_REQUIRED_ARG_VALUE(0, jconfig, IOTJS_MAGIC_STRING_CONFIG, object);

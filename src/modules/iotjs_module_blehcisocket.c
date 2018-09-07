@@ -167,9 +167,10 @@ JS_FUNCTION(BleHciSocketCons) {
   // Create object
   jerry_value_t jblehcisocket = JS_GET_THIS();
   iotjs_blehcisocket_t* blehcisocket = iotjs_blehcisocket_create(jblehcisocket);
-  IOTJS_ASSERT(blehcisocket ==
-               (iotjs_blehcisocket_t*)(iotjs_jval_get_object_native_handle(
-                   jblehcisocket)));
+  IOTJS_ASSERT(
+      blehcisocket ==
+      (iotjs_blehcisocket_t*)(iotjs_jval_get_object_native_handle(jblehcisocket,
+                                                                  NULL)));
   return jerry_create_undefined();
 }
 

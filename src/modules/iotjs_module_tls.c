@@ -293,17 +293,12 @@ JS_FUNCTION(TlsInit) {
 
   // Get context
   jerry_value_t jtls_context = JS_GET_ARG(2, object);
-
-  void *native_ptr;
-  const jerry_object_native_info_t *native_info;
-  bool tls_context_available =
-      jerry_get_object_native_pointer(jtls_context, &native_ptr, &native_info);
-
-  if (!tls_context_available || native_info != &tls_context_native_info) {
+  iotjs_tls_context_t *tls_context = (iotjs_tls_context_t *)
+      iotjs_jval_get_object_native_handle(jtls_context,
+                                          &tls_context_native_info);
+  if (tls_context == NULL) {
     return JS_CREATE_ERROR(COMMON, "secure context not available");
   }
-
-  iotjs_tls_context_t *tls_context = (iotjs_tls_context_t *)native_ptr;
 
   iotjs_tls_t *tls_data = iotjs_tls_create(jtls_socket, tls_context);
 

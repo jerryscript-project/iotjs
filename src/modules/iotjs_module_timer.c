@@ -147,7 +147,7 @@ JS_FUNCTION(Timer) {
 
   jerry_value_t jobject = iotjs_timerwrap_jobject(timer_wrap);
   IOTJS_ASSERT(jerry_value_is_object(jobject));
-  IOTJS_ASSERT(iotjs_jval_get_object_native_handle(jtimer) != 0);
+  IOTJS_ASSERT(iotjs_jval_get_object_native_handle(jtimer, NULL) != NULL);
 
   return jerry_create_undefined();
 }

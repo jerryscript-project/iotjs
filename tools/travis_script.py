@@ -38,7 +38,9 @@ DOCKER_TIZENRT_PATH = fs.join(DOCKER_ROOT_PATH, 'TizenRT')
 DOCKER_TIZENRT_OS_PATH = fs.join(DOCKER_TIZENRT_PATH, 'os')
 DOCKER_TIZENRT_OS_TOOLS_PATH = fs.join(DOCKER_TIZENRT_OS_PATH, 'tools')
 
-DOCKER_NUTTX_PATH =fs.join(DOCKER_ROOT_PATH, 'nuttx')
+DOCKER_NUTTX_PATH = fs.join(DOCKER_ROOT_PATH, 'nuttx')
+DOCKER_NUTTX_TOOLS_PATH = fs.join(DOCKER_NUTTX_PATH, 'tools')
+DOCKER_NUTTX_APPS_PATH = fs.join(DOCKER_ROOT_PATH, 'apps')
 
 DOCKER_NAME = 'iotjs_docker'
 BUILDTYPES = ['debug', 'release']
@@ -146,7 +148,23 @@ if __name__ == '__main__':
                         'EXTRA_LIBS=-ljerry-ext'])
 
     elif test == 'stm32f4dis':
+        # Copy the application files to apps/system/iotjs.
+        exec_docker(DOCKER_ROOT_PATH, [
+                    'cp', '-r',
+                    fs.join(DOCKER_IOTJS_PATH,'config/nuttx/stm32f4dis/app/'),
+                    fs.join(DOCKER_NUTTX_APPS_PATH, 'system/iotjs/')])
+
+        exec_docker(DOCKER_ROOT_PATH, [
+                    'cp', '-r',
+                    fs.join(DOCKER_IOTJS_PATH,
+                            'config/nuttx/stm32f4dis/config.travis'),
+                    fs.join(DOCKER_NUTTX_PATH,
+                            'configs/stm32f4discovery/usbnsh/defconfig')])
+
         for buildtype in BUILDTYPES:
+            exec_docker(DOCKER_NUTTX_PATH, ['make', 'distclean'])
+            exec_docker(DOCKER_NUTTX_TOOLS_PATH,
+                        ['./configure.sh', 'stm32f4discovery/usbnsh'])
             exec_docker(DOCKER_NUTTX_PATH, ['make', 'clean'])
             exec_docker(DOCKER_NUTTX_PATH, ['make', 'context'])
             # Build IoT.js

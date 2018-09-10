@@ -68,7 +68,7 @@ HEAPSIZE = $(CONFIG_IOTJS_HEAPSIZE)
 ASRCS = setjmp.S
 CSRCS = jerry_port.c
 MAINSRC = iotjs_main.c
-LIBS = libhttpparser.a libiotjs.a libjerry-core.a libtuv.a libjerry-libm.a
+LIBS = libhttpparser.a libiotjs.a libjerry-core.a libtuv.a libjerry-libm.a libjerry-ext.a
 
 AOBJS = $(ASRCS:.S=$(OBJEXT))
 COBJS = $(CSRCS:.c=$(OBJEXT))

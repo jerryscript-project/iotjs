@@ -122,6 +122,25 @@ bool iotjs_initialize(iotjs_environment_t* env) {
   return true;
 }
 
+void iotjs_restart(iotjs_environment_t* env, jerry_value_t jmain) {
+  jerry_value_t abort_value = jerry_get_value_from_error(jmain, false);
+  if (jerry_value_is_string(abort_value)) {
+    /* TODO: When there is an api function to check for reset,
+    this needs an update. */
+    static const char restart_str[] = "r353t";
+
+    jerry_size_t str_size = jerry_get_string_size(abort_value);
+
+    if (str_size == sizeof(restart_str) - 1) {
+      jerry_char_t str_buf[5];
+      jerry_string_to_char_buffer(abort_value, str_buf, str_size);
+      if (memcmp(restart_str, (char*)(str_buf), str_size) == 0) {
+        iotjs_environment_config(env)->debugger->context_reset = true;
+      }
+    }
+  }
+  jerry_release_value(abort_value);
+}
 
 void iotjs_run(iotjs_environment_t* env) {
 // Evaluating 'iotjs.js' returns a function.
@@ -134,7 +153,10 @@ void iotjs_run(iotjs_environment_t* env) {
                           iotjs_js_modules_l, module_iotjs_idx, 0);
 #endif
 
-  if (jerry_value_is_error(jmain) && !iotjs_environment_is_exiting(env)) {
+  if (jerry_value_is_abort(jmain)) {
+    iotjs_restart(env, jmain);
+  } else if (jerry_value_is_error(jmain) &&
+              !iotjs_environment_is_exiting(env)) {
     jerry_value_t errval = jerry_get_value_from_error(jmain, false);
     iotjs_uncaught_exception(errval);
     jerry_release_value(errval);

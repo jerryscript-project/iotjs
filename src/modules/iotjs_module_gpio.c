@@ -183,7 +183,13 @@ JS_FUNCTION(CloseSync) {
   return jerry_create_undefined();
 }
 
-JS_FUNCTION(Write) {
+typedef enum { IOTJS_GPIO_WRITE, IOTJS_GPIO_WRITESYNC } iotjs_gpio_op_t;
+
+jerry_value_t gpio_do_write_or_writesync(const jerry_value_t jfunc,
+                                         const jerry_value_t jthis,
+                                         const jerry_value_t jargv[],
+                                         const jerry_length_t jargc,
+                                         const iotjs_gpio_op_t gpio_op) {
   JS_DECLARE_THIS_PTR(gpio, gpio);
 
   bool value;
@@ -192,12 +198,25 @@ JS_FUNCTION(Write) {
   } else if (jerry_value_is_boolean(jargv[0])) {
     value = jerry_get_boolean_value(jargv[0]);
   } else {
-    return JS_CREATE_ERROR(COMMON, iotjs_periph_error_str(kGpioOpWrite));
+    const char* js_create_error_arg;
+    if (gpio_op == IOTJS_GPIO_WRITE) {
+      js_create_error_arg = iotjs_periph_error_str(kGpioOpWrite);
+    } else {
+      js_create_error_arg = "GPIO WriteSync Error - Wrong argument type";
+    }
+    return JS_CREATE_ERROR(COMMON, js_create_error_arg);
   }
 
-  DJS_CHECK_ARG_IF_EXIST(1, function);
-
   gpio->value = value;
+  if (gpio_op == IOTJS_GPIO_WRITE) {
+    DJS_CHECK_ARG_IF_EXIST(1, function);
+    iotjs_periph_call_async(gpio, JS_GET_ARG_IF_EXIST(1, function),
+                            kGpioOpWrite, gpio_worker);
+  } else {
+    if (!iotjs_gpio_write(gpio)) {
+      return JS_CREATE_ERROR(COMMON, iotjs_periph_error_str(kGpioOpWrite));
+    }
+  }
 
   iotjs_periph_call_async(gpio, JS_GET_ARG_IF_EXIST(1, function), kGpioOpWrite,
                           gpio_worker);
@@ -205,26 +224,14 @@ JS_FUNCTION(Write) {
   return jerry_create_undefined();
 }
 
+JS_FUNCTION(Write) {
+  return gpio_do_write_or_writesync(jfunc, jthis, jargv, jargc,
+                                    IOTJS_GPIO_WRITE);
+}
+
 JS_FUNCTION(WriteSync) {
-  JS_DECLARE_THIS_PTR(gpio, gpio);
-
-  bool value;
-  if (jerry_value_is_number(jargv[0])) {
-    value = (bool)jerry_get_number_value(jargv[0]);
-  } else if (jerry_value_is_boolean(jargv[0])) {
-    value = jerry_get_boolean_value(jargv[0]);
-  } else {
-    return JS_CREATE_ERROR(COMMON,
-                           "GPIO WriteSync Error - Wrong argument type");
-  }
-
-  gpio->value = value;
-
-  if (!iotjs_gpio_write(gpio)) {
-    return JS_CREATE_ERROR(COMMON, iotjs_periph_error_str(kGpioOpWrite));
-  }
-
-  return jerry_create_undefined();
+  return gpio_do_write_or_writesync(jfunc, jthis, jargv, jargc,
+                                    IOTJS_GPIO_WRITESYNC);
 }
 
 JS_FUNCTION(Read) {

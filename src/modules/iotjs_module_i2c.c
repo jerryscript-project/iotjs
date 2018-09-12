@@ -125,19 +125,29 @@ static jerry_value_t i2c_write(iotjs_i2c_t* i2c, const jerry_value_t jargv[],
   return jerry_create_undefined();
 }
 
-JS_FUNCTION(Write) {
+typedef enum { IOTJS_I2C_WRITE, IOTJS_I2C_WRITESYNC } iotjs_i2c_op_t;
+
+jerry_value_t i2c_do_write_or_writesync(const jerry_value_t jfunc,
+                                        const jerry_value_t jthis,
+                                        const jerry_value_t jargv[],
+                                        const jerry_length_t jargc,
+                                        const iotjs_i2c_op_t i2c_op) {
   JS_DECLARE_THIS_PTR(i2c, i2c);
   DJS_CHECK_ARGS(1, array);
-  DJS_CHECK_ARG_IF_EXIST(1, function);
+  if (i2c_op == IOTJS_I2C_WRITE) {
+    DJS_CHECK_ARG_IF_EXIST(1, function);
+  }
 
-  return i2c_write(i2c, jargv, jargc, true);
+  return i2c_write(i2c, jargv, jargc, i2c_op == IOTJS_I2C_WRITE);
+}
+
+JS_FUNCTION(Write) {
+  return i2c_do_write_or_writesync(jfunc, jthis, jargv, jargc, IOTJS_I2C_WRITE);
 }
 
 JS_FUNCTION(WriteSync) {
-  JS_DECLARE_THIS_PTR(i2c, i2c);
-  DJS_CHECK_ARGS(1, array);
-
-  return i2c_write(i2c, jargv, jargc, false);
+  return i2c_do_write_or_writesync(jfunc, jthis, jargv, jargc,
+                                   IOTJS_I2C_WRITESYNC);
 }
 
 JS_FUNCTION(Read) {

@@ -202,7 +202,13 @@ JS_FUNCTION(Open) {
 }
 
 
-JS_FUNCTION(Read) {
+typedef enum { IOTJS_FS_READ, IOTJS_FS_WRITE } iotjs_fs_op_t;
+
+jerry_value_t fs_do_read_or_write(const jerry_value_t jfunc,
+                                  const jerry_value_t jthis,
+                                  const jerry_value_t jargv[],
+                                  const jerry_length_t jargc,
+                                  const iotjs_fs_op_t fs_op) {
   DJS_CHECK_THIS();
   DJS_CHECK_ARGS(5, number, object, number, number, number);
   DJS_CHECK_ARG_IF_EXIST(5, function);
@@ -228,47 +234,30 @@ JS_FUNCTION(Read) {
   uv_buf_t uvbuf = uv_buf_init(data + offset, length);
 
   jerry_value_t ret_value;
-  if (!jerry_value_is_null(jcallback)) {
-    FS_ASYNC(env, read, jcallback, fd, &uvbuf, 1, position);
+  if (fs_op == IOTJS_FS_READ) {
+    if (!jerry_value_is_null(jcallback)) {
+      FS_ASYNC(env, read, jcallback, fd, &uvbuf, 1, position);
+    } else {
+      FS_SYNC(env, read, fd, &uvbuf, 1, position);
+    }
   } else {
-    FS_SYNC(env, read, fd, &uvbuf, 1, position);
+    if (!jerry_value_is_null(jcallback)) {
+      FS_ASYNC(env, write, jcallback, fd, &uvbuf, 1, position);
+    } else {
+      FS_SYNC(env, write, fd, &uvbuf, 1, position);
+    }
   }
   return ret_value;
 }
 
 
+JS_FUNCTION(Read) {
+  return fs_do_read_or_write(jfunc, jthis, jargv, jargc, IOTJS_FS_READ);
+}
+
+
 JS_FUNCTION(Write) {
-  DJS_CHECK_THIS();
-  DJS_CHECK_ARGS(5, number, object, number, number, number);
-  DJS_CHECK_ARG_IF_EXIST(5, function);
-
-  const iotjs_environment_t* env = iotjs_environment_get();
-
-  int fd = JS_GET_ARG(0, number);
-  const jerry_value_t jbuffer = JS_GET_ARG(1, object);
-  size_t offset = JS_GET_ARG(2, number);
-  size_t length = JS_GET_ARG(3, number);
-  int position = JS_GET_ARG(4, number);
-  const jerry_value_t jcallback = JS_GET_ARG_IF_EXIST(5, function);
-
-  iotjs_bufferwrap_t* buffer_wrap = iotjs_bufferwrap_from_jbuffer(jbuffer);
-  char* data = buffer_wrap->buffer;
-  size_t data_length = iotjs_bufferwrap_length(buffer_wrap);
-  JS_CHECK(data != NULL && data_length > 0);
-
-  if (!IsWithinBounds(offset, length, data_length)) {
-    return JS_CREATE_ERROR(RANGE, "length out of bound");
-  }
-
-  uv_buf_t uvbuf = uv_buf_init(data + offset, length);
-
-  jerry_value_t ret_value;
-  if (!jerry_value_is_null(jcallback)) {
-    FS_ASYNC(env, write, jcallback, fd, &uvbuf, 1, position);
-  } else {
-    FS_SYNC(env, write, fd, &uvbuf, 1, position);
-  }
-  return ret_value;
+  return fs_do_read_or_write(jfunc, jthis, jargv, jargc, IOTJS_FS_WRITE);
 }
 
 

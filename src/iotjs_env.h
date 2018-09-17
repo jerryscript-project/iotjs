@@ -18,16 +18,20 @@
 
 #include "uv.h"
 
+#ifdef JERRY_DEBUGGER
 typedef struct {
   bool wait_source;
   bool context_reset;
   uint16_t port;
 } DebuggerConfig;
+#endif
 
 typedef struct {
   uint32_t memstat : 1;
   uint32_t show_opcode : 1;
+#ifdef JERRY_DEBUGGER
   DebuggerConfig* debugger;
+#endif
 } Config;
 
 typedef enum {
@@ -73,7 +77,9 @@ uv_loop_t* iotjs_environment_loop(const iotjs_environment_t* env);
 void iotjs_environment_set_loop(iotjs_environment_t* env, uv_loop_t* loop);
 
 const Config* iotjs_environment_config(const iotjs_environment_t* env);
+#ifdef JERRY_DEBUGGER
 const DebuggerConfig* iotjs_environment_dconfig(const iotjs_environment_t* env);
+#endif
 
 void iotjs_environment_set_state(iotjs_environment_t* env, State s);
 bool iotjs_environment_is_exiting(iotjs_environment_t* env);

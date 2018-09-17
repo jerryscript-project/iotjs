@@ -24,9 +24,11 @@ typedef enum {
   OPT_HELP,
   OPT_MEM_STATS,
   OPT_SHOW_OP,
+#ifdef JERRY_DEBUGGER
   OPT_DEBUG_SERVER,
   OPT_DEBUGGER_WAIT_SOURCE,
   OPT_DEBUG_PORT,
+#endif
   NUM_OF_OPTIONS
 } cli_option_id_t;
 
@@ -66,7 +68,9 @@ void iotjs_environment_release() {
     return;
 
   iotjs_environment_t* env = iotjs_environment_get();
+#ifdef JERRY_DEBUGGER
   IOTJS_RELEASE(env->config.debugger);
+#endif
   IOTJS_RELEASE(env->argv);
   initialized = false;
 }
@@ -79,7 +83,9 @@ static void initialize(iotjs_environment_t* env) {
   env->state = kInitializing;
   env->config.memstat = false;
   env->config.show_opcode = false;
+#ifdef JERRY_DEBUGGER
   env->config.debugger = NULL;
+#endif
   env->exitcode = 0;
 }
 
@@ -108,6 +114,7 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
         .longopt = "show-opcodes",
         .help = "dump parser byte-code",
     },
+#ifdef JERRY_DEBUGGER
     {
         .id = OPT_DEBUG_SERVER,
         .opt = "d",
@@ -126,6 +133,7 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
         .more = 1,
         .help = "debug server port (default: 5001)",
     },
+#endif
   };
 
   const cli_option_t* cur_opt;
@@ -168,6 +176,7 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
       case OPT_SHOW_OP: {
         env->config.show_opcode = true;
       } break;
+#ifdef JERRY_DEBUGGER
       case OPT_DEBUGGER_WAIT_SOURCE:
       case OPT_DEBUG_SERVER: {
         if (!env->config.debugger) {
@@ -185,6 +194,7 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
           env->config.debugger->port = (uint16_t)strtoul(argv[i + 1], &pos, 10);
         }
       } break;
+#endif
       default:
         break;
     }
@@ -193,10 +203,12 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
     i += (1 + cur_opt->more);
   }
 
+#ifdef JERRY_DEBUGGER
   // If IoT.js is waiting for source from the debugger client,
   // Further processing over command line argument is not needed.
   if (env->config.debugger && env->config.debugger->wait_source)
     return true;
+#endif
 
   // There must be at least one argument after processing the IoT.js args,
   if (argc - i < 1) {

@@ -53,6 +53,7 @@ static bool jerry_initialize(iotjs_environment_t* env) {
   // Initialize jerry.
   jerry_init(jerry_flags);
 
+#ifdef JERRY_DEBUGGER
   if (iotjs_environment_config(env)->debugger != NULL) {
     uint16_t port = iotjs_environment_config(env)->debugger->port;
     jerryx_debugger_after_connect(jerryx_debugger_tcp_create(port) &&
@@ -65,6 +66,7 @@ static bool jerry_initialize(iotjs_environment_t* env) {
 
     jerry_debugger_continue();
   }
+#endif
 
   // Set magic strings.
   iotjs_register_jerry_magic_string();
@@ -123,6 +125,8 @@ bool iotjs_initialize(iotjs_environment_t* env) {
   return true;
 }
 
+
+#ifdef JERRY_DEBUGGER
 void iotjs_restart(iotjs_environment_t* env, jerry_value_t jmain) {
   jerry_value_t abort_value = jerry_get_value_from_error(jmain, false);
   if (jerry_value_is_string(abort_value)) {
@@ -142,6 +146,8 @@ void iotjs_restart(iotjs_environment_t* env, jerry_value_t jmain) {
   }
   jerry_release_value(abort_value);
 }
+#endif
+
 
 void iotjs_run(iotjs_environment_t* env) {
 // Evaluating 'iotjs.js' returns a function.
@@ -155,10 +161,12 @@ void iotjs_run(iotjs_environment_t* env) {
                           JERRY_SNAPSHOT_EXEC_ALLOW_STATIC);
 #endif
 
+#ifdef JERRY_DEBUGGER
   if (jerry_value_is_abort(jmain)) {
     iotjs_restart(env, jmain);
-  } else if (jerry_value_is_error(jmain) &&
-             !iotjs_environment_is_exiting(env)) {
+  } else
+#endif
+      if (jerry_value_is_error(jmain) && !iotjs_environment_is_exiting(env)) {
     jerry_value_t errval = jerry_get_value_from_error(jmain, false);
     iotjs_uncaught_exception(errval);
     jerry_release_value(errval);
@@ -265,6 +273,7 @@ terminate:
   iotjs_terminate(env);
 
 exit:
+#ifdef JERRY_DEBUGGER
   if (iotjs_environment_config(env)->debugger &&
       iotjs_environment_config(env)->debugger->context_reset) {
     iotjs_environment_release();
@@ -272,6 +281,7 @@ exit:
 
     return iotjs_entry(argc, argv);
   }
+#endif
 
   iotjs_environment_release();
   iotjs_debuglog_release();

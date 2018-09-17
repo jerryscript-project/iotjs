@@ -41,11 +41,13 @@ JS_FUNCTION(Compile) {
   iotjs_string_t source = JS_GET_ARG(1, string);
 
   const char* filename = iotjs_string_data(&file);
-  const iotjs_environment_t* env = iotjs_environment_get();
 
+#ifdef JERRY_DEBUGGER
+  const iotjs_environment_t* env = iotjs_environment_get();
   if (iotjs_environment_config(env)->debugger != NULL) {
     jerry_debugger_stop();
   }
+#endif
 
   jerry_value_t jres =
       WrapEval(filename, strlen(filename), iotjs_string_data(&source),
@@ -58,6 +60,7 @@ JS_FUNCTION(Compile) {
 }
 
 
+#ifdef JERRY_DEBUGGER
 // Callback function for DebuggerGetSource
 static jerry_value_t wait_for_source_callback(
     const jerry_char_t* resource_name_p, size_t resource_name_size,
@@ -103,6 +106,7 @@ JS_FUNCTION(DebuggerGetSource) {
 
   return ret_val;
 }
+#endif
 
 
 JS_FUNCTION(CompileModule) {
@@ -340,6 +344,7 @@ static void SetProcessPrivate(jerry_value_t process, bool wait_source) {
                         CompileModule);
   iotjs_jval_set_method(private, IOTJS_MAGIC_STRING_READSOURCE, ReadSource);
 
+#ifdef JERRY_DEBUGGER
   // debugger
   iotjs_jval_set_method(private, IOTJS_MAGIC_STRING_DEBUGGERGETSOURCE,
                         DebuggerGetSource);
@@ -349,6 +354,8 @@ static void SetProcessPrivate(jerry_value_t process, bool wait_source) {
                                wait_source_val);
 
   jerry_release_value(wait_source_val);
+#endif
+
   jerry_release_value(private);
 }
 
@@ -383,10 +390,12 @@ jerry_value_t InitProcess() {
   // Set iotjs
   SetProcessIotjs(process);
   bool wait_source = false;
+#ifdef JERRY_DEBUGGER
   if (iotjs_environment_config(iotjs_environment_get())->debugger != NULL) {
     wait_source = iotjs_environment_config(iotjs_environment_get())
                       ->debugger->wait_source;
   }
+#endif
 
   if (!wait_source) {
     SetProcessArgv(process);

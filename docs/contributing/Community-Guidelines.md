@@ -7,7 +7,7 @@ Community participants must adhere to these simple rules:
 
 <br>
 
-### Community Consensus, Lazy Consensus and Slient Consent
+### Community Consensus, Lazy Consensus and Silent Consent
 
 Community consensus about a Project issue means that the issue has been submitted to and discussed by Contributors, and that ALL discussing member agree about the issue.<p>
 Lazy consensus means that Contributors may proceed with work when they have reason to believe that other Contributors in the community will agree with the direction of their work, and do not need to stop or initiate unnecessary discussion about the work. Contributors should publish their work (that is, merge proposals to master branch) in a timely manner to allow others to possibly raise issues about the work. When the Contributor is not sure there will be consensus, they should raise a proposal to the community via appropriate public communication channels(**_currently Github issues is possible way to achieve this_**)<p>

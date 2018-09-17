@@ -55,11 +55,13 @@ static bool jerry_initialize(iotjs_environment_t* env) {
 
   if (iotjs_environment_config(env)->debugger != NULL) {
     uint16_t port = iotjs_environment_config(env)->debugger->port;
+#ifdef JERRY_DEBUGGER
     jerryx_debugger_after_connect(jerryx_debugger_tcp_create(port) &&
                                   jerryx_debugger_ws_create());
+#endif
 
     if (!jerry_debugger_is_connected()) {
-      DLOG("jerry debugger connection failed");
+      DLOG("jerry debugger connection failed on port %d", port);
       return false;
     }
 

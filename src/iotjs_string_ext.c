@@ -48,7 +48,7 @@ static const jerry_length_t magic_string_lengths[] = {
 //
 // declare strings table
 //
-static const jerry_char_t *magic_string_items[] = {
+static const jerry_char_t *const magic_string_items[] = {
 #define MAGICSTR_EX_DEF(NAME, STRING) \
   (const jerry_char_t *)jerry_magic_string_ex_##NAME,
 

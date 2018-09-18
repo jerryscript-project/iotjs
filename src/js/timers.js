@@ -15,7 +15,7 @@
 
 var util = require('util');
 
-var TIMEOUT_MAX = 2147483647; // 2^31-1
+var TIMEOUT_MAX = '2147483647.0' - 0; // 2^31-1
 
 
 function Timeout(after) {

@@ -15,7 +15,6 @@
 
 #include "iotjs_def.h"
 
-#include "iotjs_module_dns.h"
 #include "iotjs_uv_request.h"
 
 #if !defined(__NUTTX__)

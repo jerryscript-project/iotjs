@@ -139,7 +139,8 @@ JS_FUNCTION(CompileModule) {
   if (js_modules[i].name != NULL) {
 #ifdef ENABLE_SNAPSHOT
     jres = jerry_exec_snapshot((const uint32_t*)iotjs_js_modules_s,
-                               iotjs_js_modules_l, js_modules[i].idx, 0);
+                               iotjs_js_modules_l, js_modules[i].idx,
+                               JERRY_SNAPSHOT_EXEC_ALLOW_STATIC);
 #else
     jres = WrapEval(name, iotjs_string_size(&id),
                     (const char*)js_modules[i].code, js_modules[i].length);

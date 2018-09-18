@@ -132,7 +132,8 @@ void iotjs_run(iotjs_environment_t* env) {
 #else
   jerry_value_t jmain =
       jerry_exec_snapshot((const uint32_t*)iotjs_js_modules_s,
-                          iotjs_js_modules_l, module_iotjs_idx, 0);
+                          iotjs_js_modules_l, module_iotjs_idx,
+                          JERRY_SNAPSHOT_EXEC_ALLOW_STATIC);
 #endif
 
   if (jerry_value_is_error(jmain) && !iotjs_environment_is_exiting(env)) {

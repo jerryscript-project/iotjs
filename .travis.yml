@@ -53,7 +53,7 @@ matrix:
       - RUN_DOCKER=yes
       addons:
         apt:
-          packages: [valgrind, clang-format-3.8]
+          packages: [valgrind, clang-format-3.9]
     - env:
       - JOBNAME="OSX/x86-64 Build & Correctness Tests"
       - OPTS="host-darwin"

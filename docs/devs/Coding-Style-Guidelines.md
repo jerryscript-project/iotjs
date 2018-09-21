@@ -208,7 +208,7 @@ This tool helps you check your code style. You have to install `clang` and `esli
 
 ```bash
 $ sudo apt-get update
-$ sudo apt-get install clang-format-3.8
+$ sudo apt-get install clang-format-3.9
 $ cd iotjs
 $ npm install
 ```

@@ -16,4 +16,4 @@
 
 sudo apt-get update -q
 sudo apt-get install -q -y \
-    cmake gcc valgrind clang-format-3.8
+    cmake gcc valgrind clang-format-3.9

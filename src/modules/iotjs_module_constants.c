@@ -14,8 +14,8 @@
  */
 
 #include "iotjs_def.h"
-#include "iotjs_module.h"
 #include "iotjs_compatibility.h"
+#include "iotjs_module.h"
 
 #define SET_CONSTANT(object, constant)                           \
   do {                                                           \

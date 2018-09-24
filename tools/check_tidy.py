@@ -115,7 +115,8 @@ class ClangFormat(object):
                     "Using %s instead of %s" % (clang_format, base),
                     Terminal.yellow)
             else:
-                Terminal.pprint("No %s found, skipping checks!", Terminal.red)
+                Terminal.pprint("No %s found, skipping checks!" % base,
+                    Terminal.red)
 
         self._clang_format = clang_format
 

@@ -303,6 +303,12 @@ Module.prototype.compile = function(filename, source) {
 Module.runMain = function() {
   if (Builtin.debuggerWaitSource) {
     var sources = Builtin.debuggerGetSource();
+
+    if (sources.length == 0) {
+      var err = new Error('No remote source received!');
+      return process._onUncaughtException(err);
+    }
+
     sources.forEach(function(rModule) {
       Module.remoteCache[rModule[0]] = rModule[1];
     });

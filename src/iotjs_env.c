@@ -168,24 +168,22 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
       case OPT_SHOW_OP: {
         env->config.show_opcode = true;
       } break;
+      case OPT_DEBUGGER_WAIT_SOURCE:
       case OPT_DEBUG_SERVER: {
         if (!env->config.debugger) {
           env->config.debugger =
               (DebuggerConfig*)iotjs_buffer_allocate(sizeof(DebuggerConfig));
         }
         env->config.debugger->port = 5001;
-        env->config.debugger->wait_source = false;
         env->config.debugger->context_reset = false;
+        env->config.debugger->wait_source =
+            cur_opt->id == OPT_DEBUGGER_WAIT_SOURCE;
       } break;
       case OPT_DEBUG_PORT: {
         if (env->config.debugger) {
           char* pos = NULL;
           env->config.debugger->port = (uint16_t)strtoul(argv[i + 1], &pos, 10);
         }
-      } break;
-      case OPT_DEBUGGER_WAIT_SOURCE: {
-        if (env->config.debugger)
-          env->config.debugger->wait_source = true;
       } break;
       default:
         break;

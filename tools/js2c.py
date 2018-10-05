@@ -26,6 +26,14 @@ import struct
 from common_py.system.filesystem import FileSystem as fs
 from common_py import path
 
+
+def normalize_str(text):
+    if not isinstance(text, str):
+        return text.decode('utf-8')
+
+    return text
+
+
 def regroup(l, n):
     return [l[i:i+n] for i in range(0, len(l), n)]
 
@@ -242,11 +250,12 @@ def read_literals(literals_path):
     with open(literals_path, 'rb') as fin:
         num = ''
         while True:
-            c = fin.read(1)
+            c = normalize_str(fin.read(1))
             if not c:
                 break
             elif c == ' ':
-                literals_set.add(fin.read(int(num)))
+                text = normalize_str(fin.read(int(num)))
+                literals_set.add(text)
                 num = ''
             else:
                 num += c
@@ -258,7 +267,8 @@ def write_literals_to_file(literals_set, literals_path):
     sorted_lit = sorted(literals_set, key=lambda x: (len(x), x))
     with open(literals_path, 'wb') as flit:
         for lit in sorted_lit:
-            flit.write("%d %s\n" % (len(lit), lit))
+            entry = "%d %s\n" % (len(lit), lit)
+            flit.write(entry.encode('utf-8'))
 
 
 def js2c(options, js_modules):

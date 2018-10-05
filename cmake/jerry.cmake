@@ -32,6 +32,18 @@ ExternalProject_Add(hostjerry
     -DFEATURE_LOGGING=ON
     -DFEATURE_SNAPSHOT_SAVE=${ENABLE_SNAPSHOT}
     -DFEATURE_PROFILE=${FEATURE_PROFILE}
+    ${EXTRA_JERRY_CMAKE_PARAMS}
+
+    # The snapshot tool does not require the system allocator
+    # turn it off by default.
+    #
+    # Additionally this is required if one compiles on a
+    # 64bit system to a 32bit system with system allocator
+    # enabled. This is beacuse on 64bit the system allocator
+    # should not be used as it returns 64bit pointers which
+    # can not be represented correctly in the JerryScript engine
+    # currently.
+    -DFEATURE_SYSTEM_ALLOCATOR=OFF
 )
 set(JERRY_HOST_SNAPSHOT
     ${CMAKE_BINARY_DIR}/${DEPS_HOST_JERRY}/bin/jerry-snapshot)

@@ -100,12 +100,8 @@ OutgoingMessage.prototype._send = function(chunk, encoding, callback) {
     callback = encoding;
   }
 
-  if (util.isBuffer(chunk)) {
-    chunk = chunk.toString();
-  }
-
   if (!this._sentHeader) {
-    chunk = this._header + '\r\n' + chunk;
+    this._chunks.push(this._header + '\r\n');
     this._sentHeader = true;
   }
 

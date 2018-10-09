@@ -14,7 +14,14 @@
 
 IoT.js provides HTTP to support HTTP server and client enabling users to receive/send HTTP request easily.
 
-### http.createServer([requestListener])
+### http.createServer([options][, requestListener])
+* `options` {Object}
+  * `IncomingMessage` {Function} Specifies the `IncomingMessage` constructor to be used when creating an http incoming message object.
+    Useful when extending the original {http.IncommingMessge}.
+    Default: `http.IncommingMessage`.
+  * `ServerResponse` {Function} Specifies the `ServerResponse` constructor to be used when creating the server response object.
+    Useful when extending the original {http.ServerResponse}.
+    Default: 'http.ServerResponse`.
 * `requestListener` {Function}
   * request {http.IncomingMessage}
   * response {http.ServerResponse}

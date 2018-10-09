@@ -24,6 +24,7 @@ exports.createHTTPParser = function(type) {
   parser.OnHeadersComplete = parserOnHeadersComplete;
   parser.OnBody = parserOnBody;
   parser.OnMessageComplete = parserOnMessageComplete;
+  parser._IncomingMessage = IncomingMessage;
   return parser;
 };
 
@@ -58,7 +59,7 @@ function parserOnHeadersComplete(info) {
   }
 
 
-  this.incoming = new IncomingMessage(this.socket);
+  this.incoming = new this._IncomingMessage(this.socket);
   this.incoming.url = url;
   this.incoming.httpVersion = info.http_major + '.' + info.http_minor;
 

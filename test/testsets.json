@@ -802,6 +802,12 @@
       ]
     },
     {
+      "name": "test_stream_pipe.js",
+      "required-modules": [
+        "stream"
+      ]
+    },
+    {
       "name": "test_timers_arguments.js"
     },
     {

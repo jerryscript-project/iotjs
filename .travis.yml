@@ -50,7 +50,6 @@ matrix:
     - env:
       - JOBNAME="Misc checks (e.g. style checker)"
       - OPTS="misc"
-      - RUN_DOCKER=yes
       addons:
         apt:
           packages: [valgrind, clang-format-3.9]

@@ -196,8 +196,7 @@ if __name__ == '__main__':
 
     elif test == "misc":
         ex.check_run_cmd('tools/check_signed_off.sh', ['--travis'])
-
-        exec_docker(DOCKER_IOTJS_PATH, ['tools/check_tidy.py'])
+        ex.check_run_cmd('tools/check_tidy.py')
 
     elif test == "external-modules":
         for buildtype in BUILDTYPES:

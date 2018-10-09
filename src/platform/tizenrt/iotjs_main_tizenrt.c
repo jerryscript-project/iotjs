@@ -60,12 +60,20 @@ bool jerry_port_get_time_zone(jerry_time_zone_t *tz_p) {
 } /* jerry_port_get_time_zone */
 
 /**
- * Dummy function to get the current time.
+ * Get system time
  *
- * @return 0
+ * @return milliseconds since Unix epoch
  */
 double jerry_port_get_current_time(void) {
-  return 0;
+  struct timespec ts;
+
+  /* Get the current time */
+  int ret = clock_gettime(CLOCK_REALTIME, &ts);
+  if (ret < 0) {
+    return 0.0;
+  }
+
+  return ((double)ts.tv_sec) * 1000.0 + ((double)ts.tv_nsec) / 1000000.0;
 } /* jerry_port_get_current_time */
 
 /**

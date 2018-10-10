@@ -158,7 +158,7 @@ void iotjs_run(iotjs_environment_t* env) {
   if (jerry_value_is_abort(jmain)) {
     iotjs_restart(env, jmain);
   } else if (jerry_value_is_error(jmain) &&
-              !iotjs_environment_is_exiting(env)) {
+             !iotjs_environment_is_exiting(env)) {
     jerry_value_t errval = jerry_get_value_from_error(jmain, false);
     iotjs_uncaught_exception(errval);
     jerry_release_value(errval);

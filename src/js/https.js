@@ -16,11 +16,8 @@
 var tls = require('tls');
 var net = require('net');
 var ClientRequest = require('http_client').ClientRequest;
-var HTTPParser = require('http_parser');
 var HTTPServer = require('http_server');
 var util = require('util');
-
-exports.ClientRequest = ClientRequest;
 
 exports.request = function(options, cb) {
   options.port = options.port || 443;
@@ -51,8 +48,6 @@ Server.prototype.setTimeout = function(ms, cb) {
 exports.createServer = function(options, requestListener) {
   return new Server(options, requestListener);
 };
-
-exports.METHODS = HTTPParser.methods;
 
 exports.get = function(options, cb) {
   var req = exports.request(options, cb);

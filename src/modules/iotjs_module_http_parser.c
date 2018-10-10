@@ -452,6 +452,24 @@ JS_FUNCTION(HTTPParserCons) {
   return jerry_create_undefined();
 }
 
+static void http_parser_register_methods_object(jerry_value_t target) {
+  jerry_value_t methods = jerry_create_array(26);
+
+  jerry_value_t method_name;
+  uint32_t idx = 0;
+#define V(num, name, string)                                         \
+  do {                                                               \
+    method_name = jerry_create_string((const jerry_char_t*)#string); \
+    jerry_set_property_by_index(methods, idx++, method_name);        \
+    jerry_release_value(method_name);                                \
+  } while (0);
+
+  HTTP_METHOD_MAP(V)
+#undef V
+
+  iotjs_jval_set_property_jval(target, IOTJS_MAGIC_STRING_METHODS, methods);
+  jerry_release_value(methods);
+}
 
 jerry_value_t InitHttpParser() {
   jerry_value_t http_parser = jerry_create_object();
@@ -465,14 +483,7 @@ jerry_value_t InitHttpParser() {
   iotjs_jval_set_property_number(jParserCons, IOTJS_MAGIC_STRING_RESPONSE_U,
                                  HTTP_RESPONSE);
 
-  jerry_value_t methods = jerry_create_object();
-#define V(num, name, string) \
-  iotjs_jval_set_property_string_raw(methods, #num, #string);
-  HTTP_METHOD_MAP(V)
-#undef V
-
-  iotjs_jval_set_property_jval(jParserCons, IOTJS_MAGIC_STRING_METHODS,
-                               methods);
+  http_parser_register_methods_object(jParserCons);
 
   jerry_value_t prototype = jerry_create_object();
 
@@ -485,7 +496,6 @@ jerry_value_t InitHttpParser() {
                                prototype);
 
   jerry_release_value(jParserCons);
-  jerry_release_value(methods);
   jerry_release_value(prototype);
 
   return http_parser;

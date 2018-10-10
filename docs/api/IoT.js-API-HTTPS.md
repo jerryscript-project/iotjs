@@ -15,6 +15,30 @@
 
 IoT.js provides HTTPS to support HTTPS clients enabling users to send HTTPS requests easily.
 
+### https.createServer([options][, requestListener])
+* `options` {Object} Accepts the same `options` as [tls.createServer](IoT.js-API-TLS.md#tlscreateserveroptions-secureconnectionlistener) and [http.createServer](IoT.js-API-HTTP.md#httpcreateserverrequestlistener) methods.
+* `requestListener` {Function}
+  * request {http.IncomingMessage}
+  * response {http.ServerResponse}
+* Returns: {https.Server}
+
+To create a server the certificates should be specified via the `options` object.
+
+The `requestListener` is a function which is automatically added to the `'request'` event.
+
+**Example**
+
+```js
+var options = {
+  key: fs.readFileSync('server.key'),
+  cert: fs.readFileSync('server.cert')
+};
+var server = https.createServer(options, function(request, response) {
+  ...
+});
+```
+
+
 ### https.request(options[, callback])
 * `options` {Object}
   * `host` {string} A domain name or IP address of the server to issue the request to. **Default:** 'localhost'.

@@ -53,8 +53,8 @@ var server = https.createServer(options, function(request, response) {
   * `key` {string} Optional file path to private keys for client cert in PEM format.
   * `rejectUnauthorized` {boolean} Optional Specify whether to verify the Server's certificate against CA certificates. WARNING - Making this `false` may be a security risk. **Default:** `true`
 * `callback` {Function}
-  * `response` {https.IncomingMessage}
-* Returns: {https.ClientRequest}
+  * `response` {http.IncomingMessage}
+* Returns: {http.ClientRequest}
 
 Example:
 ```javascript
@@ -87,8 +87,8 @@ Note that in the example `req.end()` was called. With `https.request()` one must
   * `key` {string} Optional file path to private keys for client cert in PEM format.
   * `rejectUnauthorized` {boolean} Optional Specify whether to verify the Server's certificate against CA certificates. WARNING - Making this `false` may be a security risk. **Default:** `true`
 * `callback` {Function}
-  * `response` {https.IncomingMessage}
-* Returns: {https.ClientRequest}
+  * `response` {http.IncomingMessage}
+* Returns: {http.ClientRequest}
 
 Same as `https.request` except that `https.get` automatically call `req.end()` at the end.
 
@@ -102,20 +102,3 @@ https.get({
 ...
 });
 ```
-
-
-### https.METHODS
-A list of HTTPS methods supported by the parser as `string` properties of an `Object`.
-
-
-## Class: https.ClientRequest
-
-This object is created internally and returned from https.request(). It represents an in-progress request whose header has already been queued.
-
-See also: [http.ClientRequest](IoT.js-API-HTTP.md#class-httpclientrequest)
-
-## Class: https.IncomingMessage
-
-This object is created internally and returned to the callback in https.request(). It represents the response sent by a server to a request.
-
-See also: [http.IncomingMessage](IoT.js-API-HTTP.md#class-httpincomingmessage)

@@ -218,9 +218,6 @@ jerry_value_t gpio_do_write_or_writesync(const jerry_value_t jfunc,
     }
   }
 
-  iotjs_periph_call_async(gpio, JS_GET_ARG_IF_EXIST(1, function), kGpioOpWrite,
-                          gpio_worker);
-
   return jerry_create_undefined();
 }
 

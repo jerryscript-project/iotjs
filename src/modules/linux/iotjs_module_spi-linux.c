@@ -18,6 +18,7 @@
 #include <sys/ioctl.h>
 
 #include "iotjs_def.h"
+#include "iotjs_context.h"
 #include "iotjs_systemio-linux.h"
 #include "modules/iotjs_module_buffer.h"
 #include "modules/iotjs_module_spi.h"
@@ -135,11 +136,10 @@ bool iotjs_spi_close(iotjs_spi_t* spi) {
   iotjs_spi_platform_data_t* platform_data = spi->platform_data;
 
   if (platform_data->device_fd >= 0) {
-    const iotjs_environment_t* env = iotjs_environment_get();
-    uv_loop_t* loop = iotjs_environment_loop(env);
     uv_fs_t fs_close_req;
 
-    int err = uv_fs_close(loop, &fs_close_req, platform_data->device_fd, NULL);
+    int err = uv_fs_close(IOTJS_CONTEXT(current_env)->loop, &fs_close_req,
+                          platform_data->device_fd, NULL);
     uv_fs_req_cleanup(&fs_close_req);
     if (err < 0) {
       DLOG("%s - close failed: %d", __func__, err);
@@ -161,11 +161,9 @@ bool iotjs_spi_open(iotjs_spi_t* spi) {
   }
 
   // Open file
-  const iotjs_environment_t* env = iotjs_environment_get();
-  uv_loop_t* loop = iotjs_environment_loop(env);
-
   uv_fs_t open_req;
-  int result = uv_fs_open(loop, &open_req, device_path, O_RDONLY, 0666, NULL);
+  int result = uv_fs_open(IOTJS_CONTEXT(current_env)->loop, &open_req,
+                          device_path, O_RDONLY, 0666, NULL);
   uv_fs_req_cleanup(&open_req);
   if (result < 0) {
     return false;

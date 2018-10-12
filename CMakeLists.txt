@@ -67,6 +67,10 @@ macro(build_lib_name LIB_VAR NAME)
       ${CMAKE_STATIC_LIBRARY_PREFIX}${NAME}${CMAKE_STATIC_LIBRARY_SUFFIX})
 endmacro()
 
+if(ENABLE_IOTJS_EXTERNAL_CONTEXT)
+  iotjs_add_compile_flags(-DIOTJS_ENABLE_EXTERNAL_CONTEXT)
+endif()
+
 if(CMAKE_C_COMPILER_ID MATCHES "MSVC")
   set(USING_MSVC 1)
   set(CONFIG_TYPE $<$<CONFIG:Debug>:Debug>$<$<CONFIG:Release>:Release>)

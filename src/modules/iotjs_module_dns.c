@@ -14,6 +14,7 @@
  */
 
 #include "iotjs_def.h"
+#include "iotjs_context.h"
 
 #include "iotjs_uv_request.h"
 
@@ -201,7 +202,7 @@ JS_FUNCTION(GetAddressInfo) {
   hints.ai_socktype = SOCK_STREAM;
   hints.ai_flags = flags;
 
-  error = uv_getaddrinfo(iotjs_environment_loop(iotjs_environment_get()),
+  error = uv_getaddrinfo(IOTJS_CONTEXT(current_env)->loop,
                          (uv_getaddrinfo_t*)req_addr, AfterGetAddrInfo,
                          iotjs_string_data(&hostname), NULL, &hints);
 

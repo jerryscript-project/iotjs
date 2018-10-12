@@ -15,6 +15,7 @@
 
 #include "iotjs_def.h"
 #include "iotjs_compatibility.h"
+#include "iotjs_context.h"
 #include "iotjs_js.h"
 #include "jerryscript-debugger.h"
 
@@ -41,9 +42,8 @@ JS_FUNCTION(Compile) {
   iotjs_string_t source = JS_GET_ARG(1, string);
 
   const char* filename = iotjs_string_data(&file);
-  const iotjs_environment_t* env = iotjs_environment_get();
 
-  if (iotjs_environment_config(env)->debugger != NULL) {
+  if (IOTJS_CONTEXT(current_env)->config.debugger != NULL) {
     jerry_debugger_stop();
   }
 
@@ -95,8 +95,7 @@ JS_FUNCTION(DebuggerGetSource) {
     }
 
     if (receive_status == JERRY_DEBUGGER_CONTEXT_RESET_RECEIVED) {
-      iotjs_environment_config(iotjs_environment_get())
-          ->debugger->context_reset = true;
+      IOTJS_CONTEXT(current_env)->config.debugger->context_reset = true;
       break;
     }
   } while (receive_status != JERRY_DEBUGGER_SOURCE_END);
@@ -171,10 +170,9 @@ JS_FUNCTION(ReadSource) {
   DJS_CHECK_ARGS(1, string);
 
   iotjs_string_t path = JS_GET_ARG(0, string);
-  const iotjs_environment_t* env = iotjs_environment_get();
   int err;
   uv_fs_t fs_req;
-  err = uv_fs_stat(iotjs_environment_loop(env), &fs_req,
+  err = uv_fs_stat(IOTJS_CONTEXT(current_env)->loop, &fs_req,
                    iotjs_string_data(&path), NULL);
   uv_fs_req_cleanup(&fs_req);
 
@@ -222,14 +220,12 @@ JS_FUNCTION(Chdir) {
 
 
 JS_FUNCTION(DoExit) {
-  iotjs_environment_t* env = iotjs_environment_get();
-
-  if (!iotjs_environment_is_exiting(env)) {
+  if (!(IOTJS_CONTEXT(current_env)->state == kExiting)) {
     DJS_CHECK_ARGS(1, number);
     int exit_code = JS_GET_ARG(0, number);
 
     iotjs_set_process_exitcode(exit_code);
-    iotjs_environment_set_state(env, kExiting);
+    iotjs_environment_set_state(kExiting);
   }
   return jerry_create_undefined();
 }
@@ -303,14 +299,11 @@ static void SetProcessIotjs(jerry_value_t process) {
 
 
 static void SetProcessArgv(jerry_value_t process) {
-  const iotjs_environment_t* env = iotjs_environment_get();
-  uint32_t argc = iotjs_environment_argc(env);
+  jerry_value_t argv = jerry_create_array(IOTJS_CONTEXT(current_env)->argc);
 
-  jerry_value_t argv = jerry_create_array(argc);
-
-  for (uint32_t i = 0; i < argc; ++i) {
-    const char* argvi = iotjs_environment_argv(env, i);
-    jerry_value_t arg = jerry_create_string((const jerry_char_t*)argvi);
+  for (uint32_t i = 0; i < IOTJS_CONTEXT(current_env)->argc; ++i) {
+    jerry_value_t arg = jerry_create_string(
+        (const jerry_char_t*)IOTJS_CONTEXT(current_env)->argv[i]);
     iotjs_jval_set_property_by_index(argv, i, arg);
     jerry_release_value(arg);
   }
@@ -383,9 +376,8 @@ jerry_value_t InitProcess() {
   // Set iotjs
   SetProcessIotjs(process);
   bool wait_source = false;
-  if (iotjs_environment_config(iotjs_environment_get())->debugger != NULL) {
-    wait_source = iotjs_environment_config(iotjs_environment_get())
-                      ->debugger->wait_source;
+  if (IOTJS_CONTEXT(current_env)->config.debugger != NULL) {
+    wait_source = IOTJS_CONTEXT(current_env)->config.debugger->wait_source;
   }
 
   if (!wait_source) {

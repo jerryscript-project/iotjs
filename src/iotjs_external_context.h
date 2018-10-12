@@ -13,28 +13,23 @@
  * limitations under the License.
  */
 
+
+#include "iotjs.h"
 #include <stdint.h>
 #include <stdio.h>
 
-#ifndef IOTJS_IOTJS_H
-#define IOTJS_IOTJS_H
+/**
+ * Get the current context of the engine. Each port should provide its own
+ * implementation of this interface.
+ *
+ * Note:
+ *      This port function is called by jerry-core when
+ *      IOTJS_ENABLE_EXTERNAL_CONTEXT is defined. Otherwise this function is not
+ *      used.
+ *
+ * @return the pointer to the engine context.
+ */
 
-#ifdef __cplusplus
-#define IOTJS_EXTERN_C extern "C"
-#else /* !__cplusplus */
-#define IOTJS_EXTERN_C extern
-#endif /* !__cplusplus */
+iotjs_context_t *iotjs_port_get_current_context(void);
 
-typedef struct iotjs_context_t iotjs_context_t;
-
-typedef void *(*iotjs_context_alloc_t)(size_t size, void *cb_data_p);
-
-IOTJS_EXTERN_C iotjs_context_t *iotjs_create_context(
-    uint32_t heap_size, iotjs_context_alloc_t alloc, void *cb_data_p);
-
-IOTJS_EXTERN_C int iotjs_entry(int argc, char **argv);
-
-IOTJS_EXTERN_C void iotjs_conf_console_out(int (*fp)(int level, const char *fmt,
-                                                     ...));
-
-#endif /* IOTJS_IOTJS_H */
+void iotjs_port_default_set_context(iotjs_context_t *context_p);

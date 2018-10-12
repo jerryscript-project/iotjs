@@ -14,6 +14,7 @@
  */
 
 #include "iotjs_def.h"
+#include "iotjs_context.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -33,11 +34,9 @@ void iotjs_uncaught_exception(jerry_value_t jexception) {
   jerry_release_value(jonuncaughtexception);
 
   if (jerry_value_is_error(jres)) {
-    iotjs_environment_t* env = iotjs_environment_get();
-
-    if (!iotjs_environment_is_exiting(env)) {
+    if (!(IOTJS_CONTEXT(current_env)->state == kExiting)) {
       iotjs_set_process_exitcode(2);
-      iotjs_environment_set_state(env, kExiting);
+      iotjs_environment_set_state(kExiting);
     }
   }
 
@@ -69,9 +68,7 @@ void iotjs_process_emit_exit(int code) {
 
 // Calls next tick callbacks registered via `process.nextTick()`.
 bool iotjs_process_next_tick() {
-  iotjs_environment_t* env = iotjs_environment_get();
-
-  if (iotjs_environment_is_exiting(env)) {
+  if (IOTJS_CONTEXT(current_env)->state == kExiting) {
     return false;
   }
 
@@ -113,8 +110,9 @@ jerry_value_t iotjs_invoke_callback_with_result(jerry_value_t jfunc,
                                                 size_t jargc) {
   IOTJS_ASSERT(jerry_value_is_function(jfunc));
 
+
   // If the environment is already exiting just return an undefined value.
-  if (iotjs_environment_is_exiting(iotjs_environment_get())) {
+  if (IOTJS_CONTEXT(current_env)->state == kExiting) {
     return jerry_create_undefined();
   }
   // Calls back the function.
@@ -146,9 +144,9 @@ int iotjs_process_exitcode() {
     exitcode = (uint8_t)iotjs_jval_as_number(num_val);
   }
 
-  uint8_t native_exitcode = iotjs_environment_get()->exitcode;
-  if (native_exitcode != exitcode && native_exitcode) {
-    exitcode = native_exitcode;
+  if (IOTJS_CONTEXT(current_env)->exitcode != exitcode &&
+      IOTJS_CONTEXT(current_env)->exitcode) {
+    exitcode = IOTJS_CONTEXT(current_env)->exitcode;
   }
   jerry_release_value(num_val);
   jerry_release_value(jexitcode);
@@ -163,7 +161,7 @@ void iotjs_set_process_exitcode(int code) {
   jerry_value_t jcode = jerry_create_number(code);
   jerry_value_t ret_val = jerry_set_property(process, jstring, jcode);
   if (jerry_value_is_error(ret_val)) {
-    iotjs_environment_get()->exitcode = 1;
+    IOTJS_CONTEXT(current_env)->exitcode = 1;
   }
 
   jerry_release_value(ret_val);

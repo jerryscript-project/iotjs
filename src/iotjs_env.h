@@ -17,6 +17,7 @@
 #define IOTJS_ENV_H
 
 #include "uv.h"
+#include <stdbool.h>
 
 typedef struct {
   bool wait_source;
@@ -59,23 +60,12 @@ typedef struct {
 } iotjs_environment_t;
 
 
-iotjs_environment_t* iotjs_environment_get();
+void iotjs_environment_initialize();
 void iotjs_environment_release();
 
 bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
                                                     uint32_t argc, char** argv);
 
-uint32_t iotjs_environment_argc(const iotjs_environment_t* env);
-const char* iotjs_environment_argv(const iotjs_environment_t* env,
-                                   uint32_t idx);
-
-uv_loop_t* iotjs_environment_loop(const iotjs_environment_t* env);
-void iotjs_environment_set_loop(iotjs_environment_t* env, uv_loop_t* loop);
-
-const Config* iotjs_environment_config(const iotjs_environment_t* env);
-const DebuggerConfig* iotjs_environment_dconfig(const iotjs_environment_t* env);
-
-void iotjs_environment_set_state(iotjs_environment_t* env, State s);
-bool iotjs_environment_is_exiting(iotjs_environment_t* env);
+void iotjs_environment_set_state(State s);
 
 #endif /* IOTJS_ENV_H */

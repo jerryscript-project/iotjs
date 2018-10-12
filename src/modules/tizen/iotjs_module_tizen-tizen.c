@@ -14,6 +14,7 @@
  */
 
 #include "iotjs_def.h"
+#include "iotjs_context.h"
 #include "modules/iotjs_module_bridge.h"
 
 #include <app_common.h>
@@ -93,9 +94,9 @@ static iotjs_error_t tizen_send_launch_request(const char* json,
 void iotjs_tizen_app_control_cb(app_control_h app_control, void* user_data) {
   DDDLOG("%s", __func__);
 
-  iotjs_environment_t* env = iotjs_environment_get();
 
-  if (env->state != kRunningMain && env->state != kRunningLoop) {
+  if (IOTJS_CONTEXT(current_env)->state != kRunningMain &&
+      IOTJS_CONTEXT(current_env)->state != kRunningLoop) {
     return;
   }
 
@@ -246,9 +247,8 @@ static void bridge_native_async_handler(uv_async_t* handle) {
 int iotjs_tizen_bridge_native(const char* fn_name, unsigned fn_name_size,
                               const char* message, unsigned message_size,
                               user_callback_t cb) {
-  iotjs_environment_t* env = iotjs_environment_get();
-
-  if (env->state != kRunningMain && env->state != kRunningLoop) {
+  if (IOTJS_CONTEXT(current_env)->state != kRunningMain &&
+      IOTJS_CONTEXT(current_env)->state != kRunningLoop) {
     return IOTJS_ERROR_RESULT_FAILED;
   }
 
@@ -265,8 +265,9 @@ int iotjs_tizen_bridge_native(const char* fn_name, unsigned fn_name_size,
                                         sizeof(IOTJS_MAGIC_STRING_TIZEN));
   handle->cb = cb;
 
-  uv_loop_t* loop = iotjs_environment_loop(env);
-  uv_async_init(loop, &handle->async, bridge_native_async_handler);
+  ;
+  uv_async_init(IOTJS_CONTEXT(current_env)->loop, &handle->async,
+                bridge_native_async_handler);
   uv_async_send(&handle->async);
 
   return IOTJS_ERROR_NONE;

@@ -14,6 +14,7 @@
  */
 
 #include "iotjs_def.h"
+#include "iotjs_context.h"
 #include "iotjs_uv_handle.h"
 
 
@@ -24,8 +25,7 @@ void iotjs_timer_object_init(jerry_value_t jtimer) {
   uv_handle_t* handle = iotjs_uv_handle_create(sizeof(uv_timer_t), jtimer,
                                                &this_module_native_info, 0);
 
-  const iotjs_environment_t* env = iotjs_environment_get();
-  uv_timer_init(iotjs_environment_loop(env), (uv_timer_t*)handle);
+  uv_timer_init(IOTJS_CONTEXT(current_env)->loop, (uv_timer_t*)handle);
 }
 
 

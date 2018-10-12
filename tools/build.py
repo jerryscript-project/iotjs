@@ -80,6 +80,9 @@ def init_options():
     iotjs_group.add_argument('--buildtype',
         choices=['debug', 'release'], default='debug',
         help='Specify the build type (default: %(default)s).')
+    iotjs_group.add_argument('--external-context',
+        choices=['ON', 'OFF'], type=str.upper, default='OFF',
+        help='Specify the build type (default: %(default)s).')
     iotjs_group.add_argument('--builddir', default=path.BUILD_ROOT,
         help='Specify the build directory (default: %(default)s)')
     iotjs_group.add_argument('--buildlib', action='store_true', default=False,
@@ -357,6 +360,13 @@ def build_iotjs(options):
     # --js-backtrace
     cmake_opt.append("-DFEATURE_JS_BACKTRACE=%s" %
                      options.js_backtrace)
+
+    # --iotjs_external_context
+    if options.external_context == 'ON':
+        cmake_opt.append("-DENABLE_IOTJS_EXTERNAL_CONTEXT=%s" %
+                         options.external_context)
+        cmake_opt.append("-DEXTRA_JERRY_CMAKE_PARAMS='%s'" %
+                         "-DFEATURE_EXTERNAL_CONTEXT=ON")
 
     # --cmake-param
     cmake_opt.extend(options.cmake_param)

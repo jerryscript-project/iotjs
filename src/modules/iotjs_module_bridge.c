@@ -14,6 +14,7 @@
  */
 #include "iotjs_def.h"
 #include "iotjs_module_bridge.h"
+#include "iotjs_context.h"
 #include <stdio.h>
 
 typedef enum {
@@ -323,11 +324,10 @@ void after_worker(uv_work_t* req, int status) {
     uv_mutex_unlock(&bridgecall->call_lock);
     iotjs_bridge_remove_call(bridgecall);
   } else {
-    uv_loop_t* loop = iotjs_environment_loop(iotjs_environment_get());
     uv_async_t* async = IOTJS_ALLOC(uv_async_t);
     bridgecall->async = async;
     async->data = (void*)bridgecall;
-    uv_async_init(loop, async, aysnc_callback);
+    uv_async_init(IOTJS_CONTEXT(current_env)->loop, async, aysnc_callback);
     uv_mutex_unlock(&bridgecall->call_lock);
   }
 }
@@ -359,14 +359,14 @@ JS_FUNCTION(MessageAsync) {
   jerry_value_t jcallback = JS_GET_ARG_IF_EXIST(3, function);
 
   if (!jerry_value_is_null(jcallback)) { // async call
-    uv_loop_t* loop = iotjs_environment_loop(iotjs_environment_get());
     iotjs_bridge_object_t* bridgeobj = iotjs_bridge_get_object(bridge_module);
     iotjs_bridge_call_t* bridgecall = IOTJS_ALLOC(iotjs_bridge_call_t);
     iotjs_bridge_call_init(bridgecall, bridge_module, jcallback, module_name,
                            module_command, command_message);
     iotjs_bridge_add_call(bridgeobj, bridgecall);
 
-    uv_queue_work(loop, &bridgecall->req, bridge_worker, after_worker);
+    uv_queue_work(IOTJS_CONTEXT(current_env)->loop, &bridgecall->req,
+                  bridge_worker, after_worker);
 
   } else { // sync call
     jerry_value_t jmsg;

@@ -17,18 +17,17 @@
 #include <uv.h>
 #include <unistd.h>
 
+#include "iotjs_context.h"
 #include "iotjs_systemio-linux.h"
 
 
 // Checks if given directory exists.
 bool iotjs_systemio_check_path(const char* path) {
-  const iotjs_environment_t* env = iotjs_environment_get();
-
   DDDLOG("%s - path: %s", __func__, path);
 
   // stat for the path.
   uv_fs_t fs_req;
-  int err = uv_fs_stat(iotjs_environment_loop(env), &fs_req, path, NULL);
+  int err = uv_fs_stat(IOTJS_CONTEXT(current_env)->loop, &fs_req, path, NULL);
   uv_fs_req_cleanup(&fs_req);
 
   // exist?
@@ -43,14 +42,12 @@ bool iotjs_systemio_check_path(const char* path) {
 
 
 bool iotjs_systemio_open_write_close(const char* path, const char* value) {
-  const iotjs_environment_t* env = iotjs_environment_get();
-  uv_loop_t* loop = iotjs_environment_loop(env);
-
   DDDLOG("%s - path %s, value: %s", __func__, path, value);
 
   // Open file
   uv_fs_t fs_req;
-  int fd = uv_fs_open(loop, &fs_req, path, O_WRONLY, 0666, NULL);
+  int fd = uv_fs_open(IOTJS_CONTEXT(current_env)->loop, &fs_req, path, O_WRONLY,
+                      0666, NULL);
   uv_fs_req_cleanup(&fs_req);
   if (fd < 0) {
     DLOG("%s - open %s failed: %d", __func__, path, fd);
@@ -60,11 +57,13 @@ bool iotjs_systemio_open_write_close(const char* path, const char* value) {
   // Write value
   // We remove const because `uv_buf_init` requires char* for only reading case.
   uv_buf_t uvbuf = uv_buf_init((char*)value, strlen(value));
-  int write_err = uv_fs_write(loop, &fs_req, fd, &uvbuf, 1, 0, NULL);
+  int write_err = uv_fs_write(IOTJS_CONTEXT(current_env)->loop, &fs_req, fd,
+                              &uvbuf, 1, 0, NULL);
   uv_fs_req_cleanup(&fs_req);
 
   // Close file
-  int close_err = uv_fs_close(loop, &fs_req, fd, NULL);
+  int close_err =
+      uv_fs_close(IOTJS_CONTEXT(current_env)->loop, &fs_req, fd, NULL);
   uv_fs_req_cleanup(&fs_req);
 
   if (write_err < 0) {
@@ -83,14 +82,12 @@ bool iotjs_systemio_open_write_close(const char* path, const char* value) {
 
 bool iotjs_systemio_open_read_close(const char* path, char* buffer,
                                     unsigned buffer_len) {
-  const iotjs_environment_t* env = iotjs_environment_get();
-  uv_loop_t* loop = iotjs_environment_loop(env);
-
   DDDLOG("%s - path %s", __func__, path);
 
   // Open file
   uv_fs_t fs_open_req;
-  int fd = uv_fs_open(loop, &fs_open_req, path, O_RDONLY, 0666, NULL);
+  int fd = uv_fs_open(IOTJS_CONTEXT(current_env)->loop, &fs_open_req, path,
+                      O_RDONLY, 0666, NULL);
   uv_fs_req_cleanup(&fs_open_req);
   if (fd < 0) {
     DLOG("%s - open %s failed: %d", __func__, path, fd);
@@ -100,7 +97,8 @@ bool iotjs_systemio_open_read_close(const char* path, char* buffer,
   // Read value
   uv_fs_t fs_write_req;
   uv_buf_t uvbuf = uv_buf_init(buffer, buffer_len);
-  int err = uv_fs_read(loop, &fs_write_req, fd, &uvbuf, 1, 0, NULL);
+  int err = uv_fs_read(IOTJS_CONTEXT(current_env)->loop, &fs_write_req, fd,
+                       &uvbuf, 1, 0, NULL);
   uv_fs_req_cleanup(&fs_write_req);
   if (err < 0) {
     DLOG("%s - read failed: %d", __func__, err);
@@ -111,7 +109,7 @@ bool iotjs_systemio_open_read_close(const char* path, char* buffer,
 
   // Close file
   uv_fs_t fs_close_req;
-  err = uv_fs_close(loop, &fs_close_req, fd, NULL);
+  err = uv_fs_close(IOTJS_CONTEXT(current_env)->loop, &fs_close_req, fd, NULL);
   uv_fs_req_cleanup(&fs_close_req);
   if (err < 0) {
     DLOG("%s - close failed: %d", __func__, err);

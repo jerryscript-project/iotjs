@@ -15,6 +15,7 @@
 
 #include "iotjs_def.h"
 
+#include "iotjs_context.h"
 #include "iotjs_module_buffer.h"
 #include "iotjs_module_tcp.h"
 #include "iotjs_uv_handle.h"
@@ -28,8 +29,7 @@ void iotjs_udp_object_init(jerry_value_t judp) {
   uv_handle_t* handle = iotjs_uv_handle_create(sizeof(uv_udp_t), judp,
                                                &this_module_native_info, 0);
 
-  const iotjs_environment_t* env = iotjs_environment_get();
-  uv_udp_init(iotjs_environment_loop(env), (uv_udp_t*)handle);
+  uv_udp_init(IOTJS_CONTEXT(current_env)->loop, (uv_udp_t*)handle);
 }
 
 

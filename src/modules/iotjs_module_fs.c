@@ -14,6 +14,7 @@
  */
 
 #include "iotjs_def.h"
+#include "iotjs_context.h"
 
 #include "iotjs_module_buffer.h"
 #include "iotjs_uv_request.h"
@@ -138,23 +139,23 @@ static inline bool IsWithinBounds(size_t off, size_t len, size_t max) {
 }
 
 
-#define FS_ASYNC(env, syscall, pcallback, ...)                                \
-  uv_fs_t* fs_req =                                                           \
-      (uv_fs_t*)iotjs_uv_request_create(sizeof(uv_fs_t), pcallback, 0);       \
-  int err = uv_fs_##syscall(iotjs_environment_loop(env), fs_req, __VA_ARGS__, \
-                            AfterAsync);                                      \
-  if (err < 0) {                                                              \
-    fs_req->result = err;                                                     \
-    AfterAsync(fs_req);                                                       \
-  }                                                                           \
+#define FS_ASYNC(env, syscall, pcallback, ...)                          \
+  uv_fs_t* fs_req =                                                     \
+      (uv_fs_t*)iotjs_uv_request_create(sizeof(uv_fs_t), pcallback, 0); \
+  int err = uv_fs_##syscall(IOTJS_CONTEXT(current_env)->loop, fs_req,   \
+                            __VA_ARGS__, AfterAsync);                   \
+  if (err < 0) {                                                        \
+    fs_req->result = err;                                               \
+    AfterAsync(fs_req);                                                 \
+  }                                                                     \
   ret_value = jerry_create_null();
 
 
-#define FS_SYNC(env, syscall, ...)                                             \
-  uv_fs_t fs_req;                                                              \
-  int err = uv_fs_##syscall(iotjs_environment_loop(env), &fs_req, __VA_ARGS__, \
-                            NULL);                                             \
-  ret_value = AfterSync(&fs_req, err, #syscall);                               \
+#define FS_SYNC(env, syscall, ...)                                     \
+  uv_fs_t fs_req;                                                      \
+  int err = uv_fs_##syscall(IOTJS_CONTEXT(current_env)->loop, &fs_req, \
+                            __VA_ARGS__, NULL);                        \
+  ret_value = AfterSync(&fs_req, err, #syscall);                       \
   uv_fs_req_cleanup(&fs_req);
 
 
@@ -163,16 +164,15 @@ JS_FUNCTION(Close) {
   DJS_CHECK_ARGS(1, number);
   DJS_CHECK_ARG_IF_EXIST(1, function);
 
-  const iotjs_environment_t* env = iotjs_environment_get();
 
   int fd = JS_GET_ARG(0, number);
   const jerry_value_t jcallback = JS_GET_ARG_IF_EXIST(1, function);
 
   jerry_value_t ret_value;
   if (!jerry_value_is_null(jcallback)) {
-    FS_ASYNC(env, close, jcallback, fd);
+    FS_ASYNC(IOTJS_CONTEXT(current_env), close, jcallback, fd);
   } else {
-    FS_SYNC(env, close, fd);
+    FS_SYNC(IOTJS_CONTEXT(current_env), close, fd);
   }
   return ret_value;
 }
@@ -182,8 +182,6 @@ JS_FUNCTION(Open) {
   DJS_CHECK_THIS();
   DJS_CHECK_ARGS(3, string, number, number);
   DJS_CHECK_ARG_IF_EXIST(3, function);
-
-  const iotjs_environment_t* env = iotjs_environment_get();
 
   iotjs_string_t path = JS_GET_ARG(0, string);
   int flags = JS_GET_ARG(1, number);
@@ -212,8 +210,6 @@ jerry_value_t fs_do_read_or_write(const jerry_value_t jfunc,
   DJS_CHECK_THIS();
   DJS_CHECK_ARGS(5, number, object, number, number, number);
   DJS_CHECK_ARG_IF_EXIST(5, function);
-
-  const iotjs_environment_t* env = iotjs_environment_get();
 
   int fd = JS_GET_ARG(0, number);
   const jerry_value_t jbuffer = JS_GET_ARG(1, object);
@@ -299,8 +295,6 @@ JS_FUNCTION(Stat) {
   DJS_CHECK_ARGS(1, string);
   DJS_CHECK_ARG_IF_EXIST(1, function);
 
-  const iotjs_environment_t* env = iotjs_environment_get();
-
   iotjs_string_t path = JS_GET_ARG(0, string);
   const jerry_value_t jcallback = JS_GET_ARG_IF_EXIST(1, function);
 
@@ -321,8 +315,6 @@ JS_FUNCTION(Fstat) {
   DJS_CHECK_ARGS(1, number);
   DJS_CHECK_ARG_IF_EXIST(1, function);
 
-  const iotjs_environment_t* env = iotjs_environment_get();
-
   int fd = JS_GET_ARG(0, number);
   const jerry_value_t jcallback = JS_GET_ARG_IF_EXIST(1, function);
 
@@ -340,8 +332,6 @@ JS_FUNCTION(MkDir) {
   DJS_CHECK_THIS();
   DJS_CHECK_ARGS(2, string, number);
   DJS_CHECK_ARG_IF_EXIST(2, function);
-
-  const iotjs_environment_t* env = iotjs_environment_get();
 
   iotjs_string_t path = JS_GET_ARG(0, string);
   int mode = JS_GET_ARG(1, number);
@@ -364,8 +354,6 @@ JS_FUNCTION(RmDir) {
   DJS_CHECK_ARGS(1, string);
   DJS_CHECK_ARG_IF_EXIST(1, function);
 
-  const iotjs_environment_t* env = iotjs_environment_get();
-
   iotjs_string_t path = JS_GET_ARG(0, string);
   const jerry_value_t jcallback = JS_GET_ARG_IF_EXIST(1, function);
 
@@ -386,8 +374,6 @@ JS_FUNCTION(Unlink) {
   DJS_CHECK_ARGS(1, string);
   DJS_CHECK_ARG_IF_EXIST(1, function);
 
-  const iotjs_environment_t* env = iotjs_environment_get();
-
   iotjs_string_t path = JS_GET_ARG(0, string);
   const jerry_value_t jcallback = JS_GET_ARG_IF_EXIST(1, function);
 
@@ -407,8 +393,6 @@ JS_FUNCTION(Rename) {
   DJS_CHECK_THIS();
   DJS_CHECK_ARGS(2, string, string);
   DJS_CHECK_ARG_IF_EXIST(2, function);
-
-  const iotjs_environment_t* env = iotjs_environment_get();
 
   iotjs_string_t oldPath = JS_GET_ARG(0, string);
   iotjs_string_t newPath = JS_GET_ARG(1, string);
@@ -434,7 +418,6 @@ JS_FUNCTION(ReadDir) {
   DJS_CHECK_ARGS(1, string);
   DJS_CHECK_ARG_IF_EXIST(1, function);
 
-  const iotjs_environment_t* env = iotjs_environment_get();
   iotjs_string_t path = JS_GET_ARG(0, string);
   const jerry_value_t jcallback = JS_GET_ARG_IF_EXIST(1, function);
 

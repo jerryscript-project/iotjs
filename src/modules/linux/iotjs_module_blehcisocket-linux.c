@@ -42,6 +42,7 @@
 #include <unistd.h>
 
 #include "iotjs_def.h"
+#include "iotjs_context.h"
 #include "modules/iotjs_module_blehcisocket.h"
 #include "modules/iotjs_module_buffer.h"
 
@@ -146,8 +147,9 @@ void iotjs_blehcisocket_initialize(iotjs_blehcisocket_t* blehcisocket) {
   blehcisocket->_socket =
       socket(AF_BLUETOOTH, SOCK_RAW | SOCK_CLOEXEC, BTPROTO_HCI);
 
-  uv_loop_t* loop = iotjs_environment_loop(iotjs_environment_get());
-  uv_poll_init(loop, &(blehcisocket->_pollHandle), blehcisocket->_socket);
+
+  uv_poll_init(IOTJS_CONTEXT(current_env)->loop, &(blehcisocket->_pollHandle),
+               blehcisocket->_socket);
 
   blehcisocket->_pollHandle.data = blehcisocket;
 }

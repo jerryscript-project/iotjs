@@ -16,6 +16,7 @@
 
 #include "iotjs_def.h"
 #include "iotjs_env.h"
+#include "iotjs_context.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -41,48 +42,37 @@ typedef struct {
 #define CLI_DEFAULT_HELP_STRING \
   "Usage: iotjs [options] {FILE | FILE.js} [arguments]\n"
 
-static iotjs_environment_t current_env;
-static bool initialized = false;
-
-static void initialize(iotjs_environment_t* env);
 
 /**
- * Get the singleton instance of iotjs_environment_t.
+ * Initialize the singleton instance of iotjs_environment_t.
  */
-iotjs_environment_t* iotjs_environment_get() {
-  if (!initialized) {
-    initialize(&current_env);
-    initialized = true;
+void iotjs_environment_initialize() {
+  if (!IOTJS_CONTEXT(initialized)) {
+    IOTJS_CONTEXT(current_env) = IOTJS_ALLOC(iotjs_environment_t);
+
+    IOTJS_CONTEXT(current_env)->argc = 0;
+    IOTJS_CONTEXT(current_env)->argv = NULL;
+    IOTJS_CONTEXT(current_env)->loop = NULL;
+    IOTJS_CONTEXT(current_env)->state = kInitializing;
+    IOTJS_CONTEXT(current_env)->config.memstat = false;
+    IOTJS_CONTEXT(current_env)->config.show_opcode = false;
+    IOTJS_CONTEXT(current_env)->config.debugger = NULL;
+    IOTJS_CONTEXT(current_env)->exitcode = 0;
+
+    IOTJS_CONTEXT(initialized) = true;
   }
-  return &current_env;
 }
-
-
 /**
  * Release the singleton instance of iotjs_environment_t, and debugger config.
  */
 void iotjs_environment_release() {
-  if (!initialized)
+  if (!IOTJS_CONTEXT(initialized))
     return;
 
-  iotjs_environment_t* env = iotjs_environment_get();
-  IOTJS_RELEASE(env->config.debugger);
-  IOTJS_RELEASE(env->argv);
-  initialized = false;
+  IOTJS_RELEASE(IOTJS_CONTEXT(current_env)->config.debugger);
+  IOTJS_RELEASE(IOTJS_CONTEXT(current_env)->argv);
+  IOTJS_CONTEXT(initialized) = false;
 }
-
-
-static void initialize(iotjs_environment_t* env) {
-  env->argc = 0;
-  env->argv = NULL;
-  env->loop = NULL;
-  env->state = kInitializing;
-  env->config.memstat = false;
-  env->config.show_opcode = false;
-  env->config.debugger = NULL;
-  env->exitcode = 0;
-}
-
 
 /**
  * Parse command line arguments
@@ -163,26 +153,28 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
         return false;
       } break;
       case OPT_MEM_STATS: {
-        env->config.memstat = true;
+        IOTJS_CONTEXT(current_env)->config.memstat = true;
       } break;
       case OPT_SHOW_OP: {
-        env->config.show_opcode = true;
+        IOTJS_CONTEXT(current_env)->config.show_opcode = true;
       } break;
       case OPT_DEBUGGER_WAIT_SOURCE:
       case OPT_DEBUG_SERVER: {
-        if (!env->config.debugger) {
-          env->config.debugger =
+        if (!IOTJS_CONTEXT(current_env)->config.debugger) {
+          IOTJS_CONTEXT(current_env)->config.debugger =
               (DebuggerConfig*)iotjs_buffer_allocate(sizeof(DebuggerConfig));
         }
-        env->config.debugger->port = 5001;
-        env->config.debugger->context_reset = false;
-        env->config.debugger->wait_source =
+        IOTJS_CONTEXT(current_env)->config.debugger->port = 5001;
+        IOTJS_CONTEXT(current_env)->config.debugger->context_reset = false;
+        IOTJS_CONTEXT(current_env)->config.debugger->wait_source =
             cur_opt->id == OPT_DEBUGGER_WAIT_SOURCE;
+
       } break;
       case OPT_DEBUG_PORT: {
-        if (env->config.debugger) {
+        if (IOTJS_CONTEXT(current_env)->config.debugger) {
           char* pos = NULL;
-          env->config.debugger->port = (uint16_t)strtoul(argv[i + 1], &pos, 10);
+          IOTJS_CONTEXT(current_env)->config.debugger->port =
+              (uint16_t)strtoul(argv[i + 1], &pos, 10);
         }
       } break;
       default:
@@ -195,7 +187,8 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
 
   // If IoT.js is waiting for source from the debugger client,
   // Further processing over command line argument is not needed.
-  if (env->config.debugger && env->config.debugger->wait_source)
+  if (IOTJS_CONTEXT(current_env)->config.debugger &&
+      IOTJS_CONTEXT(current_env)->config.debugger->wait_source)
     return true;
 
   // There must be at least one argument after processing the IoT.js args,
@@ -205,67 +198,39 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
   }
 
   // Remaining arguments are for application.
-  env->argc = 2;
-  size_t buffer_size = ((size_t)(env->argc + argc - i)) * sizeof(char*);
-  env->argv = (char**)iotjs_buffer_allocate(buffer_size);
-  env->argv[0] = argv[0];
-  env->argv[1] = argv[i++];
+  IOTJS_CONTEXT(current_env)->argc = 2;
+  size_t buffer_size =
+      ((size_t)(IOTJS_CONTEXT(current_env)->argc + argc - i)) * sizeof(char*);
+  IOTJS_CONTEXT(current_env)->argv = (char**)iotjs_buffer_allocate(buffer_size);
+  IOTJS_CONTEXT(current_env)->argv[0] = argv[0];
+  IOTJS_CONTEXT(current_env)->argv[1] = argv[i++];
 
   // Clonning for argv is not required.
   // 1) We will only read
   // 2) Standard C guarantees that strings pointed by the argv array shall
   //    retain between program startup and program termination
   while (i < argc)
-    env->argv[env->argc++] = argv[i++];
+    IOTJS_CONTEXT(current_env)->argv[IOTJS_CONTEXT(current_env)->argc++] =
+        argv[i++];
 
   return true;
 }
 
-uint32_t iotjs_environment_argc(const iotjs_environment_t* env) {
-  return env->argc;
-}
-
-
-const char* iotjs_environment_argv(const iotjs_environment_t* env,
-                                   uint32_t idx) {
-  return env->argv[idx];
-}
-
-
-uv_loop_t* iotjs_environment_loop(const iotjs_environment_t* env) {
-  return env->loop;
-}
-
-
-void iotjs_environment_set_loop(iotjs_environment_t* env, uv_loop_t* loop) {
-  env->loop = loop;
-}
-
-
-const Config* iotjs_environment_config(const iotjs_environment_t* env) {
-  return &env->config;
-}
-
-
-void iotjs_environment_set_state(iotjs_environment_t* env, State s) {
+void iotjs_environment_set_state(State s) {
   switch (s) {
     case kInitializing:
       break;
     case kRunningMain:
-      IOTJS_ASSERT(env->state == kInitializing);
+      IOTJS_ASSERT(IOTJS_CONTEXT(current_env)->state == kInitializing);
       break;
     case kRunningLoop:
-      IOTJS_ASSERT(env->state == kRunningMain);
+      IOTJS_ASSERT(IOTJS_CONTEXT(current_env)->state == kRunningMain);
       break;
     case kExiting:
-      IOTJS_ASSERT(env->state < kExiting);
+      IOTJS_ASSERT(IOTJS_CONTEXT(current_env)->state < kExiting);
       break;
     default:
       IOTJS_ASSERT(!"Should not reach here.");
   }
-  env->state = s;
-}
-
-bool iotjs_environment_is_exiting(iotjs_environment_t* env) {
-  return env->state == kExiting;
+  IOTJS_CONTEXT(current_env)->state = s;
 }

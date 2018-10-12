@@ -16,6 +16,7 @@
 #include <unistd.h>
 
 #include "iotjs_def.h"
+#include "iotjs_context.h"
 #include "iotjs_module_buffer.h"
 #include "iotjs_module_uart.h"
 #include "iotjs_uv_handle.h"
@@ -92,8 +93,8 @@ static void iotjs_uart_read_cb(uv_poll_t* req, int status, int events) {
 void iotjs_uart_register_read_cb(uv_poll_t* uart_poll_handle) {
   iotjs_uart_t* uart =
       (iotjs_uart_t*)IOTJS_UV_HANDLE_EXTRA_DATA(uart_poll_handle);
-  uv_loop_t* loop = iotjs_environment_loop(iotjs_environment_get());
-  uv_poll_init(loop, uart_poll_handle, uart->device_fd);
+  uv_poll_init(IOTJS_CONTEXT(current_env)->loop, uart_poll_handle,
+               uart->device_fd);
   uv_poll_start(uart_poll_handle, UV_READABLE, iotjs_uart_read_cb);
 }
 

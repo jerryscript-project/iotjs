@@ -14,6 +14,7 @@
  */
 
 #include "iotjs_module_periph_common.h"
+#include "iotjs_context.h"
 #include "iotjs_module_adc.h"
 #include "iotjs_module_gpio.h"
 #include "iotjs_module_i2c.h"
@@ -194,8 +195,6 @@ static void after_worker(uv_work_t* work_req, int status) {
 
 void iotjs_periph_call_async(void* data, jerry_value_t jcallback, uint8_t op,
                              uv_work_cb worker) {
-  uv_loop_t* loop = iotjs_environment_loop(iotjs_environment_get());
-
   uv_req_t* work_req = iotjs_uv_request_create(sizeof(uv_work_t), jcallback,
                                                sizeof(iotjs_periph_data_t));
   iotjs_periph_data_t* worker_data =
@@ -203,5 +202,6 @@ void iotjs_periph_call_async(void* data, jerry_value_t jcallback, uint8_t op,
   worker_data->op = op;
   worker_data->data = data;
 
-  uv_queue_work(loop, (uv_work_t*)work_req, worker, after_worker);
+  uv_queue_work(IOTJS_CONTEXT(current_env)->loop, (uv_work_t*)work_req, worker,
+                after_worker);
 }

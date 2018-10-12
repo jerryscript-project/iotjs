@@ -323,7 +323,7 @@ iotjs_module_ro_data_t iotjs_module_ro_data[${IOTJS_MODULE_COUNT}] = {
 ${IOTJS_MODULE_ENTRIES}
 };
 
-iotjs_module_rw_data_t iotjs_module_rw_data[${IOTJS_MODULE_COUNT}] = {
+__thread iotjs_module_rw_data_t iotjs_module_rw_data[${IOTJS_MODULE_COUNT}] = {
 ${IOTJS_MODULE_OBJECTS}
 };
 ")
@@ -456,6 +456,7 @@ message(STATUS "CMAKE_C_FLAGS            ${CMAKE_C_FLAGS}")
 message(STATUS "CMAKE_TOOLCHAIN_FILE     ${CMAKE_TOOLCHAIN_FILE}")
 message(STATUS "ENABLE_LTO               ${ENABLE_LTO}")
 message(STATUS "ENABLE_SNAPSHOT          ${ENABLE_SNAPSHOT}")
+message(STATUS "ENABLE_EXTERNAL_CONTEXT  ${ENABLE_IOTJS_EXTERNAL_CONTEXT}")
 message(STATUS "EXTERNAL_INCLUDE_DIR     ${EXTERNAL_INCLUDE_DIR}")
 message(STATUS "EXTERNAL_LIBC_INTERFACE  ${EXTERNAL_LIBC_INTERFACE}")
 message(STATUS "EXTERNAL_LIBS            ${EXTERNAL_LIBS}")

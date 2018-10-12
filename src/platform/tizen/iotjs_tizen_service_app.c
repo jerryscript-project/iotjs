@@ -21,11 +21,12 @@
 
 #include "iotjs_def.h"
 #include "iotjs.h"
+#include "iotjs_context.h"
 
-extern bool iotjs_initialize(iotjs_environment_t* env);
-extern void iotjs_run(iotjs_environment_t* env);
-extern void iotjs_end(iotjs_environment_t* env);
-extern void iotjs_terminate(iotjs_environment_t* env);
+extern bool iotjs_initialize();
+extern void iotjs_run();
+extern void iotjs_end();
+extern void iotjs_terminate();
 
 static char js_absolute_path[128];
 static GMainLoop* gmain_loop;
@@ -50,9 +51,7 @@ static gboolean gmain_loop_check(GSource* source) {
 
 static gboolean gmain_loop_dispatch(GSource* source, GSourceFunc callback,
                                     gpointer user_data) {
-  iotjs_environment_t* env = ((iotjs_gmain_source_t*)source)->env;
-
-  bool more = uv_run(iotjs_environment_loop(env), UV_RUN_NOWAIT);
+  bool more = uv_run(IOTJS_CONTEXT(current_env)->loop, UV_RUN_NOWAIT);
   more |= iotjs_process_next_tick();
 
   jerry_value_t ret_val = jerry_run_all_enqueued_jobs();
@@ -61,10 +60,10 @@ static gboolean gmain_loop_dispatch(GSource* source, GSourceFunc callback,
   }
 
   if (more == false) {
-    more = uv_loop_alive(iotjs_environment_loop(env));
+    more = uv_loop_alive(IOTJS_CONTEXT(current_env)->loop);
   }
 
-  if (!more || iotjs_environment_is_exiting(env)) {
+  if (!more || IOTJS_CONTEXT(current_env)->state == kExiting) {
     service_app_exit();
     return false;
   }
@@ -82,16 +81,17 @@ static void loop_method_init_cb(int argc, char** argv, void* data) {
   // Initialize debug log and environments
   iotjs_debuglog_init();
 
-  iotjs_environment_t* env = iotjs_environment_get();
 
-  if (!iotjs_environment_parse_command_line_arguments(env, (uint32_t)iotjs_argc,
+  if (!iotjs_environment_parse_command_line_arguments(IOTJS_CONTEXT(
+                                                          current_env),
+                                                      (uint32_t)iotjs_argc,
                                                       iotjs_argv)) {
     service_app_exit();
     return;
   }
   is_env_initialized = true;
 
-  if (!iotjs_initialize(env)) {
+  if (!iotjs_initialize()) {
     DLOG("iotjs_initialize failed");
     service_app_exit();
     return;
@@ -104,13 +104,12 @@ static void loop_method_init_cb(int argc, char** argv, void* data) {
 
 static void loop_method_run_cb(void* data) {
   DDDLOG("%s", __func__);
-  iotjs_environment_t* env = iotjs_environment_get();
-  iotjs_environment_set_state(env, kRunningMain);
+  iotjs_environment_set_state(kRunningMain);
 
   // Load and call iotjs.js.
-  iotjs_run(env);
+  iotjs_run();
 
-  if (iotjs_environment_is_exiting(env)) {
+  if (IOTJS_CONTEXT(current_env)->state == kExiting) {
     service_app_exit();
     return;
   }
@@ -126,27 +125,27 @@ static void loop_method_run_cb(void* data) {
   iotjs_gmain_source_t* source =
       (iotjs_gmain_source_t*)g_source_new(&source_funcs,
                                           sizeof(iotjs_gmain_source_t));
-  source->env = env;
-  uv_loop_t* uv_loop = iotjs_environment_loop(env);
+  source->env = IOTJS_CONTEXT(current_env);
+  uv_loop_t* uv_loop = IOTJS_CONTEXT(current_env)->loop;
   g_source_add_unix_fd(&source->source, uv_loop->backend_fd,
                        (GIOCondition)(G_IO_IN | G_IO_OUT | G_IO_ERR));
   g_source_attach(&source->source, g_main_context_default());
 
-  iotjs_environment_set_state(env, kRunningLoop);
+  iotjs_environment_set_state(kRunningLoop);
 
   g_main_loop_run(gmain_loop); // Blocks until loop is quit.
 
 
-  if (!iotjs_environment_is_exiting(env)) {
+  if (!(IOTJS_CONTEXT(current_env)->state == kExiting)) {
     // Emit 'exit' event.
     iotjs_process_emit_exit(iotjs_process_exitcode());
 
-    iotjs_environment_set_state(env, kExiting);
+    iotjs_environment_set_state(kExiting);
   }
 
   DDDLOG("%s: Exit IoT.js(%d).", __func__, iotjs_process_exitcode());
 
-  iotjs_end(env);
+  iotjs_end();
 }
 
 static void loop_method_exit_cb(void* data) {
@@ -160,10 +159,9 @@ static void loop_method_exit_cb(void* data) {
 
 static void loop_method_fini_cb(void) {
   DDDLOG("%s", __func__);
-  iotjs_environment_t* env = iotjs_environment_get();
 
   if (is_env_initialized) {
-    iotjs_terminate(env);
+    iotjs_terminate();
   }
 
   iotjs_environment_release();

@@ -14,6 +14,7 @@
  */
 
 #include "iotjs_def.h"
+#include "iotjs_context.h"
 
 #include "iotjs.h"
 #include "iotjs_js.h"
@@ -32,19 +33,53 @@
 #include <stdlib.h>
 #include <string.h>
 
+iotjs_context_t *iotjs_create_context(
+    uint32_t heap_size,          /**< the size of heap */
+    iotjs_context_alloc_t alloc, /**< the alloc function */
+    void *cb_data_p)             /**< the cb_data for alloc function */
+{
+  size_t total_size = sizeof(iotjs_context_t) + (1u << 3);
 
-static bool jerry_initialize(iotjs_environment_t* env) {
+
+  heap_size = IOTJS_ALIGNUP(heap_size, (1u << 3));
+
+  /* Minimum heap size is 1Kbyte. */
+  if (heap_size < 1024) {
+    return NULL;
+  }
+
+  total_size += heap_size;
+
+  total_size = IOTJS_ALIGNUP(total_size, (1u << 3));
+
+  iotjs_context_t *context_p = (iotjs_context_t *)alloc(total_size, cb_data_p);
+
+  if (context_p == NULL) {
+    return NULL;
+  }
+
+  memset(context_p, 0, total_size);
+
+  uintptr_t context_ptr = ((uintptr_t)context_p) + sizeof(iotjs_context_t);
+  context_ptr = IOTJS_ALIGNUP(context_ptr, (uintptr_t)(1u << 3));
+
+  return context_p;
+
+} /* iotjs_create_context */
+
+
+static bool jerry_initialize() {
   // Set jerry run flags.
   jerry_init_flag_t jerry_flags = JERRY_INIT_EMPTY;
 
-  if (iotjs_environment_config(env)->memstat) {
+  if (IOTJS_CONTEXT(current_env)->config.memstat) {
     jerry_flags |= JERRY_INIT_MEM_STATS;
 #if !defined(__NUTTX__) && !defined(__TIZENRT__)
     jerry_port_default_set_log_level(JERRY_LOG_LEVEL_DEBUG);
 #endif
   }
 
-  if (iotjs_environment_config(env)->show_opcode) {
+  if (IOTJS_CONTEXT(current_env)->config.show_opcode) {
     jerry_flags |= JERRY_INIT_SHOW_OPCODES;
 #if !defined(__NUTTX__) && !defined(__TIZENRT__)
     jerry_port_default_set_log_level(JERRY_LOG_LEVEL_DEBUG);
@@ -53,8 +88,8 @@ static bool jerry_initialize(iotjs_environment_t* env) {
   // Initialize jerry.
   jerry_init(jerry_flags);
 
-  if (iotjs_environment_config(env)->debugger != NULL) {
-    uint16_t port = iotjs_environment_config(env)->debugger->port;
+  if (IOTJS_CONTEXT(current_env)->config.debugger != NULL) {
+    uint16_t port = IOTJS_CONTEXT(current_env)->config.debugger->port;
     jerryx_debugger_after_connect(jerryx_debugger_tcp_create(port) &&
                                   jerryx_debugger_ws_create());
 
@@ -70,11 +105,12 @@ static bool jerry_initialize(iotjs_environment_t* env) {
   iotjs_register_jerry_magic_string();
 
   // Register VM execution stop callback.
-  jerry_set_vm_exec_stop_callback(vm_exec_stop_callback, &env->state, 2);
+  jerry_set_vm_exec_stop_callback(vm_exec_stop_callback,
+                                  &IOTJS_CONTEXT(current_env)->state, 2);
 
   // Do parse and run to generate initial javascript environment.
   jerry_value_t parsed_code =
-      jerry_parse(NULL, 0, (jerry_char_t*)"", 0, JERRY_PARSE_NO_OPTS);
+      jerry_parse(NULL, 0, (jerry_char_t *)"", 0, JERRY_PARSE_NO_OPTS);
   if (jerry_value_is_error(parsed_code)) {
     DLOG("jerry_parse() failed");
     jerry_release_value(parsed_code);
@@ -95,9 +131,9 @@ static bool jerry_initialize(iotjs_environment_t* env) {
 }
 
 
-bool iotjs_initialize(iotjs_environment_t* env) {
+bool iotjs_initialize() {
   // Initialize JerryScript
-  if (!jerry_initialize(env)) {
+  if (!jerry_initialize()) {
     DLOG("iotjs_jerry_init failed");
     return false;
   }
@@ -107,11 +143,10 @@ bool iotjs_initialize(iotjs_environment_t* env) {
     DLOG("iotjs uvloop init failed");
     return false;
   }
-  iotjs_environment_set_loop(env, uv_default_loop());
-
+  IOTJS_CONTEXT(current_env)->loop = uv_default_loop();
   // Bind environment to global object.
   const jerry_value_t global = jerry_get_global_object();
-  jerry_set_object_native_pointer(global, env, NULL);
+  jerry_set_object_native_pointer(global, IOTJS_CONTEXT(current_env), NULL);
 
   // Initialize builtin process module.
   const jerry_value_t process = iotjs_module_get("process");
@@ -119,11 +154,10 @@ bool iotjs_initialize(iotjs_environment_t* env) {
 
   // Release the global object
   jerry_release_value(global);
-
   return true;
 }
 
-void iotjs_restart(iotjs_environment_t* env, jerry_value_t jmain) {
+void iotjs_restart(jerry_value_t jmain) {
   jerry_value_t abort_value = jerry_get_value_from_error(jmain, false);
   if (jerry_value_is_string(abort_value)) {
     /* TODO: When there is an api function to check for reset,
@@ -135,30 +169,30 @@ void iotjs_restart(iotjs_environment_t* env, jerry_value_t jmain) {
     if (str_size == sizeof(restart_str) - 1) {
       jerry_char_t str_buf[5];
       jerry_string_to_char_buffer(abort_value, str_buf, str_size);
-      if (memcmp(restart_str, (char*)(str_buf), str_size) == 0) {
-        iotjs_environment_config(env)->debugger->context_reset = true;
+      if (memcmp(restart_str, (char *)(str_buf), str_size) == 0) {
+        IOTJS_CONTEXT(current_env)->config.debugger->context_reset = true;
       }
     }
   }
   jerry_release_value(abort_value);
 }
 
-void iotjs_run(iotjs_environment_t* env) {
+void iotjs_run() {
 // Evaluating 'iotjs.js' returns a function.
 #ifndef ENABLE_SNAPSHOT
   jerry_value_t jmain = iotjs_jhelper_eval("iotjs.js", strlen("iotjs.js"),
                                            iotjs_s, iotjs_l, false);
 #else
   jerry_value_t jmain =
-      jerry_exec_snapshot((const uint32_t*)iotjs_js_modules_s,
+      jerry_exec_snapshot((const uint32_t *)iotjs_js_modules_s,
                           iotjs_js_modules_l, module_iotjs_idx,
                           JERRY_SNAPSHOT_EXEC_ALLOW_STATIC);
 #endif
 
   if (jerry_value_is_abort(jmain)) {
-    iotjs_restart(env, jmain);
+    iotjs_restart(jmain);
   } else if (jerry_value_is_error(jmain) &&
-             !iotjs_environment_is_exiting(env)) {
+             !(IOTJS_CONTEXT(current_env)->state == kExiting)) {
     jerry_value_t errval = jerry_get_value_from_error(jmain, false);
     iotjs_uncaught_exception(errval);
     jerry_release_value(errval);
@@ -168,20 +202,19 @@ void iotjs_run(iotjs_environment_t* env) {
 }
 
 
-static int iotjs_start(iotjs_environment_t* env) {
-  iotjs_environment_set_state(env, kRunningMain);
-
+static int iotjs_start() {
+  iotjs_environment_set_state(kRunningMain);
   // Load and call iotjs.js.
-  iotjs_run(env);
+  iotjs_run();
 
   int exit_code = 0;
-  if (!iotjs_environment_is_exiting(env)) {
+  if (!(IOTJS_CONTEXT(current_env)->state == kExiting)) {
     // Run event loop.
-    iotjs_environment_set_state(env, kRunningLoop);
+    iotjs_environment_set_state(kRunningLoop);
 
     bool more;
     do {
-      more = uv_run(iotjs_environment_loop(env), UV_RUN_ONCE);
+      more = uv_run(IOTJS_CONTEXT(current_env)->loop, UV_RUN_ONCE);
       more |= iotjs_process_next_tick();
 
       jerry_value_t ret_val = jerry_run_all_enqueued_jobs();
@@ -190,17 +223,17 @@ static int iotjs_start(iotjs_environment_t* env) {
       }
 
       if (more == false) {
-        more = uv_loop_alive(iotjs_environment_loop(env));
+        more = uv_loop_alive(IOTJS_CONTEXT(current_env)->loop);
       }
-    } while (more && !iotjs_environment_is_exiting(env));
+    } while (more && !(IOTJS_CONTEXT(current_env)->state == kExiting));
 
     exit_code = iotjs_process_exitcode();
 
-    if (!iotjs_environment_is_exiting(env)) {
+    if (!(IOTJS_CONTEXT(current_env)->state == kExiting)) {
       // Emit 'exit' event.
       iotjs_process_emit_exit(exit_code);
 
-      iotjs_environment_set_state(env, kExiting);
+      iotjs_environment_set_state(kExiting);
     }
   }
 
@@ -210,18 +243,18 @@ static int iotjs_start(iotjs_environment_t* env) {
 }
 
 
-void iotjs_end(iotjs_environment_t* env) {
-  uv_loop_t* loop = iotjs_environment_loop(env);
+void iotjs_end() {
   // Close uv loop.
-  uv_walk(loop, (uv_walk_cb)iotjs_uv_handle_close, NULL);
-  uv_run(loop, UV_RUN_DEFAULT);
+  uv_walk(IOTJS_CONTEXT(current_env)->loop, (uv_walk_cb)iotjs_uv_handle_close,
+          NULL);
+  uv_run(IOTJS_CONTEXT(current_env)->loop, UV_RUN_DEFAULT);
 
-  int res = uv_loop_close(loop);
+  int res = uv_loop_close(IOTJS_CONTEXT(current_env)->loop);
   IOTJS_ASSERT(res == 0);
 }
 
 
-void iotjs_terminate(iotjs_environment_t* env) {
+void iotjs_terminate() {
   // Release builtin modules.
   iotjs_module_list_cleanup();
 
@@ -230,43 +263,62 @@ void iotjs_terminate(iotjs_environment_t* env) {
 }
 
 
-void iotjs_conf_console_out(int (*out)(int lv, const char* fmt, ...)) {
+void iotjs_conf_console_out(int (*out)(int lv, const char *fmt, ...)) {
   iotjs_set_console_out(out);
 }
+#ifdef IOTJS_ENABLE_EXTERNAL_CONTEXT
 
-int iotjs_entry(int argc, char** argv) {
+/**
+ * The alloc function passed to iotjs_create_context
+ */
+static void *context_alloc(size_t size, void *cb_data_p) {
+  (void)cb_data_p; /* unused */
+  return malloc(size);
+} /* context_alloc */
+
+#endif /* IOTJS_ENABLE_EXTERNAL_CONTEXT */
+
+int iotjs_entry(int argc, char **argv) {
   int ret_code = 0;
-
   // Initialize debug log and environments
   iotjs_debuglog_init();
   srand((unsigned)jerry_port_get_current_time());
 
-  iotjs_environment_t* env = iotjs_environment_get();
-  if (!iotjs_environment_parse_command_line_arguments(env, (uint32_t)argc,
-                                                      argv)) {
+#ifdef IOTJS_ENABLE_EXTERNAL_CONTEXT
+  iotjs_context_t *context_p =
+      iotjs_create_context(512 * 1024, context_alloc, NULL);
+  iotjs_port_default_set_context(context_p);
+
+#endif /* IOTJS_ENABLE_EXTERNAL_CONTEXT */
+  IOTJS_CONTEXT(initialized) = false;
+  iotjs_environment_initialize();
+
+  if (!iotjs_environment_parse_command_line_arguments(IOTJS_CONTEXT(
+                                                          current_env),
+                                                      (uint32_t)argc, argv)) {
     ret_code = 1;
     goto exit;
   }
 
   // Initialize IoT.js
-  if (!iotjs_initialize(env)) {
+  if (!iotjs_initialize()) {
     DLOG("iotjs_initialize failed");
     ret_code = 1;
     goto terminate;
   }
 
   // Start IoT.js
-  ret_code = iotjs_start(env);
+  ret_code = iotjs_start();
 
   // Ends IoT.js
-  iotjs_end(env);
+  iotjs_end();
 
 terminate:
-  iotjs_terminate(env);
+  iotjs_terminate();
 
 exit:
-  if (iotjs_environment_config(env)->debugger &&
-      iotjs_environment_config(env)->debugger->context_reset) {
+  if (IOTJS_CONTEXT(current_env)->config.debugger &&
+      IOTJS_CONTEXT(current_env)->config.debugger->context_reset) {
     iotjs_environment_release();
     iotjs_debuglog_release();
 
@@ -275,5 +327,8 @@ exit:
 
   iotjs_environment_release();
   iotjs_debuglog_release();
+#ifdef IOTJS_ENABLE_EXTERNAL_CONTEXT
+  IOTJS_RELEASE(context_p);
+#endif /* IOTJS_ENABLE_EXTERNAL_CONTEXT */
   return ret_code;
 }

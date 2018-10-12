@@ -22,6 +22,7 @@
 #include <stdlib.h>
 
 #include "iotjs_def.h"
+#include "iotjs_context.h"
 #include "iotjs_systemio-nuttx.h"
 #include "modules/iotjs_module_adc.h"
 #include "modules/iotjs_module_stm32f4dis.h"
@@ -67,13 +68,12 @@ static bool adc_read_data(uint32_t pin, struct adc_msg_s* msg) {
   char path[ADC_DEVICE_PATH_BUFFER_SIZE] = { 0 };
   adc_get_path(path, adc_number);
 
-  const iotjs_environment_t* env = iotjs_environment_get();
-  uv_loop_t* loop = iotjs_environment_loop(env);
   int result, close_result;
 
   // Open file
   uv_fs_t open_req;
-  result = uv_fs_open(loop, &open_req, path, O_RDONLY, 0666, NULL);
+  result = uv_fs_open(IOTJS_CONTEXT(current_env)->loop, &open_req, path,
+                      O_RDONLY, 0666, NULL);
   uv_fs_req_cleanup(&open_req);
   if (result < 0) {
     return false;
@@ -82,12 +82,14 @@ static bool adc_read_data(uint32_t pin, struct adc_msg_s* msg) {
   // Read value
   uv_fs_t read_req;
   uv_buf_t uvbuf = uv_buf_init((char*)msg, sizeof(*msg));
-  result = uv_fs_read(loop, &read_req, open_req.result, &uvbuf, 1, 0, NULL);
+  result = uv_fs_read(IOTJS_CONTEXT(current_env)->loop, &read_req,
+                      open_req.result, &uvbuf, 1, 0, NULL);
   uv_fs_req_cleanup(&read_req);
 
   // Close file
   uv_fs_t close_req;
-  close_result = uv_fs_close(loop, &close_req, open_req.result, NULL);
+  close_result = uv_fs_close(IOTJS_CONTEXT(current_env)->loop, &close_req,
+                             open_req.result, NULL);
   uv_fs_req_cleanup(&close_req);
   if (result < 0 || close_result < 0) {
     return false;

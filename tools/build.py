@@ -320,7 +320,6 @@ def build_iotjs(options):
         '-DTARGET_ARCH=%s' % options.target_arch,
         '-DTARGET_OS=%s' % options.target_os,
         '-DTARGET_BOARD=%s' % options.target_board,
-        '-DPLATFORM_DESCRIPTOR=%s' % options.target_tuple,
         '-DENABLE_LTO=%s' % get_on_off(options.jerry_lto), # --jerry-lto
         '-DENABLE_SNAPSHOT=%s' % get_on_off(not options.no_snapshot),
         '-DBUILD_LIB_ONLY=%s' % get_on_off(options.buildlib), # --buildlib

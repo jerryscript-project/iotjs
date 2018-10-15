@@ -546,6 +546,12 @@
       ]
     },
     {
+      "name": "test_net_http_methods.js",
+      "required-modules": [
+        "http"
+      ]
+    },
+    {
       "name": "test_net_http_response_twice.js",
       "required-modules": [
         "http",

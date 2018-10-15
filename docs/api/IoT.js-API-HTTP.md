@@ -82,7 +82,9 @@ http.get({
 
 
 ### http.METHODS
-A list of HTTP methods supported by the parser as `string` properties of an `Object`.
+* {string[]}
+
+A list of HTTP methods supported by the parser as a `string` array.
 
 ## Class: http.Server
 

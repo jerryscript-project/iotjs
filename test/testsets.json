@@ -780,6 +780,10 @@
     },
     {
       "name": "test_tls.js",
+      "skip": [
+        "tizenrt"
+      ],
+      "reason": "Error: SSL setup failed (no enough memory for the test)",
       "required-modules": [
         "tls",
         "fs"

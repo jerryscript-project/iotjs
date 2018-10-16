@@ -20,16 +20,10 @@ project(IOTJS C)
 set(IOTJS_VERSION_MAJOR 1)
 set(IOTJS_VERSION_MINOR 0)
 
-# Do a few default checks
-if(NOT DEFINED PLATFORM_DESCRIPTOR)
-  message(FATAL_ERROR "No PLATFORM_DESCRIPTOR specified (format: <arch>-<os>)")
-endif()
-
-string(REPLACE "-" ";" PLATFORM_ARGS ${PLATFORM_DESCRIPTOR})
 if(NOT DEFINED TARGET_OS)
-  list(GET PLATFORM_ARGS 1 TARGET_OS)
+  string(TOLOWER ${CMAKE_SYSTEM_NAME} TARGET_OS)
   message(
-    "TARGET_OS not specified, using '${TARGET_OS}' from PLATFORM_DESCRIPTOR")
+    "TARGET_OS not specified, using '${TARGET_OS}' from CMAKE_SYSTEM_NAME")
 endif()
 
 if(NOT CMAKE_BUILD_TYPE)

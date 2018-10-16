@@ -120,6 +120,13 @@ if __name__ == '__main__':
                         '--run-test=full',
                         '--profile=test/profiles/host-linux.profile'])
 
+    elif test == 'mock-linux':
+        for buildtype in BUILDTYPES:
+            build_iotjs(buildtype, [
+                        '--run-test=full',
+                        '--target-os=mock',
+                        '--profile=test/profiles/mock-linux.profile'])
+
     elif test == 'rpi2':
         for buildtype in BUILDTYPES:
             build_iotjs(buildtype, [

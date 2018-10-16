@@ -144,6 +144,7 @@ class TestRunner(object):
         self._process_pool = multiprocessing.Pool(processes=1)
         self.iotjs = fs.abspath(options.iotjs)
         self.quiet = options.quiet
+        self.platform = options.platform
         self.timeout = options.timeout
         self.valgrind = options.valgrind
         self.coverage = options.coverage
@@ -269,7 +270,7 @@ class TestRunner(object):
         skip_list = set(test.get("skip", []))
 
         # Skip by the `skip` attribute in testsets.json file.
-        for i in ["all", Platform().os(), self.stability]:
+        for i in ["all", self.platform, self.stability]:
             if i in skip_list:
                 return True
 
@@ -309,6 +310,8 @@ def get_args():
 
     parser.add_argument("iotjs", action="store",
                         help="path to the iotjs binary file")
+    parser.add_argument('--platform', default=Platform().os(),
+                        help='Specify the platform (default: %(default)s)')
     parser.add_argument("--quiet", action="store_true", default=False,
                         help="show or hide the output of the tests")
     parser.add_argument("--skip-modules", action="store", metavar='list',

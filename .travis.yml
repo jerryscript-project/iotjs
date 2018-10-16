@@ -20,6 +20,10 @@ matrix:
       - OPTS="host-linux"
       - RUN_DOCKER=yes
     - env:
+      - JOBNAME="Mock Linux Build & Correctness Tests"
+      - OPTS="mock-linux"
+      - RUN_DOCKER=yes
+    - env:
       - JOBNAME="Raspberry Pi 2 Build Test"
       - OPTS="rpi2"
       - RUN_DOCKER=yes

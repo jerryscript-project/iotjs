@@ -148,7 +148,7 @@ def init_options():
         choices=[None, 'artik10', 'stm32f4dis', 'rpi2', 'rpi3', 'artik05x'],
         default=None, help='Specify the target board (default: %(default)s).')
     iotjs_group.add_argument('--target-os',
-        choices=['linux', 'darwin', 'osx', 'nuttx', 'tizen', 'tizenrt',
+        choices=['linux', 'darwin', 'osx', 'mock', 'nuttx', 'tizen', 'tizenrt',
                  'openwrt', 'windows'],
         default=platform.os(),
         help='Specify the target OS (default: %(default)s).')
@@ -395,7 +395,7 @@ def run_checktest(options):
     iotjs = fs.join(options.build_root, 'bin', 'iotjs')
 
     cmd = fs.join(path.TOOLS_ROOT, 'testrunner.py')
-    args = [iotjs]
+    args = [iotjs, "--platform=%s" % options.target_os]
 
     if options.run_test == "quiet":
         args.append('--quiet')
@@ -441,7 +441,9 @@ if __name__ == '__main__':
             print("Skip unit tests - build target is library\n")
         elif (options.host_tuple == options.target_tuple or
               (options.host_tuple == 'x86_64-linux' and
-               options.target_tuple == 'i686-linux')):
+               options.target_tuple == 'i686-linux') or
+              (options.host_tuple == 'x86_64-linux' and
+               options.target_tuple == 'x86_64-mock')):
              run_checktest(options)
         else:
             print("Skip unit tests - target-host pair is not allowed\n")

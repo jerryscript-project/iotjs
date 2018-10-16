@@ -43,3 +43,9 @@ You can make your compiler to place the JerryScript heap in specific section by 
 
 jmem_heap_t jerry_global_heap __attribute__ ((aligned (JMEM_ALIGNMENT))) JERRY_GLOBAL_HEAP_SECTION;
 ```
+
+## Modify the default jerry-heap size
+
+By default, JerryScript uses 16 bit long (8 byte aligned) pointers, that is why the maximum addressable area (on the JerryScript heap) is 512 KB. Of course, these compressed pointers can be extended to 32 bit to cover the entire address space of a 32 bit system.
+
+You can modify the default JerryScript heap size by using the `--jerry-heaplimit` argument when building IoT.js. If that value is bigger than `512`, the JerryScript submodule is compiled with 32 bit pointer support.

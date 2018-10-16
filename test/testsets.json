@@ -582,6 +582,24 @@
       ]
     },
     {
+      "name": "test_net_http_modified_request.js",
+      "required-modules": [
+        "http"
+      ]
+    },
+    {
+      "name": "test_net_http_modified_response.js",
+      "required-modules": [
+        "http"
+      ]
+    },
+    {
+      "name": "test_net_http_modified_req_resp.js",
+      "required-modules": [
+        "http"
+      ]
+    },
+    {
       "name": "test_net_httpclient_error.js",
       "required-modules": [
         "http"
@@ -636,6 +654,14 @@
     {
       "name": "test_net_https_request_response.js",
       "timeout": 10,
+      "required-modules": [
+        "https",
+        "http",
+        "net"
+      ]
+    },
+    {
+      "name": "test_net_https_modified_req_resp.js",
       "required-modules": [
         "https",
         "http",

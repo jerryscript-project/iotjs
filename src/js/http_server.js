@@ -14,6 +14,7 @@
  */
 
 var util = require('util');
+var IncomingMessage = require('http_incoming').IncomingMessage;
 var OutgoingMessage = require('http_outgoing').OutgoingMessage;
 var common = require('http_common');
 var HTTPParser = require('http_parser').HTTPParser;
@@ -72,7 +73,7 @@ function ServerResponse(req) {
 }
 
 util.inherits(ServerResponse, OutgoingMessage);
-
+exports.ServerResponse = ServerResponse;
 
 // default status code : 200
 ServerResponse.prototype.statusCode = 200;
@@ -145,10 +146,20 @@ ServerResponse.prototype.detachSocket = function() {
 
 
 function initServer(options, requestListener) {
+  if (util.isFunction(options)) {
+    requestListener = options;
+  }
+
+  if (typeof options !== 'object') {
+    options = {};
+  }
+
   if (util.isFunction(requestListener)) {
     this.addListener('request', requestListener);
   }
 
+  this._IncomingMessage = options.IncomingMessage || IncomingMessage;
+  this._ServerResponse = options.ServerResponse || ServerResponse;
   this.httpAllowHalfOpen = false;
 
   this.on('clientError', function(err, conn) {
@@ -170,6 +181,7 @@ function connectionListener(socket) {
   parser._url = '';
 
   parser.onIncoming = parserOnIncoming;
+  parser._IncomingMessage = server._IncomingMessage;
 
   parser.socket = socket;
   parser.incoming = null;
@@ -259,7 +271,7 @@ function parserOnIncoming(req/* , shouldKeepAlive */) {
   var socket = req.socket;
   var server = socket._server;
 
-  var res = new ServerResponse(req);
+  var res = new server._ServerResponse(req);
   res.assignSocket(socket);
   res.on('prefinish', resOnFinish);
 

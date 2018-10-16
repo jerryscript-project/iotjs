@@ -15,6 +15,7 @@
 
 var net = require('net');
 var ClientRequest = require('http_client').ClientRequest;
+var IncomingMessage = require('http_incoming').IncomingMessage;
 var HTTPParser = require('http_parser').HTTPParser;
 var HTTPServer = require('http_server');
 var util = require('util');
@@ -30,15 +31,15 @@ exports.request = function(options, cb) {
   return new ClientRequest(options, cb, socket);
 };
 
-function Server(requestListener) {
+function Server(options, requestListener) {
   if (!(this instanceof Server)) {
-    return new Server(requestListener);
+    return new Server(options, requestListener);
   }
 
   net.Server.call(this, {allowHalfOpen: true},
                   HTTPServer.connectionListener);
 
-  HTTPServer.initServer.call(this, {}, requestListener);
+  HTTPServer.initServer.call(this, options, requestListener);
 }
 util.inherits(Server, net.Server);
 
@@ -51,8 +52,8 @@ Server.prototype.setTimeout = function(ms, cb) {
 
 exports.Server = Server;
 
-exports.createServer = function(requestListener) {
-  return new Server(requestListener);
+exports.createServer = function(options, requestListener) {
+  return new Server(options, requestListener);
 };
 
 
@@ -64,3 +65,6 @@ exports.get = function(options, cb) {
   req.end();
   return req;
 };
+
+exports.IncomingMessage = IncomingMessage;
+exports.ServerResponse = HTTPServer.ServerResponse;

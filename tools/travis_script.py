@@ -44,7 +44,7 @@ DOCKER_NUTTX_APPS_PATH = fs.join(DOCKER_ROOT_PATH, 'apps')
 
 DOCKER_NAME = 'iotjs_docker'
 BUILDTYPES = ['debug', 'release']
-TIZENRT_TAG = '1.1_Public_Release'
+TIZENRT_TAG = '2.0_Public_M2'
 
 # Common buildoptions for sanitizer jobs.
 BUILDOPTIONS_SANITIZER = [
@@ -90,9 +90,10 @@ def start_mosquitto_server():
 def start_node_server():
     exec_docker(DOCKER_NODE_SERVER_PATH, ['node', 'server.js'], [], True)
 
-def set_release_config_tizenrt():
+def set_config_tizenrt():
     exec_docker(DOCKER_ROOT_PATH, [
-                'cp', 'tizenrt_release_config',
+                'cp',
+                fs.join(DOCKER_IOTJS_PATH, 'config/tizenrt/artik05x/configs/defconfig'),
                 fs.join(DOCKER_TIZENRT_OS_PATH, '.config')])
 
 def build_iotjs(buildtype, args=[], env=[]):
@@ -128,6 +129,7 @@ if __name__ == '__main__':
                         '--profile=test/profiles/rpi2-linux.profile'])
 
     elif test == 'artik053':
+        exec_docker(DOCKER_TIZENRT_PATH, ['git', 'fetch', '--tags'])
         # Checkout specified tag
         exec_docker(DOCKER_TIZENRT_PATH, ['git', 'checkout', TIZENRT_TAG])
         # Set configure
@@ -135,17 +137,12 @@ if __name__ == '__main__':
                     './configure.sh', 'artik053/iotjs'])
 
         for buildtype in BUILDTYPES:
-            if buildtype == 'release':
-                set_release_config_tizenrt()
-            # FIXME: EXTRA_LIBPATHS and EXTRA_LIB can be deleted
-            # when TizenRT uses jerry-ext.
+            set_config_tizenrt()
             exec_docker(DOCKER_TIZENRT_OS_PATH, [
                         'make', 'IOTJS_ROOT_DIR=' + DOCKER_IOTJS_PATH,
                         'IOTJS_BUILD_OPTION='
-                        '--profile=test/profiles/tizenrt.profile',
-                        'EXTRA_LIBPATHS=-L' + DOCKER_IOTJS_PATH +
-                        '/build/arm-tizenrt/' + buildtype + '/lib/',
-                        'EXTRA_LIBS=-ljerry-ext'])
+                        '--profile=test/profiles/tizenrt.profile'
+                        ])
 
     elif test == 'stm32f4dis':
         # Copy the application files to apps/system/iotjs.

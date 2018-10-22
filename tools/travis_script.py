@@ -44,7 +44,7 @@ DOCKER_NUTTX_APPS_PATH = fs.join(DOCKER_ROOT_PATH, 'apps')
 
 DOCKER_NAME = 'iotjs_docker'
 BUILDTYPES = ['debug', 'release']
-TIZENRT_TAG = '1.1_Public_Release'
+TIZENRT_TAG = '2.0_Public_M2'
 
 # Common buildoptions for sanitizer jobs.
 BUILDOPTIONS_SANITIZER = [
@@ -138,6 +138,7 @@ if __name__ == '__main__':
                         '--profile=test/profiles/rpi2-linux.profile'])
 
     elif test == 'artik053':
+        exec_docker(DOCKER_TIZENRT_PATH, ['git', 'fetch', '--tags'])
         # Checkout specified tag
         exec_docker(DOCKER_TIZENRT_PATH, ['git', 'checkout', TIZENRT_TAG])
         # Set configure
@@ -151,10 +152,8 @@ if __name__ == '__main__':
             exec_docker(DOCKER_TIZENRT_OS_PATH, [
                         'make', 'IOTJS_ROOT_DIR=' + DOCKER_IOTJS_PATH,
                         'IOTJS_BUILD_OPTION='
-                        '--profile=test/profiles/tizenrt.profile',
-                        'EXTRA_LIBPATHS=-L' + DOCKER_IOTJS_PATH +
-                        '/build/arm-tizenrt/' + buildtype + '/lib/',
-                        'EXTRA_LIBS=-ljerry-ext'])
+                        '--profile=test/profiles/tizenrt.profile'
+                        ])
 
     elif test == 'stm32f4dis':
         # Copy the application files to apps/system/iotjs.

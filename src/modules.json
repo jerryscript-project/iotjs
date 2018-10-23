@@ -159,6 +159,9 @@
         "linux": {
           "native_files": ["modules/linux/iotjs_module_gpio-linux.c"]
         },
+        "mocklinux": {
+          "native_files": ["modules/mock/iotjs_module_gpio-mock.c"]
+        },
         "nuttx": {
           "native_files": ["modules/nuttx/iotjs_module_gpio-nuttx.c"]
         },

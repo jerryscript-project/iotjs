@@ -19,7 +19,11 @@ set(DEPS_TUV deps/libtuv)
 set(DEPS_TUV_SRC ${ROOT_DIR}/${DEPS_TUV})
 
 build_lib_name(LIBTUV_NAME tuv)
-string(TOLOWER ${TARGET_ARCH}-${TARGET_OS} PLATFORM_DESCRIPTOR)
+if("${TARGET_OS}" STREQUAL "MOCK")
+  string(TOLOWER ${TARGET_ARCH}-linux PLATFORM_DESCRIPTOR)
+else()
+  string(TOLOWER ${TARGET_ARCH}-${TARGET_OS} PLATFORM_DESCRIPTOR)
+endif()
 set(DEPS_TUV_TOOLCHAIN
   ${DEPS_TUV_SRC}/cmake/config/config_${PLATFORM_DESCRIPTOR}.cmake)
 message(STATUS "libtuv toolchain file: ${DEPS_TUV_TOOLCHAIN}")
@@ -52,7 +56,8 @@ set_property(DIRECTORY APPEND PROPERTY
 set(TUV_INCLUDE_DIR ${DEPS_TUV_SRC}/include)
 set(TUV_LIBS tuv)
 
-if("${TARGET_OS}" STREQUAL "LINUX")
+if("${TARGET_OS}" STREQUAL "MOCK" OR
+   "${TARGET_OS}" STREQUAL "LINUX")
   list(APPEND TUV_LIBS pthread)
 elseif("${TARGET_OS}" STREQUAL "WINDOWS")
   list(APPEND TUV_LIBS

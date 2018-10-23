@@ -354,6 +354,16 @@
       ]
     },
     {
+      "name": "test_gpio_api.js",
+      "skip": [
+        "linux", "nuttx", "tizen", "tizenrt"
+      ],
+      "reason": "need to setup test environment",
+      "required-modules": [
+        "gpio"
+      ]
+    },
+    {
       "name": "test_gpio_direction.js",
       "skip": [
         "all"
@@ -376,7 +386,7 @@
     {
       "name": "test_gpio_output.js",
       "skip": [
-        "all"
+        "linux", "nuttx", "tizen", "tizenrt"
       ],
       "reason": "need to setup test environment",
       "required-modules": [
@@ -427,6 +437,7 @@
       "name": "test_module_dynamicload.js",
       "skip": [
         "darwin",
+        "mock",
         "nuttx",
         "tizenrt",
         "windows"

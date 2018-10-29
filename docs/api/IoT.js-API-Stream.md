@@ -270,6 +270,116 @@ console.log(readable.read());
 ```
 
 
+### readable.pipe(destination[, options])
+* `destination` {Writable|Duplex}
+* `options`
+  * `end` {bool} **Default: `true`**
+* returns: {Writable|Duplex}
+
+Attaches a Writable or Duplex stream to the Readable. Automatically
+switches the Readable stream into flowing mode and pushes all of its
+data into the attached Writable.
+
+**Example**
+```js
+var stream = require('stream');
+var Readable = stream.Readable;
+var Writable = stream.Writable;
+
+var source = new Readable();
+var dest = new Writable();
+
+dest._write = function(chunk, callback, onwrite) {
+  console.log('dest received: ', chunk.toString());
+};
+dest._readyToWrite();
+
+source.pipe(dest);
+source.push('hello'); // the dest._write function will print the data
+```
+
+It is also possible to attach multiple Writable streams to a single
+Readable stream.
+The `readable.pipe()` method returns a reference to the `destination` stream,
+making it possible to set up a chain of piped streams
+(only if `destination` is Duplex).
+
+**Example**
+```js
+var stream = require('stream');
+var Readable = stream.Readable;
+var Writable = stream.Writable;
+
+var source = new Readable();
+var dest = new Duplex();
+var dest2 = new Duplex();
+
+dest._write = function(chunk, callback, onwrite) {
+  console.log('dest received: ', chunk.toString());
+};
+dest._readyToWrite();
+
+dest2._write = function(chunk, callback, onwrite) {
+  console.log('dest2 received: ', chunk.toString());
+};
+dest2._readyToWrite();
+
+source.pipe(dest).pipe(dest2);
+source.push('hello'); // dest and dest2 will receive and print the data
+```
+
+By default, the `end()` method of the `destination` stream is called when the
+Readable emits `end`. This behavior can be disabled by passing the `end`
+option as `false` to the `Readable.pipe()` method.
+
+Note: in case of a stream error, the attached streams will NOT be closed
+automatically. If a stream error occurs, each of the attached streams must
+be closed manually.
+
+
+### readable.unpipe([destination])
+* `destination` {Writable|Duplex}
+* returns: `this`
+
+Detaches a previously attached stream from the Readable.
+If the optional `destination` argument is not specified, all attached streams
+will be detached.
+If `destination` is specified but there is no pipe set up for it, then the
+method simply returns and does nothing.
+
+**Example**
+```js
+var stream = require('stream');
+var Readable = stream.Readable;
+var Writable = stream.Writable;
+
+var source = new Readable();
+var dest = new Writable();
+
+dest._write = function(chunk, callback, onwrite) {
+  console.log('dest received: ', chunk.toString());
+};
+dest._readyToWrite();
+
+source.pipe(dest);
+source.push('hello'); // the dest._write function will print the data
+source.unpipe(dest); // source.unpipe() has the same effect in this case
+source.push(world); // dest will not receive the data anymore
+```
+
+Note: if multiple streams are piped together in a chain, unpiping the first one
+from the readable will not unpipe the rest of them.
+
+**Example**
+```js
+source.pipe(dest).pipe(dest2).pipe(dest3).pipe(dest4);
+// ... some code ...
+source.unpipe(dest);
+// dest will no longer be piped to source, but dest2 will still be
+// piped to dest, etc
+```
+
+
 # Class: Stream.Writable
 
 Writable stream is an abstraction for a *destination*

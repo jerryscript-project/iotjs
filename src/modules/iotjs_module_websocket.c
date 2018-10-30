@@ -207,12 +207,12 @@ static jerry_value_t iotjs_websocket_encode_frame(uint8_t opcode, bool mask,
   if (extended_len_size) {
     if (extended_len_size == 2) {
       uint16_t len = payload_len;
-      *buff_ptr++ = *((int8_t *)&len + 1);
-      *buff_ptr++ = *((int8_t *)&len);
+      *buff_ptr++ = *((char *)&len + 1);
+      *buff_ptr++ = *((char *)&len);
     } else {
       uint64_t len = payload_len;
       for (int8_t i = sizeof(uint64_t) - 1; i >= 0; i--) {
-        *buff_ptr++ = *((int8_t *)&len + i);
+        *buff_ptr++ = *((char *)&len + i);
       }
     }
   }

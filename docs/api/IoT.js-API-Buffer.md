@@ -8,6 +8,7 @@ The following shows Buffer module APIs available for each platform.
 | buf.copy | O | O | O | O | O |
 | buf.equals | O | O | O | O | O |
 | buf.fill | O | O | O | O | O |
+| buf.from | O | O | O | O | O |
 | buf.slice | O | O | O | O | O |
 | buf.toString | O | O | O | O | O |
 | buf.write | O | O | O | O | O |
@@ -179,6 +180,84 @@ var buffer = Buffer.concat([ new Buffer('He'),
 
 // prints: Hello world
 console.log(buffer);
+```
+
+
+### Buffer.from(array)
+* `array` {Array} Array of numbers.
+* Returns: {Buffer} containing the elements from `array`
+
+Creates a new Buffer from an array of numbers. The numbers are converted to integers first and their modulo 256 remainder is used for constructing the buffer.
+
+**Example**
+
+```js
+var Buffer = require('buffer');
+
+var source = new Buffer[65, 66, 67];
+var buffer = Buffer.from(source);
+
+//prints: ABC
+console.log(buffer.toString());
+```
+
+
+### Buffer.from(string[,encoding])
+* `str` {String} Source string.
+* `encoding` {String} Encoding format.
+* Returns: {Buffer} containing the elements from `str`
+
+Creates a new buffer which contains the CESU-8 representation of the str string argument. If encoding optional argument is present its value must be hex. When this encoding is specified the str argument must be a sequence of hexadecimal digit pairs, and these pairs are converted to bytes.
+
+**Example**
+
+```js
+var Buffer = require('buffer');
+
+var buffer = Buffer.from('4142','hex');
+
+//prints: AB
+console.log(buffer.toString());
+```
+
+
+### Buffer.from(buffer)
+* `buffer` {Buffer} Source buffer.
+* Returns: {Buffer} which is the copy of `buffer`
+Creates a copy of an existing buffer. The buffer data is not shared between the two buffers.
+
+**Example**
+
+```js
+var Buffer = require('buffer');
+
+var source = new Buffer(12);
+var buffer = Buffer.from(source);
+```
+
+
+### Buffer.from(arrayBuffer[, byteOffset[, length]])
+* `arrayBuffer` {ArrayBuffer} Arraybuffer, or a buffer of a TypedArray
+* `byteOffset` {Number} Index of first byte to expose. Default: 0.
+* `length` {Number} Number of bytes to expose. Default: arrayBuffer.length - byteOffset.
+* Returns: {Buffer} containing the data of `arraybuffer` from read `offset` with `length`
+
+**Example**
+
+```js
+var source = new ArrayBuffer(12);
+var buffer = Buffer.from(source, 0, 2);
+
+//prints: 2
+console.log(buffer.length);
+```
+
+```js
+var typed_source = new Uint8Array([65,66]);
+var arr_buff = Buffer.from(typed_source1.buffer, 0, 2);
+
+//prints: AB
+console.log(buff.toString('utf-8'));
 ```
 
 

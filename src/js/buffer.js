@@ -343,6 +343,28 @@ Buffer.prototype.fill = function(value) {
   return this;
 };
 
+
+// Method: Buffer.from()
+// Buffer.from(Array)
+// Buffer.from(string,encoding)
+// Buffer.from(Buffer)
+// Buffer.from(ArrayBuffer)
+function from(value, encoding, length) {
+
+  var arrayBuffer = native.fromArrayBuffer(value, encoding, length);
+
+  if (arrayBuffer) {
+    return arrayBuffer;
+  }
+  if (Buffer.isBuffer(value) || (typeof value) === 'string'
+      || Array.isArray(value)) {
+    return new Buffer(value, encoding);
+  }
+  throw new TypeError('First argument must be' +
+  'a string, Buffer, ArrayBuffer, Array, or array-like object');
+}
+
+
 /* Register the Buffer object back to the native C
  * so the other side can get the prototype in a consistent
  * and safe manner.
@@ -351,3 +373,4 @@ native.Buffer = Buffer;
 
 module.exports = Buffer;
 module.exports.Buffer = Buffer;
+module.exports.from = from;

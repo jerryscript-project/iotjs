@@ -71,21 +71,19 @@ assert.throws(
   TypeError
 );
 
-// TODO: Fix ICE: Assertion
-// assert.throws(
-//   function() {
-//     gpio.openSync({pin: 0, direction: {}});
-//   },
-//   TypeError
-// );
+assert.throws(
+  function() {
+    gpio.openSync({pin: 0, direction: {}});
+  },
+  TypeError
+);
 
-// TODO: Fix ICE: Assertion
-// assert.throws(
-//   function() {
-//     gpio.openSync({pin: 0, direction: 'out'});
-//   },
-//   TypeError
-// );
+assert.throws(
+  function() {
+    gpio.openSync({pin: 0, direction: 'out'});
+  },
+  TypeError
+);
 
 assert.throws(
   function() {
@@ -94,43 +92,40 @@ assert.throws(
   TypeError
 );
 
-// TODO: Fix ICE: Assertion
-// assert.throws(
-//   function() {
-//     gpio.openSync({pin: 0, edge: {}});
-//   },
-//   TypeError
-// );
+assert.throws(
+  function() {
+    gpio.openSync({pin: 0, edge: {}});
+  },
+  TypeError
+);
 
-// TODO: Fix ICE: Assertion
-// assert.throws(
-//   function() {
-//     gpio.openSync({pin: 0, edge: 'rising'});
-//   },
-//   TypeError
-// );
+assert.throws(
+  function() {
+    gpio.openSync({pin: 0, edge: 'rising'});
+  },
+  TypeError
+);
 
-// TODO: Fix Assertion
-// assert.throws(
-//   function() {
-//     gpio.openSync({pin: '12'});
-//   },
-//   TypeError
-// );
+assert.throws(
+  function() {
+    gpio.openSync({pin: '12'});
+  },
+  TypeError
+);
 
-// assert.throws(
-//   function() {
-//     gpio.openSync({pin: {}});
-//   },
-//   TypeError
-// );
+assert.throws(
+  function() {
+    gpio.openSync({pin: {}});
+  },
+  TypeError
+);
 
-// assert.throws(
-//   function() {
-//     gpio.openSync({pin: -12});
-//   },
-//   TypeError
-// );
+assert.throws(
+  function() {
+    gpio.openSync({pin: -12});
+  },
+  TypeError
+);
 
 var pin = gpio.openSync({pin: 0, direction: gpio.DIRECTION.OUT});
 check_gpiopin(pin);
@@ -229,14 +224,27 @@ assert.throws(
   Error
 );
 
-// TODO: Fix callback argument passing in these cases
-// pin.write('true', function(err) {
-//   assert.assert(err, 'gpio.write did not fail as expected');
-// });
+assert.throws(
+  function() {
+    gpio.write({});
+  },
+  Error
+);
 
-// pin.write({}, function(err) {
-//   assert.assert(err, 'gpio.write did not fail as expected');
-// });
+assert.throws(
+  function() {
+    gpio.write('true');
+  },
+  Error
+);
+
+pin.write('true', function(err) {
+  assert.assert(err, 'gpio.write did not fail as expected');
+});
+
+pin.write({}, function(err) {
+  assert.assert(err, 'gpio.write did not fail as expected');
+});
 
 // ------ Test asynchronous GPIO pin opening
 

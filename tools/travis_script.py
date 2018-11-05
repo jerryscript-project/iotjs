@@ -90,9 +90,12 @@ def start_mosquitto_server():
 def start_node_server():
     exec_docker(DOCKER_NODE_SERVER_PATH, ['node', 'server.js'], [], True)
 
-def set_release_config_tizenrt():
+def set_config_tizenrt(buildtype):
     exec_docker(DOCKER_ROOT_PATH, [
-                'cp', 'tizenrt_release_config',
+                'cp',
+                fs.join(DOCKER_IOTJS_PATH,
+                        'config/tizenrt/artik05x/configs/',
+                        buildtype, 'defconfig'),
                 fs.join(DOCKER_TIZENRT_OS_PATH, '.config')])
 
 def build_iotjs(buildtype, args=[], env=[]):
@@ -142,8 +145,7 @@ if __name__ == '__main__':
                     './configure.sh', 'artik053/iotjs'])
 
         for buildtype in BUILDTYPES:
-            if buildtype == 'release':
-                set_release_config_tizenrt()
+            set_config_tizenrt(buildtype)
             # FIXME: EXTRA_LIBPATHS and EXTRA_LIB can be deleted
             # when TizenRT uses jerry-ext.
             exec_docker(DOCKER_TIZENRT_OS_PATH, [

@@ -20,7 +20,7 @@
 #include "iotjs_string_ext.h"
 
 #include "jerryscript-ext/debugger.h"
-#ifndef __NUTTX__
+#if !defined(__NUTTX__) && !defined(__TIZENRT__)
 #include "jerryscript-port-default.h"
 #endif
 #include "jerryscript-port.h"

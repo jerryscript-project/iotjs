@@ -472,6 +472,9 @@ message(STATUS "TARGET_OS                ${TARGET_OS}")
 message(STATUS "TARGET_SYSTEMROOT        ${TARGET_SYSTEMROOT}")
 
 iotjs_add_compile_flags(${IOTJS_MODULE_DEFINES})
+if(FEATURE_DEBUGGER)
+  iotjs_add_compile_flags("-DJERRY_DEBUGGER")
+endif()
 
 # Configure the libiotjs.a
 set(TARGET_STATIC_IOTJS libiotjs)

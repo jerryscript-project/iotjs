@@ -99,7 +99,7 @@ if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
 endif()
 
 # NuttX is not using the default port implementation of JerryScript
-if("${TARGET_OS}" MATCHES "NUTTX")
+if("${TARGET_OS}" MATCHES "NUTTX|TIZENRT")
   list(APPEND DEPS_LIB_JERRY_ARGS -DJERRY_PORT_DEFAULT=OFF)
 else()
   list(APPEND DEPS_LIB_JERRY_ARGS -DJERRY_PORT_DEFAULT=ON)
@@ -171,7 +171,7 @@ add_dependencies(jerry-ext libjerry)
 set_property(TARGET jerry-ext PROPERTY
   IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/lib/${JERRY_EXT_NAME})
 
-if(NOT "${TARGET_OS}" MATCHES "NUTTX")
+if(NOT "${TARGET_OS}" MATCHES "NUTTX|TIZENRT")
   build_lib_name(JERRY_PORT_NAME jerry-port)
   build_lib_name(JERRY_PORT_DEFAULT_NAME jerry-port-default)
   set_property(DIRECTORY APPEND PROPERTY

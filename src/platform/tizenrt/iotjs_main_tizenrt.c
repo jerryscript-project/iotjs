@@ -24,6 +24,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#ifdef JERRY_DEBUGGER
+#include <time.h>
+#endif /* JERRY_DEBUGGER */
 
 #include "jerryscript-port.h"
 #include "jerryscript.h"
@@ -84,6 +87,16 @@ void jerryx_port_handler_print_char(char c) { /**< the character to print */
   // printf("%c", c);
 } /* jerryx_port_handler_print_char */
 
+#ifdef JERRY_DEBUGGER
+void jerry_port_sleep(uint32_t sleep_time) {
+  nanosleep(
+      &(const struct timespec){
+          (time_t)sleep_time / 1000,
+          ((long int)sleep_time % 1000) * 1000000L /* Seconds, nanoseconds */
+      },
+      NULL);
+} /* jerry_port_sleep */
+#endif /* JERRY_DEBUGGER */
 
 int iotjs_entry(int argc, char **argv);
 int tuv_cleanup(void);

@@ -47,17 +47,14 @@ void jerry_port_log(jerry_log_level_t level, /**< log level */
 } /* jerry_port_log */
 
 /**
- * Dummy function to get the time zone.
- *
- * @return true
+ * Dummy function to get local time zone adjustment, in milliseconds,
+ * for the given timestamp.
  */
-bool jerry_port_get_time_zone(jerry_time_zone_t *tz_p) {
-  /* We live in UTC. */
-  tz_p->offset = 0;
-  tz_p->daylight_saving_time = 0;
-
-  return true;
-} /* jerry_port_get_time_zone */
+double jerry_port_get_local_time_zone_adjustment(double unix_ms, bool is_utc) {
+  (void)unix_ms;
+  (void)is_utc;
+  return 0.0;
+} /* jerry_port_get_local_time_zone_adjustment */
 
 /**
  * Get system time

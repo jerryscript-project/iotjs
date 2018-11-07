@@ -203,7 +203,7 @@ def adjust_options(options):
     if options.target_os in ['nuttx', 'tizenrt']:
         options.buildlib = True
         if not options.sysroot:
-            ex.fail('--sysroot needed for nuttx target')
+            ex.fail('--sysroot needed for %s target' % options.target_os)
 
         options.sysroot = fs.abspath(options.sysroot)
         if not fs.exists(options.sysroot):

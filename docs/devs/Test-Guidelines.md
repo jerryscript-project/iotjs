@@ -2,7 +2,7 @@
 
 Depend on the purpose of the test case (whether it's a positive or negative one), place it under `test/run_pass` or `test/run_fail` directory. The required external resources should be placed into `test/resources`.
 
-All test case files must be named in the following form `test_<module name>[_<functionallity].js` where `<module name>`
+All test case files must be named in the following form `test_<module name>[_<functionality].js` where `<module name>`
 should match one of the JS modules name in the IoT.js. If there is a test case which can not tied to a
 module (like some js features) then the `iotjs` name can be used as module name. It is important to
 correctly specify the module name as the test executor relies on that information.

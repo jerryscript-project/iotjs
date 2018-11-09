@@ -178,7 +178,7 @@ Do not modify prototypes of builtin objects
 ## Javascript Style Rules
 
 ### Naming
-Use lowerCamelCase for varible names and function names.
+Use lowerCamelCase for variable names and function names.
 
     var myFirstVariable;
     function myFirstFunction {

@@ -16,25 +16,35 @@
 
 import re
 
+from common_py import path
+from common_py.system.filesystem import FileSystem as fs
+
+EXCLUDE_DIRS = [
+    'test/napi'
+]
 
 class CheckLicenser(object):
     _license = re.compile(
-u"""((#|//|\*) Copyright .* Samsung Electronics Co., Ltd. and other contribu.*)+
-\s?\\2
-\s?\\2 Licensed under the Apache License, Version 2.0 \(the "License"\);
-\s?\\2 you may not use this file except in compliance with the License.
-\s?\\2 You may obtain a copy of the License at
-\s?\\2
-\s?\\2     http://www.apache.org/licenses/LICENSE-2.0
-\s?\\2
-\s?\\2 Unless required by applicable law or agreed to in writing, software
-\s?\\2 distributed under the License is distributed on an "AS IS" BASIS
-\s?\\2 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-\s?\\2 See the License for the specific language governing permissions and
-\s?\\2 limitations under the License.""")
+        r'((#|//|\*) Copyright .*\n'
+        r')+\s?\2\n'
+        r'\s?\2 Licensed under the Apache License, Version 2.0 \(the "License"\);\n'
+        r'\s?\2 you may not use this file except in compliance with the License.\n'
+        r'\s?\2 You may obtain a copy of the License at\n'
+        r'\s?\2\n'
+        r'\s?\2     http://www.apache.org/licenses/LICENSE-2.0\n'
+        r'\s?\2\n'
+        r'\s?\2 Unless required by applicable law or agreed to in writing, software\n'
+        r'\s?\2 distributed under the License is distributed on an "AS IS" BASIS\n'
+        r'\s?\2 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n'
+        r'\s?\2 See the License for the specific language governing permissions and\n'
+        r'\s?\2 limitations under the License.\n'
+    )
 
     @staticmethod
     def check(filename):
+        if any(fs.relpath(filename).startswith(exclude) for exclude in EXCLUDE_DIRS):
+            return True
+
         with open(filename, 'r') as f:
             contents = f.read()
             return bool(CheckLicenser._license.search(contents))

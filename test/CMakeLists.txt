@@ -15,5 +15,3 @@
 cmake_minimum_required(VERSION 2.8)
 
 set(IOTJS_INCLUDE_DIR ${IOTJS_SOURCE_DIR})
-#set(JERRY_INCLUDE_DIR
-add_subdirectory(dynamicmodule)

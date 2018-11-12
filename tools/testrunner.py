@@ -128,6 +128,7 @@ class Reporter(object):
         Reporter.message("  timeout:      %d sec" % testrunner.timeout)
         Reporter.message("  valgrind:     %s" % testrunner.valgrind)
         Reporter.message("  skip-modules: %s" % testrunner.skip_modules)
+        Reporter.message("  n-api:        %s" % testrunner.n_api)
 
     @staticmethod
     def report_final(results):
@@ -148,6 +149,7 @@ class TestRunner(object):
         self.timeout = options.timeout
         self.valgrind = options.valgrind
         self.coverage = options.coverage
+        self.n_api = options.n_api
         self.skip_modules = []
         self.results = {}
         self._msg_queue = multiprocessing.Queue(1)
@@ -163,7 +165,8 @@ class TestRunner(object):
         self.builtins = set(build_info["builtins"])
         self.features = set(build_info["features"])
         self.stability = build_info["stability"]
-
+        if options.n_api:
+            build_napi_test_module()
 
     def run(self):
         Reporter.report_configuration(self)
@@ -177,6 +180,11 @@ class TestRunner(object):
 
         with open(fs.join(path.TEST_ROOT, "testsets.json")) as testsets_file:
             testsets = json.load(testsets_file, object_pairs_hook=OrderedDict)
+
+        if not self.n_api:
+            for test in testsets["napi"]:
+                test.update({"skip":['all'], "reason":
+                             "Required `--n-api` to run N-API tests"})
 
         for testset, tests in testsets.items():
             self.run_testset(testset, tests)
@@ -305,6 +313,18 @@ class TestRunner(object):
         return False
 
 
+def build_napi_test_module():
+    node_gyp = fs.join(path.PROJECT_ROOT,
+                       'node_modules',
+                       '.bin',
+                       'node-gyp')
+
+    print('==> Build N-API test module with node-gyp\n')
+
+    project_root = fs.join(path.PROJECT_ROOT, 'test', 'napi')
+    Executor.check_run_cmd(node_gyp, ['configure', 'rebuild'], cwd=project_root)
+
+
 def get_args():
     parser = argparse.ArgumentParser()
 
@@ -322,6 +342,8 @@ def get_args():
                         help="check tests with Valgrind")
     parser.add_argument("--coverage", action="store_true", default=False,
                         help="measure JavaScript coverage")
+    parser.add_argument("--n-api", action="store_true", default=False,
+                        help="Build N-API tests")
 
     return parser.parse_args()
 

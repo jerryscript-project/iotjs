@@ -117,6 +117,9 @@ def init_options():
     iotjs_group.add_argument('--link-flag',
         action='append', default=[],
         help='Specify additional linker flags (can be used multiple times)')
+    iotjs_group.add_argument('--n-api',
+        action='store_true', default=False,
+        help='Enable to build N-API feature')
     iotjs_group.add_argument('--no-check-valgrind',
         action='store_true', default=False,
         help='Disable test execution with valgrind after build')
@@ -152,6 +155,10 @@ def init_options():
                  'openwrt', 'windows'],
         default=platform.os(),
         help='Specify the target OS (default: %(default)s).')
+    iotjs_group.add_argument('--expose-gc',
+        action='store_true', default=False,
+        help='Expose the JerryScript\'s GC call to JavaScript')
+
 
 
     jerry_group = parser.add_argument_group('Arguments of JerryScript',
@@ -316,7 +323,9 @@ def build_iotjs(options):
         '-DTARGET_OS=%s' % options.target_os,
         '-DTARGET_BOARD=%s' % options.target_board,
         '-DENABLE_LTO=%s' % get_on_off(options.jerry_lto), # --jerry-lto
+        '-DENABLE_MODULE_NAPI=%s' % get_on_off(options.n_api), # --n-api
         '-DENABLE_SNAPSHOT=%s' % get_on_off(not options.no_snapshot),
+        '-DEXPOSE_GC=%s' % get_on_off(options.expose_gc), # --exposing gc
         '-DBUILD_LIB_ONLY=%s' % get_on_off(options.buildlib), # --buildlib
         '-DCREATE_SHARED_LIB=%s' % get_on_off(options.create_shared_lib),
         # --jerry-memstat
@@ -395,6 +404,9 @@ def run_checktest(options):
     if options.run_test == "quiet":
         args.append('--quiet')
 
+    if options.n_api:
+        args.append('--n-api')
+
     fs.chdir(path.PROJECT_ROOT)
     code = ex.run_cmd(cmd, args)
     if code != 0:
@@ -414,9 +426,8 @@ if __name__ == '__main__':
     if options.clean:
         print_progress('Clear build directories')
         test_build_root = fs.join(path.TEST_ROOT,
-                                  'dynamicmodule',
-                                  'build',
-                                  options.target_os)
+                                  'napi',
+                                  'build')
         fs.rmtree(test_build_root)
         fs.rmtree(options.build_root)
 

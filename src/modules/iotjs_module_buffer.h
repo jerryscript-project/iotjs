@@ -18,8 +18,14 @@
 
 
 typedef struct {
+  void* free_hint;
+  void* free_info;
+} iotjs_bufferwrap_external_info_t;
+
+typedef struct {
   jerry_value_t jobject;
   size_t length;
+  iotjs_bufferwrap_external_info_t* external_info;
   char buffer[];
 } iotjs_bufferwrap_t;
 
@@ -30,6 +36,9 @@ size_t iotjs_base64_encode(unsigned char** out_buff, const uint8_t* data,
 iotjs_bufferwrap_t* iotjs_bufferwrap_create(const jerry_value_t jbuiltin,
                                             size_t length);
 
+void iotjs_bufferwrap_set_external_callback(iotjs_bufferwrap_t* bufferwrap,
+                                            void* free_hint, void* free_info);
+
 iotjs_bufferwrap_t* iotjs_bufferwrap_from_jbuffer(const jerry_value_t jbuffer);
 
 size_t iotjs_bufferwrap_length(iotjs_bufferwrap_t* bufferwrap);
@@ -37,6 +46,7 @@ size_t iotjs_bufferwrap_length(iotjs_bufferwrap_t* bufferwrap);
 int iotjs_bufferwrap_compare(const iotjs_bufferwrap_t* bufferwrap,
                              const iotjs_bufferwrap_t* other);
 
+char* iotjs_bufferwrap_buffer(iotjs_bufferwrap_t* bufferwrap);
 size_t iotjs_bufferwrap_copy(iotjs_bufferwrap_t* bufferwrap, const char* src,
                              size_t len);
 iotjs_bufferwrap_t* iotjs_jbuffer_get_bufferwrap_ptr(const jerry_value_t);

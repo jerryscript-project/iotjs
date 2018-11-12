@@ -18,6 +18,12 @@ matrix:
       env:
       - OPTS="mock-linux"
 
+    - name: "Linux/x86-64 Build with N-API support & Correctness Tests"
+      env:
+      - OPTS="n-api"
+      install:
+        - npm install
+
     - name: "Raspberry Pi 2 Build Test"
       env:
       - OPTS="rpi2"

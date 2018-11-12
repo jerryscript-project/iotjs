@@ -479,20 +479,6 @@
       "name": "test_module_require.js"
     },
     {
-      "name": "test_module_dynamicload.js",
-      "skip": [
-        "darwin",
-        "mock",
-        "nuttx",
-        "tizenrt",
-        "windows"
-      ],
-      "reason": "embedded, macos, and windows does not support dynamic loading",
-      "required-modules": [
-        "fs"
-      ]
-    },
-    {
       "name": "test_mqtt.js",
       "required-modules": [
         "mqtt"
@@ -1194,6 +1180,116 @@
       "name": "test-external-module2.js",
       "required-modules": [
         "mymodule2"
+      ]
+    }
+  ],
+  "napi": [
+    {
+      "name": "test_napi_arguments_return.js",
+      "required-modules": [
+        "napi"
+      ]
+    },
+    {
+      "name": "test_napi_arguments_return_this.js",
+      "required-modules": [
+        "napi"
+      ]
+    },
+    {
+      "name": "test_napi_arguments_throw.js",
+      "required-modules": [
+        "napi"
+      ]
+    },
+    {
+      "name": "test_napi_array.js",
+      "required-modules": [
+        "napi"
+      ]
+    },
+    {
+      "name": "test_napi_buffer.js",
+      "required-modules": [
+        "napi"
+      ]
+    },
+    {
+      "name": "test_napi_construct.js",
+      "required-modules": [
+        "napi"
+      ]
+    },
+    {
+      "name": "test_napi_conversions.js",
+      "required-modules": [
+        "napi"
+      ]
+    },
+    {
+      "name": "test_napi_create_error.js",
+      "required-modules": [
+        "napi"
+      ]
+    },
+    {
+      "name": "test_napi_exception.js",
+      "required-modules": [
+        "napi"
+      ]
+    },
+    {
+      "name": "test_napi_general.js",
+      "required-modules": [
+        "napi"
+      ]
+    },
+    {
+      "name": "test_napi_handle_scope.js",
+      "required-modules": [
+        "napi"
+      ]
+    },
+    {
+      "name": "test_napi_is_error.js",
+      "required-modules": [
+        "napi"
+      ]
+    },
+    {
+      "name": "test_napi_object_wrap.js",
+      "required-modules": [
+        "napi"
+      ]
+    },
+    {
+      "name": "test_napi_properties.js",
+      "required-modules": [
+        "napi"
+      ]
+    },
+    {
+      "name": "test_napi_strictequal_and_instanceof.js",
+      "required-modules": [
+        "napi"
+      ]
+    },
+    {
+      "name": "test_napi_string.js",
+      "required-modules": [
+        "napi"
+      ]
+    },
+    {
+      "name": "test_napi_throw_error.js",
+      "required-modules": [
+        "napi"
+      ]
+    },
+    {
+      "name": "test_napi_throw.js",
+      "required-modules": [
+        "napi"
       ]
     }
   ]

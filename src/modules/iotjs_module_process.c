@@ -17,8 +17,10 @@
 #include "iotjs_compatibility.h"
 #include "iotjs_js.h"
 #include "jerryscript-debugger.h"
-
 #include <stdlib.h>
+#ifndef WIN32
+#include <unistd.h>
+#endif /* !WIN32 */
 
 
 static jerry_value_t WrapEval(const char* name, size_t name_len,
@@ -211,6 +213,7 @@ JS_FUNCTION(Cwd) {
   return jerry_create_string_from_utf8((const jerry_char_t*)path);
 }
 
+
 JS_FUNCTION(Chdir) {
   DJS_CHECK_ARGS(1, string);
 
@@ -225,6 +228,15 @@ JS_FUNCTION(Chdir) {
   iotjs_string_destroy(&path);
   return jerry_create_undefined();
 }
+
+
+#ifdef EXPOSE_GC
+JS_FUNCTION(Gc) {
+  jerry_gc(JERRY_GC_SEVERITY_LOW);
+
+  return jerry_create_undefined();
+}
+#endif
 
 
 JS_FUNCTION(DoExit) {
@@ -368,6 +380,21 @@ jerry_value_t InitProcess(void) {
   iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_CWD, Cwd);
   iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_CHDIR, Chdir);
   iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_DOEXIT, DoExit);
+#ifdef EXPOSE_GC
+  iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_GC, Gc);
+#endif
+/* FIXME: Move this platform dependent code path to libtuv
+ *
+ * See the related commit in libuv:
+ *   d708df110a03332224bd9be1bbd23093d9cf9022
+ */
+#ifdef WIN32
+  iotjs_jval_set_property_jval(process, IOTJS_MAGIC_STRING_PID,
+                               jerry_create_number(GetCurrentProcessId()));
+#else  /* !WIN32 */
+  iotjs_jval_set_property_jval(process, IOTJS_MAGIC_STRING_PID,
+                               jerry_create_number(getpid()));
+#endif /* WIN32 */
   SetProcessEnv(process);
 
   // process.builtin_modules

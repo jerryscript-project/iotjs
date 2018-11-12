@@ -18,8 +18,10 @@
 #include "iotjs.h"
 #include "iotjs_js.h"
 #include "iotjs_string_ext.h"
-
 #include "jerryscript-ext/debugger.h"
+#if ENABLE_MODULE_NAPI
+#include "internal/node_api_internal.h"
+#endif
 #if !defined(__NUTTX__) && !defined(__TIZENRT__)
 #include "jerryscript-port-default.h"
 #endif
@@ -161,14 +163,32 @@ void iotjs_run(iotjs_environment_t* env) {
                           JERRY_SNAPSHOT_EXEC_ALLOW_STATIC);
 #endif
 
-#ifdef JERRY_DEBUGGER
-  if (jerry_value_is_abort(jmain)) {
-    iotjs_restart(env, jmain);
-  } else
-#endif
-      if (jerry_value_is_error(jmain) && !iotjs_environment_is_exiting(env)) {
+  if (jerry_value_is_error(jmain)) {
     jerry_value_t errval = jerry_get_value_from_error(jmain, false);
-    iotjs_uncaught_exception(errval);
+#ifdef JERRY_DEBUGGER
+    if (jerry_value_is_abort(jmain) && jerry_value_is_string(errval)) {
+      static const char restart_str[] = "r353t";
+      jerry_size_t str_size = jerry_get_string_size(errval);
+
+      if (str_size == sizeof(restart_str) - 1) {
+        jerry_char_t str_buf[5];
+        jerry_string_to_char_buffer(errval, str_buf, str_size);
+        if (memcmp(restart_str, (char*)(str_buf), str_size) == 0) {
+          iotjs_environment_config(env)->debugger->context_reset = true;
+        }
+      }
+    }
+#endif
+
+    bool throw_exception = !iotjs_environment_is_exiting(env);
+#ifdef JERRY_DEBUGGER
+    throw_exception = throw_exception &&
+                      !iotjs_environment_config(env)->debugger->context_reset;
+#endif
+    if (throw_exception) {
+      iotjs_uncaught_exception(errval);
+    }
+
     jerry_release_value(errval);
   }
 
@@ -178,7 +198,9 @@ void iotjs_run(iotjs_environment_t* env) {
 
 static int iotjs_start(iotjs_environment_t* env) {
   iotjs_environment_set_state(env, kRunningMain);
-
+#if ENABLE_MODULE_NAPI
+  iotjs_setup_napi();
+#endif
   // Load and call iotjs.js.
   iotjs_run(env);
 
@@ -234,7 +256,9 @@ void iotjs_end(iotjs_environment_t* env) {
 void iotjs_terminate(iotjs_environment_t* env) {
   // Release builtin modules.
   iotjs_module_list_cleanup();
-
+#if ENABLE_MODULE_NAPI
+  iotjs_cleanup_napi();
+#endif
   // Release JerryScript engine.
   jerry_cleanup();
 }

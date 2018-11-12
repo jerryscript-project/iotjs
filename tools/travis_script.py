@@ -43,6 +43,7 @@ DOCKER_NUTTX_TOOLS_PATH = fs.join(DOCKER_NUTTX_PATH, 'tools')
 DOCKER_NUTTX_APPS_PATH = fs.join(DOCKER_ROOT_PATH, 'apps')
 
 DOCKER_NAME = 'iotjs_docker'
+DOCKER_TAG = 'iotjs/ubuntu:0.10'
 BUILDTYPES = ['debug', 'release']
 TIZENRT_TAG = '2.0_Public_M2'
 
@@ -67,14 +68,14 @@ def start_container():
     start_node_server()
 
 def run_docker():
-    ex.check_run_cmd('docker', ['pull', 'iotjs/ubuntu:0.9'])
+    ex.check_run_cmd('docker', ['pull', DOCKER_TAG])
     ex.check_run_cmd('docker', ['run', '-dit', '--privileged',
                      '--name', DOCKER_NAME, '-v',
                      '%s:%s' % (TRAVIS_BUILD_PATH, DOCKER_IOTJS_PATH),
                      '--add-host', 'test.mosquitto.org:127.0.0.1',
                      '--add-host', 'echo.websocket.org:127.0.0.1',
                      '--add-host', 'httpbin.org:127.0.0.1',
-                     'iotjs/ubuntu:0.9'])
+                     DOCKER_TAG])
 
 def exec_docker(cwd, cmd, env=[], is_background=False):
     exec_cmd = 'cd %s && ' % cwd + ' '.join(cmd)
@@ -132,6 +133,15 @@ def job_host_linux():
         build_iotjs(buildtype, [
                     '--run-test=full',
                     '--profile=test/profiles/host-linux.profile'])
+
+@job('n-api')
+def job_n_api():
+    start_container()
+
+    for buildtype in BUILDTYPES:
+        build_iotjs(buildtype, [
+                    '--run-test=full',
+                    '--n-api'])
 
 @job('mock-linux')
 def job_mock_linux():

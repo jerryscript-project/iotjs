@@ -54,7 +54,13 @@ static jerry_value_t gpio_set_configuration(iotjs_gpio_t* gpio,
                                             jerry_value_t jconfigurable) {
   jerry_value_t jpin =
       iotjs_jval_get_property(jconfigurable, IOTJS_MAGIC_STRING_PIN);
-  gpio->pin = iotjs_jval_as_number(jpin);
+
+  double pin = -1.0;
+  if (!jerry_value_is_number(jpin) || (pin = iotjs_jval_as_number(jpin)) < 0) {
+    jerry_release_value(jpin);
+    return JS_CREATE_ERROR(TYPE, "Bad arguments gpio.pin should be a number");
+  }
+  gpio->pin = (uint32_t)pin;
   jerry_release_value(jpin);
 
   // Direction
@@ -70,6 +76,7 @@ static jerry_value_t gpio_set_configuration(iotjs_gpio_t* gpio,
       gpio->direction = __kGpioDirectionMax;
     }
     if (gpio->direction >= __kGpioDirectionMax) {
+      jerry_release_value(jdirection);
       return JS_CREATE_ERROR(
           TYPE, "Bad arguments - gpio.direction should be DIRECTION.IN or OUT");
     }
@@ -124,6 +131,7 @@ static jerry_value_t gpio_set_configuration(iotjs_gpio_t* gpio,
       gpio->edge = __kGpioEdgeMax;
     }
     if (gpio->edge >= __kGpioEdgeMax) {
+      jerry_release_value(jedge);
       return JS_CREATE_ERROR(TYPE,
                              "Bad arguments - gpio.edge should be EDGE.NONE, "
                              "RISING, FALLING or BOTH");
@@ -198,13 +206,16 @@ jerry_value_t gpio_do_write_or_writesync(const jerry_value_t jfunc,
   } else if (jerry_value_is_boolean(jargv[0])) {
     value = jerry_get_boolean_value(jargv[0]);
   } else {
-    const char* js_create_error_arg;
-    if (gpio_op == IOTJS_GPIO_WRITE) {
-      js_create_error_arg = iotjs_periph_error_str(kGpioOpWrite);
-    } else {
-      js_create_error_arg = "GPIO WriteSync Error - Wrong argument type";
+    const jerry_value_t jcallback = JS_GET_ARG_IF_EXIST(1, function);
+    if (gpio_op == IOTJS_GPIO_WRITE && !jerry_value_is_null(jcallback)) {
+      const char* error_msg = iotjs_periph_error_str(kGpioOpWrite);
+      jerry_value_t error_str = jerry_create_string((jerry_char_t*)error_msg);
+      iotjs_invoke_callback(jcallback, jthis, &error_str, 1);
+      jerry_release_value(error_str);
+      return jerry_create_undefined();
     }
-    return JS_CREATE_ERROR(COMMON, js_create_error_arg);
+
+    return JS_CREATE_ERROR(TYPE, "GPIO WriteSync Error - Wrong argument type");
   }
 
   gpio->value = value;

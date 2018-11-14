@@ -828,7 +828,28 @@
       ]
     },
     {
-      "name": "test_tls.js",
+      "name": "test_tls_1.js",
+      "required-modules": [
+        "tls",
+        "fs"
+      ]
+    },
+    {
+      "name": "test_tls_2.js",
+      "required-modules": [
+        "tls",
+        "fs"
+      ]
+    },
+    {
+      "name": "test_tls_3.js",
+      "required-modules": [
+        "tls",
+        "fs"
+      ]
+    },
+    {
+      "name": "test_tls_4.js",
       "required-modules": [
         "tls",
         "fs"

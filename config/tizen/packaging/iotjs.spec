@@ -8,7 +8,7 @@ URL: https://www.iotjs.net/
 Source:     %{name}-%{version}.tar.gz
 Source1:    %{name}.pc.in
 Source1001: %{name}.manifest
-
+ExclusiveArch: %arm %ix86 x86_64
 
 BuildRequires: python
 BuildRequires: cmake
@@ -93,6 +93,7 @@ V=1 VERBOSE=1 ./tools/build.py \
   --create-shared-lib \
   --no-init-submodule \
   --no-parallel-build \
+  %{?asan:--compile-flag=-DTIZEN_ASAN_BUILD} \
   %{external_build_options}
 # --external-lib=sdkapi \
 

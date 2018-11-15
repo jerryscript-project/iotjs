@@ -19,7 +19,7 @@ var stream = require('stream');
 
 
 function OutgoingMessage() {
-  stream.Stream.call(this);
+  stream.Writable.call(this);
 
   this.writable = true;
 
@@ -40,7 +40,7 @@ function OutgoingMessage() {
 
 }
 
-util.inherits(OutgoingMessage, stream.Stream);
+util.inherits(OutgoingMessage, stream.Writable);
 
 exports.OutgoingMessage = OutgoingMessage;
 

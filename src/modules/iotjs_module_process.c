@@ -129,11 +129,12 @@ JS_FUNCTION(CompileModule) {
   }
 
   jerry_value_t native_module_jval = iotjs_module_get(name);
+  iotjs_string_destroy(&id);
+
   if (jerry_value_is_error(native_module_jval)) {
     return native_module_jval;
   }
 
-  jerry_value_t jexports = iotjs_jval_get_property(jmodule, "exports");
   jerry_value_t jres = jerry_create_undefined();
 
   if (js_modules[i].name != NULL) {
@@ -147,6 +148,7 @@ JS_FUNCTION(CompileModule) {
 #endif
 
     if (!jerry_value_is_error(jres)) {
+      jerry_value_t jexports = iotjs_jval_get_property(jmodule, "exports");
       jerry_value_t args[] = { jexports, jrequire, jmodule,
                                native_module_jval };
 
@@ -154,6 +156,7 @@ JS_FUNCTION(CompileModule) {
       jres = jerry_call_function(jfunc, jerry_create_undefined(), args,
                                  sizeof(args) / sizeof(jerry_value_t));
       jerry_release_value(jfunc);
+      jerry_release_value(jexports);
     }
   } else if (!jerry_value_is_undefined(native_module_jval)) {
     iotjs_jval_set_property_jval(jmodule, "exports", native_module_jval);
@@ -161,8 +164,6 @@ JS_FUNCTION(CompileModule) {
     jres = iotjs_jval_create_error_without_error_flag("Unknown native module");
   }
 
-  jerry_release_value(jexports);
-  iotjs_string_destroy(&id);
   return jres;
 }
 

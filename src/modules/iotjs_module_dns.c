@@ -22,46 +22,32 @@ char* getaddrinfo_error_str(int status) {
   switch (status) {
     case UV__EAI_ADDRFAMILY:
       return "EAI_ADDRFAMILY, address family for hostname not supported";
-      break;
     case UV__EAI_AGAIN:
       return "EAI_AGAIN, temporary failure in name resolution";
-      break;
     case UV__EAI_BADFLAGS:
       return "EAI_BADFLAGS, bad flags";
-      break;
     case UV__EAI_FAIL:
       return "EAI_FAIL, Non-recoverable failure in name resolution";
-      break;
     case UV__EAI_FAMILY:
       return "EAI_FAMILY, family not supported";
-      break;
     case UV__EAI_CANCELED:
       return "EAI_CANCELED, request canceled";
-      break;
     case UV__EAI_MEMORY:
       return "EAI_MEMORY, memory allocation failure";
-      break;
     case UV__EAI_NODATA:
       return "EAI_NODATA, no address association with hostname";
-      break;
     case UV__EAI_NONAME:
       return "EAI_NONAME, name or service not known";
-      break;
     case UV__EAI_OVERFLOW:
       return "EAI_OVERFLOW, argument buffer overflow";
-      break;
     case UV__EAI_SERVICE:
       return "EAI_SERVICE, service not supported";
-      break;
     case UV__EAI_SOCKTYPE:
       return "EAI_SOCKTYPE, socktype not supported";
-      break;
     case UV__EAI_PROTOCOL:
       return "EAI_PROTOCOL, unknown error";
-      break;
     default:
       return "unknown error";
-      break;
   }
 }
 

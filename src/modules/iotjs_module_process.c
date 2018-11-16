@@ -158,7 +158,7 @@ JS_FUNCTION(CompileModule) {
   } else if (!jerry_value_is_undefined(native_module_jval)) {
     iotjs_jval_set_property_jval(jmodule, "exports", native_module_jval);
   } else {
-    jres = iotjs_jval_create_error_without_error_flag("Unknown native module");
+    jres = JS_CREATE_ERROR(COMMON, "Unknown native module");
   }
 
   jerry_release_value(jexports);

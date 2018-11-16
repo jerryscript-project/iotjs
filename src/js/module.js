@@ -16,7 +16,12 @@
 
 var Builtin = require('builtin');
 var fs = Builtin.require('fs');
-var dynamicloader = Builtin.require('dynamicloader');
+var dynamicloader;
+try {
+  dynamicloader = Builtin.require('dynamicloader');
+} catch (e) {
+  // the 'dynamicloader' module is not enabled, nothing to do.
+}
 
 function normalizePathString(path) {
   // Assume all path separators are '/'

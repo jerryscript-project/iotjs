@@ -400,6 +400,16 @@
       ]
     },
     {
+      "name": "test_i2c_api.js",
+      "skip": [
+        "linux", "nuttx", "tizen", "tizenrt"
+      ],
+      "reason": "need to setup test environment",
+      "required-modules": [
+        "i2c"
+      ]
+    },
+    {
       "name": "test_i2c_gy30.js",
       "skip": [
         "all"

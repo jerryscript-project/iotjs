@@ -114,6 +114,7 @@ static jerry_value_t i2c_write(iotjs_i2c_t* i2c, const jerry_value_t jargv[],
   i2c->buf_data = iotjs_buffer_allocate_from_number_array(i2c->buf_len, jarray);
 
   if (async) {
+    DJS_CHECK_ARG_IF_EXIST(1, function);
     iotjs_periph_call_async(i2c, JS_GET_ARG_IF_EXIST(1, function), kI2cOpWrite,
                             i2c_worker);
   } else {
@@ -134,10 +135,6 @@ jerry_value_t i2c_do_write_or_writesync(const jerry_value_t jfunc,
                                         const iotjs_i2c_op_t i2c_op) {
   JS_DECLARE_THIS_PTR(i2c, i2c);
   DJS_CHECK_ARGS(1, array);
-  if (i2c_op == IOTJS_I2C_WRITE) {
-    DJS_CHECK_ARG_IF_EXIST(1, function);
-  }
-
   return i2c_write(i2c, jargv, jargc, i2c_op == IOTJS_I2C_WRITE);
 }
 

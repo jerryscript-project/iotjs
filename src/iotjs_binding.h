@@ -184,26 +184,32 @@ jerry_value_t iotjs_jhelper_eval(const char* name, size_t name_len,
 #define JS_DECLARE_OBJECT_PTR(index, type, name) \
   JS_DECLARE_PTR(jargv[index], iotjs_##type##_t, name)
 
-#define __JS_GET_REQUIRED_VALUE(target, property, type, value)              \
+#define JS_GET_REQUIRED_ARG_VALUE(index, target, property, type)            \
   do {                                                                      \
-    if (jerry_value_is_undefined(value)) {                                  \
+    if (jerry_value_is_undefined(jargv[index])) {                           \
       return JS_CREATE_ERROR(TYPE, "Missing argument, required " property); \
-    } else if (jerry_value_is_##type(value)) {                              \
-      target = iotjs_jval_as_##type(value);                                 \
+    } else if (jerry_value_is_##type(jargv[index])) {                       \
+      target = iotjs_jval_as_##type(jargv[index]);                          \
     } else {                                                                \
       return JS_CREATE_ERROR(TYPE, "Bad arguments, required " property      \
                                    " is not a " #type);                     \
     }                                                                       \
   } while (0)
 
-#define JS_GET_REQUIRED_ARG_VALUE(index, target, property, type) \
-  __JS_GET_REQUIRED_VALUE(target, property, type, jargv[index])
-
-#define JS_GET_REQUIRED_CONF_VALUE(src, target, property, type)  \
-  do {                                                           \
-    jerry_value_t jtmp = iotjs_jval_get_property(src, property); \
-    __JS_GET_REQUIRED_VALUE(target, property, type, jtmp);       \
-    jerry_release_value(jtmp);                                   \
+#define JS_GET_REQUIRED_CONF_VALUE(src, target, property, type)             \
+  do {                                                                      \
+    jerry_value_t value = iotjs_jval_get_property(src, property);           \
+    if (jerry_value_is_undefined(value)) {                                  \
+      jerry_release_value(value);                                           \
+      return JS_CREATE_ERROR(TYPE, "Missing argument, required " property); \
+    } else if (jerry_value_is_##type(value)) {                              \
+      target = iotjs_jval_as_##type(value);                                 \
+      jerry_release_value(value);                                           \
+    } else {                                                                \
+      jerry_release_value(value);                                           \
+      return JS_CREATE_ERROR(TYPE, "Bad arguments, required " property      \
+                                   " is not a " #type);                     \
+    }                                                                       \
   } while (0)
 
 jerry_value_t vm_exec_stop_callback(void* user_p);

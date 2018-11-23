@@ -219,6 +219,9 @@
         "linux": {
           "native_files": ["modules/linux/iotjs_module_i2c-linux.c"]
         },
+        "mocklinux": {
+          "native_files": ["modules/mock/iotjs_module_i2c-mock.c"]
+        },
         "nuttx": {
           "native_files": ["modules/nuttx/iotjs_module_i2c-nuttx.c"]
         },

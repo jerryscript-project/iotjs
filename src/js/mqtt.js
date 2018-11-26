@@ -440,7 +440,7 @@ function storageTimerHit() {
     this.write(native.ping());
 
     if (this.pingrespCounter == 0) {
-      this.pingrespCounter = ((this.keepalive + 5) * 1.5) | 0;
+      this.pingrespCounter = (this.keepalive + 5) * 3 >> 1;
     }
   }
 }

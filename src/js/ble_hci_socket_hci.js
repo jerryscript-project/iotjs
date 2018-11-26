@@ -298,7 +298,7 @@ Hci.prototype.setAdvertisingParameters = function() {
   // length
   cmd.writeUInt8(15, 3);
 
-  var advertisementInterval = Math.floor((process.env.BLENO_ADVERTISING_INTERVAL ? parseInt(process.env.BLENO_ADVERTISING_INTERVAL) : 100) * 1.6);
+  var advertisementInterval = Math.floor((process.env.BLENO_ADVERTISING_INTERVAL ? parseInt(process.env.BLENO_ADVERTISING_INTERVAL) : 100) * '1.6');
 
   // data
   cmd.writeUInt16LE(advertisementInterval, 4); // min interval
@@ -607,7 +607,7 @@ Hci.prototype.processLeConnComplete = function(status, data) {
   var role = data.readUInt8(2);
   var addressType = data.readUInt8(3) === 0x01 ? 'random': 'public';
   var address = uuidUtil.reverseByteOrder(data.slice(4, 10).toString('hex'), ':');
-  var interval = data.readUInt16LE(10) * 1.25;
+  var interval = (data.readUInt16LE(10) * 5) >> 2;
   var latency = data.readUInt16LE(12); // TODO: multiplier?
   var supervisionTimeout = data.readUInt16LE(14) * 10;
   var masterClockAccuracy = data.readUInt8(16); // TODO: multiplier?
@@ -626,7 +626,7 @@ Hci.prototype.processLeConnComplete = function(status, data) {
 
 Hci.prototype.processLeConnUpdateComplete = function(status, data) {
   var handle = data.readUInt16LE(0);
-  var interval = data.readUInt16LE(2) * 1.25;
+  var interval = (data.readUInt16LE(2) * 5) >> 2;
   var latency = data.readUInt16LE(4); // TODO: multiplier?
   var supervisionTimeout = data.readUInt16LE(6) * 10;
 

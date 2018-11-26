@@ -693,10 +693,14 @@ JS_FUNCTION(MqttReceive) {
   return jerry_create_undefined();
 }
 
-
-JS_FUNCTION(MqttSubscribe) {
+static jerry_value_t iotjs_mqtt_subscribe_handler(
+    const jerry_value_t jthis, const jerry_value_t jargv[],
+    const jerry_value_t jargc,
+    const iotjs_mqtt_control_packet_type packet_type) {
   DJS_CHECK_THIS();
   DJS_CHECK_ARGS(2, any, number);
+
+  JS_CHECK(packet_type == SUBSCRIBE || packet_type == UNSUBSCRIBE);
 
   iotjs_tmp_buffer_t topic;
   iotjs_jval_as_tmp_buffer(JS_GET_ARG(0, any), &topic);
@@ -711,20 +715,26 @@ JS_FUNCTION(MqttSubscribe) {
     return JS_CREATE_ERROR(COMMON, "Topic for SUBSCRIBE is empty or too long.");
   }
 
-  // header bits: | 16 bit packet id | 2 bit qos |
+  // header bits: |2 bit qos | 16 bit packet id |
+  // qos is only available in case of subscribe
   uint32_t header = (uint32_t)JS_GET_ARG(1, number);
-  uint32_t packet_identifier = (header >> 2);
-  uint8_t qos = (header & 0x3);
+  uint32_t packet_identifier = (header & 0xFFFF);
 
   // Low 4 bits must be 0,0,1,0
-  uint8_t header_byte = (SUBSCRIBE << 4) | (1 << 1);
+  uint8_t header_byte = (packet_type << 4) | (1 << 1);
 
-  size_t payload_len = sizeof(uint8_t) + topic.length + IOTJS_MQTT_LSB_MSB_SIZE;
+  size_t payload_len = topic.length + IOTJS_MQTT_LSB_MSB_SIZE;
+
+  if (packet_type == SUBSCRIBE) {
+    // Add place for the SUBSCRIBE QoS data.
+    payload_len += sizeof(uint8_t);
+  }
+
   size_t variable_header_len = IOTJS_MQTT_LSB_MSB_SIZE;
   uint32_t remaining_length = payload_len + variable_header_len;
   size_t full_len = sizeof(header_byte) +
                     get_remaining_length_size(remaining_length) +
-                    variable_header_len + payload_len;
+                    remaining_length;
 
   jerry_value_t jbuff = iotjs_bufferwrap_create_buffer(full_len);
   iotjs_bufferwrap_t *buffer_wrap = iotjs_bufferwrap_from_jbuffer(jbuff);
@@ -741,7 +751,10 @@ JS_FUNCTION(MqttSubscribe) {
 
   buff_ptr = iotjs_mqtt_string_serialize(buff_ptr, &topic);
 
-  buff_ptr[0] = qos;
+  if (packet_type == SUBSCRIBE) {
+    uint8_t qos = ((header >> 16) & 0x3);
+    buff_ptr[0] = qos;
+  }
 
   iotjs_free_tmp_buffer(&topic);
   return jbuff;
@@ -749,52 +762,12 @@ JS_FUNCTION(MqttSubscribe) {
 
 
 JS_FUNCTION(MqttUnsubscribe) {
-  DJS_CHECK_THIS();
-  DJS_CHECK_ARGS(2, any, number);
+  return iotjs_mqtt_subscribe_handler(jthis, jargv, jargc, UNSUBSCRIBE);
+}
 
-  iotjs_tmp_buffer_t topic;
-  iotjs_jval_as_tmp_buffer(JS_GET_ARG(0, any), &topic);
 
-  if (jerry_value_is_error(topic.jval)) {
-    return topic.jval;
-  }
-
-  if (topic.buffer == NULL || topic.length >= UINT16_MAX) {
-    iotjs_free_tmp_buffer(&topic);
-
-    return JS_CREATE_ERROR(COMMON, "Topic for SUBSCRIBE is empty or too long.");
-  }
-
-  // header bits: | 16 bit packet id |
-  uint32_t packet_identifier = (uint32_t)JS_GET_ARG(1, number);
-
-  // Low 4 bits must be 0,0,1,0
-  uint8_t header_byte = (UNSUBSCRIBE << 4) | (1 << 1);
-
-  size_t payload_len = topic.length + IOTJS_MQTT_LSB_MSB_SIZE;
-  size_t variable_header_len = IOTJS_MQTT_LSB_MSB_SIZE;
-  uint32_t remaining_length = payload_len + variable_header_len;
-  size_t full_len = sizeof(header_byte) +
-                    get_remaining_length_size(remaining_length) +
-                    variable_header_len + payload_len;
-
-  jerry_value_t jbuff = iotjs_bufferwrap_create_buffer(full_len);
-  iotjs_bufferwrap_t *buffer_wrap = iotjs_bufferwrap_from_jbuffer(jbuff);
-
-  uint8_t *buff_ptr = (uint8_t *)buffer_wrap->buffer;
-
-  *buff_ptr++ = header_byte;
-
-  buff_ptr = iotjs_encode_remaining_length(buff_ptr, remaining_length);
-
-  // Packet id format is MSB / LSB.
-  *buff_ptr++ = (uint8_t)(packet_identifier >> 8);
-  *buff_ptr++ = (uint8_t)(packet_identifier & 0x00FF);
-
-  buff_ptr = iotjs_mqtt_string_serialize(buff_ptr, &topic);
-
-  iotjs_free_tmp_buffer(&topic);
-  return jbuff;
+JS_FUNCTION(MqttSubscribe) {
+  return iotjs_mqtt_subscribe_handler(jthis, jargv, jargc, SUBSCRIBE);
 }
 
 

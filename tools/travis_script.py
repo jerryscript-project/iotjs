@@ -141,6 +141,11 @@ if __name__ == '__main__':
         exec_docker(DOCKER_TIZENRT_PATH, ['git', 'fetch', '--tags'])
         # Checkout specified tag
         exec_docker(DOCKER_TIZENRT_PATH, ['git', 'checkout', TIZENRT_TAG])
+        # Pick libtuv's sys/uio.h and add transition header
+        exec_docker(DOCKER_TIZENRT_PATH, ['git', 'cherry-pick',
+                    'e020ef62431484b64747c760880d2b6723eb28e4'])
+        exec_docker(DOCKER_TIZENRT_OS_PATH,
+                    ['ln', '-fs', 'sys/uio.h', 'include'])
         # Set configure
         exec_docker(DOCKER_TIZENRT_OS_TOOLS_PATH, [
                     './configure.sh', 'artik053/iotjs'])

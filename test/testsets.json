@@ -222,6 +222,12 @@
       ]
     },
     {
+      "name": "test_fs_read_stream.js",
+      "required-modules": [
+        "fs"
+      ]
+    },
+    {
       "name": "test_fs_readdir.js",
       "required-modules": [
         "fs"
@@ -266,11 +272,27 @@
       ]
     },
     {
+      "name": "test_fs_stream_pipe.js",
+      "skip": [
+        "all"
+      ],
+      "reason": "flaky on Travis",
+      "required-modules": [
+        "fs"
+      ]
+    },
+    {
       "name": "test_fs_write.js",
       "skip": [
         "nuttx"
       ],
       "reason": "not implemented for nuttx",
+      "required-modules": [
+        "fs"
+      ]
+    },
+    {
+      "name": "test_fs_write_stream.js",
       "required-modules": [
         "fs"
       ]

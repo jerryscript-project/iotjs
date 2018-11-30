@@ -20,7 +20,8 @@ if (fs.createReadStream === undefined || fs.createWriteStream === undefined) {
   process.exit(0);
 }
 
-var outputFile = process.cwd() + '/tmp/test_fs5.txt';
+var dir = (process.platform === 'tizenrt') ? '/mnt/' : process.cwd() + '/tmp/';
+var outputFile = dir + 'test_fs5.txt';
 var testData = 'WriteStream test';
 
 var writableFileStream = fs.createWriteStream(outputFile);

@@ -293,6 +293,10 @@
     },
     {
       "name": "test_fs_write_stream.js",
+      "skip": [
+        "nuttx"
+      ],
+      "reason": "depends on the type of the memory (testrunner uses Read Only Memory)",
       "required-modules": [
         "fs"
       ]

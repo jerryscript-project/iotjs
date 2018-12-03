@@ -25,6 +25,13 @@ function createTCP() {
   return _tcp;
 }
 
+// Expected end message on nuttx platform.
+var expectedEnding;
+
+if (process.platform == 'nuttx') {
+   expectedEnding = new Buffer('\\e\\n\\d');
+}
+
 
 function SocketState(options) {
   // 'true' during connection handshaking.
@@ -403,15 +410,20 @@ function onread(socket, nread, isEOF, buffer) {
       return;
     }
 
-    var str = buffer.toString();
+    // We know for sure the last 6 characters are going to be the ending.
+    // Lets create a buffer with those 6 characters without toString conversion.
+    var eofLength = 6;
+    var bufferLength = buffer.length;
+
     var eofNeeded = false;
-    if (str.length >= 6
-      && str.substr(str.length - 6, str.length) == '\\e\\n\\d') {
+    if (bufferLength >= eofLength &&
+        expectedEnding.compare(buffer.slice(bufferLength - eofLength,
+                                            bufferLength)) == 0) {
       eofNeeded = true;
-      buffer = buffer.slice(0, str.length - 6);
+      buffer = buffer.slice(0, bufferLength - eofLength);
     }
 
-    if (str.length == 6 && eofNeeded) {
+    if (bufferLength == eofLength && eofNeeded) {
       // Socket.prototype.end with no argument
     } else {
       stream.Readable.prototype.push.call(socket, buffer);

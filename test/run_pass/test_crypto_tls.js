@@ -52,7 +52,7 @@ assert.equal(hash.digest('hex'),
   on it, and you are ready to go.
 */
 
-var pubKey = fs.readFileSync('resources/crypto_public.pem');
+var pubKey = fs.readFileSync(process.cwd() + '/resources/crypto_public.pem');
 var verify = crypto.createVerify('sha256');
 verify.update('Hello IoT.js\n');
 var res = verify.verify(pubKey, 'JkFnOrBQGXYlpmlcMuS5EwyJ44WY/kW5sFwb8DRgAoo7' +

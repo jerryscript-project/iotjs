@@ -17,7 +17,7 @@ var fs = require('fs');
 var http_sign = require('http_signature');
 var assert = require('assert');
 
-var key = fs.readFileSync('resources/http_signature_key.key');
+var key = fs.readFileSync(process.cwd() + '/resources/http_signature_key.key');
 
 // This is an example request of a Samsung C2C demo
 var sampleRequest = { "headers": {

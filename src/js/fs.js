@@ -399,8 +399,8 @@ try {
 
     this.bytesRead = 0;
     this.path = path;
-    this.autoClose = util.isNullOrUndefined(options.autoClose) ||
-                                            options.autoClose;
+    this._autoClose = util.isNullOrUndefined(options.autoClose) ||
+                                             options.autoClose;
     this._fd = options.fd;
     this._buff = new Buffer(options.bufferSize || 4096);
 
@@ -472,8 +472,8 @@ try {
     Writable.call(this);
 
     this._fd = options._fd;
-    this.autoClose = util.isNullOrUndefined(options.autoClose) ||
-                                            options.autoClose;
+    this._autoClose = util.isNullOrUndefined(options.autoClose) ||
+                                             options.autoClose;
     this.bytesWritten = 0;
 
     var self = this;

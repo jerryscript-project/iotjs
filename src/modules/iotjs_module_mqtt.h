@@ -25,7 +25,7 @@
  * The types of the control packet.
  * These values determine the aim of the message.
  */
-enum {
+typedef enum {
   CONNECT = 0x1,
   CONNACK = 0x2,
   PUBLISH = 0x3,

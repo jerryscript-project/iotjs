@@ -340,8 +340,8 @@ MQTTClient.prototype.subscribe = function(topic, options, callback) {
 
   var packet_id = handle.getPacketId();
 
-  // header bits: | 16 bit packet id | 2 bit qos |
-  var header = (packet_id << 2);
+  // header bits: | 2 bit qos | 16 bit packet id |
+  var header = packet_id;
 
   var qos = 0;
 
@@ -352,7 +352,7 @@ MQTTClient.prototype.subscribe = function(topic, options, callback) {
       qos = 0;
     }
 
-    header |= qos;
+    header |= (qos << 16);
   }
 
   var buffer = native.subscribe(topic, header);

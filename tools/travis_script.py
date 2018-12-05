@@ -148,9 +148,9 @@ if __name__ == '__main__':
         for buildtype in BUILDTYPES:
             set_config_tizenrt(buildtype)
             exec_docker(DOCKER_TIZENRT_OS_PATH, [
-                        'make', 'IOTJS_ROOT_DIR=' + DOCKER_IOTJS_PATH,
-                        'IOTJS_BUILD_OPTION='
-                        '--profile=test/profiles/tizenrt.profile'
+                        'make', 'IOTJS_ROOT_DIR=%s' % DOCKER_IOTJS_PATH,
+                        'IOTJS_BUILD_OPTION="--buildtype=%s '
+                        '--profile=test/profiles/tizenrt.profile"' % buildtype
                         ])
 
     elif test == 'stm32f4dis':

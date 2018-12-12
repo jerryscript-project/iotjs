@@ -687,6 +687,66 @@ JS_FUNCTION(ByteLength) {
 }
 
 
+JS_FUNCTION(FromArrayBuffer) {
+  if (jargc < 1 || !jerry_value_is_arraybuffer(jargv[0])) {
+    return jerry_create_undefined();
+  }
+  jerry_length_t offset = 0;
+  jerry_length_t length = jerry_get_arraybuffer_byte_length(jargv[0]);
+
+  if (jargc >= 2) {
+    jerry_value_t offset_num = jerry_value_to_number(jargv[1]);
+
+    if (jerry_value_is_error(offset_num)) {
+      return offset_num;
+    }
+
+    double offset_value = jerry_get_number_value(offset_num);
+    if (isnan(offset_value)) {
+      offset_value = 0;
+    }
+    jerry_release_value(offset_num);
+
+    if (offset_value < 0 || offset_value > length) {
+      return JS_CREATE_ERROR(RANGE, "'offset' is out of bounds");
+    }
+    offset = (jerry_length_t)offset_value;
+  }
+
+  length -= offset;
+
+  if (jargc >= 3) {
+    if (jerry_value_is_error(jargv[2])) {
+      return length;
+    }
+
+    if (jerry_value_is_number(jargv[2])) {
+      double length_value = (double)length;
+      length_value = jerry_get_number_value(jargv[2]);
+
+      if (isnan(length_value) || length_value < 0) {
+        length = 0;
+      } else if (length_value < length) {
+        length = (jerry_length_t)length_value;
+      } else if (length_value > length) {
+        return JS_CREATE_ERROR(RANGE, "'length' is out of bounds");
+      }
+    }
+  }
+
+  if (length < 1) {
+    return iotjs_bufferwrap_create_buffer(0);
+  }
+
+  jerry_value_t jres_bufferwrap = iotjs_bufferwrap_create_buffer(length);
+  iotjs_bufferwrap_t* jsres_buffer =
+      iotjs_jbuffer_get_bufferwrap_ptr(jres_bufferwrap);
+  jerry_arraybuffer_read(jargv[0], offset, (uint8_t*)jsres_buffer->buffer,
+                         length);
+  return jres_bufferwrap;
+}
+
+
 jerry_value_t InitBuffer() {
   jerry_value_t buffer = jerry_create_external_function(Buffer);
   iotjs_jval_set_method(buffer, IOTJS_MAGIC_STRING_BYTELENGTH, ByteLength);
@@ -698,6 +758,8 @@ jerry_value_t InitBuffer() {
   iotjs_jval_set_method(buffer, IOTJS_MAGIC_STRING_READUINT8, ReadUInt8);
   iotjs_jval_set_method(buffer, IOTJS_MAGIC_STRING_SLICE, Slice);
   iotjs_jval_set_method(buffer, IOTJS_MAGIC_STRING_TOSTRING, ToString);
+  iotjs_jval_set_method(buffer, IOTJS_MAGIC_STRING_FROM_ARRAYBUFFER,
+                        FromArrayBuffer);
 
   return buffer;
 }

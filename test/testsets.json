@@ -44,6 +44,15 @@
       "name": "test_buffer.js"
     },
     {
+      "name": "test_buffer_from.js"
+    },
+    {
+      "name": "test_buffer_from_arraybuffer.js",
+      "required-features": [
+        "ArrayBuffer"
+      ]
+    },
+    {
       "name": "test_buffer_str_conv.js"
     },
     {

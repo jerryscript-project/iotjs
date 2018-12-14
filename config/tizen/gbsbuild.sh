@@ -81,7 +81,7 @@ then
   echo "========================================================"
   echo "1. GBS Build is successful."
   echo "2. You can find rpm packages in below folder"
-  echo "   ~/GBS-ROOT/local/repos/tizen_unified_m1/armv7l/RPMS"
+  echo "   ~/GBS-ROOT/local/repos/tizen50m2/armv7l/RPMS"
 else
   echo "GBS Build failed!"
   ret=1

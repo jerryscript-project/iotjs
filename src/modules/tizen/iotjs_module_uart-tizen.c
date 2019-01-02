@@ -174,7 +174,7 @@ void iotjs_uart_handle_close_cb(uv_handle_t* uart_poll_handle) {
 
   if (peripheral_uart_close(uart->platform_data->uart_h) !=
       PERIPHERAL_ERROR_NONE) {
-    DLOG(iotjs_periph_error_str(kUartOpClose));
+    DLOG("%s: error(%s) ", __func__, iotjs_periph_error_str(kUartOpClose));
     IOTJS_ASSERT(0);
   }
 

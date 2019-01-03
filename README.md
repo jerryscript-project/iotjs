@@ -42,6 +42,12 @@ tools/build.py
 tools/testrunner.py build/x86_64-linux/debug/bin/iotjs
 ```
 
+### Trying out with a REPL
+
+```bash
+build/x86_64-linux/debug/bin/iotjs tools/repl.js
+```
+
 
 For Additional information see [Getting Started](docs/Getting-Started.md).
 

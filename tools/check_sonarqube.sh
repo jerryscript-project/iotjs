@@ -20,7 +20,7 @@ if [[ "${TRAVIS_REPO_SLUG}" == "Samsung/iotjs"
 then
   git fetch --unshallow
   build-wrapper-linux-x86-64 --out-dir bw-output ./tools/build.py
-  sonar-scanner
+  sonar-scanner -Dsonar.projectVersion="${TRAVIS_COMMIT}"
 else
   echo "Skip: The pull request from ${TRAVIS_PULL_REQUEST_SLUG} is an \
   external one. It's not supported yet in Travis-CI"

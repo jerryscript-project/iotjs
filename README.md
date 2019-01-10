@@ -2,7 +2,7 @@
 [![License](https://img.shields.io/badge/licence-Apache%202.0-brightgreen.svg?style=flat)](LICENSE)
 [![Build Status](https://travis-ci.org/pando-project/iotjs.svg?branch=master)](https://travis-ci.org/pando-project/iotjs)
 [![Coverity Scan Build Status](https://scan.coverity.com/projects/12140/badge.svg)](https://scan.coverity.com/projects/samsung-iotjs)
-[![SonarCloud Status](https://sonarcloud.io/api/project_badges/measure?project=samsung.iot.js&metric=alert_status)](https://sonarcloud.io/dashboard?id=samsung.iot.js)
+[![SonarCloud Status](https://sonarcloud.io/api/project_badges/measure?project=pando-project_iotjs&metric=alert_status)](https://sonarcloud.io/dashboard?id=pando-project_iotjs)
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bhttps%3A%2F%2Fgithub.com%2FSamsung%2Fiotjs.svg?type=shield)](https://app.fossa.io/projects/git%2Bhttps%3A%2F%2Fgithub.com%2FSamsung%2Fiotjs?ref=badge_shield)
 [![IRC Channel](https://img.shields.io/badge/chat-on%20freenode-brightgreen.svg)](https://kiwiirc.com/client/irc.freenode.net/#iotjs)
 

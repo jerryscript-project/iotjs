@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-if [[ "${TRAVIS_REPO_SLUG}" == "Samsung/iotjs"
+if [[ "${TRAVIS_REPO_SLUG}" == "pando-project/iotjs"
           && ${TRAVIS_BRANCH} == "master"
           && ${TRAVIS_EVENT_TYPE} == "push" ]]
 then

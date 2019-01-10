@@ -88,7 +88,7 @@ IoT.js is released under Apache 2.0 license, [this page](../License.md). We assu
 2) If it has a WiFi the download directly from the registry
   * But to make this work, we need to develop a small shell program with iotjs.
   * This can be done with built-in module downloader, we need to develop this.
-  * Issue [#75](https://github.com/Samsung/iotjs/issues/75) to track
+  * Issue [#75](https://github.com/pando-project/iotjs/issues/75) to track
 
 3) If your IoT is very small and even has no writable file system
   * Package modules should be built-in to IoT.js at compile time.

@@ -64,7 +64,7 @@ Clone IoT.js and NuttX into iotjs-nuttx directory
 ```bash
 $ mkdir iotjs-nuttx
 $ cd iotjs-nuttx
-$ git clone https://github.com/Samsung/iotjs.git
+$ git clone https://github.com/pando-project/iotjs.git
 $ git clone https://bitbucket.org/nuttx/nuttx.git --branch nuttx-7.25
 $ git clone https://bitbucket.org/nuttx/apps.git --branch nuttx-7.25
 $ git clone https://github.com/texane/stlink.git
@@ -192,7 +192,7 @@ Followings are the options to set:
 * For `spi` module
   * Enable `System Type -> STM32 Peripheral Support -> SPI1`
   * Enable `Device Drivers -> SPI exchange`  
-  
+
 #### Build NuttX Context
 
 ```bash

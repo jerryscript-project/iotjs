@@ -7,7 +7,7 @@
 ***
 
 #### Build Host
-Ubuntu 14.04 is recommended. Other Unix like platforms can be used. If it doesn't seem to work properly on other platforms, please look into the [Issues](https://github.com/Samsung/iotjs/issues) page. Someone may have already tried. If you can't find any related one, please leave an issue for help.
+Ubuntu 14.04 is recommended. Other Unix like platforms can be used. If it doesn't seem to work properly on other platforms, please look into the [Issues](https://github.com/pando-project/iotjs/issues) page. Someone may have already tried. If you can't find any related one, please leave an issue for help.
 
 #### Directory structure
 
@@ -41,7 +41,7 @@ Clone our repository to look around and test it. If it attracts you and you want
 To get the source for this repository,
 ```
 cd harmony
-git clone https://github.com/Samsung/iotjs.git
+git clone https://github.com/pando-project/iotjs.git
 cd iotjs
 ```
 

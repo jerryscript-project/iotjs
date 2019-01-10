@@ -11,7 +11,7 @@ Individual developers maintain a local copy of the IoT.js codebase using the git
 
 ### Proposals, Get Answers and Report a Bug via Github Issues
 
-If you have a question about IoT.js code, have trouble any documentation, would like to suggest new feature, or find a bug, [review the current IoT.js issues](https://github.com/Samsung/iotjs/issues) in GitHub, and if necessary, [create a new issue](https://github.com/Samsung/iotjs/issues/new).
+If you have a question about IoT.js code, have trouble any documentation, would like to suggest new feature, or find a bug, [review the current IoT.js issues](https://github.com/pando-project/iotjs/issues) in GitHub, and if necessary, [create a new issue](https://github.com/pando-project/iotjs/issues/new).
 
 **There are several labels on the Issue. Please choose proper labels on the purpose.**
 * **bug**
@@ -56,14 +56,14 @@ The IoT.js Project development process is marked by the following highlights:
 
 ### Tips on GitHub Issues
 
-* Check existing [IoT.js issues](https://github.com/Samsung/iotjs/issues) for the answer to your issue.
+* Check existing [IoT.js issues](https://github.com/pando-project/iotjs/issues) for the answer to your issue.
 Duplicating an issue slows you and others. Search through open and closed issues to see if the problem you are running into has already been addressed.
-* If necessary, [open a new issue](https://github.com/Samsung/iotjs/issues/new).
-  - Clearly describe the issue. 
+* If necessary, [open a new issue](https://github.com/pando-project/iotjs/issues/new).
+  - Clearly describe the issue.
      + What did you expect to happen?
      + What actually happened instead?
      + How can someone else recreate the problem?
   - Include system details(such as the hardware, library, and operating system you are using and their versions).
-  - Paste error output and logs in the issue or in a Gist(https://gist.github.com/). 
+  - Paste error output and logs in the issue or in a Gist(https://gist.github.com/).
 
 For more information about GitHub issues, refer to the [GitHub issues guidelines](https://guides.github.com/features/issues/).

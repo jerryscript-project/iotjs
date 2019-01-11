@@ -8,10 +8,10 @@ module (like some js features) then the `iotjs` name can be used as module name.
 correctly specify the module name as the test executor relies on that information.
 
 1. Write a test case and place it into the proper directory.
-2. List up the test case in [test/testsets.json](https://github.com/Samsung/iotjs/blob/master/test/testsets.json), and set attributes (timeout, skip, ...) on the test case if it needs.
+2. List up the test case in [test/testsets.json](https://github.com/pando-project/iotjs/blob/master/test/testsets.json), and set attributes (timeout, skip, ...) on the test case if it needs.
 
 #### Test set descriptor
-* [`test/testsets.json`](https://github.com/Samsung/iotjs/blob/master/test/testsets.json)
+* [`test/testsets.json`](https://github.com/pando-project/iotjs/blob/master/test/testsets.json)
 
 ```
 {

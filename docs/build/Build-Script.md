@@ -4,7 +4,7 @@ build.py help you build IoT.js.
 
 It locates in "./tools" directory of source tree.
 
-It automatically creates a directory where build object and outputs will be generated, 
+It automatically creates a directory where build object and outputs will be generated,
 checks configurations, tidiness of source code, licenses, and more.
 Also it downloads, updates and builds submodules.
 And finally generate IoT.js binary.
@@ -299,7 +299,7 @@ Enable memstat of JerryScript engine.
 #### `--jerry-profile`
 * `es5.1` | `es2015-subset | absolute path to a custom profile file`
 
-Specify the profile for JerryScript (default: es5.1). In JerryScript all of the features are enabled by default, so an empty profile file turns on all of the available ECMA features. See also the related [README.md](https://github.com/jerryscript-project/jerryscript/blob/master/jerry-core/profiles/README.md).
+Specify the profile for JerryScript (default: es5.1). In JerryScript all of the features are enabled by default, so an empty profile file turns on all of the available ECMA features. See also the related [README.md](https://github.com/pando-project/jerryscript/blob/master/jerry-core/profiles/README.md).
 
 E.g.:
 **/home/iotjs/my-jerry-profile.profile**

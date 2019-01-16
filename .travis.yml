@@ -87,9 +87,7 @@ matrix:
     - name: "SonarQube"
       addons:
         sonarcloud:
-          organization: "samsung-iotjs"
-          token:
-            secure: "u9HWNQNhAqQQdgl3yldKcQVH8plMQRwIdpzjsM4j3GBC4Wrh9u8guLJB3o003i0UsyaGg2knYFdLgOmEsgcvXAo2aIUyzf9CfK9RLRw5RtIuPMpmR7UjHdlf+QfCF+nY+BB2j0nAiWnxHve95du7sZflNxi+eNJJzquyBh1Wm8eqwoiRpCgiDzjRDEAUoz0FWMNny/x5545E970jpQ2bjHGx98tCMUO8ikINeL8sC99sumffaFONG8GVpwLjc8McfQfYpWbk0e0OPxZtGDyqKcyMxcbAGctklsigtsBZKlpj69uba3w4OSA3zJPCdQ4dKwCyBOcAAP8qeF5Jf0eLI8WLEgnKir2Pfc/rKkY0owuz7S+tUmizm3+T06wDFgwpLu0/PcA5oOcp4WpGXbAX7WujaAHB7YKAEsk324XC7Bdf+39OuZ0dbKWMiwU7rYV4NOYNPjN2BCb1XqyE0Ung41Ls6P4t/zwzYRZtiovhr6ibNBcwLVclfQZ/tbyBDuh++8dh7Ixe+x5RFiiCB0w/fiKqqXYM8/we4JU3f71y4DK6fP+nSN/vIYttvkN28HCCvBVSdyuuvPRM6Ro1yLNw9U9PHCJ1CIgcx8+I8Mep3PzBhDILXWjzlVu4sa/+aIoEq7MvWBDMhrFEP6RX+M6CiPmgj5+Lu/GZNivbu51RASI="
+          organization: "pando-project"
       script: ./tools/check_sonarqube.sh
       cache:
         directories:

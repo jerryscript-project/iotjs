@@ -61,7 +61,13 @@ BUILDOPTIONS_SANITIZER = [
     '--target-arch=i686'
 ]
 
+def start_container():
+    run_docker()
+    start_mosquitto_server()
+    start_node_server()
+
 def run_docker():
+    ex.check_run_cmd('docker', ['pull', 'iotjs/ubuntu:0.9'])
     ex.check_run_cmd('docker', ['run', '-dit', '--privileged',
                      '--name', DOCKER_NAME, '-v',
                      '%s:%s' % (TRAVIS_BUILD_PATH, DOCKER_IOTJS_PATH),
@@ -104,154 +110,186 @@ def build_iotjs(buildtype, args=[], env=[]):
                 '--clean',
                 '--buildtype=' + buildtype] + args, env)
 
+JOBS = dict()
+
+class job(object):
+    def __init__(self, name):
+        self.name = name
+    def __call__(self, fn):
+        JOBS[self.name] = fn
+
+@job('host-linux')
+def job_host_linux():
+    start_container()
+
+    for buildtype in BUILDTYPES:
+        build_iotjs(buildtype, [
+                    '--cmake-param=-DENABLE_MODULE_ASSERT=ON',
+                    '--run-test=full',
+                    '--profile=profiles/minimal.profile'])
+
+    for buildtype in BUILDTYPES:
+        build_iotjs(buildtype, [
+                    '--run-test=full',
+                    '--profile=test/profiles/host-linux.profile'])
+
+@job('mock-linux')
+def job_mock_linux():
+    start_container()
+    for buildtype in BUILDTYPES:
+        build_iotjs(buildtype, [
+                    '--run-test=full',
+                    '--target-os=mock',
+                    '--profile=test/profiles/mock-linux.profile'])
+
+@job('rpi2')
+def job_rpi2():
+    start_container()
+    for buildtype in BUILDTYPES:
+        build_iotjs(buildtype, [
+                    '--target-arch=arm',
+                    '--target-board=rpi2',
+                    '--profile=test/profiles/rpi2-linux.profile'])
+
+@job('artik053')
+def job_artik053():
+    start_container()
+
+    exec_docker(DOCKER_TIZENRT_PATH, ['git', 'fetch', '--tags'])
+    # Checkout specified tag
+    exec_docker(DOCKER_TIZENRT_PATH, ['git', 'checkout', TIZENRT_TAG])
+    # Pick libtuv's sys/uio.h and add transition header
+    exec_docker(DOCKER_TIZENRT_PATH, ['git', 'cherry-pick',
+                'e020ef62431484b64747c760880d2b6723eb28e4'])
+    exec_docker(DOCKER_TIZENRT_OS_PATH,
+                ['ln', '-fs', 'sys/uio.h', 'include'])
+    # Set configure
+    exec_docker(DOCKER_TIZENRT_OS_TOOLS_PATH, [
+                './configure.sh', 'artik053/iotjs'])
+
+    for buildtype in BUILDTYPES:
+        set_config_tizenrt(buildtype)
+        exec_docker(DOCKER_TIZENRT_OS_PATH, [
+                    'make', 'IOTJS_ROOT_DIR=%s' % DOCKER_IOTJS_PATH,
+                    'IOTJS_BUILD_OPTION="--buildtype=%s '
+                    '--profile=test/profiles/tizenrt.profile"' % buildtype
+                    ])
+
+@job('stm32f4dis')
+def job_stm32f4dis():
+    start_container()
+
+    # Copy the application files to apps/system/iotjs.
+    exec_docker(DOCKER_ROOT_PATH, [
+                'cp', '-r',
+                fs.join(DOCKER_IOTJS_PATH,'config/nuttx/stm32f4dis/app/'),
+                fs.join(DOCKER_NUTTX_APPS_PATH, 'system/iotjs/')])
+
+    exec_docker(DOCKER_ROOT_PATH, [
+                'cp', '-r',
+                fs.join(DOCKER_IOTJS_PATH,
+                        'config/nuttx/stm32f4dis/config.travis'),
+                fs.join(DOCKER_NUTTX_PATH,
+                        'configs/stm32f4discovery/usbnsh/defconfig')])
+
+    for buildtype in BUILDTYPES:
+        exec_docker(DOCKER_NUTTX_PATH, ['make', 'distclean'])
+        exec_docker(DOCKER_NUTTX_TOOLS_PATH,
+                    ['./configure.sh', 'stm32f4discovery/usbnsh'])
+        exec_docker(DOCKER_NUTTX_PATH, ['make', 'clean'])
+        exec_docker(DOCKER_NUTTX_PATH, ['make', 'context'])
+        # Build IoT.js
+        build_iotjs(buildtype, [
+                    '--target-arch=arm',
+                    '--target-os=nuttx',
+                    '--nuttx-home=' + DOCKER_NUTTX_PATH,
+                    '--target-board=stm32f4dis',
+                    '--jerry-heaplimit=78',
+                    '--profile=test/profiles/nuttx.profile'])
+        # Build Nuttx
+        if buildtype == "release":
+            rflag = 'R=1'
+        else:
+            rflag = 'R=0'
+        exec_docker(DOCKER_NUTTX_PATH, [
+                    'make', 'all',
+                    'IOTJS_ROOT_DIR=' + DOCKER_IOTJS_PATH, rflag])
+
+@job('tizen')
+def job_tizen():
+    start_container()
+    for buildtype in BUILDTYPES:
+        if buildtype == "debug":
+            exec_docker(DOCKER_IOTJS_PATH, [
+                        'config/tizen/gbsbuild.sh',
+                        '--debug', '--clean'])
+        else:
+            exec_docker(DOCKER_IOTJS_PATH, ['config/tizen/gbsbuild.sh',
+                        '--clean'])
+
+@job('misc')
+def job_misc():
+    ex.check_run_cmd('tools/check_signed_off.sh', ['--travis'])
+    ex.check_run_cmd('tools/check_tidy.py')
+
+@job('external-modules')
+def job_external_modules():
+    start_container()
+    for buildtype in BUILDTYPES:
+        build_iotjs(buildtype, [
+                    '--run-test=full',
+                    '--profile=test/profiles/host-linux.profile',
+                    '--external-modules=test/external_modules/'
+                    'mymodule1,test/external_modules/mymodule2',
+                    '--cmake-param=-DENABLE_MODULE_MYMODULE1=ON',
+                    '--cmake-param=-DENABLE_MODULE_MYMODULE2=ON'])
+
+@job('es2015')
+def job_es2015():
+    start_container()
+    for buildtype in BUILDTYPES:
+        build_iotjs(buildtype, [
+                    '--run-test=full',
+                    '--jerry-profile=es2015-subset'])
+
+@job('no-snapshot')
+def job_no_snapshot():
+    start_container()
+    for buildtype in BUILDTYPES:
+        build_iotjs(buildtype, ['--run-test=full', '--no-snapshot',
+                                '--jerry-lto'])
+
+@job('host-darwin')
+def job_host_darwin():
+    for buildtype in BUILDTYPES:
+        ex.check_run_cmd('./tools/build.py', [
+                         '--run-test=full',
+                         '--buildtype=' + buildtype,
+                         '--clean',
+                         '--profile=test/profiles/host-darwin.profile'])
+
+@job('asan')
+def job_asan():
+    start_container()
+    build_iotjs('debug', [
+                '--compile-flag=-fsanitize=address',
+                '--compile-flag=-O2'
+                ] + BUILDOPTIONS_SANITIZER,
+                ['ASAN_OPTIONS=detect_stack_use_after_return=1:'
+                'check_initialization_order=true:strict_init_order=true',
+                'TIMEOUT=600'])
+
+@job('ubsan')
+def job_ubsan():
+    start_container()
+    build_iotjs('debug', [
+                '--compile-flag=-fsanitize=undefined'
+                ] + BUILDOPTIONS_SANITIZER,
+                ['UBSAN_OPTIONS=print_stacktrace=1', 'TIMEOUT=600'])
+
+@job('coverity')
+def job_coverity():
+    ex.check_run_cmd('./tools/build.py', ['--clean'])
+
 if __name__ == '__main__':
-    if os.getenv('RUN_DOCKER') == 'yes':
-        run_docker()
-        start_mosquitto_server()
-        start_node_server()
-
-    test = os.getenv('OPTS')
-    if test == 'host-linux':
-        for buildtype in BUILDTYPES:
-            build_iotjs(buildtype, [
-                        '--cmake-param=-DENABLE_MODULE_ASSERT=ON',
-                        '--run-test=full',
-                        '--profile=profiles/minimal.profile'])
-
-        for buildtype in BUILDTYPES:
-            build_iotjs(buildtype, [
-                        '--run-test=full',
-                        '--profile=test/profiles/host-linux.profile'])
-
-    elif test == 'mock-linux':
-        for buildtype in BUILDTYPES:
-            build_iotjs(buildtype, [
-                        '--run-test=full',
-                        '--target-os=mock',
-                        '--profile=test/profiles/mock-linux.profile'])
-
-    elif test == 'rpi2':
-        for buildtype in BUILDTYPES:
-            build_iotjs(buildtype, [
-                        '--target-arch=arm',
-                        '--target-board=rpi2',
-                        '--profile=test/profiles/rpi2-linux.profile'])
-
-    elif test == 'artik053':
-        exec_docker(DOCKER_TIZENRT_PATH, ['git', 'fetch', '--tags'])
-        # Checkout specified tag
-        exec_docker(DOCKER_TIZENRT_PATH, ['git', 'checkout', TIZENRT_TAG])
-        # Pick libtuv's sys/uio.h and add transition header
-        exec_docker(DOCKER_TIZENRT_PATH, ['git', 'cherry-pick',
-                    'e020ef62431484b64747c760880d2b6723eb28e4'])
-        exec_docker(DOCKER_TIZENRT_OS_PATH,
-                    ['ln', '-fs', 'sys/uio.h', 'include'])
-        # Set configure
-        exec_docker(DOCKER_TIZENRT_OS_TOOLS_PATH, [
-                    './configure.sh', 'artik053/iotjs'])
-
-        for buildtype in BUILDTYPES:
-            set_config_tizenrt(buildtype)
-            exec_docker(DOCKER_TIZENRT_OS_PATH, [
-                        'make', 'IOTJS_ROOT_DIR=%s' % DOCKER_IOTJS_PATH,
-                        'IOTJS_BUILD_OPTION="--buildtype=%s '
-                        '--profile=test/profiles/tizenrt.profile"' % buildtype
-                        ])
-
-    elif test == 'stm32f4dis':
-        # Copy the application files to apps/system/iotjs.
-        exec_docker(DOCKER_ROOT_PATH, [
-                    'cp', '-r',
-                    fs.join(DOCKER_IOTJS_PATH,'config/nuttx/stm32f4dis/app/'),
-                    fs.join(DOCKER_NUTTX_APPS_PATH, 'system/iotjs/')])
-
-        exec_docker(DOCKER_ROOT_PATH, [
-                    'cp', '-r',
-                    fs.join(DOCKER_IOTJS_PATH,
-                            'config/nuttx/stm32f4dis/config.travis'),
-                    fs.join(DOCKER_NUTTX_PATH,
-                            'configs/stm32f4discovery/usbnsh/defconfig')])
-
-        for buildtype in BUILDTYPES:
-            exec_docker(DOCKER_NUTTX_PATH, ['make', 'distclean'])
-            exec_docker(DOCKER_NUTTX_TOOLS_PATH,
-                        ['./configure.sh', 'stm32f4discovery/usbnsh'])
-            exec_docker(DOCKER_NUTTX_PATH, ['make', 'clean'])
-            exec_docker(DOCKER_NUTTX_PATH, ['make', 'context'])
-            # Build IoT.js
-            build_iotjs(buildtype, [
-                        '--target-arch=arm',
-                        '--target-os=nuttx',
-                        '--nuttx-home=' + DOCKER_NUTTX_PATH,
-                        '--target-board=stm32f4dis',
-                        '--jerry-heaplimit=78',
-                        '--profile=test/profiles/nuttx.profile'])
-            # Build Nuttx
-            if buildtype == "release":
-                rflag = 'R=1'
-            else:
-                rflag = 'R=0'
-            exec_docker(DOCKER_NUTTX_PATH, [
-                        'make', 'all',
-                        'IOTJS_ROOT_DIR=' + DOCKER_IOTJS_PATH, rflag])
-
-    elif test == 'tizen':
-        for buildtype in BUILDTYPES:
-            if buildtype == "debug":
-                exec_docker(DOCKER_IOTJS_PATH, [
-                            'config/tizen/gbsbuild.sh',
-                            '--debug', '--clean'])
-            else:
-                exec_docker(DOCKER_IOTJS_PATH, ['config/tizen/gbsbuild.sh',
-                            '--clean'])
-
-    elif test == "misc":
-        ex.check_run_cmd('tools/check_signed_off.sh', ['--travis'])
-        ex.check_run_cmd('tools/check_tidy.py')
-
-    elif test == "external-modules":
-        for buildtype in BUILDTYPES:
-            build_iotjs(buildtype, [
-                        '--run-test=full',
-                        '--profile=test/profiles/host-linux.profile',
-                        '--external-modules=test/external_modules/'
-                        'mymodule1,test/external_modules/mymodule2',
-                        '--cmake-param=-DENABLE_MODULE_MYMODULE1=ON',
-                        '--cmake-param=-DENABLE_MODULE_MYMODULE2=ON'])
-
-    elif test == 'es2015':
-        for buildtype in BUILDTYPES:
-            build_iotjs(buildtype, [
-                        '--run-test=full',
-                        '--jerry-profile=es2015-subset'])
-
-    elif test == "no-snapshot":
-        for buildtype in BUILDTYPES:
-            build_iotjs(buildtype, ['--run-test=full', '--no-snapshot',
-                                    '--jerry-lto'])
-
-    elif test == "host-darwin":
-        for buildtype in BUILDTYPES:
-            ex.check_run_cmd('./tools/build.py', [
-                             '--run-test=full',
-                             '--buildtype=' + buildtype,
-                             '--clean',
-                             '--profile=test/profiles/host-darwin.profile'])
-
-    elif test == "asan":
-        build_iotjs('debug', [
-                    '--compile-flag=-fsanitize=address',
-                    '--compile-flag=-O2'
-                    ] + BUILDOPTIONS_SANITIZER,
-                    ['ASAN_OPTIONS=detect_stack_use_after_return=1:'
-                    'check_initialization_order=true:strict_init_order=true',
-                    'TIMEOUT=600'])
-
-    elif test == "ubsan":
-        build_iotjs('debug', [
-                    '--compile-flag=-fsanitize=undefined'
-                    ] + BUILDOPTIONS_SANITIZER,
-                    ['UBSAN_OPTIONS=print_stacktrace=1', 'TIMEOUT=600'])
-
-    elif test == "coverity":
-        ex.check_run_cmd('./tools/build.py', ['--clean'])
+    JOBS[os.getenv('OPTS')]()

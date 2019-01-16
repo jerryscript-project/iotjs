@@ -6,7 +6,6 @@ dist: trusty
 services:
   - docker
 
-before_install: if [[ "$RUN_DOCKER" == "yes" ]]; then docker pull iotjs/ubuntu:0.9; fi
 script: tools/travis_script.py
 
 matrix:
@@ -14,47 +13,38 @@ matrix:
     - name: "Linux/x86-64 Build & Correctness Tests"
       env:
       - OPTS="host-linux"
-      - RUN_DOCKER=yes
 
     - name: "Mock Linux Build & Correctness Tests"
       env:
       - OPTS="mock-linux"
-      - RUN_DOCKER=yes
 
     - name: "Raspberry Pi 2 Build Test"
       env:
       - OPTS="rpi2"
-      - RUN_DOCKER=yes
 
     - name: "STM32f4 Discovery with Nuttx Build Test"
       env:
       - OPTS="stm32f4dis"
-      - RUN_DOCKER=yes
 
     - name: "Artik053 with TizenRT Build Test"
       env:
       - OPTS="artik053"
-      - RUN_DOCKER=yes
 
     - name: "Tizen Build Test"
       env:
       - OPTS="tizen"
-      - RUN_DOCKER=yes
 
     - name: "ECMAScript 2015 features Build & Correctness Tests"
       env:
       - OPTS="es2015"
-      - RUN_DOCKER=yes
 
     - name: "External modules Build & Correctness Tests"
       env:
       - OPTS="external-modules"
-      - RUN_DOCKER=yes
 
     - name: "Linux/x86-64 without snapshot Build & Correctness Tests"
       env:
       - OPTS="no-snapshot"
-      - RUN_DOCKER=yes
 
     - name: "Misc checks (e.g. style checker)"
       env:
@@ -74,12 +64,10 @@ matrix:
     - name: "ASAN Tests"
       env:
       - OPTS="asan"
-      - RUN_DOCKER=yes
 
     - name: "UBSAN Tests"
       env:
       - OPTS="ubsan"
-      - RUN_DOCKER=yes
 
     - name: "Coverity Scan"
       env:

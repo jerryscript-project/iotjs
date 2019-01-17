@@ -505,10 +505,9 @@ static uint8_t iotjs_websocket_decode_frame(iotjs_wsclient_t *wsclient,
 
         buff_ptr += 2;
         payload_len -= 2;
-        uint8_t ret_code_str_size = 4;
+        size_t ret_code_str_size = 4;
         char ret_code_str[ret_code_str_size + 1];
-        sprintf(ret_code_str, "%d", ret_code);
-        ret_code_str[ret_code_str_size] = '\0';
+        snprintf(ret_code_str, ret_code_str_size + 1, "%d", ret_code);
 
         jerry_value_t ret_buff =
             iotjs_bufferwrap_create_buffer(payload_len + ret_code_str_size);

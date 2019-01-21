@@ -609,16 +609,20 @@ JS_FUNCTION(WsReceive) {
       payload_len = (uint16_t)(current_buffer[0] << 8 | current_buffer[1]);
       current_buffer += sizeof(uint16_t);
     } else if (!(payload_byte ^ WS_THREE_BYTES_LENGTH)) {
+      uint64_t payload_64bit_len;
       if (current_buffer + sizeof(uint64_t) > current_buffer_end) {
         break;
       }
-      if ((*(uint64_t *)current_buffer & UINT32_MAX) > UINT32_MAX) {
-        return WS_ERR_FRAME_SIZE_LIMIT;
-      }
       for (uint8_t i = 0; i < sizeof(uint64_t); i++) {
-        memcpy((uint8_t *)&payload_len + i,
+        memcpy((uint8_t *)&payload_64bit_len + i,
                current_buffer + sizeof(uint64_t) - 1 - i, sizeof(uint8_t));
       }
+
+      if (payload_64bit_len > UINT32_MAX) {
+        return WS_ERR_FRAME_SIZE_LIMIT;
+      }
+      payload_len = (uint32_t)payload_64bit_len;
+
       current_buffer += sizeof(uint64_t);
     } else {
       payload_len = payload_byte;

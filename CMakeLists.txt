@@ -72,6 +72,10 @@ if(CMAKE_C_COMPILER_ID MATCHES "MSVC")
   set(CONFIG_TYPE $<$<CONFIG:Debug>:Debug>$<$<CONFIG:Release>:Release>)
   # disable warning C4820: 'x' bytes padding added after construct 'membername'
   iotjs_add_compile_flags(-wd4820)
+  # disable warning C4668: 'symbol' is not defined as preprocessor macro,
+  #   replacing with '0' for 'directives'
+  # some windows headers reports these warnings
+  iotjs_add_compile_flags(-wd4668)
 endif()
 
 CHECK_C_COMPILER_FLAG(-no-pie HAS_NO_PIE)

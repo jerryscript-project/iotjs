@@ -54,7 +54,7 @@ JS_FUNCTION(Stderr) {
 }
 
 
-jerry_value_t InitConsole() {
+jerry_value_t InitConsole(void) {
   jerry_value_t console = jerry_create_object();
 
   iotjs_jval_set_method(console, IOTJS_MAGIC_STRING_STDOUT, Stdout);

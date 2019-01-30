@@ -63,8 +63,8 @@ typedef struct {
 } iotjs_environment_t;
 
 
-iotjs_environment_t* iotjs_environment_get();
-void iotjs_environment_release();
+iotjs_environment_t* iotjs_environment_get(void);
+void iotjs_environment_release(void);
 
 bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
                                                     uint32_t argc, char** argv);

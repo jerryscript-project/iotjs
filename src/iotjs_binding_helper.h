@@ -24,7 +24,7 @@ void iotjs_uncaught_exception(jerry_value_t jexception);
 
 void iotjs_process_emit_exit(int code);
 
-bool iotjs_process_next_tick();
+bool iotjs_process_next_tick(void);
 
 void iotjs_invoke_callback(jerry_value_t jfunc, jerry_value_t jthis,
                            const jerry_value_t* jargv, size_t jargc);
@@ -33,7 +33,7 @@ jerry_value_t iotjs_invoke_callback_with_result(jerry_value_t jfunc,
                                                 const jerry_value_t* jargv,
                                                 size_t jargc);
 
-int iotjs_process_exitcode();
+int iotjs_process_exitcode(void);
 void iotjs_set_process_exitcode(int code);
 
 #endif /* IOTJS_BINDING_HELPER_H */

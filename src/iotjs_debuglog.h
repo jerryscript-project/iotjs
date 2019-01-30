@@ -78,8 +78,8 @@ extern const char* iotjs_debug_prefix[4];
 #endif /* ENABLE_DEBUG_LOG */
 
 
-void iotjs_debuglog_init();
-void iotjs_debuglog_release();
+void iotjs_debuglog_init(void);
+void iotjs_debuglog_release(void);
 
 
 #endif /* IOTJS_DEBUGLOG_H */

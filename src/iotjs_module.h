@@ -18,7 +18,7 @@
 
 #include "iotjs_binding.h"
 
-typedef jerry_value_t (*register_func)();
+typedef jerry_value_t (*register_func)(void);
 
 typedef struct {
   const char* name;
@@ -28,7 +28,7 @@ typedef struct {
 extern const unsigned iotjs_module_count;
 extern const iotjs_module_ro_data_t iotjs_module_ro_data[];
 
-void iotjs_module_list_cleanup();
+void iotjs_module_list_cleanup(void);
 
 jerry_value_t iotjs_module_get(const char* name);
 

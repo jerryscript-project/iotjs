@@ -51,7 +51,7 @@ static void initialize(iotjs_environment_t* env);
 /**
  * Get the singleton instance of iotjs_environment_t.
  */
-iotjs_environment_t* iotjs_environment_get() {
+iotjs_environment_t* iotjs_environment_get(void) {
   if (!initialized) {
     initialize(&current_env);
     initialized = true;
@@ -63,7 +63,7 @@ iotjs_environment_t* iotjs_environment_get() {
 /**
  * Release the singleton instance of iotjs_environment_t, and debugger config.
  */
-void iotjs_environment_release() {
+void iotjs_environment_release(void) {
   if (!initialized)
     return;
 

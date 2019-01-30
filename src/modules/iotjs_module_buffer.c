@@ -747,7 +747,7 @@ JS_FUNCTION(FromArrayBuffer) {
 }
 
 
-jerry_value_t InitBuffer() {
+jerry_value_t InitBuffer(void) {
   jerry_value_t buffer = jerry_create_external_function(Buffer);
   iotjs_jval_set_method(buffer, IOTJS_MAGIC_STRING_BYTELENGTH, ByteLength);
   iotjs_jval_set_method(buffer, IOTJS_MAGIC_STRING_COMPARE, Compare);

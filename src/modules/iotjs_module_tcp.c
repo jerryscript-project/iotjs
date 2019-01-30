@@ -411,7 +411,7 @@ JS_FUNCTION(GetSockeName) {
   return jerry_create_number(err);
 }
 
-jerry_value_t InitTcp() {
+jerry_value_t InitTcp(void) {
   jerry_value_t tcp = jerry_create_external_function(TCP);
 
   jerry_value_t prototype = jerry_create_object();

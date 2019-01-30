@@ -23,7 +23,7 @@ typedef struct {
 } iotjs_string_t;
 
 // Create new string
-iotjs_string_t iotjs_string_create();
+iotjs_string_t iotjs_string_create(void);
 iotjs_string_t iotjs_string_create_with_size(const char* data, size_t size);
 iotjs_string_t iotjs_string_create_with_buffer(char* buffer, size_t size);
 

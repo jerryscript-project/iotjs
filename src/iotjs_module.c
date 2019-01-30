@@ -27,7 +27,7 @@ typedef struct { jerry_value_t jmodule; } iotjs_module_rw_data_t;
  *  - iotjs_module_rw_data[]
  */
 
-void iotjs_module_list_cleanup() {
+void iotjs_module_list_cleanup(void) {
   for (unsigned i = 0; i < iotjs_module_count; i++) {
     if (iotjs_module_rw_data[i].jmodule != 0) {
       jerry_release_value(iotjs_module_rw_data[i].jmodule);

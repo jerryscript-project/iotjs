@@ -471,7 +471,7 @@ static void http_parser_register_methods_object(jerry_value_t target) {
   jerry_release_value(methods);
 }
 
-jerry_value_t InitHttpParser() {
+jerry_value_t InitHttpParser(void) {
   jerry_value_t http_parser = jerry_create_object();
 
   jerry_value_t jParserCons = jerry_create_external_function(HTTPParserCons);

@@ -21,7 +21,7 @@
 #include <string.h>
 
 
-iotjs_string_t iotjs_string_create() {
+iotjs_string_t iotjs_string_create(void) {
   iotjs_string_t str;
 
   str.size = 0;

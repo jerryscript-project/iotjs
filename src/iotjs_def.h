@@ -33,8 +33,8 @@
 #ifdef NDEBUG
 #define IOTJS_ASSERT(x) ((void)(x))
 #else /* !NDEBUG */
-extern void print_stacktrace();
-extern void force_terminate();
+extern void print_stacktrace(void);
+extern void force_terminate(void);
 #define IOTJS_ASSERT(x)                                                      \
   do {                                                                       \
     if (!(x)) {                                                              \

@@ -194,7 +194,9 @@ static int iotjs_start(iotjs_environment_t* env) {
 
       jerry_value_t ret_val = jerry_run_all_enqueued_jobs();
       if (jerry_value_is_error(ret_val)) {
-        DLOG("jerry_run_all_enqueued_jobs() failed");
+        ret_val = jerry_get_value_from_error(ret_val, true);
+        iotjs_uncaught_exception(ret_val);
+        jerry_release_value(ret_val);
       }
 
       if (more == false) {

@@ -17,6 +17,7 @@ Check if the following tools are installed:
  * GIT
  * Visual Studio 2017 with C++ support
  * Python 3
+ * CMake
 
 Additionally clone the IoT.js repository into a convenient directory.
 In the document the `C:\dev\iotjs` path will be used as an example.

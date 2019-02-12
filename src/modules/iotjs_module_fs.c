@@ -470,7 +470,7 @@ JS_FUNCTION(StatsIsFile) {
   return StatsIsTypeOf(stats, S_IFREG);
 }
 
-jerry_value_t InitFs() {
+jerry_value_t InitFs(void) {
   jerry_value_t fs = jerry_create_object();
 
   iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_CLOSE, Close);

@@ -25,7 +25,7 @@
 #include <execinfo.h>
 #endif
 
-void force_terminate();
+void force_terminate(void);
 
 iotjs_string_t iotjs_file_read(const char* path) {
   FILE* file = fopen(path, "rb");
@@ -114,7 +114,7 @@ void iotjs_buffer_release(char* buffer) {
   }
 }
 
-void print_stacktrace() {
+void print_stacktrace(void) {
 #if defined(__linux__) && defined(DEBUG) && !defined(__OPENWRT__)
   // TODO: support other platforms
   const int numOfStackTrace = 100;
@@ -150,6 +150,6 @@ void print_stacktrace() {
 #endif // defined(__linux__) && defined(DEBUG) && !defined(__OPENWRT__)
 }
 
-void force_terminate() {
+void force_terminate(void) {
   exit(EXIT_FAILURE);
 }

@@ -362,7 +362,7 @@ static void SetProcessPrivate(jerry_value_t process, bool wait_source) {
 }
 
 
-jerry_value_t InitProcess() {
+jerry_value_t InitProcess(void) {
   jerry_value_t process = jerry_create_object();
 
   iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_CWD, Cwd);

@@ -68,7 +68,7 @@ void iotjs_process_emit_exit(int code) {
 
 
 // Calls next tick callbacks registered via `process.nextTick()`.
-bool iotjs_process_next_tick() {
+bool iotjs_process_next_tick(void) {
   iotjs_environment_t* env = iotjs_environment_get();
 
   if (iotjs_environment_is_exiting(env)) {
@@ -133,7 +133,7 @@ jerry_value_t iotjs_invoke_callback_with_result(jerry_value_t jfunc,
 }
 
 
-int iotjs_process_exitcode() {
+int iotjs_process_exitcode(void) {
   const jerry_value_t process = iotjs_module_get("process");
 
   jerry_value_t jexitcode =

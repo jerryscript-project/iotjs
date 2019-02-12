@@ -209,7 +209,7 @@ JS_FUNCTION(GetAddressInfo) {
   } while (0)
 
 
-jerry_value_t InitDns() {
+jerry_value_t InitDns(void) {
   jerry_value_t dns = jerry_create_object();
 
   iotjs_jval_set_method(dns, IOTJS_MAGIC_STRING_GETADDRINFO, GetAddressInfo);

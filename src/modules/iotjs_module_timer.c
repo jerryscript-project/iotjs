@@ -78,7 +78,7 @@ JS_FUNCTION(Timer) {
 }
 
 
-jerry_value_t InitTimer() {
+jerry_value_t InitTimer(void) {
   jerry_value_t timer = jerry_create_external_function(Timer);
 
   jerry_value_t prototype = jerry_create_object();

@@ -51,7 +51,9 @@ matrix:
       - OPTS="misc"
       addons:
         apt:
-          packages: [valgrind, clang-format-3.9]
+          packages: [clang-format-3.9, npm, valgrind]
+      install:
+        - npm install eslint
 
     - name: "OSX/x86-64 Build & Correctness Tests"
       env:

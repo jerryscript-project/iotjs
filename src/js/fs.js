@@ -388,7 +388,7 @@ try {
   var Writable = stream.Writable;
 
 
-  function ReadStream(path, options) {
+  var ReadStream = function(path, options) {
     if (!(this instanceof ReadStream)) {
       return new ReadStream(path, options);
     }
@@ -426,7 +426,7 @@ try {
         closeFile(self);
       });
     }
-  }
+  };
 
 
   util.inherits(ReadStream, Readable);
@@ -462,7 +462,7 @@ try {
   };
 
 
-  function WriteStream(path, options) {
+  var WriteStream = function(path, options) {
     if (!(this instanceof WriteStream)) {
       return new WriteStream(path, options);
     }
@@ -499,7 +499,7 @@ try {
     }
 
     this._readyToWrite();
-  }
+  };
 
 
   util.inherits(WriteStream, Writable);
@@ -530,15 +530,15 @@ try {
   };
 
 
-  function closeFile(stream) {
+  var closeFile = function(stream) {
     fs.close(stream._fd, function(err) {
       if (err) {
         throw err;
       }
       stream.emit('close');
     });
-  }
-} catch(e) {
+  };
+} catch (e) {
 }
 
 

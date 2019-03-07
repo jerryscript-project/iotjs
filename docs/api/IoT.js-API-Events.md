@@ -18,11 +18,11 @@ IoT.js is based on event-driven programming where objects (called "emitters") pe
 
 # Class: EventEmitter
 
-The `events.EventEmitter` plays a role as base class for "emitters".
+The `EventEmitter` plays a role as base class for "emitters".
 User application would not directly creates an instance of `EventEmitter` since `EventEmitter` is an abstract trait which defines its behavior and grants to sub-classes.
 
 ### new EventEmitter()
-* Returns {events.EventEmitter}.
+* Returns {EventEmitter}.
 
 Returns with a new EventEmitter object.
 
@@ -31,7 +31,7 @@ Returns with a new EventEmitter object.
 
 ```js
 
-var EventEmitter = require('events').EventEmitter;
+var EventEmitter = require('events');
 
 var emitter = new EventEmitter();
 
@@ -42,7 +42,7 @@ var emitter = new EventEmitter();
 * `event` {string} The name of the event.
 * `listener` {Function} The callback function.
   * `args` {any}.
-* Returns `emitter` {events.EventEmitter}.
+* Returns `emitter` {EventEmitter}.
 
 It is an alias for `emitter.on(eventName, listener)`.
 
@@ -53,7 +53,7 @@ In case of multiple calls the `listener` will be added and called multiple times
 
 ```js
 
-var EventEmitter = require('events').EventEmitter;
+var EventEmitter = require('events');
 
 var emitter = new EventEmitter();
 
@@ -75,7 +75,7 @@ console.log(eventSequence); // prints '22'
 * `event` {string} The name of the event.
 * `listener` {Function} The callback function.
   * `args` {any}.
-* Returns `emitter` {events.EventEmitter}.
+* Returns `emitter` {EventEmitter}.
 
 Adds the `listener` callback function to the end of the listener's list for the given `event`. No checks are made to see if the `listener` has already been added.
 In case of multiple calls the `listener` will be added and called multiple times.
@@ -84,7 +84,7 @@ In case of multiple calls the `listener` will be added and called multiple times
 
 ```js
 
-var EventEmitter = require('events').EventEmitter;
+var EventEmitter = require('events');
 var emitter = new EventEmitter();
 
 emitter.on('event', function() {
@@ -108,7 +108,7 @@ Returns true if the event had listeners, false otherwise.
 
 ```js
 
-var EventEmitter = require('events').EventEmitter;
+var EventEmitter = require('events');
 var emitter = new EventEmitter();
 
 emitter.addListener('event', function() {
@@ -125,7 +125,7 @@ emitter.emit('not_an_event'); // false
 * `event` {string} The name of the event.
 * `listener` {Function} The callback function.
   * `args` {any}.
-* Returns `emitter` {events.EventEmitter}.
+* Returns `emitter` {EventEmitter}.
 
 Adds the `listener` as a one time listener for the `event`.
 
@@ -136,7 +136,7 @@ The listener will be invoked only once, when the first `event` is emitted.
 
 ``` js
 
-var EventEmitter = require('events').EventEmitter;
+var EventEmitter = require('events');
 var assert = require('assert');
 
 var emitter = new EventEmitter();
@@ -159,7 +159,7 @@ assert.equal(onceCnt, 1);
 * `event` {string} The name of the event.
 * `listener` {Function} The callback function.
   * `args` {any}.
-* Returns `emitter` {events.EventEmitter}.
+* Returns `emitter` {EventEmitter}.
 
 Removes `listener` from the list of event listeners.
 
@@ -169,7 +169,7 @@ If you add the same `listener` multiple times, this removes only one instance of
 
 ```js
 
-var EventEmitter = require('events').EventEmitter;
+var EventEmitter = require('events');
 var emitter = new EventEmitter();
 
 var listener = function() {
@@ -183,7 +183,7 @@ emitter.removeListener('event', listener);
 
 ### emitter.removeAllListeners([event])
 * `event` {string} The name of the event.
-* Returns `emitter` {events.EventEmitter}.
+* Returns `emitter` {EventEmitter}.
 
 Removes all listeners.
 
@@ -193,7 +193,7 @@ If `event` was specified, it only removes the listeners for that event.
 
 ``` js
 
-var EventEmitter = require('events').EventEmitter;
+var EventEmitter = require('events');
 
 var emitter = new EventEmitter();
 

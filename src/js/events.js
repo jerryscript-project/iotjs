@@ -21,7 +21,8 @@ function EventEmitter() {
   this._events = {};
 }
 
-module.exports.EventEmitter = EventEmitter;
+module.exports = EventEmitter;
+EventEmitter.EventEmitter = EventEmitter;
 
 
 EventEmitter.prototype.emit = function(type) {

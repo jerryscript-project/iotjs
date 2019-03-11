@@ -13,9 +13,10 @@
  * limitations under the License.
  */
 
-var EventEmitter = require('events').EventEmitter;
+var EventEmitter = require('events');
 var assert = require('assert');
 
+assert.strictEqual(EventEmitter, EventEmitter.EventEmitter);
 
 var emitter = new EventEmitter();
 

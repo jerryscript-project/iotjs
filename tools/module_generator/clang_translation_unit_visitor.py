@@ -14,8 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from clang.cindex import Config, Index, conf, CursorKind, TypeKind, \
-    AccessSpecifier
+from clang.cindex import Index, conf, CursorKind, TypeKind, AccessSpecifier
 
 # This class is a wrapper for the TypeKind and Type classes.
 class ClangASTNodeType:
@@ -493,9 +492,7 @@ class ClangNamespace:
 # This class responsible for initializing and visiting
 # the AST provided by libclang.
 class ClangTUVisitor:
-    def __init__(self, lang, header, api_headers, check_all, args):
-        # TODO: Avoid hard-coding paths and args in general.
-        Config.set_library_file('libclang-6.0.so.1')
+    def __init__(self, lang, header, api_headers, check_all, args, verbose):
         index = Index.create()
 
         self.is_cpp = True if lang == 'c++' else False
@@ -503,10 +500,17 @@ class ClangTUVisitor:
         self.translation_unit = index.parse(header, args + self.clang_args,
                                             options=1)
 
-        for diag in self.translation_unit.diagnostics:
-            msg = '\033[91mERROR : {} at {} line {}, column {}\033[00m'
-            print (msg.format(diag.spelling, diag.location.file,
-                              diag.location.line, diag.location.column))
+        if verbose:
+            for diag in self.translation_unit.diagnostics:
+                if diag.severity == 2:
+                    msg = '\033[93mWARNING : '
+                elif diag.severity == 3:
+                    msg = '\033[91mERROR : '
+                elif diag.severity == 4:
+                    msg = '\033[91mFATAL : '
+                msg += '{} at {} line {}, column {}\033[00m'
+                print (msg.format(diag.spelling, diag.location.file,
+                                diag.location.line, diag.location.column))
 
         self.api_headers = api_headers
         self.check_all = check_all

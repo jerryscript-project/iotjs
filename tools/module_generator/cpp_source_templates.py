@@ -20,7 +20,7 @@
 # String to char[]
 JS_TO_STRING = '''
   // create an array of characters from a jerry_value_t
-  {TYPE} * {NAME} = nullptr;
+  {TYPE} * {NAME} = NULL;
   if (jerry_value_is_string ({JVAL}))
   {{
     jerry_size_t {NAME}_size = jerry_get_string_size ({JVAL});
@@ -40,7 +40,7 @@ JS_FREE_STRING = '''
 JS_SET_CHAR_PTR = '''
   // set the value of {NAME}
   jerry_size_t size = jerry_get_string_size ({JVAL});
-  if ({NAME} == nullptr)
+  if ({NAME} == NULL)
   {{
     {NAME} = new {TYPE}[size + 1];
   }}
@@ -51,7 +51,7 @@ JS_SET_CHAR_PTR = '''
 # TypedArray to number pointer
 JS_TO_TYPEDARRAY = '''
   // create a pointer to number from a jerry_value_t
-  {TYPE} * {NAME} = nullptr;
+  {TYPE} * {NAME} = NULL;
   jerry_length_t {NAME}_byteLength = 0;
   jerry_length_t {NAME}_byteOffset = 0;
   jerry_value_t {NAME}_buffer;
@@ -83,7 +83,7 @@ JS_SET_TYPEDARRAY = '''
   if (jerry_value_is_typedarray ({JVAL}))
   {{
     buffer = jerry_get_typedarray_buffer ({JVAL}, &byteOffset, &byteLength);
-    if ({NAME} == nullptr)
+    if ({NAME} == NULL)
     {{
       {NAME} = new {TYPE}[byteLength / sizeof({TYPE})];
     }}
@@ -92,7 +92,7 @@ JS_SET_TYPEDARRAY = '''
   }}
   else
   {{
-    {NAME} = nullptr;
+    {NAME} = NULL;
   }}
 '''
 
@@ -151,7 +151,7 @@ static const jerry_object_native_info_t {RECORD}_type_info = {{
 }};
 
 static const jerry_object_native_info_t {RECORD}_type_info_static = {{
-  .free_cb = nullptr
+  .free_cb = NULL
 }};
 '''
 

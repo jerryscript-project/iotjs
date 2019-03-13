@@ -24,20 +24,36 @@ The input of the generator is a directory, which contains the C/C++ header files
 
 The tool uses libclang to analyze the given library and get the necessary informations.
 
-#### Clang library:
+### Clang library:
+
+#### Linux:
 
 ```bash
 apt install libclang1-6.0
 ```
+**NOTE:** The python binding searches for `libclang.so` as deafult. After installing `libclang1-6.0` you should add a symlink to `path/to/libclang-6.0.so` like below:
 
-#### Python binding for Clang:
+```bash
+cd /usr/lib/x86_64-linux-gnu/
+sudo ln -s libclang-6.0.so libclang.so
+```
 
+#### Windows:
+
+[Download link](http://releases.llvm.org/6.0.0/LLVM-6.0.0-win32.exe)
+
+**NOTE:** The tool has been tested with 32 bit binary. You should add LLVM to the system PATH, so python binding can find it.
+
+### Python binding for Clang:
+
+```bash
+pip install clang
+```
+
+or optionally for Linux:
 ```bash
 apt install python-clang-6.0
 ```
-
-(The tool has been tested with the 5.0 and 6.0 versions.)
-
 
 ## Features:
 

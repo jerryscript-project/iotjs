@@ -288,7 +288,7 @@ Buffer.prototype.writeUInt32LE = function(value, offset, noAssert) {
   value = +value;
   offset = offset >>> 0;
   if (!noAssert)
-    checkInt(this, value, offset, 4, 0xffffffff, 0);
+    checkInt(this, value, offset, 4, -1 >>> 0, 0);
   native.writeUInt8(this, (value >>> 24) & 0xff, offset + 3);
   native.writeUInt8(this, (value >>> 16) & 0xff, offset + 2);
   native.writeUInt8(this, (value >>> 8) & 0xff, offset + 1);

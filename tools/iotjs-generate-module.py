@@ -38,7 +38,7 @@ def generate_c_source(header, api_headers, dirname, args):
         visit_args += ['-I' + inc for inc in args.includes.read().splitlines()]
 
     visitor = ClangTUVisitor(args.lang, header, api_headers, args.check_all,
-                             visit_args)
+                             visit_args, args.verbose)
     visitor.visit()
 
     if args.check or args.check_all:
@@ -154,7 +154,7 @@ def generate_module(args):
     library = search_for_lib(directory)
 
     if not library:
-        print ('\033[93mWARN: Cannot find library file. ' +
+        print ('\033[93mWARNING: Cannot find library file. ' +
                'Only the binding layer source has generated.\033[00m')
         return
 
@@ -208,6 +208,9 @@ if __name__ == '__main__':
 
     parser.add_argument('--check-all', action='store_true', default=False,
         help='Check the C API headers.')
+
+    parser.add_argument('-v' , '--verbose', action='store_true', default=False,
+        help='Print errors, detected by clang.')
 
     args = parser.parse_args()
 

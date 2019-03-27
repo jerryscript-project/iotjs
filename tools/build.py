@@ -217,11 +217,6 @@ def adjust_options(options):
     if options.target_os == 'darwin':
         options.no_check_valgrind = True
 
-    # Switch to no-snapshot mode on windows for now.
-    # TODO: After Jerry update this could be removed.
-    if options.target_os == 'windows':
-        options.no_snapshot = True
-
     if options.target_board in ['rpi2', 'rpi3', 'artik10', 'artik05x']:
         options.no_check_valgrind = True
 

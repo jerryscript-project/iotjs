@@ -50,7 +50,21 @@ iotjs_bufferwrap_t* iotjs_bufferwrap_create(const jerry_value_t jobject,
 
 
 static void iotjs_bufferwrap_destroy(iotjs_bufferwrap_t* bufferwrap) {
+  if (bufferwrap->external_info && bufferwrap->external_info->free_hint) {
+    ((void (*)(void*))bufferwrap->external_info->free_hint)(
+        bufferwrap->external_info->free_info);
+  }
+
+  IOTJS_RELEASE(bufferwrap->external_info);
   IOTJS_RELEASE(bufferwrap);
+}
+
+
+void iotjs_bufferwrap_set_external_callback(iotjs_bufferwrap_t* bufferwrap,
+                                            void* free_hint, void* free_info) {
+  bufferwrap->external_info = IOTJS_ALLOC(iotjs_bufferwrap_external_info_t);
+  bufferwrap->external_info->free_hint = free_hint;
+  bufferwrap->external_info->free_info = free_info;
 }
 
 

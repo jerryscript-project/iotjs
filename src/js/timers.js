@@ -17,10 +17,16 @@ var util = require('util');
 
 var TIMEOUT_MAX = '2147483647.0' - 0; // 2^31-1
 
+var TIMER_TYPES = {
+  setTimeout: 0,
+  setInterval: 1,
+  setImmediate: 2,
+};
+
 
 function Timeout(after) {
   this.after = after;
-  this.isrepeat = false;
+  this.isRepeat = false;
   this.callback = null;
   this.handler = null;
 }
@@ -36,7 +42,7 @@ native.prototype.handleTimeout = function() {
       throw e;
     }
 
-    if (!timeout.isrepeat) {
+    if (!timeout.isRepeat) {
       timeout.unref();
     }
   }
@@ -47,7 +53,7 @@ Timeout.prototype.ref = function() {
   var repeat = 0;
   var handler = new native();
 
-  if (this.isrepeat) {
+  if (this.isRepeat) {
     repeat = this.after;
 
   }
@@ -68,14 +74,19 @@ Timeout.prototype.unref = function() {
   }
 };
 
-function timeoutConfigurator(isrepeat, callback, delay) {
+
+function timeoutConfigurator(type, callback, delay) {
   if (!util.isFunction(callback)) {
     throw new TypeError('Bad arguments: callback must be a Function');
   }
 
-  delay *= 1;
-  if (delay < 1 || delay > TIMEOUT_MAX) {
-    delay = 1;
+  if (type === TIMER_TYPES.setImmediate) {
+    delay = 0;
+  } else {
+    delay *= 1;
+    if (delay < 1 || delay > TIMEOUT_MAX) {
+      delay = 1;
+    }
   }
 
   var timeout = new Timeout(delay);
@@ -88,14 +99,18 @@ function timeoutConfigurator(isrepeat, callback, delay) {
     args.splice(0, 0, timeout);
     timeout.callback = callback.bind.apply(callback, args);
   }
-  timeout.isrepeat = isrepeat;
+  timeout.isRepeat = type == TIMER_TYPES.setInterval;
   timeout.ref();
 
   return timeout;
 }
 
-exports.setTimeout = timeoutConfigurator.bind(undefined, false);
-exports.setInterval = timeoutConfigurator.bind(undefined, true);
+exports.setTimeout = timeoutConfigurator.bind(undefined,
+                                              TIMER_TYPES.setTimeout);
+exports.setInterval = timeoutConfigurator.bind(undefined,
+                                               TIMER_TYPES.setInterval);
+exports.setImmediate = timeoutConfigurator.bind(undefined,
+                                                TIMER_TYPES.setImmediate);
 
 function clearTimeoutBase(timeoutType, timeout) {
   if (timeout) {

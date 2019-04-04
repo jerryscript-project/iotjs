@@ -139,11 +139,6 @@
       "js_file": "js/dns.js",
       "require": ["util"]
     },
-    "dynamicloader": {
-      "native_files": ["modules/iotjs_module_dynamicloader.c"],
-      "init": "InitDynamicloader",
-      "external_libs": ["dl"]
-    },
     "events": {
       "js_file": "js/events.js",
       "require": ["util"]
@@ -238,14 +233,6 @@
       "js_file": "js/i2c.js"
     },
     "module": {
-      "platforms": {
-        "linux": {
-          "require": ["dynamicloader"]
-        },
-        "tizen": {
-          "require": ["dynamicloader"]
-        }
-      },
       "js_file": "js/module.js",
       "require": ["fs"]
     },
@@ -254,6 +241,19 @@
       "require": ["events", "util", "url"],
       "native_files": ["modules/iotjs_module_mqtt.c"],
       "init": "InitMQTT"
+    },
+    "napi": {
+      "native_files": ["modules/iotjs_module_dynamicloader.c",
+                       "napi/node_api.c",
+                       "napi/node_api_env.c",
+                       "napi/node_api_function.c",
+                       "napi/node_api_lifetime.c",
+                       "napi/node_api_module.c",
+                       "napi/node_api_object_wrap.c",
+                       "napi/node_api_property.c",
+                       "napi/node_api_value.c"],
+      "init": "InitDynamicloader",
+      "external_libs": ["dl"]
     },
     "net": {
       "js_file": "js/net.js",

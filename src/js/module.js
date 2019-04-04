@@ -18,7 +18,7 @@ var Builtin = require('builtin');
 var fs = Builtin.require('fs');
 var dynamicloader;
 try {
-  dynamicloader = Builtin.require('dynamicloader');
+  dynamicloader = Builtin.require('napi');
 } catch (e) {
   // the 'dynamicloader' module is not enabled, nothing to do.
 }
@@ -199,8 +199,8 @@ Module.resolveFilepath = function(id, directories) {
       return filepath;
     }
 
-    // id[.iotjs]
-    if (dynamicloader && (filepath = tryPath(modulePath, '.iotjs'))) {
+    // id[.node]
+    if (dynamicloader && (filepath = tryPath(modulePath, '.node'))) {
       return filepath;
     }
   }
@@ -274,7 +274,7 @@ Module.load = function(id, parent) {
   } else if (ext === 'json') {
     source = Builtin.readSource(modPath);
     module.exports = JSON.parse(source);
-  } else if (dynamicloader && ext === 'iotjs') {
+  } else if (dynamicloader && ext === 'node') {
     module.exports = dynamicloader(modPath);
   }
 

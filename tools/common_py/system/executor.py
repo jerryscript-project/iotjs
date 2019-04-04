@@ -60,11 +60,11 @@ class Executor(object):
         exit(1)
 
     @staticmethod
-    def run_cmd(cmd, args=[], quiet=False):
+    def run_cmd(cmd, args=[], quiet=False, cwd=None):
         if not quiet:
             Executor.print_cmd_line(cmd, args)
         try:
-            return subprocess.call([cmd] + args)
+            return subprocess.call([cmd] + args, cwd=cwd)
         except OSError as e:
             Executor.fail("[Failed - %s] %s" % (cmd, e.strerror))
 
@@ -90,8 +90,8 @@ class Executor(object):
             Executor.fail("[Failed - %s] %s" % (cmd, e.strerror))
 
     @staticmethod
-    def check_run_cmd(cmd, args=[], quiet=False):
-        retcode = Executor.run_cmd(cmd, args, quiet)
+    def check_run_cmd(cmd, args=[], quiet=False, cwd=None):
+        retcode = Executor.run_cmd(cmd, args, quiet, cwd)
         if retcode != 0:
             Executor.fail("[Failed - %d] %s" % (retcode,
                                                 Executor.cmd_line(cmd, args)))

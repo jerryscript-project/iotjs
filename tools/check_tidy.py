@@ -214,7 +214,7 @@ def check_tidy(src_dir, options=None):
     clang_format_exts = ['.c', '.h']
     skip_dirs = ['deps', 'build', '.git', 'node_modules', 'coverage',
                  'iotjs_modules', 'IoTjsApp']
-    skip_files = ['check_signed_off.sh', '__init__.py',
+    skip_files = ['check_license.py', 'check_signed_off.sh', '__init__.py',
                   'iotjs_js.c', 'iotjs_js.h', 'iotjs_string_ext.inl.h',
                   "iotjs_module_inl.h",
                   'ble.js',
@@ -226,6 +226,8 @@ def check_tidy(src_dir, options=None):
                   'ble_hci_socket_mgmt.js',
                   'ble_hci_socket_bindings.js',
                   'ble_characteristic.js',
+                  'node_api.h',
+                  'node_api_types.h',
                   'test_ble_setservices.js',
                   '.eslintrc.js',
                   'c_source_templates.py',

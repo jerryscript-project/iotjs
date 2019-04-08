@@ -1,12 +1,16 @@
 [submodule "deps/jerry"]
-	path = deps/jerry
-	url = https://github.com/pando-project/jerryscript.git
+    path = deps/jerry
+    url = https://github.com/pando-project/jerryscript.git
+    ignore = untracked
 [submodule "deps/http-parser"]
-	path = deps/http-parser
-	url = https://github.com/pando-project/http-parser.git
+    path = deps/http-parser
+    url = https://github.com/pando-project/http-parser.git
+    ignore = untracked
 [submodule "deps/libtuv"]
-	path = deps/libtuv
-	url = https://github.com/pando-project/libtuv.git
+    path = deps/libtuv
+    url = https://github.com/pando-project/libtuv.git
+    ignore = untracked
 [submodule "deps/mbedtls"]
-	path = deps/mbedtls
-	url = https://github.com/ARMmbed/mbedtls.git
+    path = deps/mbedtls
+    url = https://github.com/ARMmbed/mbedtls.git
+    ignore = untracked

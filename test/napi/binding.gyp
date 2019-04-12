@@ -53,6 +53,10 @@
       "sources": [ "test_napi_handle_scope.c" ]
     },
     {
+      "target_name": "test_napi_promise",
+      "sources": [ "test_napi_promise.c" ]
+    },
+    {
       "target_name": "test_napi_properties",
       "sources": [ "test_napi_properties.c" ]
     },

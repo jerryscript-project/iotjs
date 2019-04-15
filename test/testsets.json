@@ -1233,6 +1233,12 @@
       ]
     },
     {
+      "name": "test_napi_env.js",
+      "required-modules": [
+        "napi"
+      ]
+    },
+    {
       "name": "test_napi_exception.js",
       "required-modules": [
         "napi"
@@ -1264,6 +1270,12 @@
     },
     {
       "name": "test_napi_properties.js",
+      "required-modules": [
+        "napi"
+      ]
+    },
+    {
+      "name": "test_napi_reference.js",
       "required-modules": [
         "napi"
       ]

@@ -21,10 +21,8 @@ static void native_info_free(void* native_info) {
   iotjs_object_info_t* info = (iotjs_object_info_t*)native_info;
   iotjs_reference_t* comp = info->ref_start;
   while (comp != NULL) {
-    comp->jval = AS_JERRY_VALUE(NULL);
-    iotjs_reference_t* next_val = comp->next;
-    IOTJS_RELEASE(comp);
-    comp = next_val;
+    comp->jval = jerry_create_undefined();
+    comp = comp->next;
   }
 
   if (info->finalize_cb != NULL) {
@@ -56,10 +54,7 @@ iotjs_object_info_t* iotjs_get_object_native_info(jerry_value_t jval,
   bool has_native_ptr =
       jerry_get_object_native_pointer(jval, (void**)&info, NULL);
   if (!has_native_ptr) {
-    info = (iotjs_object_info_t*)iotjs_buffer_allocate(
-        native_info_size < sizeof(iotjs_object_info_t)
-            ? sizeof(iotjs_object_info_t)
-            : native_info_size);
+    info = (iotjs_object_info_t*)iotjs_buffer_allocate(native_info_size);
     jerry_set_object_native_pointer(jval, info, &native_obj_type_info);
   }
 
@@ -135,7 +130,8 @@ napi_status napi_create_reference(napi_env env, napi_value value,
   NAPI_WEAK_ASSERT(napi_invalid_arg, result != NULL);
 
   jerry_value_t jval = AS_JERRY_VALUE(value);
-  iotjs_object_info_t* info = iotjs_get_object_native_info(jval, sizeof(jval));
+  iotjs_object_info_t* info =
+      iotjs_get_object_native_info(jval, sizeof(iotjs_object_info_t));
 
   iotjs_reference_t* ref = IOTJS_ALLOC(iotjs_reference_t);
   ref->refcount = initial_refcount;
@@ -164,10 +160,10 @@ napi_status napi_create_reference(napi_env env, napi_value value,
 napi_status napi_delete_reference(napi_env env, napi_ref ref) {
   NAPI_TRY_ENV(env);
   iotjs_reference_t* iotjs_ref = (iotjs_reference_t*)ref;
-  if (iotjs_ref->jval != AS_JERRY_VALUE(NULL)) {
+  if (jerry_value_is_object(iotjs_ref->jval)) {
     jerry_value_t jval = iotjs_ref->jval;
     iotjs_object_info_t* info =
-        iotjs_get_object_native_info(jval, sizeof(jval));
+        iotjs_get_object_native_info(jval, sizeof(iotjs_object_info_t));
 
     bool found = false;
     iotjs_reference_t* comp = info->ref_start;
@@ -204,7 +200,7 @@ napi_status napi_delete_reference(napi_env env, napi_ref ref) {
 napi_status napi_reference_ref(napi_env env, napi_ref ref, uint32_t* result) {
   NAPI_TRY_ENV(env);
   iotjs_reference_t* iotjs_ref = (iotjs_reference_t*)ref;
-  NAPI_WEAK_ASSERT(napi_invalid_arg, (iotjs_ref->jval != AS_JERRY_VALUE(NULL)));
+  NAPI_WEAK_ASSERT(napi_invalid_arg, jerry_value_is_object(iotjs_ref->jval));
 
   jerry_acquire_value(iotjs_ref->jval);
   iotjs_ref->refcount += 1;

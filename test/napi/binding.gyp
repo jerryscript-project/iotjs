@@ -21,6 +21,14 @@
       "sources": [ "test_napi_conversions.c" ]
     },
     {
+      "target_name": "test_napi_env_compare",
+      "sources": [ "test_napi_env_compare.c" ]
+    },
+    {
+      "target_name": "test_napi_env_store",
+      "sources": [ "test_napi_env_store.c" ]
+    },
+    {
       "target_name": "test_napi_error_handling",
       "sources": [ "test_napi_error_handling.c" ]
     },
@@ -39,6 +47,10 @@
     {
       "target_name": "test_napi_properties",
       "sources": [ "test_napi_properties.c" ]
+    },
+    {
+      "target_name": "test_napi_reference",
+      "sources": [ "test_napi_reference.c" ]
     },
     {
       "target_name": "test_napi_strictequal_and_instanceof",

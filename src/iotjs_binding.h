@@ -76,9 +76,6 @@ void iotjs_jval_set_property_string_raw(jerry_value_t jobj, const char* name,
 
 jerry_value_t iotjs_jval_get_property(jerry_value_t jobj, const char* name);
 
-void* iotjs_jval_get_object_native_handle(jerry_value_t jobj,
-                                          JNativeInfoType* required_info);
-
 void iotjs_jval_set_property_by_index(jerry_value_t jarr, uint32_t idx,
                                       jerry_value_t jval);
 jerry_value_t iotjs_jval_get_property_by_index(jerry_value_t jarr,
@@ -168,14 +165,13 @@ jerry_value_t iotjs_jhelper_eval(const char* name, size_t name_len,
 #define DJS_CHECK_ARG_IF_EXIST(index, type) JS_CHECK_ARG_IF_EXIST(index, type)
 #endif
 
-#define JS_DECLARE_PTR(JOBJ, TYPE, NAME)                                     \
-  TYPE* NAME;                                                                \
-  do {                                                                       \
-    NAME =                                                                   \
-        iotjs_jval_get_object_native_handle(JOBJ, &this_module_native_info); \
-    if (NAME == NULL) {                                                      \
-      return JS_CREATE_ERROR(COMMON, "Internal");                            \
-    }                                                                        \
+#define JS_DECLARE_PTR(JOBJ, TYPE, NAME)                              \
+  TYPE* NAME = NULL;                                                  \
+  do {                                                                \
+    if (!jerry_get_object_native_pointer(JOBJ, (void**)&NAME,         \
+                                         &this_module_native_info)) { \
+      return JS_CREATE_ERROR(COMMON, "Internal");                     \
+    }                                                                 \
   } while (0)
 
 #define JS_DECLARE_THIS_PTR(type, name) \

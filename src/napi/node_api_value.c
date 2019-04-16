@@ -82,6 +82,18 @@ napi_status napi_create_buffer_copy(napi_env env, size_t size, const void* data,
   return napi_assign_nvalue(jval_buf, result);
 }
 
+static void napi_external_destroy(iotjs_object_info_t* info) {
+  if (info->finalize_cb != NULL) {
+    info->finalize_cb(info->env, info->native_object, info->finalize_hint);
+  }
+
+  IOTJS_RELEASE(info);
+}
+
+static const jerry_object_native_info_t napi_external_native_info = {
+  .free_cb = (jerry_object_native_free_callback_t)napi_external_destroy
+};
+
 napi_status napi_create_external(napi_env env, void* data,
                                  napi_finalize finalize_cb, void* finalize_hint,
                                  napi_value* result) {
@@ -89,11 +101,13 @@ napi_status napi_create_external(napi_env env, void* data,
   napi_value nval;
   NAPI_INTERNAL_CALL(napi_create_object(env, &nval));
   iotjs_object_info_t* info =
-      iotjs_get_object_native_info(AS_JERRY_VALUE(nval),
-                                   sizeof(iotjs_object_info_t));
+      (iotjs_object_info_t*)iotjs_buffer_allocate(sizeof(iotjs_object_info_t));
   info->native_object = data;
   info->finalize_cb = finalize_cb;
   info->finalize_hint = finalize_hint;
+
+  jerry_set_object_native_pointer(AS_JERRY_VALUE(nval), info,
+                                  &napi_external_native_info);
 
   NAPI_ASSIGN(result, nval);
   NAPI_RETURN(napi_ok);
@@ -300,8 +314,13 @@ napi_status napi_get_value_external(napi_env env, napi_value value,
                                     void** result) {
   NAPI_TRY_ENV(env);
   jerry_value_t jval = AS_JERRY_VALUE(value);
-  iotjs_object_info_t* info =
-      iotjs_get_object_native_info(jval, sizeof(iotjs_object_info_t));
+  iotjs_object_info_t* info = NULL;
+  if (!jerry_get_object_native_pointer(jval, (void**)&info,
+                                       &napi_external_native_info)) {
+    NAPI_ASSIGN(result, NULL);
+    NAPI_RETURN(napi_invalid_arg, "Argument must be type of 'napi_external'.");
+  }
+
   NAPI_ASSIGN(result, info->native_object);
   NAPI_RETURN(napi_ok);
 }
@@ -406,11 +425,8 @@ napi_status napi_typeof(napi_env env, napi_value value,
       break;
     }
     case JERRY_TYPE_OBJECT: {
-      void* ptr = NULL;
-      JNativeInfoType* out_info;
-      bool has_p =
-          jerry_get_object_native_pointer(jval, (void**)&ptr, &out_info);
-      if (has_p && !iotjs_jbuffer_get_bufferwrap_ptr(jval)) {
+      if (jerry_get_object_native_pointer(jval, NULL,
+                                          &napi_external_native_info)) {
         NAPI_ASSIGN(result, napi_external);
       } else {
         NAPI_ASSIGN(result, napi_object);

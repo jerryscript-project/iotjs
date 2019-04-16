@@ -22,6 +22,8 @@
 #include "iotjs_module_websocket.h"
 
 
+IOTJS_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(wsclient);
+
 static void iotjs_wsclient_destroy(iotjs_wsclient_t *wsclient) {
   IOTJS_RELEASE(wsclient->tcp_buff.buffer);
   IOTJS_RELEASE(wsclient->ws_buff.data);
@@ -29,14 +31,10 @@ static void iotjs_wsclient_destroy(iotjs_wsclient_t *wsclient) {
   IOTJS_RELEASE(wsclient);
 }
 
-static const jerry_object_native_info_t wsclient_native_info = {
-  .free_cb = (jerry_object_native_free_callback_t)iotjs_wsclient_destroy
-};
-
 iotjs_wsclient_t *iotjs_wsclient_create(const jerry_value_t jobject) {
   iotjs_wsclient_t *wsclient = IOTJS_ALLOC(iotjs_wsclient_t);
 
-  jerry_set_object_native_pointer(jobject, wsclient, &wsclient_native_info);
+  jerry_set_object_native_pointer(jobject, wsclient, &this_module_native_info);
   return wsclient;
 }
 
@@ -139,10 +137,8 @@ static unsigned char *iotjs_make_handshake_key(char *client_key,
 static bool iotjs_check_handshake_key(char *server_key, jerry_value_t jsref) {
   bool ret_val = true;
   void *native_p;
-  JNativeInfoType *out_native_info;
-  bool has_p =
-      jerry_get_object_native_pointer(jsref, &native_p, &out_native_info);
-  if (!has_p || out_native_info != &wsclient_native_info) {
+  if (!jerry_get_object_native_pointer(jsref, &native_p,
+                                       &this_module_native_info)) {
     ret_val = false;
   }
 
@@ -299,9 +295,9 @@ JS_FUNCTION(PrepareHandshakeRequest) {
     return JS_CREATE_ERROR(COMMON, "Invalid host and/or path arguments!");
   };
 
-  iotjs_wsclient_t *wsclient = (iotjs_wsclient_t *)
-      iotjs_jval_get_object_native_handle(jsref, &wsclient_native_info);
-  if (wsclient == NULL) {
+  iotjs_wsclient_t *wsclient = NULL;
+  if (!jerry_get_object_native_pointer(jsref, (void **)&wsclient,
+                                       &this_module_native_info)) {
     return iotjs_websocket_check_error(WS_ERR_NATIVE_POINTER_ERR);
   }
 
@@ -556,9 +552,9 @@ JS_FUNCTION(WsReceive) {
 
   jerry_value_t jsref = JS_GET_ARG(0, object);
 
-  iotjs_wsclient_t *wsclient = (iotjs_wsclient_t *)
-      iotjs_jval_get_object_native_handle(jsref, &wsclient_native_info);
-  if (wsclient == NULL) {
+  iotjs_wsclient_t *wsclient = NULL;
+  if (!jerry_get_object_native_pointer(jsref, (void **)&wsclient,
+                                       &this_module_native_info)) {
     return iotjs_websocket_check_error(WS_ERR_NATIVE_POINTER_ERR);
   }
 

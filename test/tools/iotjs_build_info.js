@@ -47,13 +47,16 @@ var typedArrayFeatures = [
   'Int8Array',
   'Uint8Array',
   'Uint8ClampedArray',
-  'Int168Array',
+  'Int16Array',
   'Uint16Array',
   'Int32Array',
   'Uint32Array',
   'Float32Array',
   'Float64Array'
 ];
+
+if (hasFeatures(global, ['Symbol']))
+  features.Symbol = true;
 
 if (hasFeatures(global, ['Promise']))
   features.Promise = true;

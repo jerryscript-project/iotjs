@@ -1209,6 +1209,12 @@
       ]
     },
     {
+      "name": "test_napi_async.js",
+      "required-modules": [
+        "napi"
+      ]
+    },
+    {
       "name": "test_napi_buffer.js",
       "required-modules": [
         "napi"
@@ -1258,6 +1264,18 @@
     },
     {
       "name": "test_napi_is_error.js",
+      "required-modules": [
+        "napi"
+      ]
+    },
+    {
+      "name": "test_napi_make_callback.js",
+      "required-modules": [
+        "napi"
+      ]
+    },
+    {
+      "name": "test_napi_make_callback_error.js",
       "required-modules": [
         "napi"
       ]

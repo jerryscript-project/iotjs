@@ -9,6 +9,10 @@
       "sources": [ "test_napi_array.c" ]
     },
     {
+      "target_name": "test_napi_async",
+      "sources": [ "test_napi_async.c" ]
+    },
+    {
       "target_name": "test_napi_buffer",
       "sources": [ "test_napi_buffer.c" ]
     },
@@ -35,6 +39,10 @@
     {
       "target_name": "test_napi_general",
       "sources": [ "test_napi_general.c" ]
+    },
+    {
+      "target_name": "test_napi_make_callback",
+      "sources": [ "test_napi_make_callback.c" ]
     },
     {
       "target_name": "test_napi_object_wrap",

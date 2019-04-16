@@ -245,6 +245,7 @@
     "napi": {
       "native_files": ["modules/iotjs_module_dynamicloader.c",
                        "napi/node_api.c",
+                       "napi/node_api_async.c",
                        "napi/node_api_env.c",
                        "napi/node_api_function.c",
                        "napi/node_api_lifetime.c",

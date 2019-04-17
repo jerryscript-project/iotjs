@@ -67,6 +67,10 @@
     {
       "target_name": "test_napi_string",
       "sources": [ "test_napi_string.c" ]
+    },
+    {
+      "target_name": "test_napi_symbol",
+      "sources": [ "test_napi_symbol.c" ]
     }
   ]
 }

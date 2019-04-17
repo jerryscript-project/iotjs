@@ -230,6 +230,21 @@ DEF_NAPI_NUMBER_CONVERT_FROM_NVALUE(int64_t, int64);
 DEF_NAPI_NUMBER_CONVERT_FROM_NVALUE(uint32_t, uint32);
 #undef DEF_NAPI_NUMBER_CONVERT_FROM_NVALUE
 
+napi_status napi_create_symbol(napi_env env, napi_value description,
+                               napi_value* result) {
+  NAPI_TRY_ENV(env);
+
+  if (!jerry_is_feature_enabled(JERRY_FEATURE_SYMBOL)) {
+    NAPI_ASSIGN(result, NULL);
+    NAPI_RETURN(napi_generic_failure,
+                "Symbols are not supported by this build.");
+  }
+
+  JERRYX_CREATE(jval, jerry_create_symbol(AS_JERRY_VALUE(description)));
+  NAPI_ASSIGN(result, AS_NAPI_VALUE(jval));
+  NAPI_RETURN(napi_ok);
+}
+
 napi_status napi_create_string_utf8(napi_env env, const char* str,
                                     size_t length, napi_value* result) {
   NAPI_TRY_ENV(env);
@@ -384,6 +399,10 @@ napi_status napi_typeof(napi_env env, napi_value value,
     }
     case JERRY_TYPE_STRING: {
       NAPI_ASSIGN(result, napi_string);
+      break;
+    }
+    case JERRY_TYPE_SYMBOL: {
+      NAPI_ASSIGN(result, napi_symbol);
       break;
     }
     case JERRY_TYPE_OBJECT: {

@@ -138,10 +138,17 @@ def job_host_linux():
 def job_n_api():
     start_container()
 
+    # N-API should work with both ES5.1 and ES2015-subset JerryScript profiles
     for buildtype in BUILDTYPES:
         build_iotjs(buildtype, [
                     '--run-test=full',
                     '--n-api'])
+
+    for buildtype in BUILDTYPES:
+        build_iotjs(buildtype, [
+                    '--run-test=full',
+                    '--n-api',
+                    '--jerry-profile=es2015-subset'])
 
 @job('mock-linux')
 def job_mock_linux():

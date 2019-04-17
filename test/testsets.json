@@ -1257,6 +1257,18 @@
       ]
     },
     {
+      "name": "test_napi_general_es2015.js",
+      "required-features": [
+        "ArrayBuffer",
+        "Promise",
+        "Symbol",
+        "TypedArray"
+      ],
+      "required-modules": [
+        "napi"
+      ]
+    },
+    {
       "name": "test_napi_handle_scope.js",
       "required-modules": [
         "napi"
@@ -1306,6 +1318,15 @@
     },
     {
       "name": "test_napi_string.js",
+      "required-modules": [
+        "napi"
+      ]
+    },
+    {
+      "name": "test_napi_symbol.js",
+      "required-features": [
+        "Symbol"
+      ],
       "required-modules": [
         "napi"
       ]

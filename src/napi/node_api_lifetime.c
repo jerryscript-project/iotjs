@@ -17,8 +17,9 @@
 #include <stdlib.h>
 #include "internal/node_api_internal.h"
 
-static void native_info_free(void* native_info) {
-  iotjs_object_info_t* info = (iotjs_object_info_t*)native_info;
+IOTJS_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(object_info);
+
+static void iotjs_object_info_destroy(iotjs_object_info_t* info) {
   iotjs_reference_t* comp = info->ref_start;
   while (comp != NULL) {
     comp->jval = jerry_create_undefined();
@@ -31,10 +32,6 @@ static void native_info_free(void* native_info) {
 
   IOTJS_RELEASE(info);
 }
-
-static const jerry_object_native_info_t native_obj_type_info = {
-  .free_cb = native_info_free
-};
 
 inline napi_status jerryx_status_to_napi_status(
     jerryx_handle_scope_status status) {
@@ -50,22 +47,20 @@ inline napi_status jerryx_status_to_napi_status(
 
 iotjs_object_info_t* iotjs_get_object_native_info(jerry_value_t jval,
                                                   size_t native_info_size) {
-  iotjs_object_info_t* info;
-  bool has_native_ptr =
-      jerry_get_object_native_pointer(jval, (void**)&info, NULL);
-  if (!has_native_ptr) {
-    info = (iotjs_object_info_t*)iotjs_buffer_allocate(native_info_size);
-    jerry_set_object_native_pointer(jval, info, &native_obj_type_info);
+  void* info;
+  if (!jerry_get_object_native_pointer(jval, &info, &this_module_native_info)) {
+    info = iotjs_buffer_allocate(native_info_size);
+    jerry_set_object_native_pointer(jval, info, &this_module_native_info);
   }
 
-  return info;
+  return (iotjs_object_info_t*)info;
 }
 
 iotjs_object_info_t* iotjs_try_get_object_native_info(jerry_value_t jval,
                                                       size_t native_info_size) {
-  iotjs_object_info_t* info = NULL;
-  if (jerry_get_object_native_pointer(jval, (void**)&info, NULL)) {
-    return info;
+  void* info = NULL;
+  if (jerry_get_object_native_pointer(jval, &info, &this_module_native_info)) {
+    return (iotjs_object_info_t*)info;
   }
 
   return NULL;

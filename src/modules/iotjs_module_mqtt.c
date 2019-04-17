@@ -20,21 +20,18 @@
 #include "iotjs_module_buffer.h"
 #include "iotjs_module_mqtt.h"
 
+IOTJS_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(mqttclient);
 
 static void iotjs_mqttclient_destroy(iotjs_mqttclient_t *mqttclient) {
   IOTJS_RELEASE(mqttclient->buffer);
   IOTJS_RELEASE(mqttclient);
 }
 
-static const jerry_object_native_info_t mqttclient_native_info = {
-  .free_cb = (jerry_object_native_free_callback_t)iotjs_mqttclient_destroy
-};
-
-
 iotjs_mqttclient_t *iotjs_mqttclient_create(const jerry_value_t jobject) {
   iotjs_mqttclient_t *mqttclient = IOTJS_ALLOC(iotjs_mqttclient_t);
 
-  jerry_set_object_native_pointer(jobject, mqttclient, &mqttclient_native_info);
+  jerry_set_object_native_pointer(jobject, mqttclient,
+                                  &this_module_native_info);
   return mqttclient;
 }
 
@@ -597,9 +594,9 @@ JS_FUNCTION(MqttReceive) {
 
   jerry_value_t jnat = JS_GET_ARG(0, object);
 
-  iotjs_mqttclient_t *mqttclient = (iotjs_mqttclient_t *)
-      iotjs_jval_get_object_native_handle(jnat, &mqttclient_native_info);
-  if (mqttclient == NULL) {
+  iotjs_mqttclient_t *mqttclient = NULL;
+  if (!jerry_get_object_native_pointer(jnat, (void **)&mqttclient,
+                                       &this_module_native_info)) {
     return JS_CREATE_ERROR(COMMON, "MQTT native pointer not available");
   }
 

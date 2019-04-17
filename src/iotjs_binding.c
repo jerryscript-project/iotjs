@@ -341,22 +341,6 @@ jerry_value_t iotjs_jval_get_property(jerry_value_t jobj, const char* name) {
 }
 
 
-void* iotjs_jval_get_object_native_handle(jerry_value_t jobj,
-                                          JNativeInfoType* required_info) {
-  IOTJS_ASSERT(jerry_value_is_object(jobj));
-
-  void* ptr = NULL;
-  JNativeInfoType* out_info;
-  bool has_p = jerry_get_object_native_pointer(jobj, (void**)&ptr, &out_info);
-
-  if (!has_p || (required_info != NULL && out_info != required_info)) {
-    return NULL;
-  }
-
-  return ptr;
-}
-
-
 void iotjs_jval_set_property_by_index(jerry_value_t jarr, uint32_t idx,
                                       jerry_value_t jval) {
   IOTJS_ASSERT(jerry_value_is_object(jarr));

@@ -180,13 +180,13 @@ static void OnConnection(uv_stream_t* handle, int status) {
     IOTJS_ASSERT(!jerry_value_is_error(jclient_tcp));
     IOTJS_ASSERT(jerry_value_is_object(jclient_tcp));
 
-    uv_handle_t* client_handle = (uv_handle_t*)
-        iotjs_jval_get_object_native_handle(jclient_tcp,
-                                            &this_module_native_info);
+    void* client_handle = NULL;
+    bool has_client_handle =
+        jerry_get_object_native_pointer(jclient_tcp, &client_handle,
+                                        &this_module_native_info);
 
 
-    if (client_handle == NULL ||
-        uv_accept(handle, (uv_stream_t*)client_handle)) {
+    if (!has_client_handle || uv_accept(handle, (uv_stream_t*)client_handle)) {
       jerry_release_value(args[0]);
       return;
     }

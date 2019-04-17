@@ -41,10 +41,7 @@ iotjs_bufferwrap_t* iotjs_bufferwrap_create(const jerry_value_t jobject,
   bufferwrap->length = length;
 
   IOTJS_ASSERT(
-      bufferwrap ==
-      (iotjs_bufferwrap_t*)(iotjs_jval_get_object_native_handle(jobject,
-                                                                NULL)));
-
+      jerry_get_object_native_pointer(jobject, NULL, &this_module_native_info));
   return bufferwrap;
 }
 
@@ -70,9 +67,11 @@ void iotjs_bufferwrap_set_external_callback(iotjs_bufferwrap_t* bufferwrap,
 
 iotjs_bufferwrap_t* iotjs_bufferwrap_from_jbuffer(const jerry_value_t jbuffer) {
   IOTJS_ASSERT(jerry_value_is_object(jbuffer));
-  iotjs_bufferwrap_t* buffer = (iotjs_bufferwrap_t*)
-      iotjs_jval_get_object_native_handle(jbuffer, &this_module_native_info);
-  IOTJS_ASSERT(buffer != NULL);
+
+  void* buffer = NULL;
+  bool res = jerry_get_object_native_pointer(jbuffer, &buffer,
+                                             &this_module_native_info);
+  IOTJS_ASSERT(res && buffer != NULL);
   return buffer;
 }
 
@@ -99,10 +98,10 @@ iotjs_bufferwrap_t* iotjs_jbuffer_get_bufferwrap_ptr(
     return NULL;
   }
 
-  iotjs_bufferwrap_t* buffer = (iotjs_bufferwrap_t*)
-      iotjs_jval_get_object_native_handle(jbuffer, &this_module_native_info);
-  if (buffer != NULL) {
-    return buffer;
+  void* buffer = NULL;
+  if (jerry_get_object_native_pointer(jbuffer, &buffer,
+                                      &this_module_native_info)) {
+    return (iotjs_bufferwrap_t*)buffer;
   }
 
   return NULL;

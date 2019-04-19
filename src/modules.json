@@ -313,6 +313,15 @@
       "native_files": ["modules/iotjs_module_stm32f4dis.c"],
       "init": "InitStm32f4dis"
     },
+    "stm32f7nucleo": {
+      "platforms": {
+        "nuttx": {
+          "native_files": ["modules/nuttx/iotjs_module_stm32f7nucleo-nuttx.c"]
+        }
+      },
+      "native_files": ["modules/iotjs_module_stm32f7nucleo.c"],
+      "init": "InitStm32f7nucleo"
+    },
     "stream": {
       "js_file": "js/stream.js",
       "require": ["stream_duplex", "stream_internal", "stream_readable",

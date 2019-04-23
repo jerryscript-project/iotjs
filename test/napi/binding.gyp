@@ -75,6 +75,10 @@
     {
       "target_name": "test_napi_symbol",
       "sources": [ "test_napi_symbol.c" ]
+    },
+    {
+      "target_name": "test_napi_typedarray",
+      "sources": [ "test_napi_typedarray.c" ]
     }
   ]
 }

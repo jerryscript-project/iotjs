@@ -1351,6 +1351,16 @@
       "required-modules": [
         "napi"
       ]
+    },
+    {
+      "name": "test_napi_typedarray.js",
+      "required-features": [
+        "ArrayBuffer",
+        "TypedArray"
+      ],
+      "required-modules": [
+        "napi"
+      ]
     }
   ]
 }

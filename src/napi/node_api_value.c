@@ -16,10 +16,17 @@
 
 #include "jerryscript-ext/handle-scope.h"
 #include "jerryscript.h"
+#include <stdlib.h>
 #include "internal/node_api_internal.h"
 #include "modules/iotjs_module_buffer.h"
 
 #include <math.h>
+
+/* Feature missing error messages */
+const char* napi_err_no_promise = "Promise is not supported by this build.";
+const char* napi_err_no_symbol = "Symbols are not supported by this build.";
+const char* napi_err_invalid_deferred =
+    "Invalid deferred object. Please refer to the documentation.";
 
 static void iotjs_napi_buffer_external_free_cb(void* native_p) {
   iotjs_buffer_external_info_t* info = (iotjs_buffer_external_info_t*)native_p;
@@ -250,8 +257,7 @@ napi_status napi_create_symbol(napi_env env, napi_value description,
 
   if (!jerry_is_feature_enabled(JERRY_FEATURE_SYMBOL)) {
     NAPI_ASSIGN(result, NULL);
-    NAPI_RETURN(napi_generic_failure,
-                "Symbols are not supported by this build.");
+    NAPI_RETURN(napi_generic_failure, napi_err_no_symbol);
   }
 
   JERRYX_CREATE(jval, jerry_create_symbol(AS_JERRY_VALUE(description)));
@@ -517,4 +523,84 @@ napi_status napi_strict_equals(napi_env env, napi_value lhs, napi_value rhs,
   }
 
   return napi_assign_bool(jerry_get_boolean_value(is_equal), result);
+}
+
+napi_status napi_create_promise(napi_env env, napi_deferred* deferred,
+                                napi_value* promise) {
+  NAPI_TRY_ENV(env);
+  if (!jerry_is_feature_enabled(JERRY_FEATURE_PROMISE)) {
+    NAPI_ASSIGN(promise, NULL);
+    NAPI_RETURN(napi_generic_failure, napi_err_no_promise);
+  }
+
+  if (deferred == NULL) {
+    NAPI_ASSIGN(promise, NULL);
+    NAPI_RETURN(napi_generic_failure, napi_err_invalid_deferred);
+  }
+
+  jerry_value_t jpromise = jerry_create_promise();
+  napi_assign_nvalue(jpromise, promise);
+  *deferred = malloc(sizeof(napi_value*));
+  memcpy(*deferred, promise, sizeof(napi_value*));
+  NAPI_RETURN(napi_ok);
+}
+
+napi_status napi_resolve_deferred(napi_env env, napi_deferred deferred,
+                                  napi_value resolution) {
+  NAPI_TRY_ENV(env);
+  if (!jerry_is_feature_enabled(JERRY_FEATURE_PROMISE)) {
+    NAPI_RETURN(napi_generic_failure, napi_err_no_promise);
+  }
+
+  if (deferred == NULL) {
+    NAPI_RETURN(napi_generic_failure, napi_err_invalid_deferred);
+  }
+
+  jerry_value_t promise = AS_JERRY_VALUE(*((napi_value*)deferred));
+  jerry_value_t res =
+      jerry_resolve_or_reject_promise(promise, AS_JERRY_VALUE(resolution),
+                                      true);
+  jerry_release_value(promise);
+  free(deferred);
+  if (jerry_value_is_error(res)) {
+    NAPI_INTERNAL_CALL(napi_throw(env, AS_NAPI_VALUE(res)));
+    NAPI_RETURN(napi_pending_exception);
+  }
+  NAPI_RETURN(napi_ok);
+}
+
+napi_status napi_reject_deferred(napi_env env, napi_deferred deferred,
+                                 napi_value rejection) {
+  NAPI_TRY_ENV(env);
+  if (!jerry_is_feature_enabled(JERRY_FEATURE_PROMISE)) {
+    NAPI_RETURN(napi_generic_failure, napi_err_no_promise);
+  }
+
+  if (deferred == NULL) {
+    NAPI_RETURN(napi_generic_failure, napi_err_invalid_deferred);
+  }
+
+  jerry_value_t promise = AS_JERRY_VALUE(*((napi_value*)deferred));
+  jerry_value_t res =
+      jerry_resolve_or_reject_promise(promise, AS_JERRY_VALUE(rejection),
+                                      false);
+  jerry_release_value(promise);
+  free(deferred);
+  if (jerry_value_is_error(res)) {
+    NAPI_INTERNAL_CALL(napi_throw(env, AS_NAPI_VALUE(res)));
+    NAPI_RETURN(napi_pending_exception);
+  }
+
+  NAPI_RETURN(napi_ok);
+}
+
+napi_status napi_is_promise(napi_env env, napi_value promise,
+                            bool* is_promise) {
+  NAPI_TRY_ENV(env);
+  if (!jerry_is_feature_enabled(JERRY_FEATURE_PROMISE)) {
+    NAPI_RETURN(napi_generic_failure, napi_err_no_promise);
+  }
+
+  *is_promise = jerry_value_is_promise(AS_JERRY_VALUE(promise));
+  NAPI_RETURN(napi_ok);
 }

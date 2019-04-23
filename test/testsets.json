@@ -1311,6 +1311,15 @@
       ]
     },
     {
+      "name": "test_napi_promise.js",
+      "required-modules": [
+        "napi"
+      ],
+      "required-features": [
+        "Promise"
+      ]
+    },
+    {
       "name": "test_napi_strictequal_and_instanceof.js",
       "required-modules": [
         "napi"

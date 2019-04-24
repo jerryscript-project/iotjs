@@ -2,7 +2,8 @@
 
 var common = require('common.js');
 var assert = require('assert');
-var test_async = require('./build/Release/test_napi_async.node');
+var test_async = require('./build/' + common.buildTypePath +
+                         '/test_napi_async.node');
 
 // Successful async execution and completion callback.
 test_async.Test(5, {}, common.mustCall(function(err, val) {

@@ -165,8 +165,9 @@ class TestRunner(object):
         self.builtins = set(build_info["builtins"])
         self.features = set(build_info["features"])
         self.stability = build_info["stability"]
+        self.debug = build_info["debug"]
         if options.n_api:
-            build_napi_test_module()
+            build_napi_test_module(self.debug)
 
     def run(self):
         Reporter.report_configuration(self)
@@ -313,7 +314,7 @@ class TestRunner(object):
         return False
 
 
-def build_napi_test_module():
+def build_napi_test_module(is_debug):
     node_gyp = fs.join(path.PROJECT_ROOT,
                        'node_modules',
                        '.bin',
@@ -322,7 +323,9 @@ def build_napi_test_module():
     print('==> Build N-API test module with node-gyp\n')
 
     project_root = fs.join(path.PROJECT_ROOT, 'test', 'napi')
-    Executor.check_run_cmd(node_gyp, ['configure', 'rebuild'], cwd=project_root)
+    debug_cmd = '--debug' if is_debug else '--release'
+    Executor.check_run_cmd(node_gyp, ['configure', debug_cmd ,'rebuild'],
+                           cwd=project_root)
 
 
 def get_args():

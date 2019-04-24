@@ -383,6 +383,23 @@ jerry_value_t InitProcess(void) {
 #ifdef EXPOSE_GC
   iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_GC, Gc);
 #endif
+#ifdef DEBUG
+  jerry_property_descriptor_t prop_desc;
+  jerry_init_property_descriptor_fields(&prop_desc);
+
+  prop_desc.is_value_defined = true;
+  prop_desc.is_writable_defined = true;
+  prop_desc.is_configurable_defined = true;
+  prop_desc.value = jerry_create_boolean(true);
+
+  jerry_value_t property_name =
+      jerry_create_string((jerry_char_t*)IOTJS_MAGIC_STRING_DEBUG);
+  jerry_value_t prop_ret_val =
+      jerry_define_own_property(process, property_name, &prop_desc);
+  jerry_release_value(prop_ret_val);
+  jerry_release_value(property_name);
+  jerry_free_property_descriptor_fields(&prop_desc);
+#endif
 /* FIXME: Move this platform dependent code path to libtuv
  *
  * See the related commit in libuv:

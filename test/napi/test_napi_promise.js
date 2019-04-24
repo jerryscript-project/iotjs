@@ -5,7 +5,8 @@ var common = require('common.js');
 // This tests the promise-related n-api calls
 
 var assert = require('assert');
-var test_promise = require('./build/Release/test_napi_promise.node');
+var test_promise = require('./build/' + common.buildTypePath +
+                           '/test_napi_promise.node');
 
 // A resolution
 {

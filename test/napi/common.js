@@ -2,6 +2,8 @@
 var assert = require('assert');
 var mustCallChecks = [];
 
+var buildTypePath = process.debug ? 'Debug' : 'Release';
+
 function mustCall(fn, criteria) {
   if (typeof fn === 'number') {
     criteria = fn;
@@ -62,6 +64,7 @@ function expectsError(fn, exact) {
 module.exports = {
   mustCall: mustCall,
   expectsError: expectsError,
+  buildTypePath: buildTypePath,
   // don't use port in a parallelized test
   PORT: process.env.NODE_COMMON_PORT || 12306
 };

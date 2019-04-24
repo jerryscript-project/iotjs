@@ -1,8 +1,10 @@
 'use strict';
 var assert = require('assert');
+var common = require('common.js');
 
 // Testing api calls for arrays
-var test_array = require('./build/Release/test_napi_array.node');
+var test_array = require('./build/' + common.buildTypePath +
+                         '/test_napi_array.node');
 
 var array = [
   1,

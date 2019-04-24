@@ -1,7 +1,9 @@
 
 'use strict';
 var assert = require('assert');
-var test = require('./build/Release/test_napi_object_wrap.node');
+var common = require('common.js');
+var test = require('./build/' + common.buildTypePath +
+                   '/test_napi_object_wrap.node');
 
 function context() {
   var obj = {};

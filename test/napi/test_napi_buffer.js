@@ -1,7 +1,9 @@
 'use strict';
 
 var global = process;
-var binding = require('./build/Release/test_napi_buffer.node');
+var common = require('common.js');
+var binding = require('./build/' + common.buildTypePath +
+                      '/test_napi_buffer.node');
 var assert = require('assert');
 
 assert.strictEqual(binding.newBuffer().toString(), binding.theText);

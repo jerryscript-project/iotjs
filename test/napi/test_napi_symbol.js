@@ -1,8 +1,10 @@
 'use strict';
 var assert = require('assert');
+var common = require('common.js');
 
 // testing api calls for symbol
-var test_symbol = require('./build/Release/test_napi_symbol.node');
+var test_symbol = require('./build/' + common.buildTypePath +
+                          '/test_napi_symbol.node');
 
 var sym = test_symbol.CreateSymbol('test');
 assert.strictEqual(sym.toString(), 'Symbol(test)');

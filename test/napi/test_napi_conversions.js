@@ -1,6 +1,8 @@
 'use strict';
 var assert = require('assert');
-var test = require('./build/Release/test_napi_conversions.node');
+var common = require('common.js');
+var test = require('./build/' + common.buildTypePath +
+                   '/test_napi_conversions.node');
 
 assert.strictEqual(false, test.asBool(false));
 assert.strictEqual(true, test.asBool(true));

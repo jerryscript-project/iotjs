@@ -1,6 +1,8 @@
 'use strict';
 var assert = require('assert');
-var test = require('./build/Release/test_napi_string.node');
+var common = require('common.js');
+var test = require('./build/' + common.buildTypePath +
+                   '/test_napi_string.node');
 
 var empty = '';
 assert.strictEqual(test.TestUtf8(empty), empty);

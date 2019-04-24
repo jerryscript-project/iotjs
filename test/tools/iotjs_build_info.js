@@ -73,7 +73,8 @@ if (hasArrowFunction())
 result = {
     'builtins': builtins,
     'features': features,
-    'stability': stability
+    'stability': stability,
+    'debug': !!process.debug
 }
 
 console.log(JSON.stringify(result))

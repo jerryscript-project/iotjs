@@ -1239,6 +1239,16 @@
       ]
     },
     {
+      "name": "test_napi_dataview.js",
+      "required-features": [
+        "ArrayBuffer",
+        "DataView"
+      ],
+      "required-modules": [
+        "napi"
+      ]
+    },
+    {
       "name": "test_napi_env.js",
       "required-modules": [
         "napi"

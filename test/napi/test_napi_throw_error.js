@@ -1,4 +1,6 @@
-var addon = require('./build/Release/test_napi_error_handling');
+var common = require('common.js');
+var addon = require('./build/' + common.buildTypePath +
+                    '/test_napi_error_handling');
 var assert = require('assert');
 
 var error;

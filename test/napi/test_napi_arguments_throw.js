@@ -1,6 +1,8 @@
 'use strict';
 var assert = require('assert');
-var test = require('./build/Release/test_napi_arguments.node');
+var common = require('common.js');
+var test = require('./build/' + common.buildTypePath +
+                   '/test_napi_arguments.node');
 
 try {
   test.Throw(new Error('foo'));

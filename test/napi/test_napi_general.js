@@ -15,8 +15,10 @@
 
 'use strict';
 var assert = require('assert');
+var common = require('common.js');
 
-var test_general = require('./build/Release/test_napi_general.node');
+var test_general = require('./build/' + common.buildTypePath +
+                           '/test_napi_general.node');
 
 assert.strictEqual(test_general.GetUndefined(), undefined);
 assert.strictEqual(test_general.GetNull(), null);

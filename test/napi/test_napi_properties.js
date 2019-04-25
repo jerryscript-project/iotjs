@@ -14,8 +14,10 @@
  */
 
 var assert = require('assert');
+var common = require('common.js');
 
-var prop_module = require('./build/Release/test_napi_properties.node');
+var prop_module = require('./build/' + common.buildTypePath +
+                          '/test_napi_properties.node');
 
 var obj = {
   array: [

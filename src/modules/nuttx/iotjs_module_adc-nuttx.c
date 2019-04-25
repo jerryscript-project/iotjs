@@ -24,7 +24,6 @@
 #include "iotjs_def.h"
 #include "iotjs_systemio-nuttx.h"
 #include "modules/iotjs_module_adc.h"
-#include "modules/iotjs_module_stm32f4dis.h"
 
 #define ADC_DEVICE_PATH_FORMAT "/dev/adc%d"
 #define ADC_DEVICE_PATH_BUFFER_SIZE 12

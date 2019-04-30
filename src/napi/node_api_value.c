@@ -23,6 +23,8 @@
 #include <math.h>
 
 /* Feature missing error messages */
+const char* const napi_err_no_dataview =
+    "DataView is not supported by this build.";
 const char* const napi_err_no_promise =
     "Promise is not supported by this build.";
 const char* const napi_err_no_symbol =
@@ -184,6 +186,30 @@ napi_status napi_create_buffer_copy(napi_env env, size_t size, const void* data,
   NAPI_ASSIGN(result_data, buf_wrap->buffer);
 
   return napi_assign_nvalue(jval_buf, result);
+}
+
+napi_status napi_create_dataview(napi_env env, size_t byte_length,
+                                 napi_value arraybuffer, size_t byte_offset,
+                                 napi_value* result) {
+  NAPI_TRY_ENV(env);
+
+  if (!jerry_is_feature_enabled(JERRY_FEATURE_DATAVIEW)) {
+    NAPI_ASSIGN(result, NULL);
+    NAPI_RETURN(napi_generic_failure, napi_err_no_dataview);
+  }
+
+  NAPI_WEAK_ASSERT_MSG(napi_invalid_arg, byte_length != 0,
+                       "External data byte length could not be 0.");
+  jerry_value_t jval_arraybuffer = AS_JERRY_VALUE(arraybuffer);
+
+  NAPI_WEAK_ASSERT_MSG(napi_invalid_arg,
+                       jerry_value_is_arraybuffer(jval_arraybuffer),
+                       "Argument must be a valid ArrayBuffer object.");
+
+  JERRYX_CREATE(jval_dv, jerry_create_dataview(jval_arraybuffer, byte_offset,
+                                               byte_length));
+  NAPI_ASSIGN(result, AS_NAPI_VALUE(jval_dv));
+  NAPI_RETURN(napi_ok);
 }
 
 static void napi_external_destroy(iotjs_object_info_t* info) {
@@ -437,6 +463,34 @@ napi_status napi_get_boolean(napi_env env, bool value, napi_value* result) {
   return napi_assign_nvalue(jval, result);
 }
 
+napi_status napi_get_dataview_info(napi_env env, napi_value dataview,
+                                   size_t* byte_length, void** data,
+                                   napi_value* arraybuffer,
+                                   size_t* byte_offset) {
+  NAPI_TRY_ENV(env);
+
+  if (!jerry_is_feature_enabled(JERRY_FEATURE_DATAVIEW)) {
+    NAPI_ASSIGN(byte_length, 0);
+    NAPI_ASSIGN(data, NULL);
+    NAPI_ASSIGN(arraybuffer, AS_NAPI_VALUE(jerry_create_undefined()));
+    NAPI_ASSIGN(byte_offset, 0);
+    NAPI_RETURN(napi_generic_failure, napi_err_no_dataview);
+  }
+
+  jerry_value_t jval = AS_JERRY_VALUE(dataview);
+  NAPI_WEAK_ASSERT_MSG(napi_invalid_arg, jerry_value_is_dataview(jval),
+                       "Argument must be a valid DataView object.");
+
+  JERRYX_CREATE(jval_arraybuffer,
+                jerry_get_dataview_buffer(jval, (jerry_length_t*)byte_offset,
+                                          (jerry_length_t*)byte_length));
+  uint8_t* ptr = jerry_get_arraybuffer_pointer(jval_arraybuffer);
+
+  NAPI_ASSIGN(arraybuffer, AS_NAPI_VALUE(jval_arraybuffer));
+  NAPI_ASSIGN(data, ptr);
+  NAPI_RETURN(napi_ok);
+}
+
 napi_status napi_get_typedarray_info(napi_env env, napi_value typedarray,
                                      napi_typedarray_type* type, size_t* length,
                                      void** data, napi_value* arraybuffer,
@@ -642,6 +696,7 @@ napi_status napi_typeof(napi_env env, napi_value value,
 
 DEF_NAPI_VALUE_IS(array);
 DEF_NAPI_VALUE_IS(arraybuffer);
+DEF_NAPI_VALUE_IS(dataview);
 DEF_NAPI_VALUE_IS(typedarray);
 
 napi_status napi_is_buffer(napi_env env, napi_value value, bool* result) {

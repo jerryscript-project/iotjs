@@ -25,6 +25,10 @@
       "sources": [ "test_napi_conversions.c" ]
     },
     {
+      "target_name": "test_napi_dataview",
+      "sources": [ "test_napi_dataview.c" ]
+    },
+    {
       "target_name": "test_napi_env_compare",
       "sources": [ "test_napi_env_compare.c" ]
     },

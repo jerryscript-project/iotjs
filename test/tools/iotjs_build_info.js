@@ -64,6 +64,9 @@ if (hasFeatures(global, ['Promise']))
 if (hasFeatures(global, ['ArrayBuffer']))
   features.ArrayBuffer = true;
 
+if (hasFeatures(global, ['DataView']))
+  features.DataView = true;
+
 if (hasFeatures(global, typedArrayFeatures))
   features.TypedArray = true;
 

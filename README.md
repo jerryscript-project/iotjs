@@ -8,15 +8,14 @@
 
 You can find project details on our [project page](http://pando-project.github.io/iotjs/) and [wiki](https://github.com/pando-project/iotjs/wiki).
 
-Memory usage and Binary footprint are measured at [here](https://pando-project.github.io/iotjs-test-results) with real target daily.
+Memory usage and Binary footprint are measured at [here](https://pando-tests.github.io/iotjs-test-results) with real target daily.
 
 The following table shows the latest results on the devices:
 
-|      Artik053         | [![Remote Testrunner](https://firebasestorage.googleapis.com/v0/b/jsremote-testrunner.appspot.com/o/status%2Fiotjs%2Fartik053.svg?alt=media&token=1)](https://pando-project.github.io/iotjs-test-results/?view=artik053)  |
-|        :---:          |                                             :---:                                                                                                |
-| **Artik530**    | [![Remote Testrunner](https://firebasestorage.googleapis.com/v0/b/jsremote-testrunner.appspot.com/o/status%2Fiotjs%2Fartik530.svg?alt=media&token=1)](https://pando-project.github.io/iotjs-test-results/?view=artik530)          |
-| **Raspberry Pi 2**    | [![Remote Testrunner](https://firebasestorage.googleapis.com/v0/b/jsremote-testrunner.appspot.com/o/status%2Fiotjs%2Frpi2.svg?alt=media&token=1)](https://pando-project.github.io/iotjs-test-results/?view=rpi2)          |
-| **STM32F4-Discovery** | [![Remote Testrunner](https://firebasestorage.googleapis.com/v0/b/jsremote-testrunner.appspot.com/o/status%2Fiotjs%2Fstm32f4dis.svg?alt=media&token=1)](https://pando-project.github.io/iotjs-test-results/?view=stm32f4dis)   |
+|      Raspberry Pi 3         | [![Remote Testrunner](https://firebasestorage.googleapis.com/v0/b/jsremote-testrunner.appspot.com/o/status%2Fiotjs%2Frpi3.svg?alt=media&token=1)](https://pando-tests.github.io/iotjs-test-results/?view=rpi3)  |
+| :---: | :---: |
+| **Raspberry Pi 2**    | [![Remote Testrunner](https://firebasestorage.googleapis.com/v0/b/jsremote-testrunner.appspot.com/o/status%2Fiotjs%2Frpi2.svg?alt=media&token=1)](https://pando-tests.github.io/iotjs-test-results/?view=rpi2)          |
+| **STM32F4-Discovery** | [![Remote Testrunner](https://firebasestorage.googleapis.com/v0/b/jsremote-testrunner.appspot.com/o/status%2Fiotjs%2Fstm32f4dis.svg?alt=media&token=1)](https://pando-tests.github.io/iotjs-test-results/?view=stm32f4dis)   |
 
 
 IRC channel: #iotjs on [freenode](https://freenode.net)

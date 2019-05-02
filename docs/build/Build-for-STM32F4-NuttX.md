@@ -294,3 +294,102 @@ If you see
 +-----------------------------+
 ```
 and it stays on the screen, something is wrong. Blue LED may blink if NuttX is in abnormal state. Press black(reset) button on the board and try again. If you still see this warning message, begin with original NuttX code and check your board, USB line and other softwares.
+
+
+## EXTRA STM32 SUPPORT 
+
+While STM32F4-Discovery is the reference target, 
+IoT.js can be built for other based STM32 boards:
+
+* [Nucleo-F767zi](https://www.st.com/en/evaluation-tools/nucleo-f767zi.html)
+
+The procedure is similar to STM32F4, so only specific info will be explained in following chapters:
+
+## NUCLEO-F767ZI
+
+### 1. Prepare for prerequisite
+
+See general instructions for STM32F4 in related chapter.
+
+### 2. Set up the build environment for STM32F7-Nucleo board
+
+#### Supported Nuttx version for NUCLEO-F767ZI
+
+Since development is still in progress, master branch of NuttX will be used
+until a version is released with relevant STM32F7 support.
+
+#### Clone repository for NUCLEO-F767ZI
+
+Clone IoT.js and NuttX into iotjs-nuttx directory:
+
+```bash
+$ mkdir iotjs-nuttx
+$ cd iotjs-nuttx
+$ git clone https://github.com/pando-project/iotjs.git
+$ git clone https://bitbucket.org/nuttx/nuttx.git --branch master
+$ git clone https://bitbucket.org/nuttx/apps.git --branch master
+```
+### 3. Build NuttX (For the first time) for NUCLEO-F767ZI
+
+See general instructions for STM32F4 in related chapter.
+
+#### Add IoT.js as a builtin application for NuttX for NUCLEO-F767ZI
+
+See general instructions for STM32F4 in related chapter.
+
+##### Configure NuttX for NUCLEO-F767ZI
+
+See general instructions for STM32F4 in related chapter. but instead of configuring for discovery in STM32F4:
+
+```bash
+$ ./configure.sh stm32f4discovery/usbnsh
+```
+
+Nucleo-144 board configuration will be needed with STM32F7 MCU (with Network Controller support):
+
+```bash
+$ ./configure.sh nucleo-144/f767-netnsh
+```
+
+Now you can configure nuttx like either of below. For convenience, we provide built-in configure file for you. (This configure file is equipped with modules specified as `always`. For `optional` modules, you might follow instructions below.)
+```bash
+$ cd ..
+$ cp ../iotjs/config/nuttx/stm32f7nucleo/config.default .config
+```
+
+### 4. Build IoT.js for NuttX for NUCLEO-F767ZI
+
+
+These options are needed.
+```bash
+--target-arch=arm
+--target-os=nuttx
+--nuttx-home=/path/to/nuttx
+--target-board=stm32f7nucleo
+--jerry-heaplimit=[..]
+```
+
+For example,
+```bash
+$ ./tools/build.py \
+--target-arch=arm --target-os=nuttx --nuttx-home=../nuttx \
+--target-board=stm32f7nucleo --jerry-heaplimit=78
+```
+Library files will be generated like below when build is successful, at least expect to find:
+
+```bash
+$ ls build/arm-nuttx/*/lib
+libhttpparser.a libiotjs.a libjerrycore.a libtuv.a
+```
+
+### 5. Build NuttX for NUCLEO-F767ZI
+
+See general instructions for STM32F4 in related chapter.
+
+### 6. Flashing for NUCLEO-F767ZI
+
+See general instructions for STM32F4 in related chapter.
+
+### 7. Run IoT.js for NUCLEO-F767ZI
+
+See general instructions for STM32F4 in related chapter.

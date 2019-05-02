@@ -148,7 +148,8 @@ def init_options():
         default=platform.arch(),
         help='Specify the target architecture (default: %(default)s).')
     iotjs_group.add_argument('--target-board',
-        choices=[None, 'artik10', 'stm32f4dis', 'rpi2', 'rpi3', 'artik05x'],
+        choices=[None, 'artik10', 'stm32f4dis', 'stm32f7nucleo',
+                 'rpi2', 'rpi3', 'artik05x'],
         default=None, help='Specify the target board (default: %(default)s).')
     iotjs_group.add_argument('--target-os',
         choices=['linux', 'darwin', 'osx', 'mock', 'nuttx', 'tizen', 'tizenrt',
@@ -282,6 +283,8 @@ def build_cmake_args(options):
         include_dirs.append('%s/include' % options.sysroot)
         if options.target_board == 'stm32f4dis':
             include_dirs.append('%s/arch/arm/src/stm32' % options.sysroot)
+        elif options.target_board == 'stm32f7nucleo':
+            include_dirs.append('%s/arch/arm/src/stm32f7' % options.sysroot)
 
     if options.target_os == 'tizenrt':
         include_dirs.append('%s/../framework/include/iotbus' % options.sysroot)

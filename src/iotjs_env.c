@@ -28,6 +28,9 @@ typedef enum {
   OPT_DEBUG_SERVER,
   OPT_DEBUGGER_WAIT_SOURCE,
   OPT_DEBUG_PORT,
+  OPT_DEBUG_CHANNEL,
+  OPT_DEBUG_PROTOCOL,
+  OPT_DEBUG_SERIAL_CONFIG,
 #endif
   NUM_OF_OPTIONS
 } cli_option_id_t;
@@ -133,6 +136,24 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
         .more = 1,
         .help = "debug server port (default: 5001)",
     },
+    {
+        .id = OPT_DEBUG_CHANNEL,
+        .longopt = "debug-channel",
+        .help = "specify the debugger transmission channel"
+                " (default: websocket)",
+    },
+    {
+        .id = OPT_DEBUG_PROTOCOL,
+        .longopt = "debug-protocol",
+        .help = "Specify the transmission protocol over the communication"
+                " channel (default: tcp)",
+    },
+    {
+        .id = OPT_DEBUG_SERIAL_CONFIG,
+        .longopt = "debug-serial-config",
+        .help = "configure parameters for serial port"
+                " (default: /dev/ttyS0,115200,8,N,1)",
+    },
 #endif
   };
 
@@ -187,12 +208,67 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
         env->config.debugger->context_reset = false;
         env->config.debugger->wait_source =
             cur_opt->id == OPT_DEBUGGER_WAIT_SOURCE;
+        char default_channel[] = "websocket";
+        char default_protocol[] = "tcp";
+        char default_serial_config[] = "/dev/ttyS0,115200,8,N,1";
+        memcpy(env->config.debugger->channel, default_channel,
+               strlen(default_channel) + 1);
+        memcpy(env->config.debugger->protocol, default_protocol,
+               strlen(default_protocol) + 1);
+        memcpy(env->config.debugger->serial_config, default_serial_config,
+               strlen(default_serial_config) + 1);
       } break;
       case OPT_DEBUG_PORT: {
         if (env->config.debugger) {
           char* pos = NULL;
           env->config.debugger->port = (uint16_t)strtoul(argv[i + 1], &pos, 10);
         }
+        i++;
+      } break;
+      case OPT_DEBUG_CHANNEL: {
+        if (env->config.debugger) {
+          memset(env->config.debugger->channel, 0,
+                 strlen(env->config.debugger->channel) + 1);
+          memcpy(env->config.debugger->channel, argv[i + 1],
+                 strlen(argv[i + 1]) + 1);
+
+          if (strcmp(env->config.debugger->channel, "websocket") &&
+              strcmp(env->config.debugger->channel, "rawpacket")) {
+            fprintf(stderr,
+                    "Debug channel %s is not supported."
+                    " Only websocket or rawpacket is allowed\n",
+                    env->config.debugger->channel);
+            return false;
+          }
+        }
+        i++;
+      } break;
+      case OPT_DEBUG_PROTOCOL: {
+        if (env->config.debugger) {
+          memset(env->config.debugger->protocol, 0,
+                 strlen(env->config.debugger->protocol) + 1);
+          memcpy(env->config.debugger->protocol, argv[i + 1],
+                 strlen(argv[i + 1]) + 1);
+
+          if (strcmp(env->config.debugger->protocol, "tcp") &&
+              strcmp(env->config.debugger->protocol, "serial")) {
+            fprintf(stderr,
+                    "Debug protocol %s is not supported."
+                    " Only tcp or serial is allowed\n",
+                    env->config.debugger->protocol);
+            return false;
+          }
+        }
+        i++;
+      } break;
+      case OPT_DEBUG_SERIAL_CONFIG: {
+        if (env->config.debugger) {
+          memset(env->config.debugger->serial_config, 0,
+                 strlen(env->config.debugger->serial_config) + 1);
+          memcpy(env->config.debugger->serial_config, argv[i + 1],
+                 strlen(argv[i + 1]) + 1);
+        }
+        i++;
       } break;
 #endif
       default:

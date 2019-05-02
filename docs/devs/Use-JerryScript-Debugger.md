@@ -23,11 +23,25 @@ The file argument is ignored in this case, therefore doesn't need to be specifie
 thus, there's no need to restart the environment if the remote source is changed.
 **Important note**: Remote sources must be sent in correct order! IoT.js compiles them in the order they are received, so file(s) used with `require` should be sent first, and the file(s) using them after.
 
+#### Select Channel and Protocol
+
+There are two available extension-provided channels, websocket and rawpacket, and two protocols, tcp and serial. Each initializes the debugger and blocks until a client connects. If you want to specify the debugger channel (default: websocket) or protocol (default: tcp) over the communication you can do with the `--debug-channel [websocket|rawpacket]` and `--debug-protocol [tcp|serial]` options:
+
+`<iotjs binary> --start-debug-server --debugger-channel rawpacket --debug-protocol tcp test.js`
+
 #### Setting the debugger port
 
-If you want to specify the port number of the debugger-server (default: 5001),
+If you want to specify the port number of the debugger-server with tcp connection (default: 5001),
 you can do so with the `--debugger-port <PORT>` option:
+
 `<iotjs binary> --start-debug-server --debugger-port 8080 test.js`
+
+#### Configure the serial port
+
+If you want to configure parameters for serial port (default: /dev/ttyS0,115200,8,N,1), you can do with `--debug-serial-config CONFIG` option:
+
+`<iotjs binary> --start-debug-server --debug-channel rawpacket --debug-protocol serial --debug-serial-config "/dev/ttyUSB0,115200,8,N,1" test.js`
+
 
 #### Available Clients
 

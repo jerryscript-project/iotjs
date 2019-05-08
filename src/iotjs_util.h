@@ -29,6 +29,8 @@ char* iotjs_buffer_allocate_from_number_array(size_t size,
 char* iotjs_buffer_reallocate(char* buffer, size_t size);
 void iotjs_buffer_release(char* buff);
 
+void print_stacktrace(void);
+
 #define IOTJS_ALLOC(type) /* Allocate (type)-sized, (type*)-typed memory */ \
   (type*)iotjs_buffer_allocate(sizeof(type))
 

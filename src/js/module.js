@@ -52,10 +52,14 @@ if (process.platform === 'windows') {
    * replace all '\' characters to '/' for ease of use for now.
    */
   path = {
-    pathReplacer: new RegExp('\\\\', 'g'),
+    unixPathReplacer: new RegExp('/', 'g'),
+    winPathReplacer: new RegExp('\\\\', 'g'),
     pathSeparator: '\\',
-    normalizeSeparators: function(pathString) {
-      return pathString.replace(path.pathReplacer, '/');
+    toUnixPath: function(pathString) {
+      return pathString.replace(path.winPathReplacer, '/');
+    },
+    toWindowsPath: function(pathString) {
+      return pathString.replace(path.unixPathReplacer, '\\\\');
     },
     isDeviceRoot: function(pathString) {
       if (pathString.charCodeAt(1) !== 0x3A /* ':' */) {
@@ -66,7 +70,7 @@ if (process.platform === 'windows') {
              || (drive >= 0x41 /* A */ && drive <= 0x5A /* Z */);
     },
     normalizePath: function(pathString) {
-      pathString = path.normalizeSeparators(pathString);
+      pathString = path.toUnixPath(pathString);
 
       var deviceRoot = '';
       if (!path.isDeviceRoot(pathString)) {
@@ -77,7 +81,7 @@ if (process.platform === 'windows') {
       return deviceRoot + pathElements.join('/');
     },
     cwd: function() {
-      return path.normalizeSeparators(process.cwd());
+      return path.toUnixPath(process.cwd());
     },
   };
 } else {
@@ -275,7 +279,11 @@ Module.load = function(id, parent) {
     source = Builtin.readSource(modPath);
     module.exports = JSON.parse(source);
   } else if (dynamicloader && ext === 'node') {
-    module.exports = dynamicloader(modPath);
+    if (process.platform === 'windows') {
+      module.exports = dynamicloader(path.toWindowsPath(modPath));
+    } else {
+      module.exports = dynamicloader(modPath);
+    }
   }
 
   Module.cache[modPath] = module;

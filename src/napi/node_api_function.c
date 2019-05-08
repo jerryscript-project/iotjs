@@ -115,16 +115,18 @@ napi_status napi_call_function(napi_env env, napi_value recv, napi_value func,
 
   NAPI_TRY_TYPE(function, jval_func);
 
-  jerry_value_t jval_argv[argc];
+  jerry_value_t* jval_argv = IOTJS_CALLOC(argc, jerry_value_t);
   for (size_t idx = 0; idx < argc; ++idx) {
     jval_argv[idx] = AS_JERRY_VALUE(argv[idx]);
   }
   JERRYX_CREATE(jval_ret,
                 jerry_call_function(jval_func, jval_this, jval_argv, argc));
+  IOTJS_RELEASE(jval_argv);
+
   if (jerry_value_is_error(jval_ret)) {
     NAPI_INTERNAL_CALL(napi_throw(env, AS_NAPI_VALUE(jval_ret)));
-    NAPI_RETURN(napi_pending_exception,
-                "Unexpected error flag on jerry_call_function.");
+    NAPI_RETURN_WITH_MSG(napi_pending_exception,
+                         "Unexpected error flag on jerry_call_function.");
   }
 
   return napi_assign_nvalue(jval_ret, result);
@@ -185,16 +187,18 @@ napi_status napi_new_instance(napi_env env, napi_value constructor, size_t argc,
 
   NAPI_TRY_TYPE(function, jval_cons);
 
-  jerry_value_t jval_argv[argc];
+  jerry_value_t* jval_argv = IOTJS_CALLOC(argc, jerry_value_t);
   for (size_t idx = 0; idx < argc; ++idx) {
     jval_argv[idx] = AS_JERRY_VALUE(argv[idx]);
   }
 
   JERRYX_CREATE(jval_ret, jerry_construct_object(jval_cons, jval_argv, argc));
+  IOTJS_RELEASE(jval_argv);
+
   if (jerry_value_is_error(jval_ret)) {
     NAPI_INTERNAL_CALL(napi_throw(env, AS_NAPI_VALUE(jval_ret)));
-    NAPI_RETURN(napi_pending_exception,
-                "Unexpected error flag on jerry_construct_object.");
+    NAPI_RETURN_WITH_MSG(napi_pending_exception,
+                         "Unexpected error flag on jerry_construct_object.");
   }
 
   return napi_assign_nvalue(jval_ret, result);

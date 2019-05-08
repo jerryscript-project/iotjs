@@ -25,11 +25,13 @@ static napi_node_version node_version = {
 
 napi_status napi_get_node_version(napi_env env,
                                   const napi_node_version** version) {
+  NAPI_TRY_ENV(env);
   NAPI_ASSIGN(version, &node_version);
   NAPI_RETURN(napi_ok);
 }
 
 napi_status napi_get_version(napi_env env, uint32_t* result) {
+  NAPI_TRY_ENV(env);
   NAPI_ASSIGN(result, NAPI_VERSION);
   NAPI_RETURN(napi_ok);
 }

@@ -78,7 +78,7 @@ napi_status napi_create_arraybuffer(napi_env env, size_t byte_length,
   if (!jerry_is_feature_enabled(JERRY_FEATURE_TYPEDARRAY)) {
     NAPI_ASSIGN(data, NULL);
     NAPI_ASSIGN(result, NULL);
-    NAPI_RETURN(napi_generic_failure, napi_err_no_typedarray);
+    NAPI_RETURN_WITH_MSG(napi_generic_failure, napi_err_no_typedarray);
   }
 
   JERRYX_CREATE(jval, jerry_create_arraybuffer(byte_length));
@@ -98,14 +98,14 @@ napi_status napi_create_external_arraybuffer(napi_env env, void* external_data,
                                              void* finalize_hint,
                                              napi_value* result) {
   NAPI_TRY_ENV(env);
-  NAPI_WEAK_ASSERT_MSG(napi_invalid_arg, external_data != NULL,
-                       "External data pointer could not be NULL.");
-  NAPI_WEAK_ASSERT_MSG(napi_invalid_arg, byte_length != 0,
-                       "External data byte length could not be 0.");
+  NAPI_WEAK_ASSERT_WITH_MSG(napi_invalid_arg, external_data != NULL,
+                            "External data pointer could not be NULL.");
+  NAPI_WEAK_ASSERT_WITH_MSG(napi_invalid_arg, byte_length != 0,
+                            "External data byte length could not be 0.");
 
   if (!jerry_is_feature_enabled(JERRY_FEATURE_TYPEDARRAY)) {
     NAPI_ASSIGN(result, NULL);
-    NAPI_RETURN(napi_generic_failure, napi_err_no_typedarray);
+    NAPI_RETURN_WITH_MSG(napi_generic_failure, napi_err_no_typedarray);
   }
 
   JERRYX_CREATE(jval_arrbuf, jerry_create_arraybuffer_external(
@@ -130,7 +130,7 @@ napi_status napi_create_typedarray(napi_env env, napi_typedarray_type type,
 
   if (!jerry_is_feature_enabled(JERRY_FEATURE_TYPEDARRAY)) {
     NAPI_ASSIGN(result, NULL);
-    NAPI_RETURN(napi_generic_failure, napi_err_no_typedarray);
+    NAPI_RETURN_WITH_MSG(napi_generic_failure, napi_err_no_typedarray);
   }
 
   jerry_typedarray_type_t jtype;
@@ -195,16 +195,16 @@ napi_status napi_create_dataview(napi_env env, size_t byte_length,
 
   if (!jerry_is_feature_enabled(JERRY_FEATURE_DATAVIEW)) {
     NAPI_ASSIGN(result, NULL);
-    NAPI_RETURN(napi_generic_failure, napi_err_no_dataview);
+    NAPI_RETURN_WITH_MSG(napi_generic_failure, napi_err_no_dataview);
   }
 
-  NAPI_WEAK_ASSERT_MSG(napi_invalid_arg, byte_length != 0,
-                       "External data byte length could not be 0.");
+  NAPI_WEAK_ASSERT_WITH_MSG(napi_invalid_arg, byte_length != 0,
+                            "External data byte length could not be 0.");
   jerry_value_t jval_arraybuffer = AS_JERRY_VALUE(arraybuffer);
 
-  NAPI_WEAK_ASSERT_MSG(napi_invalid_arg,
-                       jerry_value_is_arraybuffer(jval_arraybuffer),
-                       "Argument must be a valid ArrayBuffer object.");
+  NAPI_WEAK_ASSERT_WITH_MSG(napi_invalid_arg,
+                            jerry_value_is_arraybuffer(jval_arraybuffer),
+                            "Argument must be a valid ArrayBuffer object.");
 
   JERRYX_CREATE(jval_dv, jerry_create_dataview(jval_arraybuffer, byte_offset,
                                                byte_length));
@@ -289,13 +289,15 @@ static napi_status napi_create_error_helper(jerry_error_t jerry_error_type,
   NAPI_TRY_TYPE(string, jval_msg);
 
   jerry_size_t msg_size = jerry_get_utf8_string_size(jval_msg);
-  jerry_char_t raw_msg[msg_size + 1];
+  jerry_char_t* raw_msg = IOTJS_CALLOC(msg_size + 1, jerry_char_t);
   jerry_size_t written_size =
       jerry_string_to_utf8_char_buffer(jval_msg, raw_msg, msg_size);
   NAPI_WEAK_ASSERT(napi_invalid_arg, written_size == msg_size);
   raw_msg[msg_size] = '\0';
 
   jerry_value_t jval_error = jerry_create_error(jerry_error_type, raw_msg);
+
+  IOTJS_RELEASE(raw_msg);
 
   /** code has to be an JS string type, thus it can not be an number 0 */
   if (code != NULL) {
@@ -380,7 +382,7 @@ napi_status napi_create_symbol(napi_env env, napi_value description,
 
   if (!jerry_is_feature_enabled(JERRY_FEATURE_SYMBOL)) {
     NAPI_ASSIGN(result, NULL);
-    NAPI_RETURN(napi_generic_failure, napi_err_no_symbol);
+    NAPI_RETURN_WITH_MSG(napi_generic_failure, napi_err_no_symbol);
   }
 
   JERRYX_CREATE(jval, jerry_create_symbol(AS_JERRY_VALUE(description)));
@@ -414,7 +416,7 @@ napi_status napi_get_arraybuffer_info(napi_env env, napi_value arraybuffer,
   if (!jerry_is_feature_enabled(JERRY_FEATURE_TYPEDARRAY)) {
     NAPI_ASSIGN(byte_length, 0);
     NAPI_ASSIGN(data, NULL);
-    NAPI_RETURN(napi_generic_failure, napi_err_no_typedarray);
+    NAPI_RETURN_WITH_MSG(napi_generic_failure, napi_err_no_typedarray);
   }
 
   jerry_value_t jval = AS_JERRY_VALUE(arraybuffer);
@@ -474,12 +476,12 @@ napi_status napi_get_dataview_info(napi_env env, napi_value dataview,
     NAPI_ASSIGN(data, NULL);
     NAPI_ASSIGN(arraybuffer, AS_NAPI_VALUE(jerry_create_undefined()));
     NAPI_ASSIGN(byte_offset, 0);
-    NAPI_RETURN(napi_generic_failure, napi_err_no_dataview);
+    NAPI_RETURN_WITH_MSG(napi_generic_failure, napi_err_no_dataview);
   }
 
   jerry_value_t jval = AS_JERRY_VALUE(dataview);
-  NAPI_WEAK_ASSERT_MSG(napi_invalid_arg, jerry_value_is_dataview(jval),
-                       "Argument must be a valid DataView object.");
+  NAPI_WEAK_ASSERT_WITH_MSG(napi_invalid_arg, jerry_value_is_dataview(jval),
+                            "Argument must be a valid DataView object.");
 
   JERRYX_CREATE(jval_arraybuffer,
                 jerry_get_dataview_buffer(jval, (jerry_length_t*)byte_offset,
@@ -503,7 +505,7 @@ napi_status napi_get_typedarray_info(napi_env env, napi_value typedarray,
     NAPI_ASSIGN(data, NULL);
     NAPI_ASSIGN(arraybuffer, AS_NAPI_VALUE(jerry_create_undefined()));
     NAPI_ASSIGN(byte_offset, 0);
-    NAPI_RETURN(napi_generic_failure, napi_err_no_typedarray);
+    NAPI_RETURN_WITH_MSG(napi_generic_failure, napi_err_no_typedarray);
   }
 
   jerry_value_t jval = AS_JERRY_VALUE(typedarray);
@@ -527,7 +529,8 @@ napi_status napi_get_typedarray_info(napi_env env, napi_value typedarray,
     CASE_JERRY_TYPEDARRAY_TYPE(FLOAT32, float32);
     default: {
       IOTJS_ASSERT(jtype == JERRY_TYPEDARRAY_FLOAT64);
-      CASE_JERRY_TYPEDARRAY_TYPE(FLOAT64, float64);
+      ntype = napi_float64_array;
+      break;
     }
   }
 #undef CASE_JERRY_TYPEDARRAY_TYPE
@@ -561,7 +564,8 @@ napi_status napi_get_value_external(napi_env env, napi_value value,
   if (!jerry_get_object_native_pointer(jval, (void**)&info,
                                        &napi_external_native_info)) {
     NAPI_ASSIGN(result, NULL);
-    NAPI_RETURN(napi_invalid_arg, "Argument must be type of 'napi_external'.");
+    NAPI_RETURN_WITH_MSG(napi_invalid_arg,
+                         "Argument must be type of 'napi_external'.");
   }
 
   NAPI_ASSIGN(result, info->native_object);
@@ -584,9 +588,9 @@ napi_status napi_get_value_string_utf8(napi_env env, napi_value value,
 
   jerry_size_t written_size =
       jerry_string_to_utf8_char_buffer(jval, (jerry_char_t*)buf, bufsize);
-  NAPI_WEAK_ASSERT(napi_generic_failure,
-                   str_size == 0 || (bufsize > 0 && written_size != 0),
-                   "Insufficient buffer not supported yet.");
+  NAPI_WEAK_ASSERT_WITH_MSG(napi_generic_failure,
+                            str_size == 0 || (bufsize > 0 && written_size != 0),
+                            "Insufficient buffer not supported yet.");
   /* expects one more byte to write null terminator  */
   if (bufsize > written_size) {
     buf[written_size] = '\0';
@@ -681,7 +685,7 @@ napi_status napi_typeof(napi_env env, napi_value value,
       break;
     }
     default:
-      NAPI_RETURN(napi_invalid_arg, NULL);
+      NAPI_RETURN(napi_invalid_arg);
   }
 
   NAPI_RETURN(napi_ok);
@@ -768,12 +772,12 @@ napi_status napi_create_promise(napi_env env, napi_deferred* deferred,
   NAPI_TRY_ENV(env);
   if (!jerry_is_feature_enabled(JERRY_FEATURE_PROMISE)) {
     NAPI_ASSIGN(promise, NULL);
-    NAPI_RETURN(napi_generic_failure, napi_err_no_promise);
+    NAPI_RETURN_WITH_MSG(napi_generic_failure, napi_err_no_promise);
   }
 
   if (deferred == NULL) {
     NAPI_ASSIGN(promise, NULL);
-    NAPI_RETURN(napi_generic_failure, napi_err_invalid_deferred);
+    NAPI_RETURN_WITH_MSG(napi_generic_failure, napi_err_invalid_deferred);
   }
 
   jerry_value_t jpromise = jerry_create_promise();
@@ -787,11 +791,11 @@ napi_status napi_resolve_deferred(napi_env env, napi_deferred deferred,
                                   napi_value resolution) {
   NAPI_TRY_ENV(env);
   if (!jerry_is_feature_enabled(JERRY_FEATURE_PROMISE)) {
-    NAPI_RETURN(napi_generic_failure, napi_err_no_promise);
+    NAPI_RETURN_WITH_MSG(napi_generic_failure, napi_err_no_promise);
   }
 
   if (deferred == NULL) {
-    NAPI_RETURN(napi_generic_failure, napi_err_invalid_deferred);
+    NAPI_RETURN_WITH_MSG(napi_generic_failure, napi_err_invalid_deferred);
   }
 
   jerry_value_t promise = AS_JERRY_VALUE(*((napi_value*)deferred));
@@ -811,11 +815,11 @@ napi_status napi_reject_deferred(napi_env env, napi_deferred deferred,
                                  napi_value rejection) {
   NAPI_TRY_ENV(env);
   if (!jerry_is_feature_enabled(JERRY_FEATURE_PROMISE)) {
-    NAPI_RETURN(napi_generic_failure, napi_err_no_promise);
+    NAPI_RETURN_WITH_MSG(napi_generic_failure, napi_err_no_promise);
   }
 
   if (deferred == NULL) {
-    NAPI_RETURN(napi_generic_failure, napi_err_invalid_deferred);
+    NAPI_RETURN_WITH_MSG(napi_generic_failure, napi_err_invalid_deferred);
   }
 
   jerry_value_t promise = AS_JERRY_VALUE(*((napi_value*)deferred));
@@ -836,7 +840,7 @@ napi_status napi_is_promise(napi_env env, napi_value promise,
                             bool* is_promise) {
   NAPI_TRY_ENV(env);
   if (!jerry_is_feature_enabled(JERRY_FEATURE_PROMISE)) {
-    NAPI_RETURN(napi_generic_failure, napi_err_no_promise);
+    NAPI_RETURN_WITH_MSG(napi_generic_failure, napi_err_no_promise);
   }
 
   *is_promise = jerry_value_is_promise(AS_JERRY_VALUE(promise));

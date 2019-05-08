@@ -167,7 +167,23 @@ class TestRunner(object):
         self.stability = build_info["stability"]
         self.debug = build_info["debug"]
         if options.n_api:
-            build_napi_test_module(self.debug)
+            self.build_napi_test_module()
+
+    def build_napi_test_module(self):
+        node_gyp = fs.join(path.PROJECT_ROOT,
+                           'node_modules',
+                           '.bin',
+                           'node-gyp')
+
+        print('==> Build N-API test module with node-gyp\n')
+
+        project_root = fs.join(path.PROJECT_ROOT, 'test', 'napi')
+        cmd = ['--debug'] if self.debug else ['--release']
+        if self.platform == 'windows':
+            node_gyp += '.cmd'
+            cmd.append('--arch=ia32')
+        Executor.check_run_cmd(node_gyp, ['rebuild'] + cmd,
+                               cwd=project_root)
 
     def run(self):
         Reporter.report_configuration(self)
@@ -312,20 +328,6 @@ class TestRunner(object):
             return True
 
         return False
-
-
-def build_napi_test_module(is_debug):
-    node_gyp = fs.join(path.PROJECT_ROOT,
-                       'node_modules',
-                       '.bin',
-                       'node-gyp')
-
-    print('==> Build N-API test module with node-gyp\n')
-
-    project_root = fs.join(path.PROJECT_ROOT, 'test', 'napi')
-    debug_cmd = '--debug' if is_debug else '--release'
-    Executor.check_run_cmd(node_gyp, ['configure', debug_cmd ,'rebuild'],
-                           cwd=project_root)
 
 
 def get_args():

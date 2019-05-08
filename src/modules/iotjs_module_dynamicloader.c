@@ -17,56 +17,71 @@
 
 #include "iotjs_def.h"
 
+#if _WIN32
+#include <windows.h>
+#else
 #include <dlfcn.h>
+#endif
 #include <stdlib.h>
 
 JS_FUNCTION(OpenNativeModule) {
   iotjs_string_t location = JS_GET_ARG(0, string);
 
+#if _WIN32
+  // Get a handle to the node module.
+  HINSTANCE handle = LoadLibrary(iotjs_string_data(&location));
+#else
   void* handle = dlopen(iotjs_string_data(&location), RTLD_LAZY);
+#endif
   iotjs_string_destroy(&location);
 
+  // If the handle is valid, try to get the function address.
   if (handle == NULL) {
+#if _WIN32
+    char* err_msg = "";
+    DWORD dw = GetLastError();
+
+    FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
+                      FORMAT_MESSAGE_IGNORE_INSERTS,
+                  NULL, dw, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), &err_msg,
+                  0, NULL);
+#else
     char* err_msg = dlerror();
+#endif
     jerry_value_t jval_error =
         jerry_create_error(JERRY_ERROR_COMMON, (jerry_char_t*)err_msg);
     return jval_error;
   }
 
-  jerry_value_t exports;
+  jerry_value_t exports = jerry_create_undefined();
 
   int status = napi_module_init_pending(&exports);
   if (status == napi_module_load_ok) {
     return exports;
   }
+
   if (status == napi_pending_exception) {
-    /** exports is an error reference */
+/* exports is an error reference */
+#if _WIN32
+    FreeLibrary(handle);
+#else
+    dlclose(handle);
+#endif
     return exports;
   }
+
   if (status == napi_module_no_nm_register_func) {
+#if _WIN32
+    FreeLibrary(handle);
+#else
+    dlclose(handle);
+#endif
     jerry_value_t jval_error = jerry_create_error(
         JERRY_ERROR_COMMON,
         (jerry_char_t*)"Module has no declared entry point.");
     return jval_error;
   }
 
-  void (*init_fn)(jerry_value_t);
-  init_fn = dlsym(handle, "iotjs_module_register");
-  // check for dlsym
-  if (init_fn == NULL) {
-    char* err_msg = dlerror();
-    dlclose(handle);
-    char* msg_tpl = "dlopen(%s)";
-    char msg[strlen(err_msg) + 8];
-    sprintf(msg, msg_tpl, err_msg);
-
-    jerry_value_t jval_error =
-        jerry_create_error(JERRY_ERROR_COMMON, (jerry_char_t*)msg);
-    return jval_error;
-  }
-
-  exports = jerry_create_object();
-  (*init_fn)(exports);
   return exports;
 }
 

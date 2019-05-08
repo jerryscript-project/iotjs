@@ -183,6 +183,7 @@ void iotjs_run(iotjs_environment_t* env) {
     bool throw_exception = !iotjs_environment_is_exiting(env);
 #ifdef JERRY_DEBUGGER
     throw_exception = throw_exception &&
+                      iotjs_environment_config(env)->debugger &&
                       !iotjs_environment_config(env)->debugger->context_reset;
 #endif
     if (throw_exception) {

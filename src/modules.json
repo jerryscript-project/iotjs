@@ -253,8 +253,7 @@
                        "napi/node_api_object_wrap.c",
                        "napi/node_api_property.c",
                        "napi/node_api_value.c"],
-      "init": "InitDynamicloader",
-      "external_libs": ["dl"]
+      "init": "InitDynamicloader"
     },
     "net": {
       "js_file": "js/net.js",

@@ -77,7 +77,8 @@ result = {
     'builtins': builtins,
     'features': features,
     'stability': stability,
-    'debug': !!process.debug
+    'debug': !!process.debug,
+    'arch': process.arch
 }
 
 console.log(JSON.stringify(result))

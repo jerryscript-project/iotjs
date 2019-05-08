@@ -18,7 +18,7 @@ import os
 
 from common_py.system.filesystem import FileSystem as fs
 from common_py.system.executor import Executor as ex
-from common_py.system.platform import Platform
+from common_py.system.sys_platform import Platform
 from check_tidy import check_tidy
 
 platform = Platform()

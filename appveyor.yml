@@ -11,18 +11,33 @@ configuration:
   - Release
 platform:
   - Win32
+  - x64
 init:
   - cmd: |
       cmake -version
-before_build:
-  - cmd: |
-      tools\build.py --experimental --buildtype=debug
+
+install:
+  - ps: |
+      Install-Product node 10.15.3
 
 artifacts:
-  - path: build\i686-windows\debug\bin\$(configuration)\
+  - path: build\x86_64-windows\$(configuration)\bin\$(configuration)\
     name: IoTjsbinary
 
+before_build:
+  - cmd: |
+      if "%PLATFORM%"=="Win32" set SYS_ARCH=i686
+      if "%PLATFORM%"=="x64" set SYS_ARCH=x86_64
+      tools\build.py --experimental --buildtype=%CONFIGURATION% --target-arch=%SYS_ARCH% --jerry-profile=es2015-subset --n-api
+
 build:
-  project: build\i686-windows\debug\IOTJS.sln
+  project: build\%SYS_ARCH%-windows\%CONFIGURATION%\IOTJS.sln
   parallel: true
   verbosity: minimal
+
+before_test:
+  - cmd: npm install
+
+test_script:
+  - cmd: |
+      tools\testrunner.py build\%SYS_ARCH%-windows\%CONFIGURATION%\bin\%CONFIGURATION%\iotjs.exe

@@ -31,7 +31,7 @@ from common_py import path
 from common_py.system.filesystem import FileSystem as fs
 from common_py.system.executor import Executor as ex
 from common_py.system.executor import Terminal
-from common_py.system.platform import Platform
+from common_py.system.sys_platform import Platform
 
 platform = Platform()
 
@@ -58,7 +58,7 @@ def init_options():
         if (opt_key in list_with_commas) and isinstance(opt_val, list):
             opt_val and argv.append('--%s=%s' % (opt_key, ','.join(opt_val)))
         elif isinstance(opt_val, basestring) and opt_val != '':
-            argv.append('--%s=%s' % (opt_key, opt_val))
+            argv.append(str('--%s=%s' % (opt_key, opt_val)))
         elif isinstance(opt_val, bool):
             if opt_val:
                 argv.append('--%s' % opt_key)
@@ -78,7 +78,7 @@ def init_options():
     iotjs_group = parser.add_argument_group('Arguments of IoT.js',
         'The following arguments are related to the IoT.js framework.')
     iotjs_group.add_argument('--buildtype',
-        choices=['debug', 'release'], default='debug',
+        choices=['debug', 'release'], default='debug', type=str.lower,
         help='Specify the build type (default: %(default)s).')
     iotjs_group.add_argument('--builddir', default=path.BUILD_ROOT,
         help='Specify the build directory (default: %(default)s)')
@@ -290,6 +290,8 @@ def build_cmake_args(options):
         include_dirs.append('%s/../framework/include/iotbus' % options.sysroot)
     elif options.target_os == 'windows':
         cmake_args.append("-GVisual Studio 15 2017")
+        if options.target_arch == "x86_64":
+            cmake_args.append("-Ax64")
 
     include_dirs.extend(options.external_include_dir)
     cmake_args.append("-DEXTERNAL_INCLUDE_DIR='%s'" % (' '.join(include_dirs)))
@@ -406,9 +408,6 @@ def run_checktest(options):
 
     if options.run_test == "quiet":
         args.append('--quiet')
-
-    if options.n_api:
-        args.append('--n-api')
 
     fs.chdir(path.PROJECT_ROOT)
     code = ex.run_cmd(cmd, args)

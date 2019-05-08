@@ -47,7 +47,7 @@ var testRoot = __dirname;
 
 // PORT should match the definition in test/testpy/__init__.py.
 exports.PORT = +process.env.NODE_COMMON_PORT || 12346;
-exports.isWindows = process.platform === 'win32';
+exports.isWindows = process.platform === 'windows';
 exports.isWOW64 = exports.isWindows &&
                   (process.env.PROCESSOR_ARCHITEW6432 !== undefined);
 exports.isAix = process.platform === 'aix';

@@ -504,16 +504,28 @@ else()
 
   # FIXME: module specific condition should not be in the main cmake
   if(${ENABLE_MODULE_NAPI})
+    # Some tests require the GC to be exposed
+    iotjs_add_compile_flags(-DEXPOSE_GC)
+
     # Force symbols to be entered in the output file as undefined symbols.
     file(READ "${IOTJS_SOURCE_DIR}/napi/node_symbols.txt" NODE_SYMBOLS)
     string(REGEX REPLACE "[\r|\n]" ";" NODE_SYMBOLS "${NODE_SYMBOLS}")
-    set(NODE_SYMBOLS_LINK_FLAGS "-Wl")
-    # Some tests require the GC to be exposed
-    iotjs_add_compile_flags(-DEXPOSE_GC)
+
+    if(USING_MSVC)
+      set(NODE_SYMBOL_SEPARATOR " /INCLUDE:")
+      if("${TARGET_ARCH}" STREQUAL "i686")
+        set(NODE_SYMBOL_SEPARATOR "${NODE_SYMBOL_SEPARATOR}_")
+      endif()
+    else()
+      set(NODE_SYMBOLS_LINK_FLAGS "-Wl")
+      set(NODE_SYMBOL_SEPARATOR ",-u,")
+    endif()
+
     foreach(NODE_SYMBOL ${NODE_SYMBOLS})
       set(NODE_SYMBOLS_LINK_FLAGS
-          "${NODE_SYMBOLS_LINK_FLAGS},-u,${NODE_SYMBOL}")
+          "${NODE_SYMBOLS_LINK_FLAGS}${NODE_SYMBOL_SEPARATOR}${NODE_SYMBOL}")
     endforeach()
+
     iotjs_add_link_flags(${NODE_SYMBOLS_LINK_FLAGS})
   endif()
 endif(CREATE_SHARED_LIB)

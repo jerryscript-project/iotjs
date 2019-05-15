@@ -112,7 +112,7 @@ napi_status napi_queue_async_work(napi_env env, napi_async_work work) {
       uv_queue_work(loop, work_req, iotjs_uv_work_cb, iotjs_uv_work_after_cb);
   if (status != 0) {
     const char* err_name = uv_err_name(status);
-    NAPI_RETURN(napi_generic_failure, err_name);
+    NAPI_RETURN_WITH_MSG(napi_generic_failure, err_name);
   }
   NAPI_RETURN(napi_ok);
 }
@@ -123,7 +123,7 @@ napi_status napi_cancel_async_work(napi_env env, napi_async_work work) {
   int status = uv_cancel((uv_req_t*)work_req);
   if (status != 0) {
     const char* err_name = uv_err_name(status);
-    NAPI_RETURN(napi_generic_failure, err_name);
+    NAPI_RETURN_WITH_MSG(napi_generic_failure, err_name);
   }
   NAPI_RETURN(napi_ok);
 }

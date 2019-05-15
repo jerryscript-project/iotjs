@@ -1,6 +1,10 @@
 #include <node_api.h>
 #include <stdio.h>
+#if defined _WIN32
+#include <windows.h>
+#else
 #include <unistd.h>
+#endif
 #include "common.h"
 
 // this needs to be greater than the thread pool size
@@ -17,7 +21,11 @@ carrier the_carrier;
 carrier async_carrier[MAX_CANCEL_THREADS];
 
 void Execute(napi_env env, void* data) {
+#if defined _WIN32
+  Sleep(1000);
+#else
   sleep(1);
+#endif
   carrier* c = (carrier*)data;
 
   if (c != &the_carrier) {

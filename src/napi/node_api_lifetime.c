@@ -37,9 +37,9 @@ inline napi_status jerryx_status_to_napi_status(
     jerryx_handle_scope_status status) {
   switch (status) {
     case jerryx_handle_scope_mismatch:
-      NAPI_RETURN(napi_handle_scope_mismatch, NULL);
+      NAPI_RETURN(napi_handle_scope_mismatch);
     case jerryx_escape_called_twice:
-      NAPI_RETURN(napi_escape_called_twice, NULL);
+      NAPI_RETURN(napi_escape_called_twice);
     default:
       NAPI_RETURN(napi_ok);
   }

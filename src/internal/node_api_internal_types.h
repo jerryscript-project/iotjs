@@ -21,8 +21,6 @@
 #include <uv.h>
 #include "node_api.h"
 
-typedef napi_value (*jerry_addon_register_func)(void* env,
-                                                jerry_value_t exports);
 typedef void (*iotjs_cleanup_hook_fn)(void* arg);
 
 typedef struct iotjs_async_context_s iotjs_async_context_t;
@@ -72,11 +70,11 @@ struct iotjs_reference_s {
   iotjs_reference_t* ref_end;
 
 struct iotjs_object_info_s {
-  IOTJS_OBJECT_INFO_FIELDS;
+  IOTJS_OBJECT_INFO_FIELDS
 };
 
 struct iotjs_function_info_s {
-  IOTJS_OBJECT_INFO_FIELDS;
+  IOTJS_OBJECT_INFO_FIELDS
 
   napi_callback cb;
   void* data;

@@ -23,7 +23,6 @@
 #include "internal/node_api_internal_types.h"
 #include "node_api.h"
 
-#define GET_3TH_ARG(arg1, arg2, arg3, ...) arg3
 #define GET_4TH_ARG(arg1, arg2, arg3, arg4, ...) arg4
 
 #define AS_JERRY_VALUE(nvalue) (jerry_value_t)(uintptr_t) nvalue
@@ -43,17 +42,12 @@
     return status;                                                           \
   } while (0)
 
-#define NAPI_RETURN_NO_MSG(status)                                           \
+#define NAPI_RETURN(status)                                                  \
   do {                                                                       \
     iotjs_napi_set_error_info(iotjs_get_current_napi_env(), status, NULL, 0, \
                               NULL);                                         \
     return status;                                                           \
   } while (0)
-
-#define NAPI_RETURN_MACRO_CHOOSER(...) \
-  GET_3TH_ARG(__VA_ARGS__, NAPI_RETURN_WITH_MSG, NAPI_RETURN_NO_MSG, )
-
-#define NAPI_RETURN(...) NAPI_RETURN_MACRO_CHOOSER(__VA_ARGS__)(__VA_ARGS__)
 /** MARK: - END N-API Returns */
 
 /** MARK: - N-API Asserts */
@@ -61,45 +55,34 @@
  * A weak assertion, which don't crash the program on failed assertion
  * rather returning a napi error code back to caller.
  */
-#define NAPI_WEAK_ASSERT_NO_MSG(error_t, assertion)              \
-  do {                                                           \
-    if (!(assertion))                                            \
-      NAPI_RETURN(error_t, "Assertion (" #assertion ") failed"); \
+#define NAPI_WEAK_ASSERT(error_t, assertion)                              \
+  do {                                                                    \
+    if (!(assertion))                                                     \
+      NAPI_RETURN_WITH_MSG(error_t, "Assertion (" #assertion ") failed"); \
   } while (0)
 
-#define NAPI_WEAK_ASSERT_MSG(error_t, assertion, message) \
-  do {                                                    \
-    if (!(assertion))                                     \
-      NAPI_RETURN(error_t, message);                      \
+#define NAPI_WEAK_ASSERT_WITH_MSG(error_t, assertion, message) \
+  do {                                                         \
+    if (!(assertion))                                          \
+      NAPI_RETURN_WITH_MSG(error_t, message);                  \
   } while (0)
-
-#define NAPI_WEAK_ASSERT_MACRO_CHOOSER(...) \
-  GET_4TH_ARG(__VA_ARGS__, NAPI_WEAK_ASSERT_MSG, NAPI_WEAK_ASSERT_NO_MSG, )
-
-/**
- * NAPI_WEAK_ASSERT
- * - error_t: napi status code
- * - assertion: assertion expression
- * - message: (optional) an optional message about the assertion error
- */
-#define NAPI_WEAK_ASSERT(...) \
-  NAPI_WEAK_ASSERT_MACRO_CHOOSER(__VA_ARGS__)(__VA_ARGS__)
 
 /**
  * A convenience weak assertion on jerry value type.
  */
-#define NAPI_TRY_TYPE(type, jval)                                       \
-  NAPI_WEAK_ASSERT(napi_##type##_expected, jerry_value_is_##type(jval), \
-                   #type " was expected")
+#define NAPI_TRY_TYPE(type, jval)                        \
+  NAPI_WEAK_ASSERT_WITH_MSG(napi_##type##_expected,      \
+                            jerry_value_is_##type(jval), \
+                            #type " was expected")
 
 /**
  * A convenience weak assertion on N-API Env matching.
  */
-#define NAPI_TRY_ENV(env)                                    \
-  do {                                                       \
-    if (napi_try_env_helper(env)) {                          \
-      NAPI_RETURN(napi_invalid_arg, "N-API env not match."); \
-    }                                                        \
+#define NAPI_TRY_ENV(env)                                             \
+  do {                                                                \
+    if (napi_try_env_helper(env)) {                                   \
+      NAPI_RETURN_WITH_MSG(napi_invalid_arg, "N-API env not match."); \
+    }                                                                 \
   } while (0)
 
 /**
@@ -145,7 +128,7 @@ int napi_module_init_pending(jerry_value_t* exports);
 /** MARK: - END node_api_module.c */
 
 /** MARK: - node_api_env.c */
-napi_env iotjs_get_current_napi_env();
+napi_env iotjs_get_current_napi_env(void);
 bool napi_try_env_helper(napi_env env);
 void iotjs_napi_set_current_callback(napi_env env,
                                      iotjs_callback_info_t* callback_info);
@@ -168,8 +151,8 @@ iotjs_object_info_t* iotjs_get_object_native_info(jerry_value_t jval,
                                                   size_t native_info_size);
 iotjs_object_info_t* iotjs_try_get_object_native_info(jerry_value_t jval,
                                                       size_t native_info_size);
-void iotjs_setup_napi();
-void iotjs_cleanup_napi();
+void iotjs_setup_napi(void);
+void iotjs_cleanup_napi(void);
 /** MARK: - END node_api_lifetime.c */
 
 napi_status napi_assign_bool(bool value, bool* result);

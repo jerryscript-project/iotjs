@@ -28,10 +28,10 @@ int napi_module_init_pending(jerry_value_t* exports) {
     return napi_module_no_pending;
   }
 
-  jerry_addon_register_func Init =
-      (jerry_addon_register_func)mod_pending->nm_register_func;
+  napi_addon_register_func init =
+      (napi_addon_register_func)mod_pending->nm_register_func;
 
-  if (Init == NULL) {
+  if (init == NULL) {
     return napi_module_no_nm_register_func;
   }
 
@@ -41,7 +41,7 @@ int napi_module_init_pending(jerry_value_t* exports) {
   jerryx_open_handle_scope(&scope);
 
   jerry_value_t jval_exports = jerry_create_object();
-  napi_value nvalue_ret = (*Init)(env, jval_exports);
+  napi_value nvalue_ret = (*init)(env, AS_NAPI_VALUE(jval_exports));
 
   if (nvalue_ret == NULL) {
     *exports = jerry_create_undefined();

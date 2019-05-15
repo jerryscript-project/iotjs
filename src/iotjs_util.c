@@ -115,7 +115,8 @@ void iotjs_buffer_release(char* buffer) {
 }
 
 void print_stacktrace(void) {
-#if defined(__linux__) && defined(DEBUG) && !defined(__OPENWRT__)
+#if !defined(NDEBUG) && defined(__linux__) && defined(DEBUG) && \
+    !defined(__OPENWRT__)
   // TODO: support other platforms
   const int numOfStackTrace = 100;
   void* buffer[numOfStackTrace];
@@ -147,7 +148,8 @@ void print_stacktrace(void) {
   }
 
   free(strings);
-#endif // defined(__linux__) && defined(DEBUG) && !defined(__OPENWRT__)
+#endif // !defined(NDEBUG) && defined(__linux__) && defined(DEBUG) &&
+       // !defined(__OPENWRT__)
 }
 
 void force_terminate(void) {

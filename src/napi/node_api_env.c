@@ -15,7 +15,6 @@
  */
 
 #include "iotjs_def.h"
-#include <execinfo.h>
 #include <stdlib.h>
 #include "internal/node_api_internal.h"
 
@@ -29,11 +28,11 @@ static iotjs_napi_env_t current_env = {
   .pending_exception = NULL, .pending_fatal_exception = NULL,
 };
 
-inline napi_env iotjs_get_current_napi_env() {
+napi_env iotjs_get_current_napi_env(void) {
   return (napi_env)&current_env;
 }
 
-static inline uv_thread_t* iotjs_get_napi_env_thread(napi_env env) {
+static uv_thread_t* iotjs_get_napi_env_thread(napi_env env) {
   return &((iotjs_napi_env_t*)env)->main_thread;
 }
 
@@ -43,19 +42,19 @@ bool napi_try_env_helper(napi_env env) {
   return (env != iotjs_get_current_napi_env());
 }
 
-inline bool iotjs_napi_is_exception_pending(napi_env env) {
+bool iotjs_napi_is_exception_pending(napi_env env) {
   iotjs_napi_env_t* curr_env = (iotjs_napi_env_t*)env;
   return !(curr_env->pending_exception == NULL &&
            curr_env->pending_fatal_exception == NULL);
 }
 
-inline void iotjs_napi_set_current_callback(
-    napi_env env, iotjs_callback_info_t* callback_info) {
+void iotjs_napi_set_current_callback(napi_env env,
+                                     iotjs_callback_info_t* callback_info) {
   iotjs_napi_env_t* curr_env = (iotjs_napi_env_t*)env;
   curr_env->current_callback_info = callback_info;
 }
 
-inline iotjs_callback_info_t* iotjs_napi_get_current_callback(napi_env env) {
+iotjs_callback_info_t* iotjs_napi_get_current_callback(napi_env env) {
   iotjs_napi_env_t* curr_env = (iotjs_napi_env_t*)env;
   return curr_env->current_callback_info;
 }
@@ -221,12 +220,8 @@ napi_status napi_get_last_error_info(napi_env env,
 
 void napi_fatal_error(const char* location, size_t location_len,
                       const char* message, size_t message_len) {
-  printf("FATAL ERROR: %s %s\n", location, message);
-  void* bt[NAPI_FATAL_BACKTRACE_LEN];
-  int size = backtrace(bt, NAPI_FATAL_BACKTRACE_LEN);
-  char** bt_strs = backtrace_symbols(bt, size);
-  for (int idx = 0; idx < size; ++idx) {
-    fprintf(stderr, "%s\n", bt_strs[idx]);
-  }
+  fprintf(stderr, "FATAL ERROR: %.*s %.*s\n", location_len, location,
+          message_len, message);
+  print_stacktrace();
   abort();
 }

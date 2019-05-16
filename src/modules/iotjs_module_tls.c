@@ -623,7 +623,7 @@ JS_FUNCTION(Read) {
 }
 
 
-jerry_value_t InitTls() {
+jerry_value_t InitTls(void) {
   jerry_value_t jtls = jerry_create_object();
 
   iotjs_jval_set_method(jtls, IOTJS_MAGIC_STRING_CONNECT, Connect);

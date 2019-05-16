@@ -297,7 +297,7 @@ JS_FUNCTION(CloseSync) {
   return jerry_create_undefined();
 }
 
-jerry_value_t InitSpi() {
+jerry_value_t InitSpi(void) {
   jerry_value_t jspi_cons = jerry_create_external_function(SpiCons);
 
   jerry_value_t prototype = jerry_create_object();

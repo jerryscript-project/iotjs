@@ -350,7 +350,7 @@ JS_FUNCTION(Unref) {
 }
 
 
-jerry_value_t InitUdp() {
+jerry_value_t InitUdp(void) {
   jerry_value_t udp = jerry_create_external_function(UDP);
 
   jerry_value_t prototype = jerry_create_object();

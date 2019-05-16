@@ -530,7 +530,7 @@ JS_FUNCTION(Base64Encode) {
 }
 
 
-jerry_value_t InitCrypto() {
+jerry_value_t InitCrypto(void) {
   jerry_value_t jcrypto = jerry_create_object();
 
   iotjs_jval_set_method(jcrypto, IOTJS_MAGIC_STRING_SHAENCODE, ShaEncode);

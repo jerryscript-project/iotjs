@@ -254,7 +254,7 @@ JS_FUNCTION(SetPeriodSync) {
   return pwm_set_period_or_frequency(pwm, jargv, jargc, kPwmOpSetPeriod, false);
 }
 
-jerry_value_t InitPwm() {
+jerry_value_t InitPwm(void) {
   jerry_value_t jpwm_cons = jerry_create_external_function(PwmCons);
 
   jerry_value_t jprototype = jerry_create_object();

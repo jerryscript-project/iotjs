@@ -178,7 +178,7 @@ JS_FUNCTION(ReadSync) {
   return result;
 }
 
-jerry_value_t InitI2c() {
+jerry_value_t InitI2c(void) {
   jerry_value_t ji2c_cons = jerry_create_external_function(I2cCons);
 
   jerry_value_t prototype = jerry_create_object();

@@ -51,6 +51,8 @@ server1.listen(0, '127.0.0.1', common.mustCall(function() {
       assert.strictEqual(e, -48);
     } else if (common.isNuttX) {
       assert.strictEqual(e, -112);
+    } else if (common.isWindows) {
+      assert.strictEqual(e, -4091);
     } else {
       assert.strictEqual(e, -98);
     }

@@ -76,6 +76,8 @@ if(CMAKE_C_COMPILER_ID MATCHES "MSVC")
   #   replacing with '0' for 'directives'
   # some windows headers reports these warnings
   iotjs_add_compile_flags(-wd4668)
+  # disable warning C4100: unreferenced formal parameter
+  iotjs_add_compile_flags(-wd4100)
 endif()
 
 CHECK_C_COMPILER_FLAG(-no-pie HAS_NO_PIE)

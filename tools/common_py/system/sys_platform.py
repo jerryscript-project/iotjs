@@ -13,13 +13,17 @@
 # limitations under the License.
 
 import os
+import platform
 import sys
 
 class Platform(object):
     def __init__(self):
         if sys.platform == "win32":
             _os = "windows"
-            _arch = "i686" # TODO: allow x86_64 also
+            if platform.architecture()[0] == "64bit":
+                _arch = "x86_64"
+            else:
+                _arch = "i686"
         else:
             _os, _, _, _, _arch = os.uname()
         self._os = _os

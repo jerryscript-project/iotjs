@@ -36,7 +36,7 @@ from common_py import path
 from common_py.system.filesystem import FileSystem as fs
 from common_py.system.executor import Executor
 from common_py.system.executor import Terminal
-from common_py.system.platform import Platform
+from common_py.system.sys_platform import Platform
 
 # Defines the folder that will contain the coverage info.
 # The path must be consistent with the measure_coverage.sh script.
@@ -128,7 +128,6 @@ class Reporter(object):
         Reporter.message("  timeout:      %d sec" % testrunner.timeout)
         Reporter.message("  valgrind:     %s" % testrunner.valgrind)
         Reporter.message("  skip-modules: %s" % testrunner.skip_modules)
-        Reporter.message("  n-api:        %s" % testrunner.n_api)
 
     @staticmethod
     def report_final(results):
@@ -149,7 +148,6 @@ class TestRunner(object):
         self.timeout = options.timeout
         self.valgrind = options.valgrind
         self.coverage = options.coverage
-        self.n_api = options.n_api
         self.skip_modules = []
         self.results = {}
         self._msg_queue = multiprocessing.Queue(1)
@@ -166,7 +164,8 @@ class TestRunner(object):
         self.features = set(build_info["features"])
         self.stability = build_info["stability"]
         self.debug = build_info["debug"]
-        if options.n_api:
+        self.arch = build_info["arch"]
+        if "napi" in self.builtins:
             self.build_napi_test_module()
 
     def build_napi_test_module(self):
@@ -181,7 +180,7 @@ class TestRunner(object):
         cmd = ['--debug'] if self.debug else ['--release']
         if self.platform == 'windows':
             node_gyp += '.cmd'
-            cmd.append('--arch=ia32')
+            cmd.append('--arch=x64' if self.arch == 'x64' else '--arch=ia32')
         Executor.check_run_cmd(node_gyp, ['rebuild'] + cmd,
                                cwd=project_root)
 
@@ -197,11 +196,6 @@ class TestRunner(object):
 
         with open(fs.join(path.TEST_ROOT, "testsets.json")) as testsets_file:
             testsets = json.load(testsets_file, object_pairs_hook=OrderedDict)
-
-        if not self.n_api:
-            for test in testsets["napi"]:
-                test.update({"skip":['all'], "reason":
-                             "Required `--n-api` to run N-API tests"})
 
         for testset, tests in testsets.items():
             self.run_testset(testset, tests)
@@ -246,18 +240,6 @@ class TestRunner(object):
                 Reporter.report_fail(test["name"], runtime)
                 self.results["fail"] += 1
 
-    @staticmethod
-    def run_subprocess(parent_queue, command):
-        process = subprocess.Popen(args=command,
-                                   cwd=path.TEST_ROOT,
-                                   stdout=subprocess.PIPE,
-                                   stderr=subprocess.STDOUT)
-
-        stdout = process.communicate()[0]
-        exitcode = process.returncode
-
-        parent_queue.put_nowait([exitcode, stdout])
-
     def run_test(self, testfile, timeout):
         command = [self.iotjs, testfile]
 
@@ -271,8 +253,8 @@ class TestRunner(object):
             command = ["valgrind"] + valgrind_options + command
 
         try:
-            process = multiprocessing.Process(target=TestRunner.run_subprocess,
-                                              args=(self._msg_queue, command,))
+            process = multiprocessing.Process(target=run_subprocess,
+                                              args=(self._msg_queue, command))
             start = time.time()
             process.start()
             process.join(timeout)
@@ -330,6 +312,17 @@ class TestRunner(object):
         return False
 
 
+def run_subprocess(parent_queue, command):
+    process = subprocess.Popen(args=command,
+                               cwd=path.TEST_ROOT,
+                               stdout=subprocess.PIPE,
+                               stderr=subprocess.STDOUT)
+
+    stdout = process.communicate()[0]
+    exitcode = process.returncode
+
+    parent_queue.put_nowait([exitcode, stdout])
+
 def get_args():
     parser = argparse.ArgumentParser()
 
@@ -347,8 +340,6 @@ def get_args():
                         help="check tests with Valgrind")
     parser.add_argument("--coverage", action="store_true", default=False,
                         help="measure JavaScript coverage")
-    parser.add_argument("--n-api", action="store_true", default=False,
-                        help="Build N-API tests")
 
     return parser.parse_args()
 

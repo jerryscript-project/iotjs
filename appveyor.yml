@@ -14,6 +14,8 @@ platform:
   - x64
 init:
   - cmd: |
+      if "%PLATFORM%"=="Win32" set SYS_ARCH=i686
+      if "%PLATFORM%"=="x64" set SYS_ARCH=x86_64
       cmake -version
 
 install:
@@ -21,13 +23,11 @@ install:
       Install-Product node 10.15.3
 
 artifacts:
-  - path: build\x86_64-windows\$(configuration)\bin\$(configuration)\
+  - path: build\%SYS_ARCH%-windows\$(configuration)\bin\$(configuration)\
     name: IoTjsbinary
 
 before_build:
   - cmd: |
-      if "%PLATFORM%"=="Win32" set SYS_ARCH=i686
-      if "%PLATFORM%"=="x64" set SYS_ARCH=x86_64
       tools\build.py --experimental --buildtype=%CONFIGURATION% --target-arch=%SYS_ARCH% --jerry-profile=es2015-subset --n-api
 
 build:

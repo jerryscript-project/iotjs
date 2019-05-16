@@ -16,9 +16,6 @@
 #ifndef IOTJS_BINDING_H
 #define IOTJS_BINDING_H
 
-#include <stdbool.h>
-#include <string.h>
-
 #include "iotjs_util.h"
 #include "jerryscript.h"
 
@@ -209,29 +206,5 @@ jerry_value_t iotjs_jhelper_eval(const char* name, size_t name_len,
   } while (0)
 
 jerry_value_t vm_exec_stop_callback(void* user_p);
-
-/**
- * Dynamic module defintions (.iotjs)
- */
-#define IOTJS_CURRENT_MODULE_VERSION ((uint32_t)1)
-
-typedef jerry_value_t (*ModuleInitializer)(void);
-
-typedef struct {
-  uint32_t iotjs_module_version;
-  uint32_t module_version;
-  ModuleInitializer initializer;
-} iotjs_module;
-
-typedef iotjs_module* (*iotjs_module_info_getter)(void);
-
-#define IOTJS_MODULE_ENTRYPOINT iotjs_module_info
-#define IOTJS_MODULE(IOTJS_VERSION, MODULE_VERSION, NAME) \
-  static const iotjs_module __module = {                  \
-    IOTJS_VERSION, MODULE_VERSION, init_##NAME,           \
-  };                                                      \
-  const iotjs_module* IOTJS_MODULE_ENTRYPOINT(void) {     \
-    return &__module;                                     \
-  }
 
 #endif /* IOTJS_BINDING_H */

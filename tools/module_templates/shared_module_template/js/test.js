@@ -14,7 +14,7 @@
  */
 
 var console = require("console");
-var demomod = require("build/lib/$MODULE_NAME$");
+var demo_module = require("build/lib/$MODULE_NAME$");
 
-console.log(demomod);
+console.log(demo_module.hello());
 

@@ -43,7 +43,7 @@ For each directory in search paths above:
   - If `id/package.json` contains **main** property, load the file named **main** property.
   - If `id/package.json` exists, but neither the **main** property nor the file named **main** property exist, load `index.js`.
 - Extra step for Linux/Tizen targets:
-  - If a file with `id.iotjs` exists, try to load it as an IoT.js dynamic module and return.
+  - If a file with `id.node` exists, try to load it as an N-API native addon and return.
 
 **Changing current working directory**
 

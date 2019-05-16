@@ -14,7 +14,7 @@ Contents
   * Using native module in JavaScript module
 * Advanced usage
   * Module specific CMake file
-  * Writing Dynamically loadable modules
+  * Writing Dynamically loadable modules (N-API)
 * Module structure generator
 
 See also:
@@ -434,62 +434,112 @@ To ease creation of modules which contains extra CMake files
 there is a module generator as described below.
 
 
-## Writing Dynamically loadable modules
+## Writing Dynamically loadable modules (N-API)
 
-IoT.js support loading specially crafted shared libraries.
-To create such modules the source files must be compiled into a
-shared object - preferably using the `.iotjs` extension - and
-must have a special entry point defined using the `IOTJS_MODULE` macro.
+IoT.js support N-API for building and loading native addons.
+To create such modules the source files must be compiled into
+a shared object and must have a special entry point defined.
 
-The `IOTJS_MODULE` macro has the following four parameters:
+See also:
+  * [N-API in IoT.js](../api/IoT.js-API-N-API.md)
+  * [N-API module registration](https://nodejs.org/docs/latest-v10.x/api/n-api.html#n_api_module_registration) macro.
 
-* `iotjs_module_version`: target IoT.js target module version as `uint32_t`
-  value. The `IOTJS_CURRENT_MODULE_VERSION` can be used to get the current IoT.js
-  module version when the module is compiling.
-* `module_version`: the module version as a `uint32_t` value.
-* `initializer`: the entry point of module which should return an initialized
-  module object. Note: the macro will automaticall prefix the specified name
-  with `init_`.
+N-API modules are registered in a manner similar to other modules
+except that instead of using the `NODE_MODULE` macro the following
+is used:
 
-For example, in the `testmodule.c` file:
+```C
+NAPI_MODULE(NODE_GYP_MODULE_NAME, Init)
+```
 
-```c
+The next difference is the signature for the `Init` method. For a N-API
+module it is as follows:
 
-#include <iotjs_binding.h>
+```C
+napi_value Init(napi_env env, napi_value exports);
+```
 
-jerry_value_t init_testmodule(void) {
-  jerry_value_t object = jerry_create_object();
-  /* add properties to 'object' */
-  return object;
+The return value from `Init` is treated as the `exports` object for the module.
+The `Init` method is passed an empty object via the `exports` parameter as a
+convenience. If `Init` returns NULL, the parameter passed as `exports` is
+exported by the module. N-API modules cannot modify the `module` object but can
+specify anything as the `exports` property of the module.
+
+To add the method `hello` as a function so that it can be called as a method
+provided by the addon:
+
+```C
+napi_value Init(napi_env env, napi_value exports) {
+  napi_status status;
+  napi_property_descriptor desc =
+    {"hello", NULL, Method, NULL, NULL, NULL, napi_default, NULL};
+  status = napi_define_properties(env, exports, 1, &desc);
+  if (status != napi_ok) return NULL;
+  return exports;
 }
-
-IOTJS_MODULE(IOTJS_CURRENT_MODULE_VERSION, 1, testmodule);
 ```
 
-Should be compiled with the following command:
+To set a function to be returned by the `require()` for the addon:
 
-```sh
-$ gcc -Wall -I<path/to/IoT.js headers> -I<path/to/JerryScript headers> -shared -o testmodule.iotjs testmodule.c
+```C
+napi_value Init(napi_env env, napi_value exports) {
+  napi_value method;
+  napi_status status;
+  status = napi_create_function(env, "exports", NAPI_AUTO_LENGTH, Method, NULL, &method);
+  if (status != napi_ok) return NULL;
+  return method;
+}
 ```
 
-After the shared module is created it can be loaded via `require` call.
-Example JS code:
+To define a class so that new instances can be created (often used with
+[Object Wrap][]):
 
-```c
-var test = require('testmodule.iotjs');
-/* access the properties of the test module. */
+```C
+// NOTE: partial example, not all referenced code is included
+napi_value Init(napi_env env, napi_value exports) {
+  napi_status status;
+  napi_property_descriptor properties[] = {
+    { "value", NULL, NULL, GetValue, SetValue, NULL, napi_default, NULL },
+    DECLARE_NAPI_METHOD("plusOne", PlusOne),
+    DECLARE_NAPI_METHOD("multiply", Multiply),
+  };
+
+  napi_value cons;
+  status =
+      napi_define_class(env, "MyObject", New, NULL, 3, properties, &cons);
+  if (status != napi_ok) return NULL;
+
+  status = napi_create_reference(env, cons, 1, &constructor);
+  if (status != napi_ok) return NULL;
+
+  status = napi_set_named_property(env, exports, "MyObject", cons);
+  if (status != napi_ok) return NULL;
+
+  return exports;
+}
 ```
 
-During the dynamic module loading if the `iotsj_module_version`
-returned by the module does not match the `IOTJS_CURRENT_MODULE_VERSION`
-value of the running IoT.js instance, the module loading will fail.
+If the module will be loaded multiple times during the lifetime of the Node.js
+process, use the `NAPI_MODULE_INIT` macro to initialize the module:
 
-Please note that the dynamically loadable module differs from modules
-mentioned before in the following points:
+```C
+NAPI_MODULE_INIT() {
+  napi_value answer;
+  napi_status result;
 
-* The entry point must be specified with the `IOTJS_MODULE` macro.
-* The shared module is not compiled with the IoT.js binary.
-* There is no need for the `modules.json` file.
+  status = napi_create_int64(env, 42, &answer);
+  if (status != napi_ok) return NULL;
+
+  status = napi_set_named_property(env, exports, "answer", answer);
+  if (status != napi_ok) return NULL;
+
+  return exports;
+}
+```
+
+This macro includes `NAPI_MODULE`, and declares an `Init` function with a
+special name and with visibility beyond the addon. This will allow IoT.js to
+initialize the module even if it is loaded multiple times.
 
 
 ## Module structure generator
@@ -539,7 +589,7 @@ demomod/
       |-- module.c
 ```
 
-### Shared module generation
+### Shared (N-API) module generation
 
 Example shared module generation:
 ```

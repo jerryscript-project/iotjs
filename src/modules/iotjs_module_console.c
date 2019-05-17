@@ -18,8 +18,8 @@
 
 // This function should be able to print utf8 encoded string
 // as utf8 is internal string representation in Jerryscript
-static jerry_value_t Print(const jerry_value_t* jargv,
-                           const jerry_length_t jargc, FILE* out_fd) {
+static jerry_value_t console_print(const jerry_value_t* jargv,
+                                   const jerry_length_t jargc, FILE* out_fd) {
   JS_CHECK_ARGS(1, string);
   iotjs_string_t msg = JS_GET_ARG(0, string);
   const char* str = iotjs_string_data(&msg);
@@ -44,21 +44,21 @@ static jerry_value_t Print(const jerry_value_t* jargv,
 }
 
 
-JS_FUNCTION(Stdout) {
-  return Print(jargv, jargc, stdout);
+JS_FUNCTION(console_stdout) {
+  return console_print(jargv, jargc, stdout);
 }
 
 
-JS_FUNCTION(Stderr) {
-  return Print(jargv, jargc, stderr);
+JS_FUNCTION(console_stderr) {
+  return console_print(jargv, jargc, stderr);
 }
 
 
-jerry_value_t InitConsole(void) {
+jerry_value_t iotjs_init_console(void) {
   jerry_value_t console = jerry_create_object();
 
-  iotjs_jval_set_method(console, IOTJS_MAGIC_STRING_STDOUT, Stdout);
-  iotjs_jval_set_method(console, IOTJS_MAGIC_STRING_STDERR, Stderr);
+  iotjs_jval_set_method(console, IOTJS_MAGIC_STRING_STDOUT, console_stdout);
+  iotjs_jval_set_method(console, IOTJS_MAGIC_STRING_STDERR, console_stderr);
 
   return console;
 }

@@ -281,7 +281,7 @@ static jerry_value_t iotjs_websocket_check_error(uint8_t code) {
 }
 
 
-JS_FUNCTION(PrepareHandshakeRequest) {
+JS_FUNCTION(prepare_handshake_request) {
   DJS_CHECK_THIS();
 
   jerry_value_t jsref = JS_GET_ARG(0, object);
@@ -341,7 +341,7 @@ JS_FUNCTION(PrepareHandshakeRequest) {
  * Connection: Upgrade
  * Sec-WebSocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=
  */
-JS_FUNCTION(ReceiveHandshakeData) {
+JS_FUNCTION(receive_handshake_data) {
   DJS_CHECK_THIS();
   DJS_CHECK_ARGS(1, string);
 
@@ -370,7 +370,7 @@ JS_FUNCTION(ReceiveHandshakeData) {
   return jfinal;
 }
 
-JS_FUNCTION(ParseHandshakeData) {
+JS_FUNCTION(parse_handshake_data) {
   DJS_CHECK_THIS();
   DJS_CHECK_ARGS(2, object, object);
 
@@ -546,7 +546,7 @@ static uint8_t iotjs_websocket_decode_frame(iotjs_wsclient_t *wsclient,
 }
 
 
-JS_FUNCTION(WsReceive) {
+JS_FUNCTION(ws_receive) {
   DJS_CHECK_THIS();
   DJS_CHECK_ARGS(3, object, object, object);
 
@@ -660,7 +660,7 @@ JS_FUNCTION(WsReceive) {
 }
 
 
-JS_FUNCTION(WsInit) {
+JS_FUNCTION(ws_init) {
   DJS_CHECK_THIS();
 
   const jerry_value_t jws = JS_GET_ARG(0, object);
@@ -678,7 +678,7 @@ JS_FUNCTION(WsInit) {
 }
 
 
-JS_FUNCTION(WsClose) {
+JS_FUNCTION(ws_close) {
   DJS_CHECK_THIS();
 
   bool masked = false;
@@ -724,7 +724,7 @@ JS_FUNCTION(WsClose) {
 }
 
 
-JS_FUNCTION(WsSendData) {
+JS_FUNCTION(ws_send_data) {
   DJS_CHECK_THIS();
 
   jerry_value_t jmsg = JS_GET_ARG(0, any);
@@ -750,7 +750,7 @@ JS_FUNCTION(WsSendData) {
 }
 
 
-JS_FUNCTION(WsPingOrPong) {
+JS_FUNCTION(ws_ping_or_pong) {
   DJS_CHECK_THIS();
 
   uint8_t opcode =
@@ -776,20 +776,21 @@ JS_FUNCTION(WsPingOrPong) {
 }
 
 
-jerry_value_t InitWebsocket(void) {
+jerry_value_t iotjs_init_websocket(void) {
   IOTJS_UNUSED(WS_GUID);
+
   jerry_value_t jws = jerry_create_object();
-  iotjs_jval_set_method(jws, IOTJS_MAGIC_STRING_CLOSE, WsClose);
+  iotjs_jval_set_method(jws, IOTJS_MAGIC_STRING_CLOSE, ws_close);
   iotjs_jval_set_method(jws, IOTJS_MAGIC_STRING_PARSEHANDSHAKEDATA,
-                        ParseHandshakeData);
-  iotjs_jval_set_method(jws, IOTJS_MAGIC_STRING_PING, WsPingOrPong);
+                        parse_handshake_data);
+  iotjs_jval_set_method(jws, IOTJS_MAGIC_STRING_PING, ws_ping_or_pong);
   iotjs_jval_set_method(jws, IOTJS_MAGIC_STRING_PREPAREHANDSHAKE,
-                        PrepareHandshakeRequest);
-  iotjs_jval_set_method(jws, IOTJS_MAGIC_STRING_SEND, WsSendData);
-  iotjs_jval_set_method(jws, IOTJS_MAGIC_STRING_WSINIT, WsInit);
-  iotjs_jval_set_method(jws, IOTJS_MAGIC_STRING_WSRECEIVE, WsReceive);
+                        prepare_handshake_request);
+  iotjs_jval_set_method(jws, IOTJS_MAGIC_STRING_SEND, ws_send_data);
+  iotjs_jval_set_method(jws, IOTJS_MAGIC_STRING_WSINIT, ws_init);
+  iotjs_jval_set_method(jws, IOTJS_MAGIC_STRING_WSRECEIVE, ws_receive);
   iotjs_jval_set_method(jws, IOTJS_MAGIC_STRING_WSRECEIVEHANDSHAKEDATA,
-                        ReceiveHandshakeData);
+                        receive_handshake_data);
 
   return jws;
 }

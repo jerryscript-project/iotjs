@@ -18,7 +18,7 @@
 #include "iotjs_module_buffer.h"
 #include "iotjs_uv_request.h"
 
-jerry_value_t MakeStatObject(uv_stat_t* statbuf);
+jerry_value_t make_stat_object(uv_stat_t* statbuf);
 
 
 static jerry_value_t iotjs_create_uv_exception(int errorno,
@@ -29,7 +29,7 @@ static jerry_value_t iotjs_create_uv_exception(int errorno,
 }
 
 
-static void AfterAsync(uv_fs_t* req) {
+static void fs_after_async(uv_fs_t* req) {
   const jerry_value_t cb = *IOTJS_UV_REQUEST_JSCALLBACK(req);
   IOTJS_ASSERT(jerry_value_is_function(cb));
 
@@ -67,7 +67,7 @@ static void AfterAsync(uv_fs_t* req) {
       case UV_FS_FSTAT:
       case UV_FS_STAT: {
         uv_stat_t s = (req->statbuf);
-        jargs[jargc++] = MakeStatObject(&s);
+        jargs[jargc++] = make_stat_object(&s);
         break;
       }
       default: { break; }
@@ -83,8 +83,8 @@ static void AfterAsync(uv_fs_t* req) {
 }
 
 
-static jerry_value_t AfterSync(uv_fs_t* req, int err,
-                               const char* syscall_name) {
+static jerry_value_t fs_after_sync(uv_fs_t* req, int err,
+                                   const char* syscall_name) {
   if (err < 0) {
     jerry_value_t jvalue = iotjs_create_uv_exception(err, syscall_name);
     jerry_value_t jerror = jerry_create_error_from_value(jvalue, true);
@@ -101,7 +101,7 @@ static jerry_value_t AfterSync(uv_fs_t* req, int err,
     case UV_FS_FSTAT:
     case UV_FS_STAT: {
       uv_stat_t* s = &(req->statbuf);
-      return MakeStatObject(s);
+      return make_stat_object(s);
     }
     case UV_FS_MKDIR:
     case UV_FS_RMDIR:
@@ -130,7 +130,7 @@ static jerry_value_t AfterSync(uv_fs_t* req, int err,
 }
 
 
-static inline bool IsWithinBounds(size_t off, size_t len, size_t max) {
+static inline bool is_within_bounds(size_t off, size_t len, size_t max) {
   if (off >= max || max - off < len)
     return false;
 
@@ -142,10 +142,10 @@ static inline bool IsWithinBounds(size_t off, size_t len, size_t max) {
   uv_fs_t* fs_req =                                                           \
       (uv_fs_t*)iotjs_uv_request_create(sizeof(uv_fs_t), pcallback, 0);       \
   int err = uv_fs_##syscall(iotjs_environment_loop(env), fs_req, __VA_ARGS__, \
-                            AfterAsync);                                      \
+                            fs_after_async);                                  \
   if (err < 0) {                                                              \
     fs_req->result = err;                                                     \
-    AfterAsync(fs_req);                                                       \
+    fs_after_async(fs_req);                                                   \
   }                                                                           \
   ret_value = jerry_create_null();
 
@@ -154,11 +154,11 @@ static inline bool IsWithinBounds(size_t off, size_t len, size_t max) {
   uv_fs_t fs_req;                                                              \
   int err = uv_fs_##syscall(iotjs_environment_loop(env), &fs_req, __VA_ARGS__, \
                             NULL);                                             \
-  ret_value = AfterSync(&fs_req, err, #syscall);                               \
+  ret_value = fs_after_sync(&fs_req, err, #syscall);                           \
   uv_fs_req_cleanup(&fs_req);
 
 
-JS_FUNCTION(Close) {
+JS_FUNCTION(fs_close) {
   DJS_CHECK_THIS();
   DJS_CHECK_ARGS(1, number);
   DJS_CHECK_ARG_IF_EXIST(1, function);
@@ -178,7 +178,7 @@ JS_FUNCTION(Close) {
 }
 
 
-JS_FUNCTION(Open) {
+JS_FUNCTION(fs_open) {
   DJS_CHECK_THIS();
   DJS_CHECK_ARGS(3, string, number, number);
   DJS_CHECK_ARG_IF_EXIST(3, function);
@@ -227,7 +227,7 @@ jerry_value_t fs_do_read_or_write(const jerry_value_t jfunc,
   size_t data_length = iotjs_bufferwrap_length(buffer_wrap);
   JS_CHECK(data != NULL && data_length > 0);
 
-  if (!IsWithinBounds(offset, length, data_length)) {
+  if (!is_within_bounds(offset, length, data_length)) {
     return JS_CREATE_ERROR(RANGE, "length out of bound");
   }
 
@@ -251,17 +251,17 @@ jerry_value_t fs_do_read_or_write(const jerry_value_t jfunc,
 }
 
 
-JS_FUNCTION(Read) {
+JS_FUNCTION(fs_read) {
   return fs_do_read_or_write(jfunc, jthis, jargv, jargc, IOTJS_FS_READ);
 }
 
 
-JS_FUNCTION(Write) {
+JS_FUNCTION(fs_write) {
   return fs_do_read_or_write(jfunc, jthis, jargv, jargc, IOTJS_FS_WRITE);
 }
 
 
-jerry_value_t MakeStatObject(uv_stat_t* statbuf) {
+jerry_value_t make_stat_object(uv_stat_t* statbuf) {
   const jerry_value_t fs = iotjs_module_get("fs");
 
   jerry_value_t stat_prototype =
@@ -294,7 +294,7 @@ jerry_value_t MakeStatObject(uv_stat_t* statbuf) {
 }
 
 
-JS_FUNCTION(Stat) {
+JS_FUNCTION(fs_stat) {
   DJS_CHECK_THIS();
   DJS_CHECK_ARGS(1, string);
   DJS_CHECK_ARG_IF_EXIST(1, function);
@@ -316,7 +316,7 @@ JS_FUNCTION(Stat) {
 }
 
 
-JS_FUNCTION(Fstat) {
+JS_FUNCTION(fs_fstat) {
   DJS_CHECK_THIS();
   DJS_CHECK_ARGS(1, number);
   DJS_CHECK_ARG_IF_EXIST(1, function);
@@ -336,7 +336,7 @@ JS_FUNCTION(Fstat) {
 }
 
 
-JS_FUNCTION(MkDir) {
+JS_FUNCTION(fs_mkdir) {
   DJS_CHECK_THIS();
   DJS_CHECK_ARGS(2, string, number);
   DJS_CHECK_ARG_IF_EXIST(2, function);
@@ -359,7 +359,7 @@ JS_FUNCTION(MkDir) {
 }
 
 
-JS_FUNCTION(RmDir) {
+JS_FUNCTION(fs_rmdir) {
   DJS_CHECK_THIS();
   DJS_CHECK_ARGS(1, string);
   DJS_CHECK_ARG_IF_EXIST(1, function);
@@ -381,7 +381,7 @@ JS_FUNCTION(RmDir) {
 }
 
 
-JS_FUNCTION(Unlink) {
+JS_FUNCTION(fs_unlink) {
   DJS_CHECK_THIS();
   DJS_CHECK_ARGS(1, string);
   DJS_CHECK_ARG_IF_EXIST(1, function);
@@ -403,33 +403,33 @@ JS_FUNCTION(Unlink) {
 }
 
 
-JS_FUNCTION(Rename) {
+JS_FUNCTION(fs_rename) {
   DJS_CHECK_THIS();
   DJS_CHECK_ARGS(2, string, string);
   DJS_CHECK_ARG_IF_EXIST(2, function);
 
   const iotjs_environment_t* env = iotjs_environment_get();
 
-  iotjs_string_t oldPath = JS_GET_ARG(0, string);
-  iotjs_string_t newPath = JS_GET_ARG(1, string);
+  iotjs_string_t old_path = JS_GET_ARG(0, string);
+  iotjs_string_t new_path = JS_GET_ARG(1, string);
   const jerry_value_t jcallback = JS_GET_ARG_IF_EXIST(2, function);
 
   jerry_value_t ret_value;
   if (!jerry_value_is_null(jcallback)) {
-    FS_ASYNC(env, rename, jcallback, iotjs_string_data(&oldPath),
-             iotjs_string_data(&newPath));
+    FS_ASYNC(env, rename, jcallback, iotjs_string_data(&old_path),
+             iotjs_string_data(&new_path));
   } else {
-    FS_SYNC(env, rename, iotjs_string_data(&oldPath),
-            iotjs_string_data(&newPath));
+    FS_SYNC(env, rename, iotjs_string_data(&old_path),
+            iotjs_string_data(&new_path));
   }
 
-  iotjs_string_destroy(&oldPath);
-  iotjs_string_destroy(&newPath);
+  iotjs_string_destroy(&old_path);
+  iotjs_string_destroy(&new_path);
   return ret_value;
 }
 
 
-JS_FUNCTION(ReadDir) {
+JS_FUNCTION(fs_read_dir) {
   DJS_CHECK_THIS();
   DJS_CHECK_ARGS(1, string);
   DJS_CHECK_ARG_IF_EXIST(1, function);
@@ -448,7 +448,7 @@ JS_FUNCTION(ReadDir) {
   return ret_value;
 }
 
-static jerry_value_t StatsIsTypeOf(jerry_value_t stats, int type) {
+static jerry_value_t stats_is_typeof(jerry_value_t stats, int type) {
   jerry_value_t mode = iotjs_jval_get_property(stats, IOTJS_MAGIC_STRING_MODE);
 
   int mode_number = (int)iotjs_jval_as_number(mode);
@@ -458,39 +458,39 @@ static jerry_value_t StatsIsTypeOf(jerry_value_t stats, int type) {
   return jerry_create_boolean((mode_number & S_IFMT) == type);
 }
 
-JS_FUNCTION(StatsIsDirectory) {
+JS_FUNCTION(fs_stats_is_directory) {
   DJS_CHECK_THIS();
   jerry_value_t stats = JS_GET_THIS();
-  return StatsIsTypeOf(stats, S_IFDIR);
+  return stats_is_typeof(stats, S_IFDIR);
 }
 
-JS_FUNCTION(StatsIsFile) {
+JS_FUNCTION(fs_stats_is_file) {
   DJS_CHECK_THIS();
   jerry_value_t stats = JS_GET_THIS();
-  return StatsIsTypeOf(stats, S_IFREG);
+  return stats_is_typeof(stats, S_IFREG);
 }
 
-jerry_value_t InitFs(void) {
+jerry_value_t iotjs_init_fs(void) {
   jerry_value_t fs = jerry_create_object();
 
-  iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_CLOSE, Close);
-  iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_OPEN, Open);
-  iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_READ, Read);
-  iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_WRITE, Write);
-  iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_STAT, Stat);
-  iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_FSTAT, Fstat);
-  iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_MKDIR, MkDir);
-  iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_RMDIR, RmDir);
-  iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_UNLINK, Unlink);
-  iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_RENAME, Rename);
-  iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_READDIR, ReadDir);
+  iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_CLOSE, fs_close);
+  iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_OPEN, fs_open);
+  iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_READ, fs_read);
+  iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_WRITE, fs_write);
+  iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_STAT, fs_stat);
+  iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_FSTAT, fs_fstat);
+  iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_MKDIR, fs_mkdir);
+  iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_RMDIR, fs_rmdir);
+  iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_UNLINK, fs_unlink);
+  iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_RENAME, fs_rename);
+  iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_READDIR, fs_read_dir);
 
   jerry_value_t stats_prototype = jerry_create_object();
 
   iotjs_jval_set_method(stats_prototype, IOTJS_MAGIC_STRING_ISDIRECTORY,
-                        StatsIsDirectory);
+                        fs_stats_is_directory);
   iotjs_jval_set_method(stats_prototype, IOTJS_MAGIC_STRING_ISFILE,
-                        StatsIsFile);
+                        fs_stats_is_file);
 
   iotjs_jval_set_property_jval(fs, IOTJS_MAGIC_STRING_STATS, stats_prototype);
   jerry_release_value(stats_prototype);

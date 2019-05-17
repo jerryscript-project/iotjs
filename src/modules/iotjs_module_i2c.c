@@ -51,7 +51,7 @@ static void i2c_worker(uv_work_t* work_req) {
   }
 }
 
-JS_FUNCTION(I2cCons) {
+JS_FUNCTION(i2c_constructor) {
   DJS_CHECK_THIS();
   DJS_CHECK_ARGS(1, object);
   DJS_CHECK_ARG_IF_EXIST(1, function);
@@ -84,7 +84,7 @@ JS_FUNCTION(I2cCons) {
   return jerry_create_undefined();
 }
 
-JS_FUNCTION(Close) {
+JS_FUNCTION(i2c_close) {
   JS_DECLARE_THIS_PTR(i2c, i2c);
   DJS_CHECK_ARG_IF_EXIST(1, function);
 
@@ -94,7 +94,7 @@ JS_FUNCTION(Close) {
   return jerry_create_undefined();
 }
 
-JS_FUNCTION(CloseSync) {
+JS_FUNCTION(i2c_close_sync) {
   JS_DECLARE_THIS_PTR(i2c, i2c);
 
   if (!iotjs_i2c_close(i2c)) {
@@ -104,8 +104,9 @@ JS_FUNCTION(CloseSync) {
   return jerry_create_undefined();
 }
 
-static jerry_value_t i2c_write(iotjs_i2c_t* i2c, const jerry_value_t jargv[],
-                               const jerry_length_t jargc, bool async) {
+static jerry_value_t i2c_write_helper(iotjs_i2c_t* i2c,
+                                      const jerry_value_t jargv[],
+                                      const jerry_length_t jargc, bool async) {
   jerry_value_t jarray;
   JS_GET_REQUIRED_ARG_VALUE(0, jarray, IOTJS_MAGIC_STRING_DATA, array);
 
@@ -128,26 +129,26 @@ static jerry_value_t i2c_write(iotjs_i2c_t* i2c, const jerry_value_t jargv[],
 
 typedef enum { IOTJS_I2C_WRITE, IOTJS_I2C_WRITESYNC } iotjs_i2c_op_t;
 
-jerry_value_t i2c_do_write_or_writesync(const jerry_value_t jfunc,
-                                        const jerry_value_t jthis,
-                                        const jerry_value_t jargv[],
-                                        const jerry_length_t jargc,
-                                        const iotjs_i2c_op_t i2c_op) {
+static jerry_value_t i2c_do_write_or_writesync(const jerry_value_t jfunc,
+                                               const jerry_value_t jthis,
+                                               const jerry_value_t jargv[],
+                                               const jerry_length_t jargc,
+                                               const iotjs_i2c_op_t i2c_op) {
   JS_DECLARE_THIS_PTR(i2c, i2c);
   DJS_CHECK_ARGS(1, array);
-  return i2c_write(i2c, jargv, jargc, i2c_op == IOTJS_I2C_WRITE);
+  return i2c_write_helper(i2c, jargv, jargc, i2c_op == IOTJS_I2C_WRITE);
 }
 
-JS_FUNCTION(Write) {
+JS_FUNCTION(i2c_write) {
   return i2c_do_write_or_writesync(jfunc, jthis, jargv, jargc, IOTJS_I2C_WRITE);
 }
 
-JS_FUNCTION(WriteSync) {
+JS_FUNCTION(i2c_write_sync) {
   return i2c_do_write_or_writesync(jfunc, jthis, jargv, jargc,
                                    IOTJS_I2C_WRITESYNC);
 }
 
-JS_FUNCTION(Read) {
+JS_FUNCTION(i2c_read) {
   JS_DECLARE_THIS_PTR(i2c, i2c);
   DJS_CHECK_ARGS(1, number);
   DJS_CHECK_ARG_IF_EXIST(1, function);
@@ -160,7 +161,7 @@ JS_FUNCTION(Read) {
   return jerry_create_undefined();
 }
 
-JS_FUNCTION(ReadSync) {
+JS_FUNCTION(i2c_read_sync) {
   JS_DECLARE_THIS_PTR(i2c, i2c);
   DJS_CHECK_ARGS(1, number);
 
@@ -178,17 +179,19 @@ JS_FUNCTION(ReadSync) {
   return result;
 }
 
-jerry_value_t InitI2c(void) {
-  jerry_value_t ji2c_cons = jerry_create_external_function(I2cCons);
+jerry_value_t iotjs_init_i2c(void) {
+  jerry_value_t ji2c_cons = jerry_create_external_function(i2c_constructor);
 
   jerry_value_t prototype = jerry_create_object();
 
-  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_CLOSE, Close);
-  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_CLOSESYNC, CloseSync);
-  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_WRITE, Write);
-  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_WRITESYNC, WriteSync);
-  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_READ, Read);
-  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_READSYNC, ReadSync);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_CLOSE, i2c_close);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_CLOSESYNC,
+                        i2c_close_sync);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_WRITE, i2c_write);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_WRITESYNC,
+                        i2c_write_sync);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_READ, i2c_read);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_READSYNC, i2c_read_sync);
 
   iotjs_jval_set_property_jval(ji2c_cons, IOTJS_MAGIC_STRING_PROTOTYPE,
                                prototype);

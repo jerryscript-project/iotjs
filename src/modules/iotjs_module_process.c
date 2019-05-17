@@ -23,8 +23,8 @@
 #endif /* !WIN32 */
 
 
-static jerry_value_t WrapEval(const char* name, size_t name_len,
-                              const char* source, size_t length) {
+static jerry_value_t wrap_eval(const char* name, size_t name_len,
+                               const char* source, size_t length) {
   static const char* args = "exports, require, module, native";
   jerry_value_t res =
       jerry_parse_function((const jerry_char_t*)name, name_len,
@@ -36,7 +36,7 @@ static jerry_value_t WrapEval(const char* name, size_t name_len,
 }
 
 
-JS_FUNCTION(Compile) {
+JS_FUNCTION(proc_compile) {
   DJS_CHECK_ARGS(2, string, string);
 
   iotjs_string_t file = JS_GET_ARG(0, string);
@@ -52,8 +52,8 @@ JS_FUNCTION(Compile) {
 #endif
 
   jerry_value_t jres =
-      WrapEval(filename, strlen(filename), iotjs_string_data(&source),
-               iotjs_string_size(&source));
+      wrap_eval(filename, strlen(filename), iotjs_string_data(&source),
+                iotjs_string_size(&source));
 
   iotjs_string_destroy(&file);
   iotjs_string_destroy(&source);
@@ -63,7 +63,7 @@ JS_FUNCTION(Compile) {
 
 
 #ifdef JERRY_DEBUGGER
-// Callback function for DebuggerGetSource
+// Callback function for debugger_get_source
 static jerry_value_t wait_for_source_callback(
     const jerry_char_t* resource_name_p, size_t resource_name_size,
     const jerry_char_t* source_p, size_t size, void* data) {
@@ -84,7 +84,7 @@ static jerry_value_t wait_for_source_callback(
 
 
 // Export JS module received from the debugger client
-JS_FUNCTION(DebuggerGetSource) {
+JS_FUNCTION(debugger_get_source) {
   jerry_debugger_wait_for_source_status_t receive_status;
   jerry_value_t ret_val = jerry_create_array(0);
   uint8_t counter = 0;
@@ -111,7 +111,7 @@ JS_FUNCTION(DebuggerGetSource) {
 #endif
 
 
-JS_FUNCTION(CompileModule) {
+JS_FUNCTION(proc_compile_module) {
   DJS_CHECK_ARGS(2, object, function);
 
   jerry_value_t jmodule = JS_GET_ARG(0, object);
@@ -149,8 +149,8 @@ JS_FUNCTION(CompileModule) {
                                iotjs_js_modules_l, js_modules[i].idx,
                                JERRY_SNAPSHOT_EXEC_ALLOW_STATIC);
 #else
-    jres = WrapEval(name, iotjs_string_size(&id),
-                    (const char*)js_modules[i].code, js_modules[i].length);
+    jres = wrap_eval(name, iotjs_string_size(&id),
+                     (const char*)js_modules[i].code, js_modules[i].length);
 #endif
     if (!jerry_value_is_error(jres)) {
       jerry_value_t jexports = iotjs_jval_get_property(jmodule, "exports");
@@ -175,7 +175,7 @@ JS_FUNCTION(CompileModule) {
 }
 
 
-JS_FUNCTION(ReadSource) {
+JS_FUNCTION(proc_read_source) {
   DJS_CHECK_ARGS(1, string);
 
   iotjs_string_t path = JS_GET_ARG(0, string);
@@ -202,7 +202,7 @@ JS_FUNCTION(ReadSource) {
 }
 
 
-JS_FUNCTION(Cwd) {
+JS_FUNCTION(proc_cwd) {
   char path[IOTJS_MAX_PATH_SIZE];
   size_t size_path = sizeof(path);
   int err = uv_cwd(path, &size_path);
@@ -214,7 +214,7 @@ JS_FUNCTION(Cwd) {
 }
 
 
-JS_FUNCTION(Chdir) {
+JS_FUNCTION(proc_chdir) {
   DJS_CHECK_ARGS(1, string);
 
   iotjs_string_t path = JS_GET_ARG(0, string);
@@ -231,7 +231,7 @@ JS_FUNCTION(Chdir) {
 
 
 #ifdef EXPOSE_GC
-JS_FUNCTION(Gc) {
+JS_FUNCTION(garbage_collector) {
   jerry_gc(JERRY_GC_SEVERITY_LOW);
 
   return jerry_create_undefined();
@@ -239,7 +239,7 @@ JS_FUNCTION(Gc) {
 #endif
 
 
-JS_FUNCTION(DoExit) {
+JS_FUNCTION(proc_do_exit) {
   iotjs_environment_t* env = iotjs_environment_get();
 
   if (!iotjs_environment_is_exiting(env)) {
@@ -253,15 +253,7 @@ JS_FUNCTION(DoExit) {
 }
 
 
-void SetNativeSources(jerry_value_t native_sources) {
-  for (int i = 0; js_modules[i].name; i++) {
-    iotjs_jval_set_property_jval(native_sources, js_modules[i].name,
-                                 jerry_create_boolean(true));
-  }
-}
-
-
-static void SetProcessEnv(jerry_value_t process) {
+static void set_process_env(jerry_value_t process) {
   const char *homedir, *iotjspath, *iotjsenv, *extra_module_path,
       *working_dir_path;
 
@@ -309,7 +301,7 @@ static void SetProcessEnv(jerry_value_t process) {
 }
 
 
-static void SetProcessIotjs(jerry_value_t process) {
+static void set_process_iotjs(jerry_value_t process) {
   // IoT.js specific
   jerry_value_t iotjs = jerry_create_object();
   iotjs_jval_set_property_jval(process, IOTJS_MAGIC_STRING_IOTJS, iotjs);
@@ -320,7 +312,7 @@ static void SetProcessIotjs(jerry_value_t process) {
 }
 
 
-static void SetProcessArgv(jerry_value_t process) {
+static void set_process_argv(jerry_value_t process) {
   const iotjs_environment_t* env = iotjs_environment_get();
   uint32_t argc = iotjs_environment_argc(env);
 
@@ -338,7 +330,7 @@ static void SetProcessArgv(jerry_value_t process) {
 }
 
 
-static void SetBuiltinModules(jerry_value_t builtin_modules) {
+static void set_builtin_modules(jerry_value_t builtin_modules) {
   for (unsigned i = 0; js_modules[i].name; i++) {
     iotjs_jval_set_property_jval(builtin_modules, js_modules[i].name,
                                  jerry_create_boolean(true));
@@ -349,19 +341,20 @@ static void SetBuiltinModules(jerry_value_t builtin_modules) {
   }
 }
 
-static void SetProcessPrivate(jerry_value_t process, bool wait_source) {
+static void set_process_private(jerry_value_t process, bool wait_source) {
   jerry_value_t private = jerry_create_object();
   iotjs_jval_set_property_jval(process, IOTJS_MAGIC_STRING_PRIVATE, private);
 
-  iotjs_jval_set_method(private, IOTJS_MAGIC_STRING_COMPILE, Compile);
+  iotjs_jval_set_method(private, IOTJS_MAGIC_STRING_COMPILE, proc_compile);
   iotjs_jval_set_method(private, IOTJS_MAGIC_STRING_COMPILEMODULE,
-                        CompileModule);
-  iotjs_jval_set_method(private, IOTJS_MAGIC_STRING_READSOURCE, ReadSource);
+                        proc_compile_module);
+  iotjs_jval_set_method(private, IOTJS_MAGIC_STRING_READSOURCE,
+                        proc_read_source);
 
 #ifdef JERRY_DEBUGGER
   // debugger
   iotjs_jval_set_method(private, IOTJS_MAGIC_STRING_DEBUGGERGETSOURCE,
-                        DebuggerGetSource);
+                        debugger_get_source);
 
   jerry_value_t wait_source_val = jerry_create_boolean(wait_source);
   iotjs_jval_set_property_jval(private, IOTJS_MAGIC_STRING_DEBUGGERWAITSOURCE,
@@ -374,14 +367,14 @@ static void SetProcessPrivate(jerry_value_t process, bool wait_source) {
 }
 
 
-jerry_value_t InitProcess(void) {
+jerry_value_t iotjs_init_process(void) {
   jerry_value_t process = jerry_create_object();
 
-  iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_CWD, Cwd);
-  iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_CHDIR, Chdir);
-  iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_DOEXIT, DoExit);
+  iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_CWD, proc_cwd);
+  iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_CHDIR, proc_chdir);
+  iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_DOEXIT, proc_do_exit);
 #ifdef EXPOSE_GC
-  iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_GC, Gc);
+  iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_GC, garbage_collector);
 #endif
 #ifdef DEBUG
   jerry_property_descriptor_t prop_desc;
@@ -412,11 +405,11 @@ jerry_value_t InitProcess(void) {
   iotjs_jval_set_property_jval(process, IOTJS_MAGIC_STRING_PID,
                                jerry_create_number(getpid()));
 #endif /* WIN32 */
-  SetProcessEnv(process);
+  set_process_env(process);
 
   // process.builtin_modules
   jerry_value_t builtin_modules = jerry_create_object();
-  SetBuiltinModules(builtin_modules);
+  set_builtin_modules(builtin_modules);
   iotjs_jval_set_property_jval(process, IOTJS_MAGIC_STRING_BUILTIN_MODULES,
                                builtin_modules);
   jerry_release_value(builtin_modules);
@@ -434,7 +427,7 @@ jerry_value_t InitProcess(void) {
                                      IOTJS_VERSION);
 
   // Set iotjs
-  SetProcessIotjs(process);
+  set_process_iotjs(process);
   bool wait_source = false;
 #ifdef JERRY_DEBUGGER
   if (iotjs_environment_config(iotjs_environment_get())->debugger != NULL) {
@@ -444,10 +437,10 @@ jerry_value_t InitProcess(void) {
 #endif
 
   if (!wait_source) {
-    SetProcessArgv(process);
+    set_process_argv(process);
   }
 
-  SetProcessPrivate(process, wait_source);
+  set_process_private(process, wait_source);
 
   return process;
 }

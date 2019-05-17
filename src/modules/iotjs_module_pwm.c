@@ -74,7 +74,7 @@ static jerry_value_t pwm_set_configuration(iotjs_pwm_t* pwm,
   return jerry_create_undefined();
 }
 
-JS_FUNCTION(PwmCons) {
+JS_FUNCTION(pwm_constructor) {
   DJS_CHECK_THIS();
   DJS_CHECK_ARGS(1, object);
   DJS_CHECK_ARG_IF_EXIST(1, function);
@@ -111,7 +111,7 @@ JS_FUNCTION(PwmCons) {
   return jerry_create_undefined();
 }
 
-JS_FUNCTION(Close) {
+JS_FUNCTION(pwm_close) {
   JS_DECLARE_THIS_PTR(pwm, pwm);
   DJS_CHECK_ARG_IF_EXIST(1, function);
 
@@ -121,7 +121,7 @@ JS_FUNCTION(Close) {
   return jerry_create_undefined();
 }
 
-JS_FUNCTION(CloseSync) {
+JS_FUNCTION(pwm_close_sync) {
   JS_DECLARE_THIS_PTR(pwm, pwm);
 
   if (!iotjs_pwm_close(pwm)) {
@@ -131,7 +131,7 @@ JS_FUNCTION(CloseSync) {
   return jerry_create_undefined();
 }
 
-JS_FUNCTION(SetDutyCycle) {
+JS_FUNCTION(pwm_set_duty_cycle) {
   JS_DECLARE_THIS_PTR(pwm, pwm);
   DJS_CHECK_ARGS(1, number);
   DJS_CHECK_ARG_IF_EXIST(1, function);
@@ -148,7 +148,7 @@ JS_FUNCTION(SetDutyCycle) {
   return jerry_create_undefined();
 }
 
-JS_FUNCTION(SetDutyCycleSync) {
+JS_FUNCTION(pwm_set_duty_cycle_sync) {
   JS_DECLARE_THIS_PTR(pwm, pwm);
   DJS_CHECK_ARGS(1, number);
 
@@ -164,7 +164,7 @@ JS_FUNCTION(SetDutyCycleSync) {
   return jerry_create_undefined();
 }
 
-JS_FUNCTION(SetEnable) {
+JS_FUNCTION(pwm_set_enable) {
   JS_DECLARE_THIS_PTR(pwm, pwm);
   DJS_CHECK_ARGS(1, boolean);
   DJS_CHECK_ARG_IF_EXIST(1, function);
@@ -178,7 +178,7 @@ JS_FUNCTION(SetEnable) {
   return jerry_create_undefined();
 }
 
-JS_FUNCTION(SetEnableSync) {
+JS_FUNCTION(pwm_set_enable_sync) {
   JS_DECLARE_THIS_PTR(pwm, pwm);
   DJS_CHECK_ARGS(1, boolean);
 
@@ -222,7 +222,7 @@ static jerry_value_t pwm_set_period_or_frequency(iotjs_pwm_t* pwm,
   return jerry_create_undefined();
 }
 
-JS_FUNCTION(SetFrequency) {
+JS_FUNCTION(pwm_set_frequency) {
   JS_DECLARE_THIS_PTR(pwm, pwm);
   DJS_CHECK_ARGS(1, number);
   DJS_CHECK_ARG_IF_EXIST(1, function);
@@ -231,7 +231,7 @@ JS_FUNCTION(SetFrequency) {
                                      true);
 }
 
-JS_FUNCTION(SetFrequencySync) {
+JS_FUNCTION(pwm_set_frequency_sync) {
   JS_DECLARE_THIS_PTR(pwm, pwm);
   DJS_CHECK_ARGS(1, number);
 
@@ -239,7 +239,7 @@ JS_FUNCTION(SetFrequencySync) {
                                      false);
 }
 
-JS_FUNCTION(SetPeriod) {
+JS_FUNCTION(pwm_set_period) {
   JS_DECLARE_THIS_PTR(pwm, pwm);
   DJS_CHECK_ARGS(1, number);
   DJS_CHECK_ARG_IF_EXIST(1, function);
@@ -247,34 +247,37 @@ JS_FUNCTION(SetPeriod) {
   return pwm_set_period_or_frequency(pwm, jargv, jargc, kPwmOpSetPeriod, true);
 }
 
-JS_FUNCTION(SetPeriodSync) {
+JS_FUNCTION(pwm_set_period_sync) {
   JS_DECLARE_THIS_PTR(pwm, pwm);
   DJS_CHECK_ARGS(1, number);
 
   return pwm_set_period_or_frequency(pwm, jargv, jargc, kPwmOpSetPeriod, false);
 }
 
-jerry_value_t InitPwm(void) {
-  jerry_value_t jpwm_cons = jerry_create_external_function(PwmCons);
+jerry_value_t iotjs_init_pwm(void) {
+  jerry_value_t jpwm_cons = jerry_create_external_function(pwm_constructor);
 
   jerry_value_t jprototype = jerry_create_object();
 
-  iotjs_jval_set_method(jprototype, IOTJS_MAGIC_STRING_CLOSE, Close);
-  iotjs_jval_set_method(jprototype, IOTJS_MAGIC_STRING_CLOSESYNC, CloseSync);
+  iotjs_jval_set_method(jprototype, IOTJS_MAGIC_STRING_CLOSE, pwm_close);
+  iotjs_jval_set_method(jprototype, IOTJS_MAGIC_STRING_CLOSESYNC,
+                        pwm_close_sync);
   iotjs_jval_set_method(jprototype, IOTJS_MAGIC_STRING_SETDUTYCYCLE,
-                        SetDutyCycle);
+                        pwm_set_duty_cycle);
   iotjs_jval_set_method(jprototype, IOTJS_MAGIC_STRING_SETDUTYCYCLESYNC,
-                        SetDutyCycleSync);
-  iotjs_jval_set_method(jprototype, IOTJS_MAGIC_STRING_SETENABLE, SetEnable);
+                        pwm_set_duty_cycle_sync);
+  iotjs_jval_set_method(jprototype, IOTJS_MAGIC_STRING_SETENABLE,
+                        pwm_set_enable);
   iotjs_jval_set_method(jprototype, IOTJS_MAGIC_STRING_SETENABLESYNC,
-                        SetEnableSync);
+                        pwm_set_enable_sync);
   iotjs_jval_set_method(jprototype, IOTJS_MAGIC_STRING_SETFREQUENCY,
-                        SetFrequency);
+                        pwm_set_frequency);
   iotjs_jval_set_method(jprototype, IOTJS_MAGIC_STRING_SETFREQUENCYSYNC,
-                        SetFrequencySync);
-  iotjs_jval_set_method(jprototype, IOTJS_MAGIC_STRING_SETPERIOD, SetPeriod);
+                        pwm_set_frequency_sync);
+  iotjs_jval_set_method(jprototype, IOTJS_MAGIC_STRING_SETPERIOD,
+                        pwm_set_period);
   iotjs_jval_set_method(jprototype, IOTJS_MAGIC_STRING_SETPERIODSYNC,
-                        SetPeriodSync);
+                        pwm_set_period_sync);
 
   iotjs_jval_set_property_jval(jpwm_cons, IOTJS_MAGIC_STRING_PROTOTYPE,
                                jprototype);

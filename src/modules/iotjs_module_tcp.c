@@ -53,7 +53,7 @@ static void iotjs_tcp_report_req_result(uv_req_t* req, int status) {
 }
 
 
-JS_FUNCTION(TCP) {
+JS_FUNCTION(tcp_constructor) {
   DJS_CHECK_THIS();
 
   jerry_value_t jtcp = JS_GET_THIS();
@@ -63,7 +63,7 @@ JS_FUNCTION(TCP) {
 
 
 // Socket close result handler.
-void AfterClose(uv_handle_t* handle) {
+void after_close(uv_handle_t* handle) {
   jerry_value_t jtcp = IOTJS_UV_HANDLE_DATA(handle)->jobject;
 
   // callback function.
@@ -77,10 +77,10 @@ void AfterClose(uv_handle_t* handle) {
 
 
 // Close socket
-JS_FUNCTION(Close) {
+JS_FUNCTION(tcp_close) {
   JS_DECLARE_PTR(jthis, uv_handle_t, uv_handle);
 
-  iotjs_uv_handle_close(uv_handle, AfterClose);
+  iotjs_uv_handle_close(uv_handle, after_close);
   return jerry_create_undefined();
 }
 
@@ -89,7 +89,7 @@ JS_FUNCTION(Close) {
 // start listening.
 // [0] address
 // [1] port
-JS_FUNCTION(Bind) {
+JS_FUNCTION(tcp_bind) {
   JS_DECLARE_PTR(jthis, uv_tcp_t, tcp_handle);
 
   DJS_CHECK_ARGS(2, string, number);
@@ -111,7 +111,7 @@ JS_FUNCTION(Bind) {
 
 
 // Connection request result handler.
-static void AfterConnect(uv_connect_t* req, int status) {
+static void after_connect(uv_connect_t* req, int status) {
   iotjs_tcp_report_req_result((uv_req_t*)req, status);
 }
 
@@ -119,7 +119,7 @@ static void AfterConnect(uv_connect_t* req, int status) {
 // [0] address
 // [1] port
 // [2] callback
-JS_FUNCTION(Connect) {
+JS_FUNCTION(tcp_connect) {
   JS_DECLARE_PTR(jthis, uv_tcp_t, tcp_handle);
 
   DJS_CHECK_ARGS(3, string, number, function);
@@ -138,7 +138,7 @@ JS_FUNCTION(Connect) {
 
     // Create connection request.
     err = uv_tcp_connect((uv_connect_t*)req_connect, tcp_handle,
-                         (const sockaddr*)(&addr), AfterConnect);
+                         (const sockaddr*)(&addr), after_connect);
 
     if (err) {
       iotjs_uv_request_destroy(req_connect);
@@ -155,7 +155,7 @@ JS_FUNCTION(Connect) {
 // Parameters:
 //   * uv_stream_t* handle - server handle
 //   * int status - status code
-static void OnConnection(uv_stream_t* handle, int status) {
+static void on_connection(uv_stream_t* handle, int status) {
   jerry_value_t jtcp = IOTJS_UV_HANDLE_DATA(handle)->jobject;
 
   // `onconnection` callback.
@@ -204,12 +204,12 @@ static void OnConnection(uv_stream_t* handle, int status) {
 }
 
 
-JS_FUNCTION(Listen) {
+JS_FUNCTION(tcp_listen) {
   JS_DECLARE_PTR(jthis, uv_tcp_t, tcp_handle);
   DJS_CHECK_ARGS(1, number);
 
   int backlog = JS_GET_ARG(0, number);
-  int err = uv_listen((uv_stream_t*)tcp_handle, backlog, OnConnection);
+  int err = uv_listen((uv_stream_t*)tcp_handle, backlog, on_connection);
 
   return jerry_create_number(err);
 }
@@ -220,7 +220,7 @@ void AfterWrite(uv_write_t* req, int status) {
 }
 
 
-JS_FUNCTION(Write) {
+JS_FUNCTION(tcp_write) {
   JS_DECLARE_PTR(jthis, uv_stream_t, tcp_handle);
   DJS_CHECK_ARGS(2, object, function);
 
@@ -245,7 +245,8 @@ JS_FUNCTION(Write) {
 }
 
 
-void OnAlloc(uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf) {
+static void on_alloc(uv_handle_t* handle, size_t suggested_size,
+                     uv_buf_t* buf) {
   if (suggested_size > IOTJS_MAX_READ_BUFFER_SIZE) {
     suggested_size = IOTJS_MAX_READ_BUFFER_SIZE;
   }
@@ -255,7 +256,7 @@ void OnAlloc(uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf) {
 }
 
 
-void OnRead(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
+static void on_read(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
   jerry_value_t jtcp = IOTJS_UV_HANDLE_DATA(handle)->jobject;
 
   // socket object
@@ -301,10 +302,10 @@ void OnRead(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
 }
 
 
-JS_FUNCTION(ReadStart) {
+JS_FUNCTION(tcp_read_start) {
   JS_DECLARE_PTR(jthis, uv_stream_t, tcp_handle);
 
-  int err = uv_read_start(tcp_handle, OnAlloc, OnRead);
+  int err = uv_read_start(tcp_handle, on_alloc, on_read);
 
   return jerry_create_number(err);
 }
@@ -315,7 +316,7 @@ static void AfterShutdown(uv_shutdown_t* req, int status) {
 }
 
 
-JS_FUNCTION(Shutdown) {
+JS_FUNCTION(tcp_shutdown) {
   JS_DECLARE_PTR(jthis, uv_stream_t, tcp_handle);
 
   DJS_CHECK_ARGS(1, function);
@@ -337,7 +338,7 @@ JS_FUNCTION(Shutdown) {
 // Enable/Disable keepalive option.
 // [0] enable
 // [1] delay
-JS_FUNCTION(SetKeepAlive) {
+JS_FUNCTION(tcp_set_keep_alive) {
   JS_DECLARE_PTR(jthis, uv_tcp_t, tcp_handle);
 
   DJS_CHECK_ARGS(2, number, number);
@@ -350,7 +351,7 @@ JS_FUNCTION(SetKeepAlive) {
   return jerry_create_number(err);
 }
 
-JS_FUNCTION(ErrName) {
+JS_FUNCTION(tcp_err_name) {
   DJS_CHECK_THIS();
   DJS_CHECK_ARGS(1, number);
 
@@ -360,7 +361,7 @@ JS_FUNCTION(ErrName) {
 }
 
 // used in iotjs_module_udp.cpp
-void AddressToJS(jerry_value_t obj, const sockaddr* addr) {
+void address_to_js(jerry_value_t obj, const sockaddr* addr) {
   char ip[INET6_ADDRSTRLEN];
   const sockaddr_in* a4;
   const sockaddr_in6* a6;
@@ -397,7 +398,7 @@ void AddressToJS(jerry_value_t obj, const sockaddr* addr) {
 }
 
 
-JS_FUNCTION(GetSockeName) {
+JS_FUNCTION(tcp_get_socket_name) {
   JS_DECLARE_PTR(jthis, uv_tcp_t, tcp_handle);
 
   DJS_CHECK_ARGS(1, object);
@@ -407,29 +408,30 @@ JS_FUNCTION(GetSockeName) {
   sockaddr* const addr = (sockaddr*)(&storage);
   int err = uv_tcp_getsockname(tcp_handle, addr, &addrlen);
   if (err == 0)
-    AddressToJS(JS_GET_ARG(0, object), addr);
+    address_to_js(JS_GET_ARG(0, object), addr);
   return jerry_create_number(err);
 }
 
-jerry_value_t InitTcp(void) {
-  jerry_value_t tcp = jerry_create_external_function(TCP);
+jerry_value_t iotjs_init_tcp(void) {
+  jerry_value_t tcp = jerry_create_external_function(tcp_constructor);
 
   jerry_value_t prototype = jerry_create_object();
 
   iotjs_jval_set_property_jval(tcp, IOTJS_MAGIC_STRING_PROTOTYPE, prototype);
-  iotjs_jval_set_method(tcp, IOTJS_MAGIC_STRING_ERRNAME, ErrName);
+  iotjs_jval_set_method(tcp, IOTJS_MAGIC_STRING_ERRNAME, tcp_err_name);
 
-  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_CLOSE, Close);
-  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_CONNECT, Connect);
-  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_BIND, Bind);
-  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_LISTEN, Listen);
-  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_WRITE, Write);
-  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_READSTART, ReadStart);
-  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_SHUTDOWN, Shutdown);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_CLOSE, tcp_close);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_CONNECT, tcp_connect);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_BIND, tcp_bind);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_LISTEN, tcp_listen);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_WRITE, tcp_write);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_READSTART,
+                        tcp_read_start);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_SHUTDOWN, tcp_shutdown);
   iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_SETKEEPALIVE,
-                        SetKeepAlive);
+                        tcp_set_keep_alive);
   iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_GETSOCKNAME,
-                        GetSockeName);
+                        tcp_get_socket_name);
 
   jerry_release_value(prototype);
 

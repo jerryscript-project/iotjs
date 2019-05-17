@@ -145,7 +145,7 @@ static jerry_value_t uart_set_configuration(iotjs_uart_t* uart,
   return jerry_create_undefined();
 }
 
-JS_FUNCTION(UartCons) {
+JS_FUNCTION(uart_constructor) {
   DJS_CHECK_THIS();
   DJS_CHECK_ARGS(1, object);
   DJS_CHECK_ARG_IF_EXIST(1, function);
@@ -191,7 +191,7 @@ JS_FUNCTION(UartCons) {
   return jerry_create_undefined();
 }
 
-JS_FUNCTION(Write) {
+JS_FUNCTION(uart_write) {
   JS_DECLARE_PTR(jthis, uv_poll_t, uart_poll_handle);
   DJS_CHECK_ARGS(1, string);
   DJS_CHECK_ARG_IF_EXIST(1, function);
@@ -207,7 +207,7 @@ JS_FUNCTION(Write) {
   return jerry_create_undefined();
 }
 
-JS_FUNCTION(WriteSync) {
+JS_FUNCTION(uart_write_sync) {
   JS_DECLARE_PTR(jthis, uv_handle_t, uart_poll_handle);
   DJS_CHECK_ARGS(1, string);
 
@@ -226,7 +226,7 @@ JS_FUNCTION(WriteSync) {
   return jerry_create_undefined();
 }
 
-JS_FUNCTION(Close) {
+JS_FUNCTION(uart_close) {
   JS_DECLARE_PTR(jthis, uv_poll_t, uart_poll_handle);
   DJS_CHECK_ARG_IF_EXIST(0, function);
 
@@ -236,21 +236,23 @@ JS_FUNCTION(Close) {
   return jerry_create_undefined();
 }
 
-JS_FUNCTION(CloseSync) {
+JS_FUNCTION(uart_close_sync) {
   JS_DECLARE_PTR(jthis, uv_handle_t, uart_poll_handle);
 
   iotjs_uv_handle_close(uart_poll_handle, iotjs_uart_handle_close_cb);
   return jerry_create_undefined();
 }
 
-jerry_value_t InitUart(void) {
-  jerry_value_t juart_cons = jerry_create_external_function(UartCons);
+jerry_value_t iotjs_init_uart(void) {
+  jerry_value_t juart_cons = jerry_create_external_function(uart_constructor);
 
   jerry_value_t prototype = jerry_create_object();
-  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_WRITE, Write);
-  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_WRITESYNC, WriteSync);
-  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_CLOSE, Close);
-  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_CLOSESYNC, CloseSync);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_WRITE, uart_write);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_WRITESYNC,
+                        uart_write_sync);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_CLOSE, uart_close);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_CLOSESYNC,
+                        uart_close_sync);
 
   iotjs_jval_set_property_jval(juart_cons, IOTJS_MAGIC_STRING_PROTOTYPE,
                                prototype);

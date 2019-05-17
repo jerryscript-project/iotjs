@@ -187,7 +187,7 @@ static void spi_worker(uv_work_t* work_req) {
   }
 }
 
-JS_FUNCTION(SpiCons) {
+JS_FUNCTION(spi_constructor) {
   DJS_CHECK_THIS();
   DJS_CHECK_ARGS(1, object);
   DJS_CHECK_ARG_IF_EXIST(1, function);
@@ -245,7 +245,7 @@ static uint8_t spi_transfer_helper(jerry_value_t jtx_buf, iotjs_spi_t* spi) {
 }
 
 // FIXME: do not need transferArray if array buffer is implemented.
-JS_FUNCTION(Transfer) {
+JS_FUNCTION(spi_transfer) {
   JS_DECLARE_THIS_PTR(spi, spi);
   DJS_CHECK_ARG_IF_EXIST(1, function);
 
@@ -256,7 +256,7 @@ JS_FUNCTION(Transfer) {
   return jerry_create_undefined();
 }
 
-JS_FUNCTION(TransferSync) {
+JS_FUNCTION(spi_transfer_sync) {
   JS_DECLARE_THIS_PTR(spi, spi);
 
   uint8_t op = spi_transfer_helper(jargv[0], spi);
@@ -277,7 +277,7 @@ JS_FUNCTION(TransferSync) {
   return result;
 }
 
-JS_FUNCTION(Close) {
+JS_FUNCTION(spi_close) {
   JS_DECLARE_THIS_PTR(spi, spi);
   DJS_CHECK_ARG_IF_EXIST(1, function);
 
@@ -287,7 +287,7 @@ JS_FUNCTION(Close) {
   return jerry_create_undefined();
 }
 
-JS_FUNCTION(CloseSync) {
+JS_FUNCTION(spi_close_sync) {
   JS_DECLARE_THIS_PTR(spi, spi);
 
   if (!iotjs_spi_close(spi)) {
@@ -297,15 +297,16 @@ JS_FUNCTION(CloseSync) {
   return jerry_create_undefined();
 }
 
-jerry_value_t InitSpi(void) {
-  jerry_value_t jspi_cons = jerry_create_external_function(SpiCons);
+jerry_value_t iotjs_init_spi(void) {
+  jerry_value_t jspi_cons = jerry_create_external_function(spi_constructor);
 
   jerry_value_t prototype = jerry_create_object();
-  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_CLOSE, Close);
-  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_CLOSESYNC, CloseSync);
-  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_TRANSFER, Transfer);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_CLOSE, spi_close);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_CLOSESYNC,
+                        spi_close_sync);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_TRANSFER, spi_transfer);
   iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_TRANSFERSYNC,
-                        TransferSync);
+                        spi_transfer_sync);
 
   iotjs_jval_set_property_jval(jspi_cons, IOTJS_MAGIC_STRING_PROTOTYPE,
                                prototype);

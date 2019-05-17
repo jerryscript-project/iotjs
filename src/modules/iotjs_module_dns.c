@@ -51,8 +51,8 @@ char* getaddrinfo_error_str(int status) {
   }
 }
 
-static void AfterGetAddrInfo(uv_getaddrinfo_t* req, int status,
-                             struct addrinfo* res) {
+static void after_get_addr_info(uv_getaddrinfo_t* req, int status,
+                                struct addrinfo* res) {
   size_t argc = 0;
   jerry_value_t args[3] = { 0 };
 
@@ -117,7 +117,7 @@ static void AfterGetAddrInfo(uv_getaddrinfo_t* req, int status,
 #endif
 
 
-JS_FUNCTION(GetAddressInfo) {
+JS_FUNCTION(get_address_info) {
   DJS_CHECK_THIS();
   DJS_CHECK_ARGS(4, string, number, number, function);
 
@@ -188,7 +188,7 @@ JS_FUNCTION(GetAddressInfo) {
   hints.ai_flags = flags;
 
   error = uv_getaddrinfo(iotjs_environment_loop(iotjs_environment_get()),
-                         (uv_getaddrinfo_t*)req_addr, AfterGetAddrInfo,
+                         (uv_getaddrinfo_t*)req_addr, after_get_addr_info,
                          iotjs_string_data(&hostname), NULL, &hints);
 
   if (error) {
@@ -209,10 +209,10 @@ JS_FUNCTION(GetAddressInfo) {
   } while (0)
 
 
-jerry_value_t InitDns(void) {
+jerry_value_t iotjs_init_dns(void) {
   jerry_value_t dns = jerry_create_object();
 
-  iotjs_jval_set_method(dns, IOTJS_MAGIC_STRING_GETADDRINFO, GetAddressInfo);
+  iotjs_jval_set_method(dns, IOTJS_MAGIC_STRING_GETADDRINFO, get_address_info);
   SET_CONSTANT(dns, AI_ADDRCONFIG);
   SET_CONSTANT(dns, AI_V4MAPPED);
 

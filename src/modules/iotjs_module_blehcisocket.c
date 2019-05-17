@@ -66,7 +66,7 @@ static void iotjs_blehcisocket_destroy(iotjs_blehcisocket_t* blehcisocket) {
 }
 
 
-JS_FUNCTION(Start) {
+JS_FUNCTION(start) {
   JS_DECLARE_THIS_PTR(blehcisocket, blehcisocket);
 
   iotjs_blehcisocket_start(blehcisocket);
@@ -75,7 +75,7 @@ JS_FUNCTION(Start) {
 }
 
 
-JS_FUNCTION(BindRaw) {
+JS_FUNCTION(bind_raw) {
   JS_DECLARE_THIS_PTR(blehcisocket, blehcisocket);
   JS_CHECK(jargc >= 1);
 
@@ -93,7 +93,7 @@ JS_FUNCTION(BindRaw) {
 }
 
 
-JS_FUNCTION(BindUser) {
+JS_FUNCTION(bind_user) {
   JS_DECLARE_THIS_PTR(blehcisocket, blehcisocket);
   DJS_CHECK_ARGS(1, number);
 
@@ -106,7 +106,7 @@ JS_FUNCTION(BindUser) {
 }
 
 
-JS_FUNCTION(BindControl) {
+JS_FUNCTION(bind_control) {
   JS_DECLARE_THIS_PTR(blehcisocket, blehcisocket);
 
   iotjs_blehcisocket_bindControl(blehcisocket);
@@ -115,7 +115,7 @@ JS_FUNCTION(BindControl) {
 }
 
 
-JS_FUNCTION(IsDevUp) {
+JS_FUNCTION(is_dev_up) {
   JS_DECLARE_THIS_PTR(blehcisocket, blehcisocket);
 
   bool ret = iotjs_blehcisocket_isDevUp(blehcisocket);
@@ -124,7 +124,7 @@ JS_FUNCTION(IsDevUp) {
 }
 
 
-JS_FUNCTION(SetFilter) {
+JS_FUNCTION(set_filter) {
   JS_DECLARE_THIS_PTR(blehcisocket, blehcisocket);
   DJS_CHECK_ARGS(1, object);
 
@@ -138,7 +138,7 @@ JS_FUNCTION(SetFilter) {
 }
 
 
-JS_FUNCTION(Stop) {
+JS_FUNCTION(stop) {
   JS_DECLARE_THIS_PTR(blehcisocket, blehcisocket);
 
   iotjs_blehcisocket_stop(blehcisocket);
@@ -147,7 +147,7 @@ JS_FUNCTION(Stop) {
 }
 
 
-JS_FUNCTION(Write) {
+JS_FUNCTION(write) {
   JS_DECLARE_THIS_PTR(blehcisocket, blehcisocket);
   DJS_CHECK_ARGS(1, object);
 
@@ -161,7 +161,7 @@ JS_FUNCTION(Write) {
 }
 
 
-JS_FUNCTION(BleHciSocketCons) {
+JS_FUNCTION(blehcisocket_cons) {
   DJS_CHECK_THIS();
 
   // Create object
@@ -178,20 +178,21 @@ JS_FUNCTION(BleHciSocketCons) {
 }
 
 
-jerry_value_t InitBlehcisocket(void) {
+jerry_value_t iotjs_init_blehcisocket(void) {
   jerry_value_t jblehcisocketCons =
-      jerry_create_external_function(BleHciSocketCons);
+      jerry_create_external_function(blehcisocket_cons);
 
   jerry_value_t prototype = jerry_create_object();
 
-  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_START, Start);
-  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_BINDRAW, BindRaw);
-  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_BINDUSER, BindUser);
-  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_BINDCONTROL, BindControl);
-  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_ISDEVUP, IsDevUp);
-  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_SETFILTER, SetFilter);
-  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_STOP, Stop);
-  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_WRITE, Write);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_START, start);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_BINDRAW, bind_raw);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_BINDUSER, bind_user);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_BINDCONTROL,
+                        bind_control);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_ISDEVUP, is_dev_up);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_SETFILTER, set_filter);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_STOP, stop);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_WRITE, write);
 
   iotjs_jval_set_property_jval(jblehcisocketCons, IOTJS_MAGIC_STRING_PROTOTYPE,
                                prototype);

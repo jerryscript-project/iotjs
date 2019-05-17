@@ -345,7 +345,7 @@ void bridge_worker(uv_work_t* req) {
 /**
  * send async message
  */
-JS_FUNCTION(MessageAsync) {
+JS_FUNCTION(message_async) {
   DJS_CHECK_THIS();
   DJS_CHECK_ARGS(3, string, string, string);
   DJS_CHECK_ARG_IF_EXIST(3, function);
@@ -407,9 +407,9 @@ JS_FUNCTION(MessageAsync) {
 /**
  * Init method called by IoT.js
  */
-jerry_value_t InitBridge() {
-  jerry_value_t messagModule = jerry_create_object();
-  iotjs_jval_set_method(messagModule, "send", MessageAsync);
+jerry_value_t iotjs_init_bridge() {
+  jerry_value_t messag_module = jerry_create_object();
+  iotjs_jval_set_method(messag_module, "send", message_async);
   iotjs_bridge_init();
-  return messagModule;
+  return messag_module;
 }

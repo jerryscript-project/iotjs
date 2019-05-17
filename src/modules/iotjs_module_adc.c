@@ -47,7 +47,7 @@ static void adc_worker(uv_work_t* work_req) {
   }
 }
 
-JS_FUNCTION(AdcCons) {
+JS_FUNCTION(adc_constructor) {
   DJS_CHECK_THIS();
   DJS_CHECK_ARGS(1, object);
   DJS_CHECK_ARG_IF_EXIST(1, function);
@@ -84,7 +84,7 @@ JS_FUNCTION(AdcCons) {
 }
 
 
-JS_FUNCTION(Read) {
+JS_FUNCTION(adc_read) {
   JS_DECLARE_THIS_PTR(adc, adc);
   DJS_CHECK_ARG_IF_EXIST(0, function);
 
@@ -94,7 +94,7 @@ JS_FUNCTION(Read) {
   return jerry_create_undefined();
 }
 
-JS_FUNCTION(ReadSync) {
+JS_FUNCTION(adc_read_sync) {
   JS_DECLARE_THIS_PTR(adc, adc);
 
   if (!iotjs_adc_read(adc)) {
@@ -104,7 +104,7 @@ JS_FUNCTION(ReadSync) {
   return jerry_create_number(adc->value);
 }
 
-JS_FUNCTION(Close) {
+JS_FUNCTION(adc_close) {
   JS_DECLARE_THIS_PTR(adc, adc);
   DJS_CHECK_ARG_IF_EXIST(0, function);
 
@@ -114,7 +114,7 @@ JS_FUNCTION(Close) {
   return jerry_create_undefined();
 }
 
-JS_FUNCTION(CloseSync) {
+JS_FUNCTION(adc_close_sync) {
   JS_DECLARE_THIS_PTR(adc, adc);
 
   bool ret = iotjs_adc_close(adc);
@@ -125,14 +125,15 @@ JS_FUNCTION(CloseSync) {
   return jerry_create_undefined();
 }
 
-jerry_value_t InitAdc(void) {
-  jerry_value_t jadc_cons = jerry_create_external_function(AdcCons);
+jerry_value_t iotjs_init_adc(void) {
+  jerry_value_t jadc_cons = jerry_create_external_function(adc_constructor);
   jerry_value_t jprototype = jerry_create_object();
 
-  iotjs_jval_set_method(jprototype, IOTJS_MAGIC_STRING_READ, Read);
-  iotjs_jval_set_method(jprototype, IOTJS_MAGIC_STRING_READSYNC, ReadSync);
-  iotjs_jval_set_method(jprototype, IOTJS_MAGIC_STRING_CLOSE, Close);
-  iotjs_jval_set_method(jprototype, IOTJS_MAGIC_STRING_CLOSESYNC, CloseSync);
+  iotjs_jval_set_method(jprototype, IOTJS_MAGIC_STRING_READ, adc_read);
+  iotjs_jval_set_method(jprototype, IOTJS_MAGIC_STRING_READSYNC, adc_read_sync);
+  iotjs_jval_set_method(jprototype, IOTJS_MAGIC_STRING_CLOSE, adc_close);
+  iotjs_jval_set_method(jprototype, IOTJS_MAGIC_STRING_CLOSESYNC,
+                        adc_close_sync);
 
   iotjs_jval_set_property_jval(jadc_cons, IOTJS_MAGIC_STRING_PROTOTYPE,
                                jprototype);

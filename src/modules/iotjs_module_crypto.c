@@ -393,7 +393,7 @@ size_t iotjs_sha256_encode(unsigned char **out_buff,
 #endif /* ENABLE_MODULE_TLS */
 
 
-JS_FUNCTION(ShaEncode) {
+JS_FUNCTION(sha_encode) {
   DJS_CHECK_THIS();
   DJS_CHECK_ARGS(2, any, number);
 
@@ -447,7 +447,7 @@ JS_FUNCTION(ShaEncode) {
 }
 
 
-JS_FUNCTION(RsaVerify) {
+JS_FUNCTION(rsa_verify) {
 #if !ENABLE_MODULE_TLS
   return JS_CREATE_ERROR(COMMON, no_tls_err_str);
 #else  /* ENABLE_MODULE_TLS */
@@ -506,7 +506,7 @@ JS_FUNCTION(RsaVerify) {
 }
 
 
-JS_FUNCTION(Base64Encode) {
+JS_FUNCTION(base64_encode) {
   DJS_CHECK_THIS();
 
   jerry_value_t jstring = JS_GET_ARG(0, any);
@@ -530,12 +530,13 @@ JS_FUNCTION(Base64Encode) {
 }
 
 
-jerry_value_t InitCrypto(void) {
+jerry_value_t iotjs_init_crypto(void) {
   jerry_value_t jcrypto = jerry_create_object();
 
-  iotjs_jval_set_method(jcrypto, IOTJS_MAGIC_STRING_SHAENCODE, ShaEncode);
-  iotjs_jval_set_method(jcrypto, IOTJS_MAGIC_STRING_BASE64ENCODE, Base64Encode);
-  iotjs_jval_set_method(jcrypto, IOTJS_MAGIC_STRING_RSAVERIFY, RsaVerify);
+  iotjs_jval_set_method(jcrypto, IOTJS_MAGIC_STRING_SHAENCODE, sha_encode);
+  iotjs_jval_set_method(jcrypto, IOTJS_MAGIC_STRING_BASE64ENCODE,
+                        base64_encode);
+  iotjs_jval_set_method(jcrypto, IOTJS_MAGIC_STRING_RSAVERIFY, rsa_verify);
 
   return jcrypto;
 }

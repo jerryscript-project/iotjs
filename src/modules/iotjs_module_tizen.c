@@ -22,7 +22,7 @@ extern void iotjs_tizen_func(const char* command, const char* message,
 /**
  * Init method called by IoT.js
  */
-jerry_value_t InitTizen() {
+jerry_value_t iotjs_init_tizen() {
   char* module_name = IOTJS_MAGIC_STRING_TIZEN;
   jerry_value_t mymodule = jerry_create_object();
   iotjs_jval_set_property_string_raw(mymodule, IOTJS_MAGIC_STRING_MODULE_NAME,

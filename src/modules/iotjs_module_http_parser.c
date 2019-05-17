@@ -375,7 +375,7 @@ static jerry_value_t iotjs_http_parser_return_parserrror(
 }
 
 
-JS_FUNCTION(Finish) {
+JS_FUNCTION(js_func_finish) {
   JS_DECLARE_THIS_PTR(http_parserwrap, parser);
 
   http_parser* nativeparser = &parser->parser;
@@ -389,7 +389,7 @@ JS_FUNCTION(Finish) {
 }
 
 
-JS_FUNCTION(Execute) {
+JS_FUNCTION(js_func_execute) {
   JS_DECLARE_THIS_PTR(http_parserwrap, parser);
   DJS_CHECK_ARGS(1, object);
 
@@ -426,17 +426,17 @@ static jerry_value_t iotjs_http_parser_pause(jerry_value_t jthis, int paused) {
 }
 
 
-JS_FUNCTION(Pause) {
+JS_FUNCTION(js_func_pause) {
   return iotjs_http_parser_pause(jthis, 1);
 }
 
 
-JS_FUNCTION(Resume) {
+JS_FUNCTION(js_func_resume) {
   return iotjs_http_parser_pause(jthis, 0);
 }
 
 
-JS_FUNCTION(HTTPParserCons) {
+JS_FUNCTION(http_parser_cons) {
   DJS_CHECK_THIS();
   DJS_CHECK_ARGS(1, number);
 
@@ -469,31 +469,31 @@ static void http_parser_register_methods_object(jerry_value_t target) {
   jerry_release_value(methods);
 }
 
-jerry_value_t InitHttpParser(void) {
+jerry_value_t iotjs_init_http_parser(void) {
   jerry_value_t http_parser = jerry_create_object();
 
-  jerry_value_t jParserCons = jerry_create_external_function(HTTPParserCons);
+  jerry_value_t jparser_cons = jerry_create_external_function(http_parser_cons);
   iotjs_jval_set_property_jval(http_parser, IOTJS_MAGIC_STRING_HTTPPARSER,
-                               jParserCons);
+                               jparser_cons);
 
-  iotjs_jval_set_property_number(jParserCons, IOTJS_MAGIC_STRING_REQUEST_U,
+  iotjs_jval_set_property_number(jparser_cons, IOTJS_MAGIC_STRING_REQUEST_U,
                                  HTTP_REQUEST);
-  iotjs_jval_set_property_number(jParserCons, IOTJS_MAGIC_STRING_RESPONSE_U,
+  iotjs_jval_set_property_number(jparser_cons, IOTJS_MAGIC_STRING_RESPONSE_U,
                                  HTTP_RESPONSE);
 
-  http_parser_register_methods_object(jParserCons);
+  http_parser_register_methods_object(jparser_cons);
 
   jerry_value_t prototype = jerry_create_object();
 
-  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_EXECUTE, Execute);
-  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_FINISH, Finish);
-  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_PAUSE, Pause);
-  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_RESUME, Resume);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_EXECUTE, js_func_execute);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_FINISH, js_func_finish);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_PAUSE, js_func_pause);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_RESUME, js_func_resume);
 
-  iotjs_jval_set_property_jval(jParserCons, IOTJS_MAGIC_STRING_PROTOTYPE,
+  iotjs_jval_set_property_jval(jparser_cons, IOTJS_MAGIC_STRING_PROTOTYPE,
                                prototype);
 
-  jerry_release_value(jParserCons);
+  jerry_release_value(jparser_cons);
   jerry_release_value(prototype);
 
   return http_parser;

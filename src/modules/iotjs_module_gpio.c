@@ -282,7 +282,7 @@ JS_FUNCTION(SetDirectionSync) {
   return jerry_create_undefined();
 }
 
-jerry_value_t InitGpio() {
+jerry_value_t InitGpio(void) {
   jerry_value_t jgpioConstructor = jerry_create_external_function(GpioCons);
 
   jerry_value_t jprototype = jerry_create_object();

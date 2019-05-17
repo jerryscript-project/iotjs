@@ -125,7 +125,7 @@ JS_FUNCTION(CloseSync) {
   return jerry_create_undefined();
 }
 
-jerry_value_t InitAdc() {
+jerry_value_t InitAdc(void) {
   jerry_value_t jadc_cons = jerry_create_external_function(AdcCons);
   jerry_value_t jprototype = jerry_create_object();
 

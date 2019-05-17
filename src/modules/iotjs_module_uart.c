@@ -243,7 +243,7 @@ JS_FUNCTION(CloseSync) {
   return jerry_create_undefined();
 }
 
-jerry_value_t InitUart() {
+jerry_value_t InitUart(void) {
   jerry_value_t juart_cons = jerry_create_external_function(UartCons);
 
   jerry_value_t prototype = jerry_create_object();

@@ -178,7 +178,7 @@ JS_FUNCTION(BleHciSocketCons) {
 }
 
 
-jerry_value_t InitBlehcisocket() {
+jerry_value_t InitBlehcisocket(void) {
   jerry_value_t jblehcisocketCons =
       jerry_create_external_function(BleHciSocketCons);
 

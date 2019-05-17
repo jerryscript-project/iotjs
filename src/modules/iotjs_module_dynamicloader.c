@@ -85,6 +85,6 @@ JS_FUNCTION(OpenNativeModule) {
   return exports;
 }
 
-jerry_value_t InitDynamicloader() {
+jerry_value_t InitDynamicloader(void) {
   return jerry_create_external_function(OpenNativeModule);
 }

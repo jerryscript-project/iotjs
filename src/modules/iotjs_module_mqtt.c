@@ -840,7 +840,7 @@ JS_FUNCTION(MqttSendAck) {
   return jbuff;
 }
 
-jerry_value_t InitMQTT() {
+jerry_value_t InitMQTT(void) {
   jerry_value_t jMQTT = jerry_create_object();
   iotjs_jval_set_method(jMQTT, IOTJS_MAGIC_STRING_CONNECT, MqttConnect);
   iotjs_jval_set_method(jMQTT, IOTJS_MAGIC_STRING_DISCONNECT, MqttDisconnect);

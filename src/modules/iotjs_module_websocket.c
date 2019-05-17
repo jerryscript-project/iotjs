@@ -776,7 +776,7 @@ JS_FUNCTION(WsPingOrPong) {
 }
 
 
-jerry_value_t InitWebsocket() {
+jerry_value_t InitWebsocket(void) {
   IOTJS_UNUSED(WS_GUID);
   jerry_value_t jws = jerry_create_object();
   iotjs_jval_set_method(jws, IOTJS_MAGIC_STRING_CLOSE, WsClose);

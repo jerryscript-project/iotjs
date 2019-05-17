@@ -16,6 +16,7 @@
 #ifndef IOTJS_STRING_H
 #define IOTJS_STRING_H
 
+#include <stdbool.h>
 
 typedef struct {
   size_t size;

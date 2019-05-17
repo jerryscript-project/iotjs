@@ -19,8 +19,7 @@
 cmake_minimum_required(VERSION 2.8)
 set(NAME $MODULE_NAME$)
 
-set(IOTJS_INCLUDE_DIR "$IOTJS_PATH$/src")
-set(JERRY_INCLUDE_DIR "$IOTJS_PATH$/deps/jerry/jerry-core/include")
+set(IOTJS_INCLUDE_DIR "$IOTJS_PATH$/include")
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99")
 
@@ -29,5 +28,6 @@ add_library(${NAME} SHARED
 target_include_directories(${NAME}
     PRIVATE ${IOTJS_INCLUDE_DIR} ${JERRY_INCLUDE_DIR})
 set_target_properties(${NAME} PROPERTIES
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
     PREFIX ""
-    SUFFIX ".iotjs")
+    SUFFIX ".node")

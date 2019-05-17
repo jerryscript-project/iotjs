@@ -13,20 +13,28 @@
  * limitations under the License.
  */
 
-#include <iotjs_binding.h>
+#include <node_api.h>
+#include <string.h>
 
-jerry_value_t init_$MODULE_NAME$(void) {
-  jerry_value_t object = jerry_create_object();
+static napi_value hello_world(napi_env env, napi_callback_info info) {
+  napi_value world;
+  const char* str = "Hello world!";
+  size_t str_len = strlen(str);
 
-  jerry_value_t prop_name = jerry_create_string((const jerry_char_t*)"demokey");
-  jerry_value_t prop_value = jerry_create_number(3.4);
+  if (napi_create_string_utf8(env, str, str_len, &world) != napi_ok)
+    return NULL;
 
-  jerry_set_property(object, prop_name, prop_value);
-
-  jerry_release_value(prop_name);
-  jerry_release_value(prop_value);
-
-  return object;
+  return world;
 }
 
-IOTJS_MODULE(IOTJS_CURRENT_MODULE_VERSION, 1, $MODULE_NAME$)
+napi_value init_$MODULE_NAME$(napi_env env, napi_value exports) {
+  napi_property_descriptor desc = { "hello", 0, hello_world,  0,
+                                    0,       0, napi_default, 0 };
+
+  if (napi_define_properties(env, exports, 1, &desc) != napi_ok)
+    return NULL;
+
+  return exports;
+}
+
+NAPI_MODULE($MODULE_NAME$, init_$MODULE_NAME$)

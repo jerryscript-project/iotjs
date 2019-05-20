@@ -761,6 +761,16 @@
       "name": "test_process_uncaught_simple.js"
     },
     {
+      "name": "test_pwm_api.js",
+      "skip": [
+        "linux", "nuttx", "tizen", "tizenrt"
+      ],
+      "reason": "need to setup test environment",
+      "required-modules": [
+        "pwm"
+      ]
+    },
+    {
       "name": "test_pwm_async.js",
       "skip": [
         "all"

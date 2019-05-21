@@ -24,7 +24,7 @@
 #endif
 #include <stdlib.h>
 
-JS_FUNCTION(OpenNativeModule) {
+JS_FUNCTION(open_native_module) {
   iotjs_string_t location = JS_GET_ARG(0, string);
 
 #if _WIN32
@@ -85,6 +85,6 @@ JS_FUNCTION(OpenNativeModule) {
   return exports;
 }
 
-jerry_value_t InitDynamicloader(void) {
-  return jerry_create_external_function(OpenNativeModule);
+jerry_value_t iotjs_init_dynamicloader(void) {
+  return jerry_create_external_function(open_native_module);
 }

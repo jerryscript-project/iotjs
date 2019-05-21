@@ -27,7 +27,7 @@ typedef struct sockaddr_in6 sockaddr_in6;
 typedef struct sockaddr_storage sockaddr_storage;
 
 
-void AddressToJS(jerry_value_t obj, const sockaddr* addr);
+void address_to_js(jerry_value_t obj, const sockaddr* addr);
 
 
 #endif /* IOTJS_MODULE_TCP_H */

@@ -253,7 +253,7 @@ jerry_value_t iotjs_jval_as_function(jerry_value_t jval) {
 }
 
 
-bool iotjs_jval_set_prototype(const jerry_value_t jobj, jerry_value_t jproto) {
+bool iotjs_jval_set_prototype(jerry_value_t jobj, jerry_value_t jproto) {
   jerry_value_t ret = jerry_set_prototype(jobj, jproto);
   bool error_found = jerry_value_is_error(ret);
   jerry_release_value(ret);

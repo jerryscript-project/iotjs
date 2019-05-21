@@ -29,7 +29,7 @@ void iotjs_timer_object_init(jerry_value_t jtimer) {
 }
 
 
-static void TimeoutHandler(uv_timer_t* handle) {
+static void timeout_handler(uv_timer_t* handle) {
   IOTJS_ASSERT(handle != NULL);
 
   jerry_value_t jobject = IOTJS_UV_HANDLE_DATA(handle)->jobject;
@@ -40,7 +40,7 @@ static void TimeoutHandler(uv_timer_t* handle) {
 }
 
 
-JS_FUNCTION(Start) {
+JS_FUNCTION(timer_start) {
   // Check parameters.
   JS_DECLARE_PTR(jthis, uv_timer_t, timer_handle);
   DJS_CHECK_ARGS(2, number, number);
@@ -50,13 +50,13 @@ JS_FUNCTION(Start) {
   uint64_t repeat = JS_GET_ARG(1, number);
 
   // Start timer.
-  int res = uv_timer_start(timer_handle, TimeoutHandler, timeout, repeat);
+  int res = uv_timer_start(timer_handle, timeout_handler, timeout, repeat);
 
   return jerry_create_number(res);
 }
 
 
-JS_FUNCTION(Stop) {
+JS_FUNCTION(timer_stop) {
   JS_DECLARE_PTR(jthis, uv_handle_t, timer_handle);
   // Stop timer.
 
@@ -68,7 +68,7 @@ JS_FUNCTION(Stop) {
 }
 
 
-JS_FUNCTION(Timer) {
+JS_FUNCTION(timer_constructor) {
   JS_CHECK_THIS();
 
   const jerry_value_t jtimer = JS_GET_THIS();
@@ -78,14 +78,14 @@ JS_FUNCTION(Timer) {
 }
 
 
-jerry_value_t InitTimer(void) {
-  jerry_value_t timer = jerry_create_external_function(Timer);
+jerry_value_t iotjs_init_timer(void) {
+  jerry_value_t timer = jerry_create_external_function(timer_constructor);
 
   jerry_value_t prototype = jerry_create_object();
   iotjs_jval_set_property_jval(timer, IOTJS_MAGIC_STRING_PROTOTYPE, prototype);
 
-  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_START, Start);
-  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_STOP, Stop);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_START, timer_start);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_STOP, timer_stop);
 
   jerry_release_value(prototype);
 

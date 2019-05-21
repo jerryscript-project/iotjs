@@ -130,7 +130,7 @@ void iotjs_mqtt_ack(char *buffer, char *name, jerry_value_t jsref,
 }
 
 
-JS_FUNCTION(MqttInit) {
+JS_FUNCTION(mqtt_init) {
   DJS_CHECK_THIS();
 
   const jerry_value_t jmqtt = JS_GET_ARG(0, object);
@@ -143,7 +143,7 @@ JS_FUNCTION(MqttInit) {
 }
 
 
-JS_FUNCTION(MqttConnect) {
+JS_FUNCTION(mqtt_connect) {
   DJS_CHECK_THIS();
 
   DJS_CHECK_ARGS(1, object);
@@ -300,7 +300,7 @@ JS_FUNCTION(MqttConnect) {
 }
 
 
-JS_FUNCTION(MqttPublish) {
+JS_FUNCTION(mqtt_publish) {
   DJS_CHECK_THIS();
 
   DJS_CHECK_ARGS(3, any, any, number);
@@ -397,18 +397,18 @@ static int iotjs_mqtt_handle(jerry_value_t jsref, char first_byte, char *buffer,
       break;
     }
     case PUBLISH: {
-      MQTTHeader header = { 0 };
+      mqtt_header_t header = { 0 };
       header.bits.type = PUBLISH;
       header.bits.dup = first_byte & 0x08;
       header.bits.qos = (first_byte & 0x06) >> 1;
       header.bits.retain = first_byte & 0x01;
 
-      uint8_t topic_length_MSB = (uint8_t)buffer[0];
-      uint8_t topic_length_LSB = (uint8_t)buffer[1];
+      uint8_t topic_length_msb = (uint8_t)buffer[0];
+      uint8_t topic_length_lsb = (uint8_t)buffer[1];
       buffer += 2;
 
       uint16_t topic_length =
-          iotjs_mqtt_calculate_length(topic_length_MSB, topic_length_LSB);
+          iotjs_mqtt_calculate_length(topic_length_msb, topic_length_lsb);
 
       if (!jerry_is_valid_utf8_string((const uint8_t *)buffer, topic_length)) {
         return MQTT_ERR_CORRUPTED_PACKET;
@@ -422,12 +422,12 @@ static int iotjs_mqtt_handle(jerry_value_t jsref, char first_byte, char *buffer,
       // where the QoS level is 1 or 2.
       uint16_t packet_identifier = 0;
       if (header.bits.qos > 0) {
-        uint8_t packet_identifier_MSB = (uint8_t)buffer[0];
-        uint8_t packet_identifier_LSB = (uint8_t)buffer[1];
+        uint8_t packet_identifier_msb = (uint8_t)buffer[0];
+        uint8_t packet_identifier_lsb = (uint8_t)buffer[1];
         buffer += 2;
 
-        packet_identifier = iotjs_mqtt_calculate_length(packet_identifier_MSB,
-                                                        packet_identifier_LSB);
+        packet_identifier = iotjs_mqtt_calculate_length(packet_identifier_msb,
+                                                        packet_identifier_lsb);
       }
 
       size_t payload_length =
@@ -588,7 +588,7 @@ static jerry_value_t iotjs_mqtt_handle_error(
 }
 
 
-JS_FUNCTION(MqttReceive) {
+JS_FUNCTION(mqtt_receive) {
   DJS_CHECK_THIS();
   DJS_CHECK_ARGS(2, object, object);
 
@@ -758,17 +758,17 @@ static jerry_value_t iotjs_mqtt_subscribe_handler(
 }
 
 
-JS_FUNCTION(MqttUnsubscribe) {
+JS_FUNCTION(mqtt_unsubscribe) {
   return iotjs_mqtt_subscribe_handler(jthis, jargv, jargc, UNSUBSCRIBE);
 }
 
 
-JS_FUNCTION(MqttSubscribe) {
+JS_FUNCTION(mqtt_subscribe) {
   return iotjs_mqtt_subscribe_handler(jthis, jargv, jargc, SUBSCRIBE);
 }
 
 
-JS_FUNCTION(MqttPing) {
+JS_FUNCTION(mqtt_ping) {
   DJS_CHECK_THIS();
 
   uint8_t header_byte = 0;
@@ -789,7 +789,7 @@ JS_FUNCTION(MqttPing) {
 }
 
 
-JS_FUNCTION(MqttDisconnect) {
+JS_FUNCTION(mqtt_disconnect) {
   DJS_CHECK_THIS();
 
   uint8_t header_byte = 0;
@@ -809,7 +809,7 @@ JS_FUNCTION(MqttDisconnect) {
   return jbuff;
 }
 
-JS_FUNCTION(MqttSendAck) {
+JS_FUNCTION(mqtt_send_ack) {
   DJS_CHECK_THIS();
   DJS_CHECK_ARGS(2, number, number);
 
@@ -840,17 +840,18 @@ JS_FUNCTION(MqttSendAck) {
   return jbuff;
 }
 
-jerry_value_t InitMQTT(void) {
-  jerry_value_t jMQTT = jerry_create_object();
-  iotjs_jval_set_method(jMQTT, IOTJS_MAGIC_STRING_CONNECT, MqttConnect);
-  iotjs_jval_set_method(jMQTT, IOTJS_MAGIC_STRING_DISCONNECT, MqttDisconnect);
-  iotjs_jval_set_method(jMQTT, IOTJS_MAGIC_STRING_PING, MqttPing);
-  iotjs_jval_set_method(jMQTT, IOTJS_MAGIC_STRING_PUBLISH, MqttPublish);
-  iotjs_jval_set_method(jMQTT, IOTJS_MAGIC_STRING_MQTTINIT, MqttInit);
-  iotjs_jval_set_method(jMQTT, IOTJS_MAGIC_STRING_MQTTRECEIVE, MqttReceive);
-  iotjs_jval_set_method(jMQTT, IOTJS_MAGIC_STRING_SENDACK, MqttSendAck);
-  iotjs_jval_set_method(jMQTT, IOTJS_MAGIC_STRING_SUBSCRIBE, MqttSubscribe);
-  iotjs_jval_set_method(jMQTT, IOTJS_MAGIC_STRING_UNSUBSCRIBE, MqttUnsubscribe);
+jerry_value_t iotjs_init_mqtt(void) {
+  jerry_value_t jmqtt = jerry_create_object();
+  iotjs_jval_set_method(jmqtt, IOTJS_MAGIC_STRING_CONNECT, mqtt_connect);
+  iotjs_jval_set_method(jmqtt, IOTJS_MAGIC_STRING_DISCONNECT, mqtt_disconnect);
+  iotjs_jval_set_method(jmqtt, IOTJS_MAGIC_STRING_PING, mqtt_ping);
+  iotjs_jval_set_method(jmqtt, IOTJS_MAGIC_STRING_PUBLISH, mqtt_publish);
+  iotjs_jval_set_method(jmqtt, IOTJS_MAGIC_STRING_MQTTINIT, mqtt_init);
+  iotjs_jval_set_method(jmqtt, IOTJS_MAGIC_STRING_MQTTRECEIVE, mqtt_receive);
+  iotjs_jval_set_method(jmqtt, IOTJS_MAGIC_STRING_SENDACK, mqtt_send_ack);
+  iotjs_jval_set_method(jmqtt, IOTJS_MAGIC_STRING_SUBSCRIBE, mqtt_subscribe);
+  iotjs_jval_set_method(jmqtt, IOTJS_MAGIC_STRING_UNSUBSCRIBE,
+                        mqtt_unsubscribe);
 
-  return jMQTT;
+  return jmqtt;
 }

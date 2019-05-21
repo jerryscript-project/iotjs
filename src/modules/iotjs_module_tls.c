@@ -188,7 +188,7 @@ static int iotjs_bio_net_receive(void *ctx, unsigned char *buf, size_t len) {
 }
 
 
-JS_FUNCTION(TlsContext) {
+JS_FUNCTION(tls_tlscontext) {
   DJS_CHECK_THIS();
   DJS_CHECK_ARGS(1, object);
 
@@ -285,7 +285,7 @@ JS_FUNCTION(TlsContext) {
 }
 
 
-JS_FUNCTION(TlsInit) {
+JS_FUNCTION(tls_init) {
   DJS_CHECK_ARGS(3, object, object, object);
 
   jerry_value_t jtls_socket = JS_GET_ARG(0, object);
@@ -360,7 +360,7 @@ JS_FUNCTION(TlsInit) {
 }
 
 
-JS_FUNCTION(Connect) {
+JS_FUNCTION(tls_connect) {
   JS_DECLARE_THIS_PTR(tls, tls_data);
   DJS_CHECK_ARGS(1, string);
 
@@ -413,7 +413,7 @@ static void iotjs_tls_notify_error(iotjs_tls_t *tls_data) {
 }
 
 
-JS_FUNCTION(Write) {
+JS_FUNCTION(tls_write) {
   JS_DECLARE_THIS_PTR(tls, tls_data);
 
   if (tls_data->state != TLS_CONNECTED) {
@@ -524,7 +524,7 @@ static void tls_handshake(iotjs_tls_t *tls_data, jerry_value_t jthis) {
 }
 
 
-JS_FUNCTION(Read) {
+JS_FUNCTION(tls_read) {
   JS_DECLARE_THIS_PTR(tls, tls_data);
 
   if (tls_data->state == TLS_CLOSED) {
@@ -623,14 +623,14 @@ JS_FUNCTION(Read) {
 }
 
 
-jerry_value_t InitTls(void) {
+jerry_value_t iotjs_init_tls(void) {
   jerry_value_t jtls = jerry_create_object();
 
-  iotjs_jval_set_method(jtls, IOTJS_MAGIC_STRING_CONNECT, Connect);
-  iotjs_jval_set_method(jtls, IOTJS_MAGIC_STRING_READ, Read);
-  iotjs_jval_set_method(jtls, IOTJS_MAGIC_STRING_TLSCONTEXT, TlsContext);
-  iotjs_jval_set_method(jtls, IOTJS_MAGIC_STRING_TLSINIT, TlsInit);
-  iotjs_jval_set_method(jtls, IOTJS_MAGIC_STRING_WRITE, Write);
+  iotjs_jval_set_method(jtls, IOTJS_MAGIC_STRING_CONNECT, tls_connect);
+  iotjs_jval_set_method(jtls, IOTJS_MAGIC_STRING_READ, tls_read);
+  iotjs_jval_set_method(jtls, IOTJS_MAGIC_STRING_TLSCONTEXT, tls_tlscontext);
+  iotjs_jval_set_method(jtls, IOTJS_MAGIC_STRING_TLSINIT, tls_init);
+  iotjs_jval_set_method(jtls, IOTJS_MAGIC_STRING_WRITE, tls_write);
 
   return jtls;
 }

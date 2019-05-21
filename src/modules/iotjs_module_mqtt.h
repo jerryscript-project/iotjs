@@ -97,7 +97,7 @@ typedef union {
     uint8_t dup : 1;
     uint8_t type : 4;
   } bits;
-} MQTTHeader;
+} mqtt_header_t;
 
 enum {
   // Reserved bit, must be 0

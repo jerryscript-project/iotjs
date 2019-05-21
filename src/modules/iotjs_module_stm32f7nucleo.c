@@ -17,7 +17,7 @@
 #include "iotjs_module_stm32f7nucleo.h"
 
 
-jerry_value_t InitStm32f7nucleo() {
+jerry_value_t iotjs_init_stm32f7nucleo() {
   jerry_value_t stm32f7nucleo = jerry_create_object();
   /* Hardware support in progress, do initialization here */
 

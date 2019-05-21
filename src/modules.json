@@ -24,7 +24,7 @@
       },
       "native_files": ["modules/iotjs_module_adc.c",
                        "modules/iotjs_module_periph_common.c"],
-      "init": "InitAdc",
+      "init": "iotjs_init_adc",
       "js_file": "js/adc.js"
     },
     "assert": {
@@ -104,29 +104,29 @@
         }
       },
       "native_files": ["modules/iotjs_module_blehcisocket.c"],
-      "init": "InitBlehcisocket",
+      "init": "iotjs_init_blehcisocket",
       "js_file": "js/ble_hci_socket.js",
       "require": ["events"]
     },
     "buffer": {
       "native_files": ["modules/iotjs_module_buffer.c"],
-      "init": "InitBuffer",
+      "init": "iotjs_init_buffer",
       "js_file": "js/buffer.js",
       "require": ["util"]
     },
     "console": {
       "native_files": ["modules/iotjs_module_console.c"],
-      "init": "InitConsole",
+      "init": "iotjs_init_console",
       "js_file": "js/console.js",
       "require": ["util"]
     },
     "constants": {
       "native_files": ["modules/iotjs_module_constants.c"],
-      "init": "InitConstants"
+      "init": "iotjs_init_constants"
     },
     "crypto": {
       "native_files": ["modules/iotjs_module_crypto.c"],
-      "init": "InitCrypto",
+      "init": "iotjs_init_crypto",
       "js_file": "js/crypto.js"
     },
     "dgram": {
@@ -135,7 +135,7 @@
     },
     "dns": {
       "native_files": ["modules/iotjs_module_dns.c"],
-      "init": "InitDns",
+      "init": "iotjs_init_dns",
       "js_file": "js/dns.js",
       "require": ["util"]
     },
@@ -145,7 +145,7 @@
     },
     "fs": {
       "native_files": ["modules/iotjs_module_fs.c"],
-      "init": "InitFs",
+      "init": "iotjs_init_fs",
       "js_file": "js/fs.js",
       "require": ["constants", "util"]
     },
@@ -169,7 +169,7 @@
       },
       "native_files": ["modules/iotjs_module_gpio.c",
                        "modules/iotjs_module_periph_common.c"],
-      "init": "InitGpio",
+      "init": "iotjs_init_gpio",
       "js_file": "js/gpio.js"
     },
     "http": {
@@ -203,7 +203,7 @@
     },
     "http_parser": {
       "native_files": ["modules/iotjs_module_http_parser.c"],
-      "init": "InitHttpParser"
+      "init": "iotjs_init_http_parser"
     },
     "https": {
       "js_file": "js/https.js",
@@ -229,7 +229,7 @@
       },
       "native_files": ["modules/iotjs_module_i2c.c",
                        "modules/iotjs_module_periph_common.c"],
-      "init": "InitI2c",
+      "init": "iotjs_init_i2c",
       "js_file": "js/i2c.js"
     },
     "module": {
@@ -240,7 +240,7 @@
       "js_file": "js/mqtt.js",
       "require": ["events", "util", "url"],
       "native_files": ["modules/iotjs_module_mqtt.c"],
-      "init": "InitMQTT"
+      "init": "iotjs_init_mqtt"
     },
     "napi": {
       "native_files": ["modules/iotjs_module_dynamicloader.c",
@@ -253,7 +253,7 @@
                        "napi/node_api_object_wrap.c",
                        "napi/node_api_property.c",
                        "napi/node_api_value.c"],
-      "init": "InitDynamicloader"
+      "init": "iotjs_init_dynamicloader"
     },
     "net": {
       "js_file": "js/net.js",
@@ -261,7 +261,7 @@
     },
     "process": {
       "native_files": ["modules/iotjs_module_process.c"],
-      "init": "InitProcess"
+      "init": "iotjs_init_process"
     },
     "pwm": {
       "platforms": {
@@ -283,7 +283,7 @@
       },
       "native_files": ["modules/iotjs_module_pwm.c",
                        "modules/iotjs_module_periph_common.c"],
-      "init": "InitPwm",
+      "init": "iotjs_init_pwm",
       "js_file": "js/pwm.js"
     },
     "spi": {
@@ -303,7 +303,7 @@
       },
       "native_files": ["modules/iotjs_module_spi.c",
                        "modules/iotjs_module_periph_common.c"],
-      "init": "InitSpi",
+      "init": "iotjs_init_spi",
       "js_file": "js/spi.js"
     },
     "stm32f4dis": {
@@ -313,7 +313,7 @@
         }
       },
       "native_files": ["modules/iotjs_module_stm32f4dis.c"],
-      "init": "InitStm32f4dis"
+      "init": "iotjs_init_stm32f4dis"
     },
     "stm32f7nucleo": {
       "platforms": {
@@ -322,7 +322,7 @@
         }
       },
       "native_files": ["modules/iotjs_module_stm32f7nucleo.c"],
-      "init": "InitStm32f7nucleo"
+      "init": "iotjs_init_stm32f7nucleo"
     },
     "stream": {
       "js_file": "js/stream.js",
@@ -347,17 +347,17 @@
     },
     "tcp": {
       "native_files": ["modules/iotjs_module_tcp.c"],
-      "init": "InitTcp"
+      "init": "iotjs_init_tcp"
     },
     "timers": {
       "native_files": ["modules/iotjs_module_timer.c"],
-      "init": "InitTimer",
+      "init": "iotjs_init_timer",
       "js_file": "js/timers.js",
       "require": ["util"]
     },
     "tls": {
       "native_files": ["modules/iotjs_module_tls.c"],
-      "init": "InitTls",
+      "init": "iotjs_init_tls",
       "js_file": "js/tls.js",
       "cmakefile": "../cmake/mbedtls.cmake",
       "require": ["net", "util"]
@@ -379,13 +379,13 @@
       },
       "native_files": ["modules/iotjs_module_uart.c",
                        "modules/iotjs_module_periph_common.c"],
-      "init": "InitUart",
+      "init": "iotjs_init_uart",
       "js_file": "js/uart.js",
       "require": ["events"]
     },
     "udp": {
       "native_files": ["modules/iotjs_module_udp.c"],
-      "init": "InitUdp"
+      "init": "iotjs_init_udp"
     },
     "util": {
       "js_file": "js/util.js"
@@ -393,13 +393,13 @@
     "websocket": {
       "native_files": ["modules/iotjs_module_websocket.h",
                        "modules/iotjs_module_websocket.c"],
-      "init": "InitWebsocket",
+      "init": "iotjs_init_websocket",
       "js_file": "js/websocket.js",
       "require": ["crypto", "events", "net", "util"]
     },
     "bridge": {
       "native_files": ["modules/iotjs_module_bridge.c"],
-      "init": "InitBridge",
+      "init": "iotjs_init_bridge",
       "js_file": "js/bridge.js"
     },
     "tizen": {
@@ -409,7 +409,7 @@
         }
       },
       "native_files": ["modules/iotjs_module_tizen.c"],
-      "init": "InitTizen",
+      "init": "iotjs_init_tizen",
       "js_file": "js/tizen.js",
       "require": ["bridge", "events", "util"]
     }

@@ -391,7 +391,7 @@
     {
       "name": "test_gpio_api.js",
       "skip": [
-        "linux", "nuttx", "tizen", "tizenrt"
+        "linux", "nuttx", "tizen", "tizenrt", "windows"
       ],
       "reason": "need to setup test environment",
       "required-modules": [
@@ -421,7 +421,7 @@
     {
       "name": "test_gpio_output.js",
       "skip": [
-        "linux", "nuttx", "tizen", "tizenrt"
+        "linux", "nuttx", "tizen", "tizenrt", "windows"
       ],
       "reason": "need to setup test environment",
       "required-modules": [
@@ -437,7 +437,7 @@
     {
       "name": "test_i2c_api.js",
       "skip": [
-        "linux", "nuttx", "tizen", "tizenrt"
+        "linux", "nuttx", "tizen", "tizenrt", "windows"
       ],
       "reason": "need to setup test environment",
       "required-modules": [
@@ -763,7 +763,7 @@
     {
       "name": "test_pwm_api.js",
       "skip": [
-        "linux", "nuttx", "tizen", "tizenrt"
+        "linux", "nuttx", "tizen", "tizenrt", "windows"
       ],
       "reason": "need to setup test environment",
       "required-modules": [
@@ -773,7 +773,7 @@
     {
       "name": "test_pwm_async.js",
       "skip": [
-        "all"
+        "linux", "nuttx", "tizen", "tizenrt", "windows"
       ],
       "reason": "need to setup test environment",
       "required-modules": [
@@ -783,7 +783,7 @@
     {
       "name": "test_pwm_sync.js",
       "skip": [
-        "all"
+        "linux", "nuttx", "tizen", "tizenrt", "windows"
       ],
       "reason": "need to setup test environment",
       "required-modules": [

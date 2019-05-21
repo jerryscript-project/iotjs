@@ -250,7 +250,7 @@ pin.write({}, function(err) {
 
 var async_pin1 = gpio.open(
   {
-    pin: 0,
+    pin: 20,
     direction: gpio.DIRECTION.OUT
   },
   function(err, async_pin2) {
@@ -270,7 +270,7 @@ var async_pin1 = gpio.open(
 
 gpio.open(
   {
-    pin: 0,
+    pin: 21,
     direction: gpio.DIRECTION.IN
   },
   function(err, async_pin) {
@@ -285,7 +285,7 @@ gpio.open(
 );
 
 gpio.open(
-  { pin: 0 },
+  { pin: 22 },
   function(err, async_pin) {
     open_cb3 = true;
     assert.assert(err === null, 'gpio.open failed: ' + err);

@@ -57,9 +57,27 @@ static bool jerry_initialize(iotjs_environment_t* env) {
 
 #ifdef JERRY_DEBUGGER
   if (iotjs_environment_config(env)->debugger != NULL) {
-    uint16_t port = iotjs_environment_config(env)->debugger->port;
-    jerryx_debugger_after_connect(jerryx_debugger_tcp_create(port) &&
-                                  jerryx_debugger_ws_create());
+    bool protocol_created = false;
+    char* debug_protocol = iotjs_environment_config(env)->debugger->protocol;
+    char* debug_channel = iotjs_environment_config(env)->debugger->channel;
+
+    if (!strcmp(debug_protocol, "tcp")) {
+      uint16_t port = iotjs_environment_config(env)->debugger->port;
+      protocol_created = jerryx_debugger_tcp_create(port);
+    } else {
+      IOTJS_ASSERT(!strcmp(debug_protocol, "serial"));
+      char* config = iotjs_environment_config(env)->debugger->serial_config;
+      protocol_created = jerryx_debugger_serial_create(config);
+    }
+
+    if (!strcmp(debug_channel, "rawpacket")) {
+      jerryx_debugger_after_connect(protocol_created &&
+                                    jerryx_debugger_rp_create());
+    } else {
+      IOTJS_ASSERT(!strcmp(debug_channel, "websocket"));
+      jerryx_debugger_after_connect(protocol_created &&
+                                    jerryx_debugger_ws_create());
+    }
 
     if (!jerry_debugger_is_connected()) {
       DLOG("jerry debugger connection failed");

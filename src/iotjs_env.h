@@ -23,6 +23,9 @@ typedef struct {
   bool wait_source;
   bool context_reset;
   uint16_t port;
+  char channel[16];
+  char protocol[16];
+  char serial_config[64];
 } DebuggerConfig;
 #endif
 

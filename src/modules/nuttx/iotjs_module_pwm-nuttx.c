@@ -89,13 +89,15 @@ bool iotjs_pwm_open(iotjs_pwm_t* pwm) {
     return false;
   }
 
-  struct pwm_lowerhalf_s* pwm_lowerhalf =
-      iotjs_pwm_config_nuttx(timer, pwm->pin);
+  if (access(path, F_OK) != 0) {
+    struct pwm_lowerhalf_s* pwm_lowerhalf =
+        iotjs_pwm_config_nuttx(timer, pwm->pin);
 
-  DDDLOG("%s - path: %s, timer: %d\n", __func__, path, timer);
+    DDDLOG("%s - path: %s, timer: %d\n", __func__, path, timer);
 
-  if (pwm_register(path, pwm_lowerhalf) != 0) {
-    return false;
+    if (pwm_register(path, pwm_lowerhalf) != 0) {
+      return false;
+    }
   }
 
   // File open

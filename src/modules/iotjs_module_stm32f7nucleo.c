@@ -19,7 +19,12 @@
 
 jerry_value_t iotjs_init_stm32f7nucleo() {
   jerry_value_t stm32f7nucleo = jerry_create_object();
-  /* Hardware support in progress, do initialization here */
+/* Hardware support in progress, do initialization here */
 
+#if defined(__NUTTX__)
+
+  iotjs_stm32f7nucleo_pin_initialize(stm32f7nucleo);
+
+#endif
   return stm32f7nucleo;
 }

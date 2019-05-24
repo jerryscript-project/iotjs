@@ -13,7 +13,8 @@
  * limitations under the License.
  */
 
-#if defined(__NUTTX__) && TARGET_BOARD == stm32f4dis
+#if defined(__NUTTX__) && \
+    (TARGET_BOARD == stm32f4dis || TARGET_BOARD == stm32f7nucleo)
 
 #include <stdint.h>
 

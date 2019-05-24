@@ -85,7 +85,7 @@ bool iotjs_pwm_open(iotjs_pwm_t* pwm) {
   char path[PWM_DEVICE_PATH_BUFFER_SIZE] = { 0 };
 
   if (snprintf(path, PWM_DEVICE_PATH_BUFFER_SIZE, PWM_DEVICE_PATH_FORMAT,
-               timer) < 0) {
+               (timer - 1)) < 0) {
     return false;
   }
 

@@ -21,6 +21,26 @@
 #include "iotjs_def.h"
 #include "modules/iotjs_module_stm32f7nucleo.h"
 
+#if ENABLE_MODULE_ADC
+static void iotjs_pin_initialize_adc(jerry_value_t jobj) {
+  unsigned int number_bit;
+
+// ADC pin name is "ADC(number)_(timer)".
+#define SET_ADC_CONSTANT(number, timer)        \
+  number_bit = (GPIO_ADC##number##_IN##timer); \
+  number_bit |= (ADC_NUMBER(number));          \
+  number_bit |= (SYSIO_TIMER_NUMBER(timer));   \
+  iotjs_jval_set_property_number(jobj, "ADC" #number "_" #timer, number_bit);
+
+#define SET_ADC_CONSTANT_NUMBER(number) SET_ADC_CONSTANT(number, 3);
+
+  SET_ADC_CONSTANT_NUMBER(1);
+
+#undef SET_ADC_CONSTANT_NUMBER
+#undef SET_ADC_CONSTANT
+}
+#endif /* ENABLE_MODULE_ADC */
+
 #if ENABLE_MODULE_GPIO
 
 static void iotjs_pin_initialize_gpio(jerry_value_t jobj) {
@@ -114,6 +134,10 @@ static void iotjs_pin_initialize_pwm(jerry_value_t jobj) {
 void iotjs_stm32f7nucleo_pin_initialize(jerry_value_t jobj) {
   jerry_value_t jpin = jerry_create_object();
   iotjs_jval_set_property_jval(jobj, "pin", jpin);
+
+#if ENABLE_MODULE_ADC
+  iotjs_pin_initialize_adc(jpin);
+#endif /* ENABLE_MODULE_ADC */
 
 #if ENABLE_MODULE_GPIO
   iotjs_pin_initialize_gpio(jpin);

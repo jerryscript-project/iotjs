@@ -45,7 +45,11 @@ struct adc_dev_s* iotjs_adc_config_nuttx(int number, int timer, uint32_t pin) {
   stm32_configgpio(pin);
 
   uint8_t channel_list[1] = { timer };
+#if defined(TARGET_BOARD_STM32F4DIS)
   return stm32_adcinitialize(number, channel_list, 1);
+#elif defined(TARGET_BOARD_STM32F7NUCLEO)
+  return stm32_adc_initialize(number, channel_list, 1);
+#endif
 }
 
 #endif /* ENABLE_MODULE_ADC */

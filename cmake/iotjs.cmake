@@ -495,6 +495,12 @@ set(IOTJS_PUBLIC_HEADERS
   ${LIBUV_HEADERS}
 )
 
+# Install headers
+if("${INCLUDE_INSTALL_DIR}" STREQUAL "")
+  set(INCLUDE_INSTALL_DIR "include/iotjs")
+endif()
+install(FILES ${IOTJS_PUBLIC_HEADERS} DESTINATION ${INCLUDE_INSTALL_DIR})
+
 # Configure the libiotjs
 set(TARGET_LIB_IOTJS libiotjs)
 if(CREATE_SHARED_LIB)

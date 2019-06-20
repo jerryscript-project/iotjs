@@ -132,6 +132,9 @@ else()
 endif()
 
 # Add board-dependant flags
+if(NOT DEFINED TARGET_BOARD)
+  set(TARGET_BOARD "generic")
+endif()
 iotjs_add_compile_flags(-DTARGET_BOARD=${TARGET_BOARD})
 string(TOUPPER ${TARGET_BOARD} TARGET_BOARD_UPPER)
 string(CONCAT TARGET_BOARD_SYMBOL "TARGET_BOARD_" ${TARGET_BOARD_UPPER})

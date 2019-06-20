@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#if defined(__NUTTX__) && (TARGET_BOARD == stm32f7nucleo)
+#if defined(__NUTTX__) && defined(TARGET_BOARD_STM32F7NUCLEO)
 
 #include "iotjs_systemio-nuttx.h"
 #include "stm32_gpio.h"

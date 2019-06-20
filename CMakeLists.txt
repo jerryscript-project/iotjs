@@ -125,6 +125,9 @@ endif()
 
 # Add board-dependant flags
 iotjs_add_compile_flags(-DTARGET_BOARD=${TARGET_BOARD})
+string(TOUPPER ${TARGET_BOARD} TARGET_BOARD_UPPER)
+string(CONCAT TARGET_BOARD_SYMBOL "TARGET_BOARD_" ${TARGET_BOARD_UPPER})
+iotjs_add_compile_flags(-D${TARGET_BOARD_SYMBOL}=1)
 
 if("${TARGET_BOARD}" STREQUAL "artik05x")
   iotjs_add_compile_flags(-mcpu=cortex-r4 -mfpu=vfp3)

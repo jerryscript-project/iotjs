@@ -86,9 +86,9 @@ matrix:
       addons:
         coverity_scan:
           project:
-            name: "Samsung/iotjs"
+            name: "jerryscript-project/iotjs"
             description: "Platform for Internet of Things with JavaScript"
-          notification_email: duddlf.choi@samsung.com
+          notification_email: haesik.jun@samsung.com
           build_command: "tools/travis_script.py"
           branch_pattern: master
 

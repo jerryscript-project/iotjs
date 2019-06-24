@@ -8,7 +8,7 @@ Experimental build is an executable IoT.js including features that are not yet r
 
 ## How to make IoT.js experimental build
 
-You need to make IoT.js using our build script, ["build.py"](https://github.com/pando-project/iotjs/blob/master/tools/build.py), with `--experimental` or `-e` option.
+You need to make IoT.js using our build script, ["build.py"](https://github.com/jerryscript-project/iotjs/blob/master/tools/build.py), with `--experimental` or `-e` option.
 
  ```bash
  tools/build.py --experimental
@@ -18,7 +18,7 @@ You need to make IoT.js using our build script, ["build.py"](https://github.com/
  tools/build.py -e --config=build.experimental.config
  ```
 
- For selecting modules to be included, you need to notify the script where your modules exist. You can use `--iotjs-include-module` or `--config` option for that. For further information, please refer to [Writing Builtin JavaScript Module](https://github.com/pando-project/iotjs/blob/master/docs/devs/Writing-New-Builtin-Module.md#writing-builtin-javascript-module).
+ For selecting modules to be included, you need to notify the script where your modules exist. You can use `--iotjs-include-module` or `--config` option for that. For further information, please refer to [Writing Builtin JavaScript Module](https://github.com/jerryscript-project/iotjs/blob/master/docs/devs/Writing-New-Builtin-Module.md#writing-builtin-javascript-module).
 
 ## Writing Code
 

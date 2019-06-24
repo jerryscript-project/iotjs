@@ -12,7 +12,7 @@ Smaller patches are generally easier to understand and test, so please submit ch
 
 The sign-off is a simple line at the end of the explanation for the patch, which certifies that you wrote it or otherwise have the right to pass it on as an Open Source patch. The  sign-off is required for a patch to be accepted.
 
-#### 3. Open [a Github pull request](https://github.com/pando-project/iotjs/pulls)
+#### 3. Open [a Github pull request](https://github.com/jerryscript-project/iotjs/pulls)
 
 #### 4. What if my patch is rejected?
 

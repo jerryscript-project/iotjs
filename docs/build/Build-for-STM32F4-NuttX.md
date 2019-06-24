@@ -64,7 +64,7 @@ Clone IoT.js and NuttX into iotjs-nuttx directory
 ```bash
 $ mkdir iotjs-nuttx
 $ cd iotjs-nuttx
-$ git clone https://github.com/pando-project/iotjs.git
+$ git clone https://github.com/jerryscript-project/iotjs.git
 $ git clone https://bitbucket.org/nuttx/nuttx.git --branch nuttx-7.25
 $ git clone https://bitbucket.org/nuttx/apps.git --branch nuttx-7.25
 $ git clone https://github.com/texane/stlink.git
@@ -325,7 +325,7 @@ Clone IoT.js and NuttX into iotjs-nuttx directory:
 ```bash
 $ mkdir iotjs-nuttx
 $ cd iotjs-nuttx
-$ git clone https://github.com/pando-project/iotjs.git
+$ git clone https://github.com/jerryscript-project/iotjs.git
 $ git clone https://bitbucket.org/nuttx/nuttx.git --branch master
 $ git clone https://bitbucket.org/nuttx/apps.git --branch master
 ```

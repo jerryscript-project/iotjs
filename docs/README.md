@@ -1,7 +1,7 @@
 Welcome to the IoT.js!
 
 > IoT.js is a framework for "Internet of Things" built on
-> lightweight JavaScript interpreter ['JerryScript'](https://github.com/pando-project/jerryscript)
+> lightweight JavaScript interpreter ['JerryScript'](https://github.com/jerryscript-project/jerryscript)
 > and libtuv for event driven(non-blocking I/O model) similar to node.js.
 
 ### IoT.js Wiki

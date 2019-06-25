@@ -397,7 +397,7 @@ JS_FUNCTION(js_func_execute) {
   iotjs_bufferwrap_t* buffer_wrap = iotjs_bufferwrap_from_jbuffer(jbuffer);
   char* buf_data = buffer_wrap->buffer;
   size_t buf_len = iotjs_bufferwrap_length(buffer_wrap);
-  JS_CHECK(buf_data != NULL && buf_len > 0);
+  DJS_CHECK(buf_data != NULL && buf_len > 0);
 
   iotjs_http_parserwrap_set_buf(parser, jbuffer, buf_data, buf_len);
 

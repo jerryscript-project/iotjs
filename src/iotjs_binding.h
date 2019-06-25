@@ -151,11 +151,13 @@ jerry_value_t iotjs_jhelper_eval(const char* name, size_t name_len,
 
 #if defined(EXPERIMENTAL) && !defined(DEBUG)
 // This code branch is to be in #ifdef NDEBUG
+#define DJS_CHECK(predicate) ((void)0)
 #define DJS_CHECK_ARG(index, type) ((void)0)
 #define DJS_CHECK_ARGS(argc, ...) ((void)0)
 #define DJS_CHECK_THIS() ((void)0)
 #define DJS_CHECK_ARG_IF_EXIST(index, type) ((void)0)
 #else
+#define DJS_CHECK(predicate) JS_CHECK(predicate)
 #define DJS_CHECK_ARG(index, type) JS_CHECK_ARG(index, type)
 #define DJS_CHECK_ARGS(argc, ...) JS_CHECK_ARGS(argc, __VA_ARGS__)
 #define DJS_CHECK_THIS() JS_CHECK_THIS()

@@ -69,7 +69,7 @@ JS_FUNCTION(timer_stop) {
 
 
 JS_FUNCTION(timer_constructor) {
-  JS_CHECK_THIS();
+  DJS_CHECK_THIS();
 
   const jerry_value_t jtimer = JS_GET_THIS();
 

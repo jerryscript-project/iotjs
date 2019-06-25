@@ -77,7 +77,7 @@ JS_FUNCTION(start) {
 
 JS_FUNCTION(bind_raw) {
   JS_DECLARE_THIS_PTR(blehcisocket, blehcisocket);
-  JS_CHECK(jargc >= 1);
+  DJS_CHECK(jargc >= 1);
 
   int devId = 0;
   int* pDevId = NULL;

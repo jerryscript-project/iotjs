@@ -225,7 +225,7 @@ jerry_value_t fs_do_read_or_write(const jerry_value_t jfunc,
   iotjs_bufferwrap_t* buffer_wrap = iotjs_bufferwrap_from_jbuffer(jbuffer);
   char* data = buffer_wrap->buffer;
   size_t data_length = iotjs_bufferwrap_length(buffer_wrap);
-  JS_CHECK(data != NULL && data_length > 0);
+  DJS_CHECK(data != NULL && data_length > 0);
 
   if (!is_within_bounds(offset, length, data_length)) {
     return JS_CREATE_ERROR(RANGE, "length out of bound");

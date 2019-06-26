@@ -697,7 +697,7 @@ static jerry_value_t iotjs_mqtt_subscribe_handler(
   DJS_CHECK_THIS();
   DJS_CHECK_ARGS(2, any, number);
 
-  JS_CHECK(packet_type == SUBSCRIBE || packet_type == UNSUBSCRIBE);
+  DJS_CHECK(packet_type == SUBSCRIBE || packet_type == UNSUBSCRIBE);
 
   iotjs_tmp_buffer_t topic;
   iotjs_jval_as_tmp_buffer(JS_GET_ARG(0, any), &topic);

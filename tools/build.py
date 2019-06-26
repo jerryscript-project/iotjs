@@ -457,7 +457,7 @@ if __name__ == '__main__':
             print("Skip unit tests - target-host pair is not allowed\n")
     else:
         Terminal.pprint("\nTo run tests use '--run-test' "
-                        "or one of the folowing commands:",
+                        "or one of the following commands:",
                         Terminal.blue)
         print("\n    tools/testrunner.py %s/%s/%s/bin/iotjs\n"
               % (options.builddir, options.target_tuple, options.buildtype))

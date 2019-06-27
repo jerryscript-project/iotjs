@@ -232,7 +232,7 @@ Server.prototype.broadcast = function(msg, options) {
       this.onError('Compression is not supported');
     }
   }
-  var buff = native.send(msg, binary, mask);
+  var buff = native.send(msg, binary, mask, compress);
 
   var self = this;
   this._netserver._serverHandle.clients.forEach(function each(client) {

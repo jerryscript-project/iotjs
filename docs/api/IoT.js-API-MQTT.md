@@ -89,7 +89,7 @@ var opts = {
   clientId: 'IoT.js Client',
 }
 
-var subscribe_opts {
+var subscribe_opts = {
   retain: false,
   qos: 2
 }

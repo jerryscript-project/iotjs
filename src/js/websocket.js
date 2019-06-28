@@ -16,7 +16,12 @@
  var net = require('net');
  var util = require('util');
  var EventEmitter = require('events').EventEmitter;
- var tls = require('tls');
+ var tls;
+ try {
+   tls = require('tls');
+ } catch (e) {
+   tls = {};
+ }
 
 util.inherits(Websocket, EventEmitter);
 util.inherits(WebsocketClient, EventEmitter);

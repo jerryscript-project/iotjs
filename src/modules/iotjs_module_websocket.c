@@ -601,7 +601,8 @@ JS_FUNCTION(ws_receive) {
       if (current_buffer + sizeof(uint16_t) > current_buffer_end) {
         break;
       }
-      payload_len = (uint16_t)(current_buffer[0] << 8 | current_buffer[1]);
+      unsigned char *len_buffer = (unsigned char *)current_buffer;
+      payload_len = (uint16_t)(len_buffer[0] << 8 | len_buffer[1]);
       current_buffer += sizeof(uint16_t);
     } else if (!(payload_byte ^ WS_THREE_BYTES_LENGTH)) {
       uint64_t payload_64bit_len;

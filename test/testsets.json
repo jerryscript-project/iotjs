@@ -1026,6 +1026,12 @@
     },
     {
       "name": "issue-1557.js"
+    },
+    {
+      "name": "issue-1897.js",
+      "required-modules": [
+        "websocket"
+      ]
     }
   ],
   "run_fail": [

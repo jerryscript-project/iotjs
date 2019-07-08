@@ -24,7 +24,7 @@ We will support the correct behavior of APIs for above environments. However, si
 
 
 ### Build script
-There is a [script](build/Build-Script.md) to help you build IoT.js called "[build.py](https://github.com/pando-project/iotjs/blob/master/tools/build.py)" in source repository. Run `tools/build.py --help` command to check all of the build options.
+There is a [script](build/Build-Script.md) to help you build IoT.js called "[build.py](https://github.com/jerryscript-project/iotjs/blob/master/tools/build.py)" in source repository. Run `tools/build.py --help` command to check all of the build options.
 
 #### How to Build
 
@@ -42,7 +42,7 @@ There is a [script](build/Build-Script.md) to help you build IoT.js called "[bui
 
 `--run-test [{full,quiet}]` Execute tests after build, optional argument specifies the level of output for the test runner.
 
-`--jerry-debugger` Enable JerryScript debugger, so JavaScript could can be investigated with an available debugger client (eg.: [Python Debugger Console](https://github.com/pando-project/jerryscript/blob/master/jerry-debugger/jerry-client-ws.py) or [IoT.js Code](https://github.com/pando-project/iotjscode/)). See also ["Use JerryScript Debugger"](devs/Use-JerryScript-Debugger.md).
+`--jerry-debugger` Enable JerryScript debugger, so JavaScript could can be investigated with an available debugger client (eg.: [Python Debugger Console](https://github.com/jerryscript-project/jerryscript/blob/master/jerry-debugger/jerry_client.py) or [IoT.js Code](https://github.com/jerryscript-project/iotjscode/)). See also ["Use JerryScript Debugger"](devs/Use-JerryScript-Debugger.md).
 
 `--js-backtrace {ON,OFF}` Enable/disable backtrace information of JavaScript code (default: ON in debug and OFF in release build).
 

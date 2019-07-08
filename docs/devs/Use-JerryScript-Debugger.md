@@ -1,7 +1,7 @@
 ## Jerry-debugger
 
 Detailed description about the debugger is available
-[here](https://github.com/pando-project/jerryscript/blob/master/docs/07.DEBUGGER.md).
+[here](https://github.com/jerryscript-project/jerryscript/blob/master/docs/07.DEBUGGER.md).
 
 ### Enable debugger support in IoT.js
 
@@ -45,9 +45,9 @@ If you want to configure parameters for serial port (default: /dev/ttyS0,115200,
 
 #### Available Clients
 
-* [JerryScript console debugger client](https://github.com/pando-project/jerryscript/blob/master/jerry-debugger/jerry-client-ws.py)
-* [Iot.js Code](https://github.com/pando-project/iotjscode)
-* [Jerryscript debugger Chrome webtool](https://github.com/pando-project/jerryscript-debugger-ts)
+* [JerryScript console debugger client](https://github.com/jerryscript-project/jerryscript/blob/master/jerry-debugger/jerry-client-ws.py)
+* [Iot.js Code](https://github.com/jerryscript-project/iotjscode)
+* [Jerryscript debugger Chrome webtool](https://github.com/jerryscript-project/jerryscript-debugger-ts)
 
 **Note**: When snapshot support is enabled, you won't be able to examine js-modules
 that are loaded from snapshots.

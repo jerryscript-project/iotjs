@@ -35,7 +35,7 @@ Clone IoT.js and TizenRT into iotjs-tizenrt directory
 ```bash
 mkdir iotjs-tizenrt
 cd iotjs-tizenrt
-git clone https://github.com/pando-project/iotjs.git
+git clone https://github.com/jerryscript-project/iotjs.git
 git clone https://github.com/Samsung/TizenRT.git
 ```
 

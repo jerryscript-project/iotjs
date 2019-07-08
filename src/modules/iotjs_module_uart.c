@@ -33,6 +33,7 @@ void iotjs_uart_object_destroy(uv_handle_t* handle) {
   iotjs_uart_t* uart = (iotjs_uart_t*)IOTJS_UV_HANDLE_EXTRA_DATA(handle);
 
   iotjs_uart_destroy_platform_data(uart->platform_data);
+  IOTJS_RELEASE(handle);
 }
 
 
@@ -166,11 +167,13 @@ JS_FUNCTION(uart_constructor) {
   // set configuration
   jerry_value_t res = iotjs_uart_set_platform_config(uart, jconfig);
   if (jerry_value_is_error(res)) {
+    jerry_release_value(juart);
     return res;
   }
 
   res = uart_set_configuration(uart, jconfig);
   if (jerry_value_is_error(res)) {
+    jerry_release_value(juart);
     return res;
   }
 

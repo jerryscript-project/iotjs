@@ -1085,6 +1085,13 @@
       "expected-failure": true
     },
     {
+      "name": "test-issue-1915.js",
+      "expected-failure": true,
+      "required-modules": [
+        "uart"
+      ]
+    },
+    {
       "name": "test_module_require_invalid_file.js",
       "expected-failure": true
     },

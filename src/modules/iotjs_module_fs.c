@@ -451,6 +451,11 @@ JS_FUNCTION(fs_read_dir) {
 static jerry_value_t stats_is_typeof(jerry_value_t stats, int type) {
   jerry_value_t mode = iotjs_jval_get_property(stats, IOTJS_MAGIC_STRING_MODE);
 
+  if (!jerry_value_is_number(mode)) {
+    jerry_release_value(mode);
+    return JS_CREATE_ERROR(TYPE, "fstat: file mode should be a number");
+  }
+
   int mode_number = (int)iotjs_jval_as_number(mode);
 
   jerry_release_value(mode);

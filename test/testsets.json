@@ -1111,6 +1111,13 @@
     {
       "name": "test_timers_issue_1353.js",
       "expected-failure": true
+    },
+    {
+      "name": "test-issue-1917.js",
+      "expected-failure": true,
+      "required-modules": [
+        "fs"
+      ]
     }
   ],
   "node/parallel": [

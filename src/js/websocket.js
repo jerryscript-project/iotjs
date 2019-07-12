@@ -88,33 +88,37 @@ function parseServerHandshakeData(data, client, server) {
   var res = data.split('\r\n');
   var method = res[0].split(' ');
 
-  var headers = { 'Connection': '',
-                  'Upgrade': '',
-                  'Host': '',
-                  'Sec-WebSocket-Key': '',
-                  'Sec-WebSocket-Version': -1,
+  // All header keys are converted to lower case
+  // to ease the processing of the values.
+  // Based on the HTTP/1.1 RFC (https://tools.ietf.org/html/rfc7230#section-3.2)
+  // this conversion is ok as the header field names are case-insensitive.
+  var headers = { 'connection': '',
+                  'upgrade': '',
+                  'host': '',
+                  'sec-websocket-key': '',
+                  'sec-websocket-version': -1,
                 };
 
   for (var i = 1; i < res.length; i++) {
     var temp = res[i].split(': ');
-    headers[temp[0]] = temp[1];
+    headers[temp[0].toLowerCase()] = temp[1];
   }
 
   var response = '';
   if (method[0] === 'GET' &&
       method[2] === 'HTTP/1.1' &&
       method[1] === server.path &&
-      headers['Connection'] === 'Upgrade' &&
-      headers['Upgrade'] === 'websocket' &&
-      headers['Sec-WebSocket-Version'] === '13') {
+      headers['connection'].toLowerCase().indexOf('upgrade') !== -1 &&
+      headers['upgrade'].toLowerCase() === 'websocket' &&
+      headers['sec-websocket-version'] === '13') {
     response = native.ReceiveHandshakeData(
-      headers['Sec-WebSocket-Key']
+      headers['sec-websocket-key']
     ).toString();
     client.readyState = 'OPEN';
     client._socket.write(response);
     server.emit('open', client);
   } else {
-    response = method[2] + ' 400 Bad Request';
+    response = method[2] + ' 400 Bad Request\r\nConnection: Closed\r\n\r\n';
     client._socket.write(response);
   }
 }

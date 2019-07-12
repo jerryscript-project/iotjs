@@ -13,15 +13,15 @@
  * limitations under the License.
  */
 
- var net = require('net');
- var util = require('util');
- var EventEmitter = require('events').EventEmitter;
- var tls;
- try {
-   tls = require('tls');
- } catch (e) {
-   tls = {};
- }
+var net = require('net');
+var util = require('util');
+var EventEmitter = require('events').EventEmitter;
+var tls;
+try {
+  tls = require('tls');
+} catch (e) {
+  // tls remains undefined;
+}
 
 util.inherits(Websocket, EventEmitter);
 util.inherits(WebsocketClient, EventEmitter);
@@ -51,8 +51,7 @@ function WebsocketClient(socket, handle) {
     return new WebsocketClient(socket, handle);
   }
 
-  if ((Object.keys(tls).length != 0 &&
-      socket instanceof tls.TLSSocket) ||
+  if ((tls && (socket instanceof tls.TLSSocket)) ||
       (socket instanceof net.Socket)) {
     this._socket = socket;
     this.readyState = 'CONNECTING';
@@ -130,7 +129,7 @@ function Server(options, listener) {
   this._netserver = null;
 
   if (options.server) {
-    if (Object.keys(tls).length != 0 && options.server instanceof tls.Server) {
+    if (tls && (options.server instanceof tls.Server)) {
       this._netserver = options.server;
       emit_type = 'secureConnection';
     } else if (options.server instanceof net.Server) {
@@ -138,18 +137,16 @@ function Server(options, listener) {
     }
   } else if (options.port) {
     if (options.secure == true) {
-      if (Object.keys(tls).length == 0) {
+      if (!tls) {
         throw new Error('TLS module is required to create a secure server.');
       }
       this._netserver = tls.createServer(options);
-      this._netserver.on('error', this.onError);
-      this._netserver.listen(options.port);
       emit_type = 'secureConnection';
     } else {
       this._netserver = net.createServer(options);
-      this._netserver.on('error', this.onError);
-      this._netserver.listen(options.port);
     }
+
+    this._netserver.listen(options.port);
   } else {
     throw new Error('One of port or server must be provided as option');
   }
@@ -369,7 +366,7 @@ Websocket.prototype.connect = function(url, port, path, callback) {
 
   if (host.substr(0, 3) == 'wss') {
     this._secure = true;
-    if (Object.keys(tls).length == 0) {
+    if (!tls) {
       this._handle.onError('TLS module was not found!');
     }
     port = port || 443;

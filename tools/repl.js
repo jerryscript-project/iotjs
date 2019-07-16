@@ -76,7 +76,6 @@ stdin.prototype.readline = function(callback) {
 function REPL() {
   this.input = new stdin();
   this._prompt_msg = new Buffer('> ');
-  this._repl_context = {};
 };
 
 REPL.prototype.print_prompt = function() {
@@ -87,7 +86,8 @@ REPL.prototype.print_prompt = function() {
 REPL.prototype.run_code = function(line) {
   var result;
   try {
-    result = eval.call(this._repl_context, line);
+    /* Doing indirect eval to force everything into the global object. */
+    result = eval.call(undefined, line);
     console.log(result);
   } catch (ex) {
     console.error(ex);
@@ -100,6 +100,11 @@ REPL.prototype.process_line = function(line) {
 };
 
 REPL.prototype.start = function() {
+  /* Expose the "require" method for the global object.
+   * This way the "eval" call can access it correctly.
+   */
+  global.require = require;
+
   this.print_prompt();
   this.input.start();
   this.input.readline(this.process_line.bind(this));

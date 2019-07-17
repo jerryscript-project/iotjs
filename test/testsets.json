@@ -1032,6 +1032,12 @@
       "required-modules": [
         "websocket"
       ]
+    },
+    {
+      "name": "issue-1904.js",
+      "required-modules": [
+        "dgram"
+      ]
     }
   ],
   "run_fail": [

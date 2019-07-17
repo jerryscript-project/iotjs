@@ -1085,6 +1085,13 @@
       "expected-failure": true
     },
     {
+      "name": "test-issue-1907.js",
+      "expected-failure": true,
+      "required-modules": [
+        "dgram"
+      ]
+    },
+    {
       "name": "test-issue-1915.js",
       "expected-failure": true,
       "required-modules": [

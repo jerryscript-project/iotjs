@@ -351,26 +351,33 @@ JS_FUNCTION(udp_unref) {
 }
 
 
+JS_FUNCTION(force_abort) {
+  jerry_char_t error_msg[] = "UDP handle could not be closed, aborting";
+  return jerry_create_abort_from_value(jerry_create_string(error_msg), true);
+}
+
+
 jerry_value_t iotjs_init_udp(void) {
   jerry_value_t udp = jerry_create_external_function(udp_constructor);
 
   jerry_value_t prototype = jerry_create_object();
   iotjs_jval_set_property_jval(udp, IOTJS_MAGIC_STRING_PROTOTYPE, prototype);
 
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_ADDMEMBERSHIP,
+                        udp_add_membership);
   iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_BIND, udp_bind);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_CLOSE, udp_close);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_CONFIGURE, udp_configure);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_DROPMEMBERSHIP,
+                        udp_drop_membership);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_FORCEABORT, force_abort);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_GETSOCKNAME,
+                        udp_get_socket_name);
   iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_RECVSTART,
                         udp_recv_start);
   iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_RECVSTOP, udp_recv_stop);
-  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_SEND, udp_send);
-  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_CLOSE, udp_close);
-  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_GETSOCKNAME,
-                        udp_get_socket_name);
-  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_CONFIGURE, udp_configure);
-  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_ADDMEMBERSHIP,
-                        udp_add_membership);
-  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_DROPMEMBERSHIP,
-                        udp_drop_membership);
   iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_REF, udp_ref);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_SEND, udp_send);
   iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_UNREF, udp_unref);
 
   jerry_release_value(prototype);

@@ -328,6 +328,11 @@ Socket.prototype.close = function(callback) {
   this._stopReceiving();
   this._handle.close();
   this._handle = null;
+
+  if (this._handle != null) {
+    this._handle.forceAbort();
+  }
+
   var self = this;
   process.nextTick(function() {
     self.emit('close');

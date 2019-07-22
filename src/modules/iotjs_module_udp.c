@@ -183,15 +183,22 @@ static void on_send(uv_udp_send_t* req, int status) {
 JS_FUNCTION(udp_send) {
   JS_DECLARE_PTR(jthis, uv_udp_t, udp_handle);
   DJS_CHECK_ARGS(3, object, number, string);
-  IOTJS_ASSERT(jerry_value_is_function(jargv[3]) ||
-               jerry_value_is_undefined(jargv[3]));
+
+  if (!jerry_value_is_undefined(jargv[3]) &&
+      !jerry_value_is_function(jargv[3])) {
+    return JS_CREATE_ERROR(TYPE, "Invalid callback given");
+  }
 
   const jerry_value_t jbuffer = JS_GET_ARG(0, object);
   const unsigned short port = JS_GET_ARG(1, number);
   iotjs_string_t address = JS_GET_ARG(2, string);
   jerry_value_t jcallback = JS_GET_ARG(3, object);
 
-  iotjs_bufferwrap_t* buffer_wrap = iotjs_bufferwrap_from_jbuffer(jbuffer);
+  iotjs_bufferwrap_t* buffer_wrap = iotjs_jbuffer_get_bufferwrap_ptr(jbuffer);
+  if (buffer_wrap == NULL) {
+    return JS_CREATE_ERROR(TYPE, "Invalid buffer given");
+  }
+
   size_t len = iotjs_bufferwrap_length(buffer_wrap);
 
   uv_req_t* req_send =

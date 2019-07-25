@@ -26,10 +26,6 @@ BuildRequires: pkgconfig(capi-appfw-app-control)
 BuildRequires: pkgconfig(bundle)
 #BuildRequires: pkgconfig(st_things_sdkapi)
 
-#for https
-BuildRequires:  openssl-devel
-BuildRequires:  libcurl-devel
-
 Requires(postun): /sbin/ldconfig
 Requires(post): /sbin/ldconfig
 
@@ -82,7 +78,6 @@ V=1 VERBOSE=1 ./tools/build.py \
   --external-lib=capi-appfw-app-control \
   --external-lib=appcore-agent \
   --external-lib=pthread \
-  --external-lib=curl \
   --external-lib=glib-2.0 \
   --external-include-dir=/usr/include/dlog/ \
   --external-include-dir=/usr/include/appcore-agent/ \

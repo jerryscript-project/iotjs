@@ -190,7 +190,7 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
         }
         fprintf(stderr, "\n");
         return false;
-      } break;
+      }
       case OPT_MEM_STATS: {
         env->config.memstat = true;
       } break;

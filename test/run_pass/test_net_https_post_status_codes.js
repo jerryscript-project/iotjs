@@ -19,25 +19,21 @@ var https = require('https');
 
 var isRequest1Finished = false;
 // 1. POST req
-var data = JSON.stringify({ data: { temp: 50, onFire: false },
-  sdid: '170e5221612b4bc38dce53fd4395174a',
-  type: 'message' });
+var data = JSON.stringify({});
 
 var options = {
   method: 'POST',
-  hostname: 'api.artik.cloud',
-  path: '/v1.1/messages',
+  hostname: 'httpbin.org',
+  path: '/post',
   rejectUnauthorized: false,
   headers: {
     'content-type': 'application/json',
     'content-length': data.length,
-    'authorization': 'Bearer 1718113118564ad495ad03f04116f379'
   }
 };
 
 var getResponseHandler = function(res) {
   var res_body = '';
-
   assert.equal(200, res.statusCode);
 
   var endHandler = function() {

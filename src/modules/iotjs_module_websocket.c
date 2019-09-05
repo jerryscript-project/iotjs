@@ -150,7 +150,7 @@ static bool iotjs_check_handshake_key(char *server_key, jerry_value_t jsref) {
     ret_val = false;
   }
 
-  if (strncmp(server_key, (const char *)key, key_len)) {
+  if (key && strncmp(server_key, (const char *)key, key_len)) {
     ret_val = false;
   }
 

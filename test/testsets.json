@@ -1340,8 +1340,9 @@
     },
     {
       "name": "test_napi_object_wrap.js",
-      "required-modules": [
-        "napi"
+      "reason": "jerry api usage is not used currently at the moment ",
+      "skip": [
+        "all"
       ]
     },
     {
@@ -1352,8 +1353,9 @@
     },
     {
       "name": "test_napi_reference.js",
-      "required-modules": [
-        "napi"
+      "reason": "jerry api usage is not used currently at the moment",
+      "skip": [
+        "all"
       ]
     },
     {

@@ -53,7 +53,7 @@ BUILDOPTIONS_SANITIZER = [
     '--clean',
     '--compile-flag=-fno-common',
     '--compile-flag=-fno-omit-frame-pointer',
-    '--jerry-cmake-param=-DFEATURE_SYSTEM_ALLOCATOR=ON',
+    '--jerry-cmake-param=-DJERRY_SYSTEM_ALLOCATOR=ON',
     '--no-check-valgrind',
     '--no-snapshot',
     '--profile=test/profiles/host-linux.profile',
@@ -207,7 +207,13 @@ def job_stm32f4dis():
                         'config/nuttx/stm32f4dis/config.travis'),
                 fs.join(DOCKER_NUTTX_PATH,
                         'configs/stm32f4discovery/usbnsh/defconfig')])
-
+    # Temporary solution to fix a conversion error within JerryScript
+    exec_docker(DOCKER_IOTJS_PATH, ['git', 'submodule', 'update'])
+    exec_docker(DOCKER_IOTJS_PATH, ['git', 'submodule', 'init'])
+    exec_docker(DOCKER_IOTJS_PATH, [
+                'git', 'apply', '--directory=deps/jerry/',
+                './config/nuttx/stm32f4dis/temporary-fix.diff'])
+    exec_docker(DOCKER_IOTJS_PATH, ['git', 'add','deps/jerry'])
     for buildtype in BUILDTYPES:
         exec_docker(DOCKER_NUTTX_PATH, ['make', 'distclean'])
         exec_docker(DOCKER_NUTTX_TOOLS_PATH,

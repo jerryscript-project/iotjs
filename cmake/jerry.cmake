@@ -29,9 +29,9 @@ ExternalProject_Add(hostjerry
     -DJERRY_CMDLINE=OFF
     -DJERRY_CMDLINE_SNAPSHOT=ON
     -DJERRY_EXT=ON
-    -DFEATURE_LOGGING=ON
-    -DFEATURE_SNAPSHOT_SAVE=${ENABLE_SNAPSHOT}
-    -DFEATURE_PROFILE=${FEATURE_PROFILE}
+    -DJERRY_LOGGING=ON
+    -DJERRY_SNAPSHOT_SAVE=${ENABLE_SNAPSHOT}
+    -DJERRY_PROFILE=${FEATURE_PROFILE}
     ${EXTRA_JERRY_CMAKE_PARAMS}
 
     # The snapshot tool does not require the system allocator
@@ -43,7 +43,7 @@ ExternalProject_Add(hostjerry
     # should not be used as it returns 64bit pointers which
     # can not be represented correctly in the JerryScript engine
     # currently.
-    -DFEATURE_SYSTEM_ALLOCATOR=OFF
+    -DJERRY_SYSTEM_ALLOCATOR=OFF
 )
 set(JERRY_HOST_SNAPSHOT
     ${CMAKE_BINARY_DIR}/${DEPS_HOST_JERRY}/bin/jerry-snapshot)
@@ -95,7 +95,7 @@ endif()
 
 # Add a few cmake options based on buildtype/external cmake defines
 if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-  list(APPEND DEPS_LIB_JERRY_ARGS -DFEATURE_ERROR_MESSAGES=ON)
+  list(APPEND DEPS_LIB_JERRY_ARGS -DJERRY_ERROR_MESSAGES=ON)
 endif()
 
 # NuttX is not using the default port implementation of JerryScript
@@ -135,12 +135,12 @@ ExternalProject_Add(libjerry
     -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
     -DENABLE_ALL_IN_ONE=ON
     -DJERRY_CMDLINE=OFF
-    -DFEATURE_SNAPSHOT_EXEC=${ENABLE_SNAPSHOT}
-    -DFEATURE_SNAPSHOT_SAVE=OFF
-    -DFEATURE_PROFILE=${FEATURE_PROFILE}
-    -DFEATURE_LOGGING=ON
-    -DFEATURE_LINE_INFO=${FEATURE_JS_BACKTRACE}
-    -DFEATURE_VM_EXEC_STOP=ON
+    -DJERRY_SNAPSHOT_EXEC=${ENABLE_SNAPSHOT}
+    -DJERRY_SNAPSHOT_SAVE=OFF
+    -DJERRY_PROFILE=${FEATURE_PROFILE}
+    -DJERRY_LOGGING=ON
+    -DJERRY_LINE_INFO=${FEATURE_JS_BACKTRACE}
+    -DJERRY_VM_EXEC_STOP=ON
     -DENABLE_LTO=${ENABLE_LTO}
     ${DEPS_LIB_JERRY_ARGS}
     ${EXTRA_JERRY_CMAKE_PARAMS}

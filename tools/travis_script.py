@@ -166,31 +166,6 @@ def job_rpi2():
                     '--target-arch=arm',
                     '--target-board=rpi2',
                     '--profile=test/profiles/rpi2-linux.profile'])
-
-@job('artik053')
-def job_artik053():
-    start_container()
-
-    exec_docker(DOCKER_TIZENRT_PATH, ['git', 'fetch', '--tags'])
-    # Checkout specified tag
-    exec_docker(DOCKER_TIZENRT_PATH, ['git', 'checkout', TIZENRT_TAG])
-    # Pick libtuv's sys/uio.h and add transition header
-    exec_docker(DOCKER_TIZENRT_PATH, ['git', 'cherry-pick',
-                'e020ef62431484b64747c760880d2b6723eb28e4'])
-    exec_docker(DOCKER_TIZENRT_OS_PATH,
-                ['ln', '-fs', 'sys/uio.h', 'include'])
-    # Set configure
-    exec_docker(DOCKER_TIZENRT_OS_TOOLS_PATH, [
-                './configure.sh', 'artik053/iotjs'])
-
-    for buildtype in BUILDTYPES:
-        set_config_tizenrt(buildtype)
-        exec_docker(DOCKER_TIZENRT_OS_PATH, [
-                    'make', 'IOTJS_ROOT_DIR=%s' % DOCKER_IOTJS_PATH,
-                    'IOTJS_BUILD_OPTION="--buildtype=%s '
-                    '--profile=test/profiles/tizenrt.profile"' % buildtype
-                    ])
-
 @job('stm32f4dis')
 def job_stm32f4dis():
     start_container()

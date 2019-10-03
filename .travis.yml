@@ -32,10 +32,6 @@ matrix:
       env:
       - OPTS="stm32f4dis"
 
-    - name: "Artik053 with TizenRT Build Test"
-      env:
-      - OPTS="artik053"
-
     - name: "Tizen Build Test"
       env:
       - OPTS="tizen"

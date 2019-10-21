@@ -126,7 +126,7 @@ IoT.js will not exit till all `'exit'` event listeners are called.
 The `process.exit()` method call will force the process to exit as quickly as possible,
 ignoring if there is any asynchronous operations still pending.
 
-In most situations, it is not necessary to explcitly call `process.exit()`. The IoT.js will exit on its own
+In most situations, it is not necessary to explicitly call `process.exit()`. The IoT.js will exit on its own
 if there is no additional work pending in the event loop. The `process.exitCode` property can be set
 to exit code when the process exits gracefully.
 

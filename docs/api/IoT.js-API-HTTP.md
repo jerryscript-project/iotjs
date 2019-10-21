@@ -99,7 +99,7 @@ server.listen(port, function() {
 * Returns: {http.ClientRequest}
 
 The function creates a `http.ClientRequest` instance with the `options` defined.
-This can be used to get data form a server or to send data for a server.
+This can be used to get data from a server or to send data for a server.
 
 In case of data send the `'Content-Length'` header should be specifed so the server can properly handle the request.
 

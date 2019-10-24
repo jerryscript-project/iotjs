@@ -19,7 +19,7 @@ IoT.js is based on event-driven programming where objects (called "emitters") pe
 # Class: EventEmitter
 
 The `EventEmitter` plays a role as base class for "emitters".
-User application would not directly creates an instance of `EventEmitter` since `EventEmitter` is an abstract trait which defines its behavior and grants to sub-classes.
+User application would not directly create an instance of `EventEmitter` since `EventEmitter` is an abstract trait which defines its behavior and grants to sub-classes.
 
 ### new EventEmitter()
 * Returns {EventEmitter}.

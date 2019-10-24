@@ -89,4 +89,4 @@ When called, requests that the IoT.js event loop should not exit as long as the 
 
 ### timeout.unref()
 
-When called, the active `Timeout` object will not force the IoT.js event loop to remain active. If there are no other scheduled activites, the process may exit, the process may exit before the `Timeout` object's callback is invoked.
+When called, the active `Timeout` object will not force the IoT.js event loop to remain active. If there are no other scheduled activities, the process may exit, the process may exit before the `Timeout` object's callback is invoked.

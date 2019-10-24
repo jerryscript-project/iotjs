@@ -112,7 +112,7 @@ The method returns a special object containing the tls context and credential in
 
 ## Class: tls.Server
 
-A server object repesenting a TLS server. Based on the `net.Server`.
+A server object representing a TLS server. Based on the `net.Server`.
 All events, methods and properties are inherited from the `net.Server`.
 
 ### new tls.Server([options][, secureConnectionListener])
@@ -121,7 +121,7 @@ All events, methods and properties are inherited from the `net.Server`.
   * `secureContext` {object} An special object containing the tls credential information.
     This should be only created via a `tls.createSecureContext()` call if needed. If not provided
     a secureContext will be created automatically, using the `options` object. No default value is provided.
-  * Additonal options are from `tls.createSecureContext()`.
+  * Additional options are from `tls.createSecureContext()`.
 * `secureConnectionListener` {Function}
   * `socket` {tls.TLSSocket}
 * Returns {tls.Server}

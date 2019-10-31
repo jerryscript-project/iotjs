@@ -14,7 +14,7 @@
  */
 
 var assert = require('assert');
-var json = require('./resources/test.json');
+var json = require(process.cwd() + '/resources/test.json');
 
 assert.equal(json.name, 'IoT.js');
 assert.equal(json.author, 'Samsung Electronics Co., Ltd.');

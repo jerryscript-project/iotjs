@@ -164,7 +164,7 @@ mv src/cover_js src/js
 # Build iot.js
 # We need to use the system allocator to have enough memory, for now this can
 # only be done with a 32-bit build
-common_build_opts="--jerry-cmake-param=-DFEATURE_SYSTEM_ALLOCATOR=ON
+common_build_opts="--jerry-cmake-param=-DJERRY_SYSTEM_ALLOCATOR=ON
 --compile-flag=-coverage
 --no-snapshot"
 

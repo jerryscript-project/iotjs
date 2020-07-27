@@ -232,7 +232,7 @@ JS_FUNCTION(proc_chdir) {
 
 #ifdef EXPOSE_GC
 JS_FUNCTION(garbage_collector) {
-  jerry_gc(JERRY_GC_SEVERITY_LOW);
+  jerry_gc(JERRY_GC_PRESSURE_LOW);
 
   return jerry_create_undefined();
 }

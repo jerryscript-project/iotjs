@@ -53,7 +53,7 @@ BUILDOPTIONS_SANITIZER = [
     '--clean',
     '--compile-flag=-fno-common',
     '--compile-flag=-fno-omit-frame-pointer',
-    '--jerry-cmake-param=-DFEATURE_SYSTEM_ALLOCATOR=ON',
+    '--jerry-cmake-param=-DJERRY_SYSTEM_ALLOCATOR=ON',
     '--no-check-valgrind',
     '--no-snapshot',
     '--profile=test/profiles/host-linux.profile',

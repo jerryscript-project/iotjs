@@ -107,6 +107,10 @@ if(EXPERIMENTAL)
 endif()
 
 # Add arch-dependant flags
+if(NOT DEFINED TARGET_ARCH)
+  message(WARNING "Use generic flags since TARGET_ARCH is not defined")
+  set(TARGET_ARCH "noarch")
+endif()
 if("${TARGET_ARCH}" STREQUAL "arm")
   iotjs_add_compile_flags(-D__arm__ -mthumb -fno-short-enums -mlittle-endian)
 elseif("${TARGET_ARCH}" STREQUAL "i686")

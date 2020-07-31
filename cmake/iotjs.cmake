@@ -14,6 +14,10 @@
 
 cmake_minimum_required(VERSION 2.8)
 
+if(NOT DEFINED PYTHON)
+  set(PYTHON "python")
+endif()
+
 include(${CMAKE_CURRENT_LIST_DIR}/JSONParser.cmake)
 
 set(IOTJS_SOURCE_DIR ${CMAKE_SOURCE_DIR}/src)
@@ -378,7 +382,7 @@ add_custom_command(
   COMMAND ${CMAKE_C_COMPILER} ${JS2C_PREPROCESS_ARGS} ${IOTJS_MODULE_DEFINES}
             ${IOTJS_SOURCE_DIR}/iotjs_magic_strings.h
           > ${IOTJS_SOURCE_DIR}/iotjs_magic_strings.in
-  COMMAND python ${ROOT_DIR}/tools/js2c.py
+  COMMAND ${PYTHON} ${ROOT_DIR}/tools/js2c.py
   ARGS --buildtype=${JS2C_RUN_MODE}
        --modules "${IOTJS_JS_MODULES_STR}"
        ${JS2C_SNAPSHOT_ARG}

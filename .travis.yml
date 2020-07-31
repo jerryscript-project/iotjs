@@ -78,7 +78,7 @@ matrix:
       - OPTS="coverity"
       # Declaration of the encrypted COVERITY_SCAN_TOKEN, created via the
       # "travis encrypt" command using the project repo's public key.
-      - secure: "lUGzoKK/Yn4/OmpqLQALrIgfY9mQWE51deUawPrCO87UQ2GknfQ4BvwY3UT5QY0XnztPBP1+vRQ2qxbiAU7VWicp280sXDnh0FeuZD14FcE9l0FczraL12reoLu+gY5HWFfbkZncmcBsZkxDEYxhkM14FJU8fxyqGQW2ypJNz+gUGP+8r40Re5J3WjcddCQNe5IG8U+M9B4YeDHhN2QspLdN5pkgn56XtdGa3+qbecO2NpjJG5ltM9j1tTuo/Dg22DxrIFVfeFSFKUj4nfMrgPo5LevRsC/lfaBSCsj751eqrxRcQRh2hkpiIJ7mEBs2LL1EH9O6Mbj+eRh8BvIYqTB85VPNFc43sLWk14apcSVBrxJE5j3kP9sAsOD9Y5JynnkeuxYyISrkywwoX2uxsmCzIfGbwsv5VLToQzrqWlGYrHOAmVXNi8561dLfsWwxxFUjdqkZr1Kgc8UfnBEcBUtSiKCHS86/YUUbBJGkEkjDUS0GiqhFY4bXLQCR7EX4qDX3m6p7Mnh4NVUolpnSmyeYE/MjmqQ+7PJsPLL3EcIYmJ7dtW3mZ3yE2NyaFD0Pym9+TiuCCXRtrNVK1M3Kya64KNv+HbhjT/fTCgXLSeyDmJOKVAqugRlDo3b1KGR1LI0AfegzSA6mEC4e9JLjYiSnHPMUahzgLt8oU0hNFRY="
+      - secure: "qbQASyP3/OzpzAp8xRFL2uOAHhMbO0jVRJFg9i8UcPurHUXj1Erk0hOmS3gxkkv7g2BU1mwsMz2SLwKtAEzEwES5rEmAbJ8Jf/zWEPqjXA1taOfCKRyuGGxIdQD1AcU3dIUbYd+CJ9JwmfLcb5XIcoEQVfd0etl7bkJu43bqTptc0lnT6HAsl+QZ9y3tJH4qklTg9lJI6hp2aVtvT/liTJgqfZlXs0SsgDmZZ9C6B1ienhRFQZLezEVCRrjIbUfcHH5IWkXkIjfCdMXfYLqLhTZVHU7lxCcZhOIpMSVX0W85Ov2YTAaKyhTmHCETjjVFw0RK2t42lm7C5l7j0peF+PCG2Qw/w/KMfNKWf8CBcZX/IquOUu7/EFtWE/rc7qi4bKhLwOYtqTAroJjkX6YsPaQlsryAbtsIMlkFvW8oI7TxzJ9HE7co70/rgEj7Qka/7SLptVWyUxVWtJRQqBCE/piUzyAe/GYsmX4Qje+fY+b5spWWvFscxsBP3J5qA2zhV4nJQvJmnRNhz1wMmfh5tKO9Hifeof6JeISlGFRGqSX/RtVriRtI60FyEsHk6lZQqtW+INSVTHjoewC29kIdttbH1qjJ8L5+PmsiZRrm4ER38tnOrH1cGz1PdcTQJGoqVcB446f5Uc9G76q23xR7wkfkqb3P6zlF379C2rE41ps="
       addons:
         coverity_scan:
           project:

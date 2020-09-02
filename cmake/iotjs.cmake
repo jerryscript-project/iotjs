@@ -550,13 +550,16 @@ set_target_properties(${TARGET_LIB_IOTJS} PROPERTIES
 target_include_directories(${TARGET_LIB_IOTJS}
   PRIVATE ${IOTJS_INCLUDE_DIRS})
 target_link_libraries(${TARGET_LIB_IOTJS}
-  ${CMAKE_DL_LIBS}
   ${JERRY_LIBS}
   ${TUV_LIBS}
   libhttp-parser
   ${MBEDTLS_LIBS}
   ${EXTERNAL_LIBS}
 )
+
+if(CREATE_SHARED_LIB)
+  target_link_libraries(${TARGET_LIB_IOTJS} ${CMAKE_DL_LIBS})
+endif()
 
 if("${LIB_INSTALL_DIR}" STREQUAL "")
   set(LIB_INSTALL_DIR "lib")

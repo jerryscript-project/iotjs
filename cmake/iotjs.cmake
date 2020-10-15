@@ -566,12 +566,17 @@ if("${BIN_INSTALL_DIR}" STREQUAL "")
   set(BIN_INSTALL_DIR "bin")
 endif()
 
+if("${INC_INSTALL_DIR}" STREQUAL "")
+  set(INC_INSTALL_DIR "include/iotjs")
+endif()
+
 # Configure the iotjs executable
 if(NOT BUILD_LIB_ONLY)
   set(TARGET_IOTJS iotjs)
   message(STATUS "CMAKE_BINARY_DIR        ${CMAKE_BINARY_DIR}")
-  message(STATUS "BINARY_INSTALL_DIR      ${INSTALL_PREFIX}/bin")
-  message(STATUS "LIBRARY_INSTALL_DIR     ${INSTALL_PREFIX}/lib")
+  message(STATUS "BINARY_INSTALL_DIR      ${INSTALL_PREFIX}/${BIN_INSTALL_DIR}")
+  message(STATUS "LIBRARY_INSTALL_DIR     ${INSTALL_PREFIX}/${LIB_INSTALL_DIR}")
+  message(STATUS "INCLUDE_INSTALL_DIR     ${INSTALL_PREFIX}/${INC_INSTALL_DIR}")
 
   add_executable(${TARGET_IOTJS} ${ROOT_DIR}/src/platform/linux/iotjs_linux.c)
   set_target_properties(${TARGET_IOTJS} PROPERTIES
@@ -581,10 +586,10 @@ if(NOT BUILD_LIB_ONLY)
   target_include_directories(${TARGET_IOTJS} PRIVATE ${IOTJS_INCLUDE_DIRS})
   target_link_libraries(${TARGET_IOTJS} ${TARGET_LIB_IOTJS})
   install(TARGETS ${TARGET_IOTJS} ${TARGET_LIB_IOTJS}
-          RUNTIME DESTINATION "${INSTALL_PREFIX}/bin"
-          ARCHIVE DESTINATION "${INSTALL_PREFIX}/lib"
-          LIBRARY DESTINATION "${INSTALL_PREFIX}/lib"
-          PUBLIC_HEADER DESTINATION "${INSTALL_PREFIX}/include/iotjs")
+          RUNTIME DESTINATION "${BIN_INSTALL_DIR}"
+          ARCHIVE DESTINATION "${LIB_INSTALL_DIR}"
+          LIBRARY DESTINATION "${LIB_INSTALL_DIR}"
+          PUBLIC_HEADER DESTINATION "${INC_INSTALL_DIR}")
 else()
   install(TARGETS ${TARGET_LIB_IOTJS} DESTINATION ${LIB_INSTALL_DIR})
 endif()

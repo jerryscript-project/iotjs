@@ -532,13 +532,6 @@ else()
   endif()
 endif(CREATE_SHARED_LIB)
 
-add_dependencies(${TARGET_LIB_IOTJS}
-  ${JERRY_LIBS}
-  ${TUV_LIBS}
-  libhttp-parser
-  ${MBEDTLS_LIBS}
-)
-
 set_target_properties(${TARGET_LIB_IOTJS} PROPERTIES
   OUTPUT_NAME iotjs
   ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"

@@ -129,6 +129,7 @@ $(LIBS) : copylibs
 
 .built: $(LIBS) $(OBJS)
 	$(eval OBJS += $(shell find . -name "*.obj"))
+	@echo "AR stm32 app library $(BIN) with:"
 	$(call ARCHIVE, $(BIN), $(OBJS))
 	$(Q) touch .built
 

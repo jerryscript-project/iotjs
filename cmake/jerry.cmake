@@ -30,6 +30,8 @@ if (USING_MSVC)
   set(JERRY_HOST_C_FLAGS_INIT "-DWIN32")
 endif()
 
+separate_arguments(EXTRA_JERRY_CMAKE_PARAMS)
+
 ExternalProject_Add(hostjerry
   PREFIX ${DEPS_HOST_JERRY}
   SOURCE_DIR ${ROOT_DIR}/deps/jerry/
@@ -45,10 +47,10 @@ ExternalProject_Add(hostjerry
     -DJERRY_CMDLINE_SNAPSHOT=ON
     -DJERRY_EXT=ON
     -DJERRY_LOGGING=ON
+    -DJERRY_LINE_INFO=${JERRY_LINE_INFO}
     -DJERRY_ERROR_MESSAGES=ON
     -DJERRY_SNAPSHOT_SAVE=${ENABLE_SNAPSHOT}
     -DJERRY_PROFILE=${JERRY_PROFILE}
-    -DJERRY_LINE_INFO=${JERRY_LINE_INFO}
     ${EXTRA_JERRY_CMAKE_PARAMS}
 
     # The snapshot tool does not require the system allocator
@@ -70,7 +72,7 @@ set_property(TARGET jerry-snapshot PROPERTY
 
 # Utility method to add -D<KEY>=<KEY_Value>
 macro(add_cmake_arg TARGET_ARG KEY)
-  if(${KEY})
+  if(DEFINED ${KEY})
     list(APPEND ${TARGET_ARG} -D${KEY}=${${KEY}})
   endif()
 endmacro(add_cmake_arg)
@@ -112,7 +114,7 @@ endif()
 
 # Add a few cmake options based on buildtype/external cmake defines
 if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-  list(APPEND DEPS_LIB_JERRY_ARGS -DJERRY_ERROR_MESSAGES=ON)
+  set(JERRY_ERROR_MESSAGES ON)
 endif()
 
 # NuttX is not using the default port implementation of JerryScript
@@ -128,8 +130,6 @@ add_cmake_arg(DEPS_LIB_JERRY_ARGS JERRY_ERROR_MESSAGES)
 add_cmake_arg(DEPS_LIB_JERRY_ARGS JERRY_DEBUGGER)
 add_cmake_arg(DEPS_LIB_JERRY_ARGS JERRY_GLOBAL_HEAP_SIZE)
 add_cmake_arg(DEPS_LIB_JERRY_ARGS JERRY_ATTR_GLOBAL_HEAP)
-
-separate_arguments(EXTRA_JERRY_CMAKE_PARAMS)
 
 build_lib_name(JERRY_CORE_NAME jerry-core)
 build_lib_name(JERRY_LIBM_NAME jerry-math)
@@ -174,8 +174,6 @@ ExternalProject_Add(libjerry
     -DJERRY_LOGGING=ON
     -DJERRY_LINE_INFO=${JERRY_LINE_INFO}
     -DJERRY_VM_EXEC_STOP=ON
-    -DJERRY_ERROR_MESSAGES=ON
-    -DENABLE_LTO=${ENABLE_LTO}
     ${DEPS_LIB_JERRY_ARGS}
     ${EXTRA_JERRY_CMAKE_PARAMS}
   BUILD_BYPRODUCTS ${JERRY_LIB_BUILD_BYPRODUCTS}

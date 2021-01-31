@@ -60,11 +60,11 @@ class Executor(object):
         exit(1)
 
     @staticmethod
-    def run_cmd(cmd, args=[], quiet=False, cwd=None):
+    def run_cmd(cmd, args=[], quiet=False, cwd=None, env=None):
         if not quiet:
             Executor.print_cmd_line(cmd, args)
         try:
-            return subprocess.call([cmd] + args, cwd=cwd)
+            return subprocess.call([cmd] + args, cwd=cwd, env=env)
         except OSError as e:
             Executor.fail("[Failed - %s] %s" % (cmd, e.strerror))
 

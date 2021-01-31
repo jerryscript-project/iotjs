@@ -27,6 +27,8 @@ import sys
 import re
 import os
 
+from distutils import spawn
+
 from common_py import path
 from common_py.system.filesystem import FileSystem as fs
 from common_py.system.executor import Executor as ex
@@ -411,12 +413,24 @@ def run_checktest(options):
         args.append('--quiet')
 
     fs.chdir(path.PROJECT_ROOT)
-    code = ex.run_cmd(cmd, args)
+    env = os.environ.copy()
+    if (options.target_tuple == 'i686-linux') and \
+        (options.host_tuple != options.target_tuple):
+        old = env.get("LD_LIBRARY_PATH")
+        if old:
+            env["LD_LIBRARY_PATH"] = old + ":/usr/i686-linux-gnu/lib"
+        else:
+            env["LD_LIBRARY_PATH"] = "/usr/i686-linux-gnu/lib"
+        if spawn.find_executable('i686-linux-gnu-gcc'):
+            env['CC'] = 'i686-linux-gnu-gcc'
+            env['CXX'] = 'i686-linux-gnu-g++'
+
+    code = ex.run_cmd(cmd, args, env=env)
     if code != 0:
         ex.fail('Failed to pass unit tests')
 
     if not options.no_check_valgrind:
-        code = ex.run_cmd(cmd, ['--valgrind'] + args)
+        code = ex.run_cmd(cmd, ['--valgrind'] + args, env=env)
         if code != 0:
             ex.fail('Failed to pass unit tests in valgrind environment')
 

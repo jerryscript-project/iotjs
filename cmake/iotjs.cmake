@@ -350,7 +350,7 @@ endforeach()
 iotjs_add_compile_flags(-Wall)
 if(NOT USING_MSVC)
   iotjs_add_compile_flags(-Wextra -Werror -Wno-unused-parameter)
-  iotjs_add_compile_flags(-Wsign-conversion -std=gnu99)
+  iotjs_add_compile_flags(-Wno-sizeof-pointer-memaccess -Wno-unused-variable)
 endif()
 
 if(ENABLE_SNAPSHOT)
@@ -536,6 +536,7 @@ set_target_properties(${TARGET_LIB_IOTJS} PROPERTIES
   ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
   LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
   PUBLIC_HEADER "${IOTJS_PUBLIC_HEADERS}"
+  C_STANDARD 99
 )
 target_include_directories(${TARGET_LIB_IOTJS}
   PRIVATE ${IOTJS_INCLUDE_DIRS})

@@ -40,7 +40,11 @@ jerry_value_t iotjs_module_get(const char* name) {
   for (unsigned i = 0; i < iotjs_module_count; i++) {
     if (!strcmp(name, iotjs_module_ro_data[i].name)) {
       if (iotjs_module_rw_data[i].jmodule == 0) {
-        iotjs_module_rw_data[i].jmodule = iotjs_module_ro_data[i].fn_register();
+        jerry_value_t jmodule = iotjs_module_ro_data[i].fn_register();
+        if (jerry_value_is_error(jmodule)) {
+          return jmodule;
+        }
+        iotjs_module_rw_data[i].jmodule = jmodule;
       }
 
       return iotjs_module_rw_data[i].jmodule;

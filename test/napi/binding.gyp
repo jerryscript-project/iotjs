@@ -69,6 +69,10 @@
       "sources": [ "test_napi_reference.c" ]
     },
     {
+      "target_name": "test_napi_throw_in_init",
+      "sources": [ "test_napi_throw_in_init.c" ]
+    },
+    {
       "target_name": "test_napi_strictequal_and_instanceof",
       "sources": [ "test_napi_strictequal_and_instanceof.c" ]
     },

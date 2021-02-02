@@ -49,16 +49,15 @@ TIZENRT_TAG = '2.0_Public_M2'
 
 # Common buildoptions for sanitizer jobs.
 BUILDOPTIONS_SANITIZER = [
-    '--buildtype=debug',
-    '--clean',
     '--compile-flag=-fno-common',
     '--compile-flag=-fno-omit-frame-pointer',
     '--jerry-cmake-param=-DJERRY_SYSTEM_ALLOCATOR=ON',
     '--no-check-valgrind',
     '--no-snapshot',
-    '--profile=test/profiles/host-linux.profile',
+    '--profile=test/profiles/host-linux-napi.profile',
     '--run-test=full',
-    '--target-arch=i686'
+    '--target-arch=i686',
+    '--n-api',
 ]
 
 def start_container():
@@ -141,12 +140,14 @@ def job_n_api():
     for buildtype in BUILDTYPES:
         build_iotjs(buildtype, [
                     '--run-test=full',
+                    '--profile=test/profiles/host-linux-napi.profile',
                     '--n-api'])
 
     for buildtype in BUILDTYPES:
         build_iotjs(buildtype, [
                     '--run-test=full',
                     '--n-api',
+                    '--profile=test/profiles/host-linux-napi.profile',
                     '--jerry-profile=es2015-subset'])
 
 @job('mock-linux')

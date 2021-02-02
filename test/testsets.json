@@ -1366,6 +1366,12 @@
       ]
     },
     {
+      "name": "test_napi_throw_in_init.js",
+      "required-modules": [
+        "napi"
+      ]
+    },
+    {
       "name": "test_napi_strictequal_and_instanceof.js",
       "required-modules": [
         "napi"

@@ -24,7 +24,7 @@ ExternalProject_Add(hostjerry
   CMAKE_ARGS
     -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
     -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/${DEPS_HOST_JERRY}
-    -DENABLE_ALL_IN_ONE=ON
+    -DENABLE_AMALGAM=ON
     -DENABLE_LTO=${ENABLE_LTO}
     -DJERRY_CMDLINE=OFF
     -DJERRY_CMDLINE_SNAPSHOT=ON
@@ -33,6 +33,7 @@ ExternalProject_Add(hostjerry
     -DJERRY_ERROR_MESSAGES=ON
     -DJERRY_SNAPSHOT_SAVE=${ENABLE_SNAPSHOT}
     -DJERRY_PROFILE=${JERRY_PROFILE}
+    -DJERRY_LINE_INFO=${JERRY_LINE_INFO}
     ${EXTRA_JERRY_CMAKE_PARAMS}
 
     # The snapshot tool does not require the system allocator
@@ -75,21 +76,22 @@ endif()
 
 # use system libm on Unix like targets
 if("${TARGET_OS}" MATCHES "TIZENRT|NUTTX")
-  list(APPEND JERRY_LIBS jerry-libm)
+  list(APPEND JERRY_LIBS jerry-math)
   list(APPEND DEPS_LIB_JERRY_ARGS
-    -DJERRY_LIBM=ON
+    -DJERRY_MATH=ON
     -DEXTERNAL_CMAKE_SYSTEM_PROCESSOR=${EXTERNAL_CMAKE_SYSTEM_PROCESSOR}
   )
 elseif("${TARGET_OS}" MATCHES "LINUX|TIZEN|DARWIN|OPENWRT")
   list(APPEND JERRY_LIBS m)
   list(APPEND DEPS_LIB_JERRY_ARGS
-    -DJERRY_LIBM=OFF)
+    -DJERRY_MATH=OFF)
 elseif("${TARGET_OS}" MATCHES "WINDOWS")
   list(APPEND DEPS_LIB_JERRY_ARGS
-    -DJERRY_LIBM=OFF)
+    -DJERRY_MATH=OFF)
 else()
-  list(APPEND JERRY_LIBS jerry-libm)
+  list(APPEND JERRY_LIBS jerry-math)
   list(APPEND DEPS_LIB_JERRY_ARGS
+    -DJERRY_MATH=ON
     -DEXTERNAL_CMAKE_SYSTEM_PROCESSOR=${EXTERNAL_CMAKE_SYSTEM_PROCESSOR}
   )
 endif()
@@ -116,7 +118,7 @@ add_cmake_arg(DEPS_LIB_JERRY_ARGS JERRY_ATTR_GLOBAL_HEAP)
 separate_arguments(EXTRA_JERRY_CMAKE_PARAMS)
 
 build_lib_name(JERRY_CORE_NAME jerry-core)
-build_lib_name(JERRY_LIBM_NAME jerry-libm)
+build_lib_name(JERRY_LIBM_NAME jerry-math)
 build_lib_name(JERRY_EXT_NAME jerry-ext)
 
 set(DEPS_LIB_JERRY deps/jerry)
@@ -134,7 +136,7 @@ ExternalProject_Add(libjerry
     -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
     -DCMAKE_BUILD_TYPE=${JERRY_CMAKE_BUILD_TYPE}
     -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
-    -DENABLE_ALL_IN_ONE=ON
+    -DENABLE_AMALGAM=ON
     -DJERRY_CMDLINE=OFF
     -DJERRY_SNAPSHOT_EXEC=${ENABLE_SNAPSHOT}
     -DJERRY_SNAPSHOT_SAVE=OFF
@@ -162,9 +164,9 @@ set_property(TARGET jerry-core PROPERTY
   IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/lib/${JERRY_CORE_NAME})
 
 # define external jerry-libm target
-add_library(jerry-libm STATIC IMPORTED)
-add_dependencies(jerry-libm libjerry)
-set_property(TARGET jerry-libm PROPERTY
+add_library(jerry-math STATIC IMPORTED)
+add_dependencies(jerry-math libjerry)
+set_property(TARGET jerry-math PROPERTY
   IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/lib/${JERRY_LIBM_NAME})
 
 # define external jerry-ext target

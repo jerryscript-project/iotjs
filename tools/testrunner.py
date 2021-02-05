@@ -38,6 +38,8 @@ from common_py.system.executor import Executor
 from common_py.system.executor import Terminal
 from common_py.system.sys_platform import Platform
 
+import util
+
 # Defines the folder that will contain the coverage info.
 # The path must be consistent with the measure_coverage.sh script.
 JS_COVERAGE_FOLDER = fs.join(path.PROJECT_ROOT, '.coverage_output')
@@ -352,6 +354,7 @@ def get_args():
 
 
 def main():
+    util.setup_stdio()
     options = get_args()
 
     testrunner = TestRunner(options)

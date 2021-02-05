@@ -94,6 +94,13 @@ if(CMAKE_C_COMPILER_ID MATCHES "MSVC")
   iotjs_add_compile_flags(-wd4668)
   # disable warning C4100: unreferenced formal parameter
   iotjs_add_compile_flags(-wd4100)
+  iotjs_add_compile_flags(-wd4242)
+  iotjs_add_compile_flags(-wd4244)
+  iotjs_add_compile_flags(-wd4996)
+  iotjs_add_compile_flags(-wd4061)
+  iotjs_add_compile_flags(-wd5045)
+  iotjs_add_compile_flags(-wd4701)
+  iotjs_add_compile_flags(-wd4710)
 endif()
 
 CHECK_C_COMPILER_FLAG(-no-pie HAS_NO_PIE)

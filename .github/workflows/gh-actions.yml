@@ -3,11 +3,135 @@ name: IoT.js CI
 on: [push, pull_request]
 
 env:
-  RUNNER: tools/travis_script.py
+  RUNNER: tools/ci_script.py
 
 jobs:
   "Linux-x86-64_Build_and_Correctness_Tests":
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - run: echo "Empty action"
+      - run: OPTS="host-linux" $RUNNER
+
+  "Mock_Linux_Build_and_Correctness_Tests":
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: OPTS="mock-linux" $RUNNER
+
+  "Linux-x86-64_Build_with_N-API_support_and_Correctness_Tests":
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: OPTS="n-api" $RUNNER
+
+  "Linux-x86-64_Build_with_N-API_ES_2015_support_and_Correctness_Tests":
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: OPTS="n-api-es2015-subset" $RUNNER
+
+  "Raspberry_Pi_2_Build_Test":
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: OPTS="rpi2" $RUNNER
+
+  "STM32f4_Discovery_with_Nuttx_Build_Test":
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: OPTS="stm32f4dis" $RUNNER
+
+  "Tizen_Build_Test":
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: OPTS="tizen" $RUNNER
+
+  "ECMAScript_2015_features_Build_and_Correctness_Tests":
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: OPTS="es2015" $RUNNER
+
+  "External_modules_Build_and_Correctness_Tests":
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: OPTS="external-modules" $RUNNER
+
+  "Linux-x86-64_without_snapshot_Build_and_Correctness_Tests":
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: OPTS="no-snapshot" $RUNNER
+
+  "Misc_checks_style_checker":
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v2
+      - run: sudo apt update
+      - run: sudo apt install -y npm clang-format-3.9
+      - run: npm install eslint
+      - run: OPTS="misc" $RUNNER
+
+  "OSX-x86-64_Build_and_Correctness_Tests":
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: OPTS="host-darwin" $RUNNER
+
+  "ASAN_Tests":
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: OPTS="asan" $RUNNER
+
+  "UBSAN_Tests":
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: OPTS="ubsan" $RUNNER
+
+  "Windows-x86_64":
+    runs-on: windows-latest
+    strategy:
+      matrix:
+       include:
+         - configuration: Debug
+         - configuration: Release
+    steps:
+      - run: |
+          git config --global core.autocrlf false
+          git config --global core.eol lf
+      - uses: actions/checkout@v2
+      - run: npm install
+      - run: python tools\build.py "--cmake-param=-GVisual Studio 16 2019"
+            --experimental
+            --buildtype=${{ matrix.configuration }}
+            --target-arch=x86_64
+            --run-test=full
+            --jerry-profile=es.next
+            --profile=test/profiles/host-windows.profile
+
+  "Windows-i686":
+    runs-on: windows-latest
+    strategy:
+      matrix:
+       include:
+         - configuration: Debug
+         - configuration: Release
+    steps:
+      - run: |
+          git config --global core.autocrlf false
+          git config --global core.eol lf
+      - uses: actions/checkout@v2
+      - run: npm install
+      - run: python tools\build.py "--cmake-param=-GVisual Studio 16 2019"
+            --experimental
+            --buildtype=${{ matrix.configuration }}
+            --target-arch=i686
+            --run-test=full
+            --jerry-cmake-param=-DJERRY_SYSTEM_ALLOCATOR=ON
+            --jerry-profile=es5.1
+            --profile=test/profiles/host-windows.profile

@@ -353,10 +353,6 @@ def build_iotjs(options):
     if options.jerry_heaplimit:
         cmake_opt.append('-DJERRY_GLOBAL_HEAP_SIZE=%d' %
                          options.jerry_heaplimit)
-        if options.jerry_heaplimit > 512:
-            cmake_opt.append("-DEXTRA_JERRY_CMAKE_PARAMS='%s'" %
-                             "-DJERRY_CPOINTER_32_BIT=ON")
-
     # --jerry-heap-section
     if options.jerry_heap_section:
         cmake_opt.append("-DJERRY_ATTR_GLOBAL_HEAP='%s'" %

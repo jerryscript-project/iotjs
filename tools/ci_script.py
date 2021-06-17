@@ -25,8 +25,8 @@ platform = Platform()
 
 DOCKER_ROOT_PATH = fs.join('/root')
 
-# IoT.js path in travis
-TRAVIS_BUILD_PATH = fs.join(os.environ['TRAVIS_BUILD_DIR'])
+# IoT.js path in host
+HOST_IOTJS_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
 # IoT.js path in docker
 DOCKER_IOTJS_PATH = fs.join(DOCKER_ROOT_PATH, 'work_space/iotjs')
@@ -68,20 +68,25 @@ def start_container():
 
 def run_docker():
     ex.check_run_cmd('docker', ['pull', DOCKER_TAG])
-    ex.check_run_cmd('docker', ['run', '-dit', '--privileged',
-                     '--name', DOCKER_NAME, '-v',
-                     '%s:%s' % (TRAVIS_BUILD_PATH, DOCKER_IOTJS_PATH),
+    try:
+        ex.check_run_cmd('docker', ['rm', '-f', DOCKER_NAME])
+    except:
+        pass
+    ex.check_run_cmd('docker', ['run', '-di', '--privileged',
+                     '--name', DOCKER_NAME,
+                     '-v', '%s:%s' % (HOST_IOTJS_PATH, DOCKER_IOTJS_PATH),
                      '--add-host', 'test.mosquitto.org:127.0.0.1',
                      '--add-host', 'echo.websocket.org:127.0.0.1',
                      '--add-host', 'httpbin.org:127.0.0.1',
                      DOCKER_TAG])
+    exec_docker(DOCKER_IOTJS_PATH, ['npm', 'install'])
 
 def exec_docker(cwd, cmd, env=[], is_background=False):
     exec_cmd = 'cd %s && ' % cwd + ' '.join(cmd)
     if is_background:
-        docker_args = ['exec', '-dit']
+        docker_args = ['exec', '-d']
     else:
-        docker_args = ['exec', '-it']
+        docker_args = ['exec', '-t']
 
     for e in env:
         docker_args.append('-e')
@@ -91,7 +96,7 @@ def exec_docker(cwd, cmd, env=[], is_background=False):
     ex.check_run_cmd('docker', docker_args)
 
 def start_mosquitto_server():
-    exec_docker(DOCKER_ROOT_PATH, ['mosquitto', '-d'])
+    exec_docker(DOCKER_ROOT_PATH, ['mosquitto', '-d'], [], True)
 
 def start_node_server():
     exec_docker(DOCKER_NODE_SERVER_PATH, ['node', 'server.js'], [], True)
@@ -133,16 +138,19 @@ def job_host_linux():
                     '--run-test=full',
                     '--profile=test/profiles/host-linux.profile'])
 
+# N-API should work with both ES5.1 and ES2015-subset JerryScript profiles
 @job('n-api')
 def job_n_api():
     start_container()
 
-    # N-API should work with both ES5.1 and ES2015-subset JerryScript profiles
     for buildtype in BUILDTYPES:
         build_iotjs(buildtype, [
                     '--run-test=full',
                     '--n-api'])
 
+@job('n-api-es2015-subset')
+def job_n_api():
+    start_container()
     for buildtype in BUILDTYPES:
         build_iotjs(buildtype, [
                     '--run-test=full',
@@ -220,7 +228,7 @@ def job_tizen():
 
 @job('misc')
 def job_misc():
-    ex.check_run_cmd('tools/check_signed_off.sh', ['--travis'])
+    # ex.check_run_cmd('tools/check_signed_off.sh', ['--travis'])
     ex.check_run_cmd('tools/check_tidy.py')
 
 @job('external-modules')

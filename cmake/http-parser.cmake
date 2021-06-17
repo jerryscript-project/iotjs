@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cmake_minimum_required(VERSION 2.8)
-
 if("${TARGET_OS}" MATCHES "NUTTX|TIZENRT")
   set(HTTPPARSER_NUTTX_ARG -DNUTTX_HOME=${TARGET_SYSTEMROOT})
 endif()
@@ -38,6 +36,7 @@ ExternalProject_Add(http-parser
     -DOS=${TARGET_OS}
     ${HTTPPARSER_NUTTX_ARG}
     -DENABLE_MEMORY_CONSTRAINTS=ON
+  BUILD_BYPRODUCTS ${CMAKE_BINARY_DIR}/lib/${HTTPPARSER_NAME}
 )
 add_library(libhttp-parser STATIC IMPORTED)
 add_dependencies(libhttp-parser http-parser)

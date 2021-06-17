@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.5)
 include(CheckCCompilerFlag)
 
 project(IOTJS C)
@@ -24,6 +24,13 @@ if(NOT DEFINED TARGET_OS)
   string(TOLOWER ${CMAKE_SYSTEM_NAME} TARGET_OS)
   message(
     "TARGET_OS not specified, using '${TARGET_OS}' from CMAKE_SYSTEM_NAME")
+endif()
+
+if(CMAKE_GENERATOR MATCHES "Visual Studio")
+  set(CONFIG_TYPE $<$<CONFIG:Debug>:Debug>)
+  set(CONFIG_TYPE ${CONFIG_TYPE}$<$<CONFIG:Release>:Release>)
+  set(CONFIG_TYPE ${CONFIG_TYPE}$<$<CONFIG:RelWithDebInfo>:RelWithDebInfo>)
+  set(CONFIG_TYPE ${CONFIG_TYPE}$<$<CONFIG:MinSizeRel>:MinSizeRel>)
 endif()
 
 if(NOT CMAKE_BUILD_TYPE)
@@ -48,6 +55,16 @@ if(NOT DEFINED ENABLE_LTO)
   set(ENABLE_LTO OFF)
 endif()
 
+if(NOT DEFINED JERRY_LINE_INFO)
+  if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
+    message("Line info default enabled in debug mode")
+    set(JERRY_LINE_INFO ON)
+  else()
+    message("Line info default disabled in non debug mode")
+    set(JERRY_LINE_INFO OFF)
+  endif()
+endif()
+
 macro(iotjs_add_flags VAR)
   foreach(_flag ${ARGN})
     set(${VAR} "${${VAR}} ${_flag}")
@@ -69,7 +86,6 @@ endmacro()
 
 if(CMAKE_C_COMPILER_ID MATCHES "MSVC")
   set(USING_MSVC 1)
-  set(CONFIG_TYPE $<$<CONFIG:Debug>:Debug>$<$<CONFIG:Release>:Release>)
   # disable warning C4820: 'x' bytes padding added after construct 'membername'
   iotjs_add_compile_flags(-wd4820)
   # disable warning C4668: 'symbol' is not defined as preprocessor macro,
@@ -78,6 +94,13 @@ if(CMAKE_C_COMPILER_ID MATCHES "MSVC")
   iotjs_add_compile_flags(-wd4668)
   # disable warning C4100: unreferenced formal parameter
   iotjs_add_compile_flags(-wd4100)
+  iotjs_add_compile_flags(-wd4242)
+  iotjs_add_compile_flags(-wd4244)
+  iotjs_add_compile_flags(-wd4996)
+  iotjs_add_compile_flags(-wd4061)
+  iotjs_add_compile_flags(-wd5045)
+  iotjs_add_compile_flags(-wd4701)
+  iotjs_add_compile_flags(-wd4710)
 endif()
 
 CHECK_C_COMPILER_FLAG(-no-pie HAS_NO_PIE)
@@ -88,8 +111,7 @@ if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
   if(HAS_NO_PIE AND NOT "${TARGET_OS}" STREQUAL "darwin")
     iotjs_add_link_flags(-no-pie)
   endif()
-else()
-
+elseif(HAS_NO_PIE)
   iotjs_add_compile_flags(-fPIE)
   if("${TARGET_OS}" STREQUAL "darwin")
       iotjs_add_link_flags(-Wl,-pie)
@@ -98,7 +120,7 @@ else()
   endif()
 endif()
 
-if (CREATE_SHARED_LIB)
+if (CREATE_SHARED_LIB AND NOT USING_MSVC)
   iotjs_add_compile_flags(-fPIC)
 endif()
 
@@ -180,10 +202,6 @@ elseif("${TARGET_OS}" STREQUAL "tizenrt")
   iotjs_add_compile_flags(-D__TIZENRT__ -Os -fno-strict-aliasing)
   iotjs_add_compile_flags(-fno-strength-reduce -fomit-frame-pointer)
 elseif("${TARGET_OS}" STREQUAL "windows")
-  message("Windows support is experimental!")
-  if(NOT EXPERIMENTAL)
-    message(FATAL_ERROR "Missing --experimental build option for Windows!")
-  endif()
 elseif("${TARGET_OS}" STREQUAL "openwrt")
   message("OpenWrt support is experimental!")
   if(NOT EXPERIMENTAL)

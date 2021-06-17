@@ -25,5 +25,27 @@ p.then(function (msg) {
   fulfill_ret = msg;
 });
 
+var timeoutTimer = setTimeout(function() {
+  resetTimers()
+}, 10000)
+
 // If Promise's fulfill worked well, assertion must be valid.
-setTimeout(function() { assert.equal(fulfill_ret, "Resolved"); }, 1000);
+var intervalTimer = setInterval(function() {
+  if (fulfill_ret) {
+    assert.equal(fulfill_ret, "Resolved");
+    resetTimers();
+  } else {
+    assert.equal(fulfill_ret, undefined);
+  }
+}, 100);
+
+function resetTimers() {
+  if (intervalTimer) {
+    clearInterval(intervalTimer)
+    intervalTimer = undefined
+  }
+  if (timeoutTimer) {
+    clearTimeout(timeoutTimer)
+    timeoutTimer = undefined
+  }
+}

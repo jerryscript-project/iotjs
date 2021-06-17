@@ -26,6 +26,7 @@ import struct
 from common_py.system.filesystem import FileSystem as fs
 from common_py import path
 
+src_root_dir = os.path.join(os.path.dirname(__file__), '..', 'src')
 
 def normalize_str(text):
     if not isinstance(text, str):
@@ -203,7 +204,9 @@ def get_snapshot_contents(js_path, snapshot_tool, literals=None):
     cmd = [snapshot_tool, "generate", "-o", snapshot_path]
     if literals:
         cmd.extend(["--static", "--load-literals-list-format", literals])
-    ret = subprocess.call(cmd + [wrapped_path])
+    wrapped_rel_path = os.path.relpath(wrapped_path, src_root_dir)
+    wrapped_rel_path = wrapped_rel_path.replace('\\', '/')
+    ret = subprocess.call(cmd + [wrapped_rel_path], cwd=src_root_dir)
 
     fs.remove(wrapped_path)
     if ret != 0:

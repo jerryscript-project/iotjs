@@ -27,6 +27,8 @@ import sys
 import re
 import os
 
+from distutils import spawn
+
 from common_py import path
 from common_py.system.filesystem import FileSystem as fs
 from common_py.system.executor import Executor as ex
@@ -289,9 +291,10 @@ def build_cmake_args(options):
     if options.target_os == 'tizenrt':
         include_dirs.append('%s/../framework/include/iotbus' % options.sysroot)
     elif options.target_os == 'windows':
-        cmake_args.append("-GVisual Studio 15 2017")
         if options.target_arch == "x86_64":
             cmake_args.append("-Ax64")
+        elif options.target_arch == "i686":
+            cmake_args.append("-AWin32")
 
     include_dirs.extend(options.external_include_dir)
     cmake_args.append("-DEXTERNAL_INCLUDE_DIR='%s'" % (' '.join(include_dirs)))
@@ -351,10 +354,6 @@ def build_iotjs(options):
     if options.jerry_heaplimit:
         cmake_opt.append('-DJERRY_GLOBAL_HEAP_SIZE=%d' %
                          options.jerry_heaplimit)
-        if options.jerry_heaplimit > 512:
-            cmake_opt.append("-DEXTRA_JERRY_CMAKE_PARAMS='%s'" %
-                             "-DJERRY_CPOINTER_32_BIT=ON")
-
     # --jerry-heap-section
     if options.jerry_heap_section:
         cmake_opt.append("-DJERRY_ATTR_GLOBAL_HEAP='%s'" %
@@ -395,7 +394,7 @@ def build_iotjs(options):
     ex.check_run_cmd('cmake', cmake_opt)
 
     if options.target_os == 'windows':
-        print("\nPlease open the iot.js solution file in Visual Studio!")
+        ex.check_run_cmd('cmake', ['--build', options.build_root, '--config', options.buildtype])
     else:
         run_make(options, options.build_root)
 
@@ -403,20 +402,34 @@ def build_iotjs(options):
 def run_checktest(options):
     # IoT.js executable
     iotjs = fs.join(options.build_root, 'bin', 'iotjs')
-
-    cmd = fs.join(path.TOOLS_ROOT, 'testrunner.py')
+    if options.target_os == 'windows':
+        iotjs = fs.join(options.build_root, 'bin', options.buildtype, 'iotjs')
+    cmd = sys.executable
+    testrunner_script  = fs.join(path.TOOLS_ROOT, 'testrunner.py')
     args = [iotjs, "--platform=%s" % options.target_os]
 
     if options.run_test == "quiet":
         args.append('--quiet')
 
     fs.chdir(path.PROJECT_ROOT)
-    code = ex.run_cmd(cmd, args)
+    env = os.environ.copy()
+    if (options.target_tuple == 'i686-linux') and \
+        (options.host_tuple != options.target_tuple):
+        old = env.get("LD_LIBRARY_PATH")
+        if old:
+            env["LD_LIBRARY_PATH"] = old + ":/usr/i686-linux-gnu/lib"
+        else:
+            env["LD_LIBRARY_PATH"] = "/usr/i686-linux-gnu/lib"
+        if spawn.find_executable('i686-linux-gnu-gcc'):
+            env['CC'] = 'i686-linux-gnu-gcc'
+            env['CXX'] = 'i686-linux-gnu-g++'
+
+    code = ex.run_cmd(cmd, [testrunner_script] + args, env=env)
     if code != 0:
         ex.fail('Failed to pass unit tests')
 
-    if not options.no_check_valgrind:
-        code = ex.run_cmd(cmd, ['--valgrind'] + args)
+    if not options.no_check_valgrind and options.target_os != 'windows':
+        code = ex.run_cmd(cmd, [testrunner_script, '--valgrind'] + args, env=env)
         if code != 0:
             ex.fail('Failed to pass unit tests in valgrind environment')
 
@@ -452,7 +465,9 @@ if __name__ == '__main__':
               (options.host_tuple == 'x86_64-linux' and
                options.target_tuple == 'i686-linux') or
               (options.host_tuple == 'x86_64-linux' and
-               options.target_tuple == 'x86_64-mock')):
+               options.target_tuple == 'x86_64-mock') or
+              (options.host_tuple == 'x86_64-windows' and
+               options.target_tuple == 'i686-windows')):
              run_checktest(options)
         else:
             print("Skip unit tests - target-host pair is not allowed\n")

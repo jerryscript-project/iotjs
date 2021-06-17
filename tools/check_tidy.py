@@ -44,7 +44,7 @@ def parse_option():
 
 class StyleChecker(object):
 
-    column_limit = 80
+    column_limit = 120
 
     def __init__(self):
         self.count_lines = 0

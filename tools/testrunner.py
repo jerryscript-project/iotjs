@@ -38,6 +38,8 @@ from common_py.system.executor import Executor
 from common_py.system.executor import Terminal
 from common_py.system.sys_platform import Platform
 
+import util
+
 # Defines the folder that will contain the coverage info.
 # The path must be consistent with the measure_coverage.sh script.
 JS_COVERAGE_FOLDER = fs.join(path.PROJECT_ROOT, '.coverage_output')
@@ -158,6 +160,7 @@ class TestRunner(object):
         # Process the iotjs build information.
         iotjs_output = Executor.check_run_cmd_output(self.iotjs,
                                                      [path.BUILD_INFO_PATH])
+        print("IoT.js build info:" + iotjs_output.decode('utf8', 'ignore'))
         build_info = json.loads(iotjs_output)
 
         self.builtins = set(build_info["builtins"])
@@ -180,7 +183,13 @@ class TestRunner(object):
         cmd = ['--debug'] if self.debug else ['--release']
         if self.platform == 'windows':
             node_gyp += '.cmd'
-            cmd.append('--arch=x64' if self.arch == 'x64' else '--arch=ia32')
+        if self.arch == 'x64':
+            cmd.append('--arch=x64')
+        elif self.arch == 'ia32':
+            cmd.append('--arch=ia32')
+        elif self.arch:
+            raise Exception(self.arch + " not supported")
+
         Executor.check_run_cmd(node_gyp, ['rebuild'] + cmd,
                                cwd=project_root)
 
@@ -345,6 +354,7 @@ def get_args():
 
 
 def main():
+    util.setup_stdio()
     options = get_args()
 
     testrunner = TestRunner(options)

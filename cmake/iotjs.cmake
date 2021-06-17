@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cmake_minimum_required(VERSION 2.8)
-
 if(NOT DEFINED PYTHON)
   set(PYTHON "python")
 endif()
@@ -352,7 +350,7 @@ endforeach()
 iotjs_add_compile_flags(-Wall)
 if(NOT USING_MSVC)
   iotjs_add_compile_flags(-Wextra -Werror -Wno-unused-parameter)
-  iotjs_add_compile_flags(-Wsign-conversion -std=gnu99)
+  iotjs_add_compile_flags(-Wno-sizeof-pointer-memaccess -Wno-unused-variable)
 endif()
 
 if(ENABLE_SNAPSHOT)
@@ -448,11 +446,11 @@ set(IOTJS_INCLUDE_DIRS
 
 if(NOT BUILD_LIB_ONLY)
   if("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
-    iotjs_add_link_flags("-Xlinker -map -Xlinker iotjs.map")
+    iotjs_add_link_flags(-Wl,-map,iotjs.map)
   elseif(USING_MSVC)
-    iotjs_add_link_flags("/MAP:iotjs.map")
+    iotjs_add_link_flags("-MAP:iotjs.map")
   else()
-    iotjs_add_link_flags("-Xlinker -Map -Xlinker iotjs.map")
+    iotjs_add_link_flags(-Xlinker -Map=iotjs.map)
   endif()
 endif()
 
@@ -515,37 +513,30 @@ else()
     file(READ "${IOTJS_SOURCE_DIR}/napi/node_symbols.txt" NODE_SYMBOLS)
     string(REGEX REPLACE "[\r|\n]" ";" NODE_SYMBOLS "${NODE_SYMBOLS}")
 
-    if(USING_MSVC)
-      set(NODE_SYMBOL_SEPARATOR " /INCLUDE:")
-      if("${TARGET_ARCH}" STREQUAL "i686")
-        set(NODE_SYMBOL_SEPARATOR "${NODE_SYMBOL_SEPARATOR}_")
-      endif()
-    else()
-      set(NODE_SYMBOLS_LINK_FLAGS "-Wl")
-      set(NODE_SYMBOL_SEPARATOR ",-u,")
-    endif()
-
     foreach(NODE_SYMBOL ${NODE_SYMBOLS})
-      set(NODE_SYMBOLS_LINK_FLAGS
-          "${NODE_SYMBOLS_LINK_FLAGS}${NODE_SYMBOL_SEPARATOR}${NODE_SYMBOL}")
-    endforeach()
-
-    iotjs_add_link_flags(${NODE_SYMBOLS_LINK_FLAGS})
+      if(USING_MSVC)
+        if("${TARGET_ARCH}" STREQUAL "i686")
+          iotjs_add_link_flags("/INCLUDE:_${NODE_SYMBOL}")
+        else()
+          iotjs_add_link_flags("/INCLUDE:${NODE_SYMBOL}")
+        endif()
+      else()
+        if("${TARGET_OS}" STREQUAL "DARWIN")
+          iotjs_add_link_flags("-Wl,-u,_${NODE_SYMBOL}")
+        else()
+          iotjs_add_link_flags("-Wl,-u,${NODE_SYMBOL}")
+        endif()
+      endif()
+   endforeach()
   endif()
 endif(CREATE_SHARED_LIB)
-
-add_dependencies(${TARGET_LIB_IOTJS}
-  ${JERRY_LIBS}
-  ${TUV_LIBS}
-  libhttp-parser
-  ${MBEDTLS_LIBS}
-)
 
 set_target_properties(${TARGET_LIB_IOTJS} PROPERTIES
   OUTPUT_NAME iotjs
   ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
   LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
   PUBLIC_HEADER "${IOTJS_PUBLIC_HEADERS}"
+  C_STANDARD 99
 )
 target_include_directories(${TARGET_LIB_IOTJS}
   PRIVATE ${IOTJS_INCLUDE_DIRS})
@@ -570,6 +561,9 @@ endif()
 if(NOT BUILD_LIB_ONLY)
   set(TARGET_IOTJS iotjs)
   message(STATUS "CMAKE_BINARY_DIR        ${CMAKE_BINARY_DIR}")
+  if (NOT INSTALL_PREFIX)
+    set(INSTALL_PREFIX ${CMAKE_BINARY_DIR}/install)
+  endif()
   message(STATUS "BINARY_INSTALL_DIR      ${INSTALL_PREFIX}/bin")
   message(STATUS "LIBRARY_INSTALL_DIR     ${INSTALL_PREFIX}/lib")
 

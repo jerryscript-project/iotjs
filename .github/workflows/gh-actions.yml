@@ -1,0 +1,13 @@
+name: IoT.js CI
+
+on: [push, pull_request]
+
+env:
+  RUNNER: tools/travis_script.py
+
+jobs:
+  "Linux-x86-64_Build_and_Correctness_Tests":
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: echo "Empty action"
